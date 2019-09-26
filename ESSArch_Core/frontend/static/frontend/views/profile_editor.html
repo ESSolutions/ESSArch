@@ -213,7 +213,7 @@
             {{'SAVE' | translate}} <i ng-if="vm.savingProfileModel" class="fas fa-spinner fa-spin"></i>
           </button>
           <button
-            ng-if="vm.profileFields.length && !vm.disabled"
+            ng-if="vm.profileFields.length"
             ng-click="vm.cancel()"
             class="btn btn-default"
             ng-disabled="vm.savingProfileModel"

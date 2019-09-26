@@ -22,5 +22,6 @@ export default {
     ip: '<',
     sa: '<',
     shareData: '&',
+    disabled: '<',
   },
 };

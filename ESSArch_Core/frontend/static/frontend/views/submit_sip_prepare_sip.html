@@ -19,7 +19,7 @@
             ng-keydown="vm.contentViewsKeydownListener($event)"
           >
             <div ng-if="ip !== null && ips.length == 0" id="edit-veiw" class="edit-view">
-              <profile-editor ng-if="ip.state != 'Submitted'" ip="ip"></profile-editor>
+              <profile-editor disabled="true" ng-if="ip.state != 'Submitted'" ip="ip"></profile-editor>
               <div class="package-information">
                 <h4>{{'PACKAGEINFORMATION'| translate}}</h4>
                 <form novalidate>
