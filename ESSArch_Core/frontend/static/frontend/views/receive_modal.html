@@ -2,7 +2,12 @@
   <h3 class="modal-title" id="modal-title">{{'RECEIVE' | translate}}: {{ip.object_identifier_value}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <profile-editor ng-if="profileEditor" ip="ip" share-data="vm.getProfileData($event)"></profile-editor>
+  <profile-editor
+    disabled="true"
+    ng-if="profileEditor"
+    ip="ip"
+    share-data="vm.getProfileData($event)"
+  ></profile-editor>
   <div ng-if="requestForm" class="request-layout">
     <form id="request-form" name="vm.form" class="request-form" ng-submit="vm.receive(ips[0])">
       <div class="request-type">
