@@ -39,6 +39,7 @@ export default class ReceptionCtrl {
     $controller,
     ContextMenuBase,
     SelectedIPUpdater,
+    $filter,
     $transitions
   ) {
     const vm = this;
@@ -306,17 +307,17 @@ export default class ReceptionCtrl {
 
     $scope.buildSdForm = function(ip) {
       vm.sdModel = {
-        start_date: ip.start_date,
-        end_date: ip.end_date,
-        archivist_organization: ip.archivist_organization ? ip.archivist_organization.name : null,
-        creator: ip.creator_organization,
-        submitter_organization: ip.submitter_organization,
-        submitter_individual: ip.submitter_individual,
-        producer_organization: ip.producer_organization,
-        producer_individual: ip.producer_individual,
-        ip_owner: ip.ipowner_organization,
-        preservation_organization: ip.preservation_organization,
-        system_name: ip.system_name,
+        start_date: $filter('date')(ip.start_date, 'yyyy-MM-dd'),
+        end_date: $filter('date')(ip.end_date, 'yyyy-MM-dd'),
+        archivist_organization: ip.agents.ARCHIVIST_ORGANIZATION.name,
+        creator: ip.agents.CREATOR_ORGANIZATION.name,
+        submitter_organization: ip.agents.SUBMITTER_ORGANIZATION.name,
+        submitter_individual: ip.agents.SUBMITTER_INDIVIDUAL.name,
+        producer_organization: ip.agents.PRODUCER_ORGANIZATION.name,
+        producer_individual: ip.agents.PRODUCER_INDIVIDUAL.name,
+        ip_owner: ip.agents.IPOWNER_ORGANIZATION.name,
+        preservation_organization: ip.agents.PRESERVATION_ORGANIZATION.name,
+        system_name: ip.agents.ARCHIVIST_SOFTWARE.name,
         system_version: ip.system_version,
         system_type: ip.system_type,
       };

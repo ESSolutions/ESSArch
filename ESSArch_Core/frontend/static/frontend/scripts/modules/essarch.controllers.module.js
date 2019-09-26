@@ -749,6 +749,7 @@ export default angular
     '$controller',
     'ContextMenuBase',
     'SelectedIPUpdater',
+    '$filter',
     '$transitions',
     ReceptionCtrl,
   ])
