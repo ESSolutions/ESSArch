@@ -12,33 +12,8 @@
         expanded-nodes="expandedNodes"
         style="float:left;"
       >
-        <span class="tree-edit-item" context-menu="treeEditOptions(item)" treednd>{{node.name}}</span>
+        <span class="tree-edit-item">{{node.name}}</span>
       </treecontrol>
     </div>
-    <div ng-show="addMode.active || updateMode.active" class="add-node-form-wrapper">
-      <form class="add-node-form" name="vm.treeEditForm">
-        <formly-form model="vm.treeEditModel" fields="vm.treeEditFields" options="vm.editTreeOptions"> </formly-form>
-        <div class="form-group">
-          <button ng-show="addMode.active" ng-click="treeEditSubmit(currentNode)" class="btn btn-primary">
-            {{'ADD' | translate}}
-          </button>
-          <button ng-show="updateMode.active" ng-click="treeEditSubmit(currentNode)" class="btn btn-primary">
-            {{'UPDATE' | translate}}
-          </button>
-          <button ng-show="updateMode.active" class="btn btn-primary" ng-click="exitUpdateMode()">
-            {{'CANCEL' | translate}}
-          </button>
-          <button ng-show="addMode.active" class="btn btn-primary" ng-click="exitAddMode()">
-            {{'CANCEL' | translate}}
-          </button>
-        </div>
-      </form>
-    </div>
   </div>
-  <button
-    class="btn btn-primary"
-    ng-if="vm.save"
-    ng-click="vm.save(treeElements[0].children)"
-    translate="SAVE"
-  ></button>
 </div>
