@@ -23,7 +23,18 @@
 */
 
 export default class ModalInstanceCtrl {
-  constructor($uibModalInstance, djangoAuth, data, $http, Notifications, IP, appConfig, listViewService, $translate) {
+  constructor(
+    $uibModalInstance,
+    djangoAuth,
+    data,
+    $http,
+    Notifications,
+    IP,
+    appConfig,
+    listViewService,
+    $translate,
+    $rootScope
+  ) {
     const $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -34,6 +45,13 @@ export default class ModalInstanceCtrl {
     if (data && data.field) {
       $ctrl.field = data.field;
     }
+
+    $rootScope.$on('CLOSE_QUESTIONMARK_MODAL', () => {
+      if (data.questionMark) {
+        $ctrl.cancel();
+      }
+    });
+
     $ctrl.editMode = false;
     $ctrl.error_messages_old = [];
     $ctrl.error_messages_pw1 = [];

@@ -552,6 +552,7 @@ export default angular
     'appConfig',
     'listViewService',
     '$translate',
+    '$rootScope',
     ModalInstanceCtrl,
   ])
   .controller('MoveToApprovalModalInstanceCtrl', [

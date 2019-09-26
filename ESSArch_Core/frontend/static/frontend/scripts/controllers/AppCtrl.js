@@ -3,6 +3,7 @@ export default class AppCtrl {
   constructor($rootScope, $scope, $uibModal, $log, PermPermissionStore) {
     const vm = this;
     const questionMark = 187;
+    let questionMarkModalOpen = false;
     vm.questionMarkListener = function(e) {
       if (e.shiftKey) {
         $('#list-view *').attr('UNSELECTABLE', 'on');
@@ -15,7 +16,9 @@ export default class AppCtrl {
           'user-select': 'none',
         });
         let activeElementName = document.activeElement.nodeName;
-        if (e.keyCode === questionMark && activeElementName !== 'INPUT' && activeElementName !== 'TEXTAREA') {
+        if (questionMarkModalOpen) {
+          $rootScope.$broadcast('CLOSE_QUESTIONMARK_MODAL');
+        } else if (e.keyCode === questionMark && activeElementName !== 'INPUT' && activeElementName !== 'TEXTAREA') {
           $scope.keyboardShortcutModal();
         }
       }
@@ -41,6 +44,7 @@ export default class AppCtrl {
 
     //Create and show modal for keyboard shortcuts
     $scope.keyboardShortcutModal = function() {
+      questionMarkModalOpen = true;
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -49,13 +53,17 @@ export default class AppCtrl {
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: {},
+          data: {
+            questionMark: true,
+          },
         },
       });
       modalInstance.result.then(
-        function(data) {},
+        function(data) {
+          questionMarkModalOpen = false;
+        },
         function() {
-          $log.info('modal-component dismissed at: ' + new Date());
+          questionMarkModalOpen = false;
         }
       );
     };
