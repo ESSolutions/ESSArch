@@ -8,5 +8,5 @@
   tooltip-placement="auto top"
   tooltip-append-to-body="true"
 >
-  <b>{{ row.branch[col.field] + "%" }}</b>
+  <b>{{row.branch[col.field] | number : 0}}%</b>
 </uib-progressbar>

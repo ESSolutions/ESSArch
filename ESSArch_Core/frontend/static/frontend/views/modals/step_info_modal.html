@@ -68,7 +68,7 @@
       tooltip-placement="auto top"
       tooltip-append-to-body="true"
     >
-      <b>{{ currentStepTask.progress + "%" }}</b>
+      <b>{{ currentStepTask.progress | number : 0 }}%</b>
     </uib-progressbar>
     <div class="py-2">
       <label>{{ "CREATED" | translate }}:</label>
