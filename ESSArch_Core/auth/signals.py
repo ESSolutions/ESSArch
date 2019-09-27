@@ -155,7 +155,7 @@ def notification_post_save(sender, instance, created, **kwargs):
         return
 
     channel_layer = channels.layers.get_channel_layer()
-    grp = 'notifications_{}'.format(instance.user.username)
+    grp = 'notifications_{}'.format(instance.user.pk)
     async_to_sync(channel_layer.group_send)(grp, {
         'type': 'notify',
         'id': instance.id,
