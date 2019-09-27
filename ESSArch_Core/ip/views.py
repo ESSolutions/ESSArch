@@ -2648,6 +2648,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         self.validate_workarea(workarea)
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
         force_download = request.query_params.get('download', False)
