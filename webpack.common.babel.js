@@ -8,16 +8,23 @@ const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 const basedir = path.resolve(__dirname, 'ESSArch_Core/frontend/static/frontend');
 
 module.exports = (env, argv) => {
+  mode = argv.mode || 'development';
   return {
     entry: './ESSArch_Core/frontend/static/frontend/scripts/index.ts',
-    output: {
-      filename: '[name]-[chunkhash].js',
-      path: path.resolve(basedir, 'build'),
-    },
-    mode: argv.mode,
-    devtool: 'source-map',
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    },
+    optimization: {
+      runtimeChunk: 'single',
+      splitChunks: {
+        cacheGroups: {
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      },
     },
     module: {
       rules: [
@@ -38,7 +45,19 @@ module.exports = (env, argv) => {
             },
           ],
         },
-        {test: /\.tsx?$/, use: 'ts-loader'},
+        {
+          test: /\.tsx?$/,
+          use: [
+            {
+              loader: 'ts-loader',
+              options: {
+                transpileOnly: true,
+                experimentalWatchApi: true,
+              },
+            },
+          ],
+        },
+
         {
           test: /\.js$/,
           include: [
@@ -93,7 +112,7 @@ module.exports = (env, argv) => {
           use: [
             {
               loader: 'ng-package-constants-loader',
-              options: {configKey: argv.mode, moduleName: 'essarch.appConfig', wrap: 'es6'},
+              options: {configKey: mode, moduleName: 'essarch.appConfig', wrap: 'es6'},
             },
           ],
           type: 'javascript/auto',
@@ -114,24 +133,9 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new MiniCssExtractPlugin({
-        filename: '[name]-[hash].css',
-        chunkFilename: '[id]-[hash].css',
+        filename: '[name].css',
       }),
       new ManifestPlugin({fileName: 'rev-manifest.json'}),
-      new CleanWebpackPlugin(),
-      new OptimizeCssnanoPlugin({
-        sourceMap: true,
-        cssnanoOptions: {
-          preset: [
-            'default',
-            {
-              discardComments: {
-                removeAll: true,
-              },
-            },
-          ],
-        },
-      }),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       new webpack.DefinePlugin({'process.env': {LATER_COV: false}}),
     ],

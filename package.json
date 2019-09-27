@@ -61,6 +61,7 @@
     "eslint-plugin-prettier": "^3.1.0",
     "expose-loader": "^0.7.5",
     "file-loader": "^4.2.0",
+    "fork-ts-checker-webpack-plugin": "^1.5.0",
     "html-loader": "^0.5.5",
     "imports-loader": "^0.8.0",
     "jasmine-core": "^3.4.0",
@@ -103,12 +104,13 @@
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.8",
     "webpack-dev-server": "^3.8.0",
-    "webpack-manifest-plugin": "^2.0.4"
+    "webpack-manifest-plugin": "^2.0.4",
+    "webpack-merge": "^4.2.2"
   },
   "scripts": {
-    "build:dev": "webpack --mode=development --progress",
-    "build:prod": "webpack --mode=production --progress",
-    "build:watch": "webpack --mode=development --progress --watch",
+    "build:dev": "webpack --config webpack.dev.babel.js --progress",
+    "build:prod": "webpack --config webpack.prod.babel.js --mode=production --progress",
+    "build:watch": "webpack --config webpack.dev.babel.js --progress --watch",
     "test": "karma start karma.conf.js --single-run --reporters spec",
     "test-watch": "karma start karma.conf.js --reporters spec",
     "preupdate-webdriver": "yarn",
