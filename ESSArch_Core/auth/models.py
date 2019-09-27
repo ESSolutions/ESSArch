@@ -191,6 +191,14 @@ class Group(GroupMixin):
     def subgroups(self):
         return self.sub_essauth_group_set
 
+    def get_users(self, subgroups=True):
+        if subgroups:
+            return DjangoUser.objects.filter(
+                essauth_member__essauth_groups__in=self.get_descendants(include_self=True)
+            )
+        else:
+            return DjangoUser.objects.filter(essauth_member__essauth_groups__=self)
+
     def add_object(self, obj):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
