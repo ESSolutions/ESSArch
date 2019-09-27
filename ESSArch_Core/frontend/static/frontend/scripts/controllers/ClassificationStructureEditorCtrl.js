@@ -722,7 +722,7 @@ export default class ClassificationStructureEditorCtrl {
       modalInstance.result.then(
         function(data) {
           vm.structure = null;
-          $timeout(function() {
+          vm.updateStructures().then(() => {
             vm.structureClick(structure);
           });
         },
