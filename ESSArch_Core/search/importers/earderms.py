@@ -119,12 +119,12 @@ class EardErmsImporter(BaseImporter):
             task_id=str(self.task.pk),
         )
 
-        tag = Tag(information_package=ip, task=self.task)
-        tag_version = TagVersion(pk=d.meta.id, tag=tag,
-                                 elastic_index=d._index._name,
-                                 name=d.name, type=d.type,
-                                 reference_code='')
-        tag_repr = TagStructure(
+        tag = Tag.objects.create(information_package=ip, task=self.task)
+        tag_version = TagVersion.objects.create(pk=d.meta.id, tag=tag,
+                                                elastic_index=d._index._name,
+                                                name=d.name, type=d.type,
+                                                reference_code='')
+        tag_repr = TagStructure.objects.create(
             tag=tag,
             parent=parent,
             structure=parent.structure,
@@ -364,13 +364,13 @@ class EardErmsImporter(BaseImporter):
         for act_el in acts_root.xpath("*[local-name()='ArkivobjektHandling']"):
             act = self.parse_act(act_el, errand)
 
-            tag = Tag(information_package=ip, task=self.task)
+            tag = Tag.objects.create(information_package=ip, task=self.task)
             tag_version_type, _ = TagVersionType.objects.get_or_create(name=act.type)
-            tag_version = TagVersion(pk=act.meta.id, tag=tag,
-                                     elastic_index=act._index._name,
-                                     name=act.name, type=tag_version_type,
-                                     reference_code=act.reference_code)
-            tag_repr = TagStructure(
+            tag_version = TagVersion.objects.create(pk=act.meta.id, tag=tag,
+                                                    elastic_index=act._index._name,
+                                                    name=act.name, type=tag_version_type,
+                                                    reference_code=act.reference_code)
+            tag_repr = TagStructure.objects.create(
                 tag=tag,
                 parent=parent,
                 structure=parent.structure,
@@ -480,13 +480,13 @@ class EardErmsImporter(BaseImporter):
         structure = archive_structure.structure
         for errand in self.get_arkiv_objekt_arenden(errands_root):
             component, structure_unit = self.parse_errand(errand, archive, ip, structure)
-            tag = Tag(information_package=ip, task=self.task)
+            tag = Tag.objects.create(information_package=ip, task=self.task)
             tag_version_type, _ = TagVersionType.objects.get_or_create(name=component.type)
-            tag_version = TagVersion(pk=component.meta.id, tag=tag,
-                                     elastic_index=component._index._name,
-                                     name=component.name, type=tag_version_type,
-                                     reference_code=component.reference_code)
-            tag_repr = TagStructure(
+            tag_version = TagVersion.objects.create(pk=component.meta.id, tag=tag,
+                                                    elastic_index=component._index._name,
+                                                    name=component.name, type=tag_version_type,
+                                                    reference_code=component.reference_code)
+            tag_repr = TagStructure.objects.create(
                 tag=tag,
                 structure_unit=structure_unit,
                 structure=structure,
@@ -523,11 +523,11 @@ class EardErmsImporter(BaseImporter):
 
         self.cleanup_elasticsearch(self.task)
 
-        tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
-        self.task.update_progress(50)
+        with transaction.atomic():
+            with TagStructure.objects.delay_mptt_updates():
+                tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
 
-        self.save_to_database(tags, tag_versions, tag_structures, archive)
-        self.task.update_progress(75)
+            self.task.update_progress(50)
 
         total = None
         if self.task is not None:
@@ -552,11 +552,7 @@ class EardErmsImporter(BaseImporter):
 
     def save_to_database(self, tags, tag_versions, tag_structures, archive):
         logger.debug("Saving to Database...")
-        Tag.objects.bulk_create(tags, batch_size=100)
-        TagVersion.objects.bulk_create(tag_versions, batch_size=100)
         with transaction.atomic():
-            with TagStructure.objects.disable_mptt_updates():
-                TagStructure.objects.bulk_create(tag_structures, batch_size=100)
             logger.debug("Rebuilding tree...")
             TagStructure.objects.partial_rebuild(archive.get_active_structure().tree_id)
 
