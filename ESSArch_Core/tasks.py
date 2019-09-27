@@ -88,6 +88,20 @@ User = get_user_model()
 redis = get_redis_connection()
 
 
+class Notify(DBTask):
+    def run(self, message, level, refresh, recipient=None):
+        message, = self.parse_params(message)
+        if recipient is None:
+            recipient = User.objects.get(pk=self.responsible)
+
+        Notification.objects.create(
+            message=message,
+            level=level,
+            user=recipient,
+            refresh=refresh
+        )
+
+
 class GenerateXML(DBTask):
     event_type = 50600
 

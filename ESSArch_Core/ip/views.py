@@ -1310,6 +1310,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 ],
             },
             {
+                "name": "ESSArch_Core.tasks.Notify",
+                "label": "Notify responsible user",
+                "args": [
+                    "{{OBJID}} is now preserved",
+                    logging.INFO,
+                    True,
+                ],
+            },
+            {
                 "name": "ESSArch_Core.tasks.DeleteFiles",
                 "label": "Delete from reception",
                 "args": [ip_reception_path]
