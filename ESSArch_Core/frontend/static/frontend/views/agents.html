@@ -789,6 +789,14 @@
                     </b>
                   </div>
                   <div class="pt-base" ng-bind-html="x.text"></div>
+                  <div ng-if="x.href && x.href !== ''">
+                    <label>
+                      {{'ACCESS.HREF' | translate}}:&nbsp;
+                    </label>
+                    <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
+                      {{x.href}}
+                    </a>
+                  </div>
                 </div>
                 <div ng-if="vm.agent.history.length <= 0" class="empty-table-indicator text-center">
                   {{'ACCESS.NO_HISTORY' | translate}}
@@ -868,6 +876,14 @@
                     </b>
                   </div>
                   <div class="pt-base" ng-bind-html="x.text"></div>
+                  <div ng-if="x.href && x.href !== ''">
+                    <label>
+                      {{'ACCESS.HREF' | translate}}:&nbsp;
+                    </label>
+                    <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
+                      {{x.href}}
+                    </a>
+                  </div>
                 </div>
                 <div ng-if="vm.agent.remarks.length <= 0" class="empty-table-indicator text-center">
                   {{'ACCESS.NO_REMARKS' | translate}}
