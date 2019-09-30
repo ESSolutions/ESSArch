@@ -2015,6 +2015,7 @@ class Workarea(models.Model):
             ('preserve_from_access_workarea', 'Can preserve IP from access workarea'),
         )
 
+
 class OrderType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
 

@@ -38,6 +38,7 @@ from ESSArch_Core.tags.serializers import TransferSerializer
 User = get_user_model()
 VERSION = get_versions()['version']
 
+
 class OrderTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderType
