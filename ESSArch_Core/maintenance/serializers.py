@@ -67,15 +67,6 @@ class AppraisalJobSerializer(MaintenanceJobSerializer):
 
 
 class ConversionRuleSerializer(MaintenanceRuleSerializer):
-    def validate_specification(self, value):
-        """
-        Ensure that the specification is not empty
-        """
-
-        if not value:
-            raise serializers.ValidationError("Specification cannot be empty")
-        return value
-
     class Meta(MaintenanceRuleSerializer.Meta):
         model = ConversionRule
 
