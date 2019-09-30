@@ -25,6 +25,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='order',
             name='consign_method',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='ip.ConsignMethod', verbose_name='consign method'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='ip.ConsignMethod', verbose_name='consign method'),
         ),
     ]

@@ -2053,7 +2053,7 @@ class Order(models.Model):
     phone = models.CharField(max_length=255, blank=True)
     order_content = models.TextField(blank=True)
     consign_method = models.ForeignKey(
-        'ip.ConsignMethod', on_delete=models.PROTECT, null=True, blank=True, verbose_name=_('consign method')
+        'ip.ConsignMethod', on_delete=models.PROTECT, null=True, verbose_name=_('consign method')
     )
 
     class Meta:
