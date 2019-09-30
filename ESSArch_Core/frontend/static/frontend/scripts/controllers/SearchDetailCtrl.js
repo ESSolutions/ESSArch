@@ -1311,7 +1311,7 @@ export default class SearchDetailCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'modals/change_node_organization.html',
+        templateUrl: 'static/frontend/views/modals/change_node_organization.html',
         controller: 'NodeOrganizationModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
