@@ -664,7 +664,6 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         org = serializer.validated_data['organization']
 
         ctype = ContentType.objects.get_for_model(tag)
-        self._update_tag_metadata(tag, {'organization_group': org.pk})
         GroupGenericObjects.objects.update_or_create(object_id=tag.pk, content_type=ctype,
                                                      defaults={'group': org})
         return Response()
