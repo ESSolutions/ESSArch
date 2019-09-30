@@ -1,10 +1,9 @@
 <div class="modal-heading">
   <h3 class="modal-title" id="modal-title">{{'NEWORDER' | translate}}</h3>
 </div>
-<form ng-submit="$ctrl.newOrder($ctrl.label)">
+<form ng-submit="$ctrl.newOrder($ctrl.order)">
   <div class="modal-body" id="modal-body">
-    <label for="label">{{'LABEL' | translate}}</label>
-    <input required focused="true" id="label" class="form-control" ng-model="$ctrl.label" />
+    <formly-form model="$ctrl.order" fields="$ctrl.fields"></formly-form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.creatingOrder">

@@ -2015,12 +2015,45 @@ class Workarea(models.Model):
             ('preserve_from_access_workarea', 'Can preserve IP from access workarea'),
         )
 
+class OrderType(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('order type')
+        verbose_name_plural = _('order types')
+
+
+class ConsignMethod(models.Model):
+    name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('consign method')
+        verbose_name_plural = _('consign methods')
+
 
 class Order(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     label = models.CharField(max_length=255)
     responsible = models.ForeignKey('auth.User', on_delete=models.PROTECT)
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='orders', blank=True)
+    type = models.ForeignKey('ip.OrderType', on_delete=models.PROTECT, null=False, verbose_name=_('type'))
+    personal_number = models.CharField(max_length=255, blank=True)
+    first_name = models.CharField(max_length=255, blank=True)
+    family_name = models.CharField(max_length=255, blank=True)
+    address = models.CharField(max_length=255, blank=True)
+    postal_code = models.CharField(max_length=255, blank=True)
+    city = models.CharField(max_length=255, blank=True)
+    phone = models.CharField(max_length=255, blank=True)
+    order_content = models.TextField(blank=True)
+    consign_method = models.ForeignKey(
+        'ip.ConsignMethod', on_delete=models.PROTECT, null=True, blank=True, verbose_name=_('consign method')
+    )
 
     class Meta:
         ordering = ["label"]

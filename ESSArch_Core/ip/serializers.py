@@ -17,9 +17,11 @@ from ESSArch_Core.configuration.serializers import StoragePolicySerializer
 from ESSArch_Core.ip.models import (
     Agent,
     AgentNote,
+    ConsignMethod,
     EventIP,
     InformationPackage,
     Order,
+    OrderType,
     Workarea,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -36,6 +38,11 @@ from ESSArch_Core.tags.serializers import TransferSerializer
 User = get_user_model()
 VERSION = get_versions()['version']
 
+class OrderTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderType
+        fields = ('id', 'name',)
+
 
 class AgentNoteSerializer(serializers.ModelSerializer):
     class Meta:
@@ -49,6 +56,12 @@ class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
         fields = ('id', 'role', 'type', 'name', 'code', 'notes')
+
+
+class ConsignMethodSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agent
+        fields = ('id', 'name')
 
 
 class EventIPSerializer(serializers.ModelSerializer):
@@ -234,6 +247,8 @@ class PrepareDIPSerializer(serializers.Serializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     responsible = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    type = OrderTypeSerializer()
+    consign_method = ConsignMethodSerializer()
 
     information_packages = serializers.HyperlinkedRelatedField(
         many=True, required=False, view_name='informationpackage-detail',
@@ -242,15 +257,22 @@ class OrderSerializer(serializers.ModelSerializer):
         )
     )
 
-    def save(self, **kwargs):
-        kwargs["responsible"] = self.fields["responsible"].get_default()
-        return super().save(**kwargs)
-
     class Meta:
         model = Order
         fields = (
-            'id', 'label', 'responsible', 'information_packages',
+            'id', 'label', 'responsible', 'information_packages', 'type', 'personal_number', 'first_name',
+            'family_name', 'address', 'postal_code', 'city', 'phone', 'order_content', 'consign_method',
         )
+
+
+class OrderWriteSerializer(OrderSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=OrderType.objects.all())
+    consign_method = serializers.PrimaryKeyRelatedField(queryset=ConsignMethod.objects.all(), required=False)
+
+    def create(self, validated_data):
+        if 'responsible' not in validated_data:
+            validated_data['responsible'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 class WorkareaSerializer(serializers.ModelSerializer):

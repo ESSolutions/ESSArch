@@ -635,6 +635,11 @@ export default angular
     '$http',
     'appConfig',
     'listViewService',
+    '$translate',
+    'Utils',
+    '$q',
+    'EditMode',
+    '$scope',
     OrderModalInstanceCtrl,
   ])
   .controller('OrdersCtrl', [
@@ -651,6 +656,7 @@ export default angular
     'SelectedIPUpdater',
     'listViewService',
     '$state',
+    'myService',
     OrdersCtrl,
   ])
   .controller('OrganizationCtrl', ['$scope', 'Organization', OrganizationCtrl])

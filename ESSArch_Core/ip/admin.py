@@ -27,7 +27,7 @@ from os import walk
 
 from django.contrib import admin
 
-from .models import InformationPackage
+from .models import ConsignMethod, InformationPackage, OrderType
 
 
 def deleteIP(modeladmin, request, queryset):
@@ -91,4 +91,6 @@ class IPAdmin(admin.ModelAdmin):
     )
 
 
+admin.site.register(ConsignMethod)
 admin.site.register(InformationPackage, IPAdmin)
+admin.site.register(OrderType)

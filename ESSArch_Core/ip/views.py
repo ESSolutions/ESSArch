@@ -71,9 +71,11 @@ from ESSArch_Core.ip.filters import (
 )
 from ESSArch_Core.ip.models import (
     Agent,
+    ConsignMethod,
     EventIP,
     InformationPackage,
     Order,
+    OrderType,
     Workarea,
 )
 from ESSArch_Core.ip.permissions import (
@@ -91,6 +93,7 @@ from ESSArch_Core.ip.permissions import (
 )
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
+    ConsignMethodSerializer,
     EventIPSerializer,
     EventIPWriteSerializer,
     InformationPackageDetailSerializer,
@@ -99,6 +102,8 @@ from ESSArch_Core.ip.serializers import (
     InformationPackageSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
+    OrderTypeSerializer,
+    OrderWriteSerializer,
     PrepareDIPSerializer,
     WorkareaSerializer,
 )
@@ -141,6 +146,15 @@ class AgentViewSet(viewsets.ModelViewSet):
     serializer_class = AgentSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
     filterset_class = AgentFilter
+
+
+class ConsignMethodViewSet(viewsets.ModelViewSet):
+    queryset = ConsignMethod.objects.all()
+    serializer_class = ConsignMethodSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (filters.OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
 
 
 class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -1819,6 +1833,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
+class OrderTypeViewSet(viewsets.ModelViewSet):
+    queryset = OrderType.objects.all()
+    serializer_class = OrderTypeSerializer
+    permission_classes = (ActionPermissions,)
+    filter_backends = (filters.OrderingFilter, SearchFilter,)
+    ordering_fields = ('name',)
+    search_fields = ('name',)
+
+
 class OrderViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows orders to be viewed or edited.
@@ -1835,6 +1858,11 @@ class OrderViewSet(viewsets.ModelViewSet):
             return self.queryset.filter(responsible=self.request.user)
 
         return self.queryset
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'metadata']:
+            return OrderWriteSerializer
+        return self.serializer_class
 
 
 class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):

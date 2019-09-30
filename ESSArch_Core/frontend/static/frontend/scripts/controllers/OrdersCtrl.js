@@ -12,10 +12,21 @@ export default class {
     $log,
     SelectedIPUpdater,
     listViewService,
-    $state
+    $state,
+    myService
   ) {
     const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
+
+    vm.getOrderListColspan = function() {
+      if (myService.checkPermission('ip.change_order') && myService.checkPermission('ip.delete_order')) {
+        return 6;
+      } else if (myService.checkPermission('ip.change_order') || myService.checkPermission('ip.delete_order')) {
+        return 5;
+      } else {
+        return 4;
+      }
+    };
 
     /*******************************************/
     /*Piping and Pagination for List-view table*/
@@ -168,8 +179,33 @@ export default class {
         scope: $scope,
         controller: 'OrderModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {},
+        },
+      });
+      modalInstance.result.then(function(data) {
+        $timeout(function() {
+          $scope.getListViewData();
+        });
+      });
+    };
+
+    $scope.editOrderModal = function(order) {
+      console.log('order: ', order);
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/edit_order_modal.html',
+        scope: $scope,
+        controller: 'OrderModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            order: order,
+          },
         },
       });
       modalInstance.result.then(function(data) {
@@ -192,6 +228,7 @@ export default class {
           data: function() {
             return {
               order: order,
+              allow_close: true,
             };
           },
         },

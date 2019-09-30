@@ -60,17 +60,23 @@
         <thead>
           <tr>
             <th class="clickable" st-sort="label" class="column-label">{{'LABEL' | translate}}</th>
-            <th class="clickable" st-sort="responsible" st-sort-default="reverse" class="column-label">
-              {{'RESPONSIBLE' | translate}}
+            <th class="clickable" class="column-label">{{'TYPE' | translate}}</th>
+            <th class="clickable" class="column-label">{{'NAME' | translate}}</th>
+            <th class="clickable" class="column-label">
+              {{'CONSIGN_METHOD' | translate}}
             </th>
-            <th class="clickable" class="delete-label">{{'DELETE' | translate}}</th>
+            <th permission permission-only="'ip.change_order'" class="shrink">
+              {{'EDIT' | translate}}
+            </th>
+            <th class="clickable" permission permission-only="'ip.delete_order'" class="shrink">
+              {{'DELETE' | translate}}
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr
             ng-class="{'selected': ip.id == row.id}"
             ng-repeat="row in vm.displayedIps"
-            ng-attr-context-menu="menuOptions"
             class="table-item selectable"
             ng-click="ipTableClick(row, $event)"
           >
@@ -82,8 +88,25 @@
             >
               {{row.label}}
             </td>
-            <td class="clickable">{{row.responsible.username}}</td>
             <td>
+              {{row.type.name}}
+            </td>
+            <td>
+              {{row.first_name ? row.first_name + ', ':''}}{{row.family_name}}
+            </td>
+            <td>
+              {{row.consign_method.name}}
+            </td>
+            <td permission permission-only="'ip.change_order'" class="text-center shrink">
+              <button
+                class="btn btn-default fas fa-edit btn-sm"
+                ng-click="editOrderModal(row); $event.stopPropagation();"
+                uib-tooltip="{{'EDIT' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              ></button>
+            </td>
+            <td permission permission-only="'ip.delete_order'" class="text-center shrink">
               <button
                 type="button"
                 ng-if="row.responsible.id == auth.id || checkPermission('ip.delete_informationpackage')"
@@ -96,10 +119,10 @@
             </td>
           </tr>
           <tr ng-if="!vm.displayedIps.length && !ipLoading" class="empty-table-indicator">
-            <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+            <td colspan="{{vm.getOrderListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
           </tr>
           <tr ng-if="!vm.displayedIps.length && ipLoading" class="empty-table-indicator">
-            <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+            <td class="loading-column" colspan="{{vm.getOrderListColspan()}}">{{'LOADING' | translate}}</td>
           </tr>
         </tbody>
       </table>

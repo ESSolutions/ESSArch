@@ -35,9 +35,11 @@ from ESSArch_Core.configuration.views import (
 )
 from ESSArch_Core.fixity.views import ValidationFilesViewSet, ValidationViewSet
 from ESSArch_Core.ip.views import (
+    ConsignMethodViewSet,
     EventIPViewSet,
     InformationPackageReceptionViewSet,
     InformationPackageViewSet,
+    OrderTypeViewSet,
     OrderViewSet,
     WorkareaEntryViewSet,
     WorkareaFilesViewSet,
@@ -322,6 +324,8 @@ router.register(r'storage-mediums', StorageMediumViewSet, basename='storagemediu
     parents_query_lookups=['storage_medium']
 )
 
+router.register(r'consign-methods', ConsignMethodViewSet)
+router.register(r'order-types', OrderTypeViewSet)
 router.register(r'orders', OrderViewSet)
 
 router.register(r'workarea-entries', WorkareaEntryViewSet, basename='workarea-entries')
