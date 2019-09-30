@@ -1259,7 +1259,9 @@ class InformationPackage(models.Model):
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
         access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
-        access_workarea_user_aic_xml = os.path.join(access_workarea, user.username, self.aic.object_identifier_value)
+        access_workarea_user_aic_xml = os.path.join(
+            access_workarea, user.username, self.aic.object_identifier_value
+        ) + '.xml'
 
         if extracted or new:
             os.makedirs(access_workarea_user, exist_ok=True)
@@ -1424,7 +1426,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [
                             temp_container_path,
-                            access_workarea_user,
+                            access_workarea_user_container,
                         ],
                     },
                     {
@@ -1433,7 +1435,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [
                             temp_mets_path,
-                            access_workarea_user,
+                            access_workarea_user_package_xml,
                         ],
                     },
                     {
@@ -1442,7 +1444,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [
                             temp_aic_mets_path,
-                            access_workarea_user,
+                            access_workarea_user_aic_xml,
                         ],
                     },
                     {
