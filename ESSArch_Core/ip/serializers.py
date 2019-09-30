@@ -2,6 +2,7 @@ import errno
 import os
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
@@ -9,6 +10,7 @@ from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer
@@ -102,6 +104,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     aic = serializers.PrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
     first_generation = serializers.SerializerMethodField()
     last_generation = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        ctype = ContentType.objects.get_for_model(obj)
+        group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+        return group.name
 
     def get_profiles(self, obj):
         profiles = getattr(obj, 'profiles', obj.profileip_set)
@@ -177,7 +185,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
-            'workarea', 'first_generation', 'last_generation',
+            'workarea', 'first_generation', 'last_generation', 'organization',
         )
         extra_kwargs = {
             'id': {
@@ -437,8 +445,14 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
     new_version_in_progress = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     agents = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
 
     search_filter = SearchFilter()
+
+    def get_organization(self, obj):
+        ctype = ContentType.objects.get_for_model(obj)
+        group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+        return group.name
 
     def get_package_type_display(self, obj):
         return obj.get_package_type_display()
@@ -506,6 +520,7 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
             'submission_agreement_locked', 'workarea', 'object_size',
             'first_generation', 'last_generation', 'start_date', 'end_date',
             'new_version_in_progress', 'appraisal_date', 'permissions',
+            'organization',
         )
         extra_kwargs = {
             'id': {
