@@ -13,9 +13,7 @@ export default class AccessIpCtrl {
         text: $translate.instant('APPRAISAL'),
         click: function($itemScope, $event, modelValue, text, $li) {
           if ($scope.ips.length === 0) {
-            $scope.ip = row;
-            $rootScope.ip = row;
-            vm.openAppraisalModal($scope.ips);
+            vm.openAppraisalModal([row]);
           } else {
             vm.openAppraisalModal($scope.ips);
           }
@@ -25,9 +23,7 @@ export default class AccessIpCtrl {
         text: $translate.instant('CONVERSION'),
         click: function($itemScope, $event, modelValue, text, $li) {
           if ($scope.ips.length === 0) {
-            $scope.ip = row;
-            $rootScope.ip = row;
-            vm.openConversionModal($scope.ips);
+            vm.openConversionModal([row]);
           } else {
             vm.openConversionModal($scope.ips);
           }
@@ -35,18 +31,14 @@ export default class AccessIpCtrl {
       });
       methods.push(
         ContextMenuBase.changeOrganization(function() {
-          $scope.ip = row;
-          $rootScope.ip = row;
-          vm.changeOrganizationModal($scope.ip);
+          vm.changeOrganizationModal(row);
         })
       );
 
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
         click: function($itemScope, $event, modelValue, text, $li) {
-          $scope.ip = row;
-          $rootScope.ip = row;
-          vm.ipInformationModal($scope.ip);
+          vm.ipInformationModal(row);
         },
       });
       return methods;
@@ -136,9 +128,6 @@ export default class AccessIpCtrl {
     };
 
     vm.openConversionModal = function(ips) {
-      if (ips.length == 0 && $scope.ip != null) {
-        ips.push($scope.ip);
-      }
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -151,30 +140,6 @@ export default class AccessIpCtrl {
           data: function() {
             return {
               ips: ips,
-            };
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-    vm.ipInformationModal = function(ip) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/ip_information_modal.html',
-        controller: 'IpInformationModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        size: 'lg',
-        resolve: {
-          data: function() {
-            return {
-              ip: ip,
             };
           },
         },

@@ -22,17 +22,13 @@ export default class IpApprovalCtrl {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
-          $scope.ip = row;
-          $rootScope.ip = row;
-          vm.ipInformationModal($scope.ip);
+        click: function() {
+          vm.ipInformationModal(row);
         },
       });
       methods.push(
         ContextMenuBase.changeOrganization(function() {
-          $scope.ip = row;
-          $rootScope.ip = row;
-          vm.changeOrganizationModal($scope.ip);
+          vm.changeOrganizationModal(row);
         })
       );
       return methods;

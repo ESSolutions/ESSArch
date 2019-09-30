@@ -50,9 +50,7 @@ export default class WorkareaCtrl {
     $scope.menuOptions = function(rowType, row) {
       return [
         ContextMenuBase.changeOrganization(function() {
-          $scope.ip = row;
-          $rootScope.ip = row;
-          vm.changeOrganizationModal($scope.ip);
+          vm.changeOrganizationModal(row);
         }),
       ];
     };
