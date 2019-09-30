@@ -107,9 +107,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     organization = serializers.SerializerMethodField()
 
     def get_organization(self, obj):
-        ctype = ContentType.objects.get_for_model(obj)
-        group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-        return group.name
+        try:
+            ctype = ContentType.objects.get_for_model(obj)
+            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+            return group.name
+        except GroupGenericObjects.DoesNotExist:
+            return None
 
     def get_profiles(self, obj):
         profiles = getattr(obj, 'profiles', obj.profileip_set)
@@ -450,9 +453,12 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
     search_filter = SearchFilter()
 
     def get_organization(self, obj):
-        ctype = ContentType.objects.get_for_model(obj)
-        group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-        return group.name
+        try:
+            ctype = ContentType.objects.get_for_model(obj)
+            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+            return group.name
+        except GroupGenericObjects.DoesNotExist:
+            return None
 
     def get_package_type_display(self, obj):
         return obj.get_package_type_display()
