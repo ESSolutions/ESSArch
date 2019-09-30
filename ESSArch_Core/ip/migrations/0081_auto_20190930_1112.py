@@ -4,8 +4,10 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 def create_temp_order_type(apps, schema_editor):
+    Order = apps.get_model("ip", "Order")
     OrderType = apps.get_model("ip", "OrderType")
-    OrderType.objects.get_or_create(pk=1, defaults={'name': 'temp'})
+    if Order.objects.exists():
+        OrderType.objects.get_or_create(pk=1, defaults={'name': 'temp'})
 
 class Migration(migrations.Migration):
 
