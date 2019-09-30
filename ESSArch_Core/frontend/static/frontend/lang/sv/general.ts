@@ -185,6 +185,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     LOCATIONSTATUS: 'Placeringsstatus',
     LOCK_ERROR: 'kunde inte låsas',
     LOCK: 'Lås',
+    LOCK_SA_TO_IP: 'Lås leveransöverenskommelse till informationspaket',
     LOCKED: 'Låst',
     LOCKPROFILE: 'Lås profil',
     LOCKSA: 'Lås SA',

@@ -229,23 +229,6 @@ export default class {
       });
     };
 
-    $scope.createDip = function(ip) {
-      vm.creating = true;
-      listViewService.createDip(ip).then(function(response) {
-        $scope.select = false;
-        $scope.edit = false;
-        $scope.eventlog = false;
-        $scope.selectedCards1 = [];
-        $scope.selectedCards2 = [];
-        $scope.chosenFiles = [];
-        $scope.deckGridData = [];
-        vm.creating = false;
-        $timeout(function() {
-          $scope.getListViewData();
-          $anchorScroll();
-        });
-      });
-    };
     //Deckgrid
     $scope.chosenFiles = [];
     $scope.chooseFiles = function(files) {
@@ -273,6 +256,38 @@ export default class {
       });
       $scope.selectedCards1 = [];
     };
+
+    vm.createDipModal = ip => {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/create_dip_modal.html',
+        resolve: {
+          data: function() {
+            return {
+              ip: ip,
+            };
+          },
+        },
+        controller: 'ModalInstanceCtrl',
+        controllerAs: '$ctrl',
+      });
+      modalInstance.result.then(function(data) {
+        $scope.select = false;
+        $scope.edit = false;
+        $scope.eventlog = false;
+        $scope.selectedCards1 = [];
+        $scope.selectedCards2 = [];
+        $scope.chosenFiles = [];
+        $scope.deckGridData = [];
+        $timeout(function() {
+          $scope.getListViewData();
+          $anchorScroll();
+        });
+      });
+    };
+
     function fileExistsModal(index, file, fileToBeOverwritten) {
       const modalInstance = $uibModal.open({
         animation: true,

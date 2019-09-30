@@ -353,6 +353,7 @@ export default class ProfileCtrl {
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/lock-sa-profile-modal.html',
         scope: $scope,
+        size: 'lg',
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {data: () => {}},

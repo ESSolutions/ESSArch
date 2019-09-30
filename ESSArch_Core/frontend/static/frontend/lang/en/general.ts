@@ -183,6 +183,7 @@ const general = $translateProvider => {
     LOCATIONSTATUS: 'Location status',
     LOCK_ERROR: 'could not be locked',
     LOCK: 'Lock',
+    LOCK_SA_TO_IP: 'Lock submission agreement to information package',
     LOCKED: 'Locked',
     LOCKPROFILE: 'Lock profile',
     LOCKSA: 'Lock SA',

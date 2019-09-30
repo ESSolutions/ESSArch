@@ -2,9 +2,20 @@
   <h3 class="modal-title" id="modal-title">{{'ACCESS.DO_YOU_WANT_TO_REMOVE_MANDATE' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <b>
-    {{'NAME' | translate}}: {{$ctrl.mandate.name}}
-  </b>
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'NAME' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{$ctrl.mandate.name}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 <div class="modal-footer">
   <button class="btn btn-danger" type="button" ng-click="$ctrl.remove()" focused="true" ng-disabled="$ctrl.removing">

@@ -125,6 +125,14 @@ export default class ModalInstanceCtrl {
         });
     };
 
+    $ctrl.createDip = ip => {
+      $ctrl.creating = true;
+      listViewService.createDip(ip).then(function(response) {
+        $ctrl.creating = false;
+        $uibModalInstance.close(response.data);
+      });
+    };
+
     $ctrl.addTag = function() {
       $ctrl.data = {
         name: $ctrl.name,

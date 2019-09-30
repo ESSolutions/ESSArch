@@ -2,7 +2,22 @@
   <h3 class="modal-title" id="modal-title">{{'ACCESS.DO_YOU_WANT_TO_REMOVE_IDENTIFIER' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <b>{{$ctrl.identifier.type.name}}:&nbsp;</b>{{$ctrl.identifier.identifier}}
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'TYPE' | translate}}</th>
+          <th>{{'ACCESS.IDENTIFIER' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{$ctrl.identifier.type.name}}</td>
+          <td>{{$ctrl.identifier.identifier}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 <div class="modal-footer">
   <button class="btn btn-danger" type="button" ng-click="$ctrl.remove()" focused="true" ng-disabled="$ctrl.removing">

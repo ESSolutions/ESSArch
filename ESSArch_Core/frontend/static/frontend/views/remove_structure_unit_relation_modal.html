@@ -5,7 +5,20 @@
 </div>
 <form ng-submit="$ctrl.remove()" name="$ctrl.form" novalidate>
   <div class="modal-body" id="modal-body">
-    {{'ACCESS.REMOVE_RELATION_TO_STRUCTURE_UNIT_DESC' | translate:$ctrl.data.relation.structure_unit}}
+    <div class="table-x-overflow">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th>{{'ACCESS.STRUCTURE_UNIT' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{$ctrl.data.relation.structure_unit.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-danger" type="submit" ng-disabled="$ctrl.removing">

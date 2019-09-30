@@ -3,9 +3,20 @@
 </div>
 <form ng-submit="$ctrl.remove()">
   <div class="modal-body" id="modal-body">
-    <b>
-      {{'NAME' |translate}}: {{$ctrl.data.search.name}}
-    </b>
+    <div class="table-x-overflow">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th>{{'NAME' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{$ctrl.data.search.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" ng-disabled="$ctrl.removing" type="submit" focused="true">

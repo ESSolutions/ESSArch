@@ -14,6 +14,16 @@ export default class NodeNoteModalInstanceCtrl {
       $ctrl.note = angular.copy($ctrl.noteTemplate);
     };
 
+    $ctrl.getItemById = (id, list) => {
+      let type = null;
+      list.forEach(item => {
+        if (item.id === id) {
+          type = item;
+        }
+      });
+      return type;
+    };
+
     $ctrl.$onInit = function() {
       return $http({
         url: appConfig.djangoUrl + 'node-note-types/',

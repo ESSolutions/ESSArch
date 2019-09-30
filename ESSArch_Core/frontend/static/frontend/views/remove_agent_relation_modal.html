@@ -2,9 +2,20 @@
   <h3 class="modal-title" id="modal-title">{{'ACCESS.DO_YOU_WANT_TO_REMOVE_RELATION' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <b>
-    {{'ACCESS.ARCHIVE_CREATOR' | translate}}: {{AgentName.getAuthorizedName($ctrl.data.relation.agent).full_name}}
-  </b>
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'ACCESS.ARCHIVE_CREATOR' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{AgentName.getAuthorizedName($ctrl.data.relation.agent).full_name}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 <div class="modal-footer">
   <button class="btn btn-danger" type="button" ng-click="$ctrl.remove()" focused="true" ng-disabled="$ctrl.removing">
