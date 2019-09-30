@@ -336,6 +336,7 @@ class ParseSubmitDescription(DBTask):
 
 class ParseEvents(DBTask):
     event_type = 50630
+    logger = logging.getLogger('essarch.core.ip.tasks.ParseEvents')
 
     def get_path(self, ip):
         return ip.get_events_file_path(from_container=True)
@@ -343,7 +344,13 @@ class ParseEvents(DBTask):
     @transaction.atomic
     def run(self):
         ip = self.get_information_package()
-        xmlfile = ip.open_file(self.get_path(ip), 'rb')
+        xmlfile_path = self.get_path(ip)
+        try:
+            xmlfile = ip.open_file(xmlfile_path, 'rb')
+        except FileNotFoundError:
+            self.logger.debug('No events file found at "{}"'.format(xmlfile_path))
+            return
+
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
         EventIP.objects.bulk_create(events, 100)
 
