@@ -2053,6 +2053,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ip.state = 'Prepared'
             ip.object_path = container
             ip.package_mets_path = xmlfile
+            ip.responsible = request.user
             ip.save()
 
             sa = ip.submission_agreement

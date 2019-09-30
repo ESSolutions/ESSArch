@@ -178,6 +178,7 @@ class PrepareAIP(DBTask):
                 ip.sip_objid = object_identifier_value
                 ip.sip_path = sip_path.as_posix()
                 ip.package_type = InformationPackage.AIP
+                ip.responsible = user
                 ip.state = 'Prepared'
                 ip.object_path = sip_path.as_posix()
                 ip.package_mets_path = xmlfile.as_posix()
