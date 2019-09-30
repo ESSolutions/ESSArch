@@ -256,7 +256,7 @@
                 {
                     "#content": [
                         {
-                            "var": "_SA_NAME"
+                            "var": "_SA_ID"
                         }
                     ],
                     "-attr": [
