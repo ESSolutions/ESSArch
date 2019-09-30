@@ -413,10 +413,8 @@ const listViewService = (
     });
   }
 
-  function prepareOrder(label) {
-    return Order.save({
-      label: label,
-    }).$promise.then(function(response) {
+  function prepareOrder(order) {
+    return Order.save(order).$promise.then(function(response) {
       return response;
     });
   }
