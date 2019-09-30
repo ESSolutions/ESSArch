@@ -13,17 +13,17 @@ export default class NodeOrganizationModalInstanceCtrl {
       $ctrl.saving = true;
       $http({
         method: 'POST',
-        url: appConfig.djangoUrl + 'search/' + data.node._index + '/' + data.node._id + '/change-organization/',
+        url: appConfig.djangoUrl + 'search/' + data.node._id + '/change-organization/',
         data: {
           organization: $ctrl.organization,
         },
       })
-        .then(function(response) {
+        .then(function() {
           Notifications.add($translate.instant('ORGANIZATION.ORGANIZATION_CHANGED'), 'success');
           $uibModalInstance.close('changed');
           $ctrl.saving = false;
         })
-        .catch(function(response) {
+        .catch(function() {
           $ctrl.saving = false;
         });
     };
