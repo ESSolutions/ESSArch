@@ -43,7 +43,12 @@ from rest_framework.test import APIClient
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
-from ESSArch_Core.ip.models import InformationPackage, Order, Workarea
+from ESSArch_Core.ip.models import (
+    InformationPackage,
+    Order,
+    OrderType,
+    Workarea,
+)
 from ESSArch_Core.profiles.models import (
     Profile,
     ProfileIP,
@@ -1344,7 +1349,8 @@ class InformationPackageViewSetTestCase(TestCase):
     def test_prepare_dip_with_non_existing_order(self, mock_prepare):
         self.url = self.url + 'prepare-dip/'
 
-        orders = [str(Order.objects.create(responsible=self.user).pk), str(uuid.uuid4())]
+        order_type = OrderType.objects.create(name='foo')
+        orders = [str(Order.objects.create(responsible=self.user, type=order_type).pk), str(uuid.uuid4())]
         self.client.post(self.url, {'label': 'foo', 'orders': orders}, format='json')
 
         mock_prepare.assert_not_called()
@@ -1636,6 +1642,10 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
 
 
 class OrderViewSetTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.order_type = OrderType.objects.create(name="foo")
+
     def setUp(self):
         self.user = User.objects.create(username="admin")
 
@@ -1650,8 +1660,8 @@ class OrderViewSetTestCase(TestCase):
 
     def test_list_only_owned(self):
         other_user = User.objects.create(username="user")
-        order = Order.objects.create(responsible=self.user)
-        Order.objects.create(responsible=other_user)
+        order = Order.objects.create(responsible=self.user, type=self.order_type)
+        Order.objects.create(responsible=other_user, type=self.order_type)
 
         url = reverse('order-list')
         res = self.client.get(url)
@@ -1661,8 +1671,8 @@ class OrderViewSetTestCase(TestCase):
 
     def test_list_all_if_superuser(self):
         other_user = User.objects.create(username="user")
-        Order.objects.create(responsible=self.user)
-        Order.objects.create(responsible=other_user)
+        Order.objects.create(responsible=self.user, type=self.order_type)
+        Order.objects.create(responsible=other_user, type=self.order_type)
 
         self.user.is_superuser = True
         self.user.save()
@@ -1673,7 +1683,7 @@ class OrderViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 2)
 
     def test_detail_owned(self):
-        order = Order.objects.create(responsible=self.user)
+        order = Order.objects.create(responsible=self.user, type=self.order_type)
 
         url = reverse('order-detail', args=[order.pk])
         res = self.client.get(url)
@@ -1688,7 +1698,7 @@ class OrderViewSetTestCase(TestCase):
 
     def test_deny_detail_other(self):
         other_user = User.objects.create(username="user")
-        order = Order.objects.create(responsible=other_user)
+        order = Order.objects.create(responsible=other_user, type=self.order_type)
 
         url = reverse('order-detail', args=[order.pk])
         res = self.client.get(url)
@@ -1697,7 +1707,7 @@ class OrderViewSetTestCase(TestCase):
 
     def test_detail_other_super_user(self):
         other_user = User.objects.create(username="user")
-        order = Order.objects.create(responsible=other_user)
+        order = Order.objects.create(responsible=other_user, type=self.order_type)
 
         self.user.is_superuser = True
         self.user.save()
@@ -1709,7 +1719,7 @@ class OrderViewSetTestCase(TestCase):
 
     def test_create_without_ip(self):
         url = reverse('order-list')
-        res = self.client.post(url, {'label': 'foo'})
+        res = self.client.post(url, {'label': 'foo', 'type': self.order_type.pk})
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(res.data['label'], 'foo')
@@ -1719,7 +1729,7 @@ class OrderViewSetTestCase(TestCase):
         url = reverse('order-list')
         ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
         ip_url = reverse('informationpackage-detail', args=[ip.pk])
-        res = self.client.post(url, {'label': 'foo', 'information_packages': [ip_url]})
+        res = self.client.post(url, {'label': 'foo', 'information_packages': [ip_url], 'type': self.order_type.pk})
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Order.objects.first().information_packages.first(), ip)
