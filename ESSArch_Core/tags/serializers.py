@@ -101,11 +101,24 @@ class NodeNoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = NodeNote
-        fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
+        fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date', 'history',)
 
 
 class NodeNoteWriteSerializer(NodeNoteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=NodeNoteType.objects.all())
+
+    def validate_history(self, value):
+        if value:
+            try:
+                existing = NodeNoteType.objects.get(history=True)
+                if existing != self.instance:
+                    raise serializers.ValidationError(
+                        NodeNoteType.unique_history_error,
+                    )
+            except NodeNoteType.DoesNotExist:
+                pass
+
+        return value
 
     class Meta(NodeNoteSerializer.Meta):
         extra_kwargs = {

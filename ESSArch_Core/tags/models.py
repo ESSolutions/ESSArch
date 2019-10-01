@@ -76,7 +76,22 @@ class NodeNote(models.Model):
 
 
 class NodeNoteType(models.Model):
+    unique_history_error = _('Only 1 note type can be set as history at a time')
+
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
+    history = models.BooleanField(_('history'), default=False)
+
+    def clean(self):
+        if self.history:
+            try:
+                existing = NodeNoteType.objects.get(history=True)
+                if existing != self:
+                    raise ValidationError(
+                        self.unique_history_error,
+                        code='invalid',
+                    )
+            except NodeNoteType.DoesNotExist:
+                pass
 
     def __str__(self):
         return self.name

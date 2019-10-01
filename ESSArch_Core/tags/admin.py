@@ -15,6 +15,10 @@ from ESSArch_Core.tags.models import (
 )
 
 
+class NodeNoteTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'history')
+
+
 class NodeRelationTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'mirrored_type')
 
@@ -37,7 +41,7 @@ admin.site.register(LocationLevelType)
 admin.site.register(MetricType)
 admin.site.register(NodeRelationType, NodeRelationTypeAdmin)
 admin.site.register(NodeIdentifierType)
-admin.site.register(NodeNoteType)
+admin.site.register(NodeNoteType, NodeNoteTypeAdmin)
 admin.site.register(StructureType)
 admin.site.register(StructureRelationType, StructureRelationTypeAdmin)
 admin.site.register(StructureUnitType, StructureUnitTypeAdmin)

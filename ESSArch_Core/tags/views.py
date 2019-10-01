@@ -168,7 +168,8 @@ class NodeNoteTypeViewSet(viewsets.ModelViewSet):
     queryset = NodeNoteType.objects.all()
     serializer_class = NodeNoteTypeSerializer
     permission_classes = (ActionPermissions,)
-    filter_backends = (OrderingFilter, SearchFilter,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter,)
+    filterset_fields = ('history',)
     ordering_fields = ('name',)
     search_fields = ('name',)
 
