@@ -1,6 +1,7 @@
 import uuid
 
 import elasticsearch
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
@@ -21,7 +22,8 @@ from ESSArch_Core.agents.serializers import (
 )
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
-from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -710,6 +712,16 @@ class AgentArchiveLinkWriteSerializer(AgentArchiveLinkSerializer):
 class TagVersionSerializer(TagVersionNestedSerializer):
     structures = serializers.SerializerMethodField()
     parent = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        try:
+            ctype = ContentType.objects.get_for_model(obj)
+            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+            serializer = GroupSerializer(instance=group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
 
     def get_structures(self, obj):
         structure_ids = obj.tag.structures.values_list('structure', flat=True)
@@ -727,7 +739,7 @@ class TagVersionSerializer(TagVersionNestedSerializer):
         }
 
     class Meta(TagVersionNestedSerializer.Meta):
-        fields = TagVersionNestedSerializer.Meta.fields + ('structures', 'parent',)
+        fields = TagVersionNestedSerializer.Meta.fields + ('structures', 'parent', 'organization',)
 
 
 class TagVersionSerializerWithVersions(TagVersionSerializer):
