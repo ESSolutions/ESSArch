@@ -11,7 +11,7 @@ from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.models import GroupGenericObjects
-from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer
 from ESSArch_Core.ip.models import (
@@ -124,7 +124,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         try:
             ctype = ContentType.objects.get_for_model(obj)
             group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            return group.name
+            serializer = GroupSerializer(instance=group)
+            return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
 
@@ -479,7 +480,8 @@ class NestedInformationPackageSerializer(serializers.ModelSerializer):
         try:
             ctype = ContentType.objects.get_for_model(obj)
             group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            return group.name
+            serializer = GroupSerializer(instance=group)
+            return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
 
