@@ -3,6 +3,7 @@ import moment from 'moment';
 import 'moment/locale/sv.js';
 
 const LanguageCtrl = (appConfig, $scope, $http, $translate) => {
+  let vm = this;
   const setUserLanguage = lang => {
     return $http({
       method: 'PATCH',
@@ -37,7 +38,9 @@ const LanguageCtrl = (appConfig, $scope, $http, $translate) => {
     });
   };
 
-  $scope.getCurrentLanguage();
+  vm.$onInit = () => {
+    $scope.getCurrentLanguage();
+  };
 
   $scope.loadLanguages = function() {
     $scope.availableLanguages = $translate.getAvailableLanguageKeys();
