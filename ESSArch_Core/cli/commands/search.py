@@ -28,7 +28,9 @@ def clear(indexes):
     indexes = get_indexes(indexes)
 
     for index in indexes:
+        click.secho('Clearing {}... '.format(index._index._name), nl=False)
         clear_index(index)
+        click.secho('done', fg='green')
 
 
 @click.command()
@@ -63,7 +65,9 @@ def migrate(indexes, move_data, update_alias, delete_old):
     indexes = get_indexes(indexes)
 
     for index in indexes:
+        click.secho('Migrating {}... '.format(index._index._name), nl=False)
         alias_migration.migrate(index, move_data=move_data, update_alias=update_alias, delete_old_index=delete_old)
+        click.secho('done', fg='green')
 
 
 def clear_index(index):
