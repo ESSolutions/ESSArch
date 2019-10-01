@@ -55,7 +55,7 @@ SORTABLE_FIELDS = (
 
 
 class ComponentSearch(FacetedSearch):
-    index = ['component', 'archive', 'document', 'information_package', 'structure_unit']
+    index = ['component', 'document', 'information_package', 'structure_unit']
     fields = [
         'reference_code.keyword^5', 'reference_code^3', 'name^2', 'desc', 'attachment.content',
         'attachment.keywords',
@@ -121,7 +121,7 @@ class ComponentSearch(FacetedSearch):
         components and `_id` on archives.
         """
 
-        organization_archives = get_objects_for_user(self.user, TagVersion.objects.filter(elastic_index='archive'), [])
+        organization_archives = TagVersion.objects.for_user(self.user, []).filter(elastic_index='archive')
         organization_archives = [str(x) for x in list(organization_archives.values_list('pk', flat=True))]
 
         s = super().search()
@@ -137,20 +137,8 @@ class ComponentSearch(FacetedSearch):
         ])
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
-            Q('bool', **{'must_not': {'exists': {'field': 'archive'}}}),
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
-            Q('bool', minimum_should_match=1, should=[
-                Q('bool', must=[
-                    Q('bool', must_not=Q('term', _index='archive-*')),
-                    Q('nested', path='archive', ignore_unmapped=True, query=Q(
-                        'bool', **{'must_not': {'exists': {'field': 'archive'}}}
-                    )),
-                ]),
-                Q('bool', must=[
-                    Q('term', _index='archive-*'),
-                    Q('terms', _id=organization_archives)
-                ])
-            ]),
+            Q('bool', **{'must_not': {'terms': {'_index': ['component-*', 'structure_unit-*']}}}),
         ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:

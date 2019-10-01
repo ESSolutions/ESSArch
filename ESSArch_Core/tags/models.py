@@ -1066,6 +1066,8 @@ class TagVersion(models.Model):
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
 
+    objects = OrganizationManager()
+
     class Meta:
         get_latest_by = 'create_date'
         ordering = ('reference_code',)

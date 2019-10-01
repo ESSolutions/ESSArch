@@ -396,7 +396,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = Tag.objects.for_user(user, [])
+        qs = Tag.objects.filter(current_version__in=TagVersion.objects.for_user(user, perms=[]))
         ancestor = self.kwargs.get('parent_lookup_tag')
 
         if ancestor is not None:
