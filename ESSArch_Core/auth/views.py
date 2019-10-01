@@ -39,6 +39,7 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.models import Group, Notification
 from ESSArch_Core.auth.serializers import (
     GroupDetailSerializer,
@@ -72,9 +73,16 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that lists groups
     """
     queryset = Group.objects.all()
+
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.essauth_member.groups.all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -85,9 +93,16 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that lists organizations
     """
     queryset = Group.objects.filter(group_type__codename='organization')
+
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.essauth_member.groups.filter(group_type__codename='organization')
 
     def get_serializer_class(self):
         if self.action == 'list':
