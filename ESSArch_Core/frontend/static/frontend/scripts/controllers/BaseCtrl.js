@@ -1269,7 +1269,7 @@ export default class BaseCtrl {
         templateUrl: 'static/frontend/views/modals/change_organization_modal.html',
         controller: 'OrganizationModalInstanceCtrl',
         controllerAs: '$ctrl',
-        size: 'sm',
+        size: 'md',
         resolve: {
           data: function() {
             return {

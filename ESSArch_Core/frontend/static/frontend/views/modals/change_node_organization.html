@@ -3,15 +3,11 @@
 </div>
 <form ng-submit="$ctrl.save()">
   <div class="modal-body" id="modal-body">
-    <select
-      class="form-control"
-      ng-model="$ctrl.organization"
-      ng-options="org.id as org.name for org in $ctrl.organizations"
-    ></select>
+    <formly-form model="$ctrl.model" fields="$ctrl.fields"></formly-form>
   </div>
   <div class="modal-footer">
     <button
-      ng-disabled="$ctrl.currentOrganization === $ctrl.organization"
+      ng-disabled="$ctrl.currentOrganization.id === $ctrl.model.organization"
       class="btn btn-primary"
       type="button"
       ng-click="$ctrl.save()"
