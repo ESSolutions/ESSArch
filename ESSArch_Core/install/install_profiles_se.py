@@ -529,7 +529,7 @@ def installProfileSIP(sa):
                     ],
                 },
                 "type": "select",
-                "defaultValue": True,
+                "defaultValue": False,
                 "key": "allow_unknown_file_types"
             },
         ],
@@ -907,7 +907,7 @@ def installProfileAIP(sa):
                     ],
                 },
                 "type": "select",
-                "defaultValue": True,
+                "defaultValue": False,
                 "key": "allow_unknown_file_types"
             },
         ],
@@ -1255,7 +1255,7 @@ def installProfileDIP(sa):
                     ],
                 },
                 "type": "select",
-                "defaultValue": True,
+                "defaultValue": False,
                 "key": "allow_unknown_file_types"
             },
         ],
