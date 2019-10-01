@@ -1040,7 +1040,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
             org.add_object(tag)
             org.add_object(tag_version)
 
-            tag_link_type, _ = AgentTagLinkRelationType.objects.get_or_create(name='creator')
+            tag_link_type, _ = AgentTagLinkRelationType.objects.get_or_create(
+                creator=True, defaults={'name': 'creator'}
+            )
             AgentTagLink.objects.create(agent=agent, tag=tag_version, type=tag_link_type)
             self.create_identifiers(self, identifiers_data)
             self.create_notes(self, notes_data)
