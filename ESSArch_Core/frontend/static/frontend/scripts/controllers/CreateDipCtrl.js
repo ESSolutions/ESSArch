@@ -283,6 +283,7 @@ export default class {
         $scope.deckGridData = [];
         $timeout(function() {
           $scope.getListViewData();
+          $scope.openRequestForm(ip);
           $anchorScroll();
         });
       });
