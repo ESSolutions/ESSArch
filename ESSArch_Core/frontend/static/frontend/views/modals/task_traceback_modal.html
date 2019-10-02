@@ -1,5 +1,15 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">{{ currentStepTask.name }}</h3>
+  <div>
+    <h3 class="modal-title" id="modal-title">
+      {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.name }}
+    </h3>
+    <p
+      ng-if="currentStepTask.label && currentStepTask.label !== '' && currentStepTask.label !== currentStepTask.name"
+      class="m-0"
+    >
+      {{currentStepTask.name}}
+    </p>
+  </div>
 </div>
 <div class="modal-body" id="modal-body">
   <div class="step-task-info">

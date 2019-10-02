@@ -2,11 +2,11 @@
   <h3
     class="modal-title"
     id="modal-title"
-    uib-tooltip="{{ currentStepTask.label }}"
+    uib-tooltip="{{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.name }}"
     tooltip-placement="auto top"
     tooltip-append-to-body="true"
   >
-    {{ currentStepTask.label }}
+    {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.name }}
   </h3>
   <div class="refresh-icon">
     <span
