@@ -23,6 +23,16 @@ export default class TaskInfoModalInstanceCtrl {
       $scope.getTask(data.currentStepTask);
     };
 
+    $ctrl.revokeTask = task => {
+      let taskId = angular.copy(task.id);
+      Task.revoke({id: taskId}).$promise.then(response => {
+        $scope.currentStepTask = null;
+        $timeout(function() {
+          $scope.getTask({id: taskId});
+        }, 1000);
+      });
+    };
+
     //Redo step/task
     $scope.myTreeControl.scope.taskStepRedo = function(branch) {
       const branchId = angular.copy(branch.id);

@@ -31,6 +31,10 @@ const Task = ($resource, appConfig) => {
           },
         },
       },
+      revoke: {
+        method: 'POST',
+        params: {action: 'revoke', id: '@id'},
+      },
     }
   );
 };

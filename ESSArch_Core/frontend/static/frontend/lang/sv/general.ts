@@ -306,6 +306,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     RESTRICTEDVIEW: 'Du har inte behörighet att se denna vy.',
     RESULT: 'Resultat',
     RETRY: 'Försök igen',
+    REVOKE: 'Stoppa',
+    REVOKED: 'Stoppad',
     ROBOTINFORMATION: 'Robotinformation',
     ROBOTQUEUE: 'Robotkö',
     ROOT: 'rot',

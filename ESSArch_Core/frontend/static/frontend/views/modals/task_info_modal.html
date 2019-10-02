@@ -295,9 +295,16 @@
     <button
       class="btn btn-success"
       ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
-      ng-if="checkPermission('WorkflowEngine.can_retry') && currentStepTask.status == 'FAILURE'"
+      ng-if="checkPermission('WorkflowEngine.can_retry') && (currentStepTask.status === 'FAILURE' || currentStepTask.status === 'REVOKED')"
     >
       {{ "REDO" | translate }}
+    </button>
+    <button
+      class="btn btn-danger"
+      ng-click="$ctrl.revokeTask(currentStepTask)"
+      ng-if="checkPermission('WorkflowEngine.can_revoke') && currentStepTask.status === 'STARTED'"
+    >
+      {{ "REVOKE" | translate }}
     </button>
   </div>
   <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" focused="true">

@@ -304,6 +304,8 @@ const general = $translateProvider => {
     RESTRICTEDVIEW: 'You do not have permission to access this view.',
     RESULT: 'Result',
     RETRY: 'Retry',
+    REVOKE: 'Stop',
+    REVOKED: 'Stopped',
     ROBOTINFORMATION: 'Robot information',
     ROBOTQUEUE: 'Robot queue',
     ROOT: 'Root',
