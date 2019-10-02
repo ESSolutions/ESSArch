@@ -657,7 +657,14 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         return Response()
 
     def create(self, request):
-        index = request.data.get('index')
+        class TagVersionCreationSerializer(serializers.Serializer):
+            index = serializers.CharField()
+
+        serializer = TagVersionCreationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        index = data.get('index')
         organization = request.user.user_profile.current_organization
 
         if index == 'archive':
