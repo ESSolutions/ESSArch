@@ -56,6 +56,7 @@ def get_user_roles(user, start_group=None):
 
 
 def replace_func(field, field_type):
+    # TODO: Fixed in Django 3
     if connection.vendor == 'postgresql':
         return F(field)
 
@@ -96,6 +97,8 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         # Because of UUIDs we have to first save the IDs in
         # memory and then query against that list, see
         # https://stackoverflow.com/questions/50526873/
+        # Fixed in Django 3 (hopefully)
+
         for org_descendant in org.get_descendants(include_self=True):
             roles = GroupMemberRole.objects.filter(
                 group_memberships__group__in=org_descendant.get_ancestors(include_self=True),
