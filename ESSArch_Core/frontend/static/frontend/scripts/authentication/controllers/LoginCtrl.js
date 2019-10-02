@@ -12,7 +12,8 @@ const loginCtrl = (
   Validate,
   PermRoleStore,
   PermPermissionStore,
-  appConfig
+  appConfig,
+  $translate
 ) => {
   $scope.model = {app: $rootScope.app, username: '', password: ''};
   $scope.complete = false;
@@ -59,7 +60,7 @@ const loginCtrl = (
           $scope.loggingIn = false;
           if (angular.isUndefined(response.status) && response.data === null) {
             // When server does not respond
-            $scope.error = 'No response from server';
+            $scope.error = $translate.instant('NO_RESPONSE_FROM_SERVER');
           } else {
             $scope.error = response.data.non_field_errors[0];
           }

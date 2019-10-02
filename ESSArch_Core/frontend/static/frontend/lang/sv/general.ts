@@ -227,6 +227,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     NO_ARGUMENTS: 'Inga argument',
     NO_AUTHORIZED_NAME_TYPE: 'Auktoriserad namntyp saknas',
     NO_PARAMETERS: 'Inga parametrar',
+    NO_RESPONSE_FROM_SERVER: 'Inget svar från servern',
     NO_RESULTS_FOUND: 'Inga resultat hittade',
     NO_SUBMISSION_AGREEMENT_AVAILABLE: 'Inga leveransöverenskommelser tillgängliga',
     NO: 'Nej',
