@@ -1143,7 +1143,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
 
             raise serializers.ValidationError(_("end date must occur after start date"))
 
-        if not data.get('reference_code') and not data.get('use_uuid_as_refcode'):
+        if not self.instance and data.get('reference_code') and not data.get('use_uuid_as_refcode'):
             raise serializers.ValidationError(_("either reference_code or use_uuid_as_refcode must be set"))
 
         return data
