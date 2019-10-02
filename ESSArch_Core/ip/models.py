@@ -536,8 +536,8 @@ class InformationPackage(models.Model):
         ct_profile = self.get_profile('content_type')
         if ct_profile is None:
             msg = 'No content_type profile set for {objid}'.format(objid=self.object_identifier_value)
-            logger.error(msg)
-            raise ValueError(msg)
+            logger.info(msg)
+            return None
 
         try:
             return ct_profile.specification['name']
@@ -555,22 +555,21 @@ class InformationPackage(models.Model):
         if self.tag is not None:
             return self.tag
 
-        try:
-            ct_importer_name = self.get_content_type_importer_name()
-            ct_importer = get_importer(ct_importer_name)()
-            ct_file = self.get_content_type_file()
-            if ct_file is None:
-                return None
-
-            cts_file = self.open_file(ct_file)
-            tag = ct_importer.get_archive(cts_file)
-
-            if tag is None:
-                return self.tag
-
-            return tag
-        except ValueError:
+        ct_importer_name = self.get_content_type_importer_name()
+        if ct_importer_name is None:
             return None
+        ct_importer = get_importer(ct_importer_name)()
+        ct_file = self.get_content_type_file()
+        if ct_file is None:
+            return None
+
+        cts_file = self.open_file(ct_file)
+        tag = ct_importer.get_archive(cts_file)
+
+        if tag is None:
+            return self.tag
+
+        return tag
 
     def check_db_sync(self):
         if self.last_changed_local is not None and self.last_changed_external is not None:
