@@ -111,6 +111,7 @@ const general = $translateProvider => {
     EXPAND_ALL: 'Expand all',
     EXPORT_ACTION: 'Export',
     EXPORT_RESULT: 'Export result',
+    FAILED: 'Failed',
     FAILURE: 'Failure',
     FAMILY_NAME: 'Family name',
     FILE_EXISTS_IN_DIP_DESC:
