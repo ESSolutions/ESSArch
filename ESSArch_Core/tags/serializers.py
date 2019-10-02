@@ -1021,7 +1021,8 @@ class ArchiveWriteSerializer(serializers.Serializer):
         queryset=Structure.objects.filter(is_template=True, published=True), many=True)
     archive_creator = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
     description = serializers.CharField(required=False)
-    reference_code = serializers.CharField()
+    reference_code = serializers.CharField(required=False)
+    use_uuid_as_refcode = serializers.BooleanField(default=False)
     start_date = serializers.DateTimeField(required=False)
     end_date = serializers.DateTimeField(required=False)
     custom_fields = serializers.JSONField(required=False)
@@ -1048,10 +1049,16 @@ class ArchiveWriteSerializer(serializers.Serializer):
             structures = validated_data.pop('structures')
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
+            use_uuid_as_refcode = validated_data.pop('use_uuid_as_refcode', False)
+            tag_version_id = uuid.uuid4()
+
+            if use_uuid_as_refcode:
+                validated_data['reference_code'] = str(tag_version_id)
 
             tag = Tag.objects.create()
             tag_version = TagVersion.objects.create(
-                tag=tag, elastic_index='archive', **validated_data,
+                pk=tag_version_id, tag=tag, elastic_index='archive',
+                **validated_data,
             )
             tag.current_version = tag_version
             tag.save()
@@ -1135,6 +1142,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
            data.get('start_date') > data.get('end_date'):
 
             raise serializers.ValidationError(_("end date must occur after start date"))
+
+        if not data.get('reference_code') and not data.get('use_uuid_as_refcode'):
+            raise serializers.ValidationError(_("either reference_code or use_uuid_as_refcode must be set"))
 
         return data
 
