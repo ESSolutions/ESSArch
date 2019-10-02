@@ -363,6 +363,10 @@ class StructureUnitDocument(DocumentBase):
         return StructureUnit
 
     @classmethod
+    def get_index_queryset(cls):
+        return StructureUnit.objects.filter(structure__is_template=False)
+
+    @classmethod
     def from_obj(cls, obj):
         structure_set = obj.structure.tagstructure_set
         archive_doc = None
