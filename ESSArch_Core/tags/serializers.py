@@ -91,22 +91,6 @@ class NodeIdentifierWriteSerializer(NodeIdentifierSerializer):
 
 
 class NodeNoteTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = NodeNoteType
-        fields = ('id', 'name',)
-
-
-class NodeNoteSerializer(serializers.ModelSerializer):
-    type = NodeNoteTypeSerializer()
-
-    class Meta:
-        model = NodeNote
-        fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date', 'history',)
-
-
-class NodeNoteWriteSerializer(NodeNoteSerializer):
-    type = serializers.PrimaryKeyRelatedField(queryset=NodeNoteType.objects.all())
-
     def validate_history(self, value):
         if value:
             try:
@@ -119,6 +103,22 @@ class NodeNoteWriteSerializer(NodeNoteSerializer):
                 pass
 
         return value
+
+    class Meta:
+        model = NodeNoteType
+        fields = ('id', 'name', 'history',)
+
+
+class NodeNoteSerializer(serializers.ModelSerializer):
+    type = NodeNoteTypeSerializer()
+
+    class Meta:
+        model = NodeNote
+        fields = ('id', 'type', 'text', 'href', 'create_date', 'revise_date',)
+
+
+class NodeNoteWriteSerializer(NodeNoteSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=NodeNoteType.objects.all())
 
     class Meta(NodeNoteSerializer.Meta):
         extra_kwargs = {
