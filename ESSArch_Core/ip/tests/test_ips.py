@@ -29,12 +29,14 @@ import os
 import shutil
 import tempfile
 import uuid
+from datetime import datetime
 from unittest import mock
 
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
+from django.utils.timezone import make_aware
 from groups_manager.models import GroupType
 from lxml import etree
 from rest_framework import status
@@ -80,11 +82,15 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class AccessTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
         Path.objects.create(entity='temp', value="")
 
+        cls.org_group_type = GroupType.objects.create(label='organization')
+
+    def setUp(self):
         cache = StorageMethod.objects.create()
         cache_target = StorageTarget.objects.create(name='cache target')
 
@@ -113,7 +119,6 @@ class AccessTestCase(TestCase):
 
         self.user = User.objects.create(username="admin")
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
         perms = {'group': ['view_informationpackage']}
@@ -159,15 +164,17 @@ class AccessTestCase(TestCase):
 
 
 class WorkareaViewSetTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
 
-        self.url = reverse('workarea-list')
+        cls.url = reverse('workarea-list')
+        cls.org_group_type = GroupType.objects.create(label='organization')
 
+    def setUp(self):
         self.user = User.objects.create(username="admin")
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
@@ -268,15 +275,17 @@ class WorkareaViewSetTestCase(TestCase):
 
 
 class AIPInMultipleUsersWorkareaTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
 
-        self.url = reverse('workarea-list')
+        cls.url = reverse('workarea-list')
+        cls.org_group_type = GroupType.objects.create(label='organization')
 
+    def setUp(self):
         self.user = User.objects.create(username="admin")
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
@@ -388,15 +397,17 @@ class AIPInMultipleUsersWorkareaTestCase(TestCase):
 
 
 class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
 
-        self.url = reverse('workarea-list')
+        cls.url = reverse('workarea-list')
+        cls.org_group_type = GroupType.objects.create(label='organization')
 
+    def setUp(self):
         self.user = User.objects.create(username="admin")
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
@@ -439,20 +450,22 @@ class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
 
 
 class WorkareaFilesViewTestCase(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="access")
         Path.objects.create(entity="ingest_workarea", value="ingest")
 
+        cls.url = reverse('workarea-files-list')
+        cls.org_group_type = GroupType.objects.create(label='organization')
+
+    def setUp(self):
         self.user = User.objects.create(username="admin", password='admin')
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
-        self.url = reverse('workarea-files-list')
 
     def test_no_type_parameter(self):
         res = self.client.get(self.url)
@@ -581,10 +594,17 @@ class WorkareaFilesViewTestCase(TestCase):
 
 
 class InformationPackageViewSetTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='ingest_workarea', value='')
+        Path.objects.create(entity='access_workarea', value='')
+        Path.objects.create(entity='disseminations', value='')
+
+        cls.org_group_type = GroupType.objects.create(label='organization')
+
     def setUp(self):
         self.user = User.objects.create(username="admin", password='admin')
         self.member = self.user.essauth_member
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
@@ -595,10 +615,6 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.force_authenticate(user=self.user)
 
         self.url = reverse('informationpackage-list')
-
-        Path.objects.create(entity='ingest_workarea', value='')
-        Path.objects.create(entity='access_workarea', value='')
-        Path.objects.create(entity='disseminations', value='')
 
     def test_empty(self):
         res = self.client.get(self.url)
@@ -652,23 +668,28 @@ class InformationPackageViewSetTestCase(TestCase):
 
     def test_ip_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip = InformationPackage.objects.create(aic=aic, generation=0, state='foo')
+        start_date = make_aware(datetime(2000, 1, 1))
+        aip = InformationPackage.objects.create(aic=aic, generation=0, state='foo', start_date=start_date)
+
         aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip2 = InformationPackage.objects.create(aic=aic2, generation=0, state='foo')
+        start_date = make_aware(datetime(2010, 1, 1))
+        aip2 = InformationPackage.objects.create(aic=aic2, generation=0, state='foo', start_date=start_date)
+
         aic3 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip3 = InformationPackage.objects.create(aic=aic3, generation=0, state='bar')
+        start_date = make_aware(datetime(2020, 1, 1))
+        aip3 = InformationPackage.objects.create(aic=aic3, generation=0, state='bar', start_date=start_date)
 
         perms = {'group': ['view_informationpackage']}
         self.member.assign_object(self.group, aip, custom_permissions=perms)
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'ip', 'ordering': 'create_date', 'state': 'foo'})
+        res = self.client.get(self.url, data={'view_type': 'ip', 'ordering': 'start_date', 'state': 'foo'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aip.pk))
         self.assertEqual(res.data[1]['id'], str(aip2.pk))
 
-        res = self.client.get(self.url, data={'view_type': 'ip', 'ordering': '-create_date', 'state': 'foo'})
+        res = self.client.get(self.url, data={'view_type': 'ip', 'ordering': '-start_date', 'state': 'foo'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aip2.pk))
         self.assertEqual(res.data[1]['id'], str(aip.pk))
@@ -1851,21 +1872,23 @@ class IdentifyIP(TransactionTestCase):
 
 
 class CreateIPTestCase(TestCase):
-    def setUp(self):
-        self.client = APIClient()
-        self.url = reverse('informationpackage-list')
-
-        self.user = User.objects.create(username='user')
-        self.member = self.user.essauth_member
-
-        self.client.force_authenticate(user=self.user)
-
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, 'datadir')
-        Path.objects.create(entity='preingest', value=self.datadir)
+    @classmethod
+    def setUpTestData(cls):
+        cls.root = os.path.dirname(os.path.realpath(__file__))
+        cls.datadir = os.path.join(cls.root, 'datadir')
+        Path.objects.create(entity='preingest', value=cls.datadir)
 
         EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
         EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+
+        cls.url = reverse('informationpackage-list')
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+        self.client.force_authenticate(user=self.user)
 
         self.addCleanup(shutil.rmtree, self.datadir)
 
@@ -1984,17 +2007,19 @@ class CreateIPTestCase(TestCase):
 
 
 class test_submit_ip(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.root = os.path.dirname(os.path.realpath(__file__))
+        cls.datadir = os.path.join(cls.root, 'datadir')
+
+        Path.objects.create(entity='preingest', value=cls.datadir)
+        Path.objects.create(entity='preingest_reception', value=cls.datadir)
+
     def setUp(self):
         self.user = User.objects.create(username="admin")
 
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, 'datadir')
-
-        Path.objects.create(entity='preingest', value=self.datadir)
-        Path.objects.create(entity='preingest_reception', value=self.datadir)
 
         self.sa = SubmissionAgreement.objects.create()
         self.ip = InformationPackage.objects.create(submission_agreement=self.sa)
@@ -2263,6 +2288,10 @@ class UploadTestCase(TestCase):
 
 
 class FilesActionTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(label='organization')
+        cls.user_role = GroupMemberRole.objects.create(codename='user_role')
 
     def setUp(self):
         self.root = self.datadir = tempfile.mkdtemp()
@@ -2279,11 +2308,9 @@ class FilesActionTests(TestCase):
 
         self.member = self.user.essauth_member
 
-        self.org_group_type = GroupType.objects.create(label='organization')
         self.org = Group.objects.create(name='organization', group_type=self.org_group_type)
 
         perms = Permission.objects.filter(codename='view_informationpackage')
-        self.user_role = GroupMemberRole.objects.create(codename='user_role')
         self.user_role.permissions.set(perms)
 
         membership = GroupMember.objects.create(member=self.member, group=self.org)
