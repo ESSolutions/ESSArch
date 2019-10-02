@@ -25,9 +25,15 @@ export default class AgentNoteModalInstanceCtrl {
     };
 
     $ctrl.$onInit = function() {
+      let history = false;
+      if (data.note && data.note.type.history) {
+        history = data.note.type.history;
+      } else if (data.history) {
+        history = data.history;
+      }
       return $http({
         url: appConfig.djangoUrl + 'agent-note-types/',
-        params: {pager: 'none'},
+        params: {pager: 'none', history},
         method: 'GET',
       }).then(function(response) {
         $ctrl.typeOptions = response.data;

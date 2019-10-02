@@ -122,7 +122,7 @@
       <div>
         <button
           class="btn btn-primary"
-          ng-click="vm.addNoteModal()"
+          ng-click="vm.addHistoryModal()"
           permission
           permission-only="'tags.change_tagversion'"
         >
@@ -137,7 +137,7 @@
           permission
           permission-only="'tags.change_tagversion'"
           class="btn btn-default btn-sm fas fa-edit"
-          ng-click="vm.editNoteModal(x)"
+          ng-click="vm.editHistoryModal(x)"
           uib-tooltip="{{'EDIT' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
@@ -146,7 +146,7 @@
           permission
           permission-only="'tags.change_tagversion'"
           class="btn btn-default btn-sm fas fa-trash-alt"
-          ng-click="vm.removeNoteModal(x)"
+          ng-click="vm.removeHistoryModal(x)"
           uib-tooltip="{{'REMOVE' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"

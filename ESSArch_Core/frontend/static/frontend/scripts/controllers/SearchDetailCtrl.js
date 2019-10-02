@@ -1000,7 +1000,7 @@ export default class SearchDetailCtrl {
         remarks: [],
       };
       record.notes.forEach(function(note) {
-        if (note.type.name.toLowerCase() === 'historik') {
+        if (note.type.history) {
           obj.history.push(note);
         } else {
           obj.remarks.push(note);
@@ -1593,12 +1593,68 @@ export default class SearchDetailCtrl {
       );
     };
 
+    vm.addHistoryModal = function() {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/add_node_history_modal.html',
+        controller: 'NodeNoteModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: function() {
+            return {
+              node: vm.record,
+              history: true,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     vm.editNoteModal = function(note) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/edit_node_note_modal.html',
+        controller: 'NodeNoteModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: function() {
+            return {
+              node: vm.record,
+              note: note,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.editHistoryModal = function(note) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/edit_node_history_modal.html',
         controller: 'NodeNoteModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
@@ -1650,6 +1706,37 @@ export default class SearchDetailCtrl {
         }
       );
     };
+
+    vm.removeHistoryModal = function(note) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_node_history_modal.html',
+        controller: 'NodeNoteModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: function() {
+            return {
+              node: vm.record,
+              note: note,
+              allow_close: true,
+              remove: true,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     vm.addIdentifierModal = function() {
       const modalInstance = $uibModal.open({
         animation: true,
