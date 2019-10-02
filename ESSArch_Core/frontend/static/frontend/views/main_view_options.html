@@ -24,16 +24,16 @@
         >
       </select>
     </div>
-    <div ng-controller="LanguageCtrl" class="language-select">
+    <div ng-controller="LanguageCtrl as vm" class="language-select">
       <label>
         {{ "LANGUAGE" | translate }}
       </label>
       <select
         tabindex="-1"
         class="form-control"
-        ng-model="currentLanguage"
-        ng-change="changeLanguage(currentLanguage)"
-        ng-options="x | translate for x in availableLanguages"
+        ng-model="vm.currentLanguage"
+        ng-change="vm.changeLanguage(vm.currentLanguage)"
+        ng-options="x | translate for x in vm.availableLanguages"
       ></select>
     </div>
   </div>

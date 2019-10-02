@@ -515,7 +515,7 @@ export default angular
     'Notifications',
     IpInformationModalInstanceCtrl,
   ])
-  .controller('LanguageCtrl', ['appConfig', '$scope', '$http', '$translate', LanguageCtrl])
+  .controller('LanguageCtrl', ['appConfig', '$http', '$translate', LanguageCtrl])
   .controller('MediaInformationCtrl', [
     '$scope',
     '$rootScope',
