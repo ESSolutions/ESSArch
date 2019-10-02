@@ -26,6 +26,9 @@ export default class ArchiveModalInstanceCtrl {
       } else {
         if (data.archive) {
           $ctrl.archive = angular.copy(data.archive);
+          if ($ctrl.archive.reference_code === $ctrl.archive._id) {
+            $ctrl.archive.use_uuid_as_refcode = true;
+          }
           $ctrl.archive.type = angular.copy(data.archive.type.pk);
           $ctrl.initStructureSearch = angular.copy(data.archive.structures[0].name);
           $ctrl.initAgentSearch = angular.copy(data.archive.agents[0].agent.names[0].main);
@@ -233,6 +236,21 @@ export default class ArchiveModalInstanceCtrl {
             required: true,
             label: $translate.instant('ACCESS.REFERENCE_CODE'),
           },
+          expressionProperties: {
+            'templateOptions.required': function($viewValue, $modelValue, scope) {
+              return !scope.model.use_uuid_as_refcode;
+            },
+            'templateOptions.disabled': function($viewValue, $modelValue, scope) {
+              return scope.model.use_uuid_as_refcode;
+            },
+          },
+        },
+        {
+          key: 'use_uuid_as_refcode',
+          type: 'checkbox',
+          templateOptions: {
+            label: $translate.instant('ACCESS.USE_UUID_AS_REFCODE'),
+          },
         },
       ]);
     };
@@ -265,6 +283,12 @@ export default class ArchiveModalInstanceCtrl {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
+      }
+      if (!angular.isUndefined($ctrl.archive.use_uuid_as_refcode)) {
+        if ($ctrl.archive.use_uuid_as_refcode === true) {
+          $ctrl.archive.reference_code = $ctrl.archive._id;
+        }
+        delete $ctrl.archive.use_uuid_as_refcode;
       }
       $ctrl.saving = true;
       const extraDiff = {};

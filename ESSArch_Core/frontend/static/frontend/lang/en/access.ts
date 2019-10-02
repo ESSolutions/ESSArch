@@ -219,6 +219,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       UNPUBLISHED: 'Unpublished',
       UNSURE: 'Unsure',
       UPDATE_DESCENDANTS: 'Update descendant nodes',
+      USE_UUID_AS_REFCODE: 'Use archive UUID as reference code',
       VALID_DATE_END: 'Period of validity end',
       VALID_DATE_START: 'Period of validity start',
       VERSION: 'Version',

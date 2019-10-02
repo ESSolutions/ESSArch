@@ -220,6 +220,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       UNPUBLISHED: 'Avpublicerad',
       UNSURE: 'Osäker',
       UPDATE_DESCENDANTS: 'Uppdatera underliggande noder',
+      USE_UUID_AS_REFCODE: 'Använd arkivets UUID som referenskod',
       VALID_DATE_END: 'Giltighetstid slut',
       VALID_DATE_START: 'Giltighetstid start',
       VERSION: 'Version',
