@@ -126,8 +126,11 @@ def group_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(post_delete, sender=Group)
 def group_post_delete(sender, instance, *args, **kwargs):
-    if hasattr(instance, 'django_group'):
-        instance.django_group.delete()
+    try:
+        if hasattr(instance, 'django_group'):
+            instance.django_group.delete()
+    except DjangoGroup.DoesNotExist:
+        pass
 
 
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
