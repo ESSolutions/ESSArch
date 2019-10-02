@@ -24,6 +24,31 @@
       {{vm.getArchiveCreator(vm.record).auth_name}}
     </a>
   </div>
+  <div>
+    <label>{{ "ACCESS.REFERENCE_CODE" | translate }}</label>
+    <br />
+    <div class="btn-group id-button">
+      <button
+        class="btn btn-default"
+        clipboard
+        text="vm.record.reference_code"
+        on-copied="vm.idCopyDone()"
+        uib-tooltip="{{ 'COPYID' | translate }}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        <i class="fas" ng-class="{'fa-clipboard': !vm.idCopied, 'fa-clipboard-check color-success': vm.idCopied}"></i>
+      </button>
+      <button
+        class="btn btn-default"
+        uib-tooltip="{{'ACCESS.REFERENCE_CODE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        {{vm.record.reference_code}}
+      </button>
+    </div>
+  </div>
   <br />
 
   <div

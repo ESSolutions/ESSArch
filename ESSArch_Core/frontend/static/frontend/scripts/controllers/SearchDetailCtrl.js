@@ -35,6 +35,7 @@ export default class SearchDetailCtrl {
     vm.unavailable = false;
     vm.structure = null;
     vm.recordTreeData = [];
+    vm.idCopied = false;
 
     // Record update interval
     let recordInterval;
@@ -46,6 +47,10 @@ export default class SearchDetailCtrl {
 
     vm.$onInit = function() {
       vm.loadRecordAndTree();
+    };
+
+    vm.idCopyDone = function() {
+      vm.idCopied = true;
     };
 
     vm.structureChanged = structure => {
