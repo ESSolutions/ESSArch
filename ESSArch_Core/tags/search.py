@@ -254,7 +254,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         )
 
         if qs is None:
-            qs = TagVersion.objects.all()
+            qs = TagVersion.objects.for_user(self.request.user, [])
 
         # Search for object in index by id
         id = self.kwargs[lookup_url_kwarg]
