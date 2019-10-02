@@ -301,12 +301,17 @@ class NodeRelationTypeViewSet(viewsets.ModelViewSet):
 
 
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    queryset = StructureUnit.objects.select_related('structure')
+    queryset = StructureUnit.objects.none()
     serializer_class = StructureUnitSerializer
     permission_classes = (AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
     filter_class = StructureUnitFilter
     search_fields = ('name',)
+
+    def get_queryset(self):
+        return self.filter_queryset_by_parents_lookups(
+            StructureUnit.objects.for_user(self.request.user, perms=[])
+        ).select_related('structure')
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:

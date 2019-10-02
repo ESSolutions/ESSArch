@@ -242,7 +242,6 @@ class Structure(models.Model):
         new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
-        new_structure.tagstructure_set.add(archive_tagstructure)
 
         # create descendants from structure
         for unit in self.units.prefetch_related('notes', 'identifiers').select_related('parent'):
@@ -401,6 +400,10 @@ class StructureUnitRelation(models.Model):
 
     class Meta:
         unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
+
+
+class StructureUnitManager(TreeManager, OrganizationManager):
+    pass
 
 
 class StructureUnit(MPTTModel):
@@ -657,6 +660,8 @@ class StructureUnit(MPTTModel):
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
+
+    objects = StructureUnitManager()
 
     class Meta:
         unique_together = (('structure', 'reference_code'),)
