@@ -190,7 +190,7 @@ class Component(VersionedDocType):
 
     @classmethod
     def get_index_queryset(cls):
-        return TagVersion.objects.select_related('tag').exclude(elastic_index='archive')
+        return TagVersion.objects.select_related('tag', 'type').filter(elastic_index='component')
 
     @classmethod
     def from_obj(cls, obj, archive=None):
@@ -249,7 +249,7 @@ class Archive(VersionedDocType):
 
     @classmethod
     def get_index_queryset(cls):
-        return TagVersion.objects.select_related('tag').filter(elastic_index='archive')
+        return TagVersion.objects.select_related('tag', 'type').filter(elastic_index='archive')
 
     @classmethod
     def from_obj(cls, obj):
@@ -330,6 +330,45 @@ class File(Component):
         name = 'document'
         analyzers = [autocomplete_analyzer]
 
+    @classmethod
+    def get_index_queryset(cls):
+        return TagVersion.objects.select_related(
+            'tag', 'tag__information_package', 'type',
+        ).filter(elastic_index='document')
+
+    @classmethod
+    def from_obj(cls, obj, archive=None):
+        units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
+
+        if archive is not None:
+            archive_doc = InnerArchiveDocument.from_obj(archive)
+        elif obj.get_root() is not None:
+            archive_doc = InnerArchiveDocument.from_obj(obj.get_root())
+        else:
+            archive_doc = None
+
+        if obj.tag.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.tag.task.pk)
+
+        doc = File(
+            _id=str(obj.pk),
+            id=str(obj.pk),
+            task_id=task_id,
+            archive=archive_doc,
+            structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
+            current_version=obj.tag.current_version == obj,
+            name=obj.name,
+            desc=obj.description,
+            reference_code=obj.reference_code,
+            type=obj.type.name,
+            ip=str(obj.tag.information_package.pk),
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            **obj.custom_fields,
+        )
+        return doc
+
     class Meta:
         date_detection = MetaField('false')
 
@@ -341,6 +380,44 @@ class Directory(Component):
     class Index:
         name = 'directory'
         analyzers = [autocomplete_analyzer]
+
+    def get_index_queryset(cls):
+        return TagVersion.objects.select_related(
+            'tag', 'tag__information_package', 'type',
+        ).filter(elastic_index='directory')
+
+    @classmethod
+    def from_obj(cls, obj, archive=None):
+        units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
+
+        if archive is not None:
+            archive_doc = InnerArchiveDocument.from_obj(archive)
+        elif obj.get_root() is not None:
+            archive_doc = InnerArchiveDocument.from_obj(obj.get_root())
+        else:
+            archive_doc = None
+
+        if obj.tag.task is None:
+            task_id = None
+        else:
+            task_id = str(obj.tag.task.pk)
+
+        doc = Directory(
+            _id=str(obj.pk),
+            id=str(obj.pk),
+            task_id=task_id,
+            archive=archive_doc,
+            structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
+            current_version=obj.tag.current_version == obj,
+            name=obj.name,
+            desc=obj.description,
+            reference_code=obj.reference_code,
+            type=obj.type.name,
+            ip=str(obj.tag.information_package.pk),
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            **obj.custom_fields,
+        )
+        return doc
 
     class Meta:
         date_detection = MetaField('false')

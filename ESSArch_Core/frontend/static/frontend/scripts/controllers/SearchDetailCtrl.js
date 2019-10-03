@@ -150,7 +150,7 @@ export default class SearchDetailCtrl {
       }
 
       if (node._is_structure_unit !== true) {
-        node.reference_code = node._source && node._source.reference_code ? node._source.reference_code : '';
+        node.reference_code = node.reference_code || '';
       }
 
       node.text = '<b>' + node.reference_code + '</b> ' + node.name;

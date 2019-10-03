@@ -657,31 +657,17 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             return []
 
     def get__source(self, obj):
+        custom_fields = obj.custom_fields
+
         hidden_fields = ['restrictions']
-        try:
-            doc = obj.get_doc()
-            masked_fields = self.get_masked_fields(obj)
-            d = doc.to_dict()
+        masked_fields = self.get_masked_fields(obj)
 
-            try:
-                ip = InformationPackage.objects.get(pk=d['ip'])
-                d['ip_objid'] = ip.object_identifier_value
-            except KeyError:
-                pass
-
-            if doc._index == 'document':
-                try:
-                    d['attachment'].pop('content', None)
-                except KeyError:
-                    pass
-            for field in d.keys():
-                if field in masked_fields:
-                    d[field] = ''
-                if field in hidden_fields:
-                    d.pop(field)
-            return d
-        except elasticsearch.NotFoundError:
-            return None
+        for field in custom_fields.keys():
+            if field in masked_fields:
+                custom_fields[field] = ''
+            if field in hidden_fields:
+                custom_fields.pop(field)
+        return custom_fields
 
     class Meta:
         model = TagVersion

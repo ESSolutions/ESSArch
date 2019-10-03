@@ -46,7 +46,7 @@
     <hr class="small" />
     <div class="type-specific-results" ng-switch="vm.record._index">
       <div ng-switch-when="component">
-        <div ng-switch="vm.record._source.type.toLowerCase()">
+        <div ng-switch="vm.record.type.name.toLowerCase()">
           <div ng-switch-when="ärende">
             <div ng-include="'static/frontend/views/search_ärende_detail.html'"></div>
           </div>
