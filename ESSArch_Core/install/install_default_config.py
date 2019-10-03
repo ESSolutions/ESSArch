@@ -295,6 +295,11 @@ def installDefaultUsers():
         ['add_user', 'auth', 'user'],                    # Can add user
         ['change_user', 'auth', 'user'],                    # Can change user
         ['delete_user', 'auth', 'user'],                    # Can delete user
+        # ---- app: essauth ---- model: grouomemberrole
+        ['add_groupmemberrole', 'essauth', 'groupmemberrole'],         # Can add role
+        ['change_groupmemberrole', 'essauth', 'groupmemberrole'],      # Can change role
+        ['delete_groupmemberrole', 'essauth', 'groupmemberrole'],      # Can delete role
+        ['assign_groupmemberrole', 'essauth', 'groupmemberrole'],      # Can assign role
         # ---- app: configuration ---- model: parameter
         ['add_parameter', 'configuration', 'parameter'],                    # Can add parameter
         ['change_parameter', 'configuration', 'parameter'],                    # Can change parameter
