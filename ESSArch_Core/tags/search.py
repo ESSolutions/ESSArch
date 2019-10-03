@@ -58,7 +58,7 @@ class ComponentSearch(FacetedSearch):
     index = ['component', 'document', 'information_package', 'structure_unit']
     fields = [
         'reference_code.keyword^5', 'reference_code^3', 'name^2', 'desc', 'attachment.content',
-        'attachment.keywords',
+        'attachment.keywords', 'archive__name',
     ]
 
     facets = {
@@ -171,6 +171,38 @@ class ComponentSearch(FacetedSearch):
                     s = s.query('match', **{filter_k: filter_v})
 
         return s
+
+    def query(self, search, query):
+        """
+        Add query part to ``search``.
+
+        Overrided to support nested fields, currently only supports one level.
+        """
+
+        if query:
+            nested_queries = []
+            fields = []
+
+            for field in self.fields:
+                if '__' in field:
+                    paths = field.split('__')
+                    for idx, path in enumerate(paths):
+                        if idx == 0:
+                            continue
+
+                        subquery = {
+                            "path": paths[idx - 1],
+                            "ignore_unmapped": True,
+                            "query": Q("match", **{'.'.join(paths[:idx + 1]): query})
+                        }
+
+                    nested_queries.append(Q('nested', **subquery))
+                else:
+                    fields.append(field)
+
+            queries = nested_queries + [Q('multi_match', fields=fields, query=query)]
+            return search.query('bool', minimum_should_match=1, should=queries)
+        return search
 
     def highlight(self, search):
         """

@@ -105,7 +105,11 @@ class VersionedDocType(DocumentBase):
 
 class InnerArchiveDocument(InnerDoc):
     id = Keyword()
-    name = Keyword()
+    name = Text(
+        analyzer=autocomplete_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )
     reference_code = Keyword()
 
     @classmethod
@@ -353,7 +357,11 @@ class StructureUnitDocument(DocumentBase):
     type = Keyword()
     description = Text()
     comment = Text()
-    reference_code = Keyword()
+    reference_code = Text(
+        analyzer=autocomplete_analyzer,
+        search_analyzer='standard',
+        fields={'keyword': {'type': 'keyword'}}
+    )
     archive = Nested(InnerArchiveDocument)
     start_date = Date()
     end_date = Date()
