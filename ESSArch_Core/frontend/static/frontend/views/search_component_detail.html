@@ -18,7 +18,7 @@
       {{vm.getArchiveCreator(vm.record).auth_name}}
     </a>
   </div>
-  <div>
+  <div ng-if="vm.record.reference_code && vm.record.reference_code !== ''">
     <label>{{ "ACCESS.REFERENCE_CODE" | translate }}</label>
     <br />
     <div class="btn-group id-button">

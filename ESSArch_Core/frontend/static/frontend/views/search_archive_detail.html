@@ -26,8 +26,8 @@
       {{vm.getArchiveCreator(vm.record).auth_name}}
     </a>
   </div>
-  <div>
-    <label>{{ "ACCESS.REFERENCE_CODE" | translate }}</label>
+  <div ng-if="vm.record.reference_code && vm.record.reference_code !== ''">
+    <label>{{ "ACCESS.ARCHIVE_REFERENCE" | translate }}</label>
     <br />
     <div class="btn-group id-button">
       <button
@@ -327,11 +327,6 @@
   <result-field
     label="{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}"
     data="StructureName.getNameWithVersion(vm.getStructureById(vm.record.structures, vm.structure))"
-    stronglabel="true"
-  ></result-field>
-  <result-field
-    label="{{'ACCESS.ARCHIVE_REFERENCE' | translate}}"
-    data="vm.record.reference_code"
     stronglabel="true"
   ></result-field>
   <result-field
