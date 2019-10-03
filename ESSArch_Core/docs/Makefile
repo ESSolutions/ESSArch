@@ -22,7 +22,7 @@ html: Makefile
 	@$(SPHINXBUILD) -b $@ -n "$(SOURCEDIR)" "$(BUILDDIR)/$(LANGUAGE)/html" -D language=$(LANGUAGE) $(SPHINXOPTS) $(O)
 
 pdf: Makefile
-	@$(SPHINXBUILD) -b latexpdf -n "$(SOURCEDIR)" "$(BUILDDIR)/$(LANGUAGE)/pdf" -D language=$(LANGUAGE) $(SPHINXOPTS) $(O)
+	@$(SPHINXBUILD) -M latexpdf "$(SOURCEDIR)" "$(BUILDDIR)/$(LANGUAGE)" -D language=$(LANGUAGE) $(SPHINXOPTS) $(O)
 
 gettext: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
