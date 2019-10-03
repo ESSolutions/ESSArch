@@ -32,6 +32,7 @@ from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
@@ -139,6 +140,14 @@ class ComponentSearch(FacetedSearch):
         s = s.filter(Q('bool', minimum_should_match=1, should=[
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
             Q('bool', **{'must_not': {'terms': {'_index': ['component-*', 'structure_unit-*']}}}),
+        ]))
+
+        organization_ips = InformationPackage.objects.for_user(self.user, [])
+        organization_ips = [str(x) for x in list(organization_ips.values_list('pk', flat=True))]
+
+        s = s.filter(Q('bool', minimum_should_match=1, should=[
+            Q('terms', ip=organization_ips),
+            Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
         ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
