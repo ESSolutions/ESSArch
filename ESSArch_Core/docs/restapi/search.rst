@@ -59,28 +59,29 @@ Retrieve results
                 "type": "volym",
                 "desc": "",
             }
-            {
-                "_index": "document-20191001011859",
-                "_type": "doc",
-                "_id": "746b511c-11a3-49ae-acd3-08180e9fb657",
-                "_score": 0.0,
-                "_source": {
-                    "extension": "xsd",
-                    "filename": "premis.xsd",
-                    "size": 52845,
-                    "attachment": {
-                        "content_type": "application/xml",
-                        "language": "lt",
-                        "content_length": 4472
-                    },
-                    "ip": "2d9172db-a660-478d-919b-b07228fe5786",
-                    "name": "premis.xsd",
-                    "current_version": true,
-                    "modified": "2019-09-01T02:40:28+02:00",
-                    "href": "content/2d9172db-a660-478d-919b-b07228fe5786/metadata",
-                    "type": "document"
-                }
-            },
+        },
+        {
+            "_index": "document-20191001011859",
+            "_type": "doc",
+            "_id": "746b511c-11a3-49ae-acd3-08180e9fb657",
+            "_score": 0.0,
+            "_source": {
+                "extension": "xsd",
+                "filename": "premis.xsd",
+                "size": 52845,
+                "attachment": {
+                    "content_type": "application/xml",
+                    "language": "lt",
+                    "content_length": 4472
+                },
+                "ip": "2d9172db-a660-478d-919b-b07228fe5786",
+                "name": "premis.xsd",
+                "current_version": true,
+                "modified": "2019-09-01T02:40:28+02:00",
+                "href": "content/2d9172db-a660-478d-919b-b07228fe5786/metadata",
+                "type": "document"
+            }
+        },
         {
             "_index": "document-20191001011859",
             "_type": "doc",
@@ -102,8 +103,8 @@ Retrieve results
                 "href": "content/2d9172db-a660-478d-919b-b07228fe5786/metadata",
                 "type": "document"
             }
-        ]
-    }
+        }
+    ]
 
 
 Filters
