@@ -24,6 +24,9 @@ def get_organization_groups(user):
         user: The user to get groups for
     """
 
+    if user.is_superuser:
+        return Group.objects.filter(group_type__codename=ORGANIZATION_TYPE)
+
     sub_group_filter = Q(
         ~Q(sub_essauth_group_set__group_type__codename=ORGANIZATION_TYPE) &
         Q(sub_essauth_group_set__django_group__user=user)

@@ -44,8 +44,19 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import connection, models, transaction
-from django.db.models import Count, Exists, F, Max, Min, OuterRef, Q, Sum
+from django.db.models import (
+    CharField,
+    Count,
+    Exists,
+    F,
+    Max,
+    Min,
+    OuterRef,
+    Q,
+    Sum,
+)
 from django.db.models.expressions import RawSQL
+from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
@@ -446,12 +457,23 @@ class InformationPackage(models.Model):
             .aggregate(Max('generation'))['generation__max']
         return self.generation == max_generation
 
+    @transaction.atomic
     def change_organization(self, organization):
+        from ESSArch_Core.tags.models import TagVersion
+
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
         ctype = ContentType.objects.get_for_model(self)
         GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
                                                      defaults={'group': organization})
+
+        ctype = ContentType.objects.get_for_model(TagVersion)
+        tag_versions = TagVersion.objects.annotate(id_as_char=Cast('pk', CharField())).filter(
+            tag__information_package=self
+        ).values('id_as_char')
+        GroupGenericObjects.objects.filter(content_type=ctype, object_id__in=tag_versions).update(
+            group=organization
+        )
 
     @staticmethod
     def get_dirs(structure, data, root=""):

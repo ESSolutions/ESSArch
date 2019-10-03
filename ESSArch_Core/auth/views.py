@@ -82,6 +82,10 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        if user.is_superuser:
+            return Group.objects.all()
+
         return user.essauth_member.groups.all()
 
     def get_serializer_class(self):
@@ -102,6 +106,10 @@ class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+
+        if user.is_superuser:
+            return Group.objects.filter(group_type__codename='organization')
+
         return user.essauth_member.groups.filter(group_type__codename='organization')
 
     def get_serializer_class(self):
