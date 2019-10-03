@@ -948,14 +948,31 @@ class TagVersion(models.Model):
             params={'_source_exclude': 'attachment.content'}
         )
 
-    def get_doc(self):  # TODO: do we need this?
-        from ESSArch_Core.tags.documents import VersionedDocType
+    def get_doc(self):
+        from ESSArch_Core.search.documents import DocumentBase
+        from ESSArch_Core.tags.documents import (
+            Archive,
+            Component,
+            Directory,
+            File,
+        )
 
+        cls = None
         kwargs = {'params': {}}
-        if self.elastic_index == 'document':
-            kwargs['params']['_source_exclude'] = 'attachment.content'
 
-        return VersionedDocType.get(index=self.elastic_index, id=str(self.pk), **kwargs)
+        if self.elastic_index == 'archive':
+            cls = Archive
+        elif self.elastic_index == 'component':
+            cls = Component
+        elif self.elastic_index == 'directory':
+            cls = Directory
+        elif self.elastic_index == 'document':
+            kwargs['params']['_source_exclude'] = 'attachment.content'
+            cls = File
+        else:
+            cls = DocumentBase
+
+        return cls.get(index=self.elastic_index, id=str(self.pk), **kwargs)
 
     def update_search(self, data):
         doc = self.to_search_data()
