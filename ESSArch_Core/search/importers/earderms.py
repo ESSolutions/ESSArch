@@ -11,12 +11,7 @@ from django.db.models import Q
 from lxml import etree
 
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import (
-    Component,
-    File,
-    InnerArchiveDocument,
-    Node,
-)
+from ESSArch_Core.tags.documents import Component, File
 from ESSArch_Core.tags.models import (
     StructureUnit,
     Tag,
@@ -115,7 +110,7 @@ class EardErmsImporter(BaseImporter):
         tag_version = TagVersion.objects.create(
             pk=id,
             tag=tag,
-            elastic_index=d._index._name,
+            elastic_index='document',
             name=name,
             description=desc,
             type=tag_version_type,
