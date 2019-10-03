@@ -172,7 +172,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       REMOVE_STRUCTURE_RULE_DESC: 'Do you want to remove rule?',
       REMOVE_TRANSFER_LINK: 'Remove transfer link',
       REPLACE: 'Link to new location',
-      REVISE_DATE: 'Last changed',
+      REVISE_DATE: 'Last modified',
       RULE_ADDED: 'Rule added',
       RULE_REMOVED: 'Rule removed',
       RULES: 'Rules',
