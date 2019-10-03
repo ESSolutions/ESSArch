@@ -2,6 +2,7 @@ import logging
 
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
+from elasticsearch.exceptions import NotFoundError
 
 from ESSArch_Core.tags.models import Tag, TagVersion
 
@@ -30,7 +31,10 @@ def pre_tag_version_delete(sender, instance, **kwargs):
         except TagVersion.DoesNotExist:
             pass
 
-    instance.get_doc().delete()
+    try:
+        instance.get_doc().delete()
+    except NotFoundError:
+        logger.warning('TagVersion document not found: {}'.format(instance.pk))
 
 
 @receiver(post_delete, sender=TagVersion)

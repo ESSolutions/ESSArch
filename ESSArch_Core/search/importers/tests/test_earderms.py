@@ -7,6 +7,7 @@ from unittest import mock
 from django.test import TestCase
 from lxml import etree
 
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.search.importers.earderms import (
     EardErmsImporter,
     get_encoded_content_from_file,
@@ -18,6 +19,7 @@ from ESSArch_Core.tags.models import (
     StructureUnit,
     StructureUnitType,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 def get_xml_example_full():
@@ -883,10 +885,8 @@ class ParseErrandTests(TestCase):
         self.importer = EardErmsImporter(None)
         self.archive = mock.Mock()
         self.archive.pk = uuid.uuid4()
-        self.ip = mock.Mock()
-        self.ip.pk = uuid.uuid4()
-        self.importer.task = mock.Mock()
-        self.importer.task.pk = uuid.uuid4()
+        self.ip = InformationPackage.objects.create()
+        self.importer.task = ProcessTask.objects.create()
         self.structure_type = StructureType.objects.create(name="test")
         self.structure = Structure.objects.create(type=self.structure_type, is_template=False)
         self.structure_unit_type = StructureUnitType.objects.create(name="test", structure_type=self.structure_type)
@@ -942,12 +942,6 @@ class ParseErrandTests(TestCase):
 
         self.assertEqual(structure_unit, self.structure_unit)
 
-    def test_parse_errand_when_ip_is_not_None_but_has_no_pk_attribute_should_raise_exception(self):
-        root = self.get_arkiv_objekt_arende()
-
-        with self.assertRaises(AttributeError):
-            self.importer.parse_errand(root, self.archive, 13, self.structure)
-
     def test_parse_errand_when_element_Motpart_is_missing_should_pass(self):
         root = self.get_arkiv_objekt_arende()
 
@@ -968,10 +962,8 @@ class ParseActTests(TestCase):
         self.importer = EardErmsImporter(None)
         self.archive = mock.Mock()
         self.archive.pk = uuid.uuid4()
-        self.ip = mock.Mock()
-        self.ip.pk = uuid.uuid4()
-        self.importer.task = mock.Mock()
-        self.importer.task.pk = uuid.uuid4()
+        self.ip = InformationPackage.objects.create()
+        self.importer.task = ProcessTask.objects.create()
         self.errand = mock.Mock()
         self.errand.meta.id = 'some_errand_meta_id'
         self.errand._index._name = 'some_errand_index_name'
@@ -983,6 +975,10 @@ class ParseActTests(TestCase):
             .xpath("*[local-name()='ArkivobjektListaHandlingar']")[0] \
             .xpath("*[local-name()='ArkivobjektHandling']")[0]
 
+    def test_parse_act(self):
+        root = self.get_arkivobjekt_handling()
+        self.importer.parse_act(root, self.errand, self.ip)
+
     def test_parse_act_when_Gallring_element_is_missing_should_catch_the_exception_and_continue(self):
         root = self.get_arkivobjekt_handling()
 
@@ -992,10 +988,8 @@ class ParseActTests(TestCase):
         # Make sure there is no more 'Gallring'
         self.assertEqual(root.xpath("*[local-name()='Gallring']"), [])
 
-        component = self.importer.parse_act(root, self.errand)
-
-        # Check that all expected data is part of the component.
-        self.assertEqual(component.to_dict().get('gallring'), None)
+        tag_version = self.importer.parse_act(root, self.errand, self.ip)
+        self.assertEqual(tag_version.custom_fields.get('gallring'), None)
 
     def test_parse_act_when_ExtraID_tag_has_no_text_then_should_not_add_to_data(self):
         root = self.get_arkivobjekt_handling()
@@ -1005,10 +999,10 @@ class ParseActTests(TestCase):
         # Make sure 'ExtraID' text is cleared
         self.assertEqual(root.xpath("*[local-name()='ExtraID']")[0].text, None)
 
-        component = self.importer.parse_act(root, self.errand)
+        tag_version = self.importer.parse_act(root, self.errand, self.ip)
 
         # Check that all expected data is part of the component.
-        self.assertEqual(component.to_dict().get('extra_ids'), None)
+        self.assertEqual(tag_version.custom_fields.get('extra_ids'), [])
 
 
 class GetEncodedContentFromFileTests(TestCase):
