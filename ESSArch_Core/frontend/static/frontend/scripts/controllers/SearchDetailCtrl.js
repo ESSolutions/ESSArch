@@ -1411,7 +1411,7 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.goToNodePage(node.id, true);
+          $state.reload();
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
