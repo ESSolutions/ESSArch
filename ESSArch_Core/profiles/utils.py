@@ -37,18 +37,24 @@ def _remove_leading_underscores(d):
     return new_mapping
 
 
+def _fill_sa_specification_data(sa):
+    return {
+        '_SA_ID': str(sa.pk),
+        '_SA_NAME': sa.name,
+        '_IP_ARCHIVIST_ORGANIZATION': sa.archivist_organization,
+    }
+
+
 def fill_specification_data(data=None, sa=None, ip=None):
     data = data or {}
 
     if sa:
-        data['_SA_ID'] = str(sa.pk)
-        data['_SA_NAME'] = sa.name
+        data.update(_fill_sa_specification_data(sa))
 
     if ip:
         if not sa and ip.submission_agreement is not None:
             sa = ip.submission_agreement
-            data['_SA_ID'] = str(sa.pk)
-            data['_SA_NAME'] = sa.name
+            data.update(_fill_sa_specification_data(sa))
 
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
