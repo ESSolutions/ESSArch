@@ -495,9 +495,9 @@ def parse_files(fid, path, external, algorithm, rootdir):
 
 
 class XMLGenerator:
-    def __init__(self, filepath=None):
+    def __init__(self, filepath=None, allow_unknown_file_types=False):
         self.parser = etree.XMLParser(remove_blank_text=True)
-        self.fid = FormatIdentifier(allow_unknown_file_types=False)
+        self.fid = FormatIdentifier(allow_unknown_file_types=allow_unknown_file_types)
 
         if filepath is not None:
             self.tree = etree.parse(filepath, parser=self.parser)

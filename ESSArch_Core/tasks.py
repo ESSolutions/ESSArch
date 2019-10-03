@@ -123,13 +123,15 @@ class GenerateXML(DBTask):
 
         ip = InformationPackage.objects.filter(pk=self.ip).first()
         sa = None
+        allow_unknown_file_types = False
         if ip is not None:
             sa = ip.submission_agreement
+            allow_unknown_file_types = ip.get_allow_unknown_file_types()
 
         for _, v in filesToCreate.items():
             v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
-        generator = XMLGenerator()
+        generator = XMLGenerator(allow_unknown_file_types=allow_unknown_file_types)
         generator.generate(
             filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse,
             parsed_files=parsed_files, algorithm=algorithm,

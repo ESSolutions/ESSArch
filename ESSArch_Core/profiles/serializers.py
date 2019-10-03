@@ -71,14 +71,8 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         if self.instance is None and relation.data is not None and instance_data == relation.data.data:
             raise serializers.ValidationError('No changes made')
 
-        filtered_data = {}
-        extra_data = fill_specification_data(ip=relation.ip, sa=relation.ip.submission_agreement)
-        for k, v in instance_data.items():
-            if k not in extra_data:
-                filtered_data[k] = v
-
-        validate_template(relation.profile.template, filtered_data)
-        data['data'] = filtered_data
+        validate_template(relation.profile.template, instance_data)
+        data['data'] = instance_data
         return data
 
     def create(self, validated_data):

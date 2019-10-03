@@ -678,6 +678,10 @@ class InformationPackage(models.Model):
         except BaseException:
             return None
 
+    def get_allow_unknown_file_types(self):
+        profile_type = self.get_package_type_display().lower()
+        return self.get_profile_data(profile_type).get('allow_unknown_file_types', False)
+
     def get_structure(self):
         ip_profile_type = self.get_package_type_display().lower()
         ip_profile_rel = self.get_profile_rel(ip_profile_type)

@@ -83,7 +83,8 @@ def generate_content_mets(ip):
     }
     algorithm = ip.get_checksum_algorithm()
 
-    generator = XMLGenerator()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    generator = XMLGenerator(allow_unknown_file_types=allow_unknown_file_types)
     generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
 
     ip.content_mets_path = mets_path
@@ -118,7 +119,8 @@ def generate_package_mets(ip, package_path, xml_path):
     }
     algorithm = ip.get_checksum_algorithm()
 
-    generator = XMLGenerator()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    generator = XMLGenerator(allow_unknown_file_types=allow_unknown_file_types)
     generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
     ip.package_mets_path = normalize_path(xml_path)
@@ -182,7 +184,8 @@ def generate_premis(ip):
         }
     }
     algorithm = ip.get_checksum_algorithm()
-    generator = XMLGenerator()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    generator = XMLGenerator(allow_unknown_file_types=allow_unknown_file_types)
     generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
 
 
