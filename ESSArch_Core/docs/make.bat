@@ -9,7 +9,7 @@ if "%SPHINXBUILD%" == "" (
 )
 set SOURCEDIR=.
 set BUILDDIR=_build
-set SPHINXPROJ=ESSArchCore
+set SPHINXPROJ=ESSArch
 
 if "%1" == "" goto help
 

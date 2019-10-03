@@ -24,7 +24,7 @@
 
 # -*- coding: utf-8 -*-
 #
-# ESSArch Core documentation build configuration file, created by
+# ESSArch documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan 25 14:11:42 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -88,7 +88,7 @@ intersphinx_mapping = {
 html_context = {
     'display_github': True,
     'github_user': 'essolutions',
-    'github_repo': 'essarch_core',
+    'github_repo': 'essarch',
     'github_version': 'master/ESSArch_Core/docs/'
 }
 
@@ -105,7 +105,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'ESSArch Core'
+project = 'ESSArch'
 copyright = '2019, ES Solutions'
 author = 'ES Solutions'
 
@@ -164,7 +164,7 @@ html_static_path = []
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ESSArchCoredoc'
+htmlhelp_basename = 'ESSArchdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -191,7 +191,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ESSArchCore.tex', 'ESSArch Core Documentation',
+    (master_doc, 'ESSArch.tex', 'ESSArch Documentation',
      'ES Solutions', 'manual'),
 ]
 
@@ -201,7 +201,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'essarchcore', 'ESSArch Core Documentation',
+    (master_doc, 'essarchcore', 'ESSArch Documentation',
      [author], 1)
 ]
 
@@ -212,7 +212,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ESSArchCore', 'ESSArch Core Documentation',
-     author, 'ESSArchCore', 'One line description of project.',
+    (master_doc, 'ESSArch', 'ESSArch Documentation',
+     author, 'ESSArch', 'One line description of project.',
      'Miscellaneous'),
 ]
