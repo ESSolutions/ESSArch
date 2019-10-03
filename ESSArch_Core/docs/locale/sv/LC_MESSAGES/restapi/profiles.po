@@ -18,14 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../restapi/index.rst:3
-msgid "REST API"
+#: ../../restapi/profiles.rst:3 ../../restapi/profiles.rst:9
+msgid "Profiles"
 msgstr ""
 
-#: ../../restapi/index.rst:5
-msgid ""
-"This is an excerpt of ESSArchs REST API documenting the most relevant "
-"parts of the API that other systems need for integration with other "
-"systems."
+#: ../../restapi/profiles.rst:11
+msgid "API endpoint that allows profiles to be viewed or edited."
 msgstr ""
 

@@ -18,14 +18,31 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: ../../restapi/index.rst:3
-msgid "REST API"
+#: ../../restapi/orders.rst:3 ../../restapi/orders.rst:9
+msgid "Orders"
 msgstr ""
 
-#: ../../restapi/index.rst:5
-msgid ""
-"This is an excerpt of ESSArchs REST API documenting the most relevant "
-"parts of the API that other systems need for integration with other "
-"systems."
+#: ../../restapi/orders.rst:11
+msgid "API endpoint that allows orders to be viewed or edited."
+msgstr ""
+
+#: ../../restapi/orders.rst:47
+msgid "creates a new order"
+msgstr ""
+
+#: ../../restapi/orders.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../restapi/orders.rst:49
+msgid "A label for the order"
+msgstr ""
+
+#: ../../restapi/orders.rst:50
+msgid "The user responsible for the order"
+msgstr ""
+
+#: ../../restapi/orders.rst:51
+msgid "IP's included in the order"
 msgstr ""
 
