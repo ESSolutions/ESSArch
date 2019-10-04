@@ -787,7 +787,7 @@ class RunWorkflowPollers(DBTask):
     logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
 
     @transaction.atomic
-    def run(self):
+    def get_workflows(self):
         pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
         for name, poller in pollers.items():
             backend = get_backend(name)
@@ -807,9 +807,12 @@ class RunWorkflowPollers(DBTask):
                         continue
                     raise
 
-                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
-                                           on_error=spec.get('on_error'), context=context)
-                workflow.run()
+                yield create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                                      on_error=spec.get('on_error'), context=context)
+
+    def run(self):
+        for workflow in self.get_workflows():
+            workflow.run()
 
 
 class DeletePollingSource(DBTask):

@@ -14,7 +14,7 @@ def get_result(pk, eager=False):
         return ProcessTask.objects.values_list('result', flat=True).get(pk=pk, status=celery_states.SUCCESS)
 
 
-def _create_on_error_tasks(l, ip=None, responsible=None):
+def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):
     for on_error_idx, on_error in enumerate(l):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
@@ -24,7 +24,7 @@ def _create_on_error_tasks(l, ip=None, responsible=None):
             hidden=on_error.get('hidden', False),
             args=args,
             params=params,
-            eager=False,
+            eager=eager,
             information_package=ip,
             responsible=responsible,
             processstep_pos=on_error_idx,
@@ -53,11 +53,15 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 name=flow_entry['name'],
                 parent_step=parent_step,
                 parent_step_pos=e_idx,
+                eager=parent_step.eager,
                 information_package=ip,
                 context=context,
             )
 
-            on_error_tasks = _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+            on_error_tasks = _create_on_error_tasks(
+                flow_entry.get('on_error', []), ip=ip, responsible=responsible,
+                eager=parent_step.eager
+            )
             for on_error_task in on_error_tasks:
                 child_s.on_error.add(on_error_task)
 
@@ -76,7 +80,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 label=flow_entry.get('label'),
                 args=args,
                 params=params,
-                eager=False,
+                eager=parent_step.eager,
                 allow_failure=flow_entry.get('allow_failure', False),
                 information_package=ip,
                 responsible=responsible,
