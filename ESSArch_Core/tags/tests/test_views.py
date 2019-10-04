@@ -1695,7 +1695,8 @@ class DeleteTagTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_delete_archive_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_delete_archive_with_permission(self, mock_signal):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1719,7 +1720,8 @@ class DeleteTagTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_delete_component_with_permission(self):
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_delete_component_with_permission(self, mock_signal):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
