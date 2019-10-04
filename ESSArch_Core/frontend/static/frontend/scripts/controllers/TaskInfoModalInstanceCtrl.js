@@ -14,6 +14,7 @@ export default class TaskInfoModalInstanceCtrl {
   ) {
     const $ctrl = this;
     $scope.myTreeControl = {scope: {}};
+    $scope.angular = angular;
     if (data) {
       $ctrl.data = data;
     }
