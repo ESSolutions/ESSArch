@@ -71,7 +71,7 @@ export default class AddNodeModalInstanceCtrl {
         {
           templateOptions: {
             type: 'text',
-            label: $translate.instant('NAME'),
+            label: $translate.instant('LABEL'),
             required: true,
             focus: true,
           },

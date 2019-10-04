@@ -125,7 +125,8 @@ export default class EditNodeModalInstanceCtrl {
           key: 'name',
           type: 'input',
           templateOptions: {
-            label: $translate.instant('NAME'),
+            label:
+              data.node && data.node._index === 'archive' ? $translate.instant('NAME') : $translate.instant('LABEL'),
             required: true,
           },
         },
