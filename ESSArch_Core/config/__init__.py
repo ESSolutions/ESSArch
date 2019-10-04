@@ -34,7 +34,10 @@ default_app_config = 'ESSArch_Core.config.apps.ConfigConfig'
 
 def initialize():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
-    django.setup()
+    try:
+        django.setup()
+    except BaseException as e:
+        exit(e)
     from ESSArch_Core.config.celery import app  # noqa
 
 

@@ -22,6 +22,15 @@ def cli(ctx):
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
 
 
+def _check():
+    try:
+        dj_call_command(
+            'check',
+        )
+    except BaseException as e:
+        exit(e)
+
+
 def _loaddata(*fixture_labels):
     dj_call_command(
         'loaddata',
@@ -73,17 +82,13 @@ def create_data_directories(path):
 
 
 @cli.command()
+@initialize
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
 @click.option('--data-directory', type=click.Path(),
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
 @click.pass_context
 def install(ctx, data_directory):
-    # verify that a local settings file has been created
-    try:
-        import local_essarch_settings  # noqa isort:skip
-    except ImportError:
-        exit('No settings file found, create one by running `essarch settings generate`')
-
+    _check()
     if data_directory is None:
         data_directory = click.prompt('Data directory', default='/ESSArch/data', type=click.Path())
     ctx.invoke(create_data_directories, path=data_directory)
