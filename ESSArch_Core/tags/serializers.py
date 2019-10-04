@@ -216,6 +216,13 @@ class StructureWriteSerializer(StructureSerializer):
                 raise serializers.ValidationError(STRUCTURE_INSTANCE_RELATION_ERROR)
             return data
 
+        version = data.get('version')
+        version_link = data.get('version_link')
+
+        version_fields = ', '.join(['version', 'version_link'])
+        version_unique_together_error_msg = UniqueTogetherValidator.message.format(field_names=version_fields)
+        version_exists = Structure.objects.filter(version=version, version_link=version_link).exists()
+
         if self.instance:
             if self.instance.published:
                 raise serializers.ValidationError(PUBLISHED_STRUCTURE_CHANGE_ERROR)
@@ -224,6 +231,15 @@ class StructureWriteSerializer(StructureSerializer):
                 raise serializers.ValidationError(
                     NON_EDITABLE_STRUCTURE_CHANGE_ERROR.format(self.instance.name)
                 )
+
+            if (version is not None or version_link is not None) and self.instance.version != version:
+                version = version or self.instance.version
+                version_link = version_link or self.instance.version_link
+                if Structure.objects.filter(version=version, version_link=version_link).exists():
+                    raise serializers.ValidationError(version_unique_together_error_msg, code='unique')
+        else:
+            if version_exists:
+                raise serializers.ValidationError(version_unique_together_error_msg, code='unique')
 
         return data
 
@@ -262,10 +278,6 @@ class StructureWriteSerializer(StructureSerializer):
             StartDateEndDateValidator(
                 start_date='start_date',
                 end_date='end_date',
-            ),
-            UniqueTogetherValidator(
-                queryset=Structure.objects.all(),
-                fields=('version_link', 'version'),
             ),
         ]
         extra_kwargs = {
