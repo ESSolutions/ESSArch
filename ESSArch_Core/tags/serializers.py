@@ -624,6 +624,9 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     metric = MetricTypeSerializer()
     location = LocationSerializer()
     custom_fields = serializers.JSONField()
+    information_package = serializers.PrimaryKeyRelatedField(
+        source='tag.information_package', read_only=True,
+    )
 
     def get_root(self, obj):
         root = obj.get_root()
@@ -688,7 +691,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
             'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
-            'custom_fields', 'metric', 'location', 'capacity',
+            'custom_fields', 'metric', 'location', 'capacity', 'information_package',
         )
 
 

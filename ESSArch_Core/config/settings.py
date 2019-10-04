@@ -24,6 +24,17 @@ if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
 
+
+# Workflow Pollers
+ESSARCH_WORKFLOW_POLLERS = {
+    'dir': {
+        'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
+        'path': '/ESSArch/data/preingest/reception',
+        'sa': 'SA National Archive and Government SE',
+    }
+}
+
+
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
 

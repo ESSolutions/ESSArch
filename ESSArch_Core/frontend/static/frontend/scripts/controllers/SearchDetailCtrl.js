@@ -911,13 +911,13 @@ export default class SearchDetailCtrl {
 
     vm.viewFile = function(file) {
       const params = {};
-      if (file.href != '') {
-        params.path = file.href + '/' + file.filename;
+      if (file._source.href != '') {
+        params.path = file._source.href + '/' + file._source.filename;
       } else {
-        params.path = file.filename;
+        params.path = file._source.filename;
       }
       const showFile = $sce.trustAsResourceUrl(
-        appConfig.djangoUrl + 'information-packages/' + file.ip + '/files/?path=' + params.path
+        appConfig.djangoUrl + 'information-packages/' + file.information_package + '/files/?path=' + params.path
       );
       $window.open(showFile, '_blank');
     };
