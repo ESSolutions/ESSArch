@@ -684,7 +684,7 @@ export default class SearchDetailCtrl {
               return node.original._index !== 'archive';
             },
             action: function() {
-              vm.changeOrganizationModal(vm.record);
+              vm.changeOrganizationModal(node.original);
             },
           };
           const email = {
