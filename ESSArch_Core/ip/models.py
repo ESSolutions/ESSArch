@@ -564,8 +564,9 @@ class InformationPackage(models.Model):
         try:
             return ct_profile.specification['name']
         except KeyError:
-            logger.exception('No content type importer specified in {profile}'.format(profile=ct_profile.name))
-            raise
+            msg = 'No content type importer specified in {profile}'.format(profile=ct_profile.name)
+            logger.exception(msg)
+            raise exceptions.APIException(msg)
 
     def get_content_type_file(self):
         ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure(), self.object_path)
