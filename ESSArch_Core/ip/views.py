@@ -1271,79 +1271,79 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response({'detail': 'Receiving %s' % str(ip.pk)}, status=status.HTTP_202_ACCEPTED)
 
-    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='preserve')
     def preserve(self, request, pk=None):
-        ip = self.get_object()
+        with transaction.atomic():
+            ip = self.get_object()
 
-        if ip.archived:
-            raise exceptions.ParseError('IP already preserved')
-        if ip.state == "Preserving":
-            raise exceptions.ParseError('IP already being preserved')
+            if ip.archived:
+                raise exceptions.ParseError('IP already preserved')
+            if ip.state == "Preserving":
+                raise exceptions.ParseError('IP already being preserved')
 
-        if ip.package_type == InformationPackage.DIP:
-            policy = request.data.get('policy')
+            if ip.package_type == InformationPackage.DIP:
+                policy = request.data.get('policy')
 
-            if not policy:
-                raise exceptions.ParseError('Policy required')
+                if not policy:
+                    raise exceptions.ParseError('Policy required')
 
-            try:
-                ip.policy = StoragePolicy.objects.get(pk=policy)
-            except StoragePolicy.DoesNotExist:
-                raise exceptions.ParseError('Policy "%s" does not exist' % policy)
-            except ValueError as e:
-                raise exceptions.ParseError(e)
+                try:
+                    ip.policy = StoragePolicy.objects.get(pk=policy)
+                except StoragePolicy.DoesNotExist:
+                    raise exceptions.ParseError('Policy "%s" does not exist' % policy)
+                except ValueError as e:
+                    raise exceptions.ParseError(e)
 
-            ip.save(update_fields=['policy'])
-        elif ip.policy is None:
-            raise ValueError('{} has no policy')
+                ip.save(update_fields=['policy'])
+            elif ip.policy is None:
+                raise ValueError('{} has no policy')
 
-        ip.state = "Preserving"
-        ip.appraisal_date = request.data.get('appraisal_date', None)
-        ip.save()
+            ip.state = "Preserving"
+            ip.appraisal_date = request.data.get('appraisal_date', None)
+            ip.save()
 
-        reception_dir = Path.objects.get(entity='ingest_reception').value
-        ingest_dir = ip.policy.ingest_path.value
+            reception_dir = Path.objects.get(entity='ingest_reception').value
+            ingest_dir = ip.policy.ingest_path.value
 
-        ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-        ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
 
-        workflow = ip.create_preservation_workflow()
-        workflow += [
-            {
-                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
-                "label": "Create receipt",
-                "args": [
-                    None,
-                    "xml",
-                    "receipts/xml.json",
-                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-                    "success",
-                    "Preserved {{OBJID}}",
-                    "{{OBJID}} is now preserved",
-                ],
-            },
-            {
-                "name": "ESSArch_Core.tasks.Notify",
-                "label": "Notify responsible user",
-                "args": [
-                    "{{OBJID}} is now preserved",
-                    logging.INFO,
-                    True,
-                ],
-            },
-            {
-                "name": "ESSArch_Core.tasks.DeleteFiles",
-                "label": "Delete from reception",
-                "args": [ip_reception_path]
-            },
-            {
-                "name": "ESSArch_Core.tasks.DeleteFiles",
-                "label": "Delete from ingest",
-                "args": [ip_ingest_path]
-            },
-        ]
-        workflow = create_workflow(workflow, ip, name='Preserve Information Package')
+            workflow = ip.create_preservation_workflow()
+            workflow += [
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                    "label": "Create receipt",
+                    "args": [
+                        None,
+                        "xml",
+                        "receipts/xml.json",
+                        "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                        "success",
+                        "Preserved {{OBJID}}",
+                        "{{OBJID}} is now preserved",
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.Notify",
+                    "label": "Notify responsible user",
+                    "args": [
+                        "{{OBJID}} is now preserved",
+                        logging.INFO,
+                        True,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.DeleteFiles",
+                    "label": "Delete from reception",
+                    "args": [ip_reception_path]
+                },
+                {
+                    "name": "ESSArch_Core.tasks.DeleteFiles",
+                    "label": "Delete from ingest",
+                    "args": [ip_ingest_path]
+                },
+            ]
+            workflow = create_workflow(workflow, ip, name='Preserve Information Package')
         workflow.run()
         return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
 
