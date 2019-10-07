@@ -614,16 +614,6 @@ def installProfileAIP(sa):
                     },
                     {
                         'type': 'folder',
-                        'name': 'data',
-                        'children': [],
-                    },
-                    {
-                        'type': 'folder',
-                        'name': 'metadata',
-                        'children': [],
-                    },
-                    {
-                        'type': 'folder',
                         'name': '{{INNER_IP_OBJID}}',
                         'use': 'sip',
                         'children': [
