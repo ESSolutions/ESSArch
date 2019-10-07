@@ -1190,10 +1190,10 @@ angular-clipboard@^1.7.0:
   resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.7.8.tgz#c674dcfd37168e3d7def6bed165a38f75f96dbc9"
   integrity sha512-oS2X8XLYyLrwSBUKmcGkHxphwTtAEdi3eriSwMX/WUl5D6fRZ4EcBY4DaHN+tYDnzJ1i2lFa82/oq0kTKxZmyg==
 
-angular-cron-jobs@^3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/angular-cron-jobs/-/angular-cron-jobs-3.2.0.tgz#26827168dac10dff3a993456de4f2f9558ec10ce"
-  integrity sha1-JoJxaNrBDf86mTRW3k8vlVjsEM4=
+angular-cron-jobs@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/angular-cron-jobs/-/angular-cron-jobs-3.2.1.tgz#3ea4931be2680d6ed6a85346bbdf668f0c7ab33a"
+  integrity sha512-1o4Ef1CifSuLdX+RjFoH0SaEVEoTaGGVXhHaJWJJeX7emEwm2yYqAgQNb7LOSD5kn3ISh7Xo2lBep5peInC89Q==
 
 angular-date-time-input@^1.2.1:
   version "1.2.1"
