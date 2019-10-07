@@ -497,11 +497,7 @@ class InformationPackage(models.Model):
 
         try:
             for dirname in InformationPackage.get_dirs(structure, data, root):
-                try:
-                    os.makedirs(dirname)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
+                os.makedirs(dirname, exist_ok=True)
                 created.append(dirname)
         except Exception:
             for dirname in created:
