@@ -61,6 +61,7 @@ import OrganizationModalInstanceCtrl from '../controllers/OrganizationModalInsta
 import OverwriteModalInstanceCtrl from '../controllers/OverwriteModalInstanceCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
+import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
@@ -693,6 +694,15 @@ export default angular
     '$translate',
     '$controller',
     PrepareIpCtrl,
+  ])
+  .controller('PrepareIpModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'IP',
+    'EditMode',
+    '$scope',
+    '$translate',
+    PrepareIpModalInstanceCtrl,
   ])
   .controller('PrepareSipCtrl', [
     'Profile',
