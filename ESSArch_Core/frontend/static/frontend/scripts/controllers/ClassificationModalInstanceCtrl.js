@@ -75,6 +75,7 @@ export default class ClassificationModalInstanceCtrl {
           templateOptions: {
             label: $translate.instant('NAME'),
             required: true,
+            focus: true,
           },
         },
         {

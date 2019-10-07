@@ -42,6 +42,7 @@ export default class AgentMandateModalInstanceCtrl {
           templateOptions: {
             label: $translate.instant('NAME'),
             required: true,
+            focus: true,
           },
         },
         {

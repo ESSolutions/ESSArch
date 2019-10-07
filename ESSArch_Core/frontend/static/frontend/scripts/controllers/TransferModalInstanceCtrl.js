@@ -21,6 +21,7 @@ export default class TransferModalInstanceCtrl {
           type: 'input',
           key: 'name',
           templateOptions: {
+            focus: true,
             label: $translate.instant('NAME'),
             required: true,
           },

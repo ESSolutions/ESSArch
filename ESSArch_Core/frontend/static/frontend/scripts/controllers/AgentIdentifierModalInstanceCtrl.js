@@ -49,6 +49,7 @@ export default class AgentIdentifierModalInstanceCtrl {
             labelProp: 'name',
             valueProp: 'id',
             defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0].id : null,
+            focus: true,
             notNull: true,
           },
         },

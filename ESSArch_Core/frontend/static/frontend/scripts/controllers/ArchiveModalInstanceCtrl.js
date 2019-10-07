@@ -124,6 +124,7 @@ export default class ArchiveModalInstanceCtrl {
           key: 'name',
           templateOptions: {
             label: $translate.instant('NAME'),
+            focus: true,
             required: true,
           },
         },

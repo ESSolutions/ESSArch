@@ -61,6 +61,7 @@ export default class AgentNoteModalInstanceCtrl {
             labelProp: 'name',
             valueProp: 'id',
             defaultValue: $ctrl.typeOptions.length > 0 ? $ctrl.typeOptions[0].id : null,
+            focus: true,
             notNull: true,
           },
         },

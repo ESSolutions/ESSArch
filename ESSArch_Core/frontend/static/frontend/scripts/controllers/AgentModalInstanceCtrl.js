@@ -115,6 +115,7 @@ export default class AgentModalInstanceCtrl {
           type: 'select',
           key: 'type',
           templateOptions: {
+            focus: true,
             options: options,
             getTypeName: function(type) {
               return (

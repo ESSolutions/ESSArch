@@ -32,6 +32,7 @@ export default class EventModalInstanceCtrl {
           type: 'select',
           key: 'eventType',
           templateOptions: {
+            focus: true,
             required: true,
             label: $translate.instant('EVENT.EVENTTYPE'),
             labelProp: 'eventDetail',

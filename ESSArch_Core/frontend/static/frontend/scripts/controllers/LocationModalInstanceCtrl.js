@@ -64,6 +64,7 @@ export default class LocationModalInstanceCtrl {
             type: 'input',
             key: 'name',
             templateOptions: {
+              focus: true,
               required: true,
               label: $translate.instant('NAME'),
             },

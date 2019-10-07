@@ -63,6 +63,7 @@ export default class DeliveryModalInstanceCtrl {
           type: 'input',
           key: 'name',
           templateOptions: {
+            focus: true,
             label: $translate.instant('NAME'),
             required: true,
           },
