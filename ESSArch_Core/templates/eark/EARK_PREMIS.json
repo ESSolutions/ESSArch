@@ -116,7 +116,7 @@
                                 {
                                     "-name": "contentLocationType",
                                     "-namespace": "premis",
-                                    "#content": [{"var": "_PARAMETER_CONTENT_LOCATION_TYPE"}]
+                                    "#content": "{{IP_PACKAGE_TYPE | upper}}"
                                 },
                                 {
                                     "-name": "contentLocationValue",

@@ -99,6 +99,7 @@ def fill_specification_data(data=None, sa=None, ip=None):
             container = ip.get_container_format()
 
         data['_IP_CONTAINER_FORMAT'] = container.upper()
+        data['_IP_PACKAGE_TYPE'] = ip.get_package_type_display()
 
         if ip.policy is not None:
             data['_POLICYUUID'] = ip.policy.pk
