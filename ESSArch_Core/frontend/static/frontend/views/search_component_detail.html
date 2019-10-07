@@ -288,7 +288,7 @@
   <button
     ng-if="vm.record.type == 'document' && (vm.record._source.terms_and_condition == null || checkPermission('tags.view_pul'))"
     class="btn btn-success btn-small"
-    ng-click="vm.viewFile(vm.record._source.name)"
+    ng-click="vm.viewFile(vm.record)"
   >
     <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
   </button>
