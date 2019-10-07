@@ -607,6 +607,12 @@ class LocationWriteSerializer(LocationSerializer):
         fields = ('name', 'parent', 'level_type', 'function', 'metric', 'capacity')
 
 
+class TagVersionInformationPackageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InformationPackage
+        fields = ('id', 'object_identifier_value', 'label',)
+
+
 class TagVersionNestedSerializer(serializers.ModelSerializer):
     _id = serializers.UUIDField(source='pk')
     _index = serializers.CharField(source='elastic_index')
@@ -624,7 +630,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     metric = MetricTypeSerializer()
     location = LocationSerializer()
     custom_fields = serializers.JSONField()
-    information_package = serializers.PrimaryKeyRelatedField(
+    information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
 
