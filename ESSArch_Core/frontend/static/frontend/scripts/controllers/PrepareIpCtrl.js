@@ -232,7 +232,7 @@ export default class PrepareIpCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/new-ip-modal.html',
-        controller: 'ModalInstanceCtrl',
+        controller: 'PrepareIpModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {data: () => {}},
       });
