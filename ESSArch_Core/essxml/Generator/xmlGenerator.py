@@ -169,6 +169,7 @@ class XMLElement:
         self.allowEmpty = template.get('-allowEmpty', False)
         self.hideEmptyContent = template.get('-hideEmptyContent', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
+        self.condition = template.get('-if', None)
         self.requiredParameters = template.get('-requiredParameters', [])
         self.children = []
         self.el = None
@@ -294,7 +295,12 @@ class XMLElement:
         self.el.text = self.parse(info)
 
         for req_param in self.requiredParameters:
-            if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
+            if info.get(req_param) is None or info.get(req_param, '') == '':
+                return None
+
+        if self.condition is not None:
+            condition = parseContent(self.condition, info)
+            if condition == 'False':
                 return None
 
         for attr in self.attr:

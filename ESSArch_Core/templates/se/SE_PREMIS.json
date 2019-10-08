@@ -211,6 +211,23 @@
                                     ]
                                 }
                             ]
+                        },
+                        {
+                            "-name": "inhibitors",
+                            "-namespace": "premis",
+                            "-if": "{{FEncrypted}}",
+                            "-children": [
+                                {
+                                    "-name": "inhibitorType",
+                                    "-namespace": "premis",
+                                    "#content": "Password protection"
+                                },
+                                {
+                                    "-name": "inhibitorTarget",
+                                    "-namespace": "premis",
+                                    "#content": "All content"
+                                }
+                            ]
                         }
                     ]
                 },

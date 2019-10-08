@@ -28,6 +28,9 @@ import uuid
 from lxml import etree
 
 from ESSArch_Core.fixity import checksum
+from ESSArch_Core.fixity.validation.backends.encryption import (
+    FileEncryptionValidator,
+)
 from ESSArch_Core.util import (
     creation_date,
     get_elements_without_namespace,
@@ -385,6 +388,7 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
         'FLinkType': 'simple',
         'FChecksumLib': 'ESSArch',
         'FIDType': 'UUID',
+        'FEncrypted': FileEncryptionValidator.is_file_encrypted(filepath) or False,
     }
 
     # We only do heavy computations if their values aren't included in
