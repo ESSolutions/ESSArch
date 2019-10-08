@@ -1001,11 +1001,13 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip.pk))
 
     def test_aic_view_type_aic_multiple_aics_different_set_of_generations(self):
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        start_date = make_aware(datetime(2000, 1, 1))
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, start_date=start_date)
         aip = InformationPackage.objects.create(generation=0, aic=aic, package_type=InformationPackage.AIP)
         aip2 = InformationPackage.objects.create(generation=1, aic=aic, package_type=InformationPackage.AIP)
 
-        aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        start_date = make_aware(datetime(2010, 1, 1))
+        aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC, start_date=start_date)
         aip3 = InformationPackage.objects.create(generation=1, aic=aic2, package_type=InformationPackage.AIP)
         aip4 = InformationPackage.objects.create(generation=2, aic=aic2, package_type=InformationPackage.AIP)
         aip5 = InformationPackage.objects.create(
@@ -1019,7 +1021,7 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip4, custom_permissions=perms)
         self.member.assign_object(self.group, aip5, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'create_date'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'start_date'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic.pk))
 
