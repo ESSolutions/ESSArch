@@ -13,6 +13,7 @@ AVAILABLE_VALIDATORS = {
     'checksum': 'ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator',
     'csv': 'ESSArch_Core.fixity.validation.backends.csv.CSVValidator',
     'diff_check': 'ESSArch_Core.fixity.validation.backends.xml.DiffCheckValidator',
+    'encryption': 'ESSArch_Core.fixity.validation.backends.encryption.FileEncryptionValidator',
     'filename': 'ESSArch_Core.fixity.validation.backends.filename.FilenameValidator',
     'fixed_width': 'ESSArch_Core.fixity.validation.backends.fixed_width.FixedWidthValidator',
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
