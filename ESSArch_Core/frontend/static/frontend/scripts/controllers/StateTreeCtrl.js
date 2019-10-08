@@ -319,28 +319,6 @@ export default class StateTreeCtrl {
       return ret;
     }
 
-    //Modal functions
-    $scope.tracebackModal = function() {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/modals/task_traceback_modal.html',
-        scope: $scope,
-        size: 'lg',
-        controller: 'ModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {},
-        },
-      });
-      modalInstance.result.then(
-        function(data) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
     //Creates and shows modal with task information
     $scope.taskInfoModal = function() {
       const modalInstance = $uibModal.open({
