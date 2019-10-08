@@ -37,6 +37,14 @@ class StructureUnitFilter(filters.FilterSet):
 class TagFilter(filters.FilterSet):
     index = filters.CharFilter(method='filter_index')
 
+    ordering = filters.OrderingFilter(
+        fields=(
+            ('current_version__name', 'name'),
+            ('current_version__start_date', 'start_date'),
+            ('current_version__end_date', 'end_date'),
+        ),
+    )
+
     def filter_index(self, queryset, name, value):
         if value:
             return queryset.filter(versions__elastic_index=value)
