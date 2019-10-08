@@ -1,7 +1,7 @@
 import moment from 'moment';
 
 export default class StepInfoModalInstanceCtrl {
-  constructor($uibModalInstance, data, $rootScope, $scope, PermPermissionStore, Step) {
+  constructor($uibModalInstance, data, $rootScope, $scope, PermPermissionStore, Step, $uibModal) {
     const $ctrl = this;
     $scope.myTreeControl = {scope: {}};
     if (data) {
@@ -118,6 +118,23 @@ export default class StepInfoModalInstanceCtrl {
         $scope.stepTaskLoading = false;
         return data;
       });
+    };
+    //Modal functions
+    $scope.tracebackModal = function() {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/modals/task_traceback_modal.html',
+        scope: $scope,
+        size: 'lg',
+        controller: 'ModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {},
+        },
+      });
+      modalInstance.result.then(function(data) {}, function() {});
     };
   }
 }

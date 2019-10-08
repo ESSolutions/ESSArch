@@ -934,7 +934,7 @@ export default angular
     '$scope',
     'PermPermissionStore',
     'Step',
-    'listViewService',
+    '$uibModal',
     StepInfoModalInstanceCtrl,
   ])
   .controller('TaskInfoModalInstanceCtrl', [
