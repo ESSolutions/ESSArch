@@ -43,6 +43,10 @@
             ]
         },
         {
+            "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+            "label": "Download Schemas"
+        },
+        {
             "step": true,
             "name": "Create Log File",
             "children": [
