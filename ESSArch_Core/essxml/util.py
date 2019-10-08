@@ -28,9 +28,6 @@ import uuid
 from lxml import etree
 
 from ESSArch_Core.fixity import checksum
-from ESSArch_Core.fixity.validation.backends.encryption import (
-    FileEncryptionValidator,
-)
 from ESSArch_Core.util import (
     creation_date,
     get_elements_without_namespace,
