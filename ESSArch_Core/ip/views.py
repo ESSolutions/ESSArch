@@ -807,7 +807,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         return Response()
 
     @lock_obj(blocking_timeout=0.1)
-    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create', permission_classes=[CanCreateSIP])
     def create_ip(self, request, pk=None):
         """
@@ -937,10 +936,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "args": ["Created"],
             },
         ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Create SIP"
-        workflow.information_package = ip
-        workflow.save()
+        with transaction.atomic():
+            workflow = create_workflow(workflow_spec, ip)
+            workflow.name = "Create SIP"
+            workflow.information_package = ip
+            workflow.save()
         workflow.run()
         return Response({'status': 'creating ip'})
 
