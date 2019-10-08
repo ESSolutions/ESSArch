@@ -28,6 +28,7 @@ from celery import states as celery_states
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.celery.backends.database import DatabaseBackend
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
@@ -146,8 +147,8 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     def get_exception(self, obj):
         if obj.exception is None:
             return None
-
-        return str(obj.exception)
+        exc = DatabaseBackend.exception_to_python(obj.exception)
+        return repr(exc)
 
     def get_result(self, obj):
         return str(obj.result)
@@ -209,7 +210,10 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
     def get_exception(self, obj):
         t = self.get_failed_tasks(obj).only('exception').first()
         if t:
-            return t.exception
+            if t.exception is None:
+                return None
+            exc = DatabaseBackend.exception_to_python(t.exception)
+            return repr(exc)
 
     def get_traceback(self, obj):
         t = self.get_failed_tasks(obj).only('traceback').first()
