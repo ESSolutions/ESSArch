@@ -388,7 +388,6 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
         'FLinkType': 'simple',
         'FChecksumLib': 'ESSArch',
         'FIDType': 'UUID',
-        'FEncrypted': FileEncryptionValidator.is_file_encrypted(filepath) or False,
     }
 
     # We only do heavy computations if their values aren't included in
@@ -401,6 +400,9 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
 
     if 'FChecksum' not in provided_data:
         fileinfo['FChecksum'] = checksum.calculate_checksum(filepath, algorithm)
+
+    if 'FEncrypted' not in provided_data:
+        fileinfo['FEncrypted'] = fid.identify_file_encryption(filepath)
 
     if any(x not in provided_data for x in ['FFormatName', 'FFormatVersion', 'FFormatRegistryKey']):
         (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)

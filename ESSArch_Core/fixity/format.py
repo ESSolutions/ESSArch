@@ -6,7 +6,13 @@ import time
 from fido.fido import Fido
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.exceptions import FileFormatNotAllowed
+from ESSArch_Core.exceptions import (
+    EncryptedFileNotAllowed,
+    FileFormatNotAllowed,
+)
+from ESSArch_Core.fixity.validation.backends.encryption import (
+    FileEncryptionValidator,
+)
 
 MB = 1024 * 1024
 
@@ -23,8 +29,9 @@ FORMAT_FILES = [
 class FormatIdentifier:
     _fido = None
 
-    def __init__(self, allow_unknown_file_types=False):
+    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False):
         self.allow_unknown_file_types = allow_unknown_file_types
+        self.allow_encrypted_files = allow_encrypted_files
 
     @property
     def fido(self):
@@ -111,6 +118,14 @@ class FormatIdentifier:
             self.format_registry_key = f.find('puid').text
         except AttributeError:
             self.format_registry_key = None
+
+    def identify_file_encryption(self, filename):
+        encrypted = FileEncryptionValidator.is_file_encrypted(filename) or False
+
+        if encrypted and not self.allow_encrypted_files:
+            raise EncryptedFileNotAllowed(
+                "{} is encrypted and therefore not allowed".format(filename)
+            )
 
     def identify_file_format(self, filename):
         """

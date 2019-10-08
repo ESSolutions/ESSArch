@@ -532,6 +532,18 @@ def installProfileSIP(sa):
                 "defaultValue": False,
                 "key": "allow_unknown_file_types"
             },
+            {
+                "templateOptions": {
+                    "label": "Allow encrypted files",
+                    "options": [
+                        {"name": "Yes", "value": True},
+                        {"name": "No", "value": False},
+                    ],
+                },
+                "type": "select",
+                "defaultValue": False,
+                "key": "allow_encrypted_files"
+            },
         ],
         'specification': json.loads(open(
             os.path.join(settings.BASE_DIR, 'templates/se/SE_SIP_VERSION11.json')
@@ -900,6 +912,18 @@ def installProfileAIP(sa):
                 "defaultValue": False,
                 "key": "allow_unknown_file_types"
             },
+            {
+                "templateOptions": {
+                    "label": "Allow encrypted files",
+                    "options": [
+                        {"name": "Yes", "value": True},
+                        {"name": "No", "value": False},
+                    ],
+                },
+                "type": "select",
+                "defaultValue": False,
+                "key": "allow_encrypted_files"
+            },
         ],
         'specification': json.loads(open(
             os.path.join(settings.BASE_DIR, 'templates/se/SE_AIP_VERSION11.json')
@@ -1247,6 +1271,18 @@ def installProfileDIP(sa):
                 "type": "select",
                 "defaultValue": False,
                 "key": "allow_unknown_file_types"
+            },
+            {
+                "templateOptions": {
+                    "label": "Allow encrypted files",
+                    "options": [
+                        {"name": "Yes", "value": True},
+                        {"name": "No", "value": False},
+                    ],
+                },
+                "type": "select",
+                "defaultValue": False,
+                "key": "allow_encrypted_files"
             },
         ],
         'specification': json.loads(open(

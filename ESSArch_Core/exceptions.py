@@ -8,6 +8,10 @@ class ESSArchException(Exception):
     """
 
 
+class EncryptedFileNotAllowed(ESSArchException):
+    pass
+
+
 class FileFormatNotAllowed(ESSArchException):
     pass
 
