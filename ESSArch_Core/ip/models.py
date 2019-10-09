@@ -582,6 +582,9 @@ class InformationPackage(models.Model):
         if ct_file is None:
             return None
 
+        if self.archived:
+            ct_file = os.path.relpath(ct_file, self.object_path)
+
         cts_file = self.open_file(ct_file)
         tag = ct_importer.get_archive(cts_file)
 
