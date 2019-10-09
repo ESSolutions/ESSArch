@@ -1,9 +1,11 @@
 import logging
 
+from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
 from elasticsearch.exceptions import NotFoundError
 
+from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.tags.models import Tag, TagVersion
 
 logger = logging.getLogger('essarch.core')
@@ -40,6 +42,9 @@ def pre_tag_version_delete(sender, instance, **kwargs):
 @receiver(post_delete, sender=TagVersion)
 def log_after_deleting_tag_version(sender, instance, **kwargs):
     logger.debug(f"TagVersion '{instance}' was deleted.")
+
+    tag_version_content_type = ContentType.objects.get_for_model(instance)
+    GroupGenericObjects.filter(object_id=str(instance.pk), content_type=tag_version_content_type).delete()
 
 
 @receiver(post_delete, sender=Tag)

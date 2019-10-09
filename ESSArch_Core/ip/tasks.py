@@ -8,6 +8,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -15,7 +16,7 @@ from django.utils.translation import ugettext as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
-from ESSArch_Core.auth.models import Member, Notification
+from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import parse_submit_description
@@ -450,7 +451,10 @@ class DeleteInformationPackage(DBTask):
         self.set_progress(99, 100)
 
         if from_db:
-            ip.delete()
+            with transaction.atomic():
+                ip_content_type = ContentType.objects.get_for_model(ip)
+                GroupGenericObjects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+                ip.delete()
         else:
             ip.state = 'deleted'
             ip.save()
