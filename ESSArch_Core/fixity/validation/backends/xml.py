@@ -109,17 +109,19 @@ class DiffCheckValidator(BaseValidator):
     def _get_filepath(self, input_file):
         return input_file
 
-    def _get_checksum(self, input_file):
-        algorithm = self.checksum_algorithms.get(input_file, self.default_algorithm)
+    def _get_checksum(self, input_file, relpath=None):
+        path = relpath or input_file
+        algorithm = self.checksum_algorithms.get(path, self.default_algorithm)
         return calculate_checksum(input_file, algorithm=algorithm)
 
     def _get_size(self, input_file):
         return os.path.getsize(input_file)
 
     def _validate(self, filepath):
-        newhash = self._get_checksum(filepath)
-        newsize = self._get_size(filepath)
         relpath = normalize_path(os.path.relpath(self._get_filepath(filepath), self.rootdir))
+
+        newhash = self._get_checksum(filepath, relpath=relpath)
+        newsize = self._get_size(filepath)
 
         try:
             self._pop_checksum_dict(self.deleted, newhash, relpath)
@@ -241,7 +243,7 @@ class XMLComparisonValidator(DiffCheckValidator):
     def _get_filepath(self, input_file):
         return normalize_path(os.path.join(self.rootdir, input_file.path))
 
-    def _get_checksum(self, input_file):
+    def _get_checksum(self, input_file, relpath=None):
         return input_file.checksum
 
     def _get_size(self, input_file):
