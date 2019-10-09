@@ -126,6 +126,7 @@ class FormatIdentifier:
             raise EncryptedFileNotAllowed(
                 "{} is encrypted and therefore not allowed".format(filename)
             )
+        return encrypted
 
     def identify_file_format(self, filename):
         """
