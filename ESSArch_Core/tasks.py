@@ -538,6 +538,7 @@ class DeleteFiles(DBTask):
         delete_path(path)
 
     def event_outcome_success(self, result, path):
+        path, = self.parse_params(path)
         return "Deleted %s" % path
 
 
