@@ -556,7 +556,7 @@ export default class SearchDetailCtrl {
             }
           });
           const type = nodes[0].original.type;
-          return _.get(structure, 'specification.rules.' + type + '.movable', true);
+          return get(structure, 'specification.rules.' + type + '.movable', true);
         },
       },
       contextmenu: {
