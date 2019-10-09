@@ -255,8 +255,22 @@ LOGGING = {
         'verbose': {
             'format': '%(asctime)s %(levelname)s %(message)s'
         },
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[{server_time}] {message}',
+            'style': '{',
+        },
     },
     'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
+        },
         'core': {
             'level': 'DEBUG',
             'class': 'ESSArch_Core.log.dbhandler.DBHandler',
@@ -281,6 +295,15 @@ LOGGING = {
         },
     },
     'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
             'level': 'DEBUG',
