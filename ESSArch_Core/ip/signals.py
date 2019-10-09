@@ -23,7 +23,7 @@ def ip_post_delete(sender, instance, using, **kwargs):
     logger.info('Information package %s was deleted' % instance.pk)
 
     ip_content_type = ContentType.objects.get_for_model(instance)
-    GroupGenericObjects.filter(object_id=str(instance.pk), content_type=ip_content_type).delete()
+    GroupGenericObjects.objects.filter(object_id=str(instance.pk), content_type=ip_content_type).delete()
 
     try:
         if getattr(instance, 'aic') is not None and not instance.aic.information_packages.exists():

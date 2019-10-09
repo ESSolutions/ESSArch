@@ -44,7 +44,7 @@ def log_after_deleting_tag_version(sender, instance, **kwargs):
     logger.debug(f"TagVersion '{instance}' was deleted.")
 
     tag_version_content_type = ContentType.objects.get_for_model(instance)
-    GroupGenericObjects.filter(object_id=str(instance.pk), content_type=tag_version_content_type).delete()
+    GroupGenericObjects.objects.filter(object_id=str(instance.pk), content_type=tag_version_content_type).delete()
 
 
 @receiver(post_delete, sender=Tag)
