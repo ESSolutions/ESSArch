@@ -631,7 +631,7 @@ def installProfileAIP(sa):
                         'children': [
                             {
                                 'type': 'file',
-                                "name":"content/metadata.xml",
+                                "name": 'content/metadata.xml',
                                 'use': 'content_type_specification'
                             }
                         ],
