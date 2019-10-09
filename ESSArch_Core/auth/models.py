@@ -202,7 +202,8 @@ class Group(GroupMixin):
     def add_object(self, obj):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
-        return GroupGenericObjects.objects.create(group=self, content_object=obj)
+        obj_content_type = ContentType.objects.get_for_model(obj)
+        return GroupGenericObjects.objects.get_or_create(group=self, content_type=obj_content_type, object_id=obj.pk)
 
     def remove_object(self, obj):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
