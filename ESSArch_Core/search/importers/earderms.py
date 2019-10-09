@@ -81,11 +81,11 @@ class EardErmsImporter(BaseImporter):
         name = document.get("Namn")
         desc = document.get("Beskrivning")
 
-        filepath = document.get('Lank')
+        filepath = os.path.join('content', document.get('Lank'))
         if ip is not None:
-            filepath = os.path.join(ip.object_path, ip.sip_path, document.get('Lank'))
+            filepath = os.path.join(ip.object_path, ip.sip_path, 'content', document.get('Lank'))
         elif rootdir is not None:
-            filepath = os.path.join(rootdir, document.get('Lank'))
+            filepath = os.path.join(rootdir, 'content', document.get('Lank'))
 
         href = os.path.dirname(os.path.relpath(filepath, rootdir))
         href = '' if href == '.' else href
@@ -121,10 +121,6 @@ class EardErmsImporter(BaseImporter):
             tag=tag,
             parent=parent,
             structure=parent.structure,
-            tree_id=parent.tree_id,
-            lft=0,
-            rght=0,
-            level=0,
         )
         self.indexed_files.append(filepath)
 
@@ -364,10 +360,6 @@ class EardErmsImporter(BaseImporter):
                 tag=tag_version.tag,
                 parent=parent,
                 structure=parent.structure,
-                tree_id=parent.tree_id,
-                lft=0,
-                rght=0,
-                level=0
             )
 
             for doc_el in act_el.xpath("*[local-name()='Bilaga']"):
@@ -466,10 +458,6 @@ class EardErmsImporter(BaseImporter):
                 structure_unit=structure_unit,
                 structure=structure,
                 parent=archive_structure,
-                tree_id=archive_structure.tree_id,
-                lft=0,
-                rght=0,
-                level=0,
             )
 
             component = Component.from_obj(tag_version, archive)
@@ -483,7 +471,10 @@ class EardErmsImporter(BaseImporter):
 
     def import_content(self, path, rootdir=None, ip=None, **extra_paths):
         if not rootdir:
-            rootdir = os.path.dirname(path)
+            if ip is not None:
+                rootdir = ip.object_path
+            else:
+                rootdir = os.path.dirname(path)
 
         self.indexed_files = []
 
@@ -501,8 +492,7 @@ class EardErmsImporter(BaseImporter):
         self.cleanup_elasticsearch(self.task)
 
         with transaction.atomic():
-            with TagStructure.objects.delay_mptt_updates():
-                tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
+            tags, tag_versions, tag_structures, components = self.parse_eard(path, ip, rootdir, archive)
 
             self.task.update_progress(50)
 
