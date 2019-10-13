@@ -61,6 +61,7 @@ from ESSArch_Core.tags.serializers import (
     StoredSearchSerializer,
     StructureSerializer,
     StructureTypeSerializer,
+    StructureUnitDetailSerializer,
     StructureUnitSerializer,
     StructureUnitTypeSerializer,
     StructureUnitWriteSerializer,
@@ -311,11 +312,18 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         return self.filter_queryset_by_parents_lookups(
             StructureUnit.objects.for_user(self.request.user, perms=[])
-        ).select_related('structure')
+        ).select_related(
+            'structure', 'type__structure_type',
+        ).prefetch_related(
+            'identifiers', 'notes', 'structure_unit_relations_a',
+        )
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
             return StructureUnitWriteSerializer
+
+        if self.action == 'retrieve':
+            return StructureUnitDetailSerializer
 
         return self.serializer_class
 
@@ -368,7 +376,12 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if unit.is_leaf_node():
             return self.nodes(request, pk, parent_lookup_structure)
 
-        children = unit.get_children()
+        children = unit.get_children().select_related(
+            'structure', 'type__structure_type',
+        ).prefetch_related(
+            'identifiers', 'notes', 'structure_unit_relations_a',
+        )
+
         serializer = self.get_serializer_class()
         context = {
             'user': request.user,

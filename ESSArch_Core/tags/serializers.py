@@ -343,18 +343,6 @@ class StructureUnitSerializer(serializers.ModelSerializer):
         source='structure_unit_relations_a', many=True, required=False
     )
 
-    archive = serializers.SerializerMethodField(read_only=True)
-
-    def get_archive(self, obj):
-        tag_structure = obj.structure.tagstructure_set.filter(
-            tag__current_version__elastic_index='archive'
-        ).first()
-
-        if tag_structure is not None:
-            return tag_structure.tag.current_version.pk
-
-        return None
-
     def get_is_unit_leaf_node(self, obj):
         return obj.is_leaf_node()
 
@@ -368,8 +356,25 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units', 'archive', 'structure',
+            'related_structure_units', 'structure',
         )
+
+
+class StructureUnitDetailSerializer(StructureUnitSerializer):
+    archive = serializers.SerializerMethodField(read_only=True)
+
+    def get_archive(self, obj):
+        tag_structure = obj.structure.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.pk
+
+        return None
+
+    class Meta(StructureUnitSerializer.Meta):
+        fields = StructureUnitSerializer.Meta.fields + ('archive',)
 
 
 class StructureUnitWriteSerializer(StructureUnitSerializer):
