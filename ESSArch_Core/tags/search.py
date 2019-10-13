@@ -306,18 +306,22 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag_version = qs.select_related('tag').prefetch_related(Prefetch('tag__structures', prefetched_structures))
 
         obj = get_object_or_404(tag_version, pk=id)
+        root = obj.get_root()
         user_archives = get_objects_for_user(
             self.request.user,
             tag_version.filter(elastic_index='archive'), []
         )
-        root_in_archives = user_archives.filter(pk=str(root.pk)).exists()
 
-        if root is not None and not root_in_archives:
-            obj_ctype = ContentType.objects.get_for_model(root)
-            in_any_groups = GroupGenericObjects.objects.filter(object_id=str(root.pk), content_type=obj_ctype).exists()
+        if root is not None:
+            root_in_archives = user_archives.filter(pk=str(root.pk)).exists()
+            if not root_in_archives:
+                obj_ctype = ContentType.objects.get_for_model(root)
+                in_any_groups = GroupGenericObjects.objects.filter(
+                    object_id=str(root.pk), content_type=obj_ctype,
+                ).exists()
 
-            if in_any_groups:
-                raise exceptions.NotFound
+                if in_any_groups:
+                    raise exceptions.NotFound
 
         logger.info(f"User '{self.request.user}' accessing tag object '{obj}'")
         return obj
