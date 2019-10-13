@@ -197,8 +197,7 @@ export default class SearchDetailCtrl {
 
     vm.getChildren = function(node, archive, page) {
       let url;
-      const params = {page_size: PAGE_SIZE, page: page};
-      page = page || 1;
+      const params = {page_size: PAGE_SIZE, page: page || 1};
 
       if (node._is_structure_unit === true) {
         url = vm.url + 'structure-units/' + node._id + '/children/';
