@@ -309,10 +309,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         user_archives = get_objects_for_user(
             self.request.user,
             tag_version.filter(elastic_index='archive'), []
-        ).values_list('pk', flat=True)
+        )
+        root_in_archives = user_archives.filter(pk=str(root.pk)).exists()
 
-        root = obj.get_root()
-        if root is not None and root.pk not in user_archives:
+        if root is not None and not root_in_archives:
             obj_ctype = ContentType.objects.get_for_model(root)
             in_any_groups = GroupGenericObjects.objects.filter(object_id=str(root.pk), content_type=obj_ctype).exists()
 
