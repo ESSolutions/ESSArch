@@ -624,7 +624,6 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     is_leaf_node = serializers.SerializerMethodField()
     _source = serializers.SerializerMethodField()
     masked_fields = serializers.SerializerMethodField()
-    structure_unit = serializers.SerializerMethodField()
     root = serializers.SerializerMethodField()
     related_tags = TagVersionRelationSerializer(source='tag_version_relations_a', many=True)
     medium_type = MediumTypeSerializer()
@@ -645,26 +644,6 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             return root.pk
 
         return None
-
-    def get_structure_unit(self, obj):
-        structure = self.context.get('structure')
-
-        try:
-            if structure is not None:
-                tag_structure = obj.tag.structures.get(structure=structure)
-            else:
-                tag_structure = obj.get_active_structure()
-        except TagStructure.DoesNotExist:
-            return None
-
-        unit = tag_structure.structure_unit
-
-        if unit is None:
-            return None
-
-        archive = tag_structure.get_root().pk
-        context = {'archive_structure': archive}
-        return StructureUnitSerializer(unit, context=context).data
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
@@ -700,7 +679,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         fields = (
             '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
-            'is_leaf_node', '_source', 'masked_fields', 'structure_unit', 'root',
+            'is_leaf_node', '_source', 'masked_fields', 'root',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
         )
@@ -737,7 +716,28 @@ class AgentArchiveLinkWriteSerializer(AgentArchiveLinkSerializer):
 class TagVersionSerializer(TagVersionNestedSerializer):
     structures = serializers.SerializerMethodField()
     parent = serializers.SerializerMethodField()
+    structure_unit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+
+    def get_structure_unit(self, obj):
+        structure = self.context.get('structure')
+
+        try:
+            if structure is not None:
+                tag_structure = obj.tag.structures.get(structure=structure)
+            else:
+                tag_structure = obj.get_active_structure()
+        except TagStructure.DoesNotExist:
+            return None
+
+        unit = tag_structure.structure_unit
+
+        if unit is None:
+            return None
+
+        archive = tag_structure.get_root().pk
+        context = {'archive_structure': archive}
+        return StructureUnitSerializer(unit, context=context).data
 
     def get_organization(self, obj):
         try:
@@ -764,7 +764,7 @@ class TagVersionSerializer(TagVersionNestedSerializer):
         }
 
     class Meta(TagVersionNestedSerializer.Meta):
-        fields = TagVersionNestedSerializer.Meta.fields + ('structures', 'parent', 'organization',)
+        fields = TagVersionNestedSerializer.Meta.fields + ('structure_unit', 'structures', 'parent', 'organization',)
 
 
 class TagVersionSerializerWithVersions(TagVersionSerializer):
