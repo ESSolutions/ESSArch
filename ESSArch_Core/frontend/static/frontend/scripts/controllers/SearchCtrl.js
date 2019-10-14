@@ -144,10 +144,6 @@ export default class SearchCtrl {
       });
     };
 
-    vm.changeClassificationStructure = function() {
-      vm.searchSubmit(vm.filterObject.q);
-      vm.openResult(vm.record);
-    };
     vm.calculatePageNumber = function() {
       if (!angular.isUndefined(vm.tableState) && vm.tableState.pagination) {
         if (vm.searchResult.length == 0) {
@@ -375,7 +371,6 @@ export default class SearchCtrl {
           branch: 'type',
         },
       ];
-      vm.recreateFilterTree(filters);
     };
 
     vm.getPathFromParents = function(tag) {
@@ -425,34 +420,6 @@ export default class SearchCtrl {
       },
       version: 1,
       plugins: [],
-    };
-
-    /**
-     * Recreates filter tree with given tags.
-     * Version variable is updated so that the tree will detect
-     * a change in the configuration object, desroy and rebuild with data from vm.tags
-     */
-    vm.recreateFilterTree = function(tags) {
-      vm.ignoreChanges = true;
-      angular.copy(tags, vm.tags);
-      vm.treeConfig.version++;
-    };
-
-    vm.selectFilter = function(jqueryobj, e) {
-      if (e.action == 'select_node') {
-        const parent = vm.treeInstance.jstree(true).get_node(e.node.parent);
-        const branch = parent.original.branch;
-        if (vm.filterObject[branch] == e.node.original.key) {
-          vm.treeInstance.jstree(true).deselect_node(e.node);
-          vm.filterObject[branch] = null;
-        } else {
-          vm.filterObject[branch] = e.node.original.key;
-        }
-        if (vm.tableState) {
-          vm.tableState.pagination.start = 0;
-        }
-        vm.search(vm.tableState);
-      }
     };
 
     vm.applyModelChanges = function() {
