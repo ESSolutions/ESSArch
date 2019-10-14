@@ -51,6 +51,9 @@ class GroupGenericObjects(models.Model):
 
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
 
 
 class GroupMemberRole(GroupMemberRoleMixin):
