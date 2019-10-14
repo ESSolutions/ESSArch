@@ -164,11 +164,11 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         )
 
     qs = qs.annotate(
-        cleaned_id=replace_func('pk', qs.model._meta.pk),
+        cleaned_id=Cast('pk', CharField()),
         role_exists=Exists(
             role_ids.annotate(
                 cleaned_pk=replace_func('object_id', qs.model._meta.pk)
-            ).filter(cleaned_pk=OuterRef('pk'))
+            ).filter(cleaned_pk=OuterRef('cleaned_id'))
         ),
         grp_exists=Exists(
             group_ids.annotate(
