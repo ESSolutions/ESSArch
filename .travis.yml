@@ -27,19 +27,14 @@ matrix:
   include:
     - name: 'Linux with SQLite'
       python: '3.7'
-      addons:
-        apt:
-          packages:
-            - sqlite3
-            - libluajit-5.1-dev
-            - liblua5.2-dev
-          sources:
-            - travis-ci/sqlite3
       env:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
 before_install:
+  - sudo apt-add-repository -y ppa:jonathonf/backports;
+  - sudo apt-get -y update && sudo apt-get install -y sqlite3;
+  - sqlite3 --version
   - sudo mkdir -p /ESSArch/log/
   - sudo chmod 777 /ESSArch/log/
   - python -m pip install --upgrade pip wheel codecov setuptools
