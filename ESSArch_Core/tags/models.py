@@ -1076,7 +1076,9 @@ class TagVersion(models.Model):
 
     def get_children(self, structure=None):
         tag_children = self.tag.get_children(structure)
-        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=Subquery(tag_children.values('pk'))).select_related('tag')
+        return TagVersion.objects.filter(
+            tag__current_version=F('pk'), tag__in=Subquery(tag_children.values('pk'))
+        ).select_related('tag')
 
     def get_descendants(self, structure=None, include_self=False):
         tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
