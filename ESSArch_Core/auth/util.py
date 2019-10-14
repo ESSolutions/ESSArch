@@ -163,26 +163,39 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
             ).values('cleaned_pk')
         )
 
-    qs = qs.annotate(
-        cleaned_id=Cast('pk', CharField()),
-        role_exists=Exists(
-            role_ids.annotate(
-                cleaned_pk=replace_func('object_id', qs.model._meta.pk)
-            ).filter(cleaned_pk=OuterRef('cleaned_id'))
-        ),
-        grp_exists=Exists(
-            group_ids.annotate(
-                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-            ).filter(cleaned_pk=OuterRef('cleaned_id'))
-        ),
-        user_exists=Exists(
-            user_ids.annotate(
-                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-            ).filter(cleaned_pk=OuterRef('cleaned_id'))
-        ),
-    ).filter(Q(
-        Q(role_exists=True) |
-        Q(grp_exists=True) |
-        Q(user_exists=True)
-    ))
+    role_ids = role_ids.annotate(
+        cleaned_pk=replace_func('object_id', qs.model._meta.pk)
+    )
+    group_ids = group_ids.annotate(
+        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+    )
+    user_ids = user_ids.annotate(
+        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+    )
+
+    if connection.vendor == 'microsoft':
+        qs = qs.annotate(
+            cleaned_id=Cast('pk', CharField()),
+        ).filter(Q(
+            Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
+            Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
+            Q(cleaned_id__in=user_ids.values('cleaned_pk'))
+        ))
+    else:
+        qs = qs.annotate(
+            cleaned_id=Cast('pk', CharField()),
+            role_exists=Exists(
+                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+            grp_exists=Exists(
+                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+            user_exists=Exists(
+                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+        ).filter(Q(
+            Q(role_exists=True) |
+            Q(grp_exists=True) |
+            Q(user_exists=True)
+        ))
     return qs | ids_with_no_auth
