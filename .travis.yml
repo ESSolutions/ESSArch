@@ -218,7 +218,7 @@ before_script:
   - essarch settings generate -p local_essarch_settings.py
 
 script:
-  - coverage run manage.py test
+  - coverage run manage.py test -v2
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F backend
