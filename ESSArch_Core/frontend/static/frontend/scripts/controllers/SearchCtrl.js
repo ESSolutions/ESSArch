@@ -196,8 +196,11 @@ export default class SearchCtrl {
     vm.searchSubmit = function() {
       if (vm.tableState) {
         vm.tableState.pagination.start = 0;
-        vm.activeTab = 0;
-        vm.search(vm.tableState);
+        // $timeout needed to make the function work as ngChange method for search filter components
+        $timeout(() => {
+          vm.activeTab = 0;
+          vm.search(vm.tableState);
+        });
       }
     };
 
