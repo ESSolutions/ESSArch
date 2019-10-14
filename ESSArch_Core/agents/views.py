@@ -97,7 +97,7 @@ class AgentViewSet(viewsets.ModelViewSet):
     filter_backends = (AgentOrderingFilter, DjangoFilterBackend, SearchFilter,)
     filterset_class = AgentFilter
     ordering_fields = ('latest_name', 'names__part', 'names__main', 'start_date', 'end_date', 'type__main_type__name')
-    search_fields = ('=id', 'names__part', 'names__main', 'type__main_type__name',)
+    search_fields = ('=id', 'names__part', 'names__main')
     ordering = ('-create_date',)
 
     def get_queryset(self):
