@@ -7,9 +7,9 @@
     </h3>
   </div>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
-  <div ng-if="vm.record._source.desc">
-    <p ng-if="vm.record._source.desc" class="result-description">
-      {{vm.record._source.desc}}
+  <div ng-if="vm.record.description">
+    <p class="result-description">
+      {{vm.record.description}}
     </p>
   </div>
   <div ng-if="vm.getArchiveCreator(vm.record) !== null">
