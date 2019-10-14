@@ -282,7 +282,13 @@
     <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
     <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
     <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
+  </div>
+  <div ng-if="vm.record.custom_fields && !angular.equals(vm.record.custom_fields, {})">
     <br />
+    <b>{{'ACCESS.CUSTOM_FIELDS' | translate}}:</b>
+    <div ng-repeat="(key, value) in vm.record.custom_fields">
+      <result-field label="{{key}}" data="value"></result-field>
+    </div>
   </div>
   <br />
   <button

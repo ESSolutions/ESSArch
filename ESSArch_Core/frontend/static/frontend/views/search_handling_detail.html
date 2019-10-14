@@ -148,6 +148,14 @@
     </div>
   </div>
 
+  <div ng-if="vm.record.custom_fields && !angular.equals(vm.record.custom_fields, {})">
+    <br />
+    <b>{{'ACCESS.CUSTOM_FIELDS' | translate}}:</b>
+    <div ng-repeat="(key, value) in vm.record.custom_fields">
+      <result-field label="{{key}}" data="value"></result-field>
+    </div>
+  </div>
+
   <div ng-if="vm.record._source.egna_element">
     <strong>Övrigt:</strong>
     <result-field
