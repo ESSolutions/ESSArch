@@ -11,6 +11,10 @@ branches:
     - master
     - the-big-merge
 
+stages:
+  - lint
+  - test
+
 addons:
   apt:
     packages:
@@ -25,18 +29,186 @@ templates:
 
 matrix:
   include:
+    - name: 'flake8'
+      stage: lint
+      python: '3.7'
+      before_install: skip
+      install: pip install flake8==3.7.1
+      before_script: skip
+      script: flake8
+      after_success: skip
+
+    - name: 'isort'
+      stage: lint
+      python: '3.7'
+      before_install: skip
+      install: pip install isort==4.3.20
+      before_script: skip
+      script: isort --recursive --check-only --diff ESSArch_Core
+      after_success: skip
+
+    - name: 'prettier'
+      stage: lint
+      language: node_js
+      node_js: 'lts/*'
+      before_install: skip
+      install: yarn install --frozen-lockfile
+      before_script: skip
+      script: yarn prettier --check "ESSArch_Core/frontend/static/frontend/**/*.{ts,js,scss,html}"
+      after_success: skip
+
+    - name: 'stylelint'
+      stage: lint
+      language: node_js
+      node_js: 'lts/*'
+      before_install: skip
+      install: yarn install --frozen-lockfile
+      before_script: skip
+      script: yarn stylelint
+      after_success: skip
+
+    - name: 'Build frontend'
+      stage: test
+      language: node_js
+      node_js: 'lts/*'
+      before_install: skip
+      install: yarn install --frozen-lockfile
+      before_script: skip
+      script: yarn build:prod
+      after_success: skip
+
+    - name: 'Build documentation'
+      stage: test
+      python: '3.7'
+      before_install: skip
+      install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
+        - python -m pip install --upgrade pip wheel setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+
+        - pip install --upgrade six>=1.12.0
+        - pip install .[docs]
+
+      script:
+        - cd ESSArch_Core/docs
+        - make html SPHINXOPTS="-W"
+      after_success: skip
+
     - name: 'Linux with SQLite'
+      stage: test
       python: '3.7'
       env:
         - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
         - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
 
+    - name: 'Linux with MSSQL'
+      stage: test
+      python: '3.7'
+      services: docker
+      before_install:
+        - sudo mkdir -p /ESSArch/log/
+        - sudo chmod 777 /ESSArch/log/
+        - docker pull mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+        - curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        - curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        - sudo apt-get update
+        - sudo ACCEPT_EULA=Y apt-get install msodbcsql17 unixodbc-dev
+        - python -m pip install --upgrade pip wheel codecov setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+        - pip install --upgrade six>=1.12.0
+        - pip install -r requirements/tests.txt
+      install:
+        - pip install .[mssql]
+      env:
+        - *mssql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
+
+    - name: 'Linux with MariaDB'
+      stage: test
+      python: '3.7'
+      addons:
+        mariadb: '10.3'
+      install:
+        - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
+        - pip install .[mysql]
+      env:
+        - *mariadb
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
+
+    - name: 'Linux with MySQL'
+      stage: test
+      python: '3.7'
+      services:
+        - mysql
+      install:
+        - mysql --user="root" --execute="SET GLOBAL character_set_server='utf8mb4'"
+        - pip install .[mysql]
+      env:
+        - *mysql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
+
+    - name: 'Linux with PostgreSQL'
+      stage: test
+      python: '3.7'
+      services:
+        - postgresql
+      install:
+        - pip install .[postgres]
+      env:
+        - *postgres
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
+
+    - name: 'Windows with MSSQL'
+      stage: test
+      os: windows
+      language: sh
+      python: '3.7'
+      services: docker
+      cache:
+        directories:
+          - '${HOME}/AppData/Local/pip/Cache/wheels'
+      before_install:
+        - mkdir -p /c/ESSArch/log/
+        - docker pull christianacca/mssql-server-windows-express:1803
+        - docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1803
+        - wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+        - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+        - wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi
+        - powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
+        - choco install python --version 3.7.4
+        - choco install imagemagick
+        - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python37:/c/Python37/Scripts:$PATH"
+        - python -m pip install --upgrade pip wheel codecov setuptools
+
+        # Pin six to avoid dependency errors,
+        # see https://github.com/pypa/pip/issues/4887
+        - pip install --upgrade six>=1.12.0
+        - pip install -r requirements/tests.txt
+      install:
+        - pip install .[mssql]
+      env:
+        - *mssql
+        - REDIS_CLIENT_CLASS="fakeredis.FakeRedis"
+        - DJANGO_REDIS_CONNECTION_FACTORY="ESSArch_Core.cache.connection.FakeConnectionFactory"
+
 before_install:
+  - sudo mkdir -p /ESSArch/log/
+  - sudo chmod 777 /ESSArch/log/
+
   - sudo apt-add-repository -y ppa:jonathonf/backports;
   - sudo apt-get -y update && sudo apt-get install -y sqlite3;
   - sqlite3 --version
-  - sudo mkdir -p /ESSArch/log/
-  - sudo chmod 777 /ESSArch/log/
+
   - python -m pip install --upgrade pip wheel codecov setuptools
 
   # Pin six to avoid dependency errors,
@@ -51,7 +223,7 @@ before_script:
   - essarch settings generate -p local_essarch_settings.py
 
 script:
-  - coverage run manage.py test -v2
+  - coverage run manage.py test
 
 after_success:
   - bash <(curl -s https://codecov.io/bash) -c -F backend
