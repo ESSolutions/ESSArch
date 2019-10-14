@@ -204,6 +204,11 @@ matrix:
 before_install:
   - sudo mkdir -p /ESSArch/log/
   - sudo chmod 777 /ESSArch/log/
+
+  - sudo apt-add-repository -y ppa:jonathonf/backports;
+  - sudo apt-get -y update && sudo apt-get install -y sqlite3;
+  - sqlite3 --version
+
   - python -m pip install --upgrade pip wheel codecov setuptools
 
   # Pin six to avoid dependency errors,
