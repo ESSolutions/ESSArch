@@ -718,7 +718,7 @@ class Tag(models.Model):
     def get_children(self, structure=None):
         try:
             structure_children = self.get_structures(structure).latest().get_children()
-            return Tag.objects.filter(structures__in=structure_children)
+            return Tag.objects.filter(structures__in=Subquery(structure_children.values('pk')))
         except TagStructure.DoesNotExist:
             return Tag.objects.none()
 
@@ -1076,7 +1076,7 @@ class TagVersion(models.Model):
 
     def get_children(self, structure=None):
         tag_children = self.tag.get_children(structure)
-        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_children).select_related('tag')
+        return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=Subquery(tag_children.values('pk'))).select_related('tag')
 
     def get_descendants(self, structure=None, include_self=False):
         tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
