@@ -111,7 +111,7 @@ class DiffCheckValidator(BaseValidator):
 
     def _get_checksum(self, input_file, relpath=None):
         path = relpath or input_file
-        algorithm = self.checksum_algorithms.get(path, self.default_algorithm)
+        algorithm = self.checksum_algorithms.get(path) or self.default_algorithm
         return calculate_checksum(input_file, algorithm=algorithm)
 
     def _get_size(self, input_file):
@@ -141,7 +141,12 @@ class DiffCheckValidator(BaseValidator):
             return
 
         oldhash = self.checksums[relpath]
-        if oldhash != newhash:
+
+        if oldhash is None:
+            self._pop_checksum_dict(self.deleted, oldhash, relpath)
+            self._pop_checksum_dict(self.present, oldhash, relpath)
+            self._pop_checksum_dict(self.present, newhash, relpath)
+        elif oldhash != newhash:
             self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
