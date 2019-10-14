@@ -9,7 +9,7 @@ export default class SearchFilterCtrl {
       } else {
         vm.selected = vm.ngModel;
       }
-      if (vm.ngChange) {
+      if (vm.ngChange && vm.selected.length > 0) {
         vm.ngChange();
       }
     };

@@ -1,4 +1,4 @@
-<div ng-if="vm.archive">
+<div ng-if="vm.archive && vm.record">
   <h4>{{'ACCESS.CONTENTS' | translate}}</h4>
   <div st-table="vm.recordChildren" st-pipe="vm.getChildrenTable" class="table-x-overflow table-container">
     <table class="table table-striped">

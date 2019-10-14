@@ -137,7 +137,6 @@
       </div>
       <div class="tree-result-wrapper" ng-if="vm.activeTab === 0">
         <div
-          ng-if="vm.showTree"
           resizable
           r-directions="['right']"
           r-grabber="<div class='resize-grabber'></div>"
@@ -183,13 +182,7 @@
             </search-filter>
           </div>
         </div>
-        <div
-          ng-if="vm.showResults"
-          class="search-results"
-          st-persist="{{vm.tableState}}"
-          st-table="vm.searchResult"
-          st-pipe="vm.search"
-        >
+        <div class="search-results" st-persist="{{vm.tableState}}" st-table="vm.searchResult" st-pipe="vm.search">
           <div class="h-100 w-100">
             <div class="search-toolbar" ng-include src="'static/frontend/views/search_toolbar.html'"></div>
             <div ng-show="vm.resultViewType == 'list'" class="table-x-overflow table-container search-result-table">

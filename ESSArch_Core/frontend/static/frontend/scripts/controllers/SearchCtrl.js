@@ -196,11 +196,9 @@ export default class SearchCtrl {
     vm.searchSubmit = function() {
       if (vm.tableState) {
         vm.tableState.pagination.start = 0;
-      }
-      $timeout(function() {
-        vm.search(vm.tableState);
         vm.activeTab = 0;
-      });
+        vm.search(vm.tableState);
+      }
     };
 
     vm.getArchives = function(search) {
@@ -291,7 +289,7 @@ export default class SearchCtrl {
         vm.tableState = tableState;
         const pagination = tableState.pagination;
         const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        const number = pagination.number; // Number of entries showed per page.
+        const number = pagination.number || 25; // Number of entries showed per page.
         const pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
         let ordering = tableState.sort.predicate;
         if (tableState.sort.reverse) {
