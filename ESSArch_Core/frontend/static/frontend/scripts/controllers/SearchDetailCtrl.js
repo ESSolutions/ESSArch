@@ -1014,12 +1014,12 @@ export default class SearchDetailCtrl {
     };
 
     vm.exportArchive = function(node) {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/export/');
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/export/');
       $window.open(showFile, '_blank');
     };
 
     vm.archiveLabels = function(node) {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._source.id + '/label/');
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/label/');
       $window.open(showFile, '_blank');
     };
 
