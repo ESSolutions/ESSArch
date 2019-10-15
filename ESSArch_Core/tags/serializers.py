@@ -557,9 +557,11 @@ class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
 
 
 class TagVersionTypeSerializer(serializers.ModelSerializer):
+    custom_fields_template = serializers.JSONField(required=False)
+
     class Meta:
         model = TagVersionType
-        fields = ('pk', 'name', 'archive_type', 'information_package_type',)
+        fields = ('pk', 'name', 'archive_type', 'information_package_type', 'custom_fields_template')
 
 
 class MetricTypeSerializer(serializers.ModelSerializer):

@@ -849,6 +849,7 @@ class TagVersionType(models.Model):
 
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
     archive_type = models.BooleanField(_('archive type'), default=False)
+    custom_fields_template = jsonfield.JSONField(default=[], blank=True)
     information_package_type = models.BooleanField(_('information package type'), default=False)
 
     def clean(self):
