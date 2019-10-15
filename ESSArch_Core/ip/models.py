@@ -353,7 +353,7 @@ class InformationPackage(models.Model):
     entry_date = models.DateTimeField(_('entry date'), null=True)
     entry_agent_identifier_value = models.CharField(max_length=255, blank=True)
 
-    package_type = models.IntegerField(_('package type'), null=True, choices=PACKAGE_TYPE_CHOICES)
+    package_type = models.IntegerField(_('package type'), null=True, choices=PACKAGE_TYPE_CHOICES, default=SIP)
     preservation_level_value = models.IntegerField(choices=PRESERVATION_LEVEL_VALUE_CHOICES, default=1)
 
     delivery_type = models.CharField(max_length=255, blank=True)
