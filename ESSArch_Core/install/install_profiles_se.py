@@ -337,6 +337,18 @@ def installProfileSIP(sa):
                 'type': 'folder',
                 'name': 'content',
                 'use': 'content',
+                'children': [
+                    {
+                        'type': 'file',
+                        "name": 'metadata.xml',
+                        'use': 'content_type_specification'
+                    },
+                    {
+                        'type': 'file',
+                        "name": 'metadata.xsd',
+                        'use': 'content_type_specification_schema'
+                    },
+                ],
             },
             {
                 'type': 'folder',
@@ -633,6 +645,11 @@ def installProfileAIP(sa):
                                 'type': 'file',
                                 "name": 'content/metadata.xml',
                                 'use': 'content_type_specification'
+                            },
+                            {
+                                'type': 'file',
+                                "name": 'content/metadata.xsd',
+                                'use': 'content_type_specification_schema'
                             }
                         ],
                     },

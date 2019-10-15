@@ -61,7 +61,7 @@ export default class ReceiveModalInstanceCtrl {
     vm.confirmReceiveModal = function(ip) {
       let data = {
         ip: ip,
-        validatorModal: vm.validatorModel,
+        validatorModel: vm.validatorModel,
         request: vm.request,
       };
       if (vm.tags.structureUnits.value) {

@@ -45,8 +45,9 @@ def _fill_sa_specification_data(sa):
     }
 
 
-def fill_specification_data(data=None, sa=None, ip=None):
+def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
     data = data or {}
+    ignore = ignore or []
 
     if sa:
         data.update(_fill_sa_specification_data(sa))
@@ -65,6 +66,11 @@ def fill_specification_data(data=None, sa=None, ip=None):
         data['_STARTDATE'] = ip.start_date
         data['_ENDDATE'] = ip.end_date
         data['_INFORMATIONCLASS'] = ip.information_class
+
+        if '_CTS_PATH' not in ignore:
+            data['_CTS_PATH'] = ip.get_content_type_file()
+        if '_CTS_SCHEMA_PATH' not in ignore:
+            data['_CTS_SCHEMA_PATH'] = ip.get_content_type_schema_file()
 
         data['_CONTENT_METS_PATH'] = ip.content_mets_path
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date

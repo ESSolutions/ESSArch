@@ -836,6 +836,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', False)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
+        has_cts = ip.get_content_type_file() is not None
 
         dst_dir = Path.objects.cached('entity', 'preingest', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
@@ -899,6 +900,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "label": "Validate premis",
                         "params": {
                             "xml_filename": "{{_PREMIS_PATH}}",
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate cts",
+                        "if": has_cts and validate_xml_file,
+                        "params": {
+                            "xml_filename": "{{_CTS_PATH}}",
+                            "schema_filename": "{{_CTS_SCHEMA_PATH}}",
                         }
                     },
                     {
@@ -2197,6 +2207,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', False)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
+        has_cts = ip.get_content_type_file() is not None
 
         workflow_spec = [
             {
@@ -2251,6 +2262,16 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "label": "Receive SIP",
                                 "params": {
                                     'purpose': request.data.get('purpose'),
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate cts",
+                                "if": has_cts and validate_xml_file,
+                                "run_if": "{{_CTS_PATH}}",
+                                "params": {
+                                    "xml_filename": "{{_CTS_PATH}}",
+                                    "schema_filename": "{{_CTS_SCHEMA_PATH}}",
                                 }
                             },
                             {

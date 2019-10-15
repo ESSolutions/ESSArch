@@ -565,10 +565,30 @@ class InformationPackage(models.Model):
             raise exceptions.APIException(msg)
 
     def get_content_type_file(self):
-        ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure(), self.object_path)
+        try:
+            ctsdir, ctsfile = find_destination('content_type_specification', self.get_structure(), self.object_path)
+        except ProfileIP.DoesNotExist:
+            return None
+
         if ctsdir is None:
             return None
-        return parseContent(os.path.join(ctsdir, ctsfile), fill_specification_data(ip=self))
+
+        full_path = os.path.join(ctsdir, ctsfile)
+        return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
+
+    def get_content_type_schema_file(self):
+        try:
+            ctsdir, ctsfile = find_destination(
+                'content_type_specification_schema',
+                self.get_structure(), self.object_path,
+            )
+        except ProfileIP.DoesNotExist:
+            return None
+        if ctsdir is None:
+            return None
+
+        full_path = os.path.join(ctsdir, ctsfile)
+        return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
 
     def get_archive_tag(self):
         if self.tag is not None:
