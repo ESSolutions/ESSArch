@@ -906,6 +906,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "name": "ESSArch_Core.tasks.ValidateXMLFile",
                         "label": "Validate cts",
                         "if": has_cts and validate_xml_file,
+                        "run_if": "{{_CTS_PATH | path_exists}}",
                         "params": {
                             "xml_filename": "{{_CTS_PATH}}",
                             "schema_filename": "{{_CTS_SCHEMA_PATH}}",
@@ -2268,7 +2269,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "name": "ESSArch_Core.tasks.ValidateXMLFile",
                                 "label": "Validate cts",
                                 "if": has_cts and validate_xml_file,
-                                "run_if": "{{_CTS_PATH}}",
+                                "run_if": "{{_CTS_PATH | path_exists}}",
                                 "params": {
                                     "xml_filename": "{{_CTS_PATH}}",
                                     "schema_filename": "{{_CTS_SCHEMA_PATH}}",
