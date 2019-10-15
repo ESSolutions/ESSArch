@@ -145,9 +145,11 @@ class ReceiveSIP(DBTask):
                 self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
                 if container_type == '.tar':
                     with tarfile.open(container) as tar:
+                        root_member_name = tar.getnames()[0]
                         tar.extractall(tmpdir)
                 elif container_type == '.zip':
                     with zipfile.ZipFile(container) as zipf:
+                        root_member_name = zipf.namelist()[0]
                         zipf.extractall(tmpdir)
                 else:
                     raise ValueError('Invalid container type: {}'.format(container))
@@ -159,9 +161,16 @@ class ReceiveSIP(DBTask):
                     if e.errno != errno.EEXIST:
                         raise
 
-                self.logger.debug('Moving content of {} to {}'.format(tmpdir, dst))
-                for f in os.listdir(tmpdir):
-                    shutil.move(os.path.join(tmpdir, f), dst)
+                tmpsrc = tmpdir
+                if len(os.listdir(tmpdir)) == 1 and os.listdir(tmpdir)[0] == root_member_name:
+                    new_tmpsrc = os.path.join(tmpdir, root_member_name)
+                    if os.path.isdir(new_tmpsrc):
+                        tmpsrc = new_tmpsrc
+
+                self.logger.debug('Moving content of {} to {}'.format(tmpsrc, dst))
+
+                for f in os.listdir(tmpsrc):
+                    shutil.move(os.path.join(tmpsrc, f), dst)
 
                 self.logger.debug('Deleting {}'.format(tmpdir))
 
