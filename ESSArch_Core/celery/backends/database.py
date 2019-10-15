@@ -1,3 +1,4 @@
+import logging
 import sys
 
 import celery.exceptions
@@ -12,7 +13,9 @@ from celery.states import (
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
@@ -50,6 +53,17 @@ class DatabaseBackend(BaseDictBackend):
             updated.pop('status')
 
         ProcessTask.objects.filter(celery_id=task_id).update(**updated)
+
+        if status in EXCEPTION_STATES:
+            t = ProcessTask.objects.get(celery_id=task_id)
+            if t.responsible is not None:
+                t_name = t.label or t.name
+                Notification.objects.create(
+                    message=_('"%(task)s" failed' % {'task': t_name}),
+                    level=logging.ERROR,
+                    user=t.responsible,
+                    refresh=True,
+                )
         return result
 
     def update_state(self, task_id, meta, status, request=None):
