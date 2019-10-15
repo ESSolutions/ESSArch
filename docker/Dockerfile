@@ -12,12 +12,18 @@ FROM python:3.7-buster as base
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libcairo2 \
+    libcups2 \
+    libdbus-1-dev \
     libffi-dev \
     libgdk-pixbuf2.0-0 \
+    libldap2-dev \
     libmagickwand-dev \
     libpango-1.0-0 \
     libpangocairo-1.0-0 \
     libpq-dev \
+    libsasl2-dev \
+    libssl-dev \
+    libxinerama1 \
     libxml2-dev \
     libxmlsec1-dev \
     libxslt-dev \
@@ -26,8 +32,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     postgresql-client \
     python3-cffi \
     shared-mime-info \
+    unixodbc-dev \
     default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Libreoffice
+ADD docker/libreoffice.sh /code/libreoffice.sh
+RUN /code/libreoffice.sh
 
 ADD requirements /code/requirements
 ADD setup.py /code/setup.py
@@ -75,7 +86,9 @@ RUN apt-get update && apt-get install -y \
     vim \
     yarn
 
+ADD requirements/optional.txt /code/requirements/optional.txt
 ADD requirements/tests.txt /code/requirements/tests.txt
+RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
 RUN pip install --no-cache-dir -e .[mysql,postgres]
 

@@ -1,5 +1,6 @@
 node_modules
 /docker/
+!/docker/*.sh
 /dist/
 /htmlcov/
 /venv/
