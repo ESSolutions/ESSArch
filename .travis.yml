@@ -185,6 +185,7 @@ matrix:
         - choco install python --version 3.7.4
         - choco install imagemagick
         - choco install redis-64
+        - start redis-server
         - export PATH="/c/Program Files/GTK3-Runtime Win64/bin:/c/Python37:/c/Python37/Scripts:$PATH"
         - python -m pip install --upgrade pip wheel codecov setuptools
 
