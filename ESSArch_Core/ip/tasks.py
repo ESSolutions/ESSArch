@@ -453,7 +453,7 @@ class DeleteInformationPackage(DBTask):
         if from_db:
             with transaction.atomic():
                 ip_content_type = ContentType.objects.get_for_model(ip)
-                GroupGenericObjects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+                GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
                 ip.delete()
         else:
             ip.state = 'deleted'
