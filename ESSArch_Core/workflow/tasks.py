@@ -30,6 +30,7 @@ import os
 import pathlib
 import shutil
 import tarfile
+import tempfile
 import uuid
 import zipfile
 from os import walk
@@ -139,30 +140,31 @@ class ReceiveSIP(DBTask):
         dst = os.path.join(dst_path, dst_name)
 
         if aip.policy.receive_extract_sip:
-            tmpdir = Path.objects.cached('entity', 'temp', 'value')
-            self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
-            if container_type == '.tar':
-                with tarfile.open(container) as tar:
-                    root_member_name = tar.getnames()[0]
-                    tar.extractall(tmpdir)
-            elif container_type == '.zip':
-                with zipfile.ZipFile(container) as zipf:
-                    root_member_name = zipf.namelist()[0]
-                    zipf.extractall(tmpdir)
-            else:
-                raise ValueError('Invalid container type: {}'.format(container))
+            temp = Path.objects.cached('entity', 'temp', 'value')
+            with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
+                self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
+                if container_type == '.tar':
+                    with tarfile.open(container) as tar:
+                        tar.extractall(tmpdir)
+                elif container_type == '.zip':
+                    with zipfile.ZipFile(container) as zipf:
+                        zipf.extractall(tmpdir)
+                else:
+                    raise ValueError('Invalid container type: {}'.format(container))
 
-            tmp_root = os.path.join(tmpdir, root_member_name)
-            dst = os.path.join(dst, '')
-            try:
-                os.makedirs(dst)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
-            self.logger.debug('Moving content of {} to {}'.format(tmp_root, dst))
-            for f in os.listdir(tmp_root):
-                shutil.move(os.path.join(tmp_root, f), dst)
-            self.logger.debug('Deleting {}'.format(tmp_root))
+                dst = os.path.join(dst, '')
+                try:
+                    os.makedirs(dst)
+                except OSError as e:
+                    if e.errno != errno.EEXIST:
+                        raise
+
+                self.logger.debug('Moving content of {} to {}'.format(tmpdir, dst))
+                for f in os.listdir(tmpdir):
+                    shutil.move(os.path.join(tmpdir, f), dst)
+
+                self.logger.debug('Deleting {}'.format(tmpdir))
+
             aip.sip_path = os.path.relpath(dst, aip.object_path)
         else:
             self.logger.debug('Copying {} to {}'.format(container, dst))
