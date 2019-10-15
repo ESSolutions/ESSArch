@@ -14,6 +14,7 @@ export default class AddNodeModalInstanceCtrl {
     const $ctrl = this;
     $ctrl.node = data.node.original;
     $ctrl.nodeFields = [];
+    $ctrl.typeOptions = [];
     $ctrl.newNode = {
       index: 'component',
       notes: [],
@@ -22,6 +23,7 @@ export default class AddNodeModalInstanceCtrl {
     $ctrl.options = {};
     $ctrl.nodeFields = [];
     $ctrl.types = [];
+    $ctrl.custom_fields_template = [];
 
     $ctrl.$onInit = function() {
       $http
@@ -43,6 +45,16 @@ export default class AddNodeModalInstanceCtrl {
             $ctrl.loadForm();
           });
         });
+    };
+
+    $ctrl.getType = id => {
+      let type = null;
+      $ctrl.typeOptions.forEach(x => {
+        if (id === x.pk) {
+          type = x;
+        }
+      });
+      return type;
     };
 
     $ctrl.getInformationPackages = function(search) {
@@ -85,10 +97,16 @@ export default class AddNodeModalInstanceCtrl {
             options: $ctrl.typeOptions,
             valueProp: 'pk',
             labelProp: 'name',
+            notNull: $ctrl.typeOptions.length > 0,
           },
           defaultValue: $ctrl.typeOptions.length > 0 ? $ctrl.typeOptions[0].pk : null,
           type: 'select',
           key: 'type',
+          expressionProperties: {
+            'templateOptions.onChange': function($modelValue) {
+              $ctrl.custom_fields_template = $ctrl.getType($modelValue).custom_fields_template;
+            },
+          },
         },
         {
           templateOptions: {

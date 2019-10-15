@@ -325,3 +325,20 @@
 .jstree-checkbox-disabled {
   opacity: 0.4 !important;
 }
+
+.custom-fields-form {
+  display: flex;
+  flex-wrap: wrap;
+  .formly-field {
+    width: 100%;
+    @include medium-screen-up {
+      width: 50%;
+      &:nth-child(odd) {
+        padding-right: $padding-base-horizontal !important;
+      }
+      &:nth-child(even) {
+        padding-left: $padding-base-horizontal !important;
+      }
+    }
+  }
+}

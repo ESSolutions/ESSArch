@@ -24,6 +24,8 @@ export default class EditNodeModalInstanceCtrl {
     $ctrl.manyNodes = false;
     $ctrl.options = {};
     $ctrl.customFields = [];
+    $ctrl.custom_fields_template = [];
+
     $ctrl.$onInit = function() {
       $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {
@@ -92,6 +94,16 @@ export default class EditNodeModalInstanceCtrl {
       }
     };
 
+    $ctrl.getType = id => {
+      let type = null;
+      $ctrl.options.type.forEach(x => {
+        if (id === x.pk) {
+          type = x;
+        }
+      });
+      return type;
+    };
+
     function getEditedFields(node) {
       const edited = {};
       const oldModel = angular.copy(data.node);
@@ -142,6 +154,11 @@ export default class EditNodeModalInstanceCtrl {
             notNull: true,
           },
           defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0].pk : null,
+          expressionProperties: {
+            'templateOptions.onChange': function($modelValue) {
+              $ctrl.custom_fields_template = $ctrl.getType($modelValue).custom_fields_template;
+            },
+          },
         },
         {
           key: 'reference_code',

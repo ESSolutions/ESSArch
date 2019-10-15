@@ -7,38 +7,13 @@
 <div class="modal-body" id="modal-body">
   <form name="$ctrl.form">
     <formly-form model="$ctrl.node" fields="$ctrl.fields" options="{}"></formly-form>
-    <hr />
-    <h4>
-      {{'ACCESS.CUSTOM_FIELDS' | translate}}
-    </h4>
     <formly-form
-      class="edit-form"
+      class="custom-fields-form"
       model="$ctrl.node.custom_fields"
-      fields="$ctrl.customFields"
+      fields="$ctrl.custom_fields_template"
       options="{}"
     ></formly-form>
   </form>
-  <hr />
-  <div class="add-field">
-    <h4>
-      {{'ACCESS.NEW_FIELD' | translate}}
-    </h4>
-    <label>
-      {{'NAME' | translate}}
-      <input ng-model="$ctrl.newFieldKey" class="form-control" type="text" ng-enter="$ctrl.addNewField()" />
-    </label>
-    <label>
-      {{'VALUE' | translate}}
-      <input ng-model="$ctrl.newFieldVal" class="form-control" type="text" ng-enter="$ctrl.addNewField()" />
-    </label>
-    <button
-      ng-disabled="!($ctrl.newFieldKey && $ctrl.newFieldVal)"
-      class="btn btn-success btn-sm"
-      ng-click="$ctrl.addNewField()"
-    >
-      <i class="fas fa-plus"></i>
-    </button>
-  </div>
 </div>
 <div class="modal-footer">
   <label ng-if="!$ctrl.manyNodes">
