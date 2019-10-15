@@ -120,7 +120,10 @@ class FormatIdentifier:
             self.format_registry_key = None
 
     def identify_file_encryption(self, filename):
-        encrypted = FileEncryptionValidator.is_file_encrypted(filename) or False
+        try:
+            encrypted = FileEncryptionValidator.is_file_encrypted(filename) or False
+        except Exception:
+            encrypted = False
 
         if encrypted and not self.allow_encrypted_files:
             raise EncryptedFileNotAllowed(
