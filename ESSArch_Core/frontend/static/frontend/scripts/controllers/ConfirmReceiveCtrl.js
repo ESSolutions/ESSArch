@@ -13,7 +13,6 @@ export default class ConfirmReceiveCtrl {
         storage_policy: data.request.storagePolicy.value.id,
         purpose: data.request.purpose,
         structure_unit: data.structure_unit,
-        allow_unknown_files: data.request.allowUnknownFiles,
         validators: data.validatorModel,
       })
         .$promise.then(function(response) {

@@ -167,10 +167,6 @@
             </div>
           </div>
         </div>
-        <div ng-if="vm.request.type == 'receive' && checkPermission('ip.receive')" class="margin-top-5">
-          <input type="checkbox" ng-model="vm.request.allowUnknownFiles" />
-          <label>{{'ALLOW_UNKNOWN_FILES' | translate}}</label>
-        </div>
       </div>
       <div class="request-params modal-validators">
         <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
