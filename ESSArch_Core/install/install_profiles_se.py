@@ -941,6 +941,18 @@ def installProfileAIP(sa):
                 "defaultValue": False,
                 "key": "allow_encrypted_files"
             },
+            {
+                "templateOptions": {
+                    "label": "Index files",
+                    "options": [
+                        {"name": "Yes", "value": True},
+                        {"name": "No", "value": False},
+                    ],
+                },
+                "type": "select",
+                "defaultValue": True,
+                "key": "index_files"
+            },
         ],
         'specification': json.loads(open(
             os.path.join(settings.BASE_DIR, 'templates/se/SE_AIP_VERSION11.json')

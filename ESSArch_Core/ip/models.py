@@ -1052,6 +1052,9 @@ class InformationPackage(models.Model):
             for method in remote_methods
         ])
 
+        profile_type = self.get_package_type_display().lower()
+        write_to_search_index = self.get_profile_data(profile_type).get('index_files', True)
+
         remote_temp_container_transfer = {
             "step": True,
             "parallel": True,
@@ -1159,6 +1162,7 @@ class InformationPackage(models.Model):
                             {
                                 "name": "ESSArch_Core.ip.tasks.WriteInformationPackageToSearchIndex",
                                 "label": "Write to search index",
+                                "if": write_to_search_index,
                             },
                             {
                                 "name": "ESSArch_Core.ip.tasks.CreateReceipt",
