@@ -1825,5 +1825,32 @@ export default class SearchDetailCtrl {
         }
       );
     };
+
+    vm.placeNodeInArchiveModal = function(node) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/place_node_in_archive_modal.html',
+        controller: 'PlaceNodeInArchiveModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: function() {
+            return {
+              node,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
   }
 }

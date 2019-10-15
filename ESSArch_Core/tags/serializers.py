@@ -31,6 +31,7 @@ from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
 from ESSArch_Core.tags.documents import (
     Archive,
     Component,
+    File,
     StructureUnitDocument,
 )
 from ESSArch_Core.tags.models import (
@@ -990,26 +991,31 @@ class ComponentWriteSerializer(serializers.Serializer):
 
         if structure is not None:
             tag = instance.tag
-            tag_structure = TagStructure.objects.get(tag=tag, structure=structure)
 
             if structure_unit is not None:
-                tag_structure.structure_unit = structure_unit
-                archive_structure = tag_structure.get_root()
-                tag_structure.parent = archive_structure
-                tag_structure.save()
+                archive_structure = structure.tagstructure_set.first().get_root()
+                parent = archive_structure
 
-            if parent is not None:
+            elif parent is not None:
                 parent_structure = parent.get_structures(structure).get()
-                tag_structure.parent = parent_structure
-                tag_structure.structure_unit = None
-                tag_structure.save()
+                parent = parent_structure
+                structure_unit = None
+
+            TagStructure.objects.update_or_create(tag=tag, structure=structure, defaults={
+                'parent': parent,
+                'structure_unit': structure_unit,
+            })
 
         instance.tag.information_package = information_package
         instance.tag.save()
         TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
         instance.refresh_from_db()
 
-        doc = Component.from_obj(instance)
+        if instance.elastic_index == 'component':
+            doc = Component.from_obj(instance)
+        elif instance.elastic_index == 'document':
+            doc = File.from_obj(instance)
+
         doc.save()
 
         return instance
@@ -1036,6 +1042,13 @@ class ComponentWriteSerializer(serializers.Serializer):
 
             if 'structure_unit' not in data and data['parent'].type.archive_type:
                 raise serializers.ValidationError('structure_unit required when parent is an archive')
+
+        if self.instance:
+            structure_unit = data.get('structure_unit', None)
+            parent = data.get('parent', None)
+
+            if structure_unit is not None and parent is not None and not parent.type.archive_type:
+                raise serializers.ValidationError('structure_unit not allowed when parent is not an archive')
 
         if data.get('information_package') is not None and not data['type'].information_package_type:
             raise serializers.ValidationError('information package can only be set on information package nodes')

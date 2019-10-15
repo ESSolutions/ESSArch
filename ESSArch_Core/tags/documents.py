@@ -351,6 +351,8 @@ class File(Component):
             task_id = None
         else:
             task_id = str(obj.tag.task.pk)
+        ip_id = getattr(obj.tag.information_package, 'pk', None)
+        ip_id = str(ip_id) if ip_id is not None else None
 
         doc = File(
             _id=str(obj.pk),
@@ -363,7 +365,7 @@ class File(Component):
             desc=obj.description,
             reference_code=obj.reference_code,
             type=obj.type.name,
-            ip=str(obj.tag.information_package.pk),
+            ip=ip_id,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
             **obj.custom_fields,
         )

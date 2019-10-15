@@ -60,6 +60,7 @@ import {organization, OrganizationCtrl} from '../controllers/OrganizationCtrl';
 import OrganizationModalInstanceCtrl from '../controllers/OrganizationModalInstanceCtrl';
 import OverwriteModalInstanceCtrl from '../controllers/OverwriteModalInstanceCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
+import PlaceNodeInArchiveModalInstanceCtrl from '../controllers/PlaceNodeInArchiveModalInstanceCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
@@ -679,6 +680,17 @@ export default angular
     'Notifications',
     '$translate',
     OverwriteModalInstanceCtrl,
+  ])
+  .controller('PlaceNodeInArchiveModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$scope',
+    '$translate',
+    '$http',
+    'appConfig',
+    'data',
+    'EditMode',
+    'StructureName',
+    PlaceNodeInArchiveModalInstanceCtrl,
   ])
   .controller('ProfileManagerCtrl', ['$state', '$scope', ProfileManagerCtrl])
   .controller('PrepareIpCtrl', [
