@@ -875,10 +875,8 @@ class ComponentWriteSerializer(serializers.Serializer):
         default=None,
         queryset=InformationPackage.objects.filter(archived=True),
     )
-    parent = serializers.PrimaryKeyRelatedField(
-        required=False,
-        queryset=TagVersion.objects.filter(type__archive_type=False),
-    )
+    index = serializers.ChoiceField(choices=['component', 'document'])
+    parent = serializers.PrimaryKeyRelatedField(required=False, queryset=TagVersion.objects.all())
     location = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), allow_null=True)
     structure = serializers.PrimaryKeyRelatedField(
         required=False, queryset=Structure.objects.filter(is_template=False))
@@ -914,6 +912,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             information_package = validated_data.pop('information_package', None)
+            index = validated_data.pop('index')
 
             tag = Tag.objects.create(information_package=information_package)
             tag_structure = TagStructure(tag=tag)
@@ -939,7 +938,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             tag_structure.save()
 
             tag_version = TagVersion.objects.create(
-                tag=tag, elastic_index='component', **validated_data,
+                tag=tag, elastic_index=index, **validated_data,
             )
             tag.current_version = tag_version
             tag.save()
@@ -948,9 +947,10 @@ class ComponentWriteSerializer(serializers.Serializer):
                 AgentTagLink.objects.create(tag=tag_version, agent=agent_link.agent, type=agent_link.type)
 
             tag_structure.refresh_from_db()
-            structure_unit = tag_structure.get_ancestors(
-                include_self=True
-            ).filter(structure_unit__isnull=False).get().structure_unit
+            if structure_unit is None:
+                structure_unit = tag_structure.get_ancestors(
+                    include_self=True
+                ).filter(structure_unit__isnull=False).get().structure_unit
             related_units = structure_unit.related_structure_units.filter(
                 structure__is_template=False
             ).exclude(
@@ -976,6 +976,7 @@ class ComponentWriteSerializer(serializers.Serializer):
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
         information_package = validated_data.pop('information_package', None)
+        validated_data.pop('index', None)
 
         if identifiers_data is not None:
             NodeIdentifier.objects.filter(tag_version=instance).delete()
@@ -1013,9 +1014,28 @@ class ComponentWriteSerializer(serializers.Serializer):
 
         return instance
 
+    def validate_parent(self, value):
+        if not self.instance:
+            return value
+
+        if value == self.instance:
+            raise serializers.ValidationError(_("Cannot be parent to itself"))
+
+        return value
+
+    def validate_structure_unit(self, value):
+        if not value.is_leaf_node():
+            raise serializers.ValidationError(_("Must be a leaf unit"))
+
+        return value
+
     def validate(self, data):
-        if not self.instance and 'parent' not in data and 'structure_unit' not in data:
-            raise serializers.ValidationError('parent or structure_unit required')
+        if not self.instance:
+            if 'parent' not in data and 'structure_unit' not in data:
+                raise serializers.ValidationError('parent or structure_unit required')
+
+            if 'structure_unit' not in data and data['parent'].type.archive_type:
+                raise serializers.ValidationError('structure_unit required when parent is an archive')
 
         if data.get('information_package') is not None and not data['type'].information_package_type:
             raise serializers.ValidationError('information package can only be set on information package nodes')
