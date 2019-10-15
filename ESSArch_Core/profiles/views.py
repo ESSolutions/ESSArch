@@ -174,7 +174,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         try:
             ip = InformationPackage.objects.get(pk=ip_id)
         except InformationPackage.DoesNotExist:
-            raise exceptions.ParseError('Information Package with id %s does not exist')
+            raise exceptions.ParseError('Information Package "{}" does not exist'.format(ip_id))
 
         if ip.submission_agreement_locked:
             raise exceptions.ParseError('IP already has a locked SA')

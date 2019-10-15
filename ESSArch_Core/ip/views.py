@@ -2048,7 +2048,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             try:
                 sa = SubmissionAgreement.objects.get(pk=sa)
-            except (ValueError, SubmissionAgreement.DoesNotExist) as e:
+            except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
                 raise exceptions.ParseError(e)
 
             ip = InformationPackage.objects.create(
