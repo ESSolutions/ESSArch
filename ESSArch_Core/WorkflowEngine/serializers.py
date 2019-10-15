@@ -147,7 +147,10 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     def get_exception(self, obj):
         if obj.exception is None:
             return None
-        exc = DatabaseBackend.exception_to_python(obj.exception)
+        try:
+            exc = DatabaseBackend.exception_to_python(obj.exception)
+        except Exception:
+            return obj.exception
         return repr(exc)
 
     def get_result(self, obj):
@@ -212,7 +215,10 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
         if t:
             if t.exception is None:
                 return None
-            exc = DatabaseBackend.exception_to_python(t.exception)
+            try:
+                exc = DatabaseBackend.exception_to_python(t.exception)
+            except Exception:
+                return obj.exception
             return repr(exc)
 
     def get_traceback(self, obj):

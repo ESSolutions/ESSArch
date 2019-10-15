@@ -14,6 +14,7 @@ from celery.utils.serialization import create_exception_cls
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext as _
+from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -94,16 +95,28 @@ class DatabaseBackend(BaseDictBackend):
             if not isinstance(exc, BaseException):
                 exc_module = exc.get('exc_module')
                 if exc_module is None:
-                    cls = create_exception_cls(exc['exc_type'], __name__)
+                    cls = create_exception_cls(
+                        from_utf8(exc['exc_type']), __name__)
                 else:
-                    exc_module = exc_module
-                    exc_type = exc['exc_type']
+                    exc_module = from_utf8(exc_module)
+                    exc_type = from_utf8(exc['exc_type'])
                     try:
-                        cls = getattr(sys.modules[exc_module], exc_type)
-                    except KeyError:
-                        cls = create_exception_cls(exc_type, celery.exceptions.__name__)
+                        # Load module and find exception class in that
+                        cls = sys.modules[exc_module]
+                        # The type can contain qualified name with parent classes
+                        for name in exc_type.split('.'):
+                            cls = getattr(cls, name)
+                    except (KeyError, AttributeError):
+                        cls = create_exception_cls(exc_type,
+                                                   celery.exceptions.__name__)
                 exc_msg = exc['exc_message']
-                exc = cls(*exc_msg if isinstance(exc_msg, tuple) else exc_msg)
+                try:
+                    if isinstance(exc_msg, (tuple, list)):
+                        exc = cls(*exc_msg)
+                    else:
+                        exc = cls(exc_msg)
+                except Exception as err:  # noqa
+                    exc = Exception('{}({})'.format(cls, exc_msg))
         return exc
 
     def meta_from_decoded(self, meta):
