@@ -2251,7 +2251,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "label": "Receive SIP",
                                 "params": {
                                     'purpose': request.data.get('purpose'),
-                                    'allow_unknown_files': serializer_data['allow_unknown_files'],
                                 }
                             },
                             {
