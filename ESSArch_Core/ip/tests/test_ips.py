@@ -635,14 +635,32 @@ class InformationPackageViewSetTestCase(TestCase):
 
     def test_aic_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip14 = InformationPackage.objects.create(aic=aic, generation=4, state='foo')
-        aip12 = InformationPackage.objects.create(aic=aic, generation=2, state='foo')
-        aip13 = InformationPackage.objects.create(aic=aic, generation=3, state='foo')
-        aip11 = InformationPackage.objects.create(aic=aic, generation=1, state='foo')
+        aip14 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=4, state='foo',
+        )
+        aip12 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=2, state='foo',
+        )
+        aip13 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=3, state='foo',
+        )
+        aip11 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=1, state='foo',
+        )
         aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip2 = InformationPackage.objects.create(aic=aic2, generation=0, state='foo')
+        aip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic2, generation=0, state='foo',
+        )
         aic3 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        aip3 = InformationPackage.objects.create(aic=aic3, generation=0, state='bar')
+        aip3 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic3, generation=0, state='bar',
+        )
 
         perms = {'group': ['view_informationpackage']}
         self.member.assign_object(self.group, aip11, custom_permissions=perms)
