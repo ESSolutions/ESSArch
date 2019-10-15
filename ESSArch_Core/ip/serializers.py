@@ -230,7 +230,6 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
             structure__template__published=True,
         ),
     )
-    allow_unknown_files = serializers.BooleanField(default=False)
 
 
 class PrepareDIPSerializer(serializers.Serializer):

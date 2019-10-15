@@ -231,7 +231,6 @@
                             "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
                             "label": "Receive SIP",
                             "params": {
-                                "allow_unknown_files": true,
                                 "delete_sip": true
                             }
                         },

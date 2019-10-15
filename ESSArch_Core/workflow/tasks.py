@@ -104,7 +104,7 @@ class ReceiveSIP(DBTask):
     event_type = 20100
 
     @transaction.atomic
-    def run(self, purpose=None, allow_unknown_files=False, delete_sip=False):
+    def run(self, purpose=None, delete_sip=False):
         self.logger.debug('Receiving SIP')
         aip = InformationPackage.objects.get(pk=self.ip)
         algorithm = aip.get_checksum_algorithm()
@@ -176,7 +176,7 @@ class ReceiveSIP(DBTask):
         self.logger.debug('sip_path set to {}'.format(aip.sip_path))
         aip.save()
 
-    def event_outcome_success(self, result, purpose=None, allow_unknown_files=False, delete_sip=False):
+    def event_outcome_success(self, result, purpose=None, delete_sip=False):
         return "Received SIP"
 
 
