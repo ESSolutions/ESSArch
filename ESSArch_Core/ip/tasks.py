@@ -348,7 +348,7 @@ class ParseEvents(DBTask):
         xmlfile_path = self.get_path(ip)
         try:
             xmlfile = ip.open_file(xmlfile_path, 'rb')
-        except FileNotFoundError:
+        except (FileNotFoundError, KeyError):
             self.logger.debug('No events file found at "{}"'.format(xmlfile_path))
             return
 
