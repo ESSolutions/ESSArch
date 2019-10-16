@@ -21,26 +21,26 @@
             >
               <div class="request-type">
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
-                  <input type="radio" ng-model="vm.request.type" value="get" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="get" />
                     {{'GET' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea_as_new')">
-                  <input type="radio" ng-model="vm.request.type" value="get_as_new" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="get_as_new" />
                     {{'GET_AS_NEW_GENERATION' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.diff_check')">
-                  <input type="radio" ng-model="vm.request.type" value="diff_check" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="diff_check" />
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.preserve')">
-                  <input type="radio" ng-model="vm.request.type" value="preserve" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="preserve" />
                     {{'PRESERVE' | translate}}
                   </label>
                 </div>

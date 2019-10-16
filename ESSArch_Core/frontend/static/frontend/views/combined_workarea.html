@@ -38,8 +38,8 @@
                 <div
                   ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea')) && !ip.workarea[0].read_only"
                 >
-                  <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
                     {{'MOVE_TO_INGEST_APPROVAL' | translate}}
                   </label>
                 </div>
