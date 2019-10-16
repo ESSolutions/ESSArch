@@ -225,7 +225,6 @@ def download_schemas(ip, logger, verify):
     if premis_profile_rel is not None:
         specifications.append(premis_profile_rel.profile.specification)
 
-    logger.debug('Downloading schemas')
     for spec in specifications:
         schema_preserve_loc = spec.get('-schemaPreservationLocation', 'xsd_files')
         if schema_preserve_loc and structure:
@@ -236,8 +235,6 @@ def download_schemas(ip, logger, verify):
 
         for schema in spec.get('-schemasToPreserve', []):
             download_schema(dirname, logger, schema, verify)
-    else:
-        logger.info('No schemas to download')
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
