@@ -197,6 +197,9 @@ matrix:
         - pip install .[mssql]
       after_script:
         - redis-cli shutdown
+      after_success:
+        - choco install codecov
+        - codecov -F backend
       env:
         - *mssql
 
