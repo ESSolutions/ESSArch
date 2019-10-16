@@ -1539,7 +1539,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
 
         archive_tag = Tag.objects.create()
         archive_tag_version_type = TagVersionType.objects.create(name='archive', archive_type=True)
-        TagVersion.objects.create(
+        archive_tag_version = TagVersion.objects.create(
             tag=archive_tag,
             type=archive_tag_version_type,
             elastic_index='archive',
@@ -1574,6 +1574,8 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         with self.subTest('published unit'):
             res = self.client.post(url, data={
                 'storage_policy': self.policy.pk,
+                'archive': archive_tag_version.pk,
+                'structure': structure.pk,
                 'structure_unit': structure_unit.pk,
             })
             self.assertEqual(res.status_code, status.HTTP_200_OK)
