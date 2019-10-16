@@ -63,6 +63,8 @@ export default class ReceiveModalInstanceCtrl {
         ip: ip,
         validatorModel: vm.validatorModel,
         request: vm.request,
+        archive: vm.tags.archive.value ? vm.tags.archive.value.id : null,
+        structure: vm.tags.structure.value ? vm.tags.structure.value.id : null,
       };
       if (vm.tags.structureUnits.value) {
         data.structure_unit = vm.tags.structureUnits.value.id;
