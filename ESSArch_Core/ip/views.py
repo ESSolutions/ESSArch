@@ -2171,9 +2171,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('%s does not exist' % container)
 
         policy = serializer_data['storage_policy']
-        structure_unit = serializer_data['structure_unit']
+        archive = serializer_data.get('archive')
 
-        if structure_unit is not None:
+        if archive is not None:
             tag = Tag.objects.create(
                 information_package=ip,
             )
@@ -2190,13 +2190,20 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 logger.exception(msg)
                 raise exceptions.ParseError(msg)
 
-            archive_structure = TagStructure.objects.filter(structure=structure_unit.structure).first().get_root()
+            structure = serializer_data.get('structure')
+            structure_unit = serializer_data.get('structure_unit')
+            archive_structure = TagStructure.objects.get(tag=archive.tag, structure=structure)
+
+            if ip.tag is None:
+                ip.tag = archive_structure
+
             TagStructure.objects.create(
                 tag=tag,
-                structure=structure_unit.structure,
+                structure=structure,
                 structure_unit=structure_unit,
                 parent=archive_structure,
             )
+
         # TODO: use default structure unit from CTS, if available
         # and no other structure unit is provided in the request
 

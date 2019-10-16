@@ -32,7 +32,13 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageTarget,
 )
-from ESSArch_Core.tags.models import Delivery, StructureUnit, Transfer
+from ESSArch_Core.tags.models import (
+    Delivery,
+    Structure,
+    StructureUnit,
+    TagVersion,
+    Transfer,
+)
 from ESSArch_Core.tags.serializers import TransferSerializer
 
 User = get_user_model()
@@ -223,6 +229,20 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
     storage_policy = serializers.PrimaryKeyRelatedField(
         queryset=StoragePolicy.objects.all(),
     )
+    archive = serializers.PrimaryKeyRelatedField(
+        required=False,
+        queryset=TagVersion.objects.filter(
+            type__archive_type=True,
+        ),
+    )
+    structure = serializers.PrimaryKeyRelatedField(
+        required=False,
+        queryset=Structure.objects.filter(
+            is_template=False,
+            template__published=True,
+        ),
+    )
+
     structure_unit = serializers.PrimaryKeyRelatedField(
         default=None,
         queryset=StructureUnit.objects.filter(
@@ -230,6 +250,23 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
             structure__template__published=True,
         ),
     )
+
+    def validate(self, data):
+        archive = data.get('archive')
+        if data.get('archive') is not None:
+            structure = data.get('structure')
+
+            if structure is None:
+                raise serializers.ValidationError('Structure not selected for archive')
+
+            if not archive.tag.structures.filter(structure=structure).exists():
+                raise serializers.ValidationError('Invalid structure for selected archive')
+
+            structure_unit = data.get('structure_unit')
+            if structure_unit is not None and structure_unit.structure != structure:
+                raise serializers.ValidationError('Invalid structure unit for selected structure')
+
+        return data
 
 
 class PrepareDIPSerializer(serializers.Serializer):

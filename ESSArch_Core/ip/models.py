@@ -602,9 +602,7 @@ class InformationPackage(models.Model):
         if ct_file is None:
             return None
 
-        if self.archived:
-            ct_file = os.path.relpath(ct_file, self.object_path)
-
+        ct_file = os.path.relpath(ct_file, self.object_path)
         cts_file = self.open_file(ct_file)
         tag = ct_importer.get_archive(cts_file)
 
@@ -729,7 +727,11 @@ class InformationPackage(models.Model):
         return self.get_profile_data(profile_type).get('allow_encrypted_files', False)
 
     def get_structure(self):
-        ip_profile_type = self.get_package_type_display().lower()
+        if self.package_type == InformationPackage.AIP and self.state == 'Prepared':
+            ip_profile_type = 'sip'
+        else:
+            ip_profile_type = self.get_package_type_display().lower()
+
         ip_profile_rel = self.get_profile_rel(ip_profile_type)
         return ip_profile_rel.profile.structure
 
