@@ -1067,10 +1067,12 @@ class ArchiveWriteSerializer(serializers.Serializer):
     name = serializers.CharField()
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
     structures = serializers.PrimaryKeyRelatedField(
-        queryset=Structure.objects.filter(is_template=True, published=True), many=True)
+        queryset=Structure.objects.filter(is_template=True, published=True),
+        many=True,
+    )
     archive_creator = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
     description = serializers.CharField(required=False)
-    reference_code = serializers.CharField(required=False)
+    reference_code = serializers.CharField(required=False, allow_blank=True)
     use_uuid_as_refcode = serializers.BooleanField(default=False)
     start_date = serializers.DateTimeField(required=False)
     end_date = serializers.DateTimeField(required=False)
