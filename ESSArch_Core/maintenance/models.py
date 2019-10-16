@@ -2,16 +2,12 @@ import errno
 import logging
 import os
 import shutil
-import tarfile
-import time
 import uuid
-from collections import OrderedDict
 from operator import itemgetter
 from os import walk
 
 import jsonfield
 from celery import states as celery_states
-from celery.result import allow_join_result
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
@@ -21,21 +17,8 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
-from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.profiles.models import ProfileIP
-from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.util import (
-    convert_file,
-    creation_date,
-    find_destination,
-    get_tree_size_and_count,
-    has_write_access,
-    timestamp_to_datetime,
-)
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.util import convert_file, find_destination, has_write_access
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.maintenance')

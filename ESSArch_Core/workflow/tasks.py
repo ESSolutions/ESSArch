@@ -31,9 +31,7 @@ import pathlib
 import shutil
 import tarfile
 import tempfile
-import uuid
 import zipfile
-from os import walk
 
 from celery import states as celery_states
 from celery.exceptions import Ignore
@@ -50,11 +48,7 @@ from guardian.shortcuts import assign_perm
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Member, Notification
-from ESSArch_Core.configuration.models import Path, StoragePolicy
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    XMLGenerator,
-    parseContent,
-)
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -67,9 +61,6 @@ from ESSArch_Core.maintenance.models import (
     ConversionJob,
     ConversionRule,
 )
-from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.search.importers import get_backend as get_importer
-from ESSArch_Core.search.ingest import index_path
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
     TapeMountedAndLockedByOtherError,
@@ -77,20 +68,15 @@ from ESSArch_Core.storage.exceptions import (
     TapeUnmountedError,
 )
 from ESSArch_Core.storage.models import (
-    TAPE,
-    IOQueue,
     Robot,
     RobotQueue,
-    StorageMethod,
     StorageObject,
     TapeDrive,
 )
-from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import (
     creation_date,
     delete_path,
     find_destination,
-    get_tree_size_and_count,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
