@@ -28,6 +28,7 @@ import socket
 import sys
 from sqlite3 import sqlite_version
 
+import distro
 from celery import current_app
 from django.conf import settings
 from django.db import connection
@@ -159,7 +160,7 @@ class SysInfoView(APIView):
             'version': platform.version(),
             'mac_version': platform.mac_ver(),
             'win_version': platform.win32_ver(),
-            'linux_dist': platform.linux_distribution(),
+            'linux_dist': distro.linux_distribution(),
         }
         context['hostname'] = socket.gethostname()
         context['version'] = get_versions()
