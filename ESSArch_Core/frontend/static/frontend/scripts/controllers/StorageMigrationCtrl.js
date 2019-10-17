@@ -91,7 +91,8 @@ export default class StorageMigrationCtrl {
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
             },
-            vm.filters
+            vm.filters,
+            vm.migration
           ),
         })
           .then(function(response) {
