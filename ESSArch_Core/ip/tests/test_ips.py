@@ -1436,6 +1436,30 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
 
+    def test_change_organization(self):
+        self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
+        self.url = reverse('informationpackage-change-organization', args=(self.ip.pk,))
+
+        with self.subTest('without data'):
+            res = self.client.post(self.url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        grp = Group.objects.create()
+        with self.subTest('non-organization group'):
+            res = self.client.post(self.url, data={'organization': grp.pk})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        grp.group_type = self.org_group_type
+        grp.save()
+        with self.subTest('organization group without user'):
+            res = self.client.post(self.url, data={'organization': grp.pk})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        grp.add_member(self.member)
+        with self.subTest('organization group with user'):
+            res = self.client.post(self.url, data={'organization': grp.pk})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
 
 class InformationPackageReceptionViewSetTestCase(TestCase):
     @classmethod
