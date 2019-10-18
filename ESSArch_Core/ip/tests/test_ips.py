@@ -631,6 +631,9 @@ class InformationPackageViewSetTestCase(TestCase):
         InformationPackage.objects.create(aic=aic, active=False, package_type=InformationPackage.AIP)
 
         res = self.client.get(self.url, data={'view_type': 'aic'})
+        self.assertEqual(len(res.data), 1)
+
+        res = self.client.get(self.url, data={'view_type': 'aic', 'active': True})
         self.assertEqual(len(res.data), 0)
 
     def test_aic_view_type_with_ordering_and_filter(self):
@@ -725,7 +728,7 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip, custom_permissions=perms)
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'active': True})
         self.assertEqual(len(res.data), 1)
         self.assertEqual(len(res.data[0]['information_packages']), 1)
         self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip2.pk))
@@ -743,7 +746,9 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip, custom_permissions=perms)
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'archived': 'false'})
+        res = self.client.get(self.url, data={
+            'view_type': 'aic', 'archived': False, 'active': True
+        })
         self.assertEqual(len(res.data), 1)
         self.assertEqual(len(res.data[0]['information_packages']), 1)
         self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip2.pk))
@@ -772,7 +777,10 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
         self.member.assign_object(self.group, aip4, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'archived': 'false', 'ordering': 'label'})
+        res = self.client.get(self.url, data={
+            'view_type': 'aic', 'archived': False, 'ordering': 'label',
+            'active': True,
+        })
         self.assertEqual(len(res.data), 2)
         self.assertEqual(len(res.data[0]['information_packages']), 1)
         self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip2.pk))
@@ -790,7 +798,7 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip, custom_permissions=perms)
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'active': True})
         self.assertEqual(len(res.data), 1)
         self.assertEqual(len(res.data[0]['information_packages']), 1)
         self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip.pk))
@@ -962,7 +970,9 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'ip', 'archived': 'true'})
+        res = self.client.get(self.url, data={
+            'view_type': 'ip', 'archived': True, 'active': True,
+        })
         self.assertEqual(len(res.data), 0)
 
     def test_ip_view_type_aic_multiple_aips_different_states_first_ip_filter_state(self):
@@ -1039,7 +1049,9 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip4, custom_permissions=perms)
         self.member.assign_object(self.group, aip5, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'start_date'})
+        res = self.client.get(self.url, data={
+            'view_type': 'aic', 'ordering': 'start_date', 'active': True,
+        })
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic.pk))
 

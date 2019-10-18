@@ -66,7 +66,7 @@ class InformationPackageFilter(filters.FilterSet):
 
     class Meta:
         model = InformationPackage
-        fields = ['archivist_organization', 'state', 'responsible',
+        fields = ['archivist_organization', 'state', 'responsible', 'active',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
                   'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea']
 

@@ -409,7 +409,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def annotate_filtered_first_generation(self, qs, user):
         lower_higher = InformationPackage.objects.visible_to_user(user).filter(
             Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            active=True, aic=OuterRef('aic'),
+            aic=OuterRef('aic'),
         ).order_by().values('aic')
         lower_higher = self.apply_filters(queryset=lower_higher).order_by()
         lower_higher = lower_higher.annotate(min_gen=Min('generation'))
@@ -440,7 +440,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not self.detail and view_type == 'aic':
             simple_inner = InformationPackage.objects.visible_to_user(user).filter(
                 Q(Q(workareas=None) | Q(workareas__read_only=True)),
-                active=True,
             )
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
 
@@ -476,7 +475,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).filter(
                 Q(Q(workareas=None) | Q(workareas__read_only=True)),
-                active=True,
             ).exclude(package_type=InformationPackage.AIC)
 
             simple = self.apply_filters(filtered)
@@ -501,7 +499,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         elif not self.detail and view_type == 'flat':
             qs = InformationPackage.objects.visible_to_user(user).filter(
                 Q(Q(workareas=None) | Q(workareas__read_only=True)),
-                active=True,
             ).exclude(package_type=InformationPackage.AIC)
             qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
 
@@ -534,7 +531,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
                 Q(Q(workareas=None) | Q(workareas__read_only=True)),
-                active=True,
             )
 
             qs = self.apply_filters(qs)
@@ -2545,7 +2541,7 @@ class WorkareaViewSet(InformationPackageViewSet):
     def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
         lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
             workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-        ).filter(workarea_exists=True, active=True, aic=OuterRef('aic')).exclude(
+        ).filter(workarea_exists=True, aic=OuterRef('aic')).exclude(
             package_type=InformationPackage.AIC
         ).order_by().values('aic')
 
