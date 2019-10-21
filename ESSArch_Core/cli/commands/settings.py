@@ -22,7 +22,7 @@ def create_local_settings_file(path, template, overwrite=None, debug=False):
 
 @click.command()
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
-@click.option('--debug', is_flag=True, prompt=True, default=False)
+@click.option('--debug/--no-debug', prompt=True, default=False)
 @click.option('-t', '--template', default=DEFAULT_TEMPLATE)
 @click.option('--overwrite/--no-overwrite', default=None)
 @click.option('-p', '--path', type=str, prompt=True, default='/ESSArch/config/local_essarch_settings.py',
