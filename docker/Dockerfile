@@ -60,7 +60,7 @@ RUN pip install -r /code/requirements/docs.txt
 ADD . /code
 
 # Build docs
-RUN essarch settings generate -p /code/local_essarch_settings.py
+RUN essarch settings generate --debug --overwrite -p /code/local_essarch_settings.py
 RUN for lang in "en" "sv"; do make html LANGUAGE="$lang"; done
 
 WORKDIR /code
