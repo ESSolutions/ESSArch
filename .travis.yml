@@ -222,7 +222,7 @@ install:
   - pip install .
 
 before_script:
-  - essarch settings generate -p local_essarch_settings.py
+  - essarch settings generate -qp local_essarch_settings.py
 
 script:
   - coverage run manage.py test
