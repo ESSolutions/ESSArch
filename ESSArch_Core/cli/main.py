@@ -51,6 +51,18 @@ def migrate():
 
 
 @cli.command()
+@click.argument('addrport', default='127.0.0.1:8000', type=str)
+@click.option('--noreload', default=False, is_flag=True, help='Tells Django to NOT use the auto-reloader.')
+@initialize
+def devserver(addrport, noreload):
+    dj_call_command(
+        'runserver',
+        addrport=addrport,
+        use_reloader=not noreload,
+    )
+
+
+@cli.command()
 @click.option('-q/--quiet', default=False, is_eager=True, expose_value=False, callback=deactivate_prompts)
 @click.option('-p', '--path', type=click.Path(),
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
