@@ -107,6 +107,9 @@
     "webpack-manifest-plugin": "^2.1.2",
     "webpack-merge": "^4.2.2"
   },
+  "resolutions": {
+    "angular": "~1.7"
+  },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",
     "build:prod": "webpack --config webpack.prod.babel.js --mode=production --progress",
