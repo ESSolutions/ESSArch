@@ -1,0 +1,103 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-21 14:35+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/python.rst:5
+msgid "Python"
+msgstr ""
+
+#: ../../installation/python.rst:9
+msgid "Dependencies"
+msgstr ""
+
+#: ../../installation/python.rst:10
+msgid "`Python 3.7 <https://www.python.org/>`_"
+msgstr ""
+
+#: ../../installation/python.rst:11
+msgid "`pip 18.0 or higher <https://pip.pypa.io/>`_"
+msgstr ""
+
+#: ../../installation/python.rst:15
+msgid ""
+"If you are not installing ESSArch on a dedicated machine it is "
+"recommended that you first create a virtual python environment."
+msgstr ""
+
+#: ../../installation/python.rst:18
+msgid "https://virtualenv.pypa.io"
+msgstr ""
+
+#: ../../installation/python.rst:22
+msgid "Install ESSArch"
+msgstr ""
+
+#: ../../installation/python.rst:24
+msgid "To install ESSArch and its dependencies, run"
+msgstr ""
+
+#: ../../installation/python.rst:31
+msgid ""
+"Once installed, you can run the `essarch` command to verify that it has "
+"installed correctly."
+msgstr ""
+
+#: ../../installation/python.rst:41
+msgid "Configuring ESSArch"
+msgstr ""
+
+#: ../../installation/python.rst:43
+msgid ""
+"ESSArch has a default configuration built-in which can be overridden in "
+"your own local settings file."
+msgstr ""
+
+#: ../../installation/python.rst:46
+msgid ""
+"Generate the local settings file using the following command and follow "
+"the prompts:"
+msgstr ""
+
+#: ../../installation/python.rst:53
+msgid ""
+"When the configuration is complete you need to setup the database tables "
+"and load initial data:"
+msgstr ""
+
+#: ../../installation/python.rst:63
+msgid "Starting the built-in webserver"
+msgstr ""
+
+#: ../../installation/python.rst:65
+msgid ""
+"The built-in webserver can be used to quickly ensure that everything is "
+"working as expected"
+msgstr ""
+
+#: ../../installation/python.rst:72
+msgid ""
+"The web service should now be accessible in your web browser at "
+"http://localhost:8000"
+msgstr ""
+
+#: ../../installation/python.rst:78
+msgid ""
+"The built-in webserver is not recommended for production usage, instead a"
+" dedicated web server such as Nginx or Apache should be setup."
+msgstr ""
+

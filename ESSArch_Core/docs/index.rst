@@ -10,13 +10,13 @@ ESSArch
     :maxdepth: 10
 
     introduction
+    installation/index
     authentication_authorization/index
     configuration/index
     development
     directory_structure
     external_logging
     format-identifier
-    installation/index
     profiles/index
     restapi/index
     user_guide/index

@@ -52,7 +52,7 @@ msgid ""
 msgstr ""
 "Välj **Arkivera**, fyll i önskad information och klicka på **Skicka**. "
 "Händelseförloppet kan följas i status-fältet för IP:t.Se "
-":ref:`Tillståndsvy <user-interface-state-view>` för mer information."
+":ref:`Tillståndsvy <state-view>` för mer information."
 
 #: ../../user_guide/ingest/approval.rst:30
 msgid "Get"
@@ -75,7 +75,7 @@ msgid ""
 msgstr ""
 "Välj alternativet **Hämta** Fyll i önskad information och klicka på "
 "**Skicka**. Händelseförloppet kan följas i status-fältet för IP:t. Se "
-":ref:`Tillståndsvy <user-interface-state-view>` för mer information."
+":ref:`Tillståndsvy <state-view>` för mer information."
 
 #: ../../user_guide/ingest/approval.rst:43
 msgid "Get as new generation"
@@ -100,6 +100,6 @@ msgid ""
 msgstr ""
 "Välj alternativet **Hämta som ny generation** Fyll i önskad information "
 "och klicka på **Skicka**. Händelseförloppet kan följas i status-fältet "
-"för IP:t Se :ref:`Tillståndsvy <user-interface-state-view>` för mer "
+"för IP:t Se :ref:`Tillståndsvy <state-view>` för mer "
 "information. "
 

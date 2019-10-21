@@ -59,7 +59,7 @@ msgstr ""
 "Välj alternativet **Hämta** Fyll i önskad information, markera "
 "**Förfrågan godkänd** och klicka på **Skicka**. Händelseförloppet kan "
 "följas i status-fältet för paketet eller i större detalj i  "
-":ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+":ref:`Tillståndsvyn <state-view>` för mer information."
 
 #: ../../user_guide/access/storage-units.rst:28
 msgid "Get as container"
@@ -78,7 +78,7 @@ msgid ""
 msgstr ""
 "Välj alternativet **Hämta som container** och klicka på **Skicka**. "
 "Progressen kan följas i status-fältet för paketet eller i större detalj i"
-" :ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+" :ref:`Tillståndsvyn <state-view>` för mer information."
 
 #: ../../user_guide/access/storage-units.rst:40
 msgid "Get as new generation"
@@ -104,5 +104,5 @@ msgstr ""
 "Välj alternativet **Hämta som ny generation** Fyll i önskad information, "
 "markera **Förfrågan godkänd** och klicka på **Hämta**. Progressen kan "
 "följas i status-fältet för paketet eller i större detalj i "
-":ref:`Tillståndsvyn <user-interface-state-view>` för mer information."
+":ref:`Tillståndsvyn <state-view>` för mer information."
 

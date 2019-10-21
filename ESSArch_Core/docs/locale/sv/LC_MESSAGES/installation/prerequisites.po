@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-18 10:34+0200\n"
+"POT-Creation-Date: 2019-10-21 12:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -48,546 +48,132 @@ msgid "CentOS / Redhat"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:21
-msgid "6 (x86\\_64)"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:23
 msgid "7 (x86\\_64)"
 msgstr ""
 
+#: ../../installation/prerequisites.rst:23
+msgid "8 (x86\\_64)"
+msgstr ""
+
 #: ../../installation/prerequisites.rst:25
-#: ../../installation/prerequisites.rst:27
 msgid "SUSE Linux Enterprise Server"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:25
-msgid "11 (x86\\_64)"
+msgid "15 (x86\\_64)"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:27
-msgid "12 (x86\\_64)"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:29
-#: ../../installation/prerequisites.rst:31
 msgid "Windows Server"
 msgstr ""
 
-#: ../../installation/prerequisites.rst:29
-msgid "2012 R2 (x86\\_64)"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:31
+#: ../../installation/prerequisites.rst:27
 msgid "2016 (x86\\_64)"
 msgstr ""
 
-#: ../../installation/prerequisites.rst:34
+#: ../../installation/prerequisites.rst:30
 msgid ""
-"(Other Linux and Microsoft operating systems have been tested but are not"
-" yet fully supported, please send us a request with your needs)"
+"(Other operating systems have been tested but are not yet fully "
+"supported, please send us a request with your needs)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:35
+#: ../../installation/prerequisites.rst:38
+msgid "Database"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:38
-msgid "OS Packages"
+msgid "Minimum Version"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:40
-msgid ""
-"Before installing ESSArch Core you need to verify that the following "
-"packages are installed on your platform"
+msgid "`PostgreSQL <https://www.postgresql.org>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:40
+msgid "9.4"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:42
+msgid "`MySQL <https://www.mysql.com>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:42
+msgid "5.6"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:44
-msgid "**Package**"
+msgid "`MariaDB <https://mariadb.org>`_"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:44
-msgid "**Minimum version**"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:44
-msgid "**Verified version**"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:44
-msgid "**Note**"
+msgid "10.1"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:46
-msgid "bzip2"
+msgid "`SQL Server <https://www.microsoft.com/sql-server>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:46
+msgid "2008"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:48
-msgid "bzip2-devel (libbz2-devel)"
+msgid "`SQLite <https://www.sqlite.org>`_"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:48
-msgid "1.0.5-5"
+msgid "3.8.3"
 msgstr ""
 
-#: ../../installation/prerequisites.rst:48
-msgid "1.0.5-7"
+#: ../../installation/prerequisites.rst:53
+msgid "`Redis <https://redis.io>`_ (Minimum version: 3.0)"
 msgstr ""
 
-#: ../../installation/prerequisites.rst:50
-msgid "erlang \\*\\*"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:50
-msgid "R12B-5.8"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:50
-msgid "R14B-04.3"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:52
-msgid "freetds"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:52
-#: ../../installation/prerequisites.rst:54
-msgid "0.64"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:52
-#: ../../installation/prerequisites.rst:54
-msgid "0.91-2"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:54
-msgid "freetds-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:56
-msgid "gcc"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:56
-#: ../../installation/prerequisites.rst:58
-msgid "4.1.2"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:56
-#: ../../installation/prerequisites.rst:58
-msgid "4.4.7-11"
+#: ../../installation/prerequisites.rst:55
+msgid ""
+"ESSArch uses Redis as a cache to improve performance and to support real-"
+"time notifications."
 msgstr ""
 
 #: ../../installation/prerequisites.rst:58
-msgid "gcc-c++"
+msgid "Docker image: https://hub.docker.com/_/redis/."
 msgstr ""
 
 #: ../../installation/prerequisites.rst:60
-msgid "gnutls"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:60
-msgid "1.4.1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:60
-msgid "2.8.5-14"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:62
-msgid "kernel-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:62
-msgid "2.6.x"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:62
-msgid "2.6.32-504"
+msgid "To install on Windows, see https://github.com/microsoftarchive/redis"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:64
-msgid "libffi-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:64
-msgid "3.0.5-3.2"
+msgid "`RabbitMQ <https://www.rabbitmq.com>`_ (Minimum version: 3.7.0)"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:66
-msgid "lzo"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:66
-#: ../../installation/prerequisites.rst:68
-msgid "2.03-2"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:66
-#: ../../installation/prerequisites.rst:68
-msgid "2.03-3.1"
+msgid "RabbitMQ is used for the workflow management and distribution in ESSArch."
 msgstr ""
 
 #: ../../installation/prerequisites.rst:68
-msgid "lzo-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:70
-msgid "make"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:70
-msgid "3.81-15"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:70
-msgid "3.81-20"
+msgid "Docker image: https://hub.docker.com/_/rabbitmq/"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:72
-msgid "mt-st"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:72
-msgid "1.1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:72
-msgid "1.1-5"
+msgid ""
+"`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ "
+"(Supported version: 6.5.x)"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:74
-msgid "mtx"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:74
-msgid "1.2.18"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:74
-msgid "1.3.12-5"
+msgid "Elasticsearch is the search engine used in ESSArch."
 msgstr ""
 
 #: ../../installation/prerequisites.rst:76
-msgid "mysql/mariadb"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:76
-#: ../../installation/prerequisites.rst:78
-#: ../../installation/prerequisites.rst:80
-#: ../../installation/prerequisites.rst:82
-msgid "5.0.77"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:76
-#: ../../installation/prerequisites.rst:78
-#: ../../installation/prerequisites.rst:80
-#: ../../installation/prerequisites.rst:82
-msgid "5.1.73-3"
+msgid "Docker image: https://www.docker.elastic.co/"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:78
-msgid "mysql/mariadb-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:80
-msgid "mysql/mariadb-libs"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:82
-msgid "mysql/mariadb-server"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:84
-msgid "openldap"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:84
-#: ../../installation/prerequisites.rst:86
-msgid "2.3.43"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:84
-#: ../../installation/prerequisites.rst:86
-msgid "2.4.39-8"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:86
-msgid "openldap-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:88
-msgid "openssl"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:88
-#: ../../installation/prerequisites.rst:90
-msgid "1.0.1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:88
-#: ../../installation/prerequisites.rst:90
-msgid "1.0.1e-30"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:90
-msgid "openssl-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:92
-msgid "patch"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:92
-msgid "2.6.1-1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:92
-msgid "2.6-6"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:94
-msgid "pcre"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:94
-#: ../../installation/prerequisites.rst:96
-msgid "7.8"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:94
-#: ../../installation/prerequisites.rst:96
-msgid "7.8-6"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:96
-msgid "pcre-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:98
-msgid "rabbitmq-server"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:98
-msgid "3.3.1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:98
-msgid "3.3.5-28"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:100
-msgid "readline"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:100
-#: ../../installation/prerequisites.rst:102
-msgid "5.1.3"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:100
-#: ../../installation/prerequisites.rst:102
-msgid "6.0-4"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:102
-msgid "readline-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:104
-msgid "redis"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:104
-msgid "3.x"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:104
-msgid "5.0.0"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:104
-#: ../../installation/prerequisites.rst:122
-#: ../../installation/prerequisites.rst:124
-#: ../../installation/prerequisites.rst:126
-#: ../../installation/prerequisites.rst:128
-#: ../../installation/prerequisites.rst:130
-#: ../../installation/prerequisites.rst:132
-msgid "New in 1.1.0"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:106
-msgid "sg3\\_utils"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:106
-#: ../../installation/prerequisites.rst:108
-#: ../../installation/prerequisites.rst:110
-msgid "1.25"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:106
-#: ../../installation/prerequisites.rst:108
-#: ../../installation/prerequisites.rst:110
-msgid "1.28-6"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:108
-msgid "sg3\\_utils-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:110
-msgid "sg3\\_utils-libs"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:112
-msgid "sqlite-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:112
-msgid "3.6"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:112
-msgid "3.6.20-1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:114
-msgid "sysstat"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:114
-msgid "7.x"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:114
-msgid "9.0.4-27"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:116
-msgid "unixODBC"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:116
-#: ../../installation/prerequisites.rst:118
-msgid "2.2.11"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:116
-#: ../../installation/prerequisites.rst:118
-msgid "2.2.14-14"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:118
-msgid "unixODBC-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:120
-msgid "xz"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:120
-msgid "4.999.9-0.1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:120
-msgid "4.999.9-0.5.beta.20091007git"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:122
-msgid "expat-devel"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:124
-msgid "unzip"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:126
-msgid "java"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:128
-msgid "elasticsearch"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:128
-msgid "6.x"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:130
-msgid "xmlsec1"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:132
-msgid "xmlsec1-openssl"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:137
 msgid ""
-"** CentOS 6 require extra package: `epel-release "
-"<https://dl.fedoraproject.org/pub/epel/epel-release-"
-"latest-6.noarch.rpm>`__"
+"The `Ingest Attachment Processer Plugin "
+"<https://www.elastic.co/guide/en/elasticsearch/plugins/current/ingest-"
+"attachment.html>`_ is also required inorder to store and later search "
+"file contents."
 msgstr ""
-
-#: ../../installation/prerequisites.rst:139
-#: ../../installation/prerequisites.rst:146
-msgid "Install this epel repository before you try to install erlang package::"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:144
-msgid ""
-"** CentOS 7 require extra package: `epel-release "
-"<https://dl.fedoraproject.org/pub/epel/epel-release-"
-"latest-7.noarch.rpm>`__"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:151
-msgid ""
-"** SLES 11 SP4 require extra package: `erlang "
-"<http://download.opensuse.org/repositories/devel:/languages:/erlang/>`_"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:153
-msgid ""
-"Install erlang-epmd without dependencies since it requires erlang and "
-"vice versa erlang requires erlang-epmd::"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:162
-msgid "** SLES 12 SP3 require extra package: erlang"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:164
-msgid "Install erlang and erlang-epmd::"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:169
-msgid "Installing packages"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:172
-msgid "`Redis <https://redis.io>`_ (new in 1.1.0)"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:174
-#: ../../installation/prerequisites.rst:207
-#: ../../installation/prerequisites.rst:235
-msgid "CentOS 7"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:187
-#: ../../installation/prerequisites.rst:219
-msgid "SLES 12 SP3"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:205
-msgid "RabbitMQ"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:233
-msgid "Elasticsearch"
-msgstr ""
-
-#: ../../installation/prerequisites.rst:259
-msgid ""
-"If you extract the contents of the installation package for `ESSArch Core"
-" <https://github.com/ESSolutions/ESSArch_Core/releases/latest>`_ and look"
-" in the directory folder \"extra\", there is a help script to install the"
-" required OS packages."
-msgstr ""
-
