@@ -103,7 +103,7 @@
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.0",
+    "webpack-dev-server": "^3.8.2",
     "webpack-manifest-plugin": "^2.1.2",
     "webpack-merge": "^4.2.2"
   },
