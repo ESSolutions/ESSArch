@@ -21,7 +21,7 @@ what files should be converted in the connected AIPs.
 with **cron** syntax. For example: ``0 15 * * 3`` means every wednesday at
 15 o' clock.
 
-To add a **Specification** type for example **/*.docx in the **Path**
+To add a **Specification** type for example ``**/*.docx`` in the **Path**
 field, **pdf** in the **target** field and **Libreoffice** in the **Tool**
 field, then click the **+**-button.
 This rule will convert all .docx-files to .pdf using libreoffice.

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-18 10:16+0200\n"
+"POT-Creation-Date: 2019-10-21 12:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,7 +37,7 @@ msgid ""
 msgstr ""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:10
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:135
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:130
 msgid "Structures"
 msgstr ""
 
@@ -166,39 +166,31 @@ msgid ""
 msgstr ""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:92
-msgid "Applying rules to a structures and structure units"
-msgstr ""
-
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:93
-msgid "TODO"
-msgstr ""
-
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:97
 msgid "Adding relationships to other Structures / Structure units"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:104
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:99
 msgid "Publish"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:105
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:100
 msgid ""
 "When a Structure has been published it becomes available for use through "
 "out ESSArch."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:109
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:104
 msgid "Top-level Resources"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:110
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:105
 msgid ""
 "All resources described in ESSArch need to have a top-level resource. "
 "Intellectually this can represent the archival descriptions on the fonds "
 "or collections level."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:113
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:108
 msgid ""
 "There are no limitations of the types of top-level resources that can be "
 "used in ESSArch. One institution might settle with just one top-level "
@@ -206,11 +198,11 @@ msgid ""
 "collections."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:122
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:117
 msgid "Adding a new top-level resource"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:123
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:118
 msgid ""
 "Under the resource tab click on the \"new resource\" button. From the "
 "structures field choose one or more structures that will act as a "
@@ -218,50 +210,50 @@ msgid ""
 "descriptions defined in the structure."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:132
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:127
 msgid ""
 "When initially creating an top-level resource record the following fields"
 " are required:"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:134
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:129
 msgid "Name (ISAD-G Title)"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:136
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:131
 msgid "Creator"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:137
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:132
 msgid "Type"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:138
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:133
 msgid "Reference code"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:142
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:137
 msgid "Adding new structure units"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:143
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:138
 msgid ""
 "Structure units are the levels of classification and description within a"
 " given structure. If the user has the right permissions new structure "
 "units can be added to an instance (top-level resource) of a structure."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:146
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:141
 msgid ""
 "To add a new structure unit, right click on the tree node and select "
 "\"add structure unit\""
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:160
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:155
 msgid "Adding nodes"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:161
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:156
 msgid ""
 "Nodes can be described as something with a physical representation within"
 " a logical structure, something that can be moved around. e.g. analogue "
@@ -269,85 +261,98 @@ msgid ""
 "information packages (AIP) and items contained in these packages."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:164
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:159
 msgid ""
 "Nodes are added under structure units by right clicking on a structure "
 "unit in the tree and select \"add node\"."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:173
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:168
 msgid ""
 "When a structure unit is selected in the tree, an overview of the "
 "contents is displayed."
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:182
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:177
 msgid "Adding descriptive texts and notes"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:183
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:178
 msgid ""
 "In ESSArch one can have multiple descriptive texts / notes for resource "
 "records"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:185
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:180
 msgid "Standard type of notes that can be used in ESSArch:"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:187
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:182
 msgid "Archival history"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:188
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:183
 msgid "Administrative / Biographical history"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:189
-msgid ""
-"Immediate source of acquisition or transfer (see also :ref:`Accession "
-"Records <accession-records>`)"
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:184
+msgid "Immediate source of acquisition or transfer"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:190
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:185
 msgid "Appraisal"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:191
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:186
 msgid "Destruction"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:192
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:187
 msgid "Scheduling"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:193
-msgid "Accruals (see also :ref:`Accession Records <accession-records>`)"
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:188
+msgid "Accruals"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:194
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:189
 msgid "System of arrangement"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:195
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:190
 msgid "Physical characteristics"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:196
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:191
 msgid "Finding aid"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:197
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:192
 msgid "Publication note"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:198
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:193
 msgid "Archivist's note"
 msgstr ""
 
-#: ../../user_guide/archival-description-management/archival-descriptions.rst:201
+#: ../../user_guide/archival-description-management/archival-descriptions.rst:196
 msgid ""
 "To add a new descriptive text click on the History or Remarks tab and "
 "then the add button."
 msgstr ""
+
+#~ msgid "Applying rules to a structures and structure units"
+#~ msgstr ""
+
+#~ msgid "TODO"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Immediate source of acquisition or "
+#~ "transfer (see also :ref:`Accession Records "
+#~ "<accession-records>`)"
+#~ msgstr ""
+
+#~ msgid "Accruals (see also :ref:`Accession Records <accession-records>`)"
+#~ msgstr ""
 

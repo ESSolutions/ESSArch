@@ -88,11 +88,6 @@ Structure units are added to a structure by right clicking on a node in the tree
     :alt: Add structure unit
 
 
-Applying rules to a structures and structure units
-___________________________________________________
-TODO
-
-
 Adding relationships to other Structures / Structure units
 ___________________________________________________________
 .. figure:: images/structures/StructureUnit_relation_overview.PNG
@@ -186,11 +181,11 @@ Standard type of notes that can be used in ESSArch:
 
 * Archival history
 * Administrative / Biographical history
-* Immediate source of acquisition or transfer (see also :ref:`Accession Records <accession-records>`)
+* Immediate source of acquisition or transfer
 * Appraisal
 * Destruction
 * Scheduling
-* Accruals (see also :ref:`Accession Records <accession-records>`)
+* Accruals
 * System of arrangement
 * Physical characteristics
 * Finding aid

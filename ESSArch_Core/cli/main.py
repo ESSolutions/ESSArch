@@ -107,6 +107,9 @@ def install(ctx, data_directory):
     ctx.invoke(migrate)
     _loaddata('countries_data', 'languages_data',)
 
+    from ESSArch_Core.install.install_default_config import installDefaultConfiguration
+    installDefaultConfiguration()
+
 
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
 @click.option('-c', '--concurrency', default=None, type=int)

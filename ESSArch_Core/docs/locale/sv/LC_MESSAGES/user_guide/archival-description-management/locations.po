@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-17 13:35+0200\n"
+"POT-Creation-Date: 2019-10-21 12:36+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,12 +35,3 @@ msgid ""
 "digital AIP's / files. Locations for AIP's are managed via "
 "Administration/Media Information / Storage mediums"
 msgstr ""
-
-#: ../../user_guide/archival-description-management/locations.rst:12
-msgid "Linking resources to locations"
-msgstr ""
-
-#: ../../user_guide/archival-description-management/locations.rst:13
-msgid "TODO"
-msgstr ""
-

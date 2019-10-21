@@ -84,5 +84,5 @@ msgid ""
 msgstr ""
 "Händelseförloppet kan följas i status-fältet för IPt eller i större "
 "detalj om man klickar på **Tillstånd**-fältet. Se :ref:`Tillståndsvyn "
-"<user-interface-state-view>` för mer information."
+"<state-view>` för mer information."
 
