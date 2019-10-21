@@ -46,8 +46,9 @@ def load_config_template(path):
         return f.read()
 
 
-def generate_local_settings(template):
+def generate_local_settings(template, debug=False):
     context = {
+        'debug': debug,
         'secret_key': get_random_secret_key(),
         'encryption_key': generate_key(),
     }
