@@ -1,0 +1,69 @@
+<div ng-if="!vm.statsLoading && vm.stats !== null">
+  <h4>
+    {{'DASHBOARD.SYSTEM' | translate}}
+  </h4>
+  <div class="dashboard-row">
+    <div class="dashboard-card">
+      <h4 class="text-center pb-base">
+        {{'DASHBOARD.INFORMATION_PACKAGES' | translate}}
+      </h4>
+      <h2 class="text-center text-bold">
+        {{vm.stats.information_packages}}
+      </h2>
+    </div>
+    <div class="dashboard-card">
+      <h4 class="text-center pb-base">
+        {{'DASHBOARD.ORDERED_INFORMATION_PACKAGES' | translate}}
+      </h4>
+      <h2 class="text-center text-bold">
+        {{vm.stats.ordered_information_packages}}
+      </h2>
+    </div>
+    <div class="dashboard-card">
+      <h4 class="text-center pb-base">
+        {{'DASHBOARD.APPRAISALS' | translate}}
+      </h4>
+      <h2 class="text-center text-bold">
+        {{vm.stats.appraisals}}
+      </h2>
+    </div>
+    <div class="dashboard-card">
+      <h4 class="text-center pb-base">
+        {{'DASHBOARD.TOTAL_OBJECT_SIZE' | translate}}
+      </h4>
+      <h2 class="text-center text-bold">
+        {{vm.stats.total_object_size | filesize}}
+      </h2>
+    </div>
+  </div>
+  <div ng-if="vm.stats.tags.length" permission permission-only="'tags.search'">
+    <hr />
+    <h4>
+      {{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}
+    </h4>
+    <div class="dashboard-row">
+      <div class="dashboard-card" ng-repeat="x in vm.stats.tags">
+        <h4 class="text-center pb-base">
+          {{x.type__name}}
+        </h4>
+        <h2 class="text-center text-bold">
+          {{x.total}}
+        </h2>
+      </div>
+    </div>
+  </div>
+  <div class="float-right">
+    <button
+      class="btn btn-sm btn-default"
+      uib-tooltip="{{'DASHBOARD.BUILD_REPORT' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="false"
+      ng-click="vm.buildReportModal()"
+    >
+      <i class="fas fa-print"></i>
+    </button>
+  </div>
+</div>
+<div ng-if="vm.statsLoading && vm.stats == null" class="loading-column w-100 text-center">
+  {{'LOADING' | translate}}
+</div>

@@ -1,0 +1,83 @@
+/*
+    ESSArch is an open source archiving and digital preservation system
+
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+    Contact information:
+    Web - http://www.essolutions.se
+    Email - essarch@essolutions.se
+*/
+@import 'normalize-scss';
+$icon-font-path: '~bootstrap-sass/assets/fonts/bootstrap/';
+@import 'bootstrap-sass/assets/stylesheets/_bootstrap.scss';
+@import '~@fortawesome/fontawesome-free/scss/solid';
+@import '~@fortawesome/fontawesome-free/scss/brands';
+@import '~@fortawesome/fontawesome-free/scss/regular';
+@import '~@fortawesome/fontawesome-free/scss/fontawesome';
+@import '~angularjs-bootstrap-datetimepicker/src/scss/datetimepicker';
+@import '~select2/dist/css/select2';
+@import '~ui-select/dist/select';
+@import '~angular-bootstrap-grid-tree/src/treeGrid';
+@import '~angular-tree-control/css/tree-control-attribute';
+@import '~angular-tree-control/css/tree-control';
+@import '~jstree/dist/themes/default/style';
+@import '~angular-cron-jobs/dist/angular-cron-jobs';
+@import '~messenger-hubspot/build/css/messenger';
+@import '~angular-resizable/src/angular-resizable';
+@import '~messenger-hubspot/build/css/messenger-theme-flat';
+@import 'modules/colors';
+@import 'modules/mixins';
+@import 'modules/login';
+@import 'modules/modals';
+@import 'modules/index';
+@import 'modules/delivery';
+@import 'modules/location';
+@import 'modules/buttons';
+@import 'modules/forms';
+@import 'modules/tables';
+@import 'modules/header';
+@import 'modules/menu';
+@import 'modules/sub_menu';
+@import 'modules/navigation';
+@import 'modules/import';
+@import 'modules/user_settings';
+@import 'modules/step_task';
+@import 'modules/filebrowser';
+@import 'modules/events';
+@import 'modules/resize';
+@import 'modules/footer';
+@import 'modules/sysinfo';
+@import 'modules/storage_migration';
+@import 'modules/reception';
+@import 'modules/my_page';
+@import 'modules/profile_maker';
+@import 'modules/create_sip_prepare_ip';
+@import 'modules/create_sip_ip_approval';
+@import 'modules/submit_sip_prepare_sip';
+@import 'modules/tree_control';
+@import 'modules/notifications';
+@import 'modules/editable_field';
+@import 'modules/search';
+@import 'modules/agents';
+@import 'modules/profile_editor';
+@import 'modules/positions';
+@import 'modules/utils';
+@import 'modules/classification_structure_editor';
+@import 'modules/tabs';
+@import 'modules/search_filter';
+@import 'modules/dashboard';
+@import 'modules/form_errors';

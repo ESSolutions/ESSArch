@@ -1,17 +1,16 @@
-from unittest import mock
-from django.contrib.auth import get_user_model
-from django.test import TestCase
-from django.template.exceptions import TemplateDoesNotExist
-
 import datetime
 import os
 import shutil
+from unittest import mock
+
+from django.contrib.auth import get_user_model
+from django.template.exceptions import TemplateDoesNotExist
+from django.test import TestCase
 from lxml import etree
 
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends import email, xml
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-
 
 User = get_user_model()
 
@@ -35,7 +34,7 @@ class EmailReceiptBackendTests(TestCase):
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
-        self.backend.create('receipts/email.txt', None, 'outcome', 'short msg', 'msg', task=task.pk)
+        self.backend.create('receipts/email.txt', None, 'outcome', 'short msg', 'msg', task=task)
         mock_send_mail.assert_called_once_with('short msg', mock.ANY, None, [user.email], fail_silently=False)
 
     @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail')
@@ -51,7 +50,7 @@ class EmailReceiptBackendTests(TestCase):
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
-        self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg', task=task.pk)
+        self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg', task=task)
         mock_mail.assert_called_once_with('short msg', mock.ANY, None, ['custom@example.com'], fail_silently=False)
 
     @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail', return_value=0)
@@ -61,7 +60,7 @@ class EmailReceiptBackendTests(TestCase):
         task = ProcessTask.objects.create(responsible=user)
 
         with self.assertRaises(email.NoEmailSentError):
-            self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task.pk)
+            self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task)
 
 
 class XMLReceiptBackendTests(TestCase):

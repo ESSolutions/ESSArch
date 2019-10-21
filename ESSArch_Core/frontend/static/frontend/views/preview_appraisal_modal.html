@@ -1,0 +1,36 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.APPRAISAL_PREVIEW' | translate}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <h4>{{'ARCHIVE_MAINTENANCE.FILES_TO_BE_REMOVED' | translate}}</h4>
+  <div class="table-container table-x-overflow">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>
+            {{'FILENAME' | translate}}
+          </th>
+          <th>
+            IP
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="x in $ctrl.jobPreview">
+          <td>
+            {{x.document}}
+          </td>
+          <td>
+            {{x.ip}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()" focused="true">
+    {{'ARCHIVE_MAINTENANCE.RUN' | translate}}
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

@@ -1,12 +1,26 @@
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.db.models import CharField, F, Min, Q, UUIDField, Value
+from django.db.models import (
+    CharField,
+    Exists,
+    F,
+    Min,
+    OuterRef,
+    Q,
+    UUIDField,
+    Value,
+)
 from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
 
-from ESSArch_Core.auth.models import Group, GroupGenericObjects, GroupMember, GroupMemberRole
+from ESSArch_Core.auth.models import (
+    Group,
+    GroupGenericObjects,
+    GroupMember,
+    GroupMemberRole,
+)
 
 ORGANIZATION_TYPE = 'organization'
 
@@ -18,6 +32,9 @@ def get_organization_groups(user):
     Args:
         user: The user to get groups for
     """
+
+    if user.is_superuser:
+        return Group.objects.filter(group_type__codename=ORGANIZATION_TYPE)
 
     sub_group_filter = Q(
         ~Q(sub_essauth_group_set__group_type__codename=ORGANIZATION_TYPE) &
@@ -51,6 +68,7 @@ def get_user_roles(user, start_group=None):
 
 
 def replace_func(field, field_type):
+    # TODO: Fixed in Django 3
     if connection.vendor == 'postgresql':
         return F(field)
 
@@ -84,13 +102,17 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         codenames.add(codename)
 
     ctype = ContentType.objects.get_for_model(qs.model)
-    role_ids = set()
+    role_ids = GroupGenericObjects.objects.none()
 
     org = user.user_profile.current_organization
     if org is not None:
         # Because of UUIDs we have to first save the IDs in
         # memory and then query against that list, see
         # https://stackoverflow.com/questions/50526873/
+        # Fixed in Django 3 (hopefully)
+
+        orgs = []
+
         for org_descendant in org.get_descendants(include_self=True):
             roles = GroupMemberRole.objects.filter(
                 group_memberships__group__in=org_descendant.get_ancestors(include_self=True),
@@ -98,35 +120,82 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
             )
             role_perms_codenames = set(Permission.objects.filter(roles__in=roles).values_list('codename', flat=True))
             if not len(set(codenames).difference(set(role_perms_codenames))):
-                generic_objects = GroupGenericObjects.objects.filter(content_type=ctype, group=org_descendant)
-                role_ids |= set(generic_objects.values_list('object_id', flat=True))
+                orgs.append(org_descendant)
+
+        role_ids = GroupGenericObjects.objects.filter(content_type=ctype, group__in=orgs)
 
     groups = get_user_groups(user)
-    group_ids = set(GroupObjectPermission.objects.filter(
-        group__essauth_group__in=groups, permission__codename__in=codenames, content_type=ctype
-    ).values_list('object_pk', flat=True))
+    grp_filter_kwargs = {
+        'content_type': ctype,
+    }
+    if len(groups) > 0:
+        grp_filter_kwargs['group__essauth_group__in'] = groups
+    if len(codenames) > 0:
+        grp_filter_kwargs['permission__codename__in'] = codenames
+    else:
+        grp_filter_kwargs['permission__codename__isnull'] = True
+    group_ids = GroupObjectPermission.objects.filter(**grp_filter_kwargs)
 
-    user_ids = set(UserObjectPermission.objects.filter(
-        user=user, permission__codename__in=codenames, content_type=ctype
-    ).values_list('object_pk', flat=True))
+    user_filter_kwargs = {
+        'user': user,
+        'content_type': ctype,
+    }
+    if len(codenames) > 0:
+        user_filter_kwargs['permission__codename__in'] = codenames
+    else:
+        user_filter_kwargs['permission__codename__isnull'] = True
+    user_ids = UserObjectPermission.objects.filter(**user_filter_kwargs)
 
-    all_ids = role_ids | group_ids | user_ids
+    ids_with_no_auth = qs.model.objects.none()
 
     if include_no_auth_objs:
-        ids_with_no_auth = set(qs.annotate(casted_pk=Cast('pk', CharField()))
-                               .exclude(
-                                   casted_pk__in=UserObjectPermission.objects.filter(content_type=ctype).annotate(
-                                       cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-                                   ).values('cleaned_pk'))
-                               .exclude(
-                                   casted_pk__in=GroupObjectPermission.objects.filter(content_type=ctype).annotate(
-                                       cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-                                   ).values('cleaned_pk'))
-                               .exclude(
-                                   casted_pk__in=GroupGenericObjects.objects.filter(content_type=ctype).annotate(
-                                       cleaned_pk=replace_func('object_id', qs.model._meta.pk)
-                                   ).values('cleaned_pk'))
-                               .values_list('pk', flat=True))
+        ids_with_no_auth = qs.annotate(casted_pk=Cast('pk', CharField())).exclude(
+            casted_pk__in=UserObjectPermission.objects.filter(content_type=ctype).annotate(
+                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+            ).values('cleaned_pk')
+        ).exclude(
+            casted_pk__in=GroupObjectPermission.objects.filter(content_type=ctype).annotate(
+                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+            ).values('cleaned_pk')
+        ).exclude(
+            casted_pk__in=GroupGenericObjects.objects.filter(content_type=ctype).annotate(
+                cleaned_pk=replace_func('object_id', qs.model._meta.pk)
+            ).values('cleaned_pk')
+        )
 
-        all_ids |= ids_with_no_auth
-    return qs.filter(pk__in=all_ids)
+    role_ids = role_ids.annotate(
+        cleaned_pk=replace_func('object_id', qs.model._meta.pk)
+    )
+    group_ids = group_ids.annotate(
+        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+    )
+    user_ids = user_ids.annotate(
+        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
+    )
+
+    if connection.vendor == 'microsoft':
+        qs = qs.annotate(
+            cleaned_id=Cast('pk', CharField()),
+        ).filter(Q(
+            Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
+            Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
+            Q(cleaned_id__in=user_ids.values('cleaned_pk'))
+        ))
+    else:
+        qs = qs.annotate(
+            cleaned_id=Cast('pk', CharField()),
+            role_exists=Exists(
+                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+            grp_exists=Exists(
+                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+            user_exists=Exists(
+                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
+            ),
+        ).filter(Q(
+            Q(role_exists=True) |
+            Q(grp_exists=True) |
+            Q(user_exists=True)
+        ))
+    return qs | ids_with_no_auth

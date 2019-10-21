@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-16 17:03+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/producer/create-sip.rst:5
+msgid "Create SIP"
+msgstr ""
+
+#: ../../user_guide/producer/create-sip.rst:7
+msgid ""
+"When upload is set completed the ip becomes visible in the Create SIP "
+"view."
+msgstr "När uppladdning till ett IP är färdigt kan det hittas under Skapa SIP"
+
+#: ../../user_guide/producer/create-sip.rst:10
+msgid ""
+"The user can, by clicking the IP row inspect all included profiles and "
+"edit them, with the right permissions (see :ref:`Profile editor <prepare-"
+"ip-profile-editor>`)."
+msgstr ""
+"Användaren kan inspektera och med rätt rättigheter redigera alla IPts "
+"inkluderade profiler och leveransöverenskommelse genom att klicka på IPts"
+" rad i listvyn (se :ref:`Profileditor <prepare-ip-profile-editor>`)."
+
+#: ../../user_guide/producer/create-sip.rst:13
+msgid ""
+"If satisfied with the profiles, choose what validators to use in the SIP "
+"creation step by checking or unchecking the different validators, click "
+"**Create SIP** to create."
+msgstr ""
+"Om nöjd med alla profiler, välj vilka valideringar som ska köras vid "
+"Skapande av SIP och klicka **Skapa SIP** för att skapa SIP."

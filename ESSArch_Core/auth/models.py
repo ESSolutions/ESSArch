@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -30,7 +30,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from groups_manager import exceptions_gm
-from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRoleMixin, GroupType
+from groups_manager.models import (
+    GroupMemberMixin,
+    GroupMemberRoleMixin,
+    GroupMixin,
+    GroupType,
+    MemberMixin,
+)
 from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
 
@@ -45,6 +51,9 @@ class GroupGenericObjects(models.Model):
 
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
 
 
 class GroupMemberRole(GroupMemberRoleMixin):
@@ -185,10 +194,24 @@ class Group(GroupMixin):
     def subgroups(self):
         return self.sub_essauth_group_set
 
+    def get_users(self, subgroups=True):
+        if subgroups:
+            return DjangoUser.objects.filter(
+                essauth_member__essauth_groups__in=self.get_descendants(include_self=True)
+            )
+        else:
+            return DjangoUser.objects.filter(essauth_member__essauth_groups__=self)
+
     def add_object(self, obj):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
-        return GroupGenericObjects.objects.create(group=self, content_object=obj)
+        obj_content_type = ContentType.objects.get_for_model(obj)
+        return GroupGenericObjects.objects.get_or_create(group=self, content_type=obj_content_type, object_id=obj.pk)
+
+    def remove_object(self, obj):
+        if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
+            raise ValueError('objects cannot be added to non-organization groups')
+        return GroupGenericObjects.objects.filter(group=self, content_object=obj).delete()
 
     def add_user(self, user, roles=None, expiration_date=None):
         """Add a user to the group.
@@ -286,9 +309,11 @@ class GroupMember(GroupMemberMixin):
 class UserProfile(models.Model):
     AIC = 'aic'
     IP = 'ip'
+    FLAT = 'flat'
     IP_LIST_VIEW_CHOICES = (
         (AIC, 'AIC'),
         (IP, 'IP'),
+        (FLAT, 'FLAT'),
     )
 
     def default_ip_list_columns():
@@ -299,7 +324,7 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
-    language = models.CharField(max_length=10, default='en')
+    language = models.CharField(max_length=10, default='')
     ip_list_columns = PickledObjectField(default=default_ip_list_columns)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     notifications_enabled = models.BooleanField(default=True)

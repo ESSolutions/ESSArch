@@ -1,0 +1,30 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'PREPARE_NEW_IP' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.prepare()">
+  <div class="modal-body" id="modal-body">
+    <label for="label">{{'LABEL' | translate}}</label>
+    <input required focused="true" id="label" class="form-control" ng-model="$ctrl.label" />
+    <button
+      type="button"
+      class="btn btn-default"
+      ng-click="optionalOptions = !optionalOptions"
+      style="margin-top: 10px;"
+    >
+      <i class="fas fa-minus" ng-if="optionalOptions"></i
+      ><i class="fas fa-plus" ng-if="!optionalOptions"></i> {{'OPTIONS' | translate}}
+    </button>
+    <div ng-if="optionalOptions" class="form-group" style="margin-top: 15px;">
+      <label for="objectIdentifierValue">{{'CUSTOM_IDENTIFICATION' | translate}}</label>
+      <input id="objectIdentifierValue" class="form-control" ng-model="$ctrl.objectIdentifierValue" />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.preparing">
+      {{'PREPAREIP' | translate}} <i ng-if="$ctrl.preparing" class="fas fa-spinner fa-spin"></i>
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.preparing">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

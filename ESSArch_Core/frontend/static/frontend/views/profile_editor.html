@@ -1,0 +1,227 @@
+<div class="profile-editor">
+  <div ng-if="select" id="select-view" class="select-view">
+    <div class="sa-table table-container">
+      <table ng-if="!saAlert" style="margin-top: 20px;" class="table table-striped">
+        <thead>
+          <tr>
+            <th
+              class="column-entity"
+              uib-tooltip="{{'ENTITYDESC' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            >
+              {{'TYPE' | translate}}
+            </th>
+            <th
+              class="column-profile"
+              uib-tooltip="{{'PROFILEDESC' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            >
+              {{'SUBMISSIONAGREEMENT' | translate}}
+            </th>
+            <th class="column-view"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <p class="table-col">{{'SUBMISSIONAGREEMENT' | translate}}</p>
+            </td>
+            <td>
+              <select
+                class="form-control table-col"
+                ng-disabled="saProfile.locked || vm.gettingSas"
+                ng-model="saProfile.profile"
+                ng-change="changeSaProfile(saProfile.profile, ip, {{saProfile.profiles.indexOf(saProfile.profile)}})"
+                ng-options="x as x.name for x in saProfile.profiles"
+              >
+                <option ng-show="vm.gettingSas" value="" disabled selected
+                  >{{vm.gettingSas?('LOADING' | translate)+'...':''}}</option
+                >
+              </select>
+            </td>
+            <td class="flex-row">
+              <button
+                ng-if="saProfile.profile"
+                class="btn btn-default btn-small btn-sm"
+                ng-click="saClick(saProfile)"
+                uib-tooltip="{{saProfile.profile.name}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+                ng-disabled="vm.loadingSa || vm.changingSa"
+              >
+                <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+                <i ng-if="vm.loadingSa" class="fas fa-spinner fa-spin"></i>
+              </button>
+              <button
+                ng-if="!saProfile.locked"
+                ng-disabled="vm.changingSa || !saProfile.profile || (ip.responsible.id != $root.auth.id && !checkPermission('ip.lock_sa'))"
+                class="btn btn-success btn-sm btn-small"
+                ng-click="lockSaModal(saProfile)"
+              >
+                <i class="fas fa-lock"></i>&nbsp;{{'LOCK' | translate}}
+              </button>
+              <button ng-if="saProfile.locked" class="btn btn-danger btn-sm btn-small">
+                <i class="fas fa-lock"></i>&nbsp;{{'LOCKED' | translate}}
+              </button>
+            </td>
+            <p>{{'PATH' | translate}}: {{ip.object_path}}</p>
+          </tr>
+        </tbody>
+      </table>
+      <form ng-if="vm.saFields.length" class="edit-form sa-edit">
+        <formly-form
+          ng-if="vm.saFields.length"
+          model="vm.saModel"
+          fields="vm.saFields"
+          options="vm.options"
+          form="vm.editForm"
+        >
+        </formly-form>
+        <div class="button-wrapper">
+          <button
+            ng-if="vm.saFields.length && !vm.disabled"
+            ng-click="vm.saCancel()"
+            class="btn btn-default cancel-button"
+            translate="CANCEL"
+          ></button>
+        </div>
+      </form>
+      <div uib-alert ng-if="saAlert" style="width: 100%;" ng-class="'alert-' + (saAlert.type || 'warning')">
+        {{saAlert.msg}}
+      </div>
+    </div>
+    <div ng-if="saProfile.profile && saProfile.locked" id="edit-view" class="edit-view">
+      <form
+        id="edit-form"
+        class="edit-form"
+        ng-submit="vm.saveProfileModel(vm.selectedProfile.profile_type, vm.profileModel, vm.treeEditModel)"
+        name="vm.editForm"
+        novalidate
+      >
+        <div class="table-container">
+          <table
+            ng-if="saProfile.locked"
+            style="margin-top: 10px; margin-bottom: 0px;"
+            st-table="selectCollection"
+            st-skip-natural="true"
+            st-safe-src="selectRowCollection"
+            class="table table-striped"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="column-entity"
+                  uib-tooltip="{{'ENTITYDESC' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                  {{'TYPE' | translate}}
+                </th>
+                <th
+                  class="column-profile"
+                  uib-tooltip="{{'PROFILEDESC' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                  {{'PROFILE' | translate}}
+                </th>
+                <th class="column-view"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="profile in selectRowCollection">
+                <div ng-if="profile.name">
+                  <td>{{vm.mapProfileType(profile.profile_type)}}</td>
+                  <td>
+                    {{profile.name}}
+                  </td>
+                  <td>
+                    <button
+                      ng-if="!vm.disabled"
+                      type="button"
+                      class="btn btn-default btn-small btn-sm"
+                      ng-click="profileClick(profile, {})"
+                      uib-tooltip="{{profile.name}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                      ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
+                    >
+                      <i class="fas fa-sm fa-pencil"></i>&nbsp;{{'EDIT' | translate}}
+                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
+                    </button>
+                    <button
+                      ng-if="vm.disabled"
+                      type="button"
+                      class="btn btn-default btn-small btn-sm"
+                      ng-click="profileClick(profile, {})"
+                      uib-tooltip="{{profile.name}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                      ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
+                    >
+                      <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
+                    </button>
+                  </td>
+                </div>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <hr />
+        <div ng-if="vm.profileFields.length">
+          <h4 class="profile-name">{{ vm.selectedProfile.name }}</h4>
+          <div class="data-version-list">
+            {{'VERSIONS' | translate}}
+            <select
+              class="form-control"
+              ng-disabled="vm.disabled"
+              ng-change="vm.changeDataVersion(vm.profileIp, vm.dataVersion)"
+              ng-model="vm.dataVersion"
+              ng-options="x as vm.profileIp.data_versions.indexOf(x) == 0 ? 'Default' : vm.profileIp.data_versions.indexOf(x) for x in vm.profileIp.data_versions"
+              >{{ x }}</select
+            >
+          </div>
+        </div>
+        <div class="loading-column w-100 text-center position-absolute absolute-top" ng-if="vm.fieldsLoading()">
+          {{'LOADING' | translate}}
+        </div>
+        <formly-form
+          ng-if="vm.profileFields.length"
+          model="vm.profileModel"
+          fields="vm.profileFields"
+          options="vm.options"
+          form="vm.editForm"
+        >
+        </formly-form>
+        <div
+          class="map-structure-editor"
+          ng-if="profileToSave.structure.length && !angular.equals(profileToSave.structure, {})"
+          ng-include
+          src="'static/frontend/views/map_structure_tree.html'"
+        ></div>
+        <br ng-if="vm.profileFields.length && !vm.disabled" />
+        <div class="button-wrapper">
+          <button
+            ng-if="vm.profileFields.length && !vm.disabled"
+            type="submit"
+            class="btn btn-primary"
+            ng-disabled="vm.editForm.$invalid || angular.equals(vm.profileOldModel, vm.profileModel) || vm.savingProfileModel"
+          >
+            {{'SAVE' | translate}} <i ng-if="vm.savingProfileModel" class="fas fa-spinner fa-spin"></i>
+          </button>
+          <button
+            ng-if="vm.profileFields.length"
+            ng-click="vm.cancel()"
+            class="btn btn-default"
+            ng-disabled="vm.savingProfileModel"
+          >
+            {{'CANCEL' | translate}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

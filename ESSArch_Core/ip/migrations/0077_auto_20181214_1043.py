@@ -18,4 +18,8 @@ class Migration(migrations.Migration):
             name='workarea',
             unique_together=set([('user', 'ip', 'type')]),
         ),
+        migrations.AlterModelOptions(
+            name='workarea',
+            options={'ordering': ['ip'], 'permissions': (('move_from_ingest_workarea', 'Can move IP from ingest workarea'), ('move_from_access_workarea', 'Can move IP from access workarea'), ('preserve_from_ingest_workarea', 'Can preserve IP from ingest workarea'), ('preserve_from_access_workarea', 'Can preserve IP from access workarea'))},
+        ),
     ]

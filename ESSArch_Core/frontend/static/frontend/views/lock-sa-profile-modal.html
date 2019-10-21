@@ -1,0 +1,31 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">
+    {{'LOCK_SA_TO_IP' | translate}}
+  </h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'SUBMISSION_AGREEMENT' | translate}}</th>
+          <th>{{'INFORMATION_PACKAGE' | translate}}&nbsp;{{'ID' | translate}}</th>
+          <th>{{'INFORMATION_PACKAGE' | translate}}&nbsp;{{'LABEL' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{saProfile.profile.name}}</td>
+          <td>{{ip.object_identifier_value}}</td>
+          <td>{{ip.label}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="$ctrl.lockSa()" focused="true">
+    {{'LOCK' | translate}}
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

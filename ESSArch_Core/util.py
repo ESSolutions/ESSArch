@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -35,25 +35,21 @@ import shutil
 import tarfile
 import uuid
 import zipfile
+from datetime import datetime
+from os import scandir, walk
+from subprocess import PIPE, Popen
 from urllib.parse import quote
 
 import chardet
-from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.response import Response
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
 from django.http.response import FileResponse
-
-from datetime import datetime
-
+from django.utils.timezone import get_current_timezone
 from lxml import etree
 from natsort import natsorted
-
-from os import scandir, walk
-
-from subprocess import Popen, PIPE
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.response import Response
 
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -90,8 +86,8 @@ def remove_prefix(text, prefix):
 
 def stable_path(path):
     current_size, current_count = get_tree_size_and_count(path)
-    cache_size_key = u'path_size_{}'.format(path)
-    cache_count_key = u'path_count_{}'.format(path)
+    cache_size_key = 'path_size_{}'.format(path)
+    cache_count_key = 'path_count_{}'.format(path)
     cached_size = cache.get(cache_size_key)
     cached_count = cache.get(cache_count_key)
 
@@ -100,7 +96,7 @@ def stable_path(path):
     updated_count = cached_count != current_count
     if new or updated_size or updated_count:
         if new:
-            logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+            logger.info('New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
             logger.info(
                 'Updated path: {}, size: {} => {}, count: {} => {}'.format(
@@ -111,7 +107,7 @@ def stable_path(path):
         cache.set(cache_count_key, current_count, 60 * 60)
         return False
 
-    logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+    logger.info('Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
     return True
 
 
@@ -390,6 +386,22 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
+def delete_path(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if os.name == 'nt':
+            if e.errno == 267:
+                os.remove(path)
+            elif e.errno != 3:
+                raise
+
+        elif e.errno == errno.ENOTDIR:
+            os.remove(path)
+        elif e.errno != errno.ENOENT:
+            raise
+
+
 def delete_content(folder):
     for entry in scandir(folder):
         if entry.is_file():
@@ -530,13 +542,13 @@ def validate_remote_url(url):
 def get_charset(byte_str):
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
     for c in sorted(set(charsets), key=charsets.index):
-        logger.debug(u'Trying to decode response in {}'.format(c))
+        logger.debug('Trying to decode response in {}'.format(c))
         try:
             byte_str.decode(c)
         except UnicodeDecodeError:
-            logger.exception(u'Failed to decode response in {}'.format(c))
+            logger.exception('Failed to decode response in {}'.format(c))
         else:
-            logger.info(u'Decoded response in {}'.format(c))
+            logger.info('Decoded response in {}'.format(c))
             return c
 
     return chardet.detect(byte_str)['encoding']
@@ -672,16 +684,16 @@ def list_files(path, force_download=False, request=None, paginator=None):
     raise NotFound
 
 
-def merge_file_chunks(path):
-    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
+def merge_file_chunks(chunks_path, filepath):
+    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', chunks_path)))
     if len(chunks) == 0:
         raise NoFileChunksFound
 
-    with open(path, 'wb') as f:
-        for chunk_file in chunks:
-            with open(chunk_file, 'rb') as cf:
+    with open(filepath, 'wb') as f:
+        for chunk in chunks:
+            with open(chunk, 'rb') as cf:
                 f.write(cf.read())
-            os.remove(chunk_file)
+            os.remove(chunk)
 
 
 def turn_off_auto_now(ModelClass, field_name):

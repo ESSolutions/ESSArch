@@ -5,15 +5,36 @@ from asgiref.sync import async_to_sync
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup
-from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
+from django.contrib.auth.signals import (
+    user_logged_in,
+    user_logged_out,
+    user_login_failed,
+)
 from django.contrib.sessions.models import Session
-from django.db.models.signals import m2m_changed, post_delete, pre_save, post_save, pre_delete
+from django.db.models.signals import (
+    m2m_changed,
+    post_delete,
+    post_save,
+    pre_delete,
+    pre_save,
+)
 from django.dispatch import receiver
-from groups_manager.models import group_member_delete as groups_manager_group_member_delete
-from groups_manager.models import group_member_save as groups_manager_group_member_save
+from groups_manager.models import (
+    group_member_delete as groups_manager_group_member_delete,
+    group_member_save as groups_manager_group_member_save,
+)
 
-from ESSArch_Core.auth.saml.mapping import get_backend as get_saml_mapping_backend
-from ESSArch_Core.auth.models import Group, GroupMember, Member, Notification, ProxyUser, UserProfile
+from ESSArch_Core.auth.models import (
+    Group,
+    GroupMember,
+    Member,
+    Notification,
+    ProxyUser,
+    UserProfile,
+)
+from ESSArch_Core.auth.saml.mapping import (
+    get_backend as get_saml_mapping_backend,
+)
 from ESSArch_Core.auth.util import get_organization_groups
 
 User = get_user_model()
@@ -51,12 +72,21 @@ def user_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
-    logger.info(u"User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
+    if user.user_profile.language == '':
+        cookie_language = request.COOKIES.get('essarch_language')
+        if cookie_language:
+            user.user_profile.language = cookie_language
+        else:
+            user.user_profile.language = 'en'
+
+        user.user_profile.save()
+
+    logger.info("User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_logged_out)
 def user_logged_out(sender, user, request, **kwargs):
-    logger.info(u"User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
+    logger.info("User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
 
 
 @receiver(user_login_failed)
@@ -96,8 +126,11 @@ def group_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(post_delete, sender=Group)
 def group_post_delete(sender, instance, *args, **kwargs):
-    if hasattr(instance, 'django_group'):
-        instance.django_group.delete()
+    try:
+        if hasattr(instance, 'django_group'):
+            instance.django_group.delete()
+    except DjangoGroup.DoesNotExist:
+        pass
 
 
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
@@ -134,7 +167,7 @@ def notification_post_save(sender, instance, created, **kwargs):
         return
 
     channel_layer = channels.layers.get_channel_layer()
-    grp = 'notifications_{}'.format(instance.user.username)
+    grp = 'notifications_{}'.format(instance.user.pk)
     async_to_sync(channel_layer.group_send)(grp, {
         'type': 'notify',
         'id': instance.id,

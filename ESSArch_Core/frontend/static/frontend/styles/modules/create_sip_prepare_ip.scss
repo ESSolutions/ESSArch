@@ -1,0 +1,58 @@
+.prepare-ip {
+  .helper {
+    background: white;
+    border: 1px solid black;
+    padding: 3px;
+  }
+  .hover {
+    background-color: #ddddff;
+  }
+  .hover-up {
+    border-top: 1px solid red;
+  }
+  .hover-down {
+    border-bottom: 1px solid red;
+  }
+  .hover-middle {
+    text-decoration: line-through;
+  }
+  #edit-sa-view {
+    display: inline-block;
+    width: 100%;
+    .submit-button {
+      float: right;
+    }
+  }
+  .formly-field-group {
+    width: 100% !important;
+  }
+
+  .formly-field-group .formly-field {
+    width: 15%;
+  }
+  .edit-view-tree {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    .formly {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+    }
+    .formly-field {
+      width: 75%;
+      margin-left: 0;
+    }
+  }
+  .tree {
+    width: 30%;
+  }
+  .add-node-form-wrapper {
+    height: 50%;
+  }
+  .map-structure-editor {
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-color: $border-color;
+  }
+}

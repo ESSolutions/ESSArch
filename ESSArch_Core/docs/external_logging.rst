@@ -79,7 +79,7 @@ Configuration
 Modify your ESSArch settings by adding the Logstash handlers and loggers. This
 will override the default LOGGING configurations.
 
-This is an example for ETP:
+Here is an example:
 
 .. code-block:: python
 
@@ -93,7 +93,7 @@ This is an example for ETP:
             'fqdn': False,
             'extra_prefix': '',
             'extra': {
-                'application': 'ETP',
+                'application': 'ESSArch',
                 'environment': 'dev'
             }
         },
@@ -103,7 +103,7 @@ This is an example for ETP:
             'fqdn': False,
             'extra_prefix': '',
             'extra': {
-                'application': 'ETP',
+                'application': 'ESSArch',
                 'environment': 'dev'
             }
         },
@@ -122,7 +122,7 @@ This is an example for ETP:
             'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
             'certfile': '/etc/ssl/certs/logstash.crt',
             'keyfile': '/etc/ssl/private/logstash.key',
-            'database_path': '{}/etp_logstash_http.db'.format('/var/tmp'),
+            'database_path': '{}/logstash_http.db'.format('/var/tmp'),
         },
         'logstash': {
             'level': 'INFO',
@@ -136,14 +136,14 @@ This is an example for ETP:
             'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
             'certfile': '/etc/ssl/certs/logstash.crt',
             'keyfile': '/etc/ssl/private/logstash.key',
-            'database_path': '{}/etp_logstash.db'.format('/var/tmp'),
+            'database_path': '{}/logstash.db'.format('/var/tmp'),
         },
     },
 
     'loggers': {
         ...
         'essarch': {
-            'handlers': ['core', 'file_etp', 'logstash'],
+            'handlers': ['core', 'file_essarch', 'logstash'],
             'level': 'DEBUG',
         },
         'essarch.auth': {

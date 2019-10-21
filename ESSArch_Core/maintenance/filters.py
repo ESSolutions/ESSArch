@@ -1,7 +1,11 @@
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
-                                             ConversionJob, ConversionRule)
+from ESSArch_Core.maintenance.models import (
+    AppraisalJob,
+    AppraisalRule,
+    ConversionJob,
+    ConversionRule,
+)
 
 
 class MaintenanceRuleFilter(filters.FilterSet):

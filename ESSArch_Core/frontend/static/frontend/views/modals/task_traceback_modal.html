@@ -1,0 +1,30 @@
+<div class="modal-heading">
+  <div>
+    <h3 class="modal-title" id="modal-title">
+      {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.name }}
+    </h3>
+    <p
+      ng-if="currentStepTask.label && currentStepTask.label !== '' && currentStepTask.label !== currentStepTask.name"
+      class="m-0"
+    >
+      {{currentStepTask.name}}
+    </p>
+  </div>
+</div>
+<div class="modal-body" id="modal-body">
+  <div class="step-task-info">
+    <b class="m-5px">{{ "ID" | translate }}: </b>{{ currentStepTask.id }}
+    <div>
+      <pre class="traceback" id="traceback_pre">{{ currentStepTask.traceback }}</pre>
+    </div>
+  </div>
+  <button class="btn btn-default" clipboard text="currentStepTask.traceback" on-copied="$ctrl.copied()">
+    {{ "STATE_TREE.COPYTRACEBACK" | translate }}
+  </button>
+  <span ng-if="$ctrl.tracebackCopied" class="fas fa-lg fa-check traceback-copied"></span>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" focused="true">
+    {{ "CLOSE" | translate }}
+  </button>
+</div>

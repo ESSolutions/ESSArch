@@ -1,0 +1,725 @@
+a {
+  cursor: pointer;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background-color: $body-background;
+  margin: 0px auto;
+  overflow: auto;
+  -ms-overflow-style: scrollbar;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100%;
+}
+
+main {
+  display: block;
+}
+
+.ui-select-dropdown {
+  opacity: 1 !important;
+}
+
+.ui-select-toggle {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+}
+
+.st-sort-ascent:before {
+  content: '\25B2';
+  position: relative;
+}
+
+.unexpected {
+  background-color: maroon !important;
+  color: white !important;
+}
+
+.st-sort-descent:before {
+  content: '\25BC';
+  position: relative;
+}
+
+.error-messages {
+  position: relative;
+}
+
+.error-messages,
+.message {
+  opacity: 1;
+  transition: 0.3s linear all;
+}
+
+.message {
+  font-size: 0.8em;
+  position: absolute;
+  width: 100%;
+  color: #a94442;
+  margin-top: 4px;
+}
+
+.error-messages.ng-enter.ng-enter-active,
+.message.ng-enter.ng-enter-active {
+  opacity: 1;
+  top: 0;
+}
+
+.error-messages.ng-enter,
+.message.ng-enter {
+  opacity: 0;
+  top: -10px;
+}
+
+.error-messages.ng-leave,
+.message.ng-leave {
+  opacity: 1;
+  top: 0;
+}
+
+.error-messages.ng-leave-active,
+.message.ng-leave-active {
+  opacity: 0;
+  top: -10px;
+}
+
+.form-control {
+  height: 26px;
+  padding-left: 5px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 13px;
+}
+
+.body-wrapper {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-radius: 1px;
+  min-height: 1131px;
+}
+
+.receive-modal-button {
+  align-items: center;
+}
+
+.request-form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  .request-type {
+    @include container(10px);
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    border-right-width: 1px;
+  }
+  .request-params {
+    @include container(10px);
+    position: relative;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    border-left-width: 1px;
+    .form-group {
+      width: 75%;
+    }
+    .close-request {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    }
+  }
+}
+.request-layout {
+  &:focus {
+    outline: 0;
+  }
+}
+.datepicker {
+  width: 100%;
+  position: relative;
+}
+.uib-daypicker {
+  table {
+    margin: 0 auto;
+  }
+  .glyphicon {
+    @extend .fa;
+    &.glyphicon-chevron-right {
+      @extend .fa-chevron-right;
+    }
+    &.glyphicon-chevron-left {
+      @extend .fa-chevron-left;
+    }
+  }
+}
+.glyphicon {
+  @extend .fa;
+  &.glyphicon-arrow-left {
+    @extend .fa-arrow-left;
+  }
+  &.glyphicon-arrow-right {
+    @extend .fa-arrow-right;
+  }
+}
+.datepicker .form-control {
+  height: 15px;
+  padding: 15px;
+}
+
+.datepicker .btn {
+  padding: 8px 8px;
+}
+
+.nav-dynamic-wrapper {
+  width: 100%;
+  padding: 0 10px 0 10px;
+}
+
+.dynamic-part {
+  @include small-screen {
+    width: 100%;
+  }
+
+  &:focus {
+    outline: 0;
+  }
+
+  display: flex;
+}
+
+.profile-manager-route {
+  margin-top: 5px;
+  &:focus {
+    outline: 0;
+  }
+}
+
+.well-sm {
+  padding: 0px;
+}
+
+.ui-select-placeholder {
+  width: auto !important;
+}
+
+.input-group-addon {
+  padding: 0 12px;
+}
+
+.input-group-btn {
+  .btn-default {
+    height: 26px;
+    display: flex;
+    align-items: center;
+  }
+}
+.sender-receiver-wrapper {
+  input {
+    width: 25%;
+  }
+}
+.appraisal-page {
+  margin-top: 10px;
+  @include container(10px);
+}
+
+.conversion-page {
+  margin-top: 10px;
+  @include container(10px);
+}
+
+.traceback-copied {
+  color: $step-success;
+}
+
+.popover {
+  word-break: break-all;
+}
+
+.drop-zone {
+  width: 100%;
+  height: 100px;
+  border-style: dotted;
+  border-color: $border-color;
+  text-align: center;
+  vertical-align: middle;
+  line-height: 100px;
+}
+
+.restricted {
+  @include container(5px);
+  margin-top: 5px;
+  padding: 10px;
+  .restricted-text {
+    color: $step-fail;
+  }
+  a {
+    color: rgb(206, 0, 0);
+  }
+  display: flex;
+  flex-direction: row;
+}
+
+.sa-editor {
+  @include container(10px);
+  box-shadow: none;
+  margin-top: 10px;
+  .edit-view {
+    .form-control {
+      width: 100%;
+    }
+  }
+  .sa-select {
+    width: 33%;
+  }
+  .fa-plus {
+    color: $step-success;
+  }
+}
+
+.no-select {
+  user-select: none;
+}
+
+.info-wrapper {
+  @include container(10px);
+  width: 100%;
+  margin-top: 10px;
+}
+
+.export {
+  button {
+    vertical-align: bottom;
+  }
+}
+
+.keyboard-button {
+  display: inline-block;
+  margin: 0 0.1em;
+  padding: 0.1em 0.6em;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #242729;
+  text-shadow: 0 1px 0 #fff;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid #adb3b9;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(12, 13, 14, 0.2), 0 0 0 2px #fff inset;
+  white-space: nowrap;
+}
+
+.docs-page {
+  margin-top: 10px;
+  padding: 5px;
+}
+
+.add-rule-row {
+  text-align: center;
+  background-color: white;
+  &:hover {
+    background-color: darken(white, 10%);
+  }
+}
+
+.close-rules-button {
+  float: right;
+}
+
+.path-item {
+  background-color: $container-background;
+  margin-right: 5px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: $border-color;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+.path-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.specification {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  padding: 5px;
+  label,
+  div {
+    margin: 0 5px 0 5px;
+  }
+}
+
+.color-red {
+  color: red;
+}
+
+.cron-form {
+  margin-bottom: 10px;
+  .cron-wrap {
+    display: flex !important;
+    flex-direction: column !important;
+    overflow-x: auto;
+    .cron-select {
+      margin-bottom: 1rem;
+    }
+    .select-options {
+      display: flex;
+      flex-direction: column;
+      .option-pair {
+        .seconds-wrap {
+          display: flex;
+          flex-direction: row;
+          align-items: center;
+          margin-top: 16px;
+        }
+        select,
+        label {
+          display: block;
+        }
+        display: flex;
+        flex-direction: row;
+        padding: 0 5px 0 5px;
+        .day-of-month-value {
+          max-width: 100px;
+          margin: 5px;
+        }
+        .day-value {
+          max-width: 100px;
+          margin: 5px;
+        }
+        .month-value {
+          max-width: 100px;
+          margin: 5px;
+        }
+        .hour-value {
+          max-width: 100px;
+          margin: 5px;
+        }
+        .minute-value {
+          max-width: 100px;
+          select,
+          label {
+            display: inline;
+          }
+          margin: 5px;
+        }
+      }
+    }
+  }
+}
+
+.new-archive-container {
+  min-width: 150px;
+
+  label {
+    display: block;
+  }
+}
+
+.edit-field-row {
+  display: inline-flex;
+  .dropdown {
+    padding-right: 3px;
+    min-width: 128px;
+  }
+  .btn,
+  input {
+    margin-right: 3px;
+  }
+  align-items: center;
+}
+
+.ui-select-match-text {
+  margin-top: 3px;
+}
+
+.pagination {
+  margin: 5px 0;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+
+.column-label {
+  margin: auto;
+}
+
+.content-wrapper > div {
+  margin-bottom: 10px;
+}
+
+@include medium-screen-down {
+  .content-wrapper > div {
+    margin-left: 0;
+  }
+}
+.clickable {
+  cursor: pointer;
+}
+.select-sub-edit-eventlog-wrapper {
+  @include container;
+  position: relative;
+  &:focus {
+    outline: 0;
+  }
+}
+
+.select-view {
+  margin: 5px;
+  padding: 5px;
+  & > .checkbox {
+    height: 10px;
+  }
+}
+.sa-table {
+  padding: 5px;
+  table {
+    table-layout: fixed;
+    tbody {
+      td {
+        border: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    margin-top: 20px;
+    .flex-row {
+      select {
+        margin-right: 10px;
+      }
+    }
+  }
+}
+.edit-form {
+  padding-bottom: 15px;
+  table {
+    table-layout: fixed;
+    .flex-row {
+      align-items: center;
+      p {
+        word-break: normal;
+        margin: 0 10px 0 0;
+      }
+    }
+    td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .button-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    .btn-default {
+      margin-left: 5px;
+    }
+  }
+}
+.sa-edit {
+  .formly {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 5px;
+    width: 100%;
+  }
+}
+
+.table-col {
+  margin: 0;
+}
+
+.text-center {
+  text-align: center;
+  margin: auto;
+}
+
+.sub-select-view {
+  @include container(5px);
+  height: 60px;
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+}
+
+.sub-select-view > select {
+  margin-left: 20px;
+  height: 30px;
+}
+
+.sub-select-profile {
+  width: 25%;
+}
+
+.sub-select-agreement {
+  width: 25%;
+}
+
+.sub-select-nationality {
+  width: 10%;
+}
+
+.edit-view {
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-color: $border-color;
+  margin: 5px;
+  padding: 5px;
+  position: relative;
+  .formly {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 5px;
+    width: 100%;
+  }
+  .btn-danger {
+    float: right;
+  }
+}
+
+.eventlog-view {
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+  padding: 5px;
+  justify-content: space-between;
+}
+
+.prepare-ip,
+.ip-approval {
+  .eventlog-view {
+    border-top-style: solid;
+    border-top-width: 1px;
+    border-color: $border-color;
+  }
+}
+
+.eventlog-view .form-group {
+  display: flex;
+  flex-direction: column;
+  width: 33%;
+}
+
+.eventlog-view .btn-primary {
+  float: right;
+  margin-top: 10px;
+}
+
+.eventlog-view .checkbox {
+  margin-top: 20px;
+}
+
+input[type='checkbox'] {
+  transform: scale(1.2, 1.2);
+}
+
+.eventlog-form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  margin-left: 10px;
+}
+.validator-choices {
+  .formly-field {
+    width: 24%;
+    margin: 5px;
+  }
+}
+
+.submit-button {
+  margin-left: 5px;
+}
+.version-info-page {
+  @include container(10px);
+  margin-top: 10px;
+}
+
+.data-version-list {
+  width: 10%;
+  min-width: 50px;
+  margin-left: 10px;
+  float: right;
+}
+
+.profile-name {
+  float: left;
+}
+
+.profile-editor {
+  overflow: auto;
+  .edit-view {
+    margin: 0;
+    padding-bottom: 0;
+  }
+  .select-view {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+#items-per-page {
+  width: 100px;
+}
+
+.table-container {
+  position: relative;
+  thead,
+  tbody {
+    border: 1px solid $border-color;
+  }
+}
+
+.sa-select {
+  width: 100% !important;
+}
+
+.workarea-validation,
+.workarea-transformation {
+  .content-wrapper > div {
+    margin-left: 0px;
+  }
+}
+
+.fullscreen-modal {
+  .modal-dialog {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .modal-content {
+    height: auto;
+    min-height: 100%;
+    border-radius: 0;
+  }
+  .modal-footer {
+    max-height: 100px;
+  }
+}

@@ -1,0 +1,41 @@
+<label
+  class="control-label"
+  for="{{::id}}"
+  uib-tooltip="{{options.templateOptions.desc}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+  >{{to.label}} {{to.required ? '*' : ''}}</label
+>
+
+<div
+  class="dropdown"
+  uib-dropdown
+  dropdown-append-to-body="options.templateOptions.appendToBody && options.templateOptions.appendToBody == true"
+  is-open="status[options.key]"
+>
+  <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>
+    <div class="input-group">
+      <input
+        ng-change="to.onChange"
+        set-touched="options.formControl"
+        id="{{::id}}"
+        name="{{::id}}"
+        ng-required="options.templateOptions.required"
+        type="text"
+        data-date-time-input="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DD'}}"
+        data-model-type="{{options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'Date'}}"
+        class="form-control"
+        data-ng-model="model[options.key]"
+        autocomplete="off"
+      /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+    </div>
+  </a>
+  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+    <datetimepicker
+      data-ng-model="model[options.key]"
+      ng-change="status[options.key] = false"
+      ng-required="options.templateOptions.required"
+      data-datetimepicker-config="{ minView: to.minView ? to.minView : 'day', startView: 'year', modelType: options.templateOptions.dateFormat ? options.templateOptions.dateFormat : 'YYYY-MM-DDTHH:mm:ssZ'}"
+    />
+  </ul>
+</div>

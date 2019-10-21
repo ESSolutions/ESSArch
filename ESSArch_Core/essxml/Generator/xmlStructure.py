@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -49,7 +49,7 @@ def pretty_print(fd, level):
     os.write(fd, '    ' * level)
 
 
-class xmlAttribute(object):
+class xmlAttribute:
     '''
     A class to contain and handle each attribute of a XML element
     '''
@@ -69,7 +69,7 @@ class xmlAttribute(object):
             os.write(fd, ' ' + self.attrName + '="' + self.value + '"')
 
 
-class xmlElement(object):
+class xmlElement:
     '''
     A class containing a complete XML element, a list of attributes and a list of children
     '''
@@ -282,7 +282,7 @@ class xmlElement(object):
         self.karMax = -1
 
 
-class fileInfo():
+class fileInfo:
     """
     A way to contain the temporary files which are created
     """
@@ -294,7 +294,7 @@ class fileInfo():
         self.level = level
 
 
-class fileObject():
+class fileObject:
     """
     A container class for all the files in the xml
     """

@@ -1,0 +1,106 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-16 17:03+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/producer/prepare-ip.rst:5
+msgid "Prepare IP"
+msgstr "Förbered IP"
+
+#: ../../user_guide/producer/prepare-ip.rst:7
+msgid ""
+"The first step in the process of SIP creation is Prepare IP, IPs That are"
+" not yet **Prepared** are listed in the Prepare IP list view."
+msgstr ""
+"Det första steget i SIP-skapandet är Förbered IP.IPn som ännu inte är "
+"**Prepared** listas i listvyn."
+
+#: ../../user_guide/producer/prepare-ip.rst:12
+msgid "Prepare"
+msgstr "Förbered"
+
+#: ../../user_guide/producer/prepare-ip.rst:14
+msgid "The prepare process is started by clicking the **Prepare IP** button."
+msgstr "Första steget är att klicka på **Förbered IP**"
+
+#: ../../user_guide/producer/prepare-ip.rst:18
+msgid ""
+"The user is then asked to type a label for the new IP and can optionally "
+"enter a custom identifier value."
+msgstr ""
+"Användaren skriver en etikett för IPt och kan även ange en egen "
+"identifierare."
+
+#: ../../user_guide/producer/prepare-ip.rst:26
+msgid "Profile editor"
+msgstr "Profileditor"
+
+#: ../../user_guide/producer/prepare-ip.rst:28
+msgid ""
+"When clicking the IP row in the list view, the user can chose which "
+"Submission Agreement(SA)-profile to use. The Submission Agreement fields "
+"can be viewed by clicking the **View** button next to the SA-select. When"
+" the user is satisfied, he/she locks it by clicking the lock button."
+msgstr ""
+"När ett IP i listvyn klickas, kan användaren välja vilken "
+"leveransöverenskommelse som ska användas för IPt. Man kan även se fält i "
+"leveransöverenskommelsen kenom att klicka på **Visa**-knappen bredvid "
+"rullistan. När användaren är nöjd med sitt val klickar denne på "
+"låsknappen"
+
+#: ../../user_guide/producer/prepare-ip.rst:38
+msgid ""
+"After Submission agreement is locked, the profiles can be viewed and "
+"edited."
+msgstr ""
+"När en leveransöverenskommelse är låst kan man se och redigera dess "
+"profiler"
+
+#: ../../user_guide/producer/prepare-ip.rst:40
+msgid ""
+"The user can edit profiles by clicking the **Edit** button in the profile"
+" table which will allow the user to edit the data of the profile fields "
+"for that specific profile. When done, click **save** and a new version of"
+" the profile data will be saved and made the current version."
+msgstr ""
+"En användare kan redigera profiler genom att klicka på "
+"**Redigera**-knappen.Användaren kan redigera data för profil-fälten för "
+"varje specifik profil.När profilerna är färdiga klicka på **Spara** och "
+"en ny version av profil-datan sparas som den nuvarande versionen"
+
+#: ../../user_guide/producer/prepare-ip.rst:49
+msgid ""
+"The user can use the **Versions**-dropdown list to choose earlier or "
+"later versions of the profile data."
+msgstr ""
+"**Version**-rullistan kan användas för att välja en tidigare eller senare"
+" version av profil-data."
+
+#: ../../user_guide/producer/prepare-ip.rst:52
+msgid ""
+"If the user is satisfied with all profiles, the IP can be prepared by "
+"clicking the **Prepare**-button in the bottom right corner."
+msgstr ""
+"När användaren är nöjd med profilerna kan IPt förberedas genom att klicka"
+" på **Förbered**-knappen nere i det högra hörnet."
+
+#: ../../user_guide/producer/prepare-ip.rst:57
+msgid ""
+"When IP is Prepared it is no longer visible in the Prepare IP list view "
+"and can be found in the Collect content list view."
+msgstr "När ett IP är förberett kan det hittas i listvyn i **Samla innehåll**."

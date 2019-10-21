@@ -1,0 +1,32 @@
+<div ng-if="!subrow" class="flex-row" style="width: 50px;">
+  <span
+    ng-if="row.archived"
+    class="fas fa-lg fa-archive"
+    uib-tooltip="{{'LONGTERM_ARCHIVAL_STORAGE' | translate}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  ></span>
+  <span
+    ng-if="row.cached"
+    class="fas fa-lg fa-database"
+    uib-tooltip="{{'ARCHIVAL_STORAGE' | translate}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  ></span>
+</div>
+<div ng-if="subrow" class="flex-row" style="width: 50px;">
+  <span
+    ng-if="subrow.archived"
+    class="fas fa-md fa-archive"
+    uib-tooltip="{{'LONGTERM_ARCHIVAL_STORAGE' | translate}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  ></span>
+  <span
+    ng-if="subrow.cached"
+    class="fas fa-md fa-database"
+    uib-tooltip="{{'ARCHIVAL_STORAGE' | translate}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  ></span>
+</div>

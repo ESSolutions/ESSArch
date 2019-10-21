@@ -1,17 +1,13 @@
 {% load rev %}
 <!doctype html>
-<html ng-app="essarch" ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
+<html ng-app="essarch" ng-strict-di ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
   <head ng-controller="HeadCtrl as vm">
-    <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/styles.css" %}">
-
-    <!--Polyfills -->
-    <script src="{% rev "frontend/build/polyfills.min.js" %}"></script>
-
-    <!--Vendors -->
-    <script src="{% rev "frontend/build/vendors.min.js" %}"></script>
+    <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/main.css" %}">
 
     <!--App -->
-    <script src="{% rev "frontend/build/scripts.min.js" %}"></script>
+    <script src="{% rev "frontend/build/runtime.js" %}"></script>
+    <script src="{% rev "frontend/build/vendors.js" %}"></script>
+    <script src="{% rev "frontend/build/main.js" %}"></script>
 
     {% verbatim %}
     <meta name="viewport" content="width=device-width, initial-scale=1">

@@ -22,6 +22,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='tagstructure',
             name='structure_unit',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='tags.StructureUnit'),
+            field=models.ForeignKey(limit_choices_to={'structure__is_template': False}, null=True, on_delete=django.db.models.deletion.PROTECT, to='tags.StructureUnit'),
         ),
     ]

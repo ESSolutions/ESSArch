@@ -8,12 +8,12 @@ from django.templatetags.static import StaticNode
 
 def _get_mapping():
     """
-    Finds and loads gulp's rev-manifest.json file. Use DJANGO_GULP_REV_PATH to
+    Finds and loads the rev-manifest.json file. Use DJANGO_REV_MANIFEST_PATH to
     set the path.
     """
 
     manifest_path = getattr(settings,
-                            'DJANGO_GULP_REV_PATH',
+                            'DJANGO_REV_MANIFEST_PATH',
                             os.path.join(getattr(settings, 'STATIC_ROOT', ''), 'rev-manifest.json'))
 
     try:
@@ -35,7 +35,7 @@ def _create_url(path, original):
 
 def static_rev(path):
     """
-    Modified version of static_rev from gulp_rev which ignores debug mode
+    Modified version of static_rev which ignores debug mode
     """
 
     static_path = StaticNode.handle_simple(path)

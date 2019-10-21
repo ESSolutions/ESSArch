@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -220,7 +220,7 @@ def parse_submit_description(xmlfile, srcdir=''):
     return ip
 
 
-class XMLFileElement():
+class XMLFileElement:
     def __init__(self, el, props, path=None, rootdir=None):
         '''
         args:
@@ -339,7 +339,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
 
         # Remove first object in premis file if it is a "fake" entry describing the tar
         if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
-            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR"]')):
+            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR" or . = "ZIP"]')):
                 file_elements.pop(0)
 
         for el in file_elements:
@@ -397,6 +397,9 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
 
     if 'FChecksum' not in provided_data:
         fileinfo['FChecksum'] = checksum.calculate_checksum(filepath, algorithm)
+
+    if 'FEncrypted' not in provided_data:
+        fileinfo['FEncrypted'] = fid.identify_file_encryption(filepath)
 
     if any(x not in provided_data for x in ['FFormatName', 'FFormatVersion', 'FFormatRegistryKey']):
         (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)

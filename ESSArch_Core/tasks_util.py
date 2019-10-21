@@ -5,6 +5,13 @@ import tempfile
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.db.models import F
+from django.utils import timezone
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
@@ -12,27 +19,26 @@ from ESSArch_Core.essxml.util import find_files
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
-from ESSArch_Core.ip.models import InformationPackage, EventIP
-from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.storage.exceptions import TapeDriveLockedError
 from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
 from ESSArch_Core.storage.tape import (
-    unmount_tape,
-    mount_tape,
-    wait_to_come_online,
-    tape_empty,
     create_tape_label,
+    mount_tape,
     rewind_tape,
+    tape_empty,
+    unmount_tape,
+    verify_tape_label,
+    wait_to_come_online,
     write_to_tape,
-    verify_tape_label
 )
-from django.utils import timezone
-
 from ESSArch_Core.util import get_event_element_spec
 
 User = get_user_model()
 
 
+@retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def unmount_tape_from_drive(drive):
     """
     Unmounts tape from drive into slot
@@ -74,6 +80,8 @@ def unmount_tape_from_drive(drive):
     return res
 
 
+@retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     """
     Mounts tape into drive
@@ -225,7 +233,8 @@ def append_events(ip, events, filename):
 
     target = generator.find_element('premis')
     for event in events.iterator():
-        objid = get_cached_objid(event.linkingObjectIdentifierValue)
+        ip = InformationPackage.objects.get(pk=event.linkingObjectIdentifierValue)
+        objid = ip.object_identifier_value
 
         data = {
             "eventIdentifierType": id_types['event'],

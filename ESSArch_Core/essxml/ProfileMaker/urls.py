@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -23,15 +23,9 @@
 """
 
 from django.conf.urls import url
-from .views import (
-    create,
-    edit,
-    index,
-    add,
-    addExtension,
-    generate,
-)
+
 from . import views
+from .views import add, addExtension, create, edit, generate, index
 
 urlpatterns = [
     url(r'^$', index.as_view(), name='template_index'),

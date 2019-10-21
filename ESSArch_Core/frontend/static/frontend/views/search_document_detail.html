@@ -1,0 +1,73 @@
+<div class="document-result">
+  <h3 title="Namn">
+    <strong title="Namn" ng-if="vm.record.name">
+      {{vm.record.name}}
+    </strong>
+  </h3>
+  <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
+  <div ng-if="vm.record.description">
+    <p ng-if="vm.record.description" class="result-description m-0">
+      {{vm.record.description}}
+    </p>
+  </div>
+  <div
+    title="Dokumentnummer"
+    ng-if="vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].custom_fields.arkivobjekt_id"
+  >
+    <strong>Dokumentnummer:</strong> {{
+    vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].custom_fields.arkivobjekt_id }}
+    <br />
+  </div>
+  <div title="Handling" ng-if="vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].name">
+    <strong>Handling:</strong> {{ vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].name }}
+    <br />
+  </div>
+
+  <div
+    ng-if="vm.record.custom_fields.create_date || vm.record.custom_fields.arrival_date || vm.record.custom_fields.dispatch_date || vm.record.custom_fields.decision_date || vm.record.custom_fields.preparation_date || vm.record.custom_fields.ended_date"
+  >
+    <strong>Datum:</strong>
+    <result-field label="Skapad" data="vm.record.custom_fields.create_date" type="date"></result-field>
+    <result-field label="Inkommen" data="vm.record.custom_fields.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record.custom_fields.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record.custom_fields.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record.custom_fields.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record.custom_fields.ended_date" type="date"></result-field>
+    <br />
+  </div>
+  <br />
+  <div ng-if="vm.record.custom_fields.ip"><strong>Förvaringsenhet:</strong> {{ vm.record.custom_fields.ip }}</div>
+  <br />
+
+  <p
+    style="color: red; white-space: nowrap;"
+    ng-if="vm.record.type == 'document' && !(vm.record.custom_fields.terms_and_condition == null || checkPermission('tags.view_pul'))"
+  >
+    Ej behörig att visa
+  </p>
+  <result-field
+    label="{{'PATH' | translate}}"
+    stronglabel="true"
+    data="vm.record.custom_fields.href +'/'+ vm.record.custom_fields.filename"
+  ></result-field>
+  <result-field
+    label="{{'CHANGED' | translate}}"
+    stronglabel="true"
+    data="vm.record.custom_fields.modified"
+    type="date-long"
+  ></result-field>
+  <result-field
+    label="{{'ACCESS.CONTENT_TYPE' | translate}}"
+    stronglabel="true"
+    data="vm.record.custom_fields.attachment.content_type"
+  ></result-field>
+  <result-field
+    label="{{'SIZE' | translate}}"
+    stronglabel="true"
+    data="vm.record.custom_fields.size"
+    type="filesize"
+  ></result-field>
+  <button class="btn btn-success btn-small margin-top-5" ng-click="vm.viewFile(vm.record)">
+    <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+  </button>
+</div>

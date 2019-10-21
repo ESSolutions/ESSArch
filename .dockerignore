@@ -1,0 +1,11 @@
+node_modules
+/docker/
+!/docker/*.sh
+/dist/
+/htmlcov/
+/venv/
+.coverage
+*.egg-info/
+/MANIFEST
+/.idea/
+.git/

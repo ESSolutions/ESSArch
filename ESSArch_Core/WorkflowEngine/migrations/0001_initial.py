@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -56,13 +56,15 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'ProcessStep',
+                'get_latest_by': 'time_created',
+                'ordering': ('parent_step_pos', 'time_created'),
             },
         ),
         migrations.CreateModel(
             name='ProcessTask',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(blank=True, max_length=256)),
+                ('name', models.CharField(max_length=255)),
                 ('progress', models.IntegerField(blank=True, default=0)),
                 ('task_id', models.CharField(max_length=255, unique=True, verbose_name='task id')),
                 ('status', models.CharField(choices=[('FAILURE', 'FAILURE'), ('PENDING', 'PENDING'), ('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('STARTED', 'STARTED'), ('SUCCESS', 'SUCCESS')], default='PENDING', max_length=50, verbose_name='state')),
@@ -75,6 +77,14 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'ProcessTask',
+                'get_latest_by': 'time_created',
+                'ordering': ('processstep_pos', 'time_created'),
+                'permissions': (
+                    ('can_run', 'Can run tasks'),
+                    ('can_undo', 'Can undo tasks'),
+                    ('can_revoke', 'Can revoke tasks'),
+                    ('can_retry', 'Can retry tasks'),
+                )
             },
         ),
     ]

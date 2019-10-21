@@ -1,0 +1,28 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.REMOVE_SAVED_SEARCH' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.remove()">
+  <div class="modal-body" id="modal-body">
+    <div class="table-x-overflow">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th>{{'NAME' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{$ctrl.data.search.name}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.removing" type="submit" focused="true">
+      {{'REMOVE' | translate}}
+      <span ng-if="$ctrl.removing"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

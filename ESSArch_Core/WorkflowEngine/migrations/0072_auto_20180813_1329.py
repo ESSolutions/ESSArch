@@ -28,19 +28,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='processstep',
             name='level',
-            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+            field=models.PositiveIntegerField(default=0, editable=False),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='processstep',
             name='lft',
-            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+            field=models.PositiveIntegerField(default=0, editable=False),
             preserve_default=False,
         ),
         migrations.AddField(
             model_name='processstep',
             name='rght',
-            field=models.PositiveIntegerField(db_index=True, default=0, editable=False),
+            field=models.PositiveIntegerField(default=0, editable=False),
             preserve_default=False,
         ),
         migrations.AddField(

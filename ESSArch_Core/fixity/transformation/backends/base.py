@@ -1,7 +1,7 @@
 import click
 
 
-class BaseTransformer(object):
+class BaseTransformer:
     def __init__(self, ip=None, user=None):
         self.ip = ip
         self.user = user

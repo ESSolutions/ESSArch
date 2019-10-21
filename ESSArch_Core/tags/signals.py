@@ -1,9 +1,12 @@
 import logging
 
-from django.db.models.signals import pre_delete, post_save, post_delete
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.signals import post_delete, post_save, pre_delete
 from django.dispatch import receiver
+from elasticsearch.exceptions import NotFoundError
 
-from ESSArch_Core.tags.models import TagVersion, Tag
+from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.tags.models import Tag, TagVersion
 
 logger = logging.getLogger('essarch.core')
 
@@ -11,17 +14,17 @@ logger = logging.getLogger('essarch.core')
 @receiver(post_save, sender=TagVersion)
 def set_current_version_after_creation(sender, instance, created, **kwargs):
     if created and instance.tag.current_version is None:
-        logger.info(f"TagVersion '{instance}' was created.")
+        logger.debug(f"TagVersion '{instance}' was created.")
         tag = instance.tag
         tag.current_version = instance
         tag.save(update_fields=['current_version'])
     else:
-        logger.info(f"TagVersion '{instance}' was updated.")
+        logger.debug(f"TagVersion '{instance}' was updated.")
 
 
 @receiver(pre_delete, sender=TagVersion)
-def fix_current_version_before_version_delete(sender, instance, **kwargs):
-    logger.info(f"Changing current version of TagVersion: '{instance}', before deleting.")
+def pre_tag_version_delete(sender, instance, **kwargs):
+    logger.debug(f"Changing current version of TagVersion: '{instance}', before deleting.")
     if instance.tag.current_version == instance:
         try:
             tag = instance.tag
@@ -30,12 +33,20 @@ def fix_current_version_before_version_delete(sender, instance, **kwargs):
         except TagVersion.DoesNotExist:
             pass
 
+    try:
+        instance.get_doc().delete()
+    except NotFoundError:
+        logger.warning('TagVersion document not found: {}'.format(instance.pk))
+
 
 @receiver(post_delete, sender=TagVersion)
 def log_after_deleting_tag_version(sender, instance, **kwargs):
-    logger.info(f"TagVersion '{instance}' was deleted.")
+    logger.debug(f"TagVersion '{instance}' was deleted.")
+
+    tag_version_content_type = ContentType.objects.get_for_model(instance)
+    GroupGenericObjects.objects.filter(object_id=str(instance.pk), content_type=tag_version_content_type).delete()
 
 
 @receiver(post_delete, sender=Tag)
 def log_after_deleting_tag(sender, instance, **kwargs):
-    logger.info(f"Tag '{instance}' was deleted.")
+    logger.debug(f"Tag '{instance}' was deleted.")

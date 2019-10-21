@@ -1,28 +1,27 @@
-import tempfile
-import shutil
-import os
 import datetime
-
+import os
+import shutil
+import tempfile
 from subprocess import PIPE
-
 from unittest import mock
+
 from django.core.files.base import ContentFile
 from django.http.response import FileResponse
 from django.test import TestCase
-from lxml import objectify, etree
-from rest_framework.exceptions import ValidationError, NotFound
+from lxml import etree, objectify
+from rest_framework.exceptions import NotFound, ValidationError
 
 from ESSArch_Core.util import (
     convert_file,
-    get_value_from_path,
-    get_files_and_dirs,
-    parse_content_range_header,
     flatten,
-    getSchemas,
-    nested_lookup,
-    list_files,
-    normalize_path,
     generate_file_response,
+    get_files_and_dirs,
+    get_value_from_path,
+    getSchemas,
+    list_files,
+    nested_lookup,
+    normalize_path,
+    parse_content_range_header,
 )
 
 

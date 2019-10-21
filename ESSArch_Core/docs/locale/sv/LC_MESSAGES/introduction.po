@@ -1,0 +1,36 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../introduction.rst:5
+msgid "Introduction"
+msgstr ""
+
+#: ../../introduction.rst:7
+msgid ""
+"ESSArch is an open source archival solution compliant to the OAIS ISO-"
+"standard. ESSArch consist of software components that provide "
+"functionality for Pre-Ingest, Ingest, Preservation, Access, Data "
+"Management, Administration and Management. ESSArch has been developed "
+"together with the National Archives of Sweden and Norway. Every software "
+"component of ESSArch can be used individually and also be easily "
+"integrated together to provide overall functionality for producers, "
+"archivists and consumers."
+msgstr ""
+

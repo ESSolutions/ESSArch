@@ -1,11 +1,8 @@
-#!/usr/bin/env /ESSArch/python27/bin/python
-# -*- coding: UTF-8 -*-
-
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,29 +15,28 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from django.contrib import admin
 import os
-
 from os import walk
 
-# own models ets
-from .models import InformationPackage
+from django.contrib import admin
+
+from .models import ConsignMethod, InformationPackage, OrderType
 
 
 def deleteIP(modeladmin, request, queryset):
     """
     An action for admin operations on IP
     """
-    # if we have selected entryn
+    # if we have selected entries
     if queryset.count():
-        # delete files and directorys
+        # delete files and directories
         for obj in queryset:
             for root, dirs, files in walk(obj.directory, topdown=False):
                 for name in files:
@@ -72,9 +68,9 @@ deleteIP.short_description = "Delete selected ip from DB and FS"
 
 class IPAdmin(admin.ModelAdmin):
     """
-    Informaion Package
+    Information Package
     """
-    list_display = ('label', 'create_date', 'id', 'object_path', 'state')
+    list_display = ('label', 'id', 'object_path', 'state')
     readonly_fields = ('id',)
     list_filter = ('label',)
     fieldsets = (
@@ -85,9 +81,7 @@ class IPAdmin(admin.ModelAdmin):
                         'label',
                         'content',
                         'responsible',
-                        'create_date',
                         'state',
-                        'status',
                         'object_path',
                         'start_date',
                         'end_date',
@@ -97,4 +91,6 @@ class IPAdmin(admin.ModelAdmin):
     )
 
 
+admin.site.register(ConsignMethod)
 admin.site.register(InformationPackage, IPAdmin)
+admin.site.register(OrderType)

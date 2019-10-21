@@ -1,0 +1,37 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">
+    {{'ACCESS.EDIT_RELATION_TO_STRUCTURE_UNIT' | translate}}
+  </h3>
+</div>
+<form ng-submit="$ctrl.save()" name="$ctrl.form" novalidate>
+  <div class="modal-body" id="modal-body">
+    <div ng-if="$ctrl.data.isStructureTemplate == false" class="mb-15px">
+      <label>
+        {{'ACCESS.TEMPLATE_OR_INSTANCE' | translate}}
+      </label>
+      <select
+        class="form-control"
+        ng-model="$ctrl.isTemplate"
+        ng-change="$ctrl.isTemplateChange($ctrl.isTemplate)"
+        ng-options="x.value as x.label for x in $ctrl.isTemplateOptions"
+      >
+      </select>
+    </div>
+    <formly-form
+      ng-if="!$ctrl.isTemplate"
+      model="$ctrl.archiveModel"
+      fields="$ctrl.archiveFields"
+      options="{}"
+    ></formly-form>
+    <formly-form model="$ctrl.structureModel" fields="$ctrl.structureFields" options="{}"></formly-form>
+    <formly-form model="$ctrl.relation" fields="$ctrl.fields" options="{}"></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.saving">
+      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.saving">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

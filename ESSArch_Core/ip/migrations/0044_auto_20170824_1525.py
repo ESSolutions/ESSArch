@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='order',
-            options={'permissions': (('prepare_order', 'Can prepare order'),)},
+            options={'ordering': ['label'], 'permissions': (('prepare_order', 'Can prepare order'),)},
         ),
     ]

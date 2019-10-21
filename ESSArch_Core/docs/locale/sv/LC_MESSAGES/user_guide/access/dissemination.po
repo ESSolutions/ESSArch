@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-16 17:33+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/access/dissemination.rst:5
+msgid "Dissemination"
+msgstr "Utlämnande"
+
+#: ../../user_guide/access/dissemination.rst:7
+msgid ""
+"The purpose of the Dissemination page is creating disseminations (or "
+"DIP). The content of every IP in each users personal workspace with state"
+" **Access Workarea** is available in the dissemination page and can be "
+"used to create a dissemination. A dissemination package is an information"
+" package for providing archived material to a customer, also called "
+"dissemination information package (DIP)."
+msgstr ""
+"Syftet med utlämnande-sidan är att skapa utlämnanden (DIP). "
+"Allt material som ligger i användares personliga arbetsyta med "
+"tillstånd **Access Workarea** är tillgängligt för att använda för att "
+"skapa ett utlämnande. Ett utlämnandepaket är ett informationspaket vars "
+"syfte är att kunna lämna ut arkiverat material. "
+
+#: ../../user_guide/access/dissemination.rst:14
+msgid ""
+"First step is to prepare dissemination, so click **Prepare "
+"dissemination**. Enter the required field label, optionally enter a "
+"custom identification value and connect dissemination to an existing "
+"order. Then click **Prepare** and the dissemination package is prepared."
+msgstr ""
+"Första steget är att förbereda ett utlämnande. Klicka på **Förbered "
+"utlämnande**. Fyll i etikett och resterande fält om så önskas. "
+"Man kan även koppla utlämnande till en beställning, då "
+"kan vi se utlämnandet och dess filer när vi klickar på en beställning. "
+"Klicka **Förbered** när utlämnandepaket är klart. "
+
+#: ../../user_guide/access/dissemination.rst:21
+msgid ""
+"Click the DIP row in the list view and two filebrowsers will appear. The "
+"first represents data in the current users personal workspace which can "
+"be marked and added to the second filebrowser window by clicking **Add**."
+" The user can also create new folders in the DIP and remove added "
+"files/folders."
+msgstr ""
+"Klicka på ett utlämnande för att få upp två filhanterare. den första "
+"innehåller all data från användarens personliga arbetsyta och den nedre "
+"är själva utlämnandepaketet. Markera en fil eller mapp i den övre och "
+"klicka **lägg till**. En användare kan även ta bort filer från "
+"utlämnandet och skapa nya mappar. "
+
+#: ../../user_guide/access/dissemination.rst:26
+msgid ""
+"With the right permissions a user can see content in other users "
+"workspaces by selecting user in the user dropdown in the toolbar of the "
+"first filebrowser."
+msgstr ""
+"Med rätt rättigheter kan en användare få tillgång till material i andra "
+"användares arbetsyta genom att välja vilken användares arbetsyta som ska "
+"visas i användarrullistan i verktygsraden på den första filhanteraren."
+
+#: ../../user_guide/access/dissemination.rst:29
+msgid ""
+"When satisfied with dissemination click the **Create dissemination** "
+"button."
+msgstr "När man är klar med ett utlämnande klickar man på **Skapa utlämnande**."

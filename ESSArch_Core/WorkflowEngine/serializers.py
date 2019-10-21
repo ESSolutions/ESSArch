@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,17 +15,21 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
+import uuid
+
 from celery import states as celery_states
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.celery.backends.database import DatabaseBackend
+from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
 
@@ -81,36 +85,15 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
         return obj.user
 
     def get_step_position(self, obj):
-        if type(obj).__name__ == 'ProcessTask':
-            return obj.processstep_pos
-        return obj.parent_step_pos
+        return obj.get_pos()
 
 
-class ProcessTaskSerializer(serializers.HyperlinkedModelSerializer):
+class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
+    params = serializers.SerializerMethodField()
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
-
-    class Meta:
-        model = ProcessTask
-        fields = (
-            'url', 'id', 'name', 'label', 'status', 'progress',
-            'processstep', 'processstep_pos', 'time_created', 'time_started',
-            'time_done', 'undone', 'undo_type', 'retried',
-            'responsible', 'hidden', 'args',
-        )
-
-        read_only_fields = (
-            'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',
-            'undo_type', 'retried', 'hidden',
-        )
-
-
-class ProcessTaskDetailSerializer(ProcessTaskSerializer):
-    args = serializers.JSONField(required=False)
-    params = serializers.SerializerMethodField()
-    result = serializers.SerializerMethodField()
 
     def get_params(self, obj):
         params = obj.params
@@ -122,17 +105,66 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
 
         return params
 
+    def update(self, instance, validated_data):
+        if 'id' in validated_data:
+            raise serializers.ValidationError({
+                'id': 'You must not change this field.',
+            })
+
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        if self.instance is None and ProcessTask.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Task already exists')
+
+        return data
+
+    class Meta:
+        model = ProcessTask
+        fields = (
+            'url', 'id', 'name', 'label', 'status', 'progress',
+            'processstep', 'processstep_pos', 'time_created', 'time_started',
+            'time_done', 'undone', 'undo_type', 'retried',
+            'responsible', 'hidden', 'args', 'params', 'information_package',
+            'eager',
+        )
+        read_only_fields = (
+            'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',
+            'undo_type', 'retried', 'hidden',
+        )
+        extra_kwargs = {
+            'id': {
+                'read_only': False,
+                'default': uuid.uuid4,
+            },
+        }
+
+
+class ProcessTaskDetailSerializer(ProcessTaskSerializer):
+    result = serializers.SerializerMethodField()
+    exception = serializers.SerializerMethodField()
+
+    def get_exception(self, obj):
+        if obj.exception is None:
+            return None
+        try:
+            exc = DatabaseBackend.exception_to_python(obj.exception)
+        except Exception:
+            return obj.exception
+        return repr(exc)
+
     def get_result(self, obj):
         return str(obj.result)
 
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'args', 'params', 'result', 'traceback', 'exception',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
-            'args', 'params', 'result', 'traceback', 'exception',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception',
         )
+        extra_kwargs = ProcessTaskSerializer.Meta.extra_kwargs
 
 
 class ProcessTaskSetSerializer(ProcessTaskSerializer):
@@ -143,7 +175,7 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
         )
 
 
-class ProcessStepSerializer(serializers.HyperlinkedModelSerializer):
+class ProcessStepSerializer(serializers.ModelSerializer):
     user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
 
     def create(self, validated_data):
@@ -181,7 +213,13 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
     def get_exception(self, obj):
         t = self.get_failed_tasks(obj).only('exception').first()
         if t:
-            return t.exception
+            if t.exception is None:
+                return None
+            try:
+                exc = DatabaseBackend.exception_to_python(t.exception)
+            except Exception:
+                return obj.exception
+            return repr(exc)
 
     def get_traceback(self, obj):
         t = self.get_failed_tasks(obj).only('traceback').first()

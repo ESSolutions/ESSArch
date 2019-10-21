@@ -1,0 +1,91 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-15 21:10+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../external_logging.rst:5
+msgid "External logging and monitoring"
+msgstr ""
+
+#: ../../external_logging.rst:9
+msgid "Using the Elastic Stack"
+msgstr ""
+
+#: ../../external_logging.rst:11
+msgid "The Elastic Stack can be used to store and monitor logs from ESSArch."
+msgstr ""
+
+#: ../../external_logging.rst:15
+msgid "Start by installing the necessary Logstash dependencies:"
+msgstr ""
+
+#: ../../external_logging.rst:22
+msgid ""
+"If ESSArch is installed using Docker, then the complete Elastic Stack is "
+"started together with ESSArch:"
+msgstr ""
+
+#: ../../external_logging.rst:29
+msgid ""
+"When the first log is sent from the application to Logstash, you will get"
+" the option to create an index in Kibana."
+msgstr ""
+
+#: ../../external_logging.rst:32
+msgid "By default the index pattern should be::"
+msgstr ""
+
+#: ../../external_logging.rst:37
+msgid ""
+"Click next to create the index pattern, and then head over to `Discover` "
+"page to see your logs."
+msgstr ""
+
+#: ../../external_logging.rst:42
+msgid "Logstash Configuration"
+msgstr ""
+
+#: ../../external_logging.rst:44
+msgid "Example ``logstash.conf``::"
+msgstr ""
+
+#: ../../external_logging.rst:77
+msgid "Configuration"
+msgstr ""
+
+#: ../../external_logging.rst:79
+msgid ""
+"Modify your ESSArch settings by adding the Logstash handlers and loggers."
+" This will override the default LOGGING configurations."
+msgstr ""
+
+#: ../../external_logging.rst:82
+msgid "Here is an example:"
+msgstr ""
+
+#: ../../external_logging.rst:180
+msgid ""
+"More information on how to configure the logging can be found in the "
+"documentation for the Logstash Python library: https://python-logstash-"
+"async.readthedocs.io/en/stable/usage.html#usage-with-django"
+msgstr ""
+
+#: ../../external_logging.rst:186
+msgid ":ref:`configuration`"
+msgstr ""
+

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -24,38 +24,35 @@
 
 import logging
 
-from ESSArch_Core.auth.serializers import (
-    GroupSerializer,
-    GroupDetailSerializer,
-    LoginSerializer,
-    OrganizationDetailSerializer,
-    NotificationSerializer,
-    NotificationReadSerializer,
-    PermissionSerializer,
-    UserSerializer,
-    UserLoggedInSerializer,
-    UserLoggedInWriteSerializer,
-)
-
-from ESSArch_Core.auth.models import Group, Notification
-
 from django.conf import settings
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission, User
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
-
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_auth.views import (
     LoginView as rest_auth_LoginView,
     LogoutView as rest_auth_LogoutView,
 )
-
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from ESSArch_Core.api.filters import SearchFilter
+from ESSArch_Core.auth.models import Group, Notification
+from ESSArch_Core.auth.serializers import (
+    GroupDetailSerializer,
+    GroupSerializer,
+    LoginSerializer,
+    NotificationReadSerializer,
+    NotificationSerializer,
+    OrganizationDetailSerializer,
+    PermissionSerializer,
+    UserLoggedInSerializer,
+    UserLoggedInWriteSerializer,
+    UserSerializer,
+)
 
 try:
     from djangosaml2.views import logout as saml2_logout
@@ -76,9 +73,20 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that lists groups
     """
     queryset = Group.objects.all()
+
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser:
+            return Group.objects.all()
+
+        return user.essauth_member.groups.all()
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -89,9 +97,20 @@ class GroupViewSet(viewsets.ReadOnlyModelViewSet):
 
 class OrganizationViewSet(viewsets.ReadOnlyModelViewSet):
     """
-    API endpoint that allows groups to be viewed or edited.
+    API endpoint that lists organizations
     """
     queryset = Group.objects.filter(group_type__codename='organization')
+
+    filter_backends = (SearchFilter,)
+    search_fields = ('name',)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_superuser:
+            return Group.objects.filter(group_type__codename='organization')
+
+        return user.essauth_member.groups.filter(group_type__codename='organization')
 
     def get_serializer_class(self):
         if self.action == 'list':

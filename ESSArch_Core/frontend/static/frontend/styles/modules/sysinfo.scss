@@ -1,0 +1,23 @@
+.sys-info-component {
+  flex-grow: 1;
+  flex-basis: 0;
+  margin: 2px;
+  .sys-info-inner {
+    min-width: 150px;
+    border: 1px solid #eaeaea;
+    background-color: #f9f9f9;
+    padding: 7px;
+    .icon {
+      display: table-cell;
+      vertical-align: middle;
+    }
+    .info {
+      display: table-cell;
+      padding-left: 10px;
+      vertical-align: middle;
+    }
+    .error {
+      color: $task-validation-text-red;
+    }
+  }
+}

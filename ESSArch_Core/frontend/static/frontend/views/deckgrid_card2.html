@@ -1,0 +1,23 @@
+<div
+  class="clickable"
+  uib-popover-html="'{{'NAME' | translate}}: {{card.name}}<br>{{'SIZE' | translate}}: {{card.size | filesize}}<br>{{'CHANGED' | translate}}: {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}'"
+  popover-placement="auto"
+  popover-popup-delay="1000"
+  popover-append-to-body="true"
+>
+  <div
+    class="clickable"
+    ng-dblClick="expandFile(2, ip, card)"
+    ng-class="isSelected(2, card)"
+    ng-click="cardSelect(2, card)"
+  >
+    <div ng-class="card.type" ng-if="card.type == 'file'">
+      <li class="fas fa-file fa-3x"></li>
+      <span class="file-extension"><b>{{getFileExtension(card).length <= 6 ? getFileExtension(card) : ''}}</b></span>
+    </div>
+    <div ng-class="card.type" ng-if="card.type == 'dir'">
+      <li class="fas fa-folder fa-3x"></li>
+    </div>
+  </div>
+  <p class="not-selectable">{{card.name}}</p>
+</div>

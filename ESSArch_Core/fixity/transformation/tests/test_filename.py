@@ -1,7 +1,7 @@
 import os
-import tempfile
 import shutil
 import string
+import tempfile
 from unittest import mock
 
 from click.testing import CliRunner

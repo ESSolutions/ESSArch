@@ -1,0 +1,18 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.SAVE_SEARCH' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.save()">
+  <div class="modal-body" id="modal-body">
+    <label>
+      {{'NAME' | translate}}
+    </label>
+    <input focused="true" class="form-control" ng-model="$ctrl.name" />
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.saving" type="submit">
+      {{'SAVE' | translate}}
+      <span ng-if="$ctrl.saving"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

@@ -1,0 +1,24 @@
+.text-oneline-ellipsis {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.white-space-nowrap {
+  white-space: nowrap;
+}
+
+.color-success {
+  color: $brand-success;
+}
+
+.word-break-word {
+  word-break: break-word;
+}
+
+.text-bold {
+  font-style: bold;
+}
+
+.text-align-start {
+  text-align: left;
+}

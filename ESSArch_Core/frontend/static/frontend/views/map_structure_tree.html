@@ -1,0 +1,19 @@
+<div class="map-structure-editor">
+  <h3>Map structure</h3>
+  <h4 ng-if="vm.noStructure">Currently there is no map structure</h4>
+  <div id="edit-tree" class="edit-view-tree">
+    <div class="tree">
+      <treecontrol
+        class="tree-classic"
+        tree-model="treeElements"
+        options="treeOptions"
+        on-selection="showSelected(node, $parentNode)"
+        selected-node="selectedNode"
+        expanded-nodes="expandedNodes"
+        style="float:left;"
+      >
+        <span class="tree-edit-item">{{node.name}}</span>
+      </treecontrol>
+    </div>
+  </div>
+</div>

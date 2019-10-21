@@ -1,0 +1,38 @@
+/*@ngInject*/
+export default ($translateProvider: ng.translate.ITranslateProvider) => {
+  $translateProvider.translations('sv', {
+    NOTIFICATIONS: {
+      NOTIFICATIONS: 'Notifikationer',
+      POPUP_ENABLED: 'Popup aktiverad',
+    },
+    a_day_ago: 'igår',
+    a_day_from_now: 'imorgon',
+    a_minute_ago: 'för en minut sedan',
+    a_minute_from_now: 'om en minut',
+    a_month_ago: 'för en månad sedan',
+    a_month_from_now: 'om en månad',
+    a_week_ago: 'för en vecka sedan',
+    a_week_from_now: 'om en vecka',
+    a_year_ago: 'för ett år sedan',
+    a_year_from_now: 'om ett år',
+    an_hour_ago: 'för en timme sedan',
+    an_hour_from_now: 'om en timme',
+    days_ago: 'för {{time}} dagar sedan',
+    days_from_now: 'om {{time}} dagar',
+    hours_ago: 'för {{time}} timmar sedan',
+    hours_from_now: 'om {{time}} timmar',
+    just_now: 'nu',
+    minutes_ago: 'för {{time}} minuter sedan',
+    minutes_from_now: 'om {{time}} minuter',
+    months_ago: 'för {{time}} månader sedan',
+    months_from_now: 'om {{time}} månader',
+    over_a_year_ago: 'för över ett år sedan',
+    over_a_year_from_now: 'om över ett år',
+    seconds_ago: 'för {{time}} sekunder sedan',
+    seconds_from_now: 'om {{time}} sekunder',
+    weeks_ago: 'för {{time}} veckor sedan',
+    weeks_from_now: 'om {{time}} veckor',
+    years_ago: 'för {{time}} år sedan',
+    years_from_now: 'om {{time}} år',
+  });
+};

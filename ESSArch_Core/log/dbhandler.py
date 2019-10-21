@@ -1,9 +1,9 @@
-from _version import get_versions
-
 from logging import Handler
 
 from django.core.cache import cache
 from django.utils.text import Truncator
+
+from ESSArch_Core._version import get_versions
 
 
 class DBHandler(Handler):

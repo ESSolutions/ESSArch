@@ -1,0 +1,19 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'RECEIVE' | translate}} SIP</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  {{'RECEIVE_SIP_DESC' | translate:$ctrl.data.ip}}
+</div>
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-click="$ctrl.receive($ctrl.data.ip)"
+    focused="true"
+    ng-disabled="$ctrl.receiving"
+  >
+    {{'OK' | translate}}
+    <span ng-if="$ctrl.receiving"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -28,22 +28,19 @@ import logging
 import os
 import re
 import uuid
-
-from django.template import Template, Context, TemplateSyntaxError
-
-from lxml import etree
-
-from natsort import natsorted
-
-from django.utils import timezone
-
 from os import walk
+
+from django.template import Context, Template, TemplateSyntaxError
+from django.utils import timezone
+from lxml import etree
+from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
-
 from ESSArch_Core.util import (
-    get_elements_without_namespace, make_unicode, nested_lookup,
+    get_elements_without_namespace,
+    make_unicode,
+    nested_lookup,
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
@@ -145,7 +142,7 @@ def findElementWithoutNamespace(tree, el_name):
         return root.find(".//{*}%s" % el_name)
 
 
-class XMLElement(object):
+class XMLElement:
     def __init__(self, template, nsmap=None):
         if nsmap is None:
             nsmap = {}
@@ -172,6 +169,7 @@ class XMLElement(object):
         self.allowEmpty = template.get('-allowEmpty', False)
         self.hideEmptyContent = template.get('-hideEmptyContent', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
+        self.condition = template.get('-if', None)
         self.requiredParameters = template.get('-requiredParameters', [])
         self.children = []
         self.el = None
@@ -286,20 +284,23 @@ class XMLElement(object):
         else:
             self.parent_pos = 0
 
-        logger.debug(u'Creating lxml-element for {path}'.format(path=self.get_path()))
-
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
         if self.namespace:
-            self.el = etree.Element(u"{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
         else:
-            self.el = etree.Element(u"{}".format(self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{}".format(self.name), nsmap=full_nsmap)
 
         self.el.text = self.parse(info)
 
         for req_param in self.requiredParameters:
-            if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
+            if info.get(req_param) is None or info.get(req_param, '') == '':
+                return None
+
+        if self.condition is not None:
+            condition = parseContent(self.condition, info)
+            if condition == 'False':
                 return None
 
         for attr in self.attr:
@@ -317,16 +318,17 @@ class XMLElement(object):
         if self.external:
             ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
             for ext_dir in natsorted(ext_dirs):
-                ptr = XMLElement(self.external['-pointer'])
-                ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
+                if '-pointer' in self.external:
+                    ptr = XMLElement(self.external['-pointer'])
+                    ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
-                ptr_info = info
-                ptr_info['_EXT'] = ext_dir
-                ptr_info['_EXT_HREF'] = ptr_file_path
-                child_el = ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self)
+                    ptr_info = info
+                    ptr_info['_EXT'] = ext_dir
+                    ptr_info['_EXT_HREF'] = ptr_file_path
+                    child_el = ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self)
 
-                if child_el is not None:
-                    self.add_element(ptr)
+                    if child_el is not None:
+                        self.add_element(ptr)
 
         for child_idx, child in enumerate(self.children):
             child.parent = self
@@ -340,7 +342,7 @@ class XMLElement(object):
                             include = False
 
                     if include:
-                        logger.debug(u'Creating child element with additional file data: {data}'.format(data=fileinfo))
+                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
                         child_el = child.createLXMLElement(
@@ -371,7 +373,7 @@ class XMLElement(object):
                 for idx, v in iterator:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
-                    child_info[u'{foreach}__key'.format(foreach=child.foreach)] = idx
+                    child_info['{foreach}__key'.format(foreach=child.foreach)] = idx
 
                     child_el = child.createLXMLElement(
                         child_info,
@@ -427,7 +429,7 @@ class XMLElement(object):
         return self.el
 
 
-class XMLAttribute(object):
+class XMLAttribute:
     """
         Args:
             template: The template for the attribute, example:
@@ -499,10 +501,13 @@ def parse_files(fid, path, external, algorithm, rootdir):
     return files
 
 
-class XMLGenerator(object):
-    def __init__(self, filepath=None):
+class XMLGenerator:
+    def __init__(self, filepath=None, allow_unknown_file_types=False, allow_encrypted_files=False):
         self.parser = etree.XMLParser(remove_blank_text=True)
-        self.fid = FormatIdentifier(allow_unknown_file_types=False)
+        self.fid = FormatIdentifier(
+            allow_unknown_file_types=allow_unknown_file_types,
+            allow_encrypted_files=allow_encrypted_files,
+        )
 
         if filepath is not None:
             self.tree = etree.parse(filepath, parser=self.parser)
@@ -595,8 +600,6 @@ class XMLGenerator(object):
             data = f.get('data', {})
 
             data['_XML_FILENAME'] = os.path.basename(fname)
-
-            logger.debug(u'Creating {f} with {d}'.format(f=fname, d=data))
 
             self.tree = etree.ElementTree(
                 rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)

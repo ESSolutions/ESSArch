@@ -23,7 +23,7 @@ class FixedWidthValidator(BaseValidator):
             time_done=timezone.now(),
             validator=self.__class__.__name__,
             required=self.required,
-            task_id=self.task,
+            task=self.task,
             information_package_id=self.ip,
             responsible=self.responsible,
             message=msg,

@@ -8,7 +8,10 @@ from ESSArch_Core.ip.models import EventIP, InformationPackage
 class EventIPManagerTestCase(TestCase):
     def setUp(self):
         self.id_val = '01994642-17c6-474e-923f-1b58fb137f30'
-        self.event_type = EventType.objects.create(eventType=10, eventDetail='Testing type')
+        self.event_type = EventType.objects.create(
+            eventType=10, eventDetail='Testing type',
+            category=EventType.CATEGORY_INFORMATION_PACKAGE,
+        )
         self.time = '2017-06-05 15:54:33.521858+00:00'
         self.user = 'essuser'
         self.objid = 'foo'

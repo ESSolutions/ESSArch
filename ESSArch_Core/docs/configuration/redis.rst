@@ -6,7 +6,7 @@ Set ``REDIS_URL`` in the application configuration file using one of the
 following standard `redis-py`_ formats:
 
 
-.. code-block:: txt
+.. code-block:: text
 
     redis://[:password]@localhost:6379/0
     rediss://[:password]@localhost:6379/0

@@ -1,0 +1,332 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-03 13:47+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../restapi/archival-descriptions.rst:3
+msgid "Archival description management"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:5
+msgid ""
+"API endpoints for viewing, creation, updating and deleting posts in "
+"ESSArchs ARchival description management functionality."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:11
+msgid "Agents"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:12
+msgid ""
+"API endpoint that allows authority records (Agents) to be viewed or "
+"edited."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:29
+msgid "Agent Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:30
+msgid "API endpoint that allows agent types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:80
+msgid "Agent Identifier Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:81
+msgid "API endpoint that allows agent identifier types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:106
+msgid "Agent Name Types"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:108
+msgid "API endpoint that allows agent name types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:140
+msgid "Agent Note Types"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:141
+msgid "API endpoint that allows agent note types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:178
+msgid "Agent Place Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:179
+msgid "API endpoint that allows Agent place types to be viewed or edited."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:220
+msgid "Agent Relation Types"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:222
+msgid "API endpoint that allows agent relation types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:259
+msgid "Authority Types"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:261
+msgid "API endpoint that allows authority types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:290
+msgid "Deliveries"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:292
+msgid "API endpoint that allows deliveries to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:320
+msgid "Delivery Types"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:322
+msgid "API endpoint that allows delivery types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:355
+msgid "Location"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:357
+msgid "API endpoint that allows locations to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:388
+msgid "Location Level Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:390
+msgid "API endpoint that allows location level types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:431
+msgid "Location Function Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:433
+msgid "API endpoint that allows location function types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:463
+msgid "Language"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:465
+msgid "API endpoint that allows language types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:499
+msgid "Metric Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:501
+msgid "API endpoint that allows metric types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:534
+#: ../../restapi/archival-descriptions.rst:602
+msgid "Node Relation Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:536
+#: ../../restapi/archival-descriptions.rst:604
+msgid "API endpoint that allows node relation types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:566
+#: ../../restapi/archival-descriptions.rst:662
+msgid "Node Note Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:568
+#: ../../restapi/archival-descriptions.rst:664
+msgid "API endpoint that allows node note types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:634
+msgid "Node Identifier Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:636
+msgid "API endpoint that allows node identifier types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:697
+msgid "Structures"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:698
+msgid "API endpoint that allows structures to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:747
+msgid "Structure Units"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:748
+msgid "API endpoint that allows structure units to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:801
+msgid "Structure Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:803
+msgid "API endpoint that allows structure types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:840
+msgid "Name of the structure type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:841
+msgid "Named to be used on instances of a structure"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:842
+#: ../../restapi/archival-descriptions.rst:843
+#: ../../restapi/archival-descriptions.rst:844
+msgid "true/false"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst
+msgid "Status Codes"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:845
+#: ../../restapi/archival-descriptions.rst:936
+#: ../../restapi/archival-descriptions.rst:986
+#: ../../restapi/archival-descriptions.rst:1023
+#: ../../restapi/archival-descriptions.rst:1082
+msgid "Created"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:848
+msgid "Tag"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:850
+msgid "API endpoint that allows tags to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:934
+msgid ""
+"Creates a new tag. Tags are either top-level resources or nodes "
+"referenced in a structure instance."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:940
+msgid "Tag Version Type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:942
+msgid "API endpoint that allows tag version types to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:981
+msgid "Creates a new tag version type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:983
+msgid "Name or title of the tag version type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:984
+msgid "true if type is to be an archive type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:985
+msgid "true if type is to be a information package type"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:990
+msgid "Ref Code"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:992
+msgid "API endpoint that allows ref codes to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1019
+msgid "Creates a new ref code"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1021
+msgid "The id of a country"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1022
+msgid "A repository code"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1029
+msgid "Transfers"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1030
+msgid "API endpoint that allows transfers to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1073
+msgid "creates a new transfer"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1075
+msgid "The transfers name"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1076
+msgid "Id of the delivery in Deliveries_"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1077
+msgid "The organization responsible for the transfer."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1078
+msgid "The address to the organization responsible for the transfer."
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1079
+msgid "The named individual responsible for the transfer"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1080
+msgid "The email to the individual responsible for the transfer"
+msgstr ""
+
+#: ../../restapi/archival-descriptions.rst:1081
+msgid "A description of the transfer e.g. what is being transferred"
+msgstr ""
+

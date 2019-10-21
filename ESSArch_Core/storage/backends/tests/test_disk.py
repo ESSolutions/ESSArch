@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-import tempfile
 import shutil
-
+import tempfile
 from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
 
 
 class DiskStorageBackendTests(TestCase):
@@ -41,7 +42,7 @@ class DiskStorageBackendTests(TestCase):
             disk_storage_backend.write(
                 src="some_src",
                 ip=mock.ANY,
-                storage_method=mock_storage_method,
+                container=mock_storage_method.containers,
                 storage_medium=mock_storage_medium
             )
 
@@ -49,7 +50,7 @@ class DiskStorageBackendTests(TestCase):
             disk_storage_backend.write(
                 src=["some_src"],
                 ip=mock.ANY,
-                storage_method=mock_storage_method,
+                container=mock_storage_method.containers,
                 storage_medium=mock_storage_medium
             )
 
@@ -65,7 +66,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src="some_src",
             ip=mock.ANY,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=mock_st_medium
         )
 
@@ -85,12 +86,12 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src=src_list,
             ip=mock.ANY,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=mock_st_medium
         )
 
         expected_dest = self.datadir
-        expected_copy_calls = [mock.call(src, expected_dest, block_size=65536) for src in src_list]
+        expected_copy_calls = [mock.call(src, expected_dest, block_size=DEFAULT_BLOCK_SIZE) for src in src_list]
 
         self.assertEqual(mock_copy.call_count, 3)
         mock_copy.assert_has_calls(expected_copy_calls)
@@ -111,12 +112,12 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend.write(
             src=src_list,
             ip=ip,
-            storage_method=mock_st_method,
+            container=mock_st_method.containers,
             storage_medium=st_medium
         )
 
         expected_dest = os.path.join(self.datadir, "some/object/path")
-        expected_copy_calls = [mock.call(src, expected_dest, block_size=65536) for src in src_list]
+        expected_copy_calls = [mock.call(src, expected_dest, block_size=DEFAULT_BLOCK_SIZE) for src in src_list]
 
         self.assertEqual(mock_copy.call_count, 3)
         mock_copy.assert_has_calls(expected_copy_calls)
@@ -135,7 +136,7 @@ class DiskStorageBackendTests(TestCase):
             dst="some_dest"
         )
 
-        mock_copy.assert_called_once_with("the_full_path", "some_dest", block_size=65536)
+        mock_copy.assert_called_once_with("the_full_path", "some_dest", block_size=DEFAULT_BLOCK_SIZE)
 
     @mock.patch("ESSArch_Core.storage.models.StorageObject")
     @mock.patch("ESSArch_Core.ip.models.InformationPackage")
@@ -157,9 +158,9 @@ class DiskStorageBackendTests(TestCase):
         )
 
         expected_copy_calls = [
-            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=65536),
-            mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=65536),
-            mock.call(f"{full_path_to_src}", "some_dest", block_size=65536)
+            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=DEFAULT_BLOCK_SIZE),
+            mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
+            mock.call(f"{full_path_to_src}", "some_dest", block_size=DEFAULT_BLOCK_SIZE)
         ]
 
         self.assertEqual(mock_copy.call_count, 3)
@@ -185,7 +186,7 @@ class DiskStorageBackendTests(TestCase):
             include_xml=False
         )
 
-        mock_copy.assert_called_once_with(f"{full_path_to_src}", "some_dest", block_size=65536)
+        mock_copy.assert_called_once_with(f"{full_path_to_src}", "some_dest", block_size=DEFAULT_BLOCK_SIZE)
 
     @mock.patch("ESSArch_Core.storage.backends.disk.DiskStorageBackend._extract")
     @mock.patch("ESSArch_Core.storage.models.StorageObject")
@@ -209,8 +210,8 @@ class DiskStorageBackendTests(TestCase):
         )
 
         expected_copy_calls = [
-            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=65536),
-            mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=65536),
+            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=DEFAULT_BLOCK_SIZE),
+            mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
         ]
 
         self.assertEqual(mock_copy.call_count, 2)

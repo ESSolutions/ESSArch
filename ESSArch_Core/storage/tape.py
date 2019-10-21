@@ -4,17 +4,15 @@ import os
 import re
 import tarfile
 import time
-
-from subprocess import Popen, PIPE
+from subprocess import PIPE, Popen
 
 from django.utils.timezone import localtime
 from lxml import etree
-
-from retrying import retry
+from tenacity import retry, stop_after_attempt, wait_fixed
 
 from ESSArch_Core.storage.exceptions import (
-    MTInvalidOperationOrDeviceNameException,
     MTFailedOperationException,
+    MTInvalidOperationOrDeviceNameException,
     RobotException,
     RobotMountException,
     RobotMountTimeoutException,
@@ -23,13 +21,11 @@ from ESSArch_Core.storage.exceptions import (
     TapeUnmountedError,
 )
 
-from ESSArch_Core.storage.models import Robot, StorageMedium, TapeDrive, TapeSlot
-
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=60000)
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def mount_tape(robot, slot, drive):
     """
     Mounts tape from slot into drive
@@ -41,7 +37,7 @@ def mount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
             slot=slot, drive=drive, robot=robot, cmd=cmd
@@ -69,7 +65,7 @@ def mount_tape(robot, slot, drive):
     return out
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=60000)
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def unmount_tape(robot, slot, drive):
     """
     Unmounts tape from drive into slot
@@ -81,7 +77,7 @@ def unmount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
             drive=drive, slot=slot, robot=robot, cmd=cmd
@@ -115,7 +111,7 @@ def rewind_tape(drive):
     """
 
     cmd = 'mt -f %s rewind' % (drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Rewinding tape in {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -147,7 +143,7 @@ def is_tape_drive_online(drive):
     """
 
     cmd = 'mt -f %s status' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Checking if {drive} is online: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -180,6 +176,7 @@ def wait_to_come_online(drive, timeout=120):
     raise RobotMountTimeoutException()
 
 
+@retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def tape_empty(drive):
     logger.debug('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
@@ -295,7 +292,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
 
 def get_tape_file_number(drive):
     cmd = 'mt -f %s status | grep -i "file number"' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Getting tape file number of {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -321,7 +318,7 @@ def set_tape_file_number(drive, num=0):
     new_num, op = get_tape_op_and_count(current_num, num)
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=num, drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -364,8 +361,15 @@ def robot_inventory(robot):
         None
     """
 
+    from ESSArch_Core.storage.models import (
+        Robot,
+        StorageMedium,
+        TapeDrive,
+        TapeSlot,
+    )
+
     cmd = 'mtx -f %s status' % robot
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 

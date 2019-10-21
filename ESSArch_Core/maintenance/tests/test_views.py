@@ -8,7 +8,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient
 
-from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob, ConversionRule, AppraisalRule
+from ESSArch_Core.maintenance.models import (
+    AppraisalJob,
+    AppraisalRule,
+    ConversionJob,
+    ConversionRule,
+)
 
 User = get_user_model()
 

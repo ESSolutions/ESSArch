@@ -1,0 +1,188 @@
+<div class="event-view">
+  <div st-table="vm.displayed" st-pipe="eventPipe" class="table-container">
+    <div class="title-action-button-row">
+      <div class="title">
+        <h4>
+          {{ "EVENT.EVENTS" | translate }}
+        </h4>
+        <a
+          target="_blank"
+          class="help-button"
+          uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+          tooltip-position="top auto"
+          href="/docs/{{$translate.use()}}/user_guide/user-interface/events-view.html"
+        >
+          <i class="far fa-question-circle"></i>
+        </a>
+      </div>
+    </div>
+    <div class="search-prepare-wrapper">
+      <select
+        tabindex="-1"
+        class="form-control items-per-page"
+        ng-change="updateEventsPerPage(vm.itemsPerPage)"
+        ng-model="vm.itemsPerPage"
+        ng-options="x for x in [5,10,20,25,50]"
+        uib-tooltip="{{ 'ITEMSPERPAGE' | translate }}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+      </select>
+      <span
+        class="fas fa-md fa-filter filter-icon"
+        ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}"
+        ng-click="toggleAdvancedFilters()"
+        uib-tooltip="{{ 'FILTERS' | translate }}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+      </span>
+      <div ng-show="showAdvancedFilters" class="advanced-filters">
+        <form name="form1" style="position: relative;" novalidate>
+          <div class="formly-buttons-wrapper">
+            <formly-form model="filterModel" fields="fields" options="options"> </formly-form>
+          </div>
+        </form>
+        <div class="pt-base flex-row justify-content-end">
+          <button class="btn btn-primary" ng-click="submitAdvancedFilters()">{{ "APPLY" | translate }}</button>
+          <button class="btn btn-default" type="button" ng-click="vm.clearFilters()">{{ "CLEAR" | translate }}</button>
+        </div>
+      </div>
+      <div class="global-search">
+        <input
+          id="event-search-input"
+          st-search=""
+          class="form-control"
+          ng-attr-placeholder="{{ 'GLOBALSEARCH' | translate }}"
+          type="text"
+          uib-tooltip="{{ 'EVENT.GLOBALSEARCHDESC_EVENT' | translate }}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        />
+      </div>
+      <div class="refresh-icon">
+        <span
+          ng-click="stCtrl.pipe()"
+          class="cursor-pointer angular-animate fas fa-sync-alt fa-lg"
+          ng-class="{'fa-sync-alt-animate': eventLoading }"
+          uib-tooltip="{{ 'REFRESHTABLEDESC' | translate }}"
+          tooltip-placement="auto left"
+          tooltip-append-to-body="true"
+        ></span>
+      </div>
+    </div>
+    <div class="list-view-table">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th></th>
+            <th class="cursor-pointer" st-sort="eventType">{{ "EVENT.EVENTTYPE" | translate }}</th>
+            <th class="cursor-pointer" st-sort="eventOutcomeDetailNote">{{ "COMMENT" | translate }}</th>
+            <th class="cursor-pointer" st-sort="linkingAgentIdentifierValue">{{ "AGENT" | translate }}</th>
+            <th class="cursor-pointer" st-sort-default="reverse" st-sort="eventDateTime">
+              {{ "EVENT.EVENTTIME" | translate }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-click="eventClick(row)"
+            ng-repeat="row in vm.displayed"
+            ng-class="{'failed': getEventOutcome(row.eventOutcome) === 'failure', 'success': getEventOutcome(row.eventOutcome) === 'success', }"
+          >
+            <td class="text-center pr-0">
+              <i
+                class="fas fa-check"
+                ng-if="getEventOutcome(row.eventOutcome) === 'success'"
+                uib-tooltip="{{ 'EVENT.EVENT_SUCCESS' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+              </i>
+              <i
+                class="fas fa-times"
+                ng-if="getEventOutcome(row.eventOutcome) === 'failure'"
+                uib-tooltip="{{ 'EVENT.EVENT_FAILURE' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+              </i>
+            </td>
+            <td class="white-space-nowrap">{{ row.eventDetail }}</td>
+            <td class=" white-space-nowrap">{{ row.eventOutcomeDetailNote }}</td>
+            <td class="white-space-nowrap">{{ row.linkingAgentIdentifierValue }}</td>
+            <td class="white-space-nowrap">{{ row.eventDateTime | date: "yyyy-MM-dd HH:mm:ss" }}</td>
+          </tr>
+          <tr ng-if="!vm.displayed.length && !eventLoading" class="empty-table-indicator">
+            <td colspan="5">{{ "NO_RESULTS_FOUND" | translate }}</td>
+          </tr>
+          <tr ng-if="!vm.displayed.length && eventLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="5">{{ "LOADING" | translate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <td class="text-center">
+      <div
+        class="text-center"
+        st-template="static/frontend/views/pagination.html"
+        st-pagination=""
+        st-items-by-page="vm.itemsPerPage"
+        st-displayed-pages="7"
+      ></div>
+    </td>
+  </div>
+  <div permission permission-only="'ip.add_eventip'" class="events-footer">
+    <form
+      ng-if="ip.state != 'Created' && ip.state != 'Creating' && ip.state != 'Submitting' && ip.state != 'Submitted' && ip.state != 'Transferring' && ip.state != 'Transferred'"
+      class="events-form"
+      ng-submit="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)"
+    >
+      <div class="form-group my-0" style="margin-right: 5px;">
+        <label>{{ "EVENT.EVENTTYPE" | translate }}</label>
+        <select
+          class="status-note form-control"
+          ng-model="newEventForm.eventType"
+          ng-options="x as x.eventDetail for x in vm.eventTypeCollection"
+          ng-required="true"
+        >
+          <option value="" selected="selected" disabled>{{ "SELECTONE" | translate }}</option>
+        </select>
+      </div>
+      <div class="form-group my-0">
+        <label>{{ "OUTCOME" | translate }}</label>
+        <select
+          class="status-note form-control"
+          ng-model="newEventForm.eventOutcome"
+          ng-options="x as x.name for x in eventOutcomes"
+          ng-required="true"
+        >
+          <option value="" selected="selected" disabled>{{ "SELECTONE" | translate }}</option>
+        </select>
+      </div>
+      <div class="form-group my-0">
+        <label>{{ "COMMENT" | translate }}</label>
+        <textarea
+          ng-enter="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)"
+          maxlength="255"
+          class="signature form-control"
+          ng-model="newEventForm.comment"
+          ng-required="true"
+          id="signature"
+        ></textarea>
+      </div>
+      <div class="flex-column justify-content-end">
+        <button type="submit" class="btn btn-primary submit-button">{{ "EVENT.ADDEVENT" | translate }}</button>
+      </div>
+    </form>
+  </div>
+  <div
+    uib-alert
+    ng-if="addEventAlert"
+    style="width:50%; float:right; margin-right: 10px;"
+    ng-class="'alert-' + (addEventAlert.type || 'warning')"
+    close="closeAlert()"
+  >
+    {{ addEventAlert.msg | translate }}
+  </div>
+</div>

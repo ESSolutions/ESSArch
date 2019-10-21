@@ -1,0 +1,649 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-17 12:41+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/archival-descriptions/index.rst:3
+msgid "Archival description management"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:4
+msgid ""
+"ESSArch offers a complete solutions for archival collections management. "
+"It adheres to ICA standards (ISAAR-CPF, ISAD-G, ISDF) and has "
+"functionality for managing accessions, locations, classifications and "
+"preservation planning of archival holdings."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:9
+msgid "Authority records"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:10
+msgid ""
+"Describes corporate bodies, persons or families that are associated with "
+"the creation and maintenance of archives, such as creator, donor or "
+"custodian."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:13
+msgid ""
+"ESSArch adheres to `ISAAR (CPF), 2nd Edition "
+"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-"
+"edition_EN.pdf>`_ and comes with a standard set of controlled "
+"vocabularies for typed fields which can be customized or supplemented by "
+"additional values."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:15
+msgid ""
+"Authority Records are created and controlled separately from archival "
+"(resource) descriptions in ESSArch and are associated by linking."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:18
+msgid "By default there is three main types of Authority records in ESSArch:"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:20
+msgid "Person"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:21
+msgid "Family"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:22
+msgid "Corporate Body"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:24
+msgid ""
+"These three main types can be further `subdivided <Create custom "
+"vocabularies>`_ by the organization needs or other requirements of "
+"subdivision i.e."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:26
+msgid "Corporate body - State agency"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:27
+msgid "Family - Royal Family"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:30
+msgid ""
+"The :ref:`ICA Standards <ICA_Standards>` section provides a detailed "
+"documentation of the entry fields of an authority record in ESSArch, "
+"their relation to ISAAR-CPF and default values available from a standard "
+"installation."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:34
+msgid "Creating and managing authority records"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:36
+msgid ""
+"Be careful when updating Authority records! Updating of an Authority "
+"record changes it for every link to the referenced record."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:42
+msgid "Creating a new authority record"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:44
+msgid ""
+"A new authority record can be created by clicking the new button under "
+"the authority record section of ESSArch."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:46
+msgid ""
+"When initially creating an authority record the following fields are "
+"required for all types of authority records:"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:48
+#: ../../user_guide/archival-descriptions/index.rst:312
+msgid "Type"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:49
+msgid "Name (Authorized form)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:50
+msgid "Language"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:51
+msgid "Reference code (institutional code)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:52
+msgid "Create date (Auto populated)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:60
+msgid "New authority record form"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:63
+msgid ""
+"For Authority records of type person the name field is automatically "
+"seperated into  Firstname and Lastname fields."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:71
+msgid "Detail view of newly created authority record"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:75
+msgid "Adding other name forms"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:77
+msgid ""
+"By clicking the add button in the names subsection one can record "
+"additional name forms. i.e. Parallel forms of name, Standardized forms of"
+" name according to other rules and Other forms of name."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:88
+msgid ""
+"After the additional name form has been saved the record is available "
+"under the Names section."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:98
+msgid "Adding history, descriptive texts and notes"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:99
+msgid "In ESSArch one can have multiple descriptive texts / notes."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:102
+msgid ""
+"Custom note types will in future EAC exports be exported as "
+"<maintenanceEvent>  !"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:104
+#: ../../user_guide/archival-descriptions/index.rst:364
+msgid "Standard type of notes that can be used in ESSArch:"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:106
+msgid "Biography/History"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:107
+msgid "Maintenance"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:108
+msgid "Internal structures"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:109
+msgid "Genealogy"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:110
+msgid "General context"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:112
+#: ../../user_guide/archival-descriptions/index.rst:380
+msgid ""
+"To add a new descriptive text click on the History or Remarks tab and "
+"then the add button."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:121
+msgid ""
+"From the dropdown menu choose the appropriate note type, add text and "
+"clcik add to save."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:132
+msgid "Creating relations"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:134
+msgid ""
+"Relationships with other corporate bodies, persons and families can be "
+"described by linking authority records."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:136
+msgid ""
+"Relationship types in ESSArch are mirrored which means that if a relation"
+" is created on one authority record the relation will automatically be "
+"mirrored when viewing the referenced authority record."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:139
+msgid "**Type**"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:139
+msgid "**Mirrored Type**"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:141
+msgid "business partner"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:143
+#: ../../user_guide/archival-descriptions/index.rst:145
+msgid "successor"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:143
+#: ../../user_guide/archival-descriptions/index.rst:145
+msgid "predecessor"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:147
+#: ../../user_guide/archival-descriptions/index.rst:149
+msgid "owned by"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:147
+#: ../../user_guide/archival-descriptions/index.rst:149
+msgid "owner of"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:151
+#: ../../user_guide/archival-descriptions/index.rst:153
+msgid "controlling"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:151
+#: ../../user_guide/archival-descriptions/index.rst:153
+msgid "controlled"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:155
+#: ../../user_guide/archival-descriptions/index.rst:157
+msgid "subordinate"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:155
+#: ../../user_guide/archival-descriptions/index.rst:157
+msgid "superior"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:160
+msgid ""
+"To add a relation from one authority record to another click the add "
+"button in the related authority records section."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:170
+msgid "Archival Descriptions"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:171
+#, python-format
+msgid ""
+"Archival Descriptions identifies and explains the context and content of "
+"archival materials in order to promote its accessibility. ESSArch adheres"
+" to `ISAD (G), 2nd Edition "
+"<https://www.ica.org/sites/default/files/CBPS_2000_Guidelines_ISAD%28G"
+"%29_Second-edition_EN.pdf>`_ and comes with a standard set of controlled "
+"vocabularies for typed fields which can be customized or supplemented by "
+"additional values. Archival descriptions are created and controlled "
+"separately from authority records in ESSArch and are associated by "
+"linking."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:177
+#: ../../user_guide/archival-descriptions/index.rst:310
+msgid "Structures"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:178
+msgid ""
+"Structures are a basis for the arrangement, classification and "
+"description of records and can in  be filing plans, business process "
+"classifications description of functions or basically any other "
+"classification system that can be represented as either a flat or a tree "
+"hierarchy structure."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:181
+msgid ""
+"Structures in ESSArch largely based upon `ISDF 1st edition "
+"<https://www.ica.org/sites/default/files/CBPS_2007_Guidelines_ISDF_First-"
+"edition_EN.pdf>`_ For a detailed crosswalk between ESSArch and ISDF "
+"please see the :ref:`ICA Standards <ICA_Standards>` section."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:186
+msgid "Adding new structure types"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:187
+msgid "New structure types are added through ESSArch's adminstration interface."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:196
+msgid "A structure type can be configured to either allow or dissalow:"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:198
+msgid "Editable instances of a template"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:199
+msgid "Editable relations (to other levels or structures) of a template"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:200
+msgid "Movable instance units (nodes in a tree) of a template"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:203
+msgid "Adding new Structure Unit Types"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:204
+msgid ""
+"Structure units are the levels of classification and description within a"
+" given structure and are added to a structure type through ESSArch's "
+"administration interface."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:214
+msgid "two different structure types with example structure units (levels)."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:217
+msgid "**Structure Type**"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:217
+msgid "**Structure Unit**"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:219
+#: ../../user_guide/archival-descriptions/index.rst:221
+#: ../../user_guide/archival-descriptions/index.rst:223
+msgid "Business Classification Scheme"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:219
+msgid "Transaction"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:221
+msgid "Activity"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:223
+msgid "Function"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:225
+#: ../../user_guide/archival-descriptions/index.rst:227
+#: ../../user_guide/archival-descriptions/index.rst:229
+msgid "Catalogue structure"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:225
+msgid "Series"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:227
+msgid "Sub-series"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:229
+msgid "File"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:233
+msgid "Adding new Structure"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:234
+msgid ""
+"Structures (template) are administrated under the structure section of "
+"ESSArch."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:242
+msgid "To add a new structure, click the new structure button ."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:252
+msgid "Adding Structure units"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:253
+msgid ""
+"Structure units are added to a structure by right clicking on a node in "
+"the tree."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:264
+msgid "Applying rules to a structures and structure units"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:265
+#: ../../user_guide/archival-descriptions/index.rst:400
+#: ../../user_guide/archival-descriptions/index.rst:405
+msgid "TODO"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:269
+msgid "Adding relationships to other Structures / Structure units"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:277
+msgid "Publish"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:278
+msgid ""
+"When a Structure has been published it becomes available for use through "
+"out ESSArch."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:282
+msgid "Top-level Resources"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:283
+msgid ""
+"All resources described in ESSArch need to have a top-level resource. "
+"Intellectually this can represent the archival descriptions on the fonds "
+"or collections level."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:286
+msgid ""
+"There are no limitations of the types of top-level resources that can be "
+"used in ESSArch. One institution might settle with just one top-level "
+"whilst another has a need for distinguish different types of archives or "
+"collections."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:296
+msgid "Adding a new top-level resource"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:297
+msgid ""
+"Under the resource tab click on the \"new resource\" button. From the "
+"structures field choose one or more structures that will act as a "
+"template for the the top-level resource it self and underlying resource "
+"descriptions defined in the structure."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:307
+msgid ""
+"When initially creating an top-level resource record the following fields"
+" are required:"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:309
+msgid "Name (ISAD-G Title)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:311
+msgid "Creator"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:313
+msgid "Reference code"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:317
+msgid "Adding new structure units"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:318
+msgid ""
+"Structure units are the levels of classification and description within a"
+" given structure. If the user has the right permissions new structure "
+"units can be added to an instance (top-level resource) of a structure."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:321
+msgid ""
+"To add a new structure unit, right click on the tree node and select "
+"\"add structure unit\""
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:337
+msgid "Adding nodes"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:338
+msgid ""
+"Nodes can be described as something with a physical representation within"
+" a logical structure, something that can be moved around. e.g. analogue "
+"information packages archival boxes, other containers as well as digital "
+"information packages (AIP) and items contained in these packages."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:341
+msgid ""
+"Nodes are added under structure units by right clicking on a structure "
+"unit in the tree and select \"add node\"."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:351
+msgid ""
+"When a structure unit is selected in the tree, an overview of the "
+"contents is displayed."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:361
+msgid "Adding descriptive texts and notes"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:362
+msgid ""
+"In ESSArch one can have multiple descriptive texts / notes for resource "
+"records"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:366
+msgid "Archival history"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:367
+msgid "Administrative / Biographical history"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:368
+msgid ""
+"Immediate source of acquisition or transfer (see also `Accession "
+"Records`_)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:369
+msgid "Appraisal"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:370
+msgid "Destruction"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:371
+msgid "Scheduling"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:372
+msgid "Accruals (see also `Accession Records`_)"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:373
+msgid "System of arrangement"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:374
+msgid "Physical characteristics"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:375
+msgid "Finding aid"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:376
+msgid "Publication note"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:377
+msgid "Archivist's note"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:390
+msgid "Location Records"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:391
+msgid ""
+"Location records can describe any storage location; buildings, rooms "
+"shelves, file cabinets, etc. Location records are designed to track both "
+"the permanent and temporary locations of materials."
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:393
+msgid ""
+"Location records are intended for physical spaces and not storage of "
+"digital AIP's / files. Locations for AIP's are managed via "
+"Administration/Media Information / Storage mediums"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:399
+msgid "Linking resources to locations"
+msgstr ""
+
+#: ../../user_guide/archival-descriptions/index.rst:404
+msgid "Accession Records"
+msgstr ""
+

@@ -1,0 +1,147 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>XSDForm Demo</title>
+        <link href="css/style.css" rel="stylesheet" type="text/css"></link>
+        <script src="js/jquery-1.js" type="text/javascript"></script>
+		<script src="js/loadXML.js" type="text/javascript"></script>
+        <script src="js/xsdForm.js" type="text/javascript"></script>
+        <script src="js/vkbeautify.js" type="text/javascript"></script>
+
+		<script>
+		jQuery(document).ready(function() {
+			
+			jQuery.ajax({
+				type: "POST", // HTTP method POST or GET
+				url: "../server/getXSDNames.php", //Where to make Ajax calls
+				dataType: "json",
+				success:function(response){
+					
+					for(var i=0; i< response.length;i++)
+					{
+						
+						jQuery('<option/>', {
+							value: response[i],
+							html: response[i]
+							}).appendTo('#formselect');
+					}
+					
+				},
+				error:function (xhr, ajaxOptions, thrownError){
+					alert(thrownError);
+				}
+			});
+			
+		    $('#processed_xml').val('');
+			var schema = $( "#formselect" ).val();
+			
+			if(schema != "x")
+				generateForm("../../test/xsds/"+schema,'xsdform_container', false);
+			
+			
+			$( "#langselect" ).change(function() {
+			  //$( "#root" ).empty();
+			  //generateForm(schema,'xsdform_container', false);
+			  changeLanguage();
+			});
+			
+			$( "#formselect" ).change(function() {
+			  $( "#root" ).empty();
+			  var schema = $( "#formselect" ).val();
+			  if(schema != "x")
+				generateForm("../../test/xsds/"+schema,'xsdform_container', true);
+			});
+			
+			$( "#optattr" ).change(function() {
+			
+				if($("#optattr").prop('checked') == true){
+					showOptAttr();
+				} else {
+					hideOptAttr();
+				}
+			  //$( "#root" ).empty();
+			  //generateForm(schema,'xsdform_container', false);
+			});
+			
+			$( "#loadfromXML" ).click(function() {
+					completeInputs();
+			});
+		
+			
+			$( "#savexml" ).click(function() {
+					SaveXML();
+			});
+			
+			$(document).on('click', 'legend', function(){ 
+				 if($(this).attr('isopen') == "yes")
+				{
+					var tagname;
+					var childs = $(this).parent().children();
+					$(this).attr('isopen', 'no');
+					$(this).css("border-left", "2px solid #c66666");
+					childs.each(function(  ) {
+						tagname = $(this)[0].tagName;
+						if(tagname != "LEGEND")
+							$(this).hide();
+					});
+				} else {
+					$(this).attr('isopen', 'yes');
+					$(this).css("border-left", "2px solid #4ec67f");
+					$(this).parent().children().show();
+				}
+			});
+
+			/*$('legend').click(function(){
+			
+				//alert($(this).attr("isopen"));
+				
+			});*/
+			
+		}); 
+		</script>
+    </head>
+    <body>
+        
+            <H3>XSDForm Demo</H3>
+			<h3>Back to the main site: <a href="../server/index.php">main site</a></h3>
+			<h3>A schema must be selected first!!</h3>
+			<span>Select schema:</span>
+			
+			<select id="formselect">
+				<option value="x">Select your XSD file</option>
+					
+			</select>
+			
+			
+			<span>Select language:</span>
+			<select id="langselect">
+				<option value="en">English</option>
+			    <option value="sl">Slovenian</option>
+			</select>
+			
+			<input id="optattr" name="optattr" value="true" type="hidden">
+			
+			
+			
+			<br/>
+			
+			<br/> 
+				
+			<div id="content"></div>
+
+            <div id="root" xmlname="theroot"></div>
+			<hr/>
+			<button id="doxml" type="button">Create XML</button>
+			
+            <H3>The Output</H3>
+            <textarea id="processed_xml" name="processed_xml" rows="20" cols="100"></textarea>
+			<br/>
+			<label>XML Filename: </label>
+			<input id="xmlfilename" name="xmlfilename" ></input>
+			<button id="savexml" type="button">Save XML</button>
+
+    </body>
+</html>

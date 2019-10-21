@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -29,9 +29,10 @@ import tempfile
 from celery import states as celery_states
 from django.conf import settings
 from django.db import connection
-from django.test import override_settings, TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django_redis import get_redis_connection
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -60,7 +61,7 @@ class test_status(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((5 * depth) + 2):
+        with self.assertNumQueries((6 * depth) + 2):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status(self):
@@ -90,7 +91,7 @@ class test_status(TestCase):
             processstep=self.step
         )
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_task(self):
@@ -102,7 +103,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_tasks(t)
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_create_child_step(self):
@@ -110,7 +111,7 @@ class test_status(TestCase):
 
         ProcessStep.objects.create(parent_step=self.step)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_child_step(self):
@@ -119,7 +120,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_child_steps(s)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_run_task(self):
@@ -132,7 +133,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_task_in_nested_step(self):
@@ -146,7 +147,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_task(self):
@@ -172,7 +173,7 @@ class test_status(TestCase):
         self.step.status
         s.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_step(self):
@@ -186,7 +187,7 @@ class test_status(TestCase):
         self.step.status
         s.undo()
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_retry_step(self):
@@ -201,7 +202,7 @@ class test_status(TestCase):
         self.step.status
         s.retry()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_resume_step(self):
@@ -226,7 +227,7 @@ class test_status(TestCase):
         self.step.status
         s.resume()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_pending_task(self):
@@ -647,6 +648,8 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
+        Path.objects.create(entity='temp', value='temp')
+
         self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
     def test_empty_step(self):
@@ -954,6 +957,8 @@ class test_running_steps(TransactionTestCase):
 
 @override_settings(CELERY_ALWAYS_EAGER=False)
 class test_running_steps_eagerly(TransactionTestCase):
+    def setUp(self):
+        Path.objects.create(entity='temp', value='temp')
 
     def test_empty_step(self):
         step = ProcessStep.objects.create()
@@ -1056,6 +1061,10 @@ class test_running_steps_eagerly(TransactionTestCase):
 
 
 class test_undoing_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
@@ -1247,6 +1256,10 @@ class test_undoing_steps(TestCase):
 
 
 class test_retrying_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         self.test_dir = "test_dir"
 

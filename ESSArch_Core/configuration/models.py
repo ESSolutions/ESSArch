@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,19 +15,19 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
+import uuid
+
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-
-import uuid
 
 
 class CachedManagerMixin:
@@ -39,7 +39,7 @@ class CachedManagerMixin:
 
         if val is None:
             val = self.model.objects.values_list(value_column, flat=True).get(**{search_key: search_value})
-            cache.set(cache_name, val, 3600 * 24)
+            cache.set(cache_name, val, 30)
 
         return val
 
@@ -110,10 +110,20 @@ class EventType(models.Model):
     """
     EventType
     """
+
+    CATEGORY_INFORMATION_PACKAGE = 0
+    CATEGORY_DELIVERY = 1
+
+    CATEGORY_CHOICES = (
+        (CATEGORY_INFORMATION_PACKAGE, _('Information package')),
+        (CATEGORY_DELIVERY, _('Delivery')),
+    )
+
     eventType = models.IntegerField(primary_key=True, default=0)
     eventDetail = models.CharField(max_length=255)
     enabled = models.BooleanField(default=True)
     code = models.CharField(max_length=255, blank=True, default='')
+    category = models.IntegerField(choices=CATEGORY_CHOICES)
 
     class Meta:
         ordering = ["eventType"]
@@ -160,7 +170,7 @@ class DefaultColumnVisible(models.Model):
     visible = models.BooleanField(default=True)
 
 
-class ArchivePolicy(models.Model):
+class StoragePolicy(models.Model):
     """Specifies how an IP should be archived"""
 
     MODE_CHOICES = (
@@ -210,17 +220,11 @@ class ArchivePolicy(models.Model):
 
     index = models.BooleanField(default=True)
 
-    cache_extracted_size = models.BigIntegerField(
-        'Maximum size (bytes) of extracted package before deletion from cache', null=True
+    cache_minimum_capacity = models.IntegerField(
+        'Minimum size (bytes) available on cache before deleting content', default=0,
     )
-    cache_package_size = models.BigIntegerField(
-        'Maximum size (bytes) of package before deletion from cache', null=True
-    )
-    cache_extracted_age = models.IntegerField(
-        'Maximum age (days) of extracted package before deletion from cache', null=True
-    )
-    cache_package_age = models.IntegerField(
-        'Maximum age (days) of package before deletion from cache', null=True
+    cache_maximum_age = models.IntegerField(
+        'Maximum age (days) of content before deletion from cache, resets on access', default=0,
     )
 
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
@@ -234,7 +238,11 @@ class ArchivePolicy(models.Model):
     validate_checksum = models.BooleanField('Validate checksum', default=True)
     validate_xml = models.BooleanField('Validate XML', default=True)
     ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)
-    cache_storage = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='cache_policy')
+    storage_methods = models.ManyToManyField(
+        'storage.StorageMethod',
+        related_name='storage_policies',
+    )
+    cache_storage = models.ForeignKey('storage.StorageMethod', on_delete=models.PROTECT, related_name='cache_policy')
     preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
     ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
     information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)
@@ -244,8 +252,8 @@ class ArchivePolicy(models.Model):
 
     class Meta:
         ordering = ['policy_name']
-        verbose_name = _('archive policy')
-        verbose_name_plural = _('archive policies')
+        verbose_name = _('storage policy')
+        verbose_name_plural = _('storage policies')
 
     def __str__(self):
         if len(self.policy_name):

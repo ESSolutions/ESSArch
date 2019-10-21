@@ -3,6 +3,7 @@ import importlib
 from django.conf import settings
 
 AVAILABLE_TRANSFORMERS = {
+    'content': 'ESSArch_Core.fixity.transformation.backends.content.ContentTransformer',
     'filename': 'ESSArch_Core.fixity.transformation.backends.filename.FilenameTransformer',
     'repeated_extension': (
         'ESSArch_Core.fixity.transformation.backends.repeated_extension.RepeatedExtensionTransformer'

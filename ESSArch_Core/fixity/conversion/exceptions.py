@@ -1,4 +1,11 @@
-class InvalidFormat(Exception):
+from ESSArch_Core.exceptions import ESSArchException
+
+
+class UnknownConverter(ESSArchException):
+    pass
+
+
+class InvalidFormat(ESSArchException):
     pass
 
 

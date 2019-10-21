@@ -22,6 +22,10 @@ msgstr ""
 msgid "Information Package"
 msgstr "Informationspaket"
 
+#: filters.py:9
+msgid "Workarea"
+msgstr "Arbetsyta"
+
 #: filters.py:36
 msgid "Archivist Organization"
 msgstr "Arkivorganisation"

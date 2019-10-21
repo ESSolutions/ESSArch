@@ -1,11 +1,8 @@
-#!/usr/bin/env /ESSArch/python27/bin/python
-# -*- coding: UTF-8 -*-
-
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -28,7 +25,7 @@
 from django import forms
 from django.contrib import admin
 
-from .models import SubmissionAgreement, Profile
+from .models import Profile, SubmissionAgreement
 from .utils import profile_types
 
 
@@ -36,7 +33,7 @@ class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
-            self.fields[u'profile_{}'.format(pt)].required = False
+            self.fields['profile_{}'.format(pt)].required = False
 
     class Meta:
         model = SubmissionAgreement
@@ -47,7 +44,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
             qs = Profile.objects.filter(profile_type=pt)
-            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = qs
+            context['adminform'].form.fields['profile_{}'.format(pt)].queryset = qs
         return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
@@ -63,12 +60,12 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'archivist_organization', 'archivist_main_name',
+                'archivist_organization',
             )
         }),
         ('Profiles', {
             'classes': ('collapse', 'wide'),
-            'fields': tuple([u'profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
+            'fields': tuple(['profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
         }),
     )
 
@@ -103,7 +100,8 @@ class ProfileAdmin(admin.ModelAdmin):
         ('specification structure and data', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'specification', 'specification_data',
+                'specification',
+                'specification_data',
             )
         }),
     )

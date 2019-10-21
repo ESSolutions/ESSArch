@@ -6,7 +6,11 @@ from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
 from ESSArch_Core.auth.models import Group, GroupMemberRole, GroupType
-from ESSArch_Core.auth.util import get_objects_for_user, get_user_groups, get_user_roles
+from ESSArch_Core.auth.util import (
+    get_objects_for_user,
+    get_user_groups,
+    get_user_roles,
+)
 from ESSArch_Core.ip.models import InformationPackage
 
 User = get_user_model()

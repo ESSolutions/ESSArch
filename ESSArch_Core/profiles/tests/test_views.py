@@ -6,7 +6,10 @@ from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory
 
 from ESSArch_Core.profiles.models import Profile, SubmissionAgreement
-from ESSArch_Core.profiles.serializers import ProfileSerializer, SubmissionAgreementSerializer
+from ESSArch_Core.profiles.serializers import (
+    ProfileSerializer,
+    SubmissionAgreementSerializer,
+)
 
 User = get_user_model()
 

@@ -6,7 +6,9 @@ from django.test import TestCase
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
-from ESSArch_Core.fixity.validation.backends.fixed_width import FixedWidthValidator
+from ESSArch_Core.fixity.validation.backends.fixed_width import (
+    FixedWidthValidator,
+)
 
 
 class FixedWidthValidatorTests(TestCase):

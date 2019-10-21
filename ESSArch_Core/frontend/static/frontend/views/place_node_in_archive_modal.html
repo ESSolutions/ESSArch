@@ -1,0 +1,33 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.PLACE_NODE_IN_ARCHIVE' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.place()" name="$ctrl.form">
+  <div class="modal-body" id="modal-body">
+    <div class="table-x-overflow">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th>{{'NAME' | translate}}</th>
+            <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{$ctrl.node.name}}</td>
+            <td>{{$ctrl.node.reference_code}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <formly-form model="$ctrl.archiveModel" fields="$ctrl.archiveFields" options="{}"></formly-form>
+    <formly-form model="$ctrl.structureModel" fields="$ctrl.structureFields" options="{}"></formly-form>
+    <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.placing" type="submit">
+      {{'SAVE' | translate}}
+      <span ng-if="$ctrl.placing"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

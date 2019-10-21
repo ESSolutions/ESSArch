@@ -1,22 +1,38 @@
 import errno
+import logging
 import os
+import tarfile
 import uuid
 from datetime import timedelta
+from time import sleep
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
+from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
-from django.db.models import Case, When, Value, IntegerField
+from django.db import models, transaction
+from django.db.models import Case, F, IntegerField, Value, When
 from django.db.models.functions import Cast
+from django.urls import reverse
+from django.utils import timezone
 from picklefield.fields import PickledObjectField
-from retrying import retry
+from requests import RequestException
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.backends import get_backend
+from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
+
+logger = logging.getLogger('essarch.storage.models')
 
 DISK = 200
 TAPE = 300
@@ -107,11 +123,16 @@ medium_block_size_CHOICES = (
     (2048, '1024K'),
 )
 
+STORAGE_TARGET_STATUS_DISABLED = 0
+STORAGE_TARGET_STATUS_ENABLED = 1
+STORAGE_TARGET_STATUS_READ_ONLY = 2
+STORAGE_TARGET_STATUS_MIGRATE = 3
+
 storage_target_status_CHOICES = (
-    (0, 'Disabled'),
-    (1, 'Enabled'),
-    (2, 'ReadOnly'),
-    (3, 'Migrate'),
+    (STORAGE_TARGET_STATUS_DISABLED, 'Disabled'),
+    (STORAGE_TARGET_STATUS_ENABLED, 'Enabled'),
+    (STORAGE_TARGET_STATUS_READ_ONLY, 'ReadOnly'),
+    (STORAGE_TARGET_STATUS_MIGRATE, 'Migrate'),
 )
 
 min_chunk_size_CHOICES = (
@@ -153,29 +174,47 @@ class StorageMethodQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(containers=True)
 
+    def fastest(self):
+        container = Case(
+            When(containers=False, then=Value(1)),
+            When(containers=True, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        remote = Case(
+            When(remote=True, then=Value(1)),
+            When(remote=False, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        storage_type = Case(
+            When(type=DISK, then=Value(1)),
+            When(type=TAPE, then=Value(2)),
+            output_field=IntegerField(),
+        )
+        return self.annotate(
+            container_order=container,
+            remote_order=remote,
+            storage_type=storage_type
+        ).order_by('remote_order', 'container_order', 'storage_type')
+
 
 class StorageMethod(models.Model):
     """Disk, tape or CAS"""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
-    status = models.BooleanField('Storage method status', default=False)
+    enabled = models.BooleanField('Enabled', default=True)
     type = models.IntegerField('Type', choices=storage_type_CHOICES, default=200)
+    remote = models.BooleanField('remote', default=False)
     containers = models.BooleanField('Long-term', default=False)
-    archive_policy = models.ForeignKey(
-        'configuration.ArchivePolicy',
-        on_delete=models.CASCADE,
-        related_name='storage_methods',
-    )
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
 
     objects = StorageMethodQueryset.as_manager()
 
     @property
-    def active_targets(self):
-        return StorageTarget.objects.filter(
-            storagemethodtargetrelation__storage_method=self,
-            storagemethodtargetrelation__status=1
+    def enabled_target(self):
+        return StorageTarget.objects.get(
+            storage_method_target_relations__storage_method=self,
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
         )
 
     class Meta:
@@ -193,7 +232,11 @@ class StorageMethodTargetRelation(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField('Name', max_length=255, blank=True)
-    status = models.IntegerField('Storage target status', choices=storage_target_status_CHOICES, default=0)
+    status = models.IntegerField(
+        'Storage target status',
+        choices=storage_target_status_CHOICES,
+        default=STORAGE_TARGET_STATUS_DISABLED,
+    )
     storage_target = models.ForeignKey(
         'StorageTarget',
         on_delete=models.CASCADE,
@@ -206,7 +249,7 @@ class StorageMethodTargetRelation(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Storage Target/Method Relation'
+        verbose_name = 'Storage Method/Target Relation'
         ordering = ['name']
 
     def __str__(self):
@@ -325,6 +368,9 @@ class StorageMediumQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(storage_target__methods__containers=True)
 
+    def active(self):
+        return self.filter(storage_target__status=True)
+
     def readable(self):
         return self.filter(status__in=[20, 30], location_status=50)
 
@@ -368,7 +414,7 @@ class StorageMedium(models.Model):
     used_capacity = models.BigIntegerField(default=0)
     num_of_mounts = models.IntegerField(default=0)
 
-    create_date = models.DateTimeField(auto_now_add=True)
+    create_date = models.DateTimeField(default=timezone.now)
     last_changed_local = models.DateTimeField(null=True)
     last_changed_external = models.DateTimeField(null=True)
 
@@ -391,10 +437,47 @@ class StorageMedium(models.Model):
 
     objects = StorageMediumQueryset.as_manager()
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('location_status_display', None)
+        data.pop('status_display', None)
+        data['storage_target_id'] = data.pop('storage_target')
+        if data.get('tape_drive') is not None:
+            data['tape_drive'] = TapeDrive.create_from_remote_copy(
+                host, session, data['tape_drive'], create_storage_medium=False
+            )
+        if data.get('tape_slot') is not None:
+            data['tape_slot'] = TapeSlot.create_from_remote_copy(
+                host, session, data['tape_slot'], create_storage_medium=False
+            )
+        storage_medium, _ = StorageMedium.objects.update_or_create(
+            pk=data.pop('id'),
+            medium_id=data.pop('medium_id'),
+            defaults=data,
+        )
+        return storage_medium
+
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
+    def prepare_for_read(self):
+        storage_backend = self.storage_target.get_storage_backend()
+        storage_backend.prepare_for_read(self)
+
+    def prepare_for_write(self):
+        storage_backend = self.storage_target.get_storage_backend()
+        storage_backend.prepare_for_write(self)
+
     def mark_as_full(self):
+        logger.debug('Marking storage medium as full: "{}"'.format(str(self.pk)))
         objs = self.storage.annotate(
             content_location_value_int=Cast('content_location_value', models.IntegerField())
         ).order_by('content_location_value_int')
@@ -407,15 +490,18 @@ class StorageMedium(models.Model):
                 obj.verify()
         except AssertionError:
             self.status = 100
+            logger.exception('Failed to verify storage medium: "{}"'.format(str(self.pk)))
             raise
         else:
             self.status = 30
+            storage_backend = self.storage_target.get_storage_backend()
+            storage_backend.post_mark_as_full(self)
         finally:
             self.save(update_fields=['status'])
 
     class Meta:
         permissions = (
-            ("list_storageMedium", "Can list storageMedium"),
+            ("list_storageMedium", "Can list storageMedium"),  # TODO: replace with view_storagemedium
         )
 
     def __str__(self):
@@ -439,7 +525,15 @@ class StorageObjectQueryset(models.QuerySet):
         return self.filter(container=True)
 
     def readable(self):
-        return self.filter(storage_medium__status__in=[20, 30], storage_medium__location_status=50)
+        return self.filter(
+            storage_medium__storage_target__methods__storage_policies__information_packages=F('ip'),
+            storage_medium__storage_target__status=True,
+            storage_medium__storage_target__storage_method_target_relations__status__in=[
+                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY
+            ],
+            storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
+            storage_medium__status__in=[20, 30], storage_medium__location_status=50
+        )
 
     def fastest(self):
         container = Case(
@@ -472,13 +566,38 @@ class StorageObject(models.Model):
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True, auto_now_add=True)
+    last_changed_local = models.DateTimeField(null=True, default=timezone.now)
     last_changed_external = models.DateTimeField(null=True)
 
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, related_name='storage')
-    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage')
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='storage',
+                           verbose_name='information package')
+    storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, related_name='storage',
+                                       verbose_name='medium')
 
     objects = StorageObjectQueryset.as_manager()
+
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('storageobject-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data['ip_id'] = data.pop('ip')
+        data['storage_medium'] = StorageMedium.create_from_remote_copy(
+            host, session, data['storage_medium']
+        )
+        data.pop('medium_id', None)
+        data.pop('target_name', None)
+        data.pop('target_target', None)
+        obj, _ = StorageObject.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return obj
 
     def get_root(self):
         target = self.storage_medium.storage_target.target
@@ -496,16 +615,33 @@ class StorageObject(models.Model):
     def get_storage_backend(self):
         return self.storage_medium.storage_target.get_storage_backend()
 
+    def readable(self):
+        return all((
+            self.storage_medium.storage_target.status,
+            self.storage_medium.storage_target.storage_method_target_relations.filter(
+                status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+                storage_method__enabled=True,
+            ),
+            self.storage_medium.status in [20, 30],
+            self.storage_medium.location_status == 50,
+        ))
+
+    def is_cache_for_ip(self, ip):
+        return self.storage_medium.storage_target.storage_method_target_relations.filter(
+            storage_method=ip.policy.cache_storage,
+            status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+        ).exists()
+
     def extract(self):
         if not self.container:
             raise ValueError("Not a container")
 
         policy = self.ip.policy
         target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
-            storage_target__methods__archive_policy=policy).first()
+            storage_target__methods__storage_policy=policy).first()
 
         if target_medium is None:
-            target = StorageTarget.objects.archival_storage().fastest().filter(methods__archive_policy=policy).first()
+            target = StorageTarget.objects.archival_storage().fastest().filter(methods__storage_policy=policy).first()
             qs = StorageMedium.objects.archival_storage().writeable().fastest()
             target_medium, _ = target.get_or_create_storage_medium(qs=qs)
 
@@ -524,14 +660,90 @@ class StorageObject(models.Model):
         extracted = self.extract()
         return extracted.open(path, *args, **kwargs)
 
-    def read(self, path):
-        if not self.container:
-            backend = self.get_storage_backend()
-            with backend.open(self, path) as fp:
-                return fp.read()
+    def read(self, dst, task):
+        ip = self.ip
+        is_cached_storage_object = self.is_cache_for_ip(ip)
 
-        extracted = self.extract()
-        return extracted.read(path)
+        storage_medium = self.storage_medium
+        storage_target = storage_medium.storage_target
+
+        if storage_target.remote_server:
+            host, user, passw = storage_target.remote_server.split(',')
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (user, passw)
+
+            # if the remote server already has completed
+            # then we only want to get the result from it,
+            # not run it again. If it has failed then
+            # we want to retry it
+
+            r = task.get_remote_copy(session, host)
+            if r.status_code == 404:
+                # the task does not exist
+                task.create_remote_copy(session, host)
+                task.run_remote_copy(session, host)
+            else:
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                if task.status in celery_states.EXCEPTION_STATES:
+                    task.retry_remote_copy(session, host)
+
+            while task.status not in celery_states.READY_STATES:
+                r = task.get_remote_copy(session, host)
+
+                remote_data = r.json()
+                task.status = remote_data['status']
+                task.progress = remote_data['progress']
+                task.result = remote_data['result']
+                task.traceback = remote_data['traceback']
+                task.exception = remote_data['exception']
+                task.save()
+
+                sleep(5)
+
+            if task.status in celery_states.EXCEPTION_STATES:
+                task.reraise()
+        else:
+            storage_backend = self.get_storage_backend()
+            storage_medium.prepare_for_read()
+            temp_dir = Path.objects.get(entity='temp').value
+
+            if storage_target.master_server:
+                # we are on a remote host that has been requested
+                # by master to write to its temp directory
+                user, passw, host = storage_target.master_server.split(',')
+                session = requests.Session()
+                session.verify = settings.REQUESTS_VERIFY
+                session.auth = (user, passw)
+                session.params = {'dst': dst}
+
+                temp_object_path = ip.get_temp_object_path()
+                temp_container_path = ip.get_temp_container_path()
+                temp_mets_path = ip.get_temp_container_xml_path()
+                temp_aic_mets_path = ip.get_temp_container_aic_xml_path()
+                dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
+
+                storage_backend.read(self, temp_dir)
+
+                if is_cached_storage_object or not self.container:
+                    with tarfile.open(temp_container_path, 'w') as new_tar:
+                        new_tar.add(temp_object_path)
+                    copy_file(temp_container_path, dst, requests_session=session)
+
+                else:
+                    copy_file(temp_container_path, dst, requests_session=session)
+                    copy_file(temp_mets_path, dst, requests_session=session)
+                    copy_file(temp_aic_mets_path, dst, requests_session=session)
+
+            else:
+                storage_backend.read(self, dst)
 
     def delete_files(self):
         backend = self.get_storage_backend()
@@ -557,24 +769,15 @@ class StorageObject(models.Model):
                     if e.errno != errno.EEXIST:
                         raise
 
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.SetTapeFileNumber',
-                params={
-                    'medium': self.storage_medium_id,
-                    'num': int(self.content_location_value)
-                },
-                information_package=self.ip,
-            ).run().get()
+            drive = self.storage_medium.tape_drive
+            if drive is None:
+                raise ValueError("Tape not mounted")
 
-            ProcessTask.objects.create(
-                name='ESSArch_Core.tasks.ReadTape',
-                params={
-                    'medium': self.storage_medium_id,
-                    'path': tmppath,
-                    'block_size': self.storage_medium.block_size * 512,
-                },
-                information_package=self.ip,
-            ).run().get()
+            set_tape_file_number(drive.device, int(self.content_location_value))
+            read_tape(drive.device, path=tmppath, block_size=self.storage_medium.block_size * 512)
+
+            drive.last_change = timezone.now()
+            drive.save(update_fields=['last_change'])
 
             filename = os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
             algorithm = self.ip.get_message_digest_algorithm_display()
@@ -616,10 +819,34 @@ class TapeDrive(models.Model):
     io_queue_entry = models.OneToOneField('IOQueue', models.PROTECT, related_name='tape_drive', null=True, blank=True)
     num_of_mounts = models.IntegerField(default=0)
     idle_time = models.DurationField(default=timedelta(hours=1))
-    last_change = models.DateTimeField(auto_now_add=True)
+    last_change = models.DateTimeField(default=timezone.now)
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
     locked = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
+
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
+        remote_obj_url = urljoin(host, reverse('tapedrive-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('status_display', None)
+
+        data['robot'] = Robot.create_from_remote_copy(
+            host, session, data['robot']
+        )
+        if not create_storage_medium:
+            data.pop('storage_medium', None)
+
+        tape_drive, _ = TapeDrive.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return tape_drive
 
     def __str__(self):
         return self.device
@@ -644,6 +871,32 @@ class TapeSlot(models.Model):
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
+        remote_obj_url = urljoin(host, reverse('tapeslot-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        data.pop('locked', None)
+        data.pop('mounted', None)
+        data.pop('status_display', None)
+
+        data['robot'] = Robot.create_from_remote_copy(
+            host, session, data['robot']
+        )
+        if not create_storage_medium:
+            data.pop('storage_medium', None)
+
+        tape_slot, _ = TapeSlot.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return tape_slot
+
     class Meta:
         ordering = ('slot_id',)
         unique_together = ('slot_id', 'robot')
@@ -658,6 +911,22 @@ class Robot(models.Model):
     device = models.CharField(max_length=255, unique=True)
     online = models.BooleanField(default=False)
 
+    @classmethod
+    @transaction.atomic
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+    def create_from_remote_copy(cls, host, session, object_id):
+        remote_obj_url = urljoin(host, reverse('robot-detail', args=(object_id,)))
+        r = session.get(remote_obj_url, timeout=60)
+        r.raise_for_status()
+
+        data = r.json()
+        robot, _ = Robot.objects.update_or_create(
+            pk=data.pop('id'),
+            defaults=data,
+        )
+        return robot
+
     def __str__(self):
         return self.label
 
@@ -665,7 +934,7 @@ class Robot(models.Model):
 class RobotQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
-    posted = models.DateTimeField(auto_now_add=True)
+    posted = models.DateTimeField(default=timezone.now)
     robot = models.OneToOneField('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
     io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
@@ -687,8 +956,8 @@ class IOQueue(models.Model):
     result = PickledObjectField(blank=True, null=True)
     status = models.IntegerField(blank=True, default=0, choices=req_status_CHOICES)
     task_id = models.CharField(max_length=36, blank=True)
-    posted = models.DateTimeField(auto_now_add=True)
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=True)
+    posted = models.DateTimeField(default=timezone.now)
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     storage_method_target = models.ForeignKey('StorageMethodTargetRelation', on_delete=models.CASCADE)
     storage_medium = models.ForeignKey('StorageMedium', on_delete=models.CASCADE, blank=True, null=True)
     storage_object = models.ForeignKey('StorageObject', on_delete=models.CASCADE, blank=True, null=True)
@@ -708,14 +977,14 @@ class IOQueue(models.Model):
         master_server = self.storage_method_target.storage_target.master_server
         return len(master_server.split(',')) == 3
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
         host, user, passw = master_server.split(',')
         dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
 
         session = requests.Session()
-        session.verify = False
+        session.verify = settings.REQUESTS_VERIFY
         session.auth = (user, passw)
 
         try:
@@ -742,16 +1011,16 @@ class AccessQueue(models.Model):
     object_identifier_value = models.CharField(max_length=255, blank=True)
     req_purpose = models.CharField(max_length=255)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='access_queues')
-    ip = models.ForeignKey(InformationPackage, on_delete=models.CASCADE, null=False, related_name='access_queues')
+    ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=False, related_name='access_queues')
     new_ip = models.ForeignKey(
-        InformationPackage,
+        'ip.InformationPackage',
         on_delete=models.CASCADE,
         null=True,
         related_name='access_queues_new_ip'
     )
     status = models.IntegerField(null=True, blank=True, default=0, choices=req_status_CHOICES)
     path = models.CharField(max_length=255)
-    posted = models.DateTimeField(auto_now_add=True)
+    posted = models.DateTimeField(default=timezone.now)
 
     class Meta:
         get_latest_by = 'posted'

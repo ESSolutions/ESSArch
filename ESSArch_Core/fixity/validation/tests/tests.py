@@ -16,8 +16,14 @@ from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.fixity.validation.backends.format import FormatValidator
-from ESSArch_Core.fixity.validation.backends.structure import StructureValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSyntaxValidator
+from ESSArch_Core.fixity.validation.backends.structure import (
+    StructureValidator,
+)
+from ESSArch_Core.fixity.validation.backends.xml import (
+    DiffCheckValidator,
+    XMLComparisonValidator,
+    XMLSyntaxValidator,
+)
 
 
 class ChecksumValidatorTests(TestCase, fake_filesystem_unittest.TestCase):
@@ -604,19 +610,32 @@ class DiffCheckValidatorTests(TestCase):
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
-    def test_validation_with_checksum_attribute_missing(self):
-        self.create_files()
+    def test_validation_with_checksum_missing(self):
+        files = self.create_files()
         self.generate_xml()
 
-        tree = etree.parse(self.fname)
-        file_el = tree.xpath('*[local-name()="file"]')[1]
-        file_el.attrib.pop('CHECKSUM')
-        tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
+        with self.subTest('no checksum'):
+            tree = etree.parse(self.fname)
+            file_el = tree.xpath('*[local-name()="file"]')[1]
+            file_el.attrib.pop('CHECKSUM')
+            tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
 
-        self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
-        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator = DiffCheckValidator(context=self.fname, options=self.options)
             self.validator.validate(self.datadir)
+
+        with self.subTest('no checksum type'):
+            file_el.attrib.pop('CHECKSUMTYPE')
+            tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
+
+            self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+            self.validator.validate(self.datadir)
+
+        with self.subTest('delete file'):
+            os.remove(files[0])
+            self.validator = DiffCheckValidator(context=self.fname, options=self.options)
+            msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+            with self.assertRaisesRegexp(ValidationError, msg):
+                self.validator.validate(self.datadir)
 
     def test_validation_with_incorrect_size(self):
         files = self.create_files()

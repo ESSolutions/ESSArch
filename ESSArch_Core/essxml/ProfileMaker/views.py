@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,36 +15,36 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from collections import OrderedDict
-
 import copy
 import json
 import logging
 import uuid
+from collections import OrderedDict
 
+import requests
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
-from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
 from django.utils.decorators import method_decorator
 from django.views.generic import View
 from lxml import etree
 from rest_framework.generics import get_object_or_404
 
-import requests
-
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
 from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
 
-from .forms import AddTemplateForm, AddExtensionForm
-from .models import templatePackage, extensionPackage
+from .forms import AddExtensionForm, AddTemplateForm
+from .models import extensionPackage, templatePackage
 
 logger = logging.getLogger('code.exceptions')
 

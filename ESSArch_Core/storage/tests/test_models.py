@@ -3,18 +3,23 @@ import shutil
 import tempfile
 import uuid
 from unittest import mock
+
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Parameter
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.models import (
+    CAS,
     DISK,
     TAPE,
-    CAS,
+    Robot,
+    StorageMedium,
+    StorageObject,
+    StorageTarget,
+    TapeSlot,
     get_storage_type_from_medium_type,
     medium_type_CHOICES,
-    StorageTarget,
-    StorageMedium, TapeSlot, Robot, StorageObject)
+)
 from ESSArch_Core.util import normalize_path
 
 
@@ -396,26 +401,6 @@ class StorageObjectReadTests(TestCase):
         with open(os.path.join(self.datadir, file_name), 'w') as f:
             f.write(content)
         return f.name
-
-    def test_read_if_its_not_a_container_then_read_file(self):
-        file_name = self.create_file_with_content("some_file_to_read", "the content")
-
-        storage_object = self.create_storage_object(False)
-
-        res = storage_object.read(file_name)
-        self.assertEqual(res, "the content")
-
-    @mock.patch("ESSArch_Core.storage.models.StorageObject.extract")
-    def test_read_if_its_a_container_then_extract_and_then_read_file(self, mock_extract):
-        file_name = self.create_file_with_content("some_file_to_read", "the content")
-        storage_object_container = self.create_storage_object(True)
-        storage_object = self.create_storage_object(False)
-        storage_object_container.extract.return_value = storage_object
-
-        res = storage_object_container.read(file_name)
-        self.assertEqual(res, "the content")
-
-        mock_extract.assert_called_once()
 
 
 class StorageObjectDeleteFilesTests(TestCase):

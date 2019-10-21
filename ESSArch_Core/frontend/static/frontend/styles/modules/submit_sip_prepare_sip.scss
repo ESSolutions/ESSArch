@@ -1,0 +1,61 @@
+.prepare-sip {
+  .static-form .formly {
+    display: flex;
+    justify-content: flex-start;
+  }
+  .edit-view {
+    border-style: none;
+  }
+  .items-per-page {
+    width: 15%;
+  }
+  .package-information {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-color: $border-color;
+    margin: 5px;
+  }
+  .package-dependencies {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-color: $border-color;
+    margin: 5px;
+  }
+  .package-information,
+  .package-dependencies {
+    .formly {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      .formly-field {
+        width: 25%;
+        min-width: 175px;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+    }
+  }
+  .static-form {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-color: $border-color;
+    margin: 5px;
+  }
+  .included-profiles {
+    .formly {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+    .formly-field {
+      min-width: 105px;
+      width: 10%;
+    }
+  }
+  .validators {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-color: $border-color;
+    margin: 5px;
+  }
+}

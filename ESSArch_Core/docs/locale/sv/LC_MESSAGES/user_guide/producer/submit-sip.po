@@ -1,0 +1,39 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-16 17:03+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/producer/submit-sip.rst:5
+msgid "Submit SIP"
+msgstr "Skicka SIP"
+
+#: ../../user_guide/producer/submit-sip.rst:6
+msgid ""
+"Once the SIP is created it becomes visible in the Submit SIP view and is "
+"ready for submission."
+msgstr ""
+"När SIPen är skapad finns den tillgänglig i listvyn i **Skicka SIP** och "
+"är redo att skickas."
+
+#: ../../user_guide/producer/submit-sip.rst:9
+msgid ""
+"By clicking the IP row, the user can see information that is important "
+"for the SIP submission. Click **Submit SIP** to submit."
+msgstr ""
+"Klicka på IPts rad för att se viktig information för skickandet av "
+"SIP.Klicka på **Skicka SIP** för att skicka SIPen."

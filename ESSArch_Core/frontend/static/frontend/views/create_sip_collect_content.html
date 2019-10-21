@@ -1,0 +1,81 @@
+<div class="ip-approval">
+  <div class="content-wrapper">
+    <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
+    <uib-tabset
+      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
+      active="vm.activeTab"
+      class="tabs tabs-style-bar"
+    >
+      <uib-tab
+        index="'collect_content'"
+        ng-if="vm.specificTabs.includes('collect_content')"
+        heading="{{'COLLECTCONTENT' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'collect_content'">
+          <div
+            id="select-wrap"
+            class="select-sub-edit-eventlog-wrapper"
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+          >
+            <div ng-if="ip !== null && ips.length == 0" id="select-view" class="select-view">
+              <filebrowser ip="ip" browserstate="vm.browserstate"></filebrowser>
+              <div
+                id="file-upload"
+                ng-if="(ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+                ng-include
+                src="'static/frontend/views/file_upload.html'"
+              ></div>
+              <div ng-if="ip.responsible.id != auth.id && !checkPermission('ip.can_upload')">
+                <p style="color:red;">{{'UPLOAD.NO_PERMISSION_UPLOAD' | translate}}!</p>
+              </div>
+            </div>
+            <div class="eventlog-view" ng-class="{'border-none': 'ips.length > 0'}">
+              <form class="eventlog-form" ng-submit="vm.uploadCompletedModal(ip)">
+                <button
+                  class="btn btn-primary submit-button"
+                  ng-dblClick=""
+                  ng-disabled="vm.uploading === true || (((ip !== null && ip.responsible.id != auth.id) || (ips.length > 0 && !vm.multipleIpResponsible())) && !checkPermission('ip.set_uploaded'))"
+                  type="submit"
+                  style="float: right;"
+                >
+                  {{'DONE' | translate}}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div
+          ng-if="vm.activeTab === 'tasks'"
+          class="events-status-wrapper"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div
+          ng-if="vm.activeTab === 'events'"
+          class="events-status-wrapper"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+    </uib-tabset>
+    <div
+      class="no-tabs-available"
+      ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs')"
+    >
+      <h4>
+        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
+      </h4>
+    </div>
+  </div>
+</div>

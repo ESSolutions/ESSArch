@@ -1,0 +1,318 @@
+<div class="content-wrapper">
+  <div class="list-view" st-table="vm.robots" st-pipe="loadRobots">
+    <h4>{{'TAPELIBRARY' | translate}}</h4>
+    <div class="search-prepare-wrapper">
+      <label for items-per-page></label>
+      <select
+        id="items-per-page"
+        style="margin-right: 10px;"
+        class="form-control items-per-page"
+        ng-model="vm.robotsPerPage"
+        ng-options="x for x in [5,10,20,25,50]"
+        uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      ></select>
+      <input
+        st-search=""
+        class="form-control global-search"
+        ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+        type="text"
+        uib-tooltip="{{'GLOBALSEARCHDESC_ROBOT' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      />
+      <div class="refresh-icon">
+        <span
+          ng-click="loadRobots(vm.robotTableState)"
+          class="clickable angular-animate fas fa-sync-alt fa-lg"
+          ng-class="{'fa-sync-alt-animate': ipLoading }"
+          uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+          tooltip-placement="auto left"
+          tooltip-append-to-body="true"
+        ></span>
+      </div>
+    </div>
+    <div id="list-view" class="list-view-table">
+      <table class="table table-striped" style="margin-bottom: 0px;">
+        <thead>
+          <tr>
+            <th class="clickable" st-sort="storage_target" class="column-label">{{'LABEL' | translate}}</th>
+            <th class="clickable" st-sort="device" class="column-label">{{'DEVICE' | translate}}</th>
+            <th class="clickable" st-sort="online" class="column-label">{{'STATE' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-class="{'selected': vm.selectedRobot.id == row.id}"
+            ng-repeat="row in vm.robots"
+            ng-attr-context-menu="menuOptions"
+            class="table-item selectable"
+          >
+            <td class="clickable" ng-click="robotClick(row)">{{row.label}}</td>
+            <td class="clickable" ng-click="robotClick(row)">{{row.device}}</td>
+            <td class="clickable" ng-click="robotClick(row)">
+              {{row.online? translate.instant("ONLINE"):translate.instant("OFFLINE")}}
+            </td>
+          </tr>
+          <tr ng-if="!vm.robots.length && !ipLoading" class="empty-table-indicator">
+            <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+          </tr>
+          <tr ng-if="!vm.robots.length && ipLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <td ng-show="!initLoad" colspan="{{colspan}}">
+      <div
+        class="text-center"
+        st-template="static/frontend/views/pagination.html"
+        st-pagination=""
+        st-items-by-page="vm.robotsPerPage"
+        st-displayed-pages="7"
+      ></div>
+    </td>
+  </div>
+  <div ng-if="select" style="margin-top: 5px;" class="select-sub-edit-eventlog-wrapper">
+    <div ng-if="select" id="select-view" class="select-view">
+      <button class="btn btn-primary" ng-click="vm.inventoryClick(vm.selectedRobot)">
+        {{'INVENTORYROBOTS' | translate}}
+      </button>
+      <h4>{{'ROBOTQUEUE' | translate}}</h4>
+      <div class="table-container" st-table="vm.robotQueue" st-pipe="getRobotQueue">
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.robotQueueItemsPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <input
+            st-search=""
+            class="form-control global-search"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_QUEUE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+          <div class="refresh-icon">
+            <span
+              ng-click="getRobotQueue(vm.robotQueueTableState)"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': robotQueueLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div id="list-view" class="list-view-table table-x-overflow">
+          <table class="table table-striped" style="margin-bottom: 0px;">
+            <thead>
+              <tr>
+                <th st-sort="id" class="clickable" class="column-label">ID</th>
+                <th st-sort="posted" class="clickable" class="column-label">{{'POSTED' | translate}}</th>
+                <th st-sort="req_type" class="clickable" class="column-label">{{'REQUESTTYPE' | translate}}</th>
+                <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-class="row.class"
+                ng-repeat="row in vm.robotQueue"
+                ng-attr-context-menu="menuOptions"
+                class="table-item"
+              >
+                <td>{{row.id}}</td>
+                <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                <td>{{row.req_type}}</td>
+                <td>{{row.status}}</td>
+              </tr>
+              <tr ng-if="!vm.robotQueue.length && !robotQueueLoading" class="empty-table-indicator">
+                <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.robotQueue.length && robotQueueLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initObjLoad" colspan="4">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.robotQueueItemsPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+      <hr />
+      <h4>{{'TAPESLOTS' | translate}}</h4>
+      <div class="table-container" st-table="vm.tapeSlots" st-pipe="getSlots">
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.slotsPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <input
+            st-search=""
+            class="form-control global-search"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_TAPE_SLOT' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+          <div class="refresh-icon">
+            <span
+              ng-click="getSlots(vm.slotTableState)"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': tapeSlotsLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div id="list-view" class="list-view-table table-x-overflow">
+          <table class="table table-striped" style="margin-bottom: 0px;">
+            <thead>
+              <tr>
+                <th st-sort="slot_id" class="clickable" class="column-label">ID</th>
+                <th st-sort="medium_id" class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
+                <th class="clickable" class="column-label">{{'MEDIUM' | translate}}</th>
+                <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-class="{'selected': vm.tapeSlot.id == row.id}"
+                ng-repeat="row in vm.tapeSlots"
+                ng-click="vm.tapeSlotClick(row)"
+                ng-attr-context-menu="menuOptions"
+                class="table-item selectable"
+              >
+                <td>{{row.slot_id}}</td>
+                <td>{{row.medium_id}}</td>
+                <td>{{row.storage_medium.id}}</td>
+                <td>{{row.status}}</td>
+              </tr>
+              <tr ng-if="!vm.tapeSlots.length && !tapeSlotsLoading" class="empty-table-indicator">
+                <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.tapeSlots.length && tapeSlotsLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initObjLoad" colspan="{{colspan}}">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.slotsPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+      <hr />
+      <h4>{{'TAPEDRIVES' | translate}}</h4>
+      <div class="table-container" st-table="vm.tapeDrives" st-pipe="getDrives">
+        <div class="search-prepare-wrapper">
+          <label for items-per-page></label>
+          <select
+            id="items-per-page"
+            style="margin-right: 10px;"
+            class="form-control items-per-page"
+            ng-model="vm.drivesPerPage"
+            ng-options="x for x in [5,10,20,25,50]"
+            uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          ></select>
+          <input
+            st-search=""
+            class="form-control global-search"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_TAPE_DRIVE' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+          <div class="refresh-icon">
+            <span
+              ng-click="getDrives(vm.driveTableState)"
+              class="clickable angular-animate fas fa-sync-alt fa-lg"
+              ng-class="{'fa-sync-alt-animate': tapeDrivesLoading }"
+              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+              tooltip-placement="auto left"
+              tooltip-append-to-body="true"
+            ></span>
+          </div>
+        </div>
+        <div id="list-view" class="list-view-table table-x-overflow">
+          <table class="table table-striped" style="margin-bottom: 0px;">
+            <thead>
+              <tr>
+                <th st-sort="slot_id" class="clickable" class="column-label">ID</th>
+                <th st-sort="device" class="clickable" class="column-label">{{'DEVICE' | translate}}</th>
+                <th st-sort="num_of_mounts" class="clickable" class="column-label">
+                  {{'NUMBEROFMOUNTS' | translate}}
+                </th>
+                <th class="clickable" class="column-label">{{'MEDIUM' | translate}}</th>
+                <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-class="{'selected': vm.tapeDrive.id == row.id}"
+                ng-click="vm.tapeDriveClick(row)"
+                class="clickable"
+                ng-repeat="row in vm.tapeDrives"
+                ng-attr-context-menu="menuOptions"
+                class="table-item selectable"
+              >
+                <td>{{row.id}}</td>
+                <td>{{row.device}}</td>
+                <td>{{row.num_of_mounts}}</td>
+                <td>{{row.storage_medium.id}}</td>
+                <td>{{row.status}}</td>
+              </tr>
+              <tr ng-if="!vm.tapeDrives.length && !tapeDrivesLoading" class="empty-table-indicator">
+                <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!vm.tapeDrives.length && tapeDrivesLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="5">{{'LOADING' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initObjLoad">
+          <div
+            class="text-center"
+            st-template="static/frontend/views/pagination.html"
+            st-pagination=""
+            st-items-by-page="vm.drivesPerPage"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+    </div>
+  </div>
+</div>

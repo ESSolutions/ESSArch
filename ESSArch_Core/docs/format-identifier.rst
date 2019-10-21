@@ -1,8 +1,8 @@
 .. _format-identifier:
 
-================
+==================
  Format Identifier
-================
+==================
 
 
 .. autoclass:: ESSArch_Core.fixity.format.FormatIdentifier
@@ -14,7 +14,7 @@ generation and viewing files in the browser.
 .. _mimetypes:
 
 MIME types
----------
+----------
 
 The file at :ref:`path_mimetypes_definitionfile` is used to identify the MIME
 type of the file.  If the file extension is missing from the MIME types file it

@@ -1,0 +1,108 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-03 13:47+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../restapi/search.rst:3
+msgid "Search"
+msgstr ""
+
+#: ../../restapi/search.rst:8
+msgid "API endpoint to make queries and retrieve results"
+msgstr ""
+
+#: ../../restapi/search.rst:11
+msgid "Retrieve results"
+msgstr ""
+
+#: ../../restapi/search.rst:110
+msgid "Filters"
+msgstr ""
+
+#: ../../restapi/search.rst:111
+msgid "The most commonly used filters used by ESSArch to retrieve objects."
+msgstr ""
+
+#: ../../restapi/search.rst:116
+msgid "Retrieves one single indexed object"
+msgstr ""
+
+#: ../../restapi/search.rst:121
+msgid "Retrieves objects from a particular index"
+msgstr ""
+
+#: ../../restapi/search.rst:126
+msgid "Retrieves objects filtered by extensions e.g. xml, pdf, docx etc"
+msgstr ""
+
+#: ../../restapi/search.rst:131
+msgid "Retrieves objects filtered by type e.g. box, document, image, folder etc"
+msgstr ""
+
+#: ../../restapi/search.rst:136
+msgid "Retrieves results from one or more authority record"
+msgstr ""
+
+#: ../../restapi/search.rst:141
+msgid "Retrieves results from one or more top-level resources (Fonds/Archives)"
+msgstr ""
+
+#: ../../restapi/search.rst:145
+msgid "Combining filters"
+msgstr ""
+
+#: ../../restapi/search.rst:146
+msgid ""
+"One or more filters can be combined in a query by adding a **&** between "
+"filters."
+msgstr ""
+
+#: ../../restapi/search.rst:150
+msgid ""
+"The above query would retrieve all pdf documents containing the phrase "
+"\"meeting minutes\" from a particular top-level resource (Fond/Archive)"
+msgstr ""
+
+#: ../../restapi/search.rst:155
+msgid "Stored Search"
+msgstr ""
+
+#: ../../restapi/search.rst:157
+msgid "Api endpoint that allows stored searches to be viewed or edited"
+msgstr ""
+
+#: ../../restapi/search.rst:161
+msgid "Retrieves the stored searches for the logged in user"
+msgstr ""
+
+#: ../../restapi/search.rst:217
+msgid "Stores a search for the logged in user"
+msgstr ""
+
+#: ../../restapi/search.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../restapi/search.rst:219
+msgid "The stored search name"
+msgstr ""
+
+#: ../../restapi/search.rst:220
+msgid "The query to be stored"
+msgstr ""
+

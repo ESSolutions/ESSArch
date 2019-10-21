@@ -4,36 +4,44 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
+from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
-from ESSArch_Core.maintenance.filters import (AppraisalJobFilter,
-                                              AppraisalRuleFilter,
-                                              ConversionJobFilter,
-                                              ConversionRuleFilter,
-                                              MaintenanceJobFilter,
-                                              MaintenanceRuleFilter)
-from ESSArch_Core.maintenance.models import (AppraisalJob, AppraisalRule,
-                                             ConversionJob, ConversionRule)
-from ESSArch_Core.maintenance.serializers import (AppraisalJobSerializer,
-                                                  AppraisalRuleSerializer,
-                                                  ConversionJobSerializer,
-                                                  ConversionRuleSerializer,
-                                                  MaintenanceJobSerializer,
-                                                  MaintenanceRuleSerializer)
+from ESSArch_Core.maintenance.filters import (
+    AppraisalJobFilter,
+    AppraisalRuleFilter,
+    ConversionJobFilter,
+    ConversionRuleFilter,
+    MaintenanceJobFilter,
+    MaintenanceRuleFilter,
+)
+from ESSArch_Core.maintenance.models import (
+    AppraisalJob,
+    AppraisalRule,
+    ConversionJob,
+    ConversionRule,
+)
+from ESSArch_Core.maintenance.serializers import (
+    AppraisalJobSerializer,
+    AppraisalRuleSerializer,
+    ConversionJobSerializer,
+    ConversionRuleSerializer,
+    MaintenanceJobSerializer,
+    MaintenanceRuleSerializer,
+)
 from ESSArch_Core.util import generate_file_response
 
 
 class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     serializer_class = MaintenanceRuleSerializer
     filterset_class = MaintenanceRuleFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, filters.SearchFilter,
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('name', 'specification',)
 

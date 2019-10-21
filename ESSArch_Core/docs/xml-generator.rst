@@ -151,7 +151,7 @@ If we create this with ``created = "2018-02-05 12:30:25"`` we get the following 
 ====================================== =====
 
 Django Templates
---------------
+----------------
 
 In addition to the variables and formatters above we can also use the `Django
 Template Engine <https://docs.djangoproject.com/en/1.11/ref/templates/>`_ by

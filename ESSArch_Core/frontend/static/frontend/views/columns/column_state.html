@@ -1,0 +1,20 @@
+<div ng-if="!subrow">
+  <div
+    class="white-space-nowrap"
+    uib-tooltip="{{'IPSTATEDESC' | translate}}: {{row.label}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  >
+    <span>{{row.state}}</span>
+  </div>
+</div>
+<div ng-if="subrow">
+  <div
+    class="white-space-nowrap"
+    uib-tooltip="{{'IPSTATEDESC' | translate}}: {{subrow.label}}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  >
+    <span>{{subrow.state}}</span>
+  </div>
+</div>

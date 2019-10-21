@@ -8,4 +8,4 @@ class AuthConfig(AppConfig):
     label = 'essauth'
 
     def ready(self):
-        import ESSArch_Core.auth.signals  # noqa
+        import ESSArch_Core.auth.signals  # noqa isort:skip

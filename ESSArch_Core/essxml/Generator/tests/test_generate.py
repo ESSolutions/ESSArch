@@ -2,8 +2,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -30,14 +30,17 @@ import shutil
 import tempfile
 import unittest
 from collections import OrderedDict
-
+from os import walk
 from unittest import mock
+
 from django.test import TestCase
 from django.utils import dateparse, timezone
 from lxml import etree
-from os import walk
 
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
+)
 from ESSArch_Core.util import make_unicode, normalize_path
 
 
@@ -2686,15 +2689,15 @@ class ParseContentTestCase(unittest.TestCase):
 
         # django template system
         contentobj = parseContent("{{foo}}", {"foo": "åäö"})
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
     def test_iso_8859(self):
         from ESSArch_Core.essxml.Generator.xmlGenerator import parse_content_django
         content = [{"var": "foo"}]
-        foo = u"åäö".encode("iso-8859-1")
+        foo = "åäö".encode("iso-8859-1")
         info = {"foo": foo}
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
         # django template system
         foo = "åäö".encode("iso-8859-1")

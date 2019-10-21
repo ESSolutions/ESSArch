@@ -1,0 +1,50 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/install.rst:5
+msgid "Install ESSArch Core"
+msgstr ""
+
+#: ../../installation/install.rst:9
+msgid "EC installation script"
+msgstr ""
+
+#: ../../installation/install.rst:11
+msgid ""
+"Please download the latest installation package from `Github "
+"<https://github.com/ESSolutions/ESSArch_Core/releases/latest>`_"
+msgstr ""
+
+#: ../../installation/install.rst:34
+msgid "Enable automatic startup at system boot"
+msgstr ""
+
+#: ../../installation/install.rst:42
+msgid "Enable automatic startup of Apache HTTPD"
+msgstr ""
+
+#: ../../installation/install.rst:51
+msgid "Enable automatic startup of RabbitMQ"
+msgstr ""
+
+#: ../../installation/install.rst:61
+msgid "Enable automatic backup of MySQL/MariaDB"
+msgstr ""
+

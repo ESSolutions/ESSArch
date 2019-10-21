@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,59 +15,59 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from _version import get_versions
+import logging
 import platform
 import socket
 import sys
-import logging
+from sqlite3 import sqlite_version
 
+import distro
 from celery import current_app
-from django.db import connection
 from django.conf import settings
+from django.db import connection
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from django_redis import get_redis_connection
-from redis.exceptions import RedisError
+from elasticsearch.exceptions import ElasticsearchException
 from elasticsearch_dsl.connections import get_connection as get_es_connection
+from redis.exceptions import RedisError
+from rest_framework import filters, viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from ESSArch_Core.api.filters import string_to_bool
+from ESSArch_Core._version import get_versions
+from ESSArch_Core.api.filters import SearchFilter, string_to_bool
+from ESSArch_Core.configuration.filters import EventTypeFilter
+from ESSArch_Core.configuration.models import (
+    Agent,
+    EventType,
+    Parameter,
+    Path,
+    Site,
+    StoragePolicy,
+)
+from ESSArch_Core.configuration.serializers import (
+    AgentSerializer,
+    EventTypeSerializer,
+    ParameterSerializer,
+    PathSerializer,
+    SiteSerializer,
+    StoragePolicySerializer,
+)
+from ESSArch_Core.WorkflowEngine import get_workers
 
 try:
     from pip._internal.operations.freeze import freeze as pip_freeze
 except ImportError:  # pip < 10.0
     from pip.operations.freeze import freeze as pip_freeze
 
-from sqlite3 import sqlite_version
-
-from ESSArch_Core._version import get_versions as get_core_versions
-from ESSArch_Core.WorkflowEngine import get_workers
-from ESSArch_Core.configuration.models import (
-    Agent,
-    ArchivePolicy,
-    EventType,
-    Parameter,
-    Path,
-    Site,
-)
-
-from ESSArch_Core.configuration.serializers import (
-    AgentSerializer,
-    ArchivePolicySerializer,
-    EventTypeSerializer,
-    ParameterSerializer,
-    PathSerializer,
-    SiteSerializer,
-)
-
-from rest_framework import viewsets
-from rest_framework.response import Response
-from rest_framework.views import APIView
 
 logger = logging.getLogger('essarch.configuration')
 
@@ -94,8 +94,18 @@ def get_database_info():
     return {'vendor': vendor, 'version': version}
 
 
-def get_elasticsearch_info():
-    return get_es_connection().info()
+def get_elasticsearch_info(full):
+    try:
+        props = get_es_connection().info()
+        if full:
+            return props
+        return {'version': props['version']}
+    except ElasticsearchException:
+        logger.exception("Could not connect to Elasticsearch.")
+        return {
+            'version': 'unknown',
+            'error': 'Error connecting to Elasticsearch. Check the logs for more detail.'
+        }
 
 
 def get_redis_info(full=False):
@@ -119,7 +129,7 @@ def get_rabbitmq_info(full=False):
         if full:
             return props
         return {'version': props['version']}
-    except ConnectionError:
+    except (ConnectionError, OSError):
         logger.exception("Could not connect to RabbitMQ.")
         return {
             'version': 'unknown',
@@ -150,19 +160,14 @@ class SysInfoView(APIView):
             'version': platform.version(),
             'mac_version': platform.mac_ver(),
             'win_version': platform.win32_ver(),
-            'linux_dist': platform.linux_distribution(),
+            'linux_dist': distro.linux_distribution(),
         }
         context['hostname'] = socket.gethostname()
         context['version'] = get_versions()
-        context['core_version'] = get_core_versions()
         context['time_checked'] = timezone.now()
         context['database'] = get_database_info()
 
-        try:
-            context['elasticsearch'] = get_elasticsearch_info()
-        except KeyError:
-            pass
-
+        context['elasticsearch'] = get_elasticsearch_info(full)
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
         context['workers'] = get_workers(context['rabbitmq'])
@@ -191,6 +196,11 @@ class EventTypeViewSet(viewsets.ModelViewSet):
     queryset = EventType.objects.all()
     serializer_class = EventTypeSerializer
     pagination_class = None
+    filterset_class = EventTypeFilter
+    filter_backends = (
+        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
+    )
+    search_fields = ('eventDetail',)
 
 
 class AgentViewSet(viewsets.ModelViewSet):
@@ -217,12 +227,12 @@ class PathViewSet(viewsets.ModelViewSet):
     serializer_class = PathSerializer
 
 
-class ArchivePolicyViewSet(viewsets.ModelViewSet):
+class StoragePolicyViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows archive policies to be viewed or edited.
     """
-    queryset = ArchivePolicy.objects.all()
-    serializer_class = ArchivePolicySerializer
+    queryset = StoragePolicy.objects.all()
+    serializer_class = StoragePolicySerializer
 
 
 class SiteView(APIView):

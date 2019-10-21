@@ -1,0 +1,105 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-17 09:42+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/ingest/approval.rst:5
+msgid "Approval"
+msgstr "Godkännande"
+
+#: ../../user_guide/ingest/approval.rst:7
+msgid "Before an AIP can be preserved it has to be approved."
+msgstr "Innan ett IP kan arkiveras så måste det godkännas."
+
+#: ../../user_guide/ingest/approval.rst:9
+msgid ""
+"When clicking on an AIP in the Approval list we see a request form for "
+"applying actions on an AIP. There are a couple of different types of "
+"request which are explained below"
+msgstr ""
+"När man klickar på ett IP i listan får man fram ett formulär där man kan "
+"välja att utföra eventuella årgärder på en AIP. Dessa åtgärder beskrivs "
+"nedan."
+
+#: ../../user_guide/ingest/approval.rst:18
+msgid "Preserve"
+msgstr "Arkivera"
+
+#: ../../user_guide/ingest/approval.rst:20
+msgid "Preserve AIP to archival storage according to information from profiles."
+msgstr "Arkivera AIP till archival storage enligt information från profiler."
+
+#: ../../user_guide/ingest/approval.rst:22
+msgid ""
+"Choose **Preserve**, and click **Submit** to start the preservation "
+"process. The progress can be followed in the status bar of the IP and in "
+"the :ref:`State view <state-view>` for more detailed information."
+msgstr ""
+"Välj **Arkivera**, fyll i önskad information och klicka på **Skicka**. "
+"Händelseförloppet kan följas i status-fältet för IP:t.Se "
+":ref:`Tillståndsvy <user-interface-state-view>` för mer information."
+
+#: ../../user_guide/ingest/approval.rst:30
+msgid "Get"
+msgstr "Hämta"
+
+#: ../../user_guide/ingest/approval.rst:32
+msgid ""
+"Get AIP to Ingest Workspace as `read only`. This means that the IP in the"
+" workspace can not be changed, only \"read\"."
+msgstr ""
+"Hämtar en AIP som `read only` vilket betyder att den inte kan ändras. "
+"IP:t kommer då att dyka upp under mottagande/arbetsyta"
+
+#: ../../user_guide/ingest/approval.rst:35
+msgid ""
+"Choose **Get**, and click **Submit**. The AIP will appear in the "
+"workspace shortly. The progress can be followed in the status bar of the "
+"IP and in the :ref:`State view <state-view>` for more detailed "
+"information."
+msgstr ""
+"Välj alternativet **Hämta** Fyll i önskad information och klicka på "
+"**Skicka**. Händelseförloppet kan följas i status-fältet för IP:t. Se "
+":ref:`Tillståndsvy <user-interface-state-view>` för mer information."
+
+#: ../../user_guide/ingest/approval.rst:43
+msgid "Get as new generation"
+msgstr "Hämta som ny generation"
+
+#: ../../user_guide/ingest/approval.rst:45
+msgid ""
+"Get IP to Ingest Workspace as a new generation of IP. The new IP is "
+"basically a whole new IP but it is still related to the family of IPs "
+"that are related to the same AIC."
+msgstr ""
+"Hämta IP till mottagande/arbetsyta som en ny generation. Den nya "
+"generationen är i princip ett helt eget IP men är relaterad till sina "
+"tidigare och senare generationer genom dess AIC."
+
+#: ../../user_guide/ingest/approval.rst:49
+msgid ""
+"Choose the option **Get as new generation**, and click **Submit**. The "
+"AIP generation should appear in the ingest workspace shortly, the "
+"progress can be followed in the status bar of the IP and in the "
+":ref:`State view <state-view>` for more detailed information."
+msgstr ""
+"Välj alternativet **Hämta som ny generation** Fyll i önskad information "
+"och klicka på **Skicka**. Händelseförloppet kan följas i status-fältet "
+"för IP:t Se :ref:`Tillståndsvy <user-interface-state-view>` för mer "
+"information. "
+

@@ -1,0 +1,26 @@
+<div class="modal-heading"></div>
+<div class="modal-body" id="modal-body">
+  <div
+    class="uv"
+    data-locale="en-GB:English (GB),cy-GB:Cymraeg"
+    data-config=""
+    data-uri="http://wellcomelibrary.org/iiif/b18035723/manifest"
+    data-collectionindex="0"
+    data-manifestindex="0"
+    data-sequenceindex="0"
+    data-canvasindex="0"
+    data-zoom="-0.3778,0,1.7556,1.3791"
+    data-rotation="0"
+    style="width:800x; height:600px; background-color: #000"
+  ></div>
+  <script type="text/javascript" id="embedUV" src="http://universalviewer.azurewebsites.net/uv/lib/embed.js"></script
+  ><script type="text/javascript">
+    /* wordpress fix */
+  </script>
+</div>
+<div class="modal-footer">
+  <button ng-disabled="!$ctrl.profileName" class="btn btn-primary" type="button" ng-click="$ctrl.save()">
+    {{'OK' | translate}}
+  </button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

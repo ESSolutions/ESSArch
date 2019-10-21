@@ -1,6 +1,6 @@
 from django.conf.urls import url
-from .views import index, detail
 
+from .views import detail, index
 
 app_name = 'docs'
 urlpatterns = [

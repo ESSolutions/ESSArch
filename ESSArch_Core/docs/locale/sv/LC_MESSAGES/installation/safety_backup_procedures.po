@@ -1,0 +1,64 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-18 10:34+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/safety_backup_procedures.rst:5
+msgid "Safety backup procedures"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:9
+msgid "Important files to backup"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:11
+msgid ""
+"Important data in ESSArch to backup is the configuration, log files and "
+"database. All areas which are mounted from external file servers should "
+"be backed up."
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:15
+msgid ""
+"Everything in the file area /ESSArch should be backed up before and after"
+" configuration changes or changes in ESSArch system installation, for "
+"example when upgrading and software patches."
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:19
+msgid ""
+"Areas that need to be backed up to an external “backup system” daily is "
+"the following:"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:22
+msgid "/ESSArch/backup"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:23
+msgid "/ESSArch/config"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:24
+msgid "/ESSArch/log"
+msgstr ""
+
+#: ../../installation/safety_backup_procedures.rst:25
+msgid "/ESSArch/data"
+msgstr ""
+

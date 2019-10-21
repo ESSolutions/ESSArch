@@ -14,7 +14,7 @@ def forward(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0068_auto_20171003_1535'),
+        ('WorkflowEngine', '0067_auto_20170925_1014'),
     ]
 
     operations = [

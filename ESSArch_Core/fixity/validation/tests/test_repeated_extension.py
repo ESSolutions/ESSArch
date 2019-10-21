@@ -2,7 +2,9 @@ from django.test import TestCase
 
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
-from ESSArch_Core.fixity.validation.backends.repeated_extension import RepeatedExtensionValidator
+from ESSArch_Core.fixity.validation.backends.repeated_extension import (
+    RepeatedExtensionValidator,
+)
 
 
 class RepeatedExtensionValidatorTests(TestCase):

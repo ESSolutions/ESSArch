@@ -1,0 +1,75 @@
+<div class="title-action-button-row mb-base">
+  <div class="title">
+    <h4>
+      {{'ACCESS.RULES' | translate}}
+    </h4>
+  </div>
+  <div
+    ng-if="!vm.node.published && vm.structure.is_editable"
+    permission
+    permission-only="'tags.change_structure'"
+    class="action-button"
+  >
+    <button class="btn btn-primary" ng-click="vm.addStructureRuleModal(vm.structure)">
+      {{'ACCESS.ADD_RULE' | translate}}
+    </button>
+  </div>
+</div>
+<div class="table-x-overflow table-container">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>
+          {{'TYPE' | translate}}
+        </th>
+        <th>
+          <strong>
+            {{'ACCESS.CAN_BE_MOVED' | translate}}
+          </strong>
+        </th>
+        <th
+          ng-if="!vm.node.published && vm.structure.is_editable"
+          permission
+          permission-only="'tags.change_structure'"
+          class="white-space-nowrap shrink"
+        >
+          {{'REMOVE' | translate}}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="(key, value) in vm.rules">
+        <td>
+          <strong>
+            {{key}}
+          </strong>
+        </td>
+        <td>
+          <input
+            type="checkbox"
+            ng-model="value.movable"
+            ng-change="vm.saveRules(vm.rules, vm.structure)"
+            ng-disabled="vm.node.published || !vm.structure.is_editable"
+          />
+        </td>
+        <td
+          ng-if="!vm.node.published && vm.structure.is_editable"
+          permission
+          permission-only="'tags.change_structure'"
+          class="text-center shrink"
+        >
+          <button
+            class="fas fa-trash-alt btn btn-default btn-sm"
+            ng-click="vm.removeStructureRuleModal(key, value, vm.structure)"
+          ></button>
+        </td>
+      </tr>
+      <tr ng-if="angular.equals(vm.rules, {}) && !vm.structuresLoading" class="empty-table-indicator">
+        <td colspan="{{vm.getRuleListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+      </tr>
+      <tr ng-if="angular.equals(vm.rules, {}) && vm.structuresLoading" class="empty-table-indicator">
+        <td class="loading-column" colspan="{{vm.getRuleListColspan()}}">{{'LOADING' | translate}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

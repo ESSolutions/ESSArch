@@ -1,13 +1,26 @@
 *.py[co]
 *.pyo
 *~
+*.swp
+.envrc
+.vscode
 /dist/
-/ESSArch_Core.egg-info/
+*.egg-info
 MANIFEST
 .idea/
 .settings/
 tools.db
 .DS_Store
+db.sqlite
+node_modules
+
+# celery
+celerybeat-schedule
+
+# docker
+docker/config
+docker/data
+docker/log
 
 # python virtual environment
 /venv/
@@ -15,6 +28,9 @@ tools.db
 # JetBrains IDEs
 /.idea/
 
-# Coverage default folders 
+# PyDev (Python IDE for Eclipse)
+*.pydevproject
+
+# Coverage default folders
 .coverage
 htmlcov/

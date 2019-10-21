@@ -7,4 +7,4 @@ class IPConfig(AppConfig):
     verbose_name = _('Information Package')
 
     def ready(self):
-        import ESSArch_Core.ip.signals  # noqa
+        import ESSArch_Core.ip.signals  # noqa isort:skip

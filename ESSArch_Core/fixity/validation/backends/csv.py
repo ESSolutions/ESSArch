@@ -2,7 +2,6 @@ import csv
 import logging
 
 import click
-
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError
@@ -20,7 +19,7 @@ class CSVValidator(BaseValidator):
             time_done=timezone.now(),
             validator=self.__class__.__name__,
             required=self.required,
-            task_id=self.task,
+            task=self.task,
             information_package_id=self.ip,
             responsible=self.responsible,
             message=msg,

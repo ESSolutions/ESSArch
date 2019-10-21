@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,30 +15,36 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
+import requests
+from lxml import etree
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-from ESSArch_Core.exceptions import Conflict
-
-from ESSArch_Core.ip.models import (
-    InformationPackage,
+from ESSArch_Core.essxml.ProfileMaker.models import (
+    extensionPackage,
+    templatePackage,
 )
-
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
+from ESSArch_Core.exceptions import Conflict
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import (
-    SubmissionAgreement,
     Profile,
-    ProfileSA,
     ProfileIP,
     ProfileIPData,
     ProfileIPDataTemplate,
+    ProfileSA,
+    SubmissionAgreement,
 )
-
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template
 
@@ -65,14 +71,8 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         if self.instance is None and relation.data is not None and instance_data == relation.data.data:
             raise serializers.ValidationError('No changes made')
 
-        filtered_data = {}
-        extra_data = fill_specification_data(ip=relation.ip, sa=relation.ip.submission_agreement)
-        for k, v in instance_data.items():
-            if k not in extra_data:
-                filtered_data[k] = v
-
-        validate_template(relation.profile.template, filtered_data)
-        data['data'] = filtered_data
+        validate_template(relation.profile.template, instance_data)
+        data['data'] = instance_data
         return data
 
     def create(self, validated_data):
@@ -102,8 +102,20 @@ class ProfileIPDataTemplateSerializer(serializers.ModelSerializer):
 
 
 class ProfileIPSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
+    ip = serializers.PrimaryKeyRelatedField(
+        queryset=InformationPackage.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
+    data_versions = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
 
     class Meta:
         model = ProfileIP
@@ -211,7 +223,6 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
 
             'archivist_organization',
 
-            'information_packages',
             'include_profile_transfer_project',
             'include_profile_content_type',
             'include_profile_data_selection',
@@ -405,3 +416,89 @@ class ProfileWriteSerializer(ProfileDetailSerializer):
 
 class ProfileIPSerializerWithProfileAndData(ProfileIPSerializerWithData):
     profile = ProfileSerializer()
+
+
+class ProfileMakerExtensionSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        schema_url = validated_data.pop('schemaURL')
+        schema_request = requests.get(schema_url)
+        schema_request.raise_for_status()
+
+        schemadoc = etree.fromstring(schema_request.content)
+
+        print(schemadoc.nsmap)
+        nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
+        targetNamespace = schemadoc.get('targetNamespace')
+
+        prefix = validated_data.pop('prefix')
+        extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)
+
+        return extensionPackage.objects.create(
+            prefix=prefix, schemaURL=schema_url, targetNamespace=targetNamespace,
+            allElements=extensionAll, existingElements=extensionElements,
+            allAttributes=attributes, nsmap=nsmap, **validated_data
+        )
+
+    class Meta:
+        model = extensionPackage
+        fields = (
+            'id', 'allElements', 'existingElements', 'allAttributes', 'prefix', 'schemaURL', 'targetNamespace',
+        )
+
+        read_only_fields = (
+            'existingElements', 'allElements', 'allAttributes',
+        )
+
+        extra_kwargs = {
+            'targetNamespace': {
+                'required': False
+            }
+        }
+
+
+class ProfileMakerTemplateSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        schema_request = requests.get(validated_data['schemaURL'])
+        schema_request.raise_for_status()
+
+        schemadoc = etree.fromstring(schema_request.content)
+        targetNamespace = schemadoc.get('targetNamespace')
+        nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
+
+        try:
+            existingElements, allElements = generateJsonRes(
+                schemadoc,
+                validated_data['root_element'],
+                validated_data['prefix']
+            )
+        except ValueError as e:
+            raise ValidationError(e)
+
+        return templatePackage.objects.create(
+            existingElements=existingElements, allElements=allElements,
+            targetNamespace=targetNamespace, nsmap=nsmap, **validated_data
+        )
+
+    class Meta:
+        model = templatePackage
+        fields = (
+            'existingElements', 'allElements', 'name', 'root_element',
+            'extensions', 'prefix', 'schemaURL', 'targetNamespace', 'structure'
+        )
+
+        read_only_fields = (
+            'existingElements', 'allElements',
+        )
+
+        extra_kwargs = {
+            'extensions': {
+                'required': False,
+                'allow_empty': True,
+            },
+            'root_element': {
+                'required': True
+            },
+            'targetNamespace': {
+                'required': False
+            }
+        }

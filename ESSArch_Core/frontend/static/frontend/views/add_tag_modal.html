@@ -1,0 +1,17 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">Enter Tag name</h3>
+  <h4 ng-if="parentTag">Parent: {{parentTag.name}}</h4>
+</div>
+<form ng-submit="$ctrl.addTag()">
+  <div class="modal-body" id="modal-body">
+    <label for="name">Name</label>
+    <input required focused="true" id="name" class="form-control" ng-model="$ctrl.name" />
+
+    <label for="description">Description</label>
+    <input id="description" class="form-control" ng-model="$ctrl.description" />
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit">{{'ADD' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

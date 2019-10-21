@@ -2,27 +2,32 @@ import errno
 import os
 
 import requests
-from django.core.cache import cache
 from lxml import etree
+from requests import RequestException
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
-from ESSArch_Core.configuration.models import ArchivePolicy
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
-from ESSArch_Core.essxml.util import parse_submit_description, get_agents
+from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import Agent, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT, InformationPackage
+from ESSArch_Core.ip.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    Agent,
+    InformationPackage,
+)
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.util import timestamp_to_datetime, creation_date, normalize_path, get_event_spec, find_destination
-
-
-def get_cached_objid(id):
-    objid_cache_name = 'object_identifier_value_%s' % id
-    objid = cache.get(objid_cache_name)
-
-    if objid is None:
-        objid = InformationPackage.objects.values_list('object_identifier_value', flat=True).get(pk=id)
-        cache.set(objid_cache_name, objid, 3600 * 24)
-
-    return objid
+from ESSArch_Core.util import (
+    creation_date,
+    find_destination,
+    get_event_spec,
+    normalize_path,
+    timestamp_to_datetime,
+)
 
 
 def get_package_type(t):
@@ -47,7 +52,7 @@ def parse_submit_description_from_ip(ip):
 
     if ip.policy is None:
         parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
-        ip.policy = ArchivePolicy.objects.get(policy_id=parsed_policy)
+        ip.policy = StoragePolicy.objects.get(policy_id=parsed_policy)
 
     ip.information_class = parsed.get('information_class') or ip.policy.information_class
     if ip.information_class != ip.policy.information_class:
@@ -78,7 +83,12 @@ def generate_content_mets(ip):
     }
     algorithm = ip.get_checksum_algorithm()
 
-    generator = XMLGenerator()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    allow_encrypted_files = ip.get_allow_encrypted_files()
+    generator = XMLGenerator(
+        allow_unknown_file_types=allow_unknown_file_types,
+        allow_encrypted_files=allow_encrypted_files,
+    )
     generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
 
     ip.content_mets_path = mets_path
@@ -89,7 +99,7 @@ def generate_content_mets(ip):
     ip.save()
 
 
-def generate_package_mets(ip):
+def generate_package_mets(ip, package_path, xml_path):
     sa = ip.submission_agreement
     if ip.package_type == InformationPackage.SIP:
         profile_type = 'submit_description'
@@ -103,26 +113,72 @@ def generate_package_mets(ip):
         )
     profile_rel = ip.get_profile_rel(profile_type)
     profile_data = ip.get_profile_data(profile_type)
-    xmlpath = os.path.splitext(ip.object_path)[0] + '.xml'
     data = fill_specification_data(profile_data, ip=ip, sa=sa)
-    data["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(ip.object_path)).isoformat()
+    data["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(package_path)).isoformat()
     files_to_create = {
-        xmlpath: {
+        xml_path: {
             'spec': profile_rel.profile.specification,
             'data': data
         }
     }
     algorithm = ip.get_checksum_algorithm()
 
-    generator = XMLGenerator()
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    allow_encrypted_files = ip.get_allow_encrypted_files()
+    generator = XMLGenerator(
+        allow_unknown_file_types=allow_unknown_file_types,
+        allow_encrypted_files=allow_encrypted_files,
+    )
+    generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
-    ip.package_mets_path = normalize_path(xmlpath)
-    ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlpath)).isoformat()
-    ip.package_mets_size = os.path.getsize(xmlpath)
+    ip.package_mets_path = normalize_path(xml_path)
+    ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml_path)).isoformat()
+    ip.package_mets_size = os.path.getsize(xml_path)
     ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-    ip.package_mets_digest = calculate_checksum(xmlpath, algorithm=algorithm)
+    ip.package_mets_digest = calculate_checksum(xml_path, algorithm=algorithm)
     ip.save()
+
+
+def generate_aic_mets(ip, xml_path):
+    aicinfo = fill_specification_data(ip.get_profile_data('aic_description'), ip=ip.aic)
+    aic_desc_profile = ip.get_profile('aic_description')
+    algorithm = ip.policy.get_checksum_algorithm_display().upper()
+
+    filesToCreate = {
+        xml_path: {
+            'spec': aic_desc_profile.specification,
+            'data': aicinfo
+        }
+    }
+
+    parsed_files = []
+
+    for aic_ip in ip.aic.information_packages.order_by('generation'):
+        parsed_files.append({
+            'FName': aic_ip.object_identifier_value + '.tar',
+            'FExtension': 'tar',
+            'FDir': '',
+            'FParentDir': '',
+            'FChecksum': aic_ip.message_digest,
+            'FID': str(aic_ip.pk),
+            'daotype': "borndigital",
+            'href': aic_ip.object_identifier_value + '.tar',
+            'FMimetype': 'application/x-tar',
+            'FCreated': aic_ip.create_date,
+            'FFormatName': 'Tape Archive Format',
+            'FFormatVersion': 'None',
+            'FFormatRegistryKey': 'x-fmt/265',
+            'FSize': str(aic_ip.object_size),
+            'FUse': 'Datafile',
+            'FChecksumType': aic_ip.get_message_digest_algorithm_display(),
+            'FLoctype': 'URL',
+            'FLinkType': 'simple',
+            'FChecksumLib': 'ESSArch',
+            'FIDType': 'UUID',
+        })
+
+    generator = XMLGenerator()
+    generator.generate(filesToCreate, parsed_files=parsed_files, algorithm=algorithm)
 
 
 def generate_premis(ip):
@@ -136,7 +192,12 @@ def generate_premis(ip):
         }
     }
     algorithm = ip.get_checksum_algorithm()
-    generator = XMLGenerator()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    allow_encrypted_files = ip.get_allow_encrypted_files()
+    generator = XMLGenerator(
+        allow_unknown_file_types=allow_unknown_file_types,
+        allow_encrypted_files=allow_encrypted_files,
+    )
     generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
 
 
@@ -164,7 +225,6 @@ def download_schemas(ip, logger, verify):
     if premis_profile_rel is not None:
         specifications.append(premis_profile_rel.profile.specification)
 
-    logger.debug(u'Downloading schemas')
     for spec in specifications:
         schema_preserve_loc = spec.get('-schemaPreservationLocation', 'xsd_files')
         if schema_preserve_loc and structure:
@@ -175,13 +235,13 @@ def download_schemas(ip, logger, verify):
 
         for schema in spec.get('-schemasToPreserve', []):
             download_schema(dirname, logger, schema, verify)
-    else:
-        logger.info(u'No schemas to download')
 
 
+@retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60))
 def download_schema(dirname, logger, schema, verify):
     dst = os.path.join(dirname, os.path.basename(schema))
-    logger.info(u'Downloading schema from {} to {}'.format(schema, dst))
+    logger.info('Downloading schema from {} to {}'.format(schema, dst))
     try:
         r = requests.get(schema, stream=True, verify=verify)
         r.raise_for_status()
@@ -189,16 +249,16 @@ def download_schema(dirname, logger, schema, verify):
             for chunk in r:
                 f.write(chunk)
     except Exception:
-        logger.exception(u'Download of schema failed: {}'.format(schema))
+        logger.exception('Download of schema failed: {}'.format(schema))
         try:
-            logger.debug(u'Deleting downloaded file if it exists: {}'.format(dst))
+            logger.debug('Deleting downloaded file if it exists: {}'.format(dst))
             os.remove(dst)
         except OSError as e:
             if e.errno != errno.ENOENT:
-                logger.exception(u'Failed to delete downloaded file: {}'.format(dst))
+                logger.exception('Failed to delete downloaded file: {}'.format(dst))
                 raise
         else:
-            logger.info(u'Deleted downloaded file: {}'.format(dst))
+            logger.info('Deleted downloaded file: {}'.format(dst))
         raise
     else:
-        logger.info(u'Downloaded schema to {}'.format(dst))
+        logger.info('Downloaded schema to {}'.format(dst))

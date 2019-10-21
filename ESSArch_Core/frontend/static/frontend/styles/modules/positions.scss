@@ -1,0 +1,31 @@
+.position- {
+  &relative {
+    position: relative;
+  }
+  &absolute {
+    position: absolute;
+  }
+  &lg- {
+    &relative {
+      @include large-screen-up {
+        position: relative !important;
+      }
+    }
+  }
+}
+
+.absolute- {
+  &top-right {
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+}
+
+.float-right {
+  float: right;
+}
+
+.float-left {
+  float: left;
+}
