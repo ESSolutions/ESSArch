@@ -4,7 +4,7 @@
 Automatic installation
 **********************
 
-If you are installing on CentOS/RedHat or SLES, and have access to the root
+If you are installing on CentOS/RedHat or OpenSUSE/SLES, and have access to the root
 user then there is a script available that automates the installation for you:
 
 
@@ -19,4 +19,4 @@ Run the following as root
 
 This will download, configure, install and start ESSArch and all its
 dependencies. Answer the prompts and when the installation is done you will
-have a running ESSArch environment accessible at http://localhost
+have a running ESSArch environment accessible at https://hostname

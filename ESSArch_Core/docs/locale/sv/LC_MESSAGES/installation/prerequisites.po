@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-21 12:36+0200\n"
+"POT-Creation-Date: 2019-10-21 16:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -56,7 +56,7 @@ msgid "8 (x86\\_64)"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:25
-msgid "SUSE Linux Enterprise Server"
+msgid "OpenSUSE / SLES"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:25

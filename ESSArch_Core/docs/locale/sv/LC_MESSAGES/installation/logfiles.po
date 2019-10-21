@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-18 10:34+0200\n"
+"POT-Creation-Date: 2019-10-21 16:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,23 +29,7 @@ msgstr ""
 #: ../../installation/logfiles.rst:11
 msgid ""
 "Different types of events are logged both in physical files and tables in"
-" ESSArch database. Log entries are tagged with the log level - Debug, "
-"Critical, Error, Warning, Info. List of log files:"
+" the ESSArch database. Log entries are tagged with the log levels "
+"\"Debug\", \"Info\", \"Warning\", \"Error\", \"Critical\". The log files "
+"are by default stored in ``/ESSArch/log``."
 msgstr ""
-
-#: ../../installation/logfiles.rst:15
-msgid "/ESSArch/log"
-msgstr ""
-
-#: ../../installation/logfiles.rst:16
-msgid "/ESSArch/log/httpd_access.log"
-msgstr ""
-
-#: ../../installation/logfiles.rst:17
-msgid "/ESSArch/log/httpd_error.log"
-msgstr ""
-
-#: ../../installation/logfiles.rst:18
-msgid "/ESSArch/log/httpd_ssl_request.log"
-msgstr ""
-
