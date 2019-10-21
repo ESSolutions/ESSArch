@@ -7,9 +7,6 @@ from django.core.management import call_command as dj_call_command
 
 from ESSArch_Core.cli import deactivate_prompts
 from ESSArch_Core.config.decorators import initialize
-from ESSArch_Core.install.install_default_config import (
-    installDefaultConfiguration,
-)
 
 LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'WARN', 'ERROR', 'CRITICAL', 'FATAL')
 DEFAULT_DATA_DIR = '/ESSArch/data'
@@ -109,6 +106,8 @@ def install(ctx, data_directory):
     ctx.invoke(create_data_directories, path=data_directory)
     ctx.invoke(migrate)
     _loaddata('countries_data', 'languages_data',)
+
+    from ESSArch_Core.install.install_default_config import installDefaultConfiguration
     installDefaultConfiguration()
 
 
