@@ -99,7 +99,7 @@
     "ua-parser-js": "^0.7.20",
     "ui-select": "~0.19.6",
     "uri-util": "^1.1.0",
-    "url-loader": "^2.1.0",
+    "url-loader": "^2.2.0",
     "utf-8-validate": "^5.0.2",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.9",
