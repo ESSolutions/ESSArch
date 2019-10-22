@@ -2,7 +2,7 @@
 
 set -e
 
-essarch settings generate -q --no-overwrite
+essarch settings generate --debug -q --no-overwrite
 essarch install -q
 
 echo "Installing profiles"
