@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'consign methods',
             },
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name='order',
             name='consign_method',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, to='ip.ConsignMethod', verbose_name='consign method'),
