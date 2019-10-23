@@ -39,11 +39,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='order',
-            name='consign_method',
-            field=models.CharField(blank=True, max_length=255),
-        ),
-        migrations.AddField(
-            model_name='order',
             name='family_name',
             field=models.CharField(blank=True, max_length=255),
         ),
