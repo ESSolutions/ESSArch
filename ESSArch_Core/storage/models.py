@@ -431,7 +431,7 @@ class StorageMediumQueryset(models.QuerySet):
                         ))
                     )
                 )
-            """.format('' if include_inactive_ips else 'WHERE IP.active = true'), (
+            """.format('' if include_inactive_ips else 'WHERE IP.active = 1'), (
                 STORAGE_TARGET_STATUS_MIGRATE,
                 STORAGE_TARGET_STATUS_ENABLED,
             ))
