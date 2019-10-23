@@ -69,6 +69,8 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     queryset = User.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
