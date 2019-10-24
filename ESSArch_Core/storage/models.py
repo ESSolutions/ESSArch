@@ -11,8 +11,9 @@ import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models, transaction
+from django.db import connection, models, transaction
 from django.db.models import Case, F, IntegerField, Value, When
+from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
@@ -369,13 +370,68 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(storage_target__methods__containers=True)
 
     def active(self):
-        return self.filter(storage_target__status=True)
+        return self.filter(storage_target__status=True, status__in=[20, 30])
 
     def readable(self):
         return self.filter(status__in=[20, 30], location_status=50)
 
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
+
+    def deactivatable(self, include_inactive_ips=False):
+        # TODO: Replace RawSQL when Django 3.0 is released
+
+        def mssql_wrapper(sql):
+            if connection.vendor == 'microsoft':
+                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
+            return sql
+
+        ip_active_cast = 'CAST(IP.active AS signed)' if connection.vendor == 'mysql' else 'CAST(IP.active AS int)'
+        qs = self.exclude(status=0).filter(
+            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
+        ).annotate(
+            has_non_migrated_storage_object=RawSQL(mssql_wrapper("""
+                EXISTS(
+                    SELECT 1 FROM storage_storageobject W1
+                    INNER JOIN ip_informationpackage IP ON (
+                        IP.id=W1.ip_id
+                    )
+                    INNER JOIN (
+                        SELECT U2.id, U5.id AS medium_id FROM storage_storagemethod U2
+                        INNER JOIN storage_storagemethodtargetrelation U3 ON (
+                            U3.storage_method_id=U2.id AND
+                            U3.status = %s
+                        )
+                        INNER JOIN storage_storagetarget U4 ON (
+                            U4.id=U3.storage_target_id
+                        )
+                        INNER JOIN storage_storagemedium U5 ON (
+                            U5.storage_target_id=U4.id
+                        )
+                    ) old_method ON (old_method.medium_id=W1.storage_medium_id)
+                    LEFT JOIN (
+                        SELECT A0.id, A0.ip_id, A3.storage_method_id AS method_id FROM storage_storageobject A0
+                        INNER JOIN storage_storagemedium A1 ON (
+                            A1.id = A0.storage_medium_id
+                        )
+                        INNER JOIN storage_storagetarget A2 ON (
+                            A2.id = A1.storage_target_id
+                        )
+                        INNER JOIN storage_storagemethodtargetrelation A3 ON (
+                            A3.storage_target_id = A2.id AND
+                            A3.status = %s
+                        )
+                    ) new_object ON (new_object.ip_id = W1.ip_id AND old_method.id = new_object.method_id)
+                    WHERE W1.storage_medium_id = storage_storagemedium.id AND new_object.id IS NULL {}
+                )
+            """.format('' if include_inactive_ips else "AND {} = 1".format(ip_active_cast))), (
+                STORAGE_TARGET_STATUS_MIGRATE,
+                STORAGE_TARGET_STATUS_ENABLED,
+            ))
+        ).filter(
+            has_non_migrated_storage_object=False,
+        )
+        return self.filter(pk__in=qs)
 
     def fastest(self):
         container = Case(
