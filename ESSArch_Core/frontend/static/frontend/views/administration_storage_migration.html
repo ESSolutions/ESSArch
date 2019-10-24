@@ -8,15 +8,6 @@
               <h4>
                 {{'INFORMATION_PACKAGES' | translate}}
               </h4>
-              <a
-                target="_blank"
-                class="help-button"
-                uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
-                tooltip-position="top auto"
-                href="/docs/{{$translate.use()}}/user_guide/{{vm.getStateDocPage()}}"
-              >
-                <i class="far fa-question-circle"></i>
-              </a>
             </div>
             <div class="action-button"></div>
           </div>
@@ -43,11 +34,6 @@
             >
             </span>
             <div ng-if="!('home.ingest.reception' | isState)" ng-show="showAdvancedFilters" class="advanced-filters">
-              <formly-form model="vm.migration" fields="vm.filterFields" options="{}"></formly-form>
-              <label>
-                <input type="checkbox" ng-model="filterOwnIps" ng-change="vm.toggleOwnIps(filterOwnIps)" />
-                {{'SEE_MY_IPS' | translate}}
-              </label>
               <form name="form1" style="position: relative;" novalidate>
                 <div class="formly-buttons-wrapper">
                   <formly-form model="filterModel" fields="fields" options="options"> </formly-form>

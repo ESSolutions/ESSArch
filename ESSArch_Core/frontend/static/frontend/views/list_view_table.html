@@ -65,10 +65,6 @@
     >
     </span>
     <div ng-if="!('home.ingest.reception' | isState)" ng-show="showAdvancedFilters" class="advanced-filters">
-      <label>
-        <input type="checkbox" ng-model="filterOwnIps" ng-change="vm.toggleOwnIps(filterOwnIps)" />
-        {{'SEE_MY_IPS' | translate}}
-      </label>
       <form name="form1" style="position: relative;" novalidate>
         <div class="formly-buttons-wrapper">
           <formly-form model="filterModel" fields="fields" options="options"> </formly-form>

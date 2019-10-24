@@ -1,0 +1,12 @@
+<div class="checkbox">
+  <label>
+    <input
+      type="checkbox"
+      class="formly-field-checkbox"
+      ng-true-value="{{to.trueValue !== undefined ? to.trueValue : true | json}}"
+      ng-false-value="{{to.falseValue !== undefined ? to.falseValue : false | json}}"
+      ng-model="model[options.key]"
+    />
+    {{to.label}} {{to.required ? '*' : ''}}
+  </label>
+</div>
