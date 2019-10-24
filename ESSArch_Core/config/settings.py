@@ -58,7 +58,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'ESSArch_Core.auth.permissions.ActionPermissions',
     ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
