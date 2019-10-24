@@ -44,6 +44,10 @@ $ pre-commit install
 
 Now whenever you run `git commit`, all hooks defined in `.pre-commit-config.yaml` will verify the code.
 
+## Resources
+* [Documentation](https://docs.essarch.org/)
+* [ES Solutions website](http://essolutions.se)
+
 # Service and support
 
 Service and support on ESSArch Core is regulated in maintenance contract with ES Solutions AB. A case is registered on the support portal http://projects.essolutions.se
