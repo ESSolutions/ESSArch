@@ -284,6 +284,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     search_fields = (
         '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
+    ordering = ('-create_date',)
 
     @action(detail=True, methods=['post'])
     def mount(self, request, pk=None):

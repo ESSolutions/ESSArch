@@ -1,3 +1,9 @@
+## [Unreleased]
+
+### Added
+
+- deactivatable-filter for storage mediums - [#574](https://github.com/ESSolutions/ESSArch/pull/574)
+
 # [3.0.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.0)
 
 ## Introduction
