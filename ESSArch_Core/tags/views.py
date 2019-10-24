@@ -3,7 +3,7 @@ from django.db.models import ProtectedError, Q
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
-from rest_framework import exceptions, filters, viewsets
+from rest_framework import exceptions, filters, permissions, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -79,6 +79,7 @@ class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = AgentTagLink.objects.filter(
         tag__elastic_index='archive'
     )
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = AgentArchiveLinkSerializer
     filter_backends = (OrderingFilter, SearchFilter,)
     search_fields = ('tag__name',)

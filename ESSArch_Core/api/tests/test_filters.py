@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django_filters import rest_framework as filters
-from rest_framework import generics, serializers
+from rest_framework import generics, permissions, serializers
 from rest_framework.test import APIRequestFactory, force_authenticate
 
 from ESSArch_Core.api.filters import ListFilter, SearchFilter
@@ -40,6 +40,7 @@ class SearchFilterTests(TestCase):
 
         class SearchListView(generics.ListAPIView):
             queryset = InformationPackage.objects.all()
+            permission_classes = (permissions.IsAuthenticated,)
             serializer_class = SearchFilterSerializer
             filter_backends = (SearchFilter,)
             search_fields = ('id',)
