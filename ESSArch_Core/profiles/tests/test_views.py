@@ -110,3 +110,15 @@ class CreateSubmissionAgreementTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'name': 'foo', 'label': 'Foo', 'type': 'sa', 'status': 'created'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class SubmissionAgreementTemplateTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create(username='user')
+        self.url = reverse('profiles-submission-agreement-template')
+        self.client.force_authenticate(user=self.user)
+
+    def test_authenticated_with_permission(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
