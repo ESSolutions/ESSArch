@@ -81,14 +81,14 @@ export default (
       className: 'row m-0',
       fieldGroup: [
         {
-          key: 'create_date_before',
+          key: 'create_date_after',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('IP_CREATE_DATE_START'),
           },
         },
         {
-          key: 'create_date_after',
+          key: 'create_date_before',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('IP_CREATE_DATE_END'),
@@ -100,14 +100,14 @@ export default (
       className: 'row m-0',
       fieldGroup: [
         {
-          key: 'entry_date_before',
+          key: 'entry_date_after',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('ENTRY_DATE_START'),
           },
         },
         {
-          key: 'entry_date_after',
+          key: 'entry_date_before',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('ENTRY_DATE_END'),
@@ -119,14 +119,14 @@ export default (
       className: 'row m-0',
       fieldGroup: [
         {
-          key: 'start_date_before',
+          key: 'start_date_after',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('START_DATE_START'),
           },
         },
         {
-          key: 'start_date_after',
+          key: 'start_date_before',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('START_DATE_END'),
@@ -138,14 +138,14 @@ export default (
       className: 'row m-0',
       fieldGroup: [
         {
-          key: 'end_date_before',
+          key: 'end_date_after',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('END_DATE_START'),
           },
         },
         {
-          key: 'end_date_after',
+          key: 'end_date_before',
           type: 'datepicker',
           templateOptions: {
             label: $translate.instant('END_DATE_END'),
