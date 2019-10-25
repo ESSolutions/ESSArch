@@ -532,6 +532,13 @@ class StorageMedium(models.Model):
         storage_backend = self.storage_target.get_storage_backend()
         storage_backend.prepare_for_write(self)
 
+    def is_migrated(self, include_inactive_ips=False) -> True:
+        return self in StorageMedium.objects.deactivatable(include_inactive_ips=include_inactive_ips)
+
+    def deactivate(self) -> None:
+        self.status = 0
+        self.save()
+
     def mark_as_full(self):
         logger.debug('Marking storage medium as full: "{}"'.format(str(self.pk)))
         objs = self.storage.annotate(
