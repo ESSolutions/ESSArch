@@ -1,32 +1,8 @@
 import * as angular from 'angular';
+import {IFieldGroup, IFieldObject} from '../formly/types';
 
 interface rootscope extends ng.IRootScopeService {
   auth: any;
-}
-
-interface templateOptions {
-  label: string;
-  options?: any[] | Function;
-  optionsFunction?: Function;
-  valueProp?: string;
-  labelProp?: string;
-  trueValue?: any;
-  falseValue?: any;
-  appendToBody?: boolean;
-  refresh?: Function;
-  clearEnabled?: boolean;
-}
-
-interface formlyField {
-  key: string;
-  type: string;
-  templateOptions: templateOptions;
-  defaultValue?: any;
-}
-
-interface formGroup {
-  fieldGroup: formlyField[];
-  className?: string;
 }
 
 export default (
@@ -60,7 +36,7 @@ export default (
   };
 
   // Base filter fields for information package views
-  let ipBaseFields: (formlyField | formGroup)[] = [
+  let ipBaseFields: (IFieldObject | IFieldGroup)[] = [
     {
       key: 'responsible',
       type: 'checkbox',
@@ -160,23 +136,21 @@ export default (
         label: $translate.instant('RESPONSIBLE'),
         labelProp: 'username',
         valueProp: 'username',
-        options: function() {
-          return users;
-        },
         optionsFunction: function() {
+          console.log('options finctuin');
           return users;
         },
         clearEnabled: true,
         appendToBody: true,
         refresh: function(search) {
-          getUsers(search);
+          return getUsers(search);
         },
       },
     },
   ];
 
   // Additional IP fields available in specific views
-  let active: formlyField = {
+  const active: IFieldObject = {
     key: 'active',
     type: 'checkbox',
     templateOptions: {
@@ -186,7 +160,7 @@ export default (
     },
   };
 
-  let archived: formlyField = {
+  const archived: IFieldObject = {
     key: 'archived',
     type: 'checkbox',
     templateOptions: {
@@ -194,7 +168,7 @@ export default (
     },
   };
 
-  let cached: formlyField = {
+  const cached: IFieldObject = {
     key: 'cached',
     type: 'checkbox',
     templateOptions: {
@@ -202,16 +176,13 @@ export default (
     },
   };
 
-  let policy: formlyField = {
+  const policy: IFieldObject = {
     key: 'policy',
     type: 'uiselect',
     templateOptions: {
       label: $translate.instant('STORAGE_POLICY'),
       labelProp: 'policy_name',
       valueProp: 'id',
-      options: function() {
-        return policies;
-      },
       clearEnabled: true,
       optionsFunction: function() {
         return policies;
@@ -223,7 +194,7 @@ export default (
     },
   };
 
-  let currentMedium: formlyField = {
+  const currentMedium: IFieldObject = {
     key: 'current_medium',
     type: 'input',
     templateOptions: {
@@ -232,13 +203,13 @@ export default (
   };
 
   // Returns base form field list with given special fields first
-  let addSpecialFieldsBeforeBase = (list: (formlyField | formGroup)[]): (formlyField | formGroup)[] => {
+  const addSpecialFieldsBeforeBase = (list: (IFieldObject | IFieldGroup)[]): (IFieldObject | IFieldGroup)[] => {
     let extras = angular.copy(list);
     return extras.concat(ipBaseFields);
   };
 
   // Map states and additional IP filter fields
-  let ipStateFieldMap: any = {
+  const ipStateFieldMap = {
     default: ipBaseFields,
     'home.producer.prepareIp': ipBaseFields,
     'home.producer.collectContent': ipBaseFields,
@@ -254,7 +225,7 @@ export default (
   };
 
   // Map states and additional IP filter fields
-  let ipStateModelMap: any = {
+  const ipStateModelMap = {
     default: {},
     'home.producer.prepareIp': {},
     'home.producer.collectContent': {},
@@ -270,19 +241,19 @@ export default (
   };
 
   // Get ip form fields given state name
-  let getIpFilterFields = (state: string): (formlyField | formGroup)[] => {
+  const getIpFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
     return ipStateFieldMap[state] || ipStateFieldMap.default;
   };
 
   // Get ip form model widh default values given state name
-  let getIpFilterModel = (state: string): any => {
+  const getIpFilterModel = (state: string) => {
     return ipStateModelMap[state] || ipStateModelMap.default;
   };
 
   // Events
 
   // Base filter fields for event views
-  let eventBaseFields: (formlyField | formGroup)[] = [
+  let eventBaseFields: (IFieldObject | IFieldGroup)[] = [
     {
       key: 'eventType',
       type: 'uiselect',
@@ -290,9 +261,7 @@ export default (
         label: $translate.instant('EVENT.EVENTTYPE'),
         labelProp: 'eventDetail',
         valueProp: 'eventType',
-        options: function() {
-          return eventTypes;
-        },
+        options: eventTypes,
         optionsFunction: function() {
           return eventTypes;
         },
@@ -348,7 +317,7 @@ export default (
   };
 
   // Get event form fields given state name
-  let getEventFilterFields = (state: string): (formlyField | formGroup)[] => {
+  let getEventFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
     return eventStateFieldMap[state] || eventStateFieldMap.default;
   };
 

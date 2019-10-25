@@ -128,7 +128,15 @@
   }
   .formly-field {
     width: 100% !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 5px !important;
+  }
+  .filter-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    .btn-default {
+      margin-left: 3px;
+    }
   }
 }
 
