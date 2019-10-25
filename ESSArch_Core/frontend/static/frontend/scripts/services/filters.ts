@@ -37,6 +37,7 @@ export default (
 ) => {
   let policies: any = [];
   let users: any = [];
+  let eventTypes: any = [];
 
   let getStoragePolicies = async (search: string) => {
     const response = await $http.get(appConfig.djangoUrl + 'storage-policies/', {
@@ -49,6 +50,12 @@ export default (
   let getUsers = async (search: string) => {
     const response = await $http.get(appConfig.djangoUrl + 'users/', {params: {page: 1, page_size: 10, search}});
     users = response.data;
+    return response.data;
+  };
+
+  let getEventTypes = async (search: string) => {
+    const response = await $http.get(appConfig.djangoUrl + 'event-types/', {params: {page: 1, page_size: 10, search}});
+    eventTypes = response.data;
     return response.data;
   };
 
@@ -262,20 +269,101 @@ export default (
     'home.administration.storageMaintenance': {archived: true, active: true},
   };
 
-  // Get form fields given state name
+  // Get ip form fields given state name
   let getIpFilterFields = (state: string): (formlyField | formGroup)[] => {
     return ipStateFieldMap[state] || ipStateFieldMap.default;
   };
 
-  // Get form model widh default values given state name
+  // Get ip form model widh default values given state name
   let getIpFilterModel = (state: string): any => {
-    return ipStateModelMap[state] || ipStateModelMap['default'];
+    return ipStateModelMap[state] || ipStateModelMap.default;
+  };
+
+  // Events
+
+  // Base filter fields for event views
+  let eventBaseFields: (formlyField | formGroup)[] = [
+    {
+      key: 'eventType',
+      type: 'uiselect',
+      templateOptions: {
+        label: $translate.instant('EVENT.EVENTTYPE'),
+        labelProp: 'eventDetail',
+        valueProp: 'eventType',
+        options: function() {
+          return eventTypes;
+        },
+        optionsFunction: function() {
+          return eventTypes;
+        },
+        clearEnabled: true,
+        appendToBody: true,
+        refresh: function(search) {
+          getEventTypes(search);
+        },
+      },
+    },
+    {
+      key: 'eventOutcome',
+      type: 'select',
+      templateOptions: {
+        label: $translate.instant('EVENTOUTCOME'),
+        options: [
+          {name: $translate.instant('EVENT.EVENT_SUCCESS'), id: 0},
+          {name: $translate.instant('EVENT.EVENT_FAILURE'), id: 1},
+        ],
+        labelProp: 'name',
+        valueProp: 'id',
+      },
+    },
+    {
+      className: 'row m-0',
+      fieldGroup: [
+        {
+          key: 'eventDateTime_after',
+          type: 'datepicker',
+          templateOptions: {
+            label: $translate.instant('EVENTDATETIME_START'),
+          },
+        },
+        {
+          key: 'eventDateTime_before',
+          type: 'datepicker',
+          templateOptions: {
+            label: $translate.instant('EVENTDATETIME_END'),
+          },
+        },
+      ],
+    },
+  ];
+
+  // Map states and additional IP filter fields
+  let eventStateFieldMap: any = {
+    default: eventBaseFields,
+  };
+
+  // Map states and additional IP filter fields
+  let eventStateModelMap: any = {
+    default: {},
+  };
+
+  // Get event form fields given state name
+  let getEventFilterFields = (state: string): (formlyField | formGroup)[] => {
+    return eventStateFieldMap[state] || eventStateFieldMap.default;
+  };
+
+  // Get event form model widh default values given state name
+  let getEventFilterModel = (state: string): any => {
+    return eventStateModelMap[state] || eventStateModelMap.default;
   };
 
   // Public service methods and properties
   let service: any = {
     getIpFilters(state: string): any {
       return {fields: getIpFilterFields(state), model: getIpFilterModel(state)};
+    },
+    getEventFilters(state: string): any {
+      return {fields: getEventFilterFields(state), model: getEventFilterModel(state)};
     },
   };
   return service;

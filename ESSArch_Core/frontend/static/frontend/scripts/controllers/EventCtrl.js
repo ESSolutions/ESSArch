@@ -11,7 +11,10 @@ export default class EventCtrl {
     $translate,
     $http,
     Notifications,
-    $transitions
+    $transitions,
+    Filters,
+    $timeout,
+    $state
   ) {
     const vm = this;
     $scope.$translate = $translate;
@@ -49,12 +52,7 @@ export default class EventCtrl {
     vm.$onInit = function() {
       $scope.ip = vm.ip;
       vm.getEventlogData();
-      $http({
-        method: 'OPTIONS',
-        url: appConfig.djangoUrl + 'events/',
-      }).then(function(response) {
-        $scope.usedColumns = response.data.filters;
-      });
+      vm.setupForm();
     };
     vm.$onChanges = function() {
       $scope.addEventAlert = null;
@@ -185,59 +183,13 @@ export default class EventCtrl {
     $scope.options = {};
     $scope.fields = [];
     vm.setupForm = function() {
-      $scope.fields = [];
-      $scope.filterModel = {};
-      for (const key in $scope.usedColumns) {
-        const column = $scope.usedColumns[key];
-        switch (column.type) {
-          case 'ModelChoiceFilter':
-          case 'ChoiceFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase()),
-                labelProp: 'display_name',
-                valueProp: 'value',
-                options: column.choices,
-              },
-              type: 'select',
-              key: key,
-            });
-            break;
-          case 'CharFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase()),
-                labelProp: key,
-                valueProp: key,
-              },
-              type: 'input',
-              key: key,
-            });
-            break;
-          case 'IsoDateTimeFromToRangeFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase() + '_START'),
-                appendToBody: true,
-              },
-              type: 'datepicker',
-              key: key + '_after',
-            });
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase() + '_END'),
-                appendToBody: true,
-              },
-              type: 'datepicker',
-              key: key + '_before',
-            });
-            break;
-        }
-      }
+      $timeout(() => {
+        let filters = Filters.getEventFilters($state.current.name);
+        $scope.filterModel = angular.copy(filters.model);
+        vm.initialColumnFilters = angular.copy(filters.model);
+        $scope.columnFilters = angular.copy(filters.model);
+        $scope.fields = filters.fields;
+      });
     };
 
     //Toggle visibility of advanced filters
@@ -258,6 +210,10 @@ export default class EventCtrl {
           const clickedOnAdvancedFilters =
             elementClasses.contains('filter-icon') ||
             elementClasses.contains('advanced-filters') ||
+            elementClasses.contains('ui-select-match-text') ||
+            elementClasses.contains('ui-select-search') ||
+            elementClasses.contains('ui-select-toggle') ||
+            elementClasses.contains('ui-select-choices') ||
             clickedElement.parents('.advanced-filters').length ||
             clickedElement.parents('.button-group').length;
 
@@ -286,7 +242,13 @@ export default class EventCtrl {
     $scope.filterActive = function() {
       let temp = false;
       for (const key in $scope.columnFilters) {
-        if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
+        if (
+          (angular.isUndefined(vm.initialColumnFilters[key]) &&
+            $scope.columnFilters[key] !== '' &&
+            $scope.columnFilters[key] !== null) ||
+          (!angular.isUndefined(vm.initialColumnFilters[key]) &&
+            $scope.columnFilters[key] !== vm.initialColumnFilters[key])
+        ) {
           temp = true;
         }
       }
