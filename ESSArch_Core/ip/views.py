@@ -205,8 +205,8 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
 
 class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
-
     queryset = Workarea.objects.all()
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = WorkareaSerializer
 
     def get_queryset(self):
@@ -346,6 +346,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     logger = logging.getLogger('essarch.InformationPackageViewSet')
 
     queryset = InformationPackage.objects.none()
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = InformationPackageSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
     ordering_fields = (
@@ -2657,6 +2658,8 @@ class WorkareaViewSet(InformationPackageViewSet):
 
 
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def get_user(self, request):
         requested_user = self.request.query_params.get('user')
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
