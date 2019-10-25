@@ -38,7 +38,7 @@ from django_redis import get_redis_connection
 from elasticsearch.exceptions import ElasticsearchException
 from elasticsearch_dsl.connections import get_connection as get_es_connection
 from redis.exceptions import RedisError
-from rest_framework import filters, viewsets
+from rest_framework import filters, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -141,6 +141,7 @@ class SysInfoView(APIView):
     """
     API endpoint that allows system info to be viewed
     """
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
         full = string_to_bool(request.query_params.get('full', 'false'))
@@ -236,10 +237,12 @@ class StoragePolicyViewSet(viewsets.ModelViewSet):
 
 
 class SiteView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
     def get(self, request):
         site = Site.objects.first()
         if site is None:
-            return None
+            return Response()
 
         serializer = SiteSerializer(instance=site)
         return Response(serializer.data)

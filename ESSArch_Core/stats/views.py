@@ -6,8 +6,8 @@ from django.contrib.auth.models import Permission
 from django.db.models import Count, Sum
 from django.template.loader import render_to_string
 from django.utils import timezone
-from rest_framework import exceptions
-from rest_framework.decorators import api_view
+from rest_framework import exceptions, permissions
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from weasyprint import HTML
 
@@ -34,11 +34,13 @@ def get_data():
 
 
 @api_view()
+@permission_classes((permissions.IsAuthenticated,))
 def stats(request):
     return Response(get_data())
 
 
 @api_view()
+@permission_classes((permissions.IsAuthenticated,))
 def export(request):
     data = get_data()
 

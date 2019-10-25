@@ -10,7 +10,7 @@ from django.db.models import Max, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, serializers, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import SAFE_METHODS
+from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -618,5 +618,7 @@ class ProfileMakerTemplateViewSet(viewsets.ModelViewSet):
 
 
 class SubmissionAgreementTemplateView(APIView):
+    permission_classes = (IsAuthenticated,)
+
     def get(self, request):
         return Response(get_sa_template())
