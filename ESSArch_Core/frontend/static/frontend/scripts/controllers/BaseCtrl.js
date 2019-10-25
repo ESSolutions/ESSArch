@@ -1290,7 +1290,8 @@ export default class BaseCtrl {
           (angular.isUndefined(vm.initialColumnFilters[key]) &&
             $scope.columnFilters[key] !== '' &&
             $scope.columnFilters[key] !== null) ||
-          $scope.columnFilters[key] !== vm.initialColumnFilters[key]
+          (!angular.isUndefined(vm.initialColumnFilters[key]) &&
+            $scope.columnFilters[key] !== vm.initialColumnFilters[key])
         ) {
           temp = true;
         }
