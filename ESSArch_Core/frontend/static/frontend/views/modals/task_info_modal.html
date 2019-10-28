@@ -210,6 +210,9 @@
                 <th st-sort="validator" class="cursor-pointer">
                   {{ "VALIDATOR" | translate }}
                 </th>
+                <th>
+                  {{ "STATE_TREE.REPRESENTATION" | translate }}
+                </th>
                 <th st-sort="filename" class="cursor-pointer">
                   {{ "FILENAME" | translate }}
                 </th>
@@ -257,6 +260,9 @@
                 </td>
                 <td class="text-oneline-ellipsis">
                   {{ x.validator }}
+                </td>
+                <td class="text-oneline-ellipsis">
+                  {{ x.specification.options.representation }}
                 </td>
                 <td class="text-oneline-ellipsis">
                   {{ x.filename }}

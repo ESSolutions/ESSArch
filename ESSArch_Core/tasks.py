@@ -28,6 +28,7 @@ import os
 import tarfile
 import zipfile
 from os import walk
+from pathlib import PurePosixPath
 
 import requests
 from django.conf import settings
@@ -45,6 +46,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     findElementWithoutNamespace,
 )
+from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
 from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
@@ -77,6 +79,7 @@ from ESSArch_Core.tasks_util import (
 from ESSArch_Core.util import (
     convert_file,
     delete_path,
+    find_destination,
     get_tree_size_and_count,
     zip_directory,
 )
@@ -446,7 +449,7 @@ class CompareXMLFiles(DBTask):
     event_type = 50240
     queue = 'validation'
 
-    def run(self, first, second, rootdir=None):
+    def run(self, first, second, rootdir=None, recursive=True):
         Validation.objects.filter(task=self.get_processtask()).delete()
         first, second = self.parse_params(first, second)
         ip = InformationPackage.objects.get(pk=self.ip)
@@ -455,13 +458,54 @@ class CompareXMLFiles(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.get_processtask(),
-                                           ip=self.ip, responsible=ip.responsible)
+        validator = XMLComparisonValidator(
+            context=first,
+            options={'rootdir': rootdir, 'recursive': recursive},
+            task=self.get_processtask(),
+            ip=self.ip,
+            responsible=ip.responsible,
+        )
         validator.validate(second)
 
-    def event_outcome_success(self, result, first, second, rootdir=None):
+    def event_outcome_success(self, result, first, second, rootdir=None, recursive=True):
         first, second = self.parse_params(first, second)
         return "%s and %s has the same set of files" % (first, second)
+
+
+class CompareRepresentationXMLFiles(DBTask):
+    event_type = 50240
+    queue = 'validation'
+
+    def run(self):
+        Validation.objects.filter(task=self.get_processtask()).delete()
+        ip = InformationPackage.objects.get(pk=self.ip)
+
+        reps_path, reps_dir = find_destination("representations", ip.get_structure(), ip.object_path)
+        if reps_path is None:
+            return None
+
+        representations_dir = os.path.join(reps_path, reps_dir)
+
+        for p in find_pointers(ip.content_mets_path):
+            rep_mets_path = p.path
+            rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
+            rep_path = os.path.relpath(rep_mets_path, representations_dir)
+            rep_path = PurePosixPath(rep_path).parts[0]
+
+            rep_premis_path = get_premis_ref(etree.parse(rep_mets_path)).path
+            rep_premis_path = os.path.join(representations_dir, rep_path, rep_premis_path)
+
+            validator = XMLComparisonValidator(
+                context=rep_premis_path,
+                options={
+                    'rootdir': os.path.join(representations_dir, rep_path),
+                    'representation': rep_path,
+                },
+                task=self.get_processtask(),
+                ip=self.ip,
+                responsible=ip.responsible,
+            )
+            validator.validate(rep_mets_path)
 
 
 class UpdateIPStatus(DBTask):

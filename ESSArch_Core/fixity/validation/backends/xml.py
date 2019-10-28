@@ -40,6 +40,7 @@ class DiffCheckValidator(BaseValidator):
 
         self.context = normalize_path(self.context)
         self.rootdir = self.options.get('rootdir')
+        self.recursive = self.options.get('recursive', True)
         self.default_algorithm = self.options.get('default_algorithm', 'SHA-256')
 
         self.initial_present = {}  # Map checksum -> fname
@@ -79,7 +80,7 @@ class DiffCheckValidator(BaseValidator):
         self.renamed = 0
 
     def _get_files(self):
-        self.logical_files = find_files(self.context, rootdir=self.rootdir)
+        self.logical_files = find_files(self.context, rootdir=self.rootdir, recursive=self.recursive)
 
     def _create_obj(self, filename, passed, msg):
         return Validation(
@@ -243,7 +244,12 @@ class DiffCheckValidator(BaseValidator):
 class XMLComparisonValidator(DiffCheckValidator):
     def _get_files(self):
         skip_files = [p.path for p in find_pointers(self.context)]
-        self.logical_files = find_files(self.context, rootdir=self.rootdir, skip_files=skip_files)
+        self.logical_files = find_files(
+            self.context,
+            rootdir=self.rootdir,
+            skip_files=skip_files,
+            recursive=self.recursive,
+        )
 
     def _get_filepath(self, input_file):
         return normalize_path(os.path.join(self.rootdir, input_file.path))
@@ -272,7 +278,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         skip_files = [os.path.relpath(xmlfile, self.rootdir)]
         skip_files.extend([p.path for p in find_pointers(path)])
         skip_files = list(map(normalize_path, skip_files))
-        for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files):
+        for f in find_files(path, rootdir=self.rootdir, skip_files=skip_files, recursive=self.recursive):
             if f in self.exclude:
                 continue
             objs.append(self._validate(f))

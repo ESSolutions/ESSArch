@@ -7,6 +7,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       DURATION: 'Varaktighet',
       RUNNING: 'Körs',
       VALIDATIONS: 'Valideringar',
+      REPRESENTATION: 'Representation',
     },
   });
 };
