@@ -60,7 +60,6 @@ export default class ArchiveModalInstanceCtrl {
             });
             const promises = [];
             toAdd.forEach(function(x) {
-              x.disabled = true;
               promises.push(
                 $http.get(appConfig.djangoUrl + 'structures/' + x + '/').then(function(response) {
                   response.data.name_with_version = StructureName.getNameWithVersion(response.data);
