@@ -207,3 +207,84 @@ class StorageMediumDeactivatableTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+
+
+class StorageMediumDeactivateTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.storage_method = StorageMethod.objects.create()
+        cls.storage_target = StorageTarget.objects.create()
+        cls.storage_method_target_rel = StorageMethodTargetRelation.objects.create(
+            storage_method=cls.storage_method,
+            storage_target=cls.storage_target,
+            status=STORAGE_TARGET_STATUS_MIGRATE
+        )
+
+        new_storage_target = StorageTarget.objects.create(name='new')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cls.storage_method,
+            storage_target=new_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        cls.new_storage_medium = StorageMedium.objects.create(
+            medium_id="new_medium", storage_target=new_storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=cls.storage_method,
+            ingest_path=Path.objects.create(entity='test', value='foo')
+        )
+        cls.policy.storage_methods.add(cls.storage_method)
+
+        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.user = User.objects.create(username='user')
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.storage_medium = StorageMedium.objects.create(
+            storage_target=self.storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
+        self.url = reverse('storagemedium-deactivate', args=(self.storage_medium.pk,))
+
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+    def test_non_migrated_medium(self):
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.storage_medium.refresh_from_db()
+        self.assertEqual(self.storage_medium.status, 20)
+
+    def test_migrated_ip(self):
+        # Add IP to new medium
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=self.new_storage_medium,
+            content_location_type=DISK,
+        )
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        self.storage_medium.refresh_from_db()
+        self.assertEqual(self.storage_medium.status, 0)
+
+    def test_deactivated_migrated_medium(self):
+        # Add IP to new medium
+        StorageObject.objects.create(
+            ip=self.ip, storage_medium=self.new_storage_medium,
+            content_location_type=DISK,
+        )
+        self.storage_medium.status = 0
+        self.storage_medium.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.storage_medium.refresh_from_db()
+        self.assertEqual(self.storage_medium.status, 0)
