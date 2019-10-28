@@ -529,7 +529,7 @@ class XMLGenerator:
 
                 if path not in found_paths:
                     found_paths.append(path)
-                    dirs.append((x['-file'], x['-dir'], x['-specification'], spec['data']))
+                    dirs.append((x['-file'], x['-dir'], x['-specification'], x.get('-pointer'), spec['data']))
 
         return dirs
 
@@ -570,7 +570,7 @@ class XMLGenerator:
             if external:
                 external_gen = XMLGenerator()
 
-            for ext_file, ext_dir, ext_spec, ext_data in external:
+            for ext_file, ext_dir, ext_spec, ext_pointer, ext_data in external:
                 ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
                 for sub_dir in ext_sub_dirs:
                     ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
@@ -584,10 +584,10 @@ class XMLGenerator:
                     }
                     external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
 
-                    filepath = os.path.join(folderToParse, ptr_file_path)
-
-                    fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
-                    files.append(fileinfo)
+                    if ext_pointer is not None:
+                        filepath = os.path.join(folderToParse, ptr_file_path)
+                        fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
+                        files.append(fileinfo)
 
             files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 

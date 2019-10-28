@@ -77,7 +77,10 @@ export default class StorageMigrationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        const ordering = tableState.sort;
+        let ordering = tableState.sort.predicate;
+        if (tableState.sort.reverse) {
+          ordering = '-' + ordering;
+        }
 
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         $http({
@@ -90,9 +93,9 @@ export default class StorageMigrationCtrl {
               view_type: $rootScope.auth.ip_list_view_type,
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
+              migratable: true,
             },
-            vm.filters,
-            vm.migration
+            $scope.columnFilters
           ),
         })
           .then(function(response) {
@@ -138,7 +141,10 @@ export default class StorageMigrationCtrl {
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
         }
-        const ordering = tableState.sort;
+        let ordering = tableState.sort.predicate;
+        if (tableState.sort.reverse) {
+          ordering = '-' + ordering;
+        }
 
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.jobsPerPage);
         $http({

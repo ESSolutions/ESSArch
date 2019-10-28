@@ -210,6 +210,9 @@
                 <th st-sort="validator" class="cursor-pointer">
                   {{ "VALIDATOR" | translate }}
                 </th>
+                <th>
+                  {{ "STATE_TREE.REPRESENTATION" | translate }}
+                </th>
                 <th st-sort="filename" class="cursor-pointer">
                   {{ "FILENAME" | translate }}
                 </th>
@@ -259,6 +262,9 @@
                   {{ x.validator }}
                 </td>
                 <td class="text-oneline-ellipsis">
+                  {{ x.specification.options.representation }}
+                </td>
+                <td class="text-oneline-ellipsis">
                   {{ x.filename }}
                 </td>
                 <td class="text-oneline-ellipsis">
@@ -269,10 +275,10 @@
                 </td>
               </tr>
               <tr ng-if="!$ctrl.validations.length && !validationsLoading" class="empty-table-indicator">
-                <td colspan="6">{{ "NO_RESULTS_FOUND" | translate }}</td>
+                <td colspan="7">{{ "NO_RESULTS_FOUND" | translate }}</td>
               </tr>
               <tr ng-if="!$ctrl.validations.length && validationsLoading" class="empty-table-indicator">
-                <td class="loading-column" colspan="6">{{ "LOADING" | translate }}</td>
+                <td class="loading-column" colspan="7">{{ "LOADING" | translate }}</td>
               </tr>
             </tbody>
           </table>

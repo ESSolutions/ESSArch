@@ -920,6 +920,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "if": generate_premis,
                         "label": "Compare premis and content-mets",
                         "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                        "params": {'recursive': False},
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                        "if": generate_premis,
+                        "label": "Compare representation premis and mets",
                     }
                 ]
             },
@@ -2319,6 +2325,12 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "if": generate_premis,
                                 "label": "Compare premis and content-mets",
                                 "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                                "params": {'recursive': False},
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                                "if": generate_premis,
+                                "label": "Compare representation premis and mets",
                             }
                         ]
                     },

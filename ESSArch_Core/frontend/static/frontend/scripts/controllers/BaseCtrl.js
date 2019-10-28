@@ -47,7 +47,8 @@ export default class BaseCtrl {
     SelectedIPUpdater,
     $transitions,
     $stateParams,
-    $q
+    $q,
+    Filters
   ) {
     // Initialize variables
 
@@ -221,6 +222,18 @@ export default class BaseCtrl {
         }
       })
     );
+
+    vm.setupForm = () => {
+      $timeout(() => {
+        let filters = Filters.getIpFilters($state.current.name);
+        $scope.filterModel = angular.copy(filters.model);
+        vm.initialColumnFilters = angular.copy(filters.model);
+        $scope.columnFilters = angular.copy(filters.model);
+        $scope.fields = filters.fields;
+        console.log('iniftfiltermodel: ', angular.copy(filters.model));
+      });
+    };
+    vm.setupForm();
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
       $scope.getListViewData();
@@ -1227,99 +1240,14 @@ export default class BaseCtrl {
     $scope.filterModel = {};
     $scope.options = {};
     $scope.fields = [];
-    vm.setupForm = function() {
-      $scope.fields = [];
-      $scope.filterModel = {};
-      for (const key in $scope.usedColumns) {
-        const column = $scope.usedColumns[key];
-        if (key == 'package_type_name_exclude') {
-          delete $scope.usedColumns[key];
-        } else {
-          switch (column.type) {
-            case 'ModelMultipleChoiceFilter':
-            case 'MultipleChoiceFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label,
-                  labelProp: 'display_name',
-                  valueProp: 'value',
-                  options: column.choices,
-                },
-                type: 'select',
-                key: key,
-              });
-              break;
-            case 'BooleanFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  label: column.label,
-                  labelProp: key,
-                  valueProp: key,
-                },
-                type: 'checkbox',
-                key: key,
-              });
-              break;
-            case 'ListFilter':
-            case 'CharFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label,
-                  labelProp: key,
-                  valueProp: key,
-                },
-                type: 'input',
-                key: key,
-              });
-              break;
-            case 'IsoDateTimeFromToRangeFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label + ' ' + $translate.instant('START'),
-                },
-                type: 'datepicker',
-                key: key + '_after',
-              });
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label + ' ' + $translate.instant('END'),
-                },
-                type: 'datepicker',
-                key: key + '_before',
-              });
-              break;
-          }
-        }
-      }
-    };
-
-    vm.toggleOwnIps = function(filterIps) {
-      if (filterIps) {
-        $scope.filterModel.responsible = $rootScope.auth.username;
-      } else {
-        if ($scope.filterModel.responsible == $rootScope.auth.username) {
-          delete $scope.filterModel.responsible;
-        }
-      }
-    };
 
     //Toggle visibility of advanced filters
     $scope.toggleAdvancedFilters = function() {
       if ($scope.showAdvancedFilters) {
         $scope.showAdvancedFilters = false;
       } else {
-        if ($scope.fields.length <= 0) {
-          $http({
-            method: 'OPTIONS',
-            url: appConfig.djangoUrl + 'information-packages/',
-          }).then(function(response) {
-            $scope.usedColumns = response.data.filters;
-            vm.setupForm();
-          });
+        if ($scope.fields.length <= 0 || $scope.filterModel === null) {
+          vm.setupForm();
         }
         $scope.showAdvancedFilters = true;
       }
@@ -1331,6 +1259,10 @@ export default class BaseCtrl {
           const clickedOnAdvancedFilters =
             elementClasses.contains('filter-icon') ||
             elementClasses.contains('advanced-filters') ||
+            elementClasses.contains('ui-select-match-text') ||
+            elementClasses.contains('ui-select-search') ||
+            elementClasses.contains('ui-select-toggle') ||
+            elementClasses.contains('ui-select-choices') ||
             clickedElement.parents('.advanced-filters').length ||
             clickedElement.parents('.button-group').length;
 
@@ -1354,7 +1286,13 @@ export default class BaseCtrl {
     $scope.filterActive = function() {
       let temp = false;
       for (const key in $scope.columnFilters) {
-        if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
+        if (
+          (angular.isUndefined(vm.initialColumnFilters[key]) &&
+            $scope.columnFilters[key] !== '' &&
+            $scope.columnFilters[key] !== null) ||
+          (!angular.isUndefined(vm.initialColumnFilters[key]) &&
+            $scope.columnFilters[key] !== vm.initialColumnFilters[key])
+        ) {
           temp = true;
         }
       }

@@ -25,7 +25,8 @@
 import logging
 
 from django.conf import settings
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
@@ -53,6 +54,7 @@ from ESSArch_Core.auth.serializers import (
     UserLoggedInWriteSerializer,
     UserSerializer,
 )
+from ESSArch_Core.auth.util import users_in_organization
 
 try:
     from djangosaml2.views import logout as saml2_logout
@@ -60,6 +62,7 @@ except ImportError:
     pass
 
 
+User = get_user_model()
 logger = logging.getLogger('essarch.auth')
 
 
@@ -67,8 +70,14 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = User.objects.all().order_by('-date_joined')
+    queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
+
+    def get_queryset(self):
+        user = self.request.user
+        return users_in_organization(user).order_by('-date_joined')
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
