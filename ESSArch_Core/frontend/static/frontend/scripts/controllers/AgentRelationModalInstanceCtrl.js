@@ -66,8 +66,9 @@ export default class AgentRelationModalInstanceCtrl {
             label: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
             appendToBody: false,
             refresh: function(search) {
-              $ctrl.getAgents(search).then(function() {
+              return $ctrl.getAgents(search).then(function() {
                 this.options = $ctrl.options.agents;
+                return $ctrl.options.agents;
               });
             },
           },

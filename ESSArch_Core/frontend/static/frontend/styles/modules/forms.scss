@@ -1,3 +1,14 @@
 .form-group {
   margin-bottom: 20px;
 }
+
+.ui-select-custom-spinner {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1000;
+}
+
+.spinner-with-clear {
+  right: 41px;
+}
