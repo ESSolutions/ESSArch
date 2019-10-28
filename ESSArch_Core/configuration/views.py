@@ -46,7 +46,6 @@ from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.configuration.filters import EventTypeFilter
 from ESSArch_Core.configuration.models import (
-    Agent,
     EventType,
     Parameter,
     Path,
@@ -54,7 +53,6 @@ from ESSArch_Core.configuration.models import (
     StoragePolicy,
 )
 from ESSArch_Core.configuration.serializers import (
-    AgentSerializer,
     EventTypeSerializer,
     ParameterSerializer,
     PathSerializer,
@@ -202,14 +200,6 @@ class EventTypeViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('eventDetail',)
-
-
-class AgentViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint that allows agents to be viewed or edited.
-    """
-    queryset = Agent.objects.all()
-    serializer_class = AgentSerializer
 
 
 class ParameterViewSet(viewsets.ModelViewSet):

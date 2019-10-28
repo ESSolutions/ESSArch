@@ -31,10 +31,14 @@ from django.utils.translation import ugettext as _
 from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
-from ESSArch_Core.configuration.models import StoragePolicy
+from ESSArch_Core.configuration.models import (
+    EventType,
+    Parameter,
+    Path,
+    Site,
+    StoragePolicy,
+)
 from ESSArch_Core.storage.models import DISK, StorageMethod
-
-from .models import Agent, EventType, Parameter, Path, Site
 
 csrf_protect_m = method_decorator(csrf_protect)
 
@@ -84,16 +88,6 @@ class EventTypeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(EventType, EventTypeAdmin)
-
-
-class AgentAdmin(admin.ModelAdmin):
-    """
-    Agents used for different operations
-    """
-    list_display = ('agentDetail', 'agentType')
-    search_fields = ('agentDetail',)
-    readonly_fields = ('agentDetail',)
-    fields = ('agentType', 'agentDetail')
 
 
 class StoragePolicyAdminForm(forms.ModelForm):
@@ -163,6 +157,5 @@ class StoragePolicyAdmin(NestedModelAdmin):
 
 
 admin.site.unregister(DjangoSite)
-admin.site.register(Agent, AgentAdmin)
 admin.site.register(Site)
 admin.site.register(StoragePolicy, StoragePolicyAdmin)

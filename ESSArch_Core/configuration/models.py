@@ -148,20 +148,6 @@ class EventType(models.Model):
         }
 
 
-class Agent(models.Model):
-    """
-    Agents used for different operations
-    """
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    agentType = models.CharField(_('agent type'), max_length=60, unique=True)
-    agentDetail = models.CharField(_('agent detail'), max_length=70)
-
-    class Meta:
-        ordering = ["agentType"]
-        verbose_name = _('agent')
-        verbose_name_plural = _('agents')
-
-
 class DefaultColumnVisible(models.Model):
     """Specifies if a column should be visible to a user by default"""
 
