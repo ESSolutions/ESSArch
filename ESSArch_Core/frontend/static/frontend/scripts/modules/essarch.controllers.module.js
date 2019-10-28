@@ -331,6 +331,7 @@ export default angular
     '$transitions',
     '$stateParams',
     '$q',
+    'Filters',
     BaseCtrl,
   ])
   .controller('ChangePasswordModalCtrl', ['$uibModalInstance', 'djangoAuth', 'data', ChangePasswordModalCtrl])

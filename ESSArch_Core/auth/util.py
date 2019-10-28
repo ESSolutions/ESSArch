@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
@@ -22,6 +23,7 @@ from ESSArch_Core.auth.models import (
     GroupMemberRole,
 )
 
+User = get_user_model()
 ORGANIZATION_TYPE = 'organization'
 
 
@@ -42,6 +44,14 @@ def get_organization_groups(user):
     )
     return Group.objects.filter(Q(Q(sub_group_filter) | Q(django_group__user=user)),
                                 group_type__codename=ORGANIZATION_TYPE).distinct()
+
+
+def users_in_organization(user):
+    if user.is_superuser:
+        return User.objects.all()
+
+    groups = get_user_groups(user)
+    return User.objects.filter(essauth_member__essauth_groups__in=groups)
 
 
 def get_user_groups(user):
