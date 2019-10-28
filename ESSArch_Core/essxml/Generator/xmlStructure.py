@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import os
 import uuid
 
 from lxml import etree
@@ -31,42 +30,6 @@ TYPE_ELEMENT = 0
 TYPE_CHOISE = 1
 TYPE_TO = 2
 TYPE_TO_CHOISE = 3
-
-debug = False
-eol_ = '\n'
-
-
-def dlog(string):
-    if debug:
-        print(string)
-
-
-def pretty_print(fd, level):
-    """
-    Print some tabs to give the xml output a better structure
-    """
-
-    os.write(fd, '    ' * level)
-
-
-class xmlAttribute:
-    '''
-    A class to contain and handle each attribute of a XML element
-    '''
-    attrName = ''
-    req = False
-    value = ''
-
-    def __init__(self, attrName, value=''):
-        self.attrName = attrName
-        self.value = value
-
-    def printXML(self, fd):
-        """
-        Print out the attribute
-        """
-        if self.value != '':
-            os.write(fd, ' ' + self.attrName + '="' + self.value + '"')
 
 
 class xmlElement:
@@ -128,44 +91,6 @@ class xmlElement:
             el.append(child.createLXMLElement())
 
         return el
-
-    def printXML(self, fd, level=0, pretty=True):
-        """
-        Print out the complete element.
-        """
-        if self.printed == 2:
-            return False
-        if self.printed == 0:
-            if pretty:
-                pretty_print(fd, level)
-
-            os.write(fd, '<' + self.completeTagName)
-            for a in self.attributes:
-                a.printXML(fd)
-        if self.children or self.value or self.containsFiles:
-            if self.printed == 0:
-                if self.value != '':
-                    os.write(fd, '>')
-                else:
-                    os.write(fd, '>' + eol_)
-            if not self.containsFiles or self.printed == 1:
-                for child in self.children:
-                    if child.printXML(fd, level + 1, pretty):
-                        self.printed = 1
-                        return True
-                if self.value != '':
-                    os.write(fd, self.value)
-                else:
-                    pretty_print(fd, level)
-
-                os.write(fd, '</' + self.completeTagName + '>' + eol_)
-                self.printed = 2
-            else:
-                self.printed = 1
-                return True
-        else:
-            os.write(fd, '/>' + eol_)
-            self.printed = 2
 
     def listAllElements(self, parent=None):
         res = {}
@@ -249,14 +174,6 @@ class xmlElement:
 
         return True
 
-    def printDebug(self):
-        """
-        Method for debugging only, prints out the name of the element and all children
-        """
-        print(self.tagName)
-        for child in self.children:
-            child.printDebug()
-
     def addAttribute(self, attribute):
         """
         Add an attribute to the element
@@ -280,29 +197,3 @@ class xmlElement:
         self.value = ''
         self.karMin = 0
         self.karMax = -1
-
-
-class fileInfo:
-    """
-    A way to contain the temporary files which are created
-    """
-
-    def __init__(self, element, filename, arguments={}, level=0):
-        self.element = element
-        self.filename = filename
-        self.arguments = arguments
-        self.level = level
-
-
-class fileObject:
-    """
-    A container class for all the files in the xml
-    """
-
-    def __init__(self, xmlFileName, template, fid, namespace=None):
-        self.xmlFileName = xmlFileName
-        self.template = template
-        self.namespace = namespace
-        self.fid = fid
-        self.files = []
-        self.rootElement = None
