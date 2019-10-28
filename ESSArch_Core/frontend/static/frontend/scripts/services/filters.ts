@@ -137,7 +137,6 @@ export default (
         labelProp: 'username',
         valueProp: 'username',
         optionsFunction: function() {
-          console.log('options finctuin');
           return users;
         },
         clearEnabled: true,
