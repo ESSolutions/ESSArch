@@ -378,19 +378,17 @@ class StorageMediumQueryset(models.QuerySet):
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
 
-    def deactivatable(self, include_inactive_ips=False):
+    def _has_non_migrated_storage_object(self, include_inactive_ips=False):
         # TODO: Replace RawSQL when Django 3.0 is released
-
         def mssql_wrapper(sql):
             if connection.vendor == 'microsoft':
                 return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
             return sql
 
         ip_active_cast = 'CAST(IP.active AS signed)' if connection.vendor == 'mysql' else 'CAST(IP.active AS int)'
-        qs = self.exclude(status=0).filter(
-            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
-        ).annotate(
-            has_non_migrated_storage_object=RawSQL(mssql_wrapper("""
+
+        return RawSQL(
+            mssql_wrapper("""
                 EXISTS(
                     SELECT 1 FROM storage_storageobject W1
                     INNER JOIN ip_informationpackage IP ON (
@@ -423,13 +421,45 @@ class StorageMediumQueryset(models.QuerySet):
                         )
                     ) new_object ON (new_object.ip_id = W1.ip_id AND old_method.id = new_object.method_id)
                     WHERE W1.storage_medium_id = storage_storagemedium.id AND new_object.id IS NULL {}
-                )
-            """.format('' if include_inactive_ips else "AND {} = 1".format(ip_active_cast))), (
+                )""".format('' if include_inactive_ips else "AND {} = 1".format(ip_active_cast))),
+            (
                 STORAGE_TARGET_STATUS_MIGRATE,
                 STORAGE_TARGET_STATUS_ENABLED,
-            ))
+            )
+        )
+
+    def deactivatable(self, include_inactive_ips=False):
+        qs = self.exclude(status=0).filter(
+            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
+        ).annotate(
+            has_non_migrated_storage_object=self._has_non_migrated_storage_object(include_inactive_ips)
         ).filter(
             has_non_migrated_storage_object=False,
+        )
+        return self.filter(pk__in=qs)
+
+    def migratable(self):
+        from django.db.models import Subquery, OuterRef, Exists
+
+        qs = self.exclude(status=0).filter(
+            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
+        ).annotate(
+            has_non_migrated_storage_object=self._has_non_migrated_storage_object(False),
+            migrate_method_rel=Subquery(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_target=OuterRef('storage_target'),
+                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                ).values('storage_method')[:1]
+            ),
+            has_enabled_target=Exists(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_method=OuterRef('migrate_method_rel'),
+                    status=STORAGE_TARGET_STATUS_ENABLED,
+                )
+            )
+        ).filter(
+            has_non_migrated_storage_object=True,
+            has_enabled_target=True,
         )
         return self.filter(pk__in=qs)
 
