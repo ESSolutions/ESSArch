@@ -12,7 +12,16 @@ from celery import states as celery_states
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import connection, models, transaction
-from django.db.models import Case, F, IntegerField, Value, When
+from django.db.models import (
+    Case,
+    Exists,
+    F,
+    IntegerField,
+    OuterRef,
+    Subquery,
+    Value,
+    When,
+)
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
@@ -438,10 +447,8 @@ class StorageMediumQueryset(models.QuerySet):
         )
         return self.filter(pk__in=qs)
 
-    def migratable(self):
-        from django.db.models import Subquery, OuterRef, Exists
-
-        qs = self.exclude(status=0).filter(
+    def _migratable(self):
+        return StorageMedium.objects.exclude(status=0).filter(
             storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
         ).annotate(
             has_non_migrated_storage_object=self._has_non_migrated_storage_object(False),
@@ -461,7 +468,12 @@ class StorageMediumQueryset(models.QuerySet):
             has_non_migrated_storage_object=True,
             has_enabled_target=True,
         )
-        return self.filter(pk__in=qs)
+
+    def migratable(self):
+        return self.filter(pk__in=self._migratable())
+
+    def non_migratable(self):
+        return self.exclude(pk__in=self._migratable())
 
     def fastest(self):
         container = Case(

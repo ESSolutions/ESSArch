@@ -244,6 +244,11 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
 
+        response = self.client.get(self.url, data={'migratable': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+
     def test_migrated_ip(self):
         new_storage_target = StorageTarget.objects.create(name='new')
         new_rel = StorageMethodTargetRelation.objects.create(
@@ -268,6 +273,10 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
+
+        response = self.client.get(self.url, data={'migratable': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
 
         # Enable new medium
         new_rel.status = STORAGE_TARGET_STATUS_ENABLED

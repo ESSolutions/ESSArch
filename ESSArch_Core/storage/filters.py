@@ -53,7 +53,10 @@ class StorageMediumFilter(filters.FilterSet):
         return queryset.deactivatable(include_inactive_ips=include_inactive_ips)
 
     def filter_migratable(self, queryset, name, value):
-        return queryset.migratable()
+        if value:
+            return queryset.migratable()
+        else:
+            return queryset.non_migratable()
 
     class Meta:
         model = StorageMedium
