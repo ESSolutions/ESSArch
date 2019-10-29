@@ -41,6 +41,7 @@ class StorageMediumFilter(filters.FilterSet):
     )
     deactivatable = filters.BooleanFilter(label='deactivatable', method='filter_deactivatable')
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
+    migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
 
     def filter_include_inactive_ips(self, queryset, *args):
         # this filter is only used together with deactivatable
@@ -50,6 +51,12 @@ class StorageMediumFilter(filters.FilterSet):
         include_inactive_ips = self.request.query_params.get('include_inactive_ips', False)
         include_inactive_ips = include_inactive_ips in (True, 'True', 'true', '1')
         return queryset.deactivatable(include_inactive_ips=include_inactive_ips)
+
+    def filter_migratable(self, queryset, name, value):
+        if value:
+            return queryset.migratable()
+        else:
+            return queryset.non_migratable()
 
     class Meta:
         model = StorageMedium
