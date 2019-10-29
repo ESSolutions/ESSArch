@@ -144,13 +144,17 @@ export default class BaseCtrl {
           .then(ip => {
             vm.initialSearch = angular.copy($stateParams.id);
             $scope.ipTableClick(ip, {}, {noStateChange: true});
+            vm.createFilterModel();
             $timeout(() => {
               $scope.getListViewData();
             });
           })
           .catch(() => {
+            vm.createFilterModel();
             $state.go($state.current.name, {id: null});
           });
+      } else {
+        vm.createFilterModel();
       }
     };
 
@@ -223,17 +227,16 @@ export default class BaseCtrl {
       })
     );
 
-    vm.setupForm = () => {
-      $timeout(() => {
-        let filters = Filters.getIpFilters($state.current.name);
-        $scope.filterModel = angular.copy(filters.model);
-        vm.initialColumnFilters = angular.copy(filters.model);
-        $scope.columnFilters = angular.copy(filters.model);
-        $scope.fields = filters.fields;
-        console.log('iniftfiltermodel: ', angular.copy(filters.model));
-      });
+    vm.createFilterModel = () => {
+      const model = Filters.getIpFilters($state.current.name).model;
+      $scope.filterModel = angular.copy(model);
+      vm.initialColumnFilters = angular.copy(model);
+      $scope.columnFilters = angular.copy(model);
     };
-    vm.setupForm();
+
+    vm.createFilterFields = () => {
+      $scope.fields = Filters.getIpFilters($state.current.name).fields;
+    };
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
       $scope.getListViewData();
@@ -1044,7 +1047,8 @@ export default class BaseCtrl {
       }
     };
     vm.clearFilters = function() {
-      vm.setupForm();
+      vm.createFilterModel();
+      vm.createFilterFields();
       $scope.submitAdvancedFilters();
     };
 
@@ -1247,7 +1251,7 @@ export default class BaseCtrl {
         $scope.showAdvancedFilters = false;
       } else {
         if ($scope.fields.length <= 0 || $scope.filterModel === null) {
-          vm.setupForm();
+          vm.createFilterFields();
         }
         $scope.showAdvancedFilters = true;
       }

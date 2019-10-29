@@ -52,7 +52,7 @@ export default class EventCtrl {
     vm.$onInit = function() {
       $scope.ip = vm.ip;
       vm.getEventlogData();
-      vm.setupForm();
+      vm.createFilterModel();
     };
     vm.$onChanges = function() {
       $scope.addEventAlert = null;
@@ -182,14 +182,16 @@ export default class EventCtrl {
     $scope.filterModel = {};
     $scope.options = {};
     $scope.fields = [];
-    vm.setupForm = function() {
-      $timeout(() => {
-        let filters = Filters.getEventFilters($state.current.name);
-        $scope.filterModel = angular.copy(filters.model);
-        vm.initialColumnFilters = angular.copy(filters.model);
-        $scope.columnFilters = angular.copy(filters.model);
-        $scope.fields = filters.fields;
-      });
+
+    vm.createFilterModel = () => {
+      let model = Filters.getEventFilters($state.current.name).model;
+      $scope.filterModel = angular.copy(model);
+      vm.initialColumnFilters = angular.copy(model);
+      $scope.columnFilters = angular.copy(model);
+    };
+
+    vm.createFilterFields = () => {
+      $scope.fields = Filters.getEventFilters($state.current.name).fields;
     };
 
     //Toggle visibility of advanced filters
@@ -198,7 +200,7 @@ export default class EventCtrl {
         $scope.showAdvancedFilters = false;
       } else {
         if ($scope.fields.length <= 0) {
-          vm.setupForm();
+          vm.createFilterFields();
         }
         $scope.showAdvancedFilters = true;
       }
@@ -229,7 +231,8 @@ export default class EventCtrl {
     };
 
     vm.clearFilters = function() {
-      vm.setupForm();
+      vm.createFilterModel();
+      vm.createFilterFields();
       $scope.submitAdvancedFilters();
     };
 
