@@ -24,7 +24,7 @@
 
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.api.filters import ListFilter
+from ESSArch_Core.api.filters import CharSuffixRangeFilter, ListFilter
 from ESSArch_Core.storage.models import (
     StorageMedium,
     medium_type_CHOICES,
@@ -42,6 +42,7 @@ class StorageMediumFilter(filters.FilterSet):
     deactivatable = filters.BooleanFilter(label='deactivatable', method='filter_deactivatable')
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
+    medium_id_range = CharSuffixRangeFilter(field_name='medium_id')
 
     def filter_include_inactive_ips(self, queryset, *args):
         # this filter is only used together with deactivatable
