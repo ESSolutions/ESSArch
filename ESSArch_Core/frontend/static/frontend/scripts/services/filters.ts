@@ -15,24 +15,31 @@ export default (
   let users: any = [];
   let eventTypes: any = [];
 
-  let getStoragePolicies = async (search: string) => {
-    const response = await $http.get(appConfig.djangoUrl + 'storage-policies/', {
-      params: {page: 1, page_size: 10, search},
+  let getStoragePolicies = (search: string) => {
+    return $http
+      .get(appConfig.djangoUrl + 'storage-policies/', {
+        params: {page: 1, page_size: 10, search},
+      })
+      .then(response => {
+        policies = response.data;
+        return response.data;
+      });
+  };
+
+  let getUsers = (search: string) => {
+    return $http.get(appConfig.djangoUrl + 'users/', {params: {page: 1, page_size: 10, search}}).then(response => {
+      users = response.data;
+      return response.data;
     });
-    policies = response.data;
-    return response.data;
   };
 
-  let getUsers = async (search: string) => {
-    const response = await $http.get(appConfig.djangoUrl + 'users/', {params: {page: 1, page_size: 10, search}});
-    users = response.data;
-    return response.data;
-  };
-
-  let getEventTypes = async (search: string) => {
-    const response = await $http.get(appConfig.djangoUrl + 'event-types/', {params: {page: 1, page_size: 10, search}});
-    eventTypes = response.data;
-    return response.data;
+  let getEventTypes = (search: string) => {
+    return $http
+      .get(appConfig.djangoUrl + 'event-types/', {params: {page: 1, page_size: 10, search}})
+      .then(response => {
+        eventTypes = response.data;
+        return response.data;
+      });
   };
 
   // Base filter fields for information package views
