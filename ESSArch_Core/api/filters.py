@@ -163,7 +163,7 @@ class CharSuffixRangeFilter(filters.RangeFilter):
 
         return qs.filter(
             **{
-                '{}__regex'.format(self.field_name): r'{}\d+$'.format(common_prefix),
+                '{}__regex'.format(self.field_name): r'{}[0-9]+$'.format(common_prefix),
             },
         ).annotate(
             suffix_number=Cast(
