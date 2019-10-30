@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-
 import operator
 import os
 from functools import reduce
@@ -161,12 +160,26 @@ class CharSuffixRangeFilter(filters.RangeFilter):
 
         common_prefix = os.path.commonprefix([start, stop])
 
-        return qs.filter(
-            **{
-                '{}__regex'.format(self.field_name): r'{}[0-9]+$'.format(common_prefix),
-            },
-        ).annotate(
-            suffix_number=Cast(
+        if connection.vendor == 'microsoft':
+            from sql_server.pyodbc.functions import TryCast
+            cast_func = TryCast
+
+            base = qs.filter(
+                **{'{}__startswith'.format(self.field_name): common_prefix},
+            ).annotate(
+                suffix_string=Substr(F(self.field_name), suffix_pos + 1, len(start_suffix)),
+            ).exclude(
+                suffix_string__contains='%[^0-9]%',
+            )
+        else:
+            cast_func = Cast
+
+            base = qs.filter(
+                **{'{}__regex'.format(self.field_name): r'{}[0-9]+$'.format(common_prefix)},
+            )
+
+        return base.annotate(
+            suffix_number=cast_func(
                 Substr(F(self.field_name), suffix_pos + 1, len(start_suffix)),
                 IntegerField(),
             )
