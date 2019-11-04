@@ -67,4 +67,4 @@ class StorageMediumFilter(filters.FilterSet):
 
     class Meta:
         model = StorageMedium
-        fields = ('status', 'medium_type', 'storage_type')
+        fields = ('status', 'medium_type', 'storage_type', 'medium_id',)
