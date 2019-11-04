@@ -39,6 +39,7 @@ from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.util import (
     get_elements_without_namespace,
+    in_directory,
     make_unicode,
     nested_lookup,
 )
@@ -143,7 +144,7 @@ def findElementWithoutNamespace(tree, el_name):
 
 
 class XMLElement:
-    def __init__(self, template, nsmap=None):
+    def __init__(self, template, nsmap=None, fid=None):
         if nsmap is None:
             nsmap = {}
 
@@ -176,9 +177,18 @@ class XMLElement:
         self.parent = None
         self.parent_pos = 0
 
+        self._fid = fid
+
         for child in template.get('-children', []):
             child_el = XMLElement(child)
             self.children.append(child_el)
+
+    @property
+    def fid(self):
+        if self._fid is not None:
+            return self._fid
+
+        self._fid = FormatIdentifier()
 
     def parse(self, info):
         return parseContent(self.content, info)
@@ -270,7 +280,7 @@ class XMLElement:
 
         self.el.append(new.el)
 
-    def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None):
+    def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None, algorithm=None):
         if nsmap is None:
             nsmap = {}
 
@@ -324,14 +334,27 @@ class XMLElement:
             else:
                 for ext_dir in natsorted(ext_dirs):
                     if '-pointer' in self.external:
-                        ptr = XMLElement(self.external['-pointer'])
+                        ptr = XMLElement(self.external['-pointer'], fid=self.fid)
                         ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
                         ptr_info = info
                         ptr_info['_EXT'] = ext_dir
                         ptr_info['_EXT_HREF'] = ptr_file_path
+
+                        filepath = os.path.join(folderToParse, ptr_file_path)
+                        fileinfo = parse_file(
+                            filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=ext_dir
+                        )
+
+                        for k, v in fileinfo.items():
+                            if k[0] == 'F':
+                                ptr_info['_EXT_{}'.format(k[1:])] = v
+                            else:
+                                ptr_info['_EXT_{}'.format(k)] = v
+
                         child_el = ptr.createLXMLElement(
-                            ptr_info, full_nsmap, folderToParse=folderToParse, parent=self
+                            ptr_info, full_nsmap, folderToParse=folderToParse, parent=self,
+                            algorithm=algorithm,
                         )
 
                         if child_el is not None:
@@ -357,7 +380,8 @@ class XMLElement:
                             full_nsmap,
                             files=files,
                             folderToParse=folderToParse,
-                            parent=self
+                            parent=self,
+                            algorithm=algorithm,
                         )
                         if child_el is not None:
                             self.add_element(child)
@@ -387,7 +411,8 @@ class XMLElement:
                         full_nsmap,
                         files=files,
                         folderToParse=folderToParse,
-                        parent=self
+                        parent=self,
+                        algorithm=algorithm,
                     )
                     if child_el is not None:
                         self.add_element(child)
@@ -398,7 +423,8 @@ class XMLElement:
                     full_nsmap,
                     files=files,
                     folderToParse=folderToParse,
-                    parent=self
+                    parent=self,
+                    algorithm=algorithm,
                 )
                 if child_el is not None:
                     self.add_element(child)
@@ -482,12 +508,18 @@ class XMLAttribute:
 
 def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
     files = []
+    external = [e[1] for e in external]
     for root, dirnames, filenames in walk(path):
-        dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
-
         for fname in filenames:
             filepath = os.path.join(root, fname)
             relpath = os.path.relpath(filepath, path)
+
+            in_external = False
+            for e in external:
+                if in_directory(relpath, e):
+                    in_external = True
+            if in_external:
+                continue
 
             fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=rootdir)
             files.append(fileinfo)
@@ -549,7 +581,7 @@ class XMLGenerator:
                 'file': fname,
                 'template': content['spec'],
                 'data': content.get('data', {}),
-                'root': XMLElement(content['spec'])
+                'root': XMLElement(content['spec'], fid=self.fid)
             })
 
         if extra_paths_to_parse is None:
@@ -596,13 +628,6 @@ class XMLGenerator:
                         }
                         external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
 
-                        if ext_pointer is not None:
-                            filepath = os.path.join(folderToParse, ptr_file_path)
-                            fileinfo = parse_file(
-                                filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
-                            )
-                            files.append(fileinfo)
-
             files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 
         for path in extra_paths_to_parse:
@@ -616,7 +641,7 @@ class XMLGenerator:
             data['_XML_FILENAME'] = os.path.basename(fname)
 
             self.tree = etree.ElementTree(
-                rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
+                rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse, algorithm=algorithm)
             )
             self.write(fname)
 
