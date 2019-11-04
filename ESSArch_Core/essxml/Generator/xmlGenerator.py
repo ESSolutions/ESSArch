@@ -42,6 +42,7 @@ from ESSArch_Core.util import (
     in_directory,
     make_unicode,
     nested_lookup,
+    normalize_path,
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
@@ -336,6 +337,7 @@ class XMLElement:
                     if '-pointer' in self.external:
                         ptr = XMLElement(self.external['-pointer'], fid=self.fid)
                         ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
+                        ptr_file_path = normalize_path(ptr_file_path)
 
                         ptr_info = info
                         ptr_info['_EXT'] = ext_dir
@@ -618,6 +620,7 @@ class XMLGenerator:
                 else:
                     for sub_dir in ext_sub_dirs:
                         ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+                        ptr_file_path = normalize_path(ptr_file_path)
 
                         ext_info = copy.deepcopy(ext_data)
                         ext_info['_EXT'] = sub_dir
