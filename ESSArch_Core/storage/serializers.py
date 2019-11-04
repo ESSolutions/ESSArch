@@ -354,10 +354,25 @@ class RobotQueueSerializer(serializers.ModelSerializer):
         )
 
 
+class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context['request']
+        qs = InformationPackage.objects.migratable()
+
+        policy = request.data.get('policy')
+        if policy is not None:
+            qs = qs.filter(policy=policy)
+
+        return qs
+
+
 class StorageMigrationCreateSerializer(serializers.Serializer):
-    information_packages = serializers.PrimaryKeyRelatedField(
+    information_packages = InformationPackagePolicyField(
         write_only=True, many=True,
         queryset=InformationPackage.objects.migratable(),
+    )
+    policy = serializers.PrimaryKeyRelatedField(
+        queryset=StoragePolicy.objects.all(),
     )
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 
