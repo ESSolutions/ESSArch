@@ -119,7 +119,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     permissions = serializers.SerializerMethodField()
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
     package_type_display = serializers.CharField(source='get_package_type_display')
-    profiles = serializers.SerializerMethodField()
+    profiles = ProfileIPSerializer(source='profileip_set', many=True)
     workarea = serializers.SerializerMethodField()
     aic = serializers.PrimaryKeyRelatedField(
         queryset=InformationPackage.objects.filter(package_type=InformationPackage.AIC)
@@ -136,10 +136,6 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
-
-    def get_profiles(self, obj):
-        profiles = getattr(obj, 'profiles', obj.profileip_set)
-        return ProfileIPSerializer(profiles, many=True, context=self.context).data
 
     def get_agents(self, obj):
         try:

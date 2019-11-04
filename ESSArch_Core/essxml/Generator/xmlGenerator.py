@@ -316,19 +316,26 @@ class XMLElement:
                 self.el.set(name, content)
 
         if self.external:
-            ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
-            for ext_dir in natsorted(ext_dirs):
-                if '-pointer' in self.external:
-                    ptr = XMLElement(self.external['-pointer'])
-                    ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
+            ext_root = os.path.join(folderToParse, self.external['-dir'])
+            try:
+                ext_dirs = next(walk(ext_root))[1]
+            except StopIteration:
+                logger.info('No directories found in {}'.format(ext_root))
+            else:
+                for ext_dir in natsorted(ext_dirs):
+                    if '-pointer' in self.external:
+                        ptr = XMLElement(self.external['-pointer'])
+                        ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
 
-                    ptr_info = info
-                    ptr_info['_EXT'] = ext_dir
-                    ptr_info['_EXT_HREF'] = ptr_file_path
-                    child_el = ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self)
+                        ptr_info = info
+                        ptr_info['_EXT'] = ext_dir
+                        ptr_info['_EXT_HREF'] = ptr_file_path
+                        child_el = ptr.createLXMLElement(
+                            ptr_info, full_nsmap, folderToParse=folderToParse, parent=self
+                        )
 
-                    if child_el is not None:
-                        self.add_element(ptr)
+                        if child_el is not None:
+                            self.add_element(ptr)
 
         for child_idx, child in enumerate(self.children):
             child.parent = self
@@ -571,23 +578,30 @@ class XMLGenerator:
                 external_gen = XMLGenerator()
 
             for ext_file, ext_dir, ext_spec, ext_pointer, ext_data in external:
-                ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
-                for sub_dir in ext_sub_dirs:
-                    ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+                ext_root = os.path.join(folderToParse, ext_dir)
+                try:
+                    ext_sub_dirs = next(walk(ext_root))[1]
+                except StopIteration:
+                    logger.info('No directories found in {}'.format(ext_root))
+                else:
+                    for sub_dir in ext_sub_dirs:
+                        ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
 
-                    ext_info = copy.deepcopy(ext_data)
-                    ext_info['_EXT'] = sub_dir
-                    ext_info['_EXT_HREF'] = ptr_file_path
+                        ext_info = copy.deepcopy(ext_data)
+                        ext_info['_EXT'] = sub_dir
+                        ext_info['_EXT_HREF'] = ptr_file_path
 
-                    external_to_create = {
-                        os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
-                    }
-                    external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                        external_to_create = {
+                            os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
+                        }
+                        external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
 
-                    if ext_pointer is not None:
-                        filepath = os.path.join(folderToParse, ptr_file_path)
-                        fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
-                        files.append(fileinfo)
+                        if ext_pointer is not None:
+                            filepath = os.path.join(folderToParse, ptr_file_path)
+                            fileinfo = parse_file(
+                                filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
+                            )
+                            files.append(fileinfo)
 
             files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 

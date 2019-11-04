@@ -261,6 +261,7 @@ class StorageMethodTargetRelation(models.Model):
     class Meta:
         verbose_name = 'Storage Method/Target Relation'
         ordering = ['name']
+        unique_together = ('storage_method', 'storage_target')
 
     def __str__(self):
         if len(self.name):
