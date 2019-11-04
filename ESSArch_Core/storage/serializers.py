@@ -369,7 +369,6 @@ class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
 class StorageMigrationCreateSerializer(serializers.Serializer):
     information_packages = InformationPackagePolicyField(
         write_only=True, many=True,
-        queryset=InformationPackage.objects.migratable(),
     )
     policy = serializers.PrimaryKeyRelatedField(
         queryset=StoragePolicy.objects.all(),
