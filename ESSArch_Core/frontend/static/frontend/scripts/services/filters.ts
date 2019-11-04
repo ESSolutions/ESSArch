@@ -332,13 +332,47 @@ export default (
     return eventStateModelMap[state] || eventStateModelMap.default;
   };
 
+  // Storage medium filters
+
+  // Base filter fields for storage medium views
+  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [currentMedium];
+
+  // Map states and additional IP filter fields
+  let storageMediumStateFieldMap: any = {
+    default: storageMediumBaseFields,
+  };
+
+  // Map states and additional IP filter fields
+  let storageMediumStateModelMap: any = {
+    default: {},
+  };
+
+  // Get storage medium form fields given state name
+  let getStorageMediumFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
+    return storageMediumStateFieldMap[state] || storageMediumStateFieldMap.default;
+  };
+
+  // Get storage medium form model widh default values given state name
+  let getStorageMediumFilterModel = (state: string): any => {
+    return storageMediumStateModelMap[state] || eventStateModelMap.default;
+  };
+
   // Public service methods and properties
   let service: any = {
     getIpFilters(state: string): any {
-      return {fields: getIpFilterFields(state), model: getIpFilterModel(state)};
+      const fields = getIpFilterFields(state);
+      const model = getIpFilterModel(state);
+      return {fields, model};
     },
     getEventFilters(state: string): any {
-      return {fields: getEventFilterFields(state), model: getEventFilterModel(state)};
+      const fields = getEventFilterFields(state);
+      const model = getEventFilterModel(state);
+      return {fields, model};
+    },
+    getStorageMediumFilters(state: string): any {
+      const fields = getStorageMediumFilterFields(state);
+      const model = getStorageMediumFilterModel(state);
+      return {fields, model};
     },
   };
   return service;
