@@ -313,22 +313,22 @@ export default (
   ];
 
   // Map states and additional IP filter fields
-  let eventStateFieldMap: any = {
+  let eventStateFieldMap = {
     default: eventBaseFields,
   };
 
   // Map states and additional IP filter fields
-  let eventStateModelMap: any = {
+  let eventStateModelMap = {
     default: {},
   };
 
   // Get event form fields given state name
-  let getEventFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
+  const getEventFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
     return eventStateFieldMap[state] || eventStateFieldMap.default;
   };
 
   // Get event form model widh default values given state name
-  let getEventFilterModel = (state: string): any => {
+  const getEventFilterModel = (state: string) => {
     return eventStateModelMap[state] || eventStateModelMap.default;
   };
 
@@ -338,38 +338,38 @@ export default (
   let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [currentMedium];
 
   // Map states and additional IP filter fields
-  let storageMediumStateFieldMap: any = {
+  let storageMediumStateFieldMap = {
     default: storageMediumBaseFields,
   };
 
   // Map states and additional IP filter fields
-  let storageMediumStateModelMap: any = {
+  let storageMediumStateModelMap = {
     default: {},
   };
 
   // Get storage medium form fields given state name
-  let getStorageMediumFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
+  const getStorageMediumFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
     return storageMediumStateFieldMap[state] || storageMediumStateFieldMap.default;
   };
 
   // Get storage medium form model widh default values given state name
-  let getStorageMediumFilterModel = (state: string): any => {
+  const getStorageMediumFilterModel = (state: string) => {
     return storageMediumStateModelMap[state] || storageMediumStateModelMap.default;
   };
 
   // Public service methods and properties
-  let service: any = {
-    getIpFilters(state: string): any {
+  let service = {
+    getIpFilters(state: string) {
       const fields = getIpFilterFields(state);
       const model = getIpFilterModel(state);
       return {fields, model};
     },
-    getEventFilters(state: string): any {
+    getEventFilters(state: string) {
       const fields = getEventFilterFields(state);
       const model = getEventFilterModel(state);
       return {fields, model};
     },
-    getStorageMediumFilters(state: string): any {
+    getStorageMediumFilters(state: string) {
       const fields = getStorageMediumFilterFields(state);
       const model = getStorageMediumFilterModel(state);
       return {fields, model};
