@@ -24,6 +24,7 @@
 
 import operator
 import os
+import re
 from functools import reduce
 
 import django_filters
@@ -158,7 +159,11 @@ class CharSuffixRangeFilter(filters.RangeFilter):
 
         suffix_pos = start_suffix_pos
 
-        common_prefix = os.path.commonprefix([start, stop])
+        prefix_regex = r'^([\D|0]*)[0-9]*$'
+        start_prefix = re.match(prefix_regex, start).group(1)
+        stop_prefix = re.match(prefix_regex, stop).group(1)
+
+        common_prefix = os.path.commonprefix([start_prefix, stop_prefix])
 
         if connection.vendor == 'microsoft':
             from sql_server.pyodbc.functions import TryCast

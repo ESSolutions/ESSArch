@@ -42,6 +42,9 @@ class CharSuffixRangeFilterTests(TestCase):
         results = self.F(data={'label_min': 'AA0020', 'label_max': 'AA0040'})
         self.assertEqual(len(results.qs), 3)
 
+        results = self.F(data={'label_min': 'AA0020', 'label_max': 'AA0020'})
+        self.assertEqual(len(results.qs), 1)
+
     def test_different_lengths(self):
         results = self.F(data={'label_min': 'AA0010', 'label_max': 'AA50'})
         self.assertFalse(results.is_valid())
