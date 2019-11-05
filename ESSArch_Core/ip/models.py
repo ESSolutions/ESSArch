@@ -646,6 +646,14 @@ class InformationPackage(models.Model):
                     data[field['key']] = field['defaultValue']
                 except KeyError:
                     pass
+
+            for field in sa.template:
+                if field['key'] not in data:
+                    try:
+                        data[field['key']] = field['defaultValue']
+                    except KeyError:
+                        pass
+
             data_obj = ProfileIPData.objects.create(relation=profile_ip, data=data, version=0, user=user)
             profile_ip.data = data_obj
             profile_ip.save()
