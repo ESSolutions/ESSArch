@@ -354,7 +354,7 @@ export default (
 
   // Get storage medium form model widh default values given state name
   let getStorageMediumFilterModel = (state: string): any => {
-    return storageMediumStateModelMap[state] || eventStateModelMap.default;
+    return storageMediumStateModelMap[state] || storageMediumStateModelMap.default;
   };
 
   // Public service methods and properties
