@@ -54,27 +54,13 @@
       tooltip-placement="auto top"
       tooltip-append-to-body="true"
     ></select>
-    <span
+    <advanced-filters
       ng-if="!('home.ingest.reception' | isState)"
-      class="fas fa-md fa-filter filter-icon"
-      ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}"
-      ng-click="toggleAdvancedFilters()"
-      uib-tooltip="{{'FILTERS' | translate}}"
-      tooltip-placement="top"
-      tooltip-append-to-body="true"
-    >
-    </span>
-    <div ng-if="!('home.ingest.reception' | isState)" ng-show="showAdvancedFilters" class="advanced-filters">
-      <form name="form1" style="position: relative;" novalidate>
-        <div class="formly-buttons-wrapper">
-          <formly-form model="filterModel" fields="fields" options="options"> </formly-form>
-        </div>
-      </form>
-      <div class="filter-action-buttons">
-        <button class="btn btn-primary" ng-click="submitAdvancedFilters()">{{'APPLY' | translate}}</button>
-        <button class="btn btn-default" type="button" ng-click="vm.clearFilters()">{{'CLEAR' | translate}}</button>
-      </div>
-    </div>
+      type="ip"
+      active-model="vm.columnFilters"
+      fields="fields"
+      update="getListViewData()"
+    ></advanced-filters>
     <div ng-if="!('home.ingest.reception' | isState)" class="global-search">
       <input
         id="search-input"

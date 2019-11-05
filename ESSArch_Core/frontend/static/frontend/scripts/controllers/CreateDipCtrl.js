@@ -145,7 +145,7 @@ export default class {
           tableState,
           sorting,
           search,
-          $scope.columnFilters
+          vm.columnFilters
         )
           .then(function(result) {
             vm.displayedIps = result.data;
@@ -161,7 +161,7 @@ export default class {
                   state: ipSortString,
                   package_type: 4,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {

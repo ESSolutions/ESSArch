@@ -1,3 +1,4 @@
+import advancedFilters from '../components/AdvancedFilterComponent';
 import archiveManager from '../components/ArchiveManagerComponent';
 import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';
 import agents from '../components/AgentsComponent';
@@ -25,6 +26,7 @@ import StateTreeView from '../components/StateTreeViewComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
+  .component('advancedFilters', advancedFilters)
   .component('agents', agents)
   .component('archiveManager', archiveManager)
   .component('classificationStructureEditor', classificationStructureEditor)

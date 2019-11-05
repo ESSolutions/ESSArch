@@ -84,7 +84,7 @@ export default class WorkareaCtrl {
           sorting,
           search,
           $scope.expandedAics,
-          $scope.columnFilters,
+          vm.columnFilters,
           vm.organizationMember.current
         )
           .then(function(result) {
@@ -101,7 +101,7 @@ export default class WorkareaCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               if (vm.workarea) {

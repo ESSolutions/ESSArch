@@ -131,7 +131,7 @@ export default class ReceptionCtrl {
           sorting,
           search,
           ipSortString,
-          $scope.columnFilters
+          vm.columnFilters
         )
           .then(function(result) {
             vm.displayedIps = result.data;
@@ -146,7 +146,7 @@ export default class ReceptionCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               listViewService.checkPages('reception', paginationParams.number, filters).then(function(result) {
