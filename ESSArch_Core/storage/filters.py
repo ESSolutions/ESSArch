@@ -27,6 +27,8 @@ from django_filters import rest_framework as filters
 from ESSArch_Core.api.filters import ListFilter
 from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_ENABLED,
+    STORAGE_TARGET_STATUS_MIGRATE,
     StorageMedium,
     StorageMethod,
     medium_type_CHOICES,
@@ -76,7 +78,17 @@ class StorageMethodFilter(filters.FilterSet):
         field_name='storage_policies',
         distinct=True
     )
+    has_enabled_target = filters.BooleanFilter(method='filter_has_enabled_target')
+    has_migrate_target = filters.BooleanFilter(method='filter_has_migrate_target')
+
+    def filter_has_enabled_target(self, queryset, name, value):
+        status = STORAGE_TARGET_STATUS_ENABLED
+        return queryset.filter_has_target_with_status(status, value)
+
+    def filter_has_migrate_target(self, queryset, name, value):
+        status = STORAGE_TARGET_STATUS_MIGRATE
+        return queryset.filter_has_target_with_status(status, value)
 
     class Meta:
         model = StorageMethod
-        fields = ('enabled', 'policy',)
+        fields = ('enabled', 'policy', 'has_enabled_target', 'has_migrate_target',)
