@@ -28,6 +28,7 @@ from ESSArch_Core.api.filters import ListFilter
 from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.storage.models import (
     StorageMedium,
+    StorageMethod,
     medium_type_CHOICES,
     storage_type_CHOICES,
 )
@@ -67,3 +68,15 @@ class StorageMediumFilter(filters.FilterSet):
     class Meta:
         model = StorageMedium
         fields = ('status', 'medium_type', 'storage_type')
+
+
+class StorageMethodFilter(filters.FilterSet):
+    policy = filters.ModelChoiceFilter(
+        label='Policy', queryset=StoragePolicy.objects.all(),
+        field_name='storage_policies',
+        distinct=True
+    )
+
+    class Meta:
+        model = StorageMethod
+        fields = ('enabled', 'policy',)
