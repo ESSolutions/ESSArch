@@ -47,7 +47,8 @@ export default class BaseCtrl {
     SelectedIPUpdater,
     $transitions,
     $stateParams,
-    $q
+    $q,
+    Filters
   ) {
     // Initialize variables
 
@@ -72,6 +73,8 @@ export default class BaseCtrl {
     vm.itemsPerPage = $cookies.get('epp-ips-per-page') || 10;
     vm.archived = false;
     vm.specificTabs = [];
+    vm.columnFilters = {};
+    vm.fields = [];
 
     $scope.$translate = $translate;
 
@@ -143,6 +146,7 @@ export default class BaseCtrl {
           .then(ip => {
             vm.initialSearch = angular.copy($stateParams.id);
             $scope.ipTableClick(ip, {}, {noStateChange: true});
+
             $timeout(() => {
               $scope.getListViewData();
             });
@@ -150,6 +154,7 @@ export default class BaseCtrl {
           .catch(() => {
             $state.go($state.current.name, {id: null});
           });
+      } else {
       }
     };
 
@@ -304,7 +309,7 @@ export default class BaseCtrl {
           search,
           ipSortString,
           $scope.expandedAics,
-          $scope.columnFilters,
+          vm.columnFilters,
           vm.archived,
           vm.workarea
         )
@@ -322,7 +327,7 @@ export default class BaseCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               if (vm.workarea) {
@@ -1031,7 +1036,7 @@ export default class BaseCtrl {
       }
     };
     vm.clearFilters = function() {
-      vm.setupForm();
+      vm.createFilterFields();
       $scope.submitAdvancedFilters();
     };
 
@@ -1223,103 +1228,16 @@ export default class BaseCtrl {
     };
 
     //advanced filter form data
-    $scope.columnFilters = {};
     $scope.filterModel = {};
     $scope.options = {};
-    $scope.fields = [];
-    vm.setupForm = function() {
-      $scope.fields = [];
-      $scope.filterModel = {};
-      for (const key in $scope.usedColumns) {
-        const column = $scope.usedColumns[key];
-        if (key == 'package_type_name_exclude') {
-          delete $scope.usedColumns[key];
-        } else {
-          switch (column.type) {
-            case 'ModelMultipleChoiceFilter':
-            case 'MultipleChoiceFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label,
-                  labelProp: 'display_name',
-                  valueProp: 'value',
-                  options: column.choices,
-                },
-                type: 'select',
-                key: key,
-              });
-              break;
-            case 'BooleanFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  label: column.label,
-                  labelProp: key,
-                  valueProp: key,
-                },
-                type: 'checkbox',
-                key: key,
-              });
-              break;
-            case 'ListFilter':
-            case 'CharFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label,
-                  labelProp: key,
-                  valueProp: key,
-                },
-                type: 'input',
-                key: key,
-              });
-              break;
-            case 'IsoDateTimeFromToRangeFilter':
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label + ' ' + $translate.instant('START'),
-                },
-                type: 'datepicker',
-                key: key + '_after',
-              });
-              $scope.fields.push({
-                templateOptions: {
-                  type: 'text',
-                  label: column.label + ' ' + $translate.instant('END'),
-                },
-                type: 'datepicker',
-                key: key + '_before',
-              });
-              break;
-          }
-        }
-      }
-    };
-
-    vm.toggleOwnIps = function(filterIps) {
-      if (filterIps) {
-        $scope.filterModel.responsible = $rootScope.auth.username;
-      } else {
-        if ($scope.filterModel.responsible == $rootScope.auth.username) {
-          delete $scope.filterModel.responsible;
-        }
-      }
-    };
 
     //Toggle visibility of advanced filters
     $scope.toggleAdvancedFilters = function() {
       if ($scope.showAdvancedFilters) {
         $scope.showAdvancedFilters = false;
       } else {
-        if ($scope.fields.length <= 0) {
-          $http({
-            method: 'OPTIONS',
-            url: appConfig.djangoUrl + 'information-packages/',
-          }).then(function(response) {
-            $scope.usedColumns = response.data.filters;
-            vm.setupForm();
-          });
+        if ($scope.fields.length <= 0 || $scope.filterModel === null) {
+          vm.createFilterFields();
         }
         $scope.showAdvancedFilters = true;
       }
@@ -1331,6 +1249,10 @@ export default class BaseCtrl {
           const clickedOnAdvancedFilters =
             elementClasses.contains('filter-icon') ||
             elementClasses.contains('advanced-filters') ||
+            elementClasses.contains('ui-select-match-text') ||
+            elementClasses.contains('ui-select-search') ||
+            elementClasses.contains('ui-select-toggle') ||
+            elementClasses.contains('ui-select-choices') ||
             clickedElement.parents('.advanced-filters').length ||
             clickedElement.parents('.button-group').length;
 
@@ -1348,21 +1270,6 @@ export default class BaseCtrl {
     $scope.clearSearch = function() {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
-      $scope.getListViewData();
-    };
-
-    $scope.filterActive = function() {
-      let temp = false;
-      for (const key in $scope.columnFilters) {
-        if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
-          temp = true;
-        }
-      }
-      return temp;
-    };
-
-    $scope.submitAdvancedFilters = function() {
-      $scope.columnFilters = angular.copy($scope.filterModel);
       $scope.getListViewData();
     };
 

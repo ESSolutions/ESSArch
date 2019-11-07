@@ -102,7 +102,11 @@
   background-color: white;
   padding: 10px;
   z-index: 1000;
-  margin-top: 36px;
+  margin-top: 24px;
+  left: 0;
+  @include medium-screen-up {
+    left: 11px;
+  }
   .formly-buttons-wrapper {
     display: flex;
     align-items: flex-end;
@@ -128,7 +132,15 @@
   }
   .formly-field {
     width: 100% !important;
-    margin-bottom: 0px !important;
+    margin-bottom: 5px !important;
+  }
+  .filter-action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    .btn-default {
+      margin-left: 3px;
+    }
   }
 }
 

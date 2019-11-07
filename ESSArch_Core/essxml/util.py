@@ -84,6 +84,15 @@ PTR_ELEMENTS = {
 }
 
 
+def get_premis_ref(tree):
+    elname = 'mdRef'
+    props = FILE_ELEMENTS[elname]
+    for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
+        return XMLFileElement(ptr, props)
+
+    return None
+
+
 def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
     s = ".//*[local-name()='agent']"
 
@@ -277,6 +286,11 @@ class XMLFileElement:
         return hash(self.path)
 
 
+def find_pointer(tree, elname, props):
+    for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
+        yield XMLFileElement(ptr, props)
+
+
 def find_pointers(xmlfile=None, tree=None):
     if xmlfile is None and tree is None:
         raise ValueError("Need xmlfile or tree, both can't be None")
@@ -285,8 +299,7 @@ def find_pointers(xmlfile=None, tree=None):
         tree = etree.ElementTree(file=xmlfile)
 
     for elname, props in PTR_ELEMENTS.items():
-        for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
-            yield XMLFileElement(ptr, props)
+        yield from find_pointer(tree, elname, props)
 
 
 def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
@@ -327,12 +340,15 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
             return xml_el, el
 
 
-def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
+def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, current_dir=None):
     doc = etree.ElementTree(file=xmlfile)
     files = set()
 
     if skip_files is None:
         skip_files = []
+
+    if current_dir is None:
+        current_dir = rootdir
 
     for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
@@ -351,11 +367,26 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
 
             files.add(file_el)
 
-    for pointer in find_pointers(xmlfile=xmlfile):
-        pointer_prefix = os.path.split(pointer.path)[0]
-        if pointer.path not in skip_files:
-            files.add(pointer)
-        files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
+    if recursive:
+        for pointer in find_pointers(xmlfile=xmlfile):
+            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+
+            if pointer.path not in skip_files:
+                pointer.path = os.path.join(prefix, pointer.path)
+                files.add(pointer)
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
+
+            files |= find_files(
+                pointer_path,
+                rootdir,
+                prefix,
+                recursive=recursive,
+                current_dir=current_dir,
+            )
 
     return files
 

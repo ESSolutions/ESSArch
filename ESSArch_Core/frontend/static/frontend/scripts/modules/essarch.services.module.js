@@ -4,6 +4,7 @@ import appraisal from '../services/appraisal';
 import storagePolicy from '../services/storagePolicy';
 import contextMenuBase from '../services/ContextMenuBase';
 import conversion from '../services/conversion';
+import filters from '../services/filters';
 import validate from '../services/validate';
 import messenger from '../services/messenger';
 import event from '../services/event';
@@ -47,6 +48,7 @@ export default angular
   .factory('AgentName', ['$filter', agentName])
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
+  .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', filters])
   .factory('StoragePolicy', ['$resource', 'appConfig', storagePolicy])
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])

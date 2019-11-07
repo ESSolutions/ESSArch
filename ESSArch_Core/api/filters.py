@@ -22,14 +22,16 @@
     Email - essarch@essolutions.se
 """
 
-
 import operator
+import os
+import re
 from functools import reduce
 
 import django_filters
 from django.db import connection
-from django.db.models import F, Q, UUIDField
+from django.db.models import F, IntegerField, Q, UUIDField
 from django.db.models.constants import LOOKUP_SEP
+from django.db.models.functions import Cast, Substr
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 from rest_framework.compat import distinct
@@ -38,7 +40,10 @@ from rest_framework.filters import (
     SearchFilter as DRFSearchFilter,
 )
 
-from ESSArch_Core.api.forms.fields import MultipleTextField
+from ESSArch_Core.api.forms.fields import (
+    CharSuffixRangeField,
+    MultipleTextField,
+)
 
 
 def string_to_bool(s):
@@ -137,6 +142,55 @@ class ListFilter(django_filters.Filter):
 
         value_list = value.split(',')
         return super().filter(qs, value_list)
+
+
+class CharSuffixRangeFilter(filters.RangeFilter):
+    field_class = CharSuffixRangeField
+
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        if self.distinct:
+            qs = qs.distinct()
+
+        (start, start_suffix, start_suffix_pos) = value[0]
+        (stop, stop_suffix, stop_suffix_pos) = value[1]
+
+        suffix_pos = start_suffix_pos
+
+        prefix_regex = r'^([\D|0]*)[0-9]*$'
+        start_prefix = re.match(prefix_regex, start).group(1)
+        stop_prefix = re.match(prefix_regex, stop).group(1)
+
+        common_prefix = os.path.commonprefix([start_prefix, stop_prefix])
+
+        if connection.vendor == 'microsoft':
+            from sql_server.pyodbc.functions import TryCast
+            cast_func = TryCast
+
+            base = qs.filter(
+                **{'{}__startswith'.format(self.field_name): common_prefix},
+            ).annotate(
+                suffix_string=Substr(F(self.field_name), suffix_pos + 1, len(start_suffix)),
+            ).exclude(
+                suffix_string__contains='%[^0-9]%',
+            )
+        else:
+            cast_func = Cast
+
+            base = qs.filter(
+                **{'{}__regex'.format(self.field_name): r'{}[0-9]+$'.format(common_prefix)},
+            )
+
+        return base.annotate(
+            suffix_number=cast_func(
+                Substr(F(self.field_name), suffix_pos + 1, len(start_suffix)),
+                IntegerField(),
+            )
+        ).filter(
+            suffix_number__range=(start_suffix, stop_suffix),
+        )
 
 
 class UUIDInFilter(filters.BaseInFilter, filters.UUIDFilter):

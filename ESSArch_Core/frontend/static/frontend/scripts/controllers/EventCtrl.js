@@ -11,7 +11,10 @@ export default class EventCtrl {
     $translate,
     $http,
     Notifications,
-    $transitions
+    $transitions,
+    Filters,
+    $timeout,
+    $state
   ) {
     const vm = this;
     $scope.$translate = $translate;
@@ -49,12 +52,6 @@ export default class EventCtrl {
     vm.$onInit = function() {
       $scope.ip = vm.ip;
       vm.getEventlogData();
-      $http({
-        method: 'OPTIONS',
-        url: appConfig.djangoUrl + 'events/',
-      }).then(function(response) {
-        $scope.usedColumns = response.data.filters;
-      });
     };
     vm.$onChanges = function() {
       $scope.addEventAlert = null;
@@ -159,7 +156,7 @@ export default class EventCtrl {
         tableState,
         $scope.selected,
         sorting,
-        $scope.columnFilters,
+        vm.columnFilters,
         search
       )
         .then(function(result) {
@@ -171,7 +168,7 @@ export default class EventCtrl {
         })
         .catch(function(response) {
           if (response.status === 404) {
-            listViewService.checkPages('events', paginationParams.number, $scope.columnFilters).then(function(result) {
+            listViewService.checkPages('events', paginationParams.number, vm.columnFilters).then(function(result) {
               tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
               tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
               $scope.stCtrl.pipe();
@@ -180,121 +177,12 @@ export default class EventCtrl {
         });
     };
     //advanced filter form data
-    $scope.columnFilters = {};
-    $scope.filterModel = {};
-    $scope.options = {};
-    $scope.fields = [];
-    vm.setupForm = function() {
-      $scope.fields = [];
-      $scope.filterModel = {};
-      for (const key in $scope.usedColumns) {
-        const column = $scope.usedColumns[key];
-        switch (column.type) {
-          case 'ModelChoiceFilter':
-          case 'ChoiceFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase()),
-                labelProp: 'display_name',
-                valueProp: 'value',
-                options: column.choices,
-              },
-              type: 'select',
-              key: key,
-            });
-            break;
-          case 'CharFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase()),
-                labelProp: key,
-                valueProp: key,
-              },
-              type: 'input',
-              key: key,
-            });
-            break;
-          case 'IsoDateTimeFromToRangeFilter':
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase() + '_START'),
-                appendToBody: true,
-              },
-              type: 'datepicker',
-              key: key + '_after',
-            });
-            $scope.fields.push({
-              templateOptions: {
-                type: 'text',
-                label: $translate.instant(key.toUpperCase() + '_END'),
-                appendToBody: true,
-              },
-              type: 'datepicker',
-              key: key + '_before',
-            });
-            break;
-        }
-      }
-    };
-
-    //Toggle visibility of advanced filters
-    $scope.toggleAdvancedFilters = function() {
-      if ($scope.showAdvancedFilters) {
-        $scope.showAdvancedFilters = false;
-      } else {
-        if ($scope.fields.length <= 0) {
-          vm.setupForm();
-        }
-        $scope.showAdvancedFilters = true;
-      }
-      if ($scope.showAdvancedFilters) {
-        $window.onclick = function(event) {
-          const clickedElement = $(event.target);
-          if (!clickedElement) return;
-          const elementClasses = event.target.classList;
-          const clickedOnAdvancedFilters =
-            elementClasses.contains('filter-icon') ||
-            elementClasses.contains('advanced-filters') ||
-            clickedElement.parents('.advanced-filters').length ||
-            clickedElement.parents('.button-group').length;
-
-          if (!clickedOnAdvancedFilters) {
-            $scope.showAdvancedFilters = !$scope.showAdvancedFilters;
-            $window.onclick = null;
-            $scope.$apply();
-          }
-        };
-      } else {
-        $window.onclick = null;
-      }
-    };
-
-    vm.clearFilters = function() {
-      vm.setupForm();
-      $scope.submitAdvancedFilters();
-    };
+    vm.columnFilters = {};
+    vm.fields = [];
 
     $scope.clearSearch = function() {
       delete $scope.tableState.search.predicateObject;
       $('#event-search-input')[0].value = '';
-      $scope.stCtrl.pipe();
-    };
-
-    $scope.filterActive = function() {
-      let temp = false;
-      for (const key in $scope.columnFilters) {
-        if ($scope.columnFilters[key] !== '' && $scope.columnFilters[key] !== null) {
-          temp = true;
-        }
-      }
-      return temp;
-    };
-
-    $scope.submitAdvancedFilters = function() {
-      $scope.columnFilters = angular.copy($scope.filterModel);
       $scope.stCtrl.pipe();
     };
 

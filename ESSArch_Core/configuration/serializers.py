@@ -27,7 +27,6 @@ from rest_framework import serializers
 
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.configuration.models import (
-    Agent,
     EventType,
     Parameter,
     Path,
@@ -45,14 +44,6 @@ class EventTypeSerializer(DynamicModelSerializer):
     class Meta:
         model = EventType
         fields = ('eventType', 'eventDetail',)
-
-
-class AgentSerializer(DynamicModelSerializer):
-    id = serializers.UUIDField(read_only=True)
-
-    class Meta:
-        model = Agent
-        fields = '__all__'
 
 
 class ParameterSerializer(DynamicModelSerializer):

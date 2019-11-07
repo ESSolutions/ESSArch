@@ -1,3 +1,4 @@
+import checkboxTemplate from '../../views/formly_templates/form_template_checkbox.html';
 import datepickerTemplate from '../../views/formly_templates/datepicker_template.html';
 import errorMessagesTemplate from '../../views/formly_templates/form_error_messages.html';
 import inputTemplate from '../../views/formly_templates/form_template_input.html';
@@ -23,6 +24,22 @@ const formlyConfig = [
     formlyConfigProvider.setType({
       name: 'input',
       template: inputTemplate,
+      overwriteOk: true,
+      wrapper: ['bootstrapHasError'],
+      defaultOptions: function(options) {
+        return {
+          templateOptions: {
+            validation: {
+              show: true,
+            },
+          },
+        };
+      },
+    });
+
+    formlyConfigProvider.setType({
+      name: 'checkbox',
+      template: checkboxTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
       defaultOptions: function(options) {

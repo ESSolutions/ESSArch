@@ -322,6 +322,19 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_202_ACCEPTED)
 
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        medium: StorageMedium = self.get_object()
+
+        if medium.status == 0:
+            raise exceptions.ParseError('{} is already deactivated'.format(medium.medium_id))
+
+        if not medium.is_migrated():
+            raise exceptions.ParseError('{} is not fully migrated yet'.format(medium.medium_id))
+
+        medium.deactivate()
+        return Response(status=status.HTTP_200_OK)
+
 
 class StorageMethodViewSet(viewsets.ModelViewSet):
     """

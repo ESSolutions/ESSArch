@@ -27,7 +27,7 @@
       refresh-delay="300"
       ng-init="filterObject = {}; filterObject[options.templateOptions.valueProp] = $select.search;"
       refresh="options.templateOptions.refresh($select.search)"
-      repeat="x[options.templateOptions.valueProp] as x in options.templateOptions.options() | propsFilter: filterObject"
+      repeat="x[options.templateOptions.valueProp] as x in (options.templateOptions.optionsFunction ? options.templateOptions.optionsFunction() : options.templateOptions.options()) | propsFilter: filterObject"
     >
       <div ng-bind-html="x[options.templateOptions.labelProp] | highlight: $select.search"></div>
     </ui-select-choices>
@@ -59,7 +59,7 @@
       refresh-delay="300"
       ng-init="filterObject = {}; filterObject[options.templateOptions.valueProp] = $select.search;"
       refresh="options.templateOptions.refresh($select.search)"
-      repeat="x[options.templateOptions.valueProp] as x in options.templateOptions.options() | propsFilter: filterObject"
+      repeat="x[options.templateOptions.valueProp] as x in (options.templateOptions.optionsFunction ? options.templateOptions.optionsFunction() : options.templateOptions.options()) | propsFilter: filterObject"
     >
       <div ng-bind-html="x[options.templateOptions.labelProp] | highlight: $select.search"></div>
     </ui-select-choices>

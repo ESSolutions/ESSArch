@@ -2296,8 +2296,11 @@ class ExternalTestCase(TestCase):
 
         tree = etree.parse(self.fname)
 
-        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
-        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+        rel_external1 = normalize_path(os.path.relpath(external1_path, self.datadir))
+        rel_external2 = normalize_path(os.path.relpath(external2_path, self.datadir))
+
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % rel_external1)), 1)
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % rel_external2)), 1)
 
         self.assertTrue(os.path.isfile(external1_path))
         self.assertTrue(os.path.isfile(external2_path))
@@ -2311,9 +2314,20 @@ class ExternalTestCase(TestCase):
     def test_external_with_files(self):
         specification = {
             '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'file',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': 'href'}]
+                        },
+                    ],
+                },
+            ],
             '-external': {
                 '-dir': 'external',
-                '-file': 'external.xml',
                 '-pointer': {
                     '-name': 'ptr',
                     '-attr': [
@@ -2323,6 +2337,7 @@ class ExternalTestCase(TestCase):
                         },
                     ],
                 },
+                '-file': 'external.xml',
                 '-specification': {
                     '-name': 'mets',
                     '-attr': [
@@ -2347,9 +2362,26 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
+        with open(os.path.join(self.external1, "ext1.txt"), "w") as f:
             f.write('a txt file')
-        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
+        with open(os.path.join(self.external2, "ext2.pdf"), "w") as f:
+            f.write('a pdf file')
+
+        # create nested external files
+        nested_external = os.path.join(self.datadir, "nested/external")
+        nested_external1 = os.path.join(nested_external, "external1")
+        nested_external2 = os.path.join(nested_external, "external2")
+        os.makedirs(nested_external1)
+        os.makedirs(nested_external2)
+
+        nested_file1 = os.path.join(nested_external1, "nested1.txt")
+        nested_file1 = normalize_path(nested_file1)
+        nested_file2 = os.path.join(nested_external2, "nested2.pdf")
+        nested_file2 = normalize_path(nested_file2)
+
+        with open(nested_file1, "w") as f:
+            f.write('a txt file')
+        with open(nested_file2, "w") as f:
             f.write('a pdf file')
 
         self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
@@ -2357,22 +2389,30 @@ class ExternalTestCase(TestCase):
 
         tree = etree.parse(self.fname)
 
+        rel_nested1 = normalize_path(os.path.relpath(nested_file1, self.datadir))
+        rel_nested2 = normalize_path(os.path.relpath(nested_file2, self.datadir))
+        self.assertEqual(len(tree.findall(".//file[@href='%s']" % rel_nested1)), 1)
+        self.assertEqual(len(tree.findall(".//file[@href='%s']" % rel_nested2)), 1)
+
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
+        rel_external1 = normalize_path(os.path.relpath(external1_path, self.datadir))
+        rel_external2 = normalize_path(os.path.relpath(external2_path, self.datadir))
 
-        self.assertIsNone(tree.find('.//file'))
-
-        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
-        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % rel_external1)), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % rel_external2)), 1)
 
         self.assertTrue(os.path.isfile(external1_path))
         self.assertTrue(os.path.isfile(external2_path))
 
+        self.assertIsNone(tree.find(".//file[@href='ext1.txt']"))
+        self.assertIsNone(tree.find(".//file[@href='ext2.pdf']"))
+
         external1_tree = etree.parse(external1_path)
-        self.assertEqual(len(external1_tree.findall(".//file[@href='file1.txt']")), 1)
+        self.assertEqual(len(external1_tree.findall(".//file[@href='ext1.txt']")), 1)
 
         external2_tree = etree.parse(external2_path)
-        self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
+        self.assertEqual(len(external2_tree.findall(".//file[@href='ext2.pdf']")), 1)
 
     def test_external_info(self):
         specification = {

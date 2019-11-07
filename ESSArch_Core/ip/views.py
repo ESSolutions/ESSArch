@@ -467,6 +467,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).filter(
                 package_type=InformationPackage.AIC, has_ip=True
             )
+            profile_ips = ProfileIP.objects.select_related(
+                'profile', 'ip', 'data',
+            ).prefetch_related('data_versions')
+
+            inner = inner.prefetch_related(
+                Prefetch('profileip_set', queryset=profile_ips,)
+            )
+            simple_outer = simple_outer.prefetch_related(
+                Prefetch('profileip_set', queryset=profile_ips,)
+            )
+
             aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
 
             self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
@@ -488,7 +499,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             outer = self.annotate_filtered_first_generation(outer, user)
             outer = self.get_related(outer, workareas)
 
-            inner = inner.filter(filtered_first_generation=False)
+            profile_ips = ProfileIP.objects.select_related(
+                'profile', 'ip', 'data',
+            ).prefetch_related('data_versions')
+
+            inner = inner.filter(filtered_first_generation=False).prefetch_related(
+                Prefetch('profileip_set', queryset=profile_ips,)
+            )
             outer = outer.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
             ).distinct()
@@ -920,6 +937,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "if": generate_premis,
                         "label": "Compare premis and content-mets",
                         "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                        "params": {'recursive': False},
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                        "if": generate_premis,
+                        "label": "Compare representation premis and mets",
                     }
                 ]
             },
@@ -2319,6 +2342,12 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "if": generate_premis,
                                 "label": "Compare premis and content-mets",
                                 "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                                "params": {'recursive': False},
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                                "if": generate_premis,
+                                "label": "Compare representation premis and mets",
                             }
                         ]
                     },

@@ -4,18 +4,10 @@ from django_filters import rest_framework as filters
 from rest_framework import exceptions
 
 from ESSArch_Core.api.filters import ListFilter, MultipleCharFilter
+from ESSArch_Core.auth.util import users_in_organization
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 
 User = get_user_model()
-
-
-def users(request):
-    org = request.user.user_profile.current_organization
-    if org is None:
-        if request.user.is_superuser:
-            return User.objects.all()
-        return User.objects.filter(pk=request.user.pk)
-    return User.objects.filter(essauth_member__in=org.members)
 
 
 def states():
@@ -39,7 +31,7 @@ class InformationPackageFilter(filters.FilterSet):
     responsible = filters.ModelMultipleChoiceFilter(
         field_name="responsible__username",
         to_field_name="username",
-        queryset=users
+        queryset=lambda request: users_in_organization(request.user),
     )
     state = MultipleCharFilter()
     object_size = filters.RangeFilter()
@@ -66,7 +58,7 @@ class InformationPackageFilter(filters.FilterSet):
 
     class Meta:
         model = InformationPackage
-        fields = ['archivist_organization', 'state', 'responsible', 'active',
+        fields = ['archivist_organization', 'state', 'responsible', 'active', 'label',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
                   'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea']
 
