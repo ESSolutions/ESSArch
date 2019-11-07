@@ -186,7 +186,7 @@ class StorageMethodQueryset(models.QuerySet):
 
     def filter_has_target_with_status(self, status: int, value: bool):
         annotation_key = 'has_target_with_status_{}'.format(status)
-        return self.annotate(
+        qs = self.annotate(
             **{
                 annotation_key: Exists(
                     StorageMethodTargetRelation.objects.filter(
@@ -196,6 +196,7 @@ class StorageMethodQueryset(models.QuerySet):
                 )
             }
         ).filter(**{annotation_key: value})
+        return self.filter(pk__in=qs)
 
     def fastest(self):
         container = Case(
