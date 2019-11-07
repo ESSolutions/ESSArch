@@ -115,6 +115,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       });
   }
@@ -165,6 +166,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       });
   }
@@ -184,6 +186,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       });
   }
@@ -203,6 +206,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       });
   }
@@ -219,6 +223,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: ipCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       });
   }
@@ -236,6 +241,7 @@ const resource = (listViewService, Storage, $rootScope) => {
         return {
           data: storageMediumCollection,
           numberOfPages: Math.ceil(value.count / number),
+          count: value.count,
         };
       }
     );
@@ -252,6 +258,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: storageObjectCollection,
         numberOfPages: Math.ceil(value.count / number),
+        couhnt: value.count,
       };
     });
   }
@@ -265,6 +272,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: storageObjectCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -279,6 +287,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: robotCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -293,6 +302,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: robotQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -307,6 +317,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: robotQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -321,6 +332,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: ioQueueCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -335,6 +347,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: tapeDrivecollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }
@@ -349,6 +362,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       return {
         data: tapeSlotCollection,
         numberOfPages: Math.ceil(value.count / number),
+        count: value.count,
       };
     });
   }

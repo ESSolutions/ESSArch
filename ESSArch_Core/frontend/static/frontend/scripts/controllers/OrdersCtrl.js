@@ -65,6 +65,7 @@ export default class {
         ).then(function(result) {
           vm.displayedIps = result.data;
           tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = result.count;
           $scope.ipLoading = false;
           SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
         });

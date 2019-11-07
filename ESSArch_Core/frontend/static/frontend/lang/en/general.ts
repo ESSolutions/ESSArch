@@ -10,6 +10,7 @@ const general = $translateProvider => {
     AGENT: 'Agent',
     AGENTS: 'Agents',
     AIC_DESC: 'AIC for IP',
+    ALL: 'All',
     ALLOW_UNKNOWN_FILES: 'Allow unknown files',
     APPLY: 'Apply',
     APPLYCHANGES: 'Apply changes',

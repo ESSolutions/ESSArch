@@ -170,6 +170,7 @@ export default class DeliveryCtrl {
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.deliveriesLoading = false;
           vm.deliveries = response.data;
@@ -195,10 +196,7 @@ export default class DeliveryCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
-        const pagination = tableState.pagination;
-        const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-        const number = pagination.number || vm.itemsPerPage; // Number of entries showed per page.
-        const pageNumber = start / number + 1;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
         let sortString = sorting.predicate;
         if (sorting.reverse) {
@@ -206,12 +204,13 @@ export default class DeliveryCtrl {
         }
 
         vm.getDeliveryEvents(vm.selected, {
-          page: pageNumber,
-          page_size: number,
+          page: paginationParams.pageNumber,
+          page_size: paginationParams.number,
           ordering: sortString,
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.deliveryEventsLoading = false;
           vm.deliveryEvents = response.data;

@@ -65,6 +65,7 @@ export default class AppraisalCtrl {
           response
         ) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.count;
           vm.ruleTableState = tableState;
           vm.ruleFilters.forEach(function(x) {
             response.data.forEach(function(rule) {
@@ -100,6 +101,7 @@ export default class AppraisalCtrl {
           response
         ) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.count;
           vm.ongoingTableState = tableState;
           vm.ongoing = response.data;
           $scope.ongoingLoading = false;
@@ -128,6 +130,7 @@ export default class AppraisalCtrl {
           response
         ) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.count;
           vm.nextTableState = tableState;
           vm.next = response.data;
           $scope.nextLoading = false;
@@ -156,6 +159,7 @@ export default class AppraisalCtrl {
           response
         ) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
+          tableState.pagination.totalItemCount = response.count;
           vm.finishedTableState = tableState;
           vm.finished = response.data;
           $scope.finishedLoading = false;

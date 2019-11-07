@@ -48,7 +48,7 @@ export default class {
     listViewService.getOrderPage().then(function(response) {
       $scope.orderObjects = response.data;
     });
-    vm.itemsPerPage = $cookies.get('epp-ips-per-page') || 10;
+    vm.itemsPerPage = $cookies.get('essarch-ips-per-page') || 10;
     $scope.initRequestData = function() {
       vm.request = {
         type: 'preserve',
@@ -150,6 +150,7 @@ export default class {
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);

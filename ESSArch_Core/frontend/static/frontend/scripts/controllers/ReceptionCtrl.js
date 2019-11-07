@@ -136,6 +136,7 @@ export default class ReceptionCtrl {
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);

@@ -90,6 +90,7 @@ export default class WorkareaCtrl {
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
             $scope.initLoad = false;
             ipExists();

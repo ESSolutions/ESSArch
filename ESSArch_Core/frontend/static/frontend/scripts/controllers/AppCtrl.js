@@ -1,6 +1,6 @@
 export default class AppCtrl {
   /*@ngInject*/
-  constructor($rootScope, $scope, $uibModal, $log, PermPermissionStore) {
+  constructor($rootScope, $scope, $uibModal, $log, PermPermissionStore, $translate) {
     const vm = this;
     const questionMark = 187;
     let questionMarkModalOpen = false;
@@ -81,5 +81,13 @@ export default class AppCtrl {
           return 'warning';
       }
     };
+
+    $rootScope.itemsPerPageOptions = [
+      {name: '5', value: 5},
+      {name: '10', value: 10},
+      {name: '25', value: 25},
+      {name: '50', value: 50},
+      {name: $translate.instant('ALL'), value: 'all'},
+    ];
   }
 }

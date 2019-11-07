@@ -70,7 +70,7 @@ export default class BaseCtrl {
     $scope.ips = [];
     $scope.myTreeControl = {};
     $scope.myTreeControl.scope = this;
-    vm.itemsPerPage = $cookies.get('epp-ips-per-page') || 10;
+    vm.itemsPerPage = $cookies.get('essarch-ips-per-page') || 10;
     vm.archived = false;
     vm.specificTabs = [];
     vm.columnFilters = {};
@@ -316,6 +316,7 @@ export default class BaseCtrl {
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
             $scope.initLoad = false;
             ipExists();
@@ -337,6 +338,7 @@ export default class BaseCtrl {
               listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
+                tableState.pagination.totalItemCount = result.count;
                 vm.callServer(tableState);
               });
             }
@@ -1124,7 +1126,9 @@ export default class BaseCtrl {
     };
 
     $scope.updateIpsPerPage = function(items) {
-      $cookies.put('epp-ips-per-page', items);
+      if (typeof items === 'number') {
+        $cookies.put('essarch-ips-per-page', items);
+      }
     };
 
     $scope.menuOptions = [];

@@ -111,6 +111,7 @@ export default class RobotInformationCtrl {
           .then(function(result) {
             vm.tapeDrives = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.tapeDrivesLoading = false;
           })
           .catch(function(response) {
@@ -152,6 +153,7 @@ export default class RobotInformationCtrl {
           .then(function(result) {
             vm.tapeSlots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.tapeSlotsLoading = false;
           })
           .catch(function(response) {
@@ -193,6 +195,7 @@ export default class RobotInformationCtrl {
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.robotQueueLoading = false;
           })
           .catch(function(response) {
@@ -236,6 +239,7 @@ export default class RobotInformationCtrl {
           .then(function(result) {
             vm.robots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
           })
           .catch(function(response) {

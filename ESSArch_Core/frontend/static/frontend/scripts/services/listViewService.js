@@ -612,13 +612,13 @@ const listViewService = (
 
   function getPaginationParams(pagination, defaultNumber) {
     const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
-    const number = pagination.number || defaultNumber; // Number of entries showed per page.
+    let number = pagination.number || defaultNumber; // Number of entries showed per page.
     const pageNumber = isNaN(start / number) ? 1 : start / number + 1;
-    return {
-      start: start,
-      pageNumber: pageNumber,
-      number: number,
-    };
+
+    if (pagination.number === 'all' && pagination.totalItemCount) {
+      number = pagination.totalItemCount;
+    }
+    return {start, pageNumber, number};
   }
 
   return {
