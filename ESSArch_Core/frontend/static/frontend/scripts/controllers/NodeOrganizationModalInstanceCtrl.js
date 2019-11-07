@@ -43,8 +43,9 @@ export default class NodeOrganizationModalInstanceCtrl {
               return $ctrl.options.organizations;
             },
             refresh: function(search) {
-              $ctrl.getOrganizations(search).then(function() {
+              return $ctrl.getOrganizations(search).then(function() {
                 this.options = $ctrl.options.organizations;
+                return $ctrl.options.organizations;
               });
             },
           },

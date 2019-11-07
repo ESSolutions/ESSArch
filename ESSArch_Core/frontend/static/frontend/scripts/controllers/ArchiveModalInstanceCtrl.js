@@ -148,8 +148,9 @@ export default class ArchiveModalInstanceCtrl {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
-              $ctrl.getStructures(search).then(function() {
+              return $ctrl.getStructures(search).then(function() {
                 this.options = $ctrl.options.structures;
+                return $ctrl.options.structures;
               });
             },
           },
@@ -176,8 +177,9 @@ export default class ArchiveModalInstanceCtrl {
                   search = angular.copy($ctrl.initAgentSearch);
                   $ctrl.initAgentSearch = null;
                 }
-                $ctrl.getAgents(search).then(function() {
+                return $ctrl.getAgents(search).then(function() {
                   this.options = $ctrl.options.agents;
+                  return $ctrl.options.agents;
                 });
               },
             },
