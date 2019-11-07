@@ -340,12 +340,15 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
             return xml_el, el
 
 
-def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True):
+def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, current_dir=None):
     doc = etree.ElementTree(file=xmlfile)
     files = set()
 
     if skip_files is None:
         skip_files = []
+
+    if current_dir is None:
+        current_dir = rootdir
 
     for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
@@ -366,14 +369,23 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True):
 
     if recursive:
         for pointer in find_pointers(xmlfile=xmlfile):
-            pointer_prefix = os.path.split(pointer.path)[0]
+            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+
             if pointer.path not in skip_files:
+                pointer.path = os.path.join(prefix, pointer.path)
                 files.add(pointer)
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
+
             files |= find_files(
-                os.path.join(rootdir, pointer.path),
+                pointer_path,
                 rootdir,
-                pointer_prefix,
+                prefix,
                 recursive=recursive,
+                current_dir=current_dir,
             )
 
     return files
