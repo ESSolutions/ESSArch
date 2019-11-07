@@ -14,6 +14,7 @@ export default (
   let policies: any = [];
   let users: any = [];
   let eventTypes: any = [];
+  let mediums: any = [];
 
   let getStoragePolicies = (search: string) => {
     return $http
@@ -38,6 +39,15 @@ export default (
       .get(appConfig.djangoUrl + 'event-types/', {params: {page: 1, page_size: 10, search}})
       .then(response => {
         eventTypes = response.data;
+        return response.data;
+      });
+  };
+
+  let getMediums = (search: string) => {
+    return $http
+      .get(appConfig.djangoUrl + 'storage-mediums/', {params: {page: 1, page_size: 10, search}})
+      .then(response => {
+        mediums = response.data;
         return response.data;
       });
   };
@@ -200,12 +210,91 @@ export default (
     },
   };
 
-  const currentMedium: IFieldObject = {
-    key: 'current_medium',
-    type: 'input',
-    templateOptions: {
-      label: $translate.instant('MEDIUM'),
-    },
+  const currentMedium: IFieldGroup = {
+    fieldGroup: [
+      {
+        fieldGroup: [
+          {
+            key: 'medium_id',
+            type: 'uiselect',
+            templateOptions: {
+              label: $translate.instant('MEDIUMID'),
+              labelProp: 'medium_id',
+              valueProp: 'medium_id',
+              optionsFunction: function() {
+                return mediums;
+              },
+              clearEnabled: true,
+              appendToBody: true,
+              refresh: function(search) {
+                return getMediums(search);
+              },
+            },
+            hideExpression: ($viewValue, $modelValue, scope) => {
+              return scope.model.medium_range_filter_active;
+            },
+          },
+          {
+            key: 'medium_id_range_min',
+            type: 'uiselect',
+            templateOptions: {
+              label: $translate.instant('MEDIUMID_MIN'),
+              labelProp: 'medium_id',
+              valueProp: 'medium_id',
+              optionsFunction: function() {
+                return mediums;
+              },
+              clearEnabled: true,
+              appendToBody: true,
+              refresh: function(search) {
+                return getMediums(search);
+              },
+            },
+            hideExpression: ($viewValue, $modelValue, scope) => {
+              return !scope.model.medium_range_filter_active;
+            },
+          },
+          {
+            key: 'medium_id_range_max',
+            type: 'uiselect',
+            templateOptions: {
+              label: $translate.instant('MEDIUMID_MAX'),
+              labelProp: 'medium_id',
+              valueProp: 'medium_id',
+              optionsFunction: function() {
+                return mediums;
+              },
+              clearEnabled: true,
+              appendToBody: true,
+              refresh: function(search) {
+                return getMediums(search);
+              },
+            },
+            hideExpression: ($viewValue, $modelValue, scope) => {
+              return !scope.model.medium_range_filter_active;
+            },
+          },
+        ],
+      },
+      {
+        key: 'medium_range_filter_active',
+        type: 'checkbox',
+        templateOptions: {
+          label: $translate.instant('MEDIUM_RANGE_ENABLED'),
+        },
+        defaultValue: false,
+        expressionProperties: {
+          'templateOptions.onChange': function($viewValue, $modelValue, scope) {
+            if ($modelValue === true) {
+              scope.model.medium_id = null;
+            } else {
+              scope.model.medium_id_range_min = null;
+              scope.model.medium_id_range_max = null;
+            }
+          },
+        },
+      },
+    ],
   };
 
   // Returns base form field list with given special fields first
@@ -226,8 +315,8 @@ export default (
     'home.access.accessIp': addSpecialFieldsBeforeBase([active, cached, archived]),
     'home.access.orders': ipBaseFields,
     'home.access.createDip': ipBaseFields,
-    'home.administration.storageMigration': addSpecialFieldsBeforeBase([active, currentMedium, policy]),
-    'home.administration.storageMaintenance': addSpecialFieldsBeforeBase([active, currentMedium, policy]),
+    'home.administration.storageMigration': addSpecialFieldsBeforeBase([active]),
+    'home.administration.storageMaintenance': addSpecialFieldsBeforeBase([active]),
   };
 
   // Map states and additional IP filter fields
