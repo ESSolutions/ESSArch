@@ -123,10 +123,11 @@ class XMLSchemaValidatorTests(TestCase):
             options={'rootdir': self.datadir},
         )
 
-        expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
-
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaises(ValidationError):
             validator.validate(xml_file_path)
+
+        expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
+        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
 
     def test_validate_with_imported_schema(self):
         schema_file_name = "schema.xsd"
@@ -168,9 +169,11 @@ class XMLSchemaValidatorTests(TestCase):
         with open(xml_file_path, 'w') as f:
             f.write(bad_xml_file_content)
 
-        expected_error_message = "Character content other than whitespace"
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaises(ValidationError):
             validator.validate(xml_file_path)
+
+        expected_error_message = "Character content other than whitespace"
+        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
 
         # ensure that the schema has only been modified in memory and not the file
         schema_doc = etree.parse(schema_file_path)
