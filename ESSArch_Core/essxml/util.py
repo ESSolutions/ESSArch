@@ -24,6 +24,7 @@
 
 import logging
 import os
+import pathlib
 import tempfile
 import uuid
 from urllib.parse import urlparse
@@ -457,8 +458,9 @@ def download_imported_https_schemas(schema, dst):
         if protocol == 'http':
             continue
         new_path = download_schema(dst, logger, url)
+        new_path = pathlib.Path(new_path)
         el = url.getparent()
-        el.attrib['schemaLocation'] = 'file://{}'.format(new_path)
+        el.attrib['schemaLocation'] = new_path.as_uri()
 
     return schema
 
