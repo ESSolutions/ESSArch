@@ -121,7 +121,7 @@
     "pree2e": "yarn run update-webdriver",
     "e2e": "protractor e2e-tests/protractor.conf.js",
     "prettier": "prettier",
-    "lint": "eslint \"*/**/*.{js,ts,tsx}\"",
+    "lint": "eslint \"ESSArch_Core/frontend/static/frontend/scripts/**/*.{js,ts,tsx}\"",
     "stylelint": "stylelint \"ESSArch_Core/frontend/static/frontend/styles/**/*.scss\""
   }
 }
