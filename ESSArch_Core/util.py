@@ -238,7 +238,7 @@ def getSchemas(doc=None, filename=None):
                 "schemaLocation": loc
             })
 
-    return etree.XMLSchema(root)
+    return root
 
 
 def move_schema_locations_to_root(tree=None, filename=None):
