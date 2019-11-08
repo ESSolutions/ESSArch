@@ -1,0 +1,17 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.UNPUBLISH_CLASSIFICATION_STRUCTURE' | translate}}</h3>
+</div>
+<form name="$ctrl.form" ng-submit="$ctrl.unpublish()">
+  <div class="modal-body" id="modal-body">
+    {{'ACCESS.UNPUBLISH_CLASSIFICATION_STRUCTURE_DESC' | translate:$ctrl.data.structure}}
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="$ctrl.unpublishing" type="submit">
+      {{'UNPUBLISH' | translate}} <i ng-if="$ctrl.unpublishing" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.unpublishing" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>

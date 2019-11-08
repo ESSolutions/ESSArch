@@ -1,0 +1,15 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{ "IMPORT.PROFILE_EXISTS" | translate }}</h3>
+</div>
+<form ng-submit="$ctrl.overwriteProfile()">
+  <div class="modal-body" id="modal-body">
+    <p for="label">{{ "IMPORT.PROFILE_EXISTS_DESC" | translate }}</p>
+    <b>{{ "NAME" | translate }}: {{ $ctrl.profile.name }}</b>
+    <br />
+    <b>ID: {{ $ctrl.profile.id }}</b>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" focused="true" type="submit">{{ "OK" | translate }}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{ "CANCEL" | translate }}</button>
+  </div>
+</form>

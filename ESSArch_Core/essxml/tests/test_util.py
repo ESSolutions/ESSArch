@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -25,16 +25,21 @@
 import os
 import shutil
 import tempfile
-
 from unittest import mock
-import six
+
 from django.test import TestCase
 from lxml import etree
 
-from ESSArch_Core.essxml.util import (find_file, find_files, get_agent,
-                                      get_altrecordid, get_altrecordids,
-                                      get_objectpath, parse_reference_code,
-                                      parse_submit_description)
+from ESSArch_Core.essxml.util import (
+    find_file,
+    find_files,
+    get_agent,
+    get_altrecordid,
+    get_altrecordids,
+    get_objectpath,
+    parse_reference_code,
+    parse_submit_description,
+)
 
 
 class FindFilesTestCase(TestCase):
@@ -72,7 +77,7 @@ class FindFilesTestCase(TestCase):
 
         expected = ['1.txt', '2.txt', '3.txt', '4.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        six.assertCountEqual(self, [x.path for x in found], expected)
+        self.assertCountEqual([x.path for x in found], expected)
 
     def test_files_mdRef_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -148,7 +153,7 @@ class FindFilesTestCase(TestCase):
         expected = ['ext1.xml', 'ext2.xml', '1.txt', '1.pdf', '2.txt', '2.pdf']
         found = find_files(xmlfile, rootdir=self.datadir)
         self.assertEqual(len(found), len(expected))
-        six.assertCountEqual(self, found, expected)
+        self.assertCountEqual(found, expected)
 
 
 class FindFileTestCase(TestCase):

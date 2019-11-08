@@ -1,0 +1,44 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.APPRAISAL_RULE' | translate}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <label>
+    {{'NAME' | translate}}
+  </label>
+  <p>{{$ctrl.data.rule.name}}</p>
+  <div ng-if="$ctrl.data.rule.description">
+    <label>
+      {{'DESCRIPTION' | translate}}
+    </label>
+    <p>{{$ctrl.data.rule.description}}</p>
+  </div>
+  <div class="cron-info" ng-if="$ctrl.data.rule.frequency">
+    <b
+      >{{'ARCHIVE_MAINTENANCE.FREQUENCY' | translate}}:
+      <span ng-class="{'color-red': !$ctrl.validCron($ctrl.data.rule.frequency)}"
+        >{{$ctrl.data.rule.frequency === ''?('ARCHIVE_MAINTENANCE.RUN_MANUALLY' |
+        translate):$ctrl.prettyFrequency($ctrl.data.rule.frequency)}}</span
+      ></b
+    >
+    <br />
+    <b>{{'ARCHIVE_MAINTENANCE.NEXT' | translate}}: {{$ctrl.nextPretty($ctrl.data.rule.frequency)}}</b>
+  </div>
+  <br />
+
+  <label>
+    {{'ARCHIVE_MAINTENANCE.SPECIFICATION' | translate}}
+  </label>
+  <p>{{$ctrl.data.rule.specification.join(', ')}}</p>
+  <button class="btn btn-success" ng-disabled="$ctrl.creatingJob" ng-click="$ctrl.createJob($ctrl.data.rule)">
+    {{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_JOB' | translate}}
+    <i ng-if="$ctrl.creatingJob" class="fas fa-spinner fa-spin"></i>
+  </button>
+  <button class="btn btn-success" ng-disabled="$ctrl.runningJob" ng-click="$ctrl.createJobAndStart($ctrl.data.rule)">
+    {{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_JOB_AND_RUN' | translate}}
+    <i ng-if="$ctrl.runningJob" class="fas fa-spinner fa-spin"></i>
+  </button>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()" focused="true">{{'OK' | translate}}</button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+</div>

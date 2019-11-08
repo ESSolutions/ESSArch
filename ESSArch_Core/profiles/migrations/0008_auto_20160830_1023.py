@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -35,7 +35,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0007_auto_20160826_1338'),
+        ('profiles', '0001_initial'),
     ]
 
     operations = [
@@ -43,20 +43,20 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('profile_type', models.CharField(choices=[(b'transfer_project', b'Transfer Project'), (b'content_type', b'Content Type'), (b'data_selection', b'Data Selection'), (b'classification', b'Classification'), (b'import', b'Import'), (b'submit_description', b'Submit Description'), (b'sip', b'SIP'), (b'aip', b'AIP'), (b'dip', b'DIP'), (b'workflow', b'Workflow'), (b'preservation_description', b'Preservation Description')], max_length=255)),
+                ('profile_type', models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('classification', 'Classification'), ('import', 'Import'), ('submit_description', 'Submit Description'), ('sip', 'SIP'), ('aip', 'AIP'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_description', 'Preservation Description')], max_length=255)),
                 ('name', models.CharField(max_length=255)),
-                ('type', models.CharField(max_length=255)),
-                ('status', models.CharField(max_length=255)),
-                ('label', models.CharField(max_length=255)),
-                ('representation_info', models.CharField(max_length=255)),
-                ('preservation_descriptive_info', models.CharField(max_length=255)),
-                ('supplemental', models.CharField(max_length=255)),
-                ('access_constraints', models.CharField(max_length=255)),
-                ('datamodel_reference', models.CharField(max_length=255)),
-                ('additional', models.CharField(max_length=255)),
-                ('submission_method', models.CharField(max_length=255)),
-                ('submission_schedule', models.CharField(max_length=255)),
-                ('submission_data_inventory', models.CharField(max_length=255)),
+                ('type', models.CharField(blank=True, max_length=255)),
+                ('status', models.CharField(blank=True, max_length=255)),
+                ('label', models.CharField(blank=True, max_length=255)),
+                ('representation_info', models.CharField(blank=True, max_length=255)),
+                ('preservation_descriptive_info', models.CharField(blank=True, max_length=255)),
+                ('supplemental', models.CharField(blank=True, max_length=255)),
+                ('access_constraints', models.CharField(blank=True, max_length=255)),
+                ('datamodel_reference', models.CharField(blank=True, max_length=255)),
+                ('additional', models.CharField(blank=True, max_length=255)),
+                ('submission_method', models.CharField(blank=True, max_length=255)),
+                ('submission_schedule', models.CharField(blank=True, max_length=255)),
+                ('submission_data_inventory', models.CharField(blank=True, max_length=255)),
                 ('structure', models.TextField()),
                 ('template', jsonfield.fields.JSONField(null=True)),
                 ('specification', jsonfield.fields.JSONField(null=True)),
@@ -66,192 +66,5 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
                 'verbose_name': 'Profile',
             },
-        ),
-        migrations.AlterModelOptions(
-            name='profileaiprel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profileclassificationrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profilecontenttyperel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profiledataselectionrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profilediprel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profileimportrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profilepreservationmetadatarel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profilesiprel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profilesubmitdescriptionrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profiletransferprojectrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterModelOptions(
-            name='profileworkflowrel',
-            options={'ordering': ['status'], 'verbose_name': 'ProfileRel'},
-        ),
-        migrations.AlterField(
-            model_name='profileaiprel',
-            name='profileaip',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profileclassificationrel',
-            name='profileclassification',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profilecontenttyperel',
-            name='profilecontenttype',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profiledataselectionrel',
-            name='profiledataselection',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profilediprel',
-            name='profiledip',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profileimportrel',
-            name='profileimport',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profilepreservationmetadatarel',
-            name='profilepreservationmetadata',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profilesiprel',
-            name='profilesip',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profilesubmitdescriptionrel',
-            name='profilesubmitdescription',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profiletransferprojectrel',
-            name='profiletransferproject',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='profileworkflowrel',
-            name='profileworkflow',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_aip',
-            field=models.ManyToManyField(related_name='profile_aip', through='profiles.ProfileAIPRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_classification',
-            field=models.ManyToManyField(related_name='profile_classification', through='profiles.ProfileClassificationRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_content_type',
-            field=models.ManyToManyField(related_name='profile_content_type', through='profiles.ProfileContentTypeRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_data_selection',
-            field=models.ManyToManyField(related_name='profile_data_selection', through='profiles.ProfileDataSelectionRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_dip',
-            field=models.ManyToManyField(related_name='profile_dip', through='profiles.ProfileDIPRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_import',
-            field=models.ManyToManyField(related_name='profile_import', through='profiles.ProfileImportRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_preservation_metadata',
-            field=models.ManyToManyField(related_name='profile_preservation_metadata', through='profiles.ProfilePreservationMetadataRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_sip',
-            field=models.ManyToManyField(related_name='profile_sip', through='profiles.ProfileSIPRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_submit_description',
-            field=models.ManyToManyField(related_name='profile_submit_description', through='profiles.ProfileSubmitDescriptionRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_transfer_project',
-            field=models.ManyToManyField(related_name='profile_transfer_project', through='profiles.ProfileTransferProjectRel', to='profiles.Profile'),
-        ),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='profile_workflow',
-            field=models.ManyToManyField(related_name='profile_workflow', through='profiles.ProfileWorkflowRel', to='profiles.Profile'),
-        ),
-        migrations.DeleteModel(
-            name='ProfileAIP',
-        ),
-        migrations.DeleteModel(
-            name='ProfileClassification',
-        ),
-        migrations.DeleteModel(
-            name='ProfileContentType',
-        ),
-        migrations.DeleteModel(
-            name='ProfileDataSelection',
-        ),
-        migrations.DeleteModel(
-            name='ProfileDIP',
-        ),
-        migrations.DeleteModel(
-            name='ProfileImport',
-        ),
-        migrations.DeleteModel(
-            name='ProfilePreservationMetadata',
-        ),
-        migrations.DeleteModel(
-            name='ProfileSIP',
-        ),
-        migrations.DeleteModel(
-            name='ProfileSubmitDescription',
-        ),
-        migrations.DeleteModel(
-            name='ProfileTransferProject',
-        ),
-        migrations.DeleteModel(
-            name='ProfileWorkflow',
         ),
     ]

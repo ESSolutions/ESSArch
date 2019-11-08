@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,13 +15,14 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
+from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -32,7 +33,14 @@ class ProcessTaskFilter(filters.FilterSet):
     retry_type = filters.BooleanFilter(field_name='retry_type', method='filter_retry_type')
     undone = filters.BooleanFilter(method='filter_undone')
     retried = filters.BooleanFilter(method='filter_retried')
-    hidden = filters.BooleanFilter(field_name='hidden')
+    hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+
+    def filter_hidden(self, queryset, name, value):
+        if value is False:
+            return queryset.filter(
+                Q(Q(hidden=value) | Q(hidden__isnull=True)),
+            )
+        return queryset.filter(hidden=value)
 
     def filter_undo_type(self, queryset, name, value):
         value = not value
@@ -58,7 +66,14 @@ class ProcessTaskFilter(filters.FilterSet):
 
 
 class ProcessStepFilter(filters.FilterSet):
-    hidden = filters.BooleanFilter(field_name='hidden')
+    hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+
+    def filter_hidden(self, queryset, name, value):
+        if value is False:
+            return queryset.filter(
+                Q(Q(hidden=value) | Q(hidden__isnull=True)),
+            )
+        return queryset.filter(hidden=value)
 
     class Meta:
         model = ProcessStep

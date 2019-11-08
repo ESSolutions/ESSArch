@@ -1,7 +1,7 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
+    ESSArch
     Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -24,7 +24,7 @@
 
 # -*- coding: utf-8 -*-
 #
-# ESSArch Core documentation build configuration file, created by
+# ESSArch documentation build configuration file, created by
 # sphinx-quickstart on Wed Jan 25 14:11:42 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -41,8 +41,6 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
-import importlib
-import inspect
 import os
 import sys
 
@@ -52,86 +50,8 @@ proj_folder = os.path.realpath(
 sys.path.append(proj_folder)
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
-import django
+import django  # noqa isort:skip
 django.setup()
-
-# Stop Django from executing DB queries
-from django.db.models.query import QuerySet
-QuerySet.__repr__ = lambda self: self.__class__.__name__
-
-try:
-    import enchant  # NoQA
-except ImportError:
-    enchant = None
-
-
-def skip_queryset(app, what, name, obj, skip, options):
-    """Skip queryset subclasses to avoid database queries."""
-    from django.db import models
-    if isinstance(obj, (models.QuerySet, models.manager.BaseManager)) or name.endswith('objects'):
-        return True
-    return skip
-
-
-def process_django_models(app, what, name, obj, options, lines):
-    """Append params from fields to model documentation."""
-    from django.utils.encoding import force_text
-    from django.utils.html import strip_tags
-    from django.db import models
-
-    spelling_white_list = ['', '.. spelling::']
-
-    if inspect.isclass(obj) and issubclass(obj, models.Model):
-        for field in obj._meta.fields:
-            help_text = strip_tags(force_text(field.help_text))
-            verbose_name = force_text(field.verbose_name).capitalize()
-
-            if help_text:
-                lines.append(':param %s: %s - %s' % (field.attname, verbose_name,  help_text))
-            else:
-                lines.append(':param %s: %s' % (field.attname, verbose_name))
-
-            if enchant is not None:
-                from enchant.tokenize import basic_tokenize
-
-                words = verbose_name.replace('-', '.').replace('_', '.').split('.')
-                words = [s for s in words if s != '']
-                for word in words:
-                    spelling_white_list += ["    %s" % ''.join(i for i in word if not i.isdigit())]
-                    spelling_white_list += ["    %s" % w[0] for w in basic_tokenize(word)]
-
-            field_type = type(field)
-            module = field_type.__module__
-            if 'django.db.models' in module:
-                # scope with django.db.models * imports
-                module = 'django.db.models'
-            lines.append(':type %s: %s.%s' % (field.attname, module, field_type.__name__))
-        if enchant is not None:
-            lines += spelling_white_list
-    return lines
-
-
-def process_modules(app, what, name, obj, options, lines):
-    """Add module names to spelling white list."""
-    if what != 'module':
-        return lines
-    from enchant.tokenize import basic_tokenize
-
-    spelling_white_list = ['', '.. spelling::']
-    words = name.replace('-', '.').replace('_', '.').split('.')
-    words = [s for s in words if s != '']
-    for word in words:
-        spelling_white_list += ["    %s" % ''.join(i for i in word if not i.isdigit())]
-        spelling_white_list += ["    %s" % w[0] for w in basic_tokenize(word)]
-    lines += spelling_white_list
-    return lines
-
-def setup(app):
-    # Register the docstring processor with sphinx
-    app.connect('autodoc-process-docstring', process_django_models)
-    app.connect('autodoc-skip-member', skip_queryset)
-    if enchant is not None:
-        app.connect('autodoc-process-docstring', process_modules)
 
 # -- General configuration ------------------------------------------------
 
@@ -139,12 +59,13 @@ def setup(app):
 #
 # needs_sphinx = '1.0'
 
+
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
+extensions = ['sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinxcontrib.httpdomain',
-              'sphinxcontrib.inlinesyntaxhighlight']
+              'sphinxcontrib.httpexample', 'sphinxcontrib.inlinesyntaxhighlight']
 
 # True to prefix each section label with the name of the document it is in,
 # followed by a colon. For example, index:Introduction for a section called
@@ -152,11 +73,23 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.autosectionlabel', 'sphinx.ext.i
 # ambiguity when the same section heading appears in different documents.
 autosectionlabel_prefix_document = True
 
+suppress_warnings = [
+    'autosectionlabel.*',
+]
+
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.6', None),
-    'sphinx': ('http://sphinx.pocoo.org/', None),
+    'python': ('https://docs.python.org/3.7', None),
+    'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
-    'celery': ('https://celery.readthedocs.org/en/latest/', None),
+    'celery': ('https://celery.readthedocs.io/en/latest/', None),
+}
+
+# Github link
+html_context = {
+    'display_github': True,
+    'github_user': 'essolutions',
+    'github_repo': 'essarch',
+    'github_version': 'master/ESSArch_Core/docs/'
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -172,18 +105,18 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'ESSArch Core'
-copyright = u'2019, ES Solutions'
-author = u'ES Solutions'
+project = 'ESSArch'
+copyright = '2019, ES Solutions'
+author = 'ES Solutions'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-version = u'1.0.0'
+version = '3.0.0'
 # The full version, including alpha/beta/rc tags.
-release = u'1.0.0'
+release = '3.0.0'
 
 # The language for content autogenerated by Sphinx. Refer to documentation
 # for a list of supported languages.
@@ -225,13 +158,13 @@ html_theme_options = {
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'ESSArchCoredoc'
+htmlhelp_basename = 'ESSArchdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -258,8 +191,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'ESSArchCore.tex', u'ESSArch Core Documentation',
-     u'ES Solutions', 'manual'),
+    (master_doc, 'ESSArch.tex', 'ESSArch Documentation',
+     'ES Solutions', 'manual'),
 ]
 
 
@@ -268,7 +201,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'essarchcore', u'ESSArch Core Documentation',
+    (master_doc, 'essarchcore', 'ESSArch Documentation',
      [author], 1)
 ]
 
@@ -279,7 +212,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ESSArchCore', u'ESSArch Core Documentation',
-     author, 'ESSArchCore', 'One line description of project.',
+    (master_doc, 'ESSArch', 'ESSArch Documentation',
+     author, 'ESSArch', 'One line description of project.',
      'Miscellaneous'),
 ]

@@ -1,0 +1,35 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-21 16:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/logfiles.rst:5
+msgid "Logfiles"
+msgstr ""
+
+#: ../../installation/logfiles.rst:9
+msgid "Events and log information"
+msgstr ""
+
+#: ../../installation/logfiles.rst:11
+msgid ""
+"Different types of events are logged both in physical files and tables in"
+" the ESSArch database. Log entries are tagged with the log levels "
+"\"Debug\", \"Info\", \"Warning\", \"Error\", \"Critical\". The log files "
+"are by default stored in ``/ESSArch/log``."
+msgstr ""

@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='notification',
             name='level',
-            field=models.IntegerField(choices=[(10, b'info'), (20, b'success'), (30, b'warning'), (40, b'error'), (50, b'critical')]),
+            field=models.IntegerField(choices=[(10, 'info'), (20, 'success'), (30, 'warning'), (40, 'error'), (50, 'critical')]),
         ),
     ]

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,18 +15,16 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from __future__ import absolute_import
-
 import errno
 import glob
-import inspect
+import io
 import itertools
 import json
 import logging
@@ -34,32 +32,27 @@ import os
 import platform
 import re
 import shutil
-import sys
 import tarfile
+import uuid
 import zipfile
+from datetime import datetime
+from os import scandir, walk
+from subprocess import PIPE, Popen
+from urllib.parse import quote
 
 import chardet
-from rest_framework.exceptions import NotFound, ValidationError
-from rest_framework.response import Response
 from django.conf import settings
 from django.core.cache import cache
-from django.utils.timezone import get_current_timezone
 from django.core.validators import RegexValidator
 from django.http.response import FileResponse
-
-from datetime import datetime
-
+from django.utils.timezone import get_current_timezone
 from lxml import etree
 from natsort import natsorted
-
-from os import scandir, walk
-
-from subprocess import Popen, PIPE
+from rest_framework.exceptions import NotFound, ValidationError
+from rest_framework.response import Response
 
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
-
-import six
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
@@ -69,13 +62,13 @@ logger = logging.getLogger('essarch')
 
 def make_unicode(text):
     try:
-        return six.text_type(text, 'utf-8')
+        return str(text, 'utf-8')
     except TypeError:
-        if not isinstance(text, six.string_types):
-            return six.text_type(text)
+        if not isinstance(text, str):
+            return str(text)
         return text
     except UnicodeDecodeError:
-        return six.text_type(text.decode('iso-8859-1'))
+        return str(text.decode('iso-8859-1'))
 
 
 def sliceUntilAttr(iterable, attr, val):
@@ -93,8 +86,8 @@ def remove_prefix(text, prefix):
 
 def stable_path(path):
     current_size, current_count = get_tree_size_and_count(path)
-    cache_size_key = u'path_size_{}'.format(path)
-    cache_count_key = u'path_count_{}'.format(path)
+    cache_size_key = 'path_size_{}'.format(path)
+    cache_count_key = 'path_count_{}'.format(path)
     cached_size = cache.get(cache_size_key)
     cached_count = cache.get(cache_count_key)
 
@@ -103,14 +96,18 @@ def stable_path(path):
     updated_count = cached_count != current_count
     if new or updated_size or updated_count:
         if new:
-            logger.info(u'New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+            logger.info('New path: {}, size: {}, count: {}'.format(path, current_size, current_count))
         elif updated_size or updated_count:
-            logger.info(u'Updated path: {}, size: {} => {}, count: {} => {}'.format(path, cached_size, current_size, cached_count, current_count))
-        cache.set(cache_size_key, current_size, 60*60)
-        cache.set(cache_count_key, current_count, 60*60)
+            logger.info(
+                'Updated path: {}, size: {} => {}, count: {} => {}'.format(
+                    path, cached_size, current_size, cached_count, current_count
+                )
+            )
+        cache.set(cache_size_key, current_size, 60 * 60)
+        cache.set(cache_count_key, current_count, 60 * 60)
         return False
 
-    logger.info(u'Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
+    logger.info('Stable path: {}, size: {}, count: {}'.format(path, current_size, current_count))
     return True
 
 
@@ -121,11 +118,13 @@ def get_elements_without_namespace(root, path, value=None):
         if "@" in split:
             el, attr = split.split("@")
             if value is not None:
-                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(el=el, attr=attr, value=value)
+                split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]="{value}"]'.format(
+                    el=el, attr=attr, value=value
+                )
             else:
                 split_path = '*[local-name()="{el}" and @*[local-name()="{attr}"]]'.format(el=el, attr=attr)
         else:
-            if idx == len(splits)-1 and value is not None and "@" not in path:
+            if idx == len(splits) - 1 and value is not None and "@" not in path:
                 split_path = '*[local-name()="{el}" and text()="{value}"]'.format(el=split, value=value)
             else:
                 split_path = '*[local-name()="{el}"]'.format(el=split)
@@ -163,25 +162,19 @@ def get_value_from_path(root, path):
 
     if path.startswith('@'):
         attr = path[1:]
-        for a, val in six.iteritems(root.attrib):
+        for a, val in root.attrib.items():
             if re.sub(r'{.*}', '', a) == attr:
                 return val
 
     try:
         el = get_elements_without_namespace(root, path)[0]
-        if root == el:
-            return None
     except IndexError:
         logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
         return None
 
     if "@" in path:
         attr = path.split('@')[1]
-        try:
-            return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
-        except IndexError:
-            logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
-            return None
+        return el.xpath("@*[local-name()='%s'][1]" % attr)[0]
 
     return el.text
 
@@ -223,12 +216,7 @@ def getSchemas(doc=None, filename=None):
     """
 
     if filename:
-        try:
-            doc = etree.ElementTree(file=filename)
-        except etree.XMLSyntaxError:
-            raise
-        except IOError:
-            raise
+        doc = etree.ElementTree(file=filename)
 
     res = []
     root = doc.getroot()
@@ -323,7 +311,8 @@ def find_destination(use, structure, path=""):
             use, content.get('children', []), os.path.join(path, name)
         )
 
-        if dest: return dest, fname
+        if dest:
+            return dest, fname
 
     return None, None
 
@@ -376,20 +365,6 @@ def normalize_path(path):
     return path
 
 
-def mkdir_p(path):
-    """
-    http://stackoverflow.com/a/600612/1523238
-    """
-
-    try:
-        os.makedirs(path)
-    except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
-
-
 def get_event_spec():
     dirname = os.path.dirname(os.path.realpath(__file__))
     fname = 'templates/JSONPremisEventTemplate.json'
@@ -409,6 +384,22 @@ def get_premis_ip_object_element_spec():
     fname = 'templates/PremisIPObjectElementTemplate.json'
     with open(os.path.join(dirname, fname)) as json_file:
         return json.load(json_file)
+
+
+def delete_path(path):
+    try:
+        shutil.rmtree(path)
+    except OSError as e:
+        if os.name == 'nt':
+            if e.errno == 267:
+                os.remove(path)
+            elif e.errno != 3:
+                raise
+
+        elif e.errno == errno.ENOTDIR:
+            os.remove(path)
+        elif e.errno != errno.ENOENT:
+            raise
 
 
 def delete_content(folder):
@@ -443,6 +434,7 @@ def run_shell_command(command, cwd):
         stdout = stdout.strip()
     return stdout
 
+
 def parse_content_range_header(header):
     content_range_pattern = re.compile(
         r'^bytes (?P<start>\d+)-(?P<end>\d+)/(?P<total>\d+)$'
@@ -462,7 +454,7 @@ def parse_content_range_header(header):
 
 def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in six.moves.range(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
@@ -479,7 +471,7 @@ def nested_lookup(key, document):
                 yield result
 
     if isinstance(document, dict):
-        for k, v in six.iteritems(document):
+        for k, v in document.items():
             if k == key:
                 yield v
             elif isinstance(v, dict):
@@ -522,6 +514,7 @@ def convert_file(path, new_format):
     logger.info('unoconv completed without error: %s' % (msg,))
     return new_path
 
+
 def in_directory(path, directory):
     '''
     Checks if path is in directory
@@ -539,48 +532,52 @@ def in_directory(path, directory):
 
 
 def validate_remote_url(url):
-    regex = '^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])(?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$'
+    regex = (r'''
+        ^[a-z][a-z\d.+-]*:\/*(?:[^:@]+(?::[^@]+)?@)?(?:[^\s:/?#,]+|\[[a-f\d:]+])
+        (?::\d+)?(?:\/[^?#]*)?(?:\?[^#]*)?(?:#.*)?,[^,]+,[^,]+$''')
     validate = RegexValidator(regex, 'Enter a valid URL with credentials.')
     validate(url)
+
 
 def get_charset(byte_str):
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
     for c in sorted(set(charsets), key=charsets.index):
-        logger.debug(u'Trying to decode response in {}'.format(c))
+        logger.debug('Trying to decode response in {}'.format(c))
         try:
             byte_str.decode(c)
         except UnicodeDecodeError:
-            logger.exception(u'Failed to decode response in {}'.format(c))
+            logger.exception('Failed to decode response in {}'.format(c))
         else:
-            logger.info(u'Decoded response in {}'.format(c))
+            logger.info('Decoded response in {}'.format(c))
             return c
 
     return chardet.detect(byte_str)['encoding']
+
+
+def get_filename_from_file_obj(file_obj, name):
+    filename = getattr(file_obj, 'name', None)
+    filename = filename if (isinstance(filename, str) and filename) else name
+    filename = os.path.basename(filename) if filename is not None else name
+    return filename
+
 
 def generate_file_response(file_obj, content_type, force_download=False, name=None):
     charset = get_charset(file_obj.read(128))
     file_obj.seek(0)
 
-    content_type = u'{}; charset={}'.format(content_type, charset)
-    response = FileResponse(file_obj, content_type=content_type)
+    content_type = '{}; charset={}'.format(content_type, charset)
+    response = FileResponse(file_obj, content_type=content_type, as_attachment=force_download)
 
-    filename = getattr(file_obj, 'name', None)
-    filename = filename if (isinstance(filename, str) and filename) else name
-    filename = os.path.basename(filename) if filename is not None else name
+    if not force_download:
+        filename = get_filename_from_file_obj(file_obj, name)
 
-    if filename:
-        try:
-            filename.encode('ascii')
-            file_expr = u'filename="{}"'.format(filename)
-        except (UnicodeEncodeError, UnicodeDecodeError):
-            file_expr = u"filename*=utf-8''{}".format(six.moves.urllib.parse.quote(filename))
-        response['Content-Disposition'] = u'inline; {}'.format(file_expr)
-
-    if force_download or content_type is None:
-        if content_type is None:
-            response['Content-Type'] = 'application/octet-stream'
         if filename:
-            response['Content-Disposition'] = u'attachment; {}'.format(file_expr)
+            try:
+                filename.encode('ascii')
+                file_expr = 'filename="{}"'.format(filename)
+            except (UnicodeEncodeError, UnicodeDecodeError):
+                file_expr = "filename*=utf-8''{}".format(quote(filename))
+            response['Content-Disposition'] = 'inline; {}'.format(file_expr)
 
     # disable caching, required for Firefox to be able to load large files multiple times
     # see https://bugzilla.mozilla.org/show_bug.cgi?id=1436593
@@ -589,6 +586,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     response["Expires"] = "0"  # Proxies.
 
     return response
+
 
 def list_files(path, force_download=False, request=None, paginator=None):
     if isinstance(path, list):
@@ -662,12 +660,10 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.tar/')) == 2:
         tar_path, tar_subpath = path.split('.tar/')
         tar_path += '.tar'
-        if sys.version_info <= (3, 0):
-            tar_subpath = six.binary_type(tar_subpath.encode('utf-8'))
 
         with tarfile.open(tar_path) as tar:
             try:
-                f = six.BytesIO(tar.extractfile(tar_subpath).read())
+                f = io.BytesIO(tar.extractfile(tar_subpath).read())
                 content_type = fid.get_mimetype(tar_subpath)
                 return generate_file_response(f, content_type, force_download, name=tar_subpath)
             except KeyError:
@@ -676,12 +672,10 @@ def list_files(path, force_download=False, request=None, paginator=None):
     if len(path.split('.zip/')) == 2:
         zip_path, zip_subpath = path.split('.zip/')
         zip_path += '.zip'
-        if sys.version_info <= (3, 0):
-            zip_subpath = six.binary_type(zip_subpath.encode('utf-8'))
 
         with zipfile.ZipFile(zip_path) as zipf:
             try:
-                f = six.BytesIO(zipf.extractfile(zip_subpath).read())
+                f = io.BytesIO(zipf.read(zip_subpath))
                 content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:
@@ -689,16 +683,18 @@ def list_files(path, force_download=False, request=None, paginator=None):
 
     raise NotFound
 
-def merge_file_chunks(path):
-    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', path)))
+
+def merge_file_chunks(chunks_path, filepath):
+    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', chunks_path)))
     if len(chunks) == 0:
         raise NoFileChunksFound
 
-    with open(path, 'wb') as f:
-        for chunk_file in chunks:
-            with open(chunk_file, 'rb') as cf:
+    with open(filepath, 'wb') as f:
+        for chunk in chunks:
+            with open(chunk, 'rb') as cf:
                 f.write(cf.read())
-            os.remove(chunk_file)
+            os.remove(chunk)
+
 
 def turn_off_auto_now(ModelClass, field_name):
     def auto_now_off(field):
@@ -727,3 +723,43 @@ def turn_on_auto_now_add(ModelClass, field_name):
 def do_to_model(ModelClass, field_name, func):
     field = ModelClass._meta.get_field(field_name)
     func(field)
+
+
+def zip_directory(dirname=None, zipname=None, compress=False):
+    """
+    Creates a ZIP file from the specified directory
+
+    Args:
+        dirname: The directory to create a ZIP from
+        zipname: The name of the zip file
+        compress: Compresses the zip file if true
+    """
+    compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
+    with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
+        for root, dirs, files in walk(dirname):
+            for d in dirs:
+                filepath = os.path.join(root, d)
+                arcname = os.path.relpath(filepath, dirname)
+                new_zip.write(filepath, arcname)
+            for f in files:
+                filepath = os.path.join(root, f)
+                arcname = os.path.relpath(filepath, dirname)
+                new_zip.write(filepath, arcname)
+
+
+def has_write_access(directory):
+    if os.name == 'nt':
+        try:
+            # We want to use tempfile but there is a bug on Windows: https://bugs.python.org/issue22107
+            # See also Stackoverflow link:
+            # https://stackoverflow.com/questions/55109076/python-tempfile-temporaryfile-hangs-on-windows-when-no-write-privilege
+
+            tmp_file = os.path.join(directory, str(uuid.uuid4()))
+            with open(tmp_file, 'a') as f:
+                f.write("")
+            os.remove(tmp_file)
+            return True
+        except PermissionError:
+            return False
+    else:
+        return os.access(directory, os.W_OK)

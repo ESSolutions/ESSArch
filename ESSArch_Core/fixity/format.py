@@ -1,5 +1,3 @@
-from __future__ import division, unicode_literals
-
 import logging
 import mimetypes
 import os
@@ -8,33 +6,45 @@ import time
 from fido.fido import Fido
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.exceptions import FileFormatNotAllowed
+from ESSArch_Core.exceptions import (
+    EncryptedFileNotAllowed,
+    FileFormatNotAllowed,
+)
+from ESSArch_Core.fixity.validation.backends.encryption import (
+    FileEncryptionValidator,
+)
 
-MB = 1024*1024
+MB = 1024 * 1024
 
 logger = logging.getLogger('essarch.fixity.format')
 
 DEFAULT_MIMETYPE = 'application/octet-stream'
 
+FORMAT_FILES = [
+    'formats-v94.xml',
+    'format_extensions.xml'
+]
+
 
 class FormatIdentifier:
     _fido = None
 
-    def __init__(self, allow_unknown_file_types=False):
+    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False):
         self.allow_unknown_file_types = allow_unknown_file_types
+        self.allow_encrypted_files = allow_encrypted_files
 
     @property
     def fido(self):
         if self._fido is None:
             logger.debug('Initiating fido')
-            self._fido = Fido(handle_matches=self.handle_matches)
+            self._fido = Fido(handle_matches=self.handle_matches, format_files=FORMAT_FILES)
             logger.info('Initiated fido')
         return self._fido
 
     def _init_mimetypes(self):
         try:
             mimetypes_file = Path.objects.get(
-                entity="path_mimetypes_definitionfile"
+                entity="mimetypes_definitionfile"
             ).value
             if os.path.isfile(mimetypes_file):
                 logger.debug('Initiating mimetypes from %s' % mimetypes_file)
@@ -58,10 +68,6 @@ class FormatIdentifier:
     def get_mimetype(self, fname):
         logger.debug('Getting mimetype for %s' % fname)
         self._init_mimetypes()
-        file_name, file_ext = os.path.splitext(fname)
-
-        if not file_ext:
-            file_ext = file_name
 
         content_type, encoding = mimetypes.guess_type(fname)
         logger.info('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
@@ -113,6 +119,18 @@ class FormatIdentifier:
         except AttributeError:
             self.format_registry_key = None
 
+    def identify_file_encryption(self, filename):
+        try:
+            encrypted = FileEncryptionValidator.is_file_encrypted(filename) or False
+        except Exception:
+            encrypted = False
+
+        if encrypted and not self.allow_encrypted_files:
+            raise EncryptedFileNotAllowed(
+                "{} is encrypted and therefore not allowed".format(filename)
+            )
+        return encrypted
+
     def identify_file_format(self, filename):
         """
         Identifies the format of the file using the fido library
@@ -124,31 +142,34 @@ class FormatIdentifier:
             A tuple with the format name, version and registry key
         """
 
-
         if os.name == 'nt':
-                start_time = time.clock()
+            start_time = time.clock()
         else:
-                start_time = time.time()
+            start_time = time.time()
 
         logger.debug("Identifying file format of %s ..." % (filename,))
 
         self.fido.identify_file(filename)
 
         if os.name == 'nt':
-                end_time = time.clock()
+            end_time = time.clock()
         else:
-                end_time = time.time()
+            end_time = time.time()
 
         time_elapsed = end_time - start_time
         size = os.path.getsize(filename)
         size_mb = size / MB
 
         try:
-                mb_per_sec = size_mb / time_elapsed
+            mb_per_sec = size_mb / time_elapsed
         except ZeroDivisionError:
-                mb_per_sec = size_mb
+            mb_per_sec = size_mb
 
         file_format = (self.format_name, self.format_version, self.format_registry_key)
-        logger.info("Identified the format of %s at %s MB/Sec (%s sec): %s" % (filename, mb_per_sec, time_elapsed, file_format))
+        logger.info(
+            "Identified the format of %s at %s MB/Sec (%s sec): %s" % (
+                filename, mb_per_sec, time_elapsed, file_format
+            )
+        )
 
         return file_format

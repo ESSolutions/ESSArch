@@ -1,11 +1,8 @@
 import collections
 import os
 
-import six
-
 from ESSArch_Core.configuration.models import Parameter, Path
 from ESSArch_Core.util import find_destination
-
 
 profile_types = [
     "Transfer Project",
@@ -26,10 +23,11 @@ profile_types = [
     "Validation",
 ]
 
+
 def _remove_leading_underscores(d):
     new_mapping = type(d)()
 
-    for k, v in six.iteritems(d):
+    for k, v in d.items():
         new_key = k.lstrip('_')
         if isinstance(v, collections.Mapping):
             new_mapping[new_key] = _remove_leading_underscores(v)
@@ -38,19 +36,26 @@ def _remove_leading_underscores(d):
 
     return new_mapping
 
-def fill_specification_data(data=None, sa=None, ip=None):
+
+def _fill_sa_specification_data(sa):
+    return {
+        '_SA_ID': str(sa.pk),
+        '_SA_NAME': sa.name,
+        '_IP_ARCHIVIST_ORGANIZATION': sa.archivist_organization,
+    }
+
+
+def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
     data = data or {}
+    ignore = ignore or []
 
     if sa:
-        data['_SA_ID'] = str(sa.pk)
-        data['_SA_NAME'] = sa.name
+        data.update(_fill_sa_specification_data(sa))
 
     if ip:
         if not sa and ip.submission_agreement is not None:
             sa = ip.submission_agreement
-            data['_SA_ID'] = str(sa.pk)
-            data['_SA_NAME'] = sa.name
-
+            data.update(_fill_sa_specification_data(sa))
 
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
@@ -61,6 +66,11 @@ def fill_specification_data(data=None, sa=None, ip=None):
         data['_STARTDATE'] = ip.start_date
         data['_ENDDATE'] = ip.end_date
         data['_INFORMATIONCLASS'] = ip.information_class
+
+        if '_CTS_PATH' not in ignore:
+            data['_CTS_PATH'] = ip.get_content_type_file()
+        if '_CTS_SCHEMA_PATH' not in ignore:
+            data['_CTS_SCHEMA_PATH'] = ip.get_content_type_schema_file()
 
         data['_CONTENT_METS_PATH'] = ip.content_mets_path
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
@@ -74,13 +84,17 @@ def fill_specification_data(data=None, sa=None, ip=None):
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
         data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
 
+        data['_TEMP_CONTAINER_PATH'] = ip.get_temp_container_path()
+        data['_TEMP_METS_PATH'] = ip.get_temp_container_xml_path()
+        data['_TEMP_AIC_METS_PATH'] = ip.get_temp_container_aic_xml_path() if ip.aic else None
+
         if ip.get_package_type_display() in ['SIP', 'AIP']:
             ip_profile = ip.get_profile(ip.get_package_type_display().lower())
             if ip_profile is not None:
                 premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
                 if premis_dir is not None and premis_file is not None:
                     data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
-            data['allow_unknown_file_types'] = ip.get_profile_data(ip.get_package_type_display().lower()).get('allow_unknown_file_types', False)
+            data['allow_unknown_file_types'] = ip.get_allow_unknown_file_types()
 
         try:
             # do we have a transfer project profile?
@@ -91,6 +105,7 @@ def fill_specification_data(data=None, sa=None, ip=None):
             container = ip.get_container_format()
 
         data['_IP_CONTAINER_FORMAT'] = container.upper()
+        data['_IP_PACKAGE_TYPE'] = ip.get_package_type_display()
 
         if ip.policy is not None:
             data['_POLICYUUID'] = ip.policy.pk
@@ -105,9 +120,9 @@ def fill_specification_data(data=None, sa=None, ip=None):
                 pass
             else:
                 transfer_project_data = ip.get_profile_data('transfer_project')
-                data['_POLICYUUID'] = transfer_project_data.get('archive_policy_uuid')
-                data['_POLICYID'] = transfer_project_data.get('archive_policy_id')
-                data['_POLICYNAME'] = transfer_project_data.get('archive_policy_name')
+                data['_POLICYUUID'] = transfer_project_data.get('storage_policy_uuid')
+                data['_POLICYID'] = transfer_project_data.get('storage_policy_id')
+                data['_POLICYNAME'] = transfer_project_data.get('storage_policy_name')
 
         data['_AGENTS'] = {}
         for a in ip.agents.all():
@@ -131,7 +146,10 @@ def fill_specification_data(data=None, sa=None, ip=None):
             agent_key = '{role}_{type}'.format(role=a.role.upper(), type=a.type.upper())
             data['_AGENTS'][agent_key] = agent
 
-        profile_ids = zip([x.lower().replace(' ', '_') for x in profile_types], ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types])
+        profile_ids = zip(
+            [x.lower().replace(' ', '_') for x in profile_types],
+            ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types]
+        )
 
         for (profile_type, key) in profile_ids:
             try:

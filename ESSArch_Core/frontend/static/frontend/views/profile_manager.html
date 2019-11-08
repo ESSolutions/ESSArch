@@ -1,0 +1,47 @@
+<div class="profile-manager">
+  <div class="content-wrapper">
+    <div class="select-sub-edit-eventlog-wrapper">
+      <div ng-if="select" class="select-view">
+        <div class="profile-manager-sub-menu menu" ng-controller="UtilCtrl as vm">
+          <a
+            tabindex="0"
+            ng-keydown="navKeydownListener($event, 'home.administration.profileManager.saEditor')"
+            ui-sref="home.administration.profileManager.saEditor"
+            ng-class="{chosen: $state.current.name == 'home.administration.profileManager.saEditor'}"
+            ng-if="checkPermissions('home.administration.profileManager.saEditor')"
+            class="nav-item sliding-middle-out"
+            >{{'SAEDITOR' | translate}}</a
+          >
+          <a
+            tabindex="0"
+            ng-keydown="navKeydownListener($event, 'home.administration.profileManager.profileMaker')"
+            ui-sref="home.administration.profileManager.profileMaker"
+            ng-class="{chosen: $state.current.name == 'home.administration.profileManager.profileMaker'}"
+            ng-if="checkPermissions('home.administration.profileManager.profileMaker')"
+            class="nav-item sliding-middle-out"
+            >{{'PROFILEMAKER' | translate}}</a
+          >
+          <a
+            tabindex="0"
+            ng-keydown="navKeydownListener($event, 'home.administration.profileManager.import')"
+            ui-sref="home.administration.profileManager.import"
+            ng-class="{chosen: $state.current.name == 'home.administration.profileManager.import'}"
+            ng-if="checkPermissions('home.administration.profileManager.import')"
+            class="nav-item sliding-middle-out"
+            >{{'IMPORT.IMPORT' | translate}}</a
+          >
+          <a
+            tabindex="0"
+            ng-keydown="navKeydownListener($event, 'home.administration.profileManager.export')"
+            ui-sref="home.administration.profileManager.export"
+            ng-class="{chosen: $state.current.name == 'home.administration.profileManager.export'}"
+            ng-if="checkPermissions('home.administration.profileManager.export')"
+            class="nav-item sliding-middle-out"
+            >{{'EXPORT.EXPORT' | translate}}</a
+          >
+        </div>
+        <div tabindex="-1" class="profile-manager-route" ui-view></div>
+      </div>
+    </div>
+  </div>
+</div>

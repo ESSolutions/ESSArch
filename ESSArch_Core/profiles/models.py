@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -26,10 +26,8 @@ import uuid
 from copy import copy
 
 import jsonfield
-import six
 from django.conf import settings
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _
 
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
@@ -70,7 +68,6 @@ class ProfileQuerySet(models.query.QuerySet):
         return profile_set.first().profile
 
 
-@python_2_unicode_compatible
 class ProfileSA(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -87,7 +84,7 @@ class ProfileSA(models.Model):
     Unlockable = models.BooleanField(default=False)
 
     def __str__(self):
-        return six.text_type(self.id)
+        return str(self.id)
 
     class Meta:
         unique_together = (
@@ -95,7 +92,6 @@ class ProfileSA(models.Model):
         )
 
 
-@python_2_unicode_compatible
 class ProfileIP(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False
@@ -150,7 +146,7 @@ class ProfileIP(models.Model):
         return data
 
     def __str__(self):
-        return six.text_type(self.id)
+        return str(self.id)
 
     class Meta:
         unique_together = (
@@ -179,7 +175,6 @@ class ProfileIPDataTemplate(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
 
-
     class Meta:
         ordering = ['created']
 
@@ -196,42 +191,7 @@ class SubmissionAgreement(models.Model):
     type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
-    cm_version = models.CharField(blank=True, max_length=255)
-    cm_release_date = models.CharField(blank=True, max_length=255)
-    cm_change_authority = models.CharField(blank=True, max_length=255)
-    cm_change_description = models.CharField(blank=True, max_length=255)
-    cm_sections_affected = models.CharField(blank=True, max_length=255)
-    producer_organization = models.CharField(blank=True, max_length=255)
-    producer_main_name = models.CharField(blank=True, max_length=255)
-    producer_main_address = models.CharField(blank=True, max_length=255)
-    producer_main_phone = models.CharField(blank=True, max_length=255)
-    producer_main_email = models.CharField(blank=True, max_length=255)
-    producer_main_additional = models.CharField(blank=True, max_length=255)
-    producer_individual_name = models.CharField(blank=True, max_length=255)
-    producer_individual_role = models.CharField(blank=True, max_length=255)
-    producer_individual_phone = models.CharField(blank=True, max_length=255)
-    producer_individual_email = models.CharField(blank=True, max_length=255)
-    producer_individual_additional = models.CharField(blank=True, max_length=255)
     archivist_organization = models.CharField(blank=True, max_length=255)
-    archivist_main_name = models.CharField(blank=True, max_length=255)
-    archivist_main_address = models.CharField(blank=True, max_length=255)
-    archivist_main_phone = models.CharField(blank=True, max_length=255)
-    archivist_main_email = models.CharField(blank=True, max_length=255)
-    archivist_main_additional = models.CharField(blank=True, max_length=255)
-    archivist_individual_name = models.CharField(blank=True, max_length=255)
-    archivist_individual_role = models.CharField(blank=True, max_length=255)
-    archivist_individual_phone = models.CharField(blank=True, max_length=255)
-    archivist_individual_email = models.CharField(blank=True, max_length=255)
-    archivist_individual_additional = models.CharField(blank=True, max_length=255)
-    designated_community_description = models.CharField(blank=True, max_length=255)
-    designated_community_individual_name = models.CharField(blank=True, max_length=255)
-    designated_community_individual_role = models.CharField(blank=True, max_length=255)
-    designated_community_individual_phone = models.CharField(blank=True, max_length=255)
-    designated_community_individual_email = models.CharField(blank=True, max_length=255)
-    designated_community_individual_additional = models.CharField(
-        blank=True, max_length=255
-    )
-
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
     include_profile_data_selection = models.BooleanField(default=False)
@@ -246,22 +206,54 @@ class SubmissionAgreement(models.Model):
     include_profile_preservation_metadata = models.BooleanField(default=False)
     include_profile_event = models.BooleanField(default=False)
 
-    profile_transfer_project = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transfer_project_sa')
-    profile_content_type = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='content_type_sa')
-    profile_data_selection = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='data_selection_sa')
-    profile_authority_information = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='authority_information_sa')
-    profile_archival_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='archival_description_sa')
-    profile_import = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa')
-    profile_submit_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa')
-    profile_sip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa')
-    profile_aic_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa')
-    profile_aip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa')
-    profile_dip = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa')
-    profile_aip_description = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa')
-    profile_workflow = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa')
-    profile_preservation_metadata = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa')
-    profile_event = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa')
-    profile_validation = models.ForeignKey('profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa')
+    profile_transfer_project = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='transfer_project_sa'
+    )
+    profile_content_type = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='content_type_sa'
+    )
+    profile_data_selection = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='data_selection_sa'
+    )
+    profile_authority_information = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='authority_information_sa'
+    )
+    profile_archival_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='archival_description_sa'
+    )
+    profile_import = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='import_sa'
+    )
+    profile_submit_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='submit_description_sa'
+    )
+    profile_sip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='sip_sa'
+    )
+    profile_aic_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aic_description_sa'
+    )
+    profile_aip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_sa'
+    )
+    profile_dip = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='dip_sa'
+    )
+    profile_aip_description = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='aip_description_sa'
+    )
+    profile_workflow = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='workflow_sa'
+    )
+    profile_preservation_metadata = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='preservation_metadata_sa'
+    )
+    profile_event = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='event_sa'
+    )
+    profile_validation = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa'
+    )
 
     template = jsonfield.JSONField(default=[])
 
@@ -310,7 +302,7 @@ class SubmissionAgreement(models.Model):
         clone.pk = None
         clone.name = new_name
 
-        for k, v in six.iteritems(new_data):
+        for k, v in new_data.items():
             setattr(clone, k, v)
 
         clone.save()
@@ -356,10 +348,10 @@ class Profile(models.Model):
     submission_method = models.CharField(max_length=255, blank=True)
     submission_schedule = models.CharField(max_length=255, blank=True)
     submission_data_inventory = models.CharField(max_length=255, blank=True)
-    structure = jsonfield.JSONField(default=[])
-    template = jsonfield.JSONField(default=[])
-    specification = jsonfield.JSONField(default={})
-    specification_data = jsonfield.JSONField(default={})
+    structure = jsonfield.JSONField(default=[], blank=True)
+    template = jsonfield.JSONField(default=[], blank=True)
+    specification = jsonfield.JSONField(default={}, blank=True)
+    specification_data = jsonfield.JSONField(default={}, blank=True)
 
     def get_value_for_key(self, key):
         return self.specification_data.get(key)

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -27,12 +27,16 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.utils.encoding import python_2_unicode_compatible
 from django.db import models, transaction
 from django.utils.translation import ugettext_lazy as _
 from groups_manager import exceptions_gm
-from groups_manager.models import GroupMixin, MemberMixin, GroupMemberMixin, GroupMemberRoleMixin, GroupType
-from guardian.models import BaseGenericObjectPermission
+from groups_manager.models import (
+    GroupMemberMixin,
+    GroupMemberRoleMixin,
+    GroupMixin,
+    GroupType,
+    MemberMixin,
+)
 from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
 
@@ -47,13 +51,16 @@ class GroupGenericObjects(models.Model):
 
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+        ]
 
 
-@python_2_unicode_compatible
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(_('codename'), unique=True, max_length=255)
+    codename = models.CharField(_('name'), unique=True, max_length=255)
     label = models.SlugField(_('label'), blank=True, max_length=255)
-    permissions = models.ManyToManyField(Permission, related_name='roles', verbose_name=_('permissions'))
+    permissions = models.ManyToManyField(Permission, related_name='roles', blank=True, verbose_name=_('permissions'))
+    external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
 
     def __str__(self):
         return self.label
@@ -61,11 +68,14 @@ class GroupMemberRole(GroupMemberRoleMixin):
     def save(self, *args, **kwargs):
         if not self.label:
             self.label = self.codename
-        super(GroupMemberRole, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = _('role')
         verbose_name_plural = _('roles')
+        permissions = (
+            ('assign_groupmemberrole', 'Can assign roles'),
+        )
 
 
 class ProxyGroup(DjangoGroup):
@@ -74,9 +84,9 @@ class ProxyGroup(DjangoGroup):
         try:
             self.essauth_group.name = self.name
             self.essauth_group.save()
-            return super(ProxyGroup, self).save(*args, **kwargs)
+            return super().save(*args, **kwargs)
         except Group.DoesNotExist:
-            group = super(ProxyGroup, self).save(*args, **kwargs)
+            group = super().save(*args, **kwargs)
             Group.objects.create(name=self.name, django_group=self)
             return group
 
@@ -170,6 +180,7 @@ class Group(GroupMixin):
                                            related_name='essauth_groups')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True,
                             related_name='sub_%(app_label)s_%(class)s_set', verbose_name=_('parent'))
+    external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
 
     @property
     def member_model(self):
@@ -183,10 +194,40 @@ class Group(GroupMixin):
     def subgroups(self):
         return self.sub_essauth_group_set
 
+    def get_users(self, subgroups=True):
+        if subgroups:
+            return DjangoUser.objects.filter(
+                essauth_member__essauth_groups__in=self.get_descendants(include_self=True)
+            )
+        else:
+            return DjangoUser.objects.filter(essauth_member__essauth_groups__=self)
+
     def add_object(self, obj):
         if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
-        return GroupGenericObjects.objects.create(group=self, content_object=obj)
+        obj_content_type = ContentType.objects.get_for_model(obj)
+        return GroupGenericObjects.objects.get_or_create(group=self, content_type=obj_content_type, object_id=obj.pk)
+
+    def remove_object(self, obj):
+        if getattr(self, 'group_type') is None or getattr(self.group_type, 'codename') != 'organization':
+            raise ValueError('objects cannot be added to non-organization groups')
+        return GroupGenericObjects.objects.filter(group=self, content_object=obj).delete()
+
+    def add_user(self, user, roles=None, expiration_date=None):
+        """Add a user to the group.
+
+        :Parameters:
+          - `user`: user (required)
+          - `roles`: list of roles. Each role could be a role id, a role label or codename,
+            a role instance (optional, default: ``[]``)
+          - `expiration_date`: A timestamp specifying when the membership
+            expires. Note that this doesn't automatically remove the member
+            from the group but is only an indicator to an external application
+            to check if the membership still is valid
+            (optional, default: ``None``)
+        """
+
+        return self.add_member(user.essauth_member, roles=roles, expiration_date=expiration_date)
 
     def add_member(self, member, roles=None, expiration_date=None):
         """Add a member to the group.
@@ -210,7 +251,9 @@ class Group(GroupMixin):
             raise exceptions_gm.MemberNotSavedError(
                 "You must save the member before to create a relation with groups")
         group_member_model = self.group_member_model
-        group_member = group_member_model.objects.create(member=member, group=self, expiration_date=expiration_date)
+        group_member, _ = group_member_model.objects.get_or_create(
+            member=member, group=self, expiration_date=expiration_date,
+        )
         if roles:
             for role in roles:
                 if isinstance(role, GroupMemberRole):
@@ -239,10 +282,23 @@ class Group(GroupMixin):
 
 
 class GroupMember(GroupMemberMixin):
-    group = models.ForeignKey(Group, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('group'))
-    member = models.ForeignKey(Member, related_name='group_membership', on_delete=models.CASCADE, verbose_name=_('member'))
+    group = models.ForeignKey(
+        Group,
+        related_name='group_membership',
+        on_delete=models.CASCADE,
+        verbose_name=_('group'),
+    )
+    member = models.ForeignKey(
+        Member,
+        related_name='group_membership',
+        on_delete=models.CASCADE,
+        verbose_name=_('member'),
+    )
     roles = models.ManyToManyField(GroupMemberRole, related_name='group_memberships', verbose_name=_('roles'))
     expiration_date = models.DateTimeField(_('expiration date'), null=True, default=None)
+
+    def __str__(self):
+        return self.group.name
 
     class Meta(GroupMemberMixin.Meta):
         unique_together = ('group', 'member')
@@ -251,22 +307,25 @@ class GroupMember(GroupMemberMixin):
 
 
 class UserProfile(models.Model):
-    DEFAULT_IP_LIST_COLUMNS = [
-        'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
-        'state', 'step_state', 'status', 'filebrowser', 'delete',
-    ]
-
     AIC = 'aic'
     IP = 'ip'
+    FLAT = 'flat'
     IP_LIST_VIEW_CHOICES = (
         (AIC, 'AIC'),
         (IP, 'IP'),
+        (FLAT, 'FLAT'),
     )
+
+    def default_ip_list_columns():
+        return [
+            'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
+            'state', 'step_state', 'status', 'filebrowser', 'delete',
+        ]
 
     user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
-    language = models.CharField(max_length=10, default='en')
-    ip_list_columns = PickledObjectField(default=DEFAULT_IP_LIST_COLUMNS,)
+    language = models.CharField(max_length=10, default='')
+    ip_list_columns = PickledObjectField(default=default_ip_list_columns)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     notifications_enabled = models.BooleanField(default=True)
 

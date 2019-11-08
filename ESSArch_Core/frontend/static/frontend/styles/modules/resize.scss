@@ -1,0 +1,16 @@
+.resize-grabber {
+  height: 100%;
+  width: 1px;
+  left: 6px;
+  background-color: #eee;
+  position: relative;
+}
+
+.rg-right {
+  margin-right: -7px;
+  &:hover {
+    .resize-grabber {
+      background-color: darken(#eee, 10%);
+    }
+  }
+}

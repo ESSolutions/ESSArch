@@ -1,0 +1,28 @@
+<div ng-if="!subrow">
+  <div>
+    <button
+      tabindex="-1"
+      type="button"
+      ng-if="vm.canDeleteIP(row)"
+      ng-click="removeIpModal(row); $event.stopPropagation();"
+      class="fas fa-trash-alt btn btn-default btn-sm"
+      uib-tooltip="{{'REMOVEIP' | translate}}: {{row.label}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    ></button>
+  </div>
+</div>
+<div ng-if="subrow">
+  <div>
+    <button
+      tabindex="-1"
+      type="button"
+      ng-if="vm.canDeleteIP(subrow)"
+      ng-click="removeIpModal(subrow); $event.stopPropagation();"
+      class="fas fa-trash-alt btn btn-default btn-sm"
+      uib-tooltip="{{'REMOVEIP' | translate}}: {{subrow.label}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    ></button>
+  </div>
+</div>

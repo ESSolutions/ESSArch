@@ -22,10 +22,10 @@ class Migration(migrations.Migration):
                 ('type', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True)),
                 ('reference_code', models.CharField(max_length=255)),
-                ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('lft', models.PositiveIntegerField(editable=False)),
+                ('rght', models.PositiveIntegerField(editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('level', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('level', models.PositiveIntegerField(editable=False)),
                 ('parent', mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='tags.StructureUnit')),
                 ('start_date', models.DateTimeField(null=True)),
                 ('end_date', models.DateTimeField(null=True)),
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='structure',
             name='version',
-            field=models.CharField(default=b'1.0', max_length=255),
+            field=models.CharField(default='1.0', max_length=255),
         ),
         migrations.AddField(
             model_name='structureunit',

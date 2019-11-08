@@ -5,24 +5,16 @@
 **************
 
 
-To configure the applications you need to create a local settings file that is available in your ``PYTHONPATH``. This file is named differently depending on the application
-
-+---------------------------------+------------------------+
-| **Application**                 | **File name**          |
-+=================================+========================+
-| ESSArch Tools for Producer      | local_etp_settings.py  |
-+---------------------------------+------------------------+
-| ESSArch Tools for Archive       | local_eta_settings.py  |
-+---------------------------------+------------------------+
-| ESSArch Preservation Platform   | local_epp_settings.py  |
-+---------------------------------+------------------------+
-
+To configure ESSArch you need to create a local settings file named
+``local_essarch_settings.py`` that is available in your ``PYTHONPATH``.
 
 .. toctree::
     :maxdepth: 2
 
+    authentication
     databases
     redis
     rabbitmq
     elasticsearch
+    paths
     transformers

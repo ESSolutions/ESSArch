@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -42,178 +42,13 @@ class Migration(migrations.Migration):
             name='ProfileRel',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.IntegerField(choices=[(0, b'Disabled'), (1, b'Enabled'), (2, b'Default')], default=0, verbose_name=b'Profile status')),
+                ('status', models.IntegerField(choices=[(0, 'Disabled'), (1, 'Enabled'), (2, 'Default')], default=0, verbose_name='Profile status')),
                 ('profile', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.Profile')),
             ],
             options={
                 'ordering': ['status'],
                 'verbose_name': 'ProfileRel',
             },
-        ),
-        migrations.RemoveField(
-            model_name='profileaiprel',
-            name='profileaip',
-        ),
-        migrations.RemoveField(
-            model_name='profileaiprel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profileclassificationrel',
-            name='profileclassification',
-        ),
-        migrations.RemoveField(
-            model_name='profileclassificationrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profilecontenttyperel',
-            name='profilecontenttype',
-        ),
-        migrations.RemoveField(
-            model_name='profilecontenttyperel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profiledataselectionrel',
-            name='profiledataselection',
-        ),
-        migrations.RemoveField(
-            model_name='profiledataselectionrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profilediprel',
-            name='profiledip',
-        ),
-        migrations.RemoveField(
-            model_name='profilediprel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profileimportrel',
-            name='profileimport',
-        ),
-        migrations.RemoveField(
-            model_name='profileimportrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profilepreservationmetadatarel',
-            name='profilepreservationmetadata',
-        ),
-        migrations.RemoveField(
-            model_name='profilepreservationmetadatarel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profilesiprel',
-            name='profilesip',
-        ),
-        migrations.RemoveField(
-            model_name='profilesiprel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profilesubmitdescriptionrel',
-            name='profilesubmitdescription',
-        ),
-        migrations.RemoveField(
-            model_name='profilesubmitdescriptionrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profiletransferprojectrel',
-            name='profiletransferproject',
-        ),
-        migrations.RemoveField(
-            model_name='profiletransferprojectrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='profileworkflowrel',
-            name='profileworkflow',
-        ),
-        migrations.RemoveField(
-            model_name='profileworkflowrel',
-            name='submissionagreement',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_aip',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_classification',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_content_type',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_data_selection',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_dip',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_import',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_preservation_metadata',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_sip',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_submit_description',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_transfer_project',
-        ),
-        migrations.RemoveField(
-            model_name='submissionagreement',
-            name='profile_workflow',
-        ),
-        migrations.DeleteModel(
-            name='ProfileAIPRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileClassificationRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileContentTypeRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileDataSelectionRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileDIPRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileImportRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfilePreservationMetadataRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileSIPRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileSubmitDescriptionRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileTransferProjectRel',
-        ),
-        migrations.DeleteModel(
-            name='ProfileWorkflowRel',
         ),
         migrations.AddField(
             model_name='profilerel',

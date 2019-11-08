@@ -1,0 +1,174 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../profiles/validation.rst:5
+msgid "Validation Profile"
+msgstr ""
+
+#: ../../profiles/validation.rst:8
+msgid "Specification"
+msgstr ""
+
+#: ../../profiles/validation.rst:10
+msgid ""
+"Each key (except those beginning with ``_``) in the specification "
+"specifies a validator that should be used."
+msgstr ""
+
+#: ../../profiles/validation.rst:15
+msgid ""
+"The ``_required`` key can be used to specify a list of validators that "
+"must pass when executed."
+msgstr ""
+
+#: ../../profiles/validation.rst:18
+msgid ""
+"Each validator key is a list of configurations of the validator that "
+"should be applied on different sets of files."
+msgstr ""
+
+#: ../../profiles/validation.rst:21
+msgid ""
+"``exclude`` - A list of relative paths that should be excluded from the "
+"validation"
+msgstr ""
+
+#: ../../profiles/validation.rst:22
+msgid ""
+"``include`` - A list of relative paths that should be included in the "
+"validation"
+msgstr ""
+
+#: ../../profiles/validation.rst:23
+msgid "``context`` - Specifies how and/or where is the correct value stored"
+msgstr ""
+
+#: ../../profiles/validation.rst:24
+msgid "``options`` - A dict with validator-specific options"
+msgstr ""
+
+#: ../../profiles/validation.rst:28
+msgid ""
+"XML-variables can be used with the ``{VARIABLE}``-syntax in the "
+"configuration values. See :ref:`xml-variables` for more information."
+msgstr ""
+
+#: ../../profiles/validation.rst:33
+msgid "Built-in validators"
+msgstr ""
+
+#: ../../profiles/validation.rst:36
+msgid "ChecksumValidator"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator:1 of
+msgid "Validates the checksum of a file against the given ``context``."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator:3 of
+msgid ""
+"``context`` specifies how the input is given and must be one of "
+"``checksum_file``, ``checksum_str`` and ``xml_file``"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator:5 of
+msgid "``options``"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator:7 of
+msgid ""
+"``algorithm`` must be one of ``md5``, ``sha-1``, ``sha-224``, "
+"``sha-256``, ``sha-384`` and ``sha-512``. Defaults to ``md5``"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator:9 of
+msgid "``block_size``: Defaults to 65536"
+msgstr ""
+
+#: ../../profiles/validation.rst:42
+msgid "StructureValidator"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:1 of
+msgid ""
+"Validates that the directory has all the required files and no invalid "
+"extensions."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:4 of
+msgid "The ``tree`` option specifies a set of rules for directories:"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:6 of
+msgid ""
+"``type`` must be either ``root`` or ``folder`` and is only used to "
+"specify if we are at the root or not. If ``folder`` is specified then we "
+"also require the ``name`` option to be specified."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:9 of
+msgid "``name`` tells us which folder is being described"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:10 of
+msgid "``required_files`` is a list with files that must be in the directory"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:11 of
+msgid ""
+"``valid_paths`` is a list of strings and/or lists that are allowed in the"
+" directory. Wildcards can be specified using ``*``."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.structure.StructureValidator:14 of
+msgid ""
+"Inner lists are used to specify valid file groups. E.g. ``[['*.doc', "
+"'*.pdf']]`` says that for each .doc file there must be a .pdf file with "
+"the same name."
+msgstr ""
+
+#: ../../profiles/validation.rst:48
+msgid "MediaconchValidator"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator:1 of
+msgid ""
+"Runs mediaconch on the specified filepath and parses the output to decide"
+" if it passed or not."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator:4 of
+msgid "``context`` is used to specify the path of a mediaconch policy file."
+msgstr ""
+
+#: ../../profiles/validation.rst:55
+msgid "VeraPDFValidator"
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator:1 of
+msgid ""
+"Runs verapdf on the specified filepath and parses the output to decide if"
+" it passed or not."
+msgstr ""
+
+#: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator:4 of
+msgid "``context`` is used to specify the path of a verapdf policy file."
+msgstr ""
+

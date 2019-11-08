@@ -1,0 +1,167 @@
+[
+    {
+        "templateOptions": {
+            "label": "name",
+            "required": true
+        },
+        "type": "input",
+        "key": "name"
+    },
+    {
+        "templateOptions": {
+            "label": "type",
+            "required": true
+        },
+        "type": "input",
+        "key": "type"
+    },
+    {
+        "templateOptions": {
+            "label": "status",
+            "required": true
+        },
+        "type": "input",
+        "key": "status"
+    },
+    {
+        "templateOptions": {
+            "label": "label",
+            "required": true
+        },
+        "type": "input",
+        "key": "label"
+    },
+    {
+        "templateOptions": {
+            "label": "archivist_organization"
+        },
+        "type": "input",
+        "key": "archivist_organization"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_transfer_project",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_transfer_project"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_content_type",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_content_type"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_data_selection",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_data_selection"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_authority_information",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_authority_information"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_archival_description",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_archival_description"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_import",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_import"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_submit_description",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_submit_description"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_sip",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_sip"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_aip",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_aip"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_aic_description",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_aic_description"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_aip_description",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_aip_description"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_dip",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_dip"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_workflow",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_workflow"
+    },
+    {
+        "templateOptions": {
+            "label": "profile_preservation_metadata",
+            "valueProp": "id",
+            "options": []
+        },
+        "type": "select",
+        "key": "profile_preservation_metadata"
+    }
+]

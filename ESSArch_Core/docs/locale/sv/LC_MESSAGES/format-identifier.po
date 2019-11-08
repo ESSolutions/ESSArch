@@ -1,0 +1,74 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-08-28 13:56+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../format-identifier.rst:5
+msgid "Format Identifier"
+msgstr ""
+
+#: ESSArch_Core.fixity.format.FormatIdentifier.identify_file_format:1 of
+msgid "Identifies the format of the file using the fido library"
+msgstr ""
+
+#: ESSArch_Core.fixity.format.FormatIdentifier.identify_file_format of
+msgid "Parameters"
+msgstr ""
+
+#: ESSArch_Core.fixity.format.FormatIdentifier.identify_file_format:3 of
+msgid "The filename to identify"
+msgstr ""
+
+#: ESSArch_Core.fixity.format.FormatIdentifier.identify_file_format of
+msgid "Returns"
+msgstr ""
+
+#: ESSArch_Core.fixity.format.FormatIdentifier.identify_file_format:5 of
+msgid "A tuple with the format name, version and registry key"
+msgstr ""
+
+#: ../../format-identifier.rst:11
+msgid ""
+"FormatIdentifier is used to identify the format of files during "
+"validation, XML generation and viewing files in the browser."
+msgstr ""
+
+#: ../../format-identifier.rst:17
+msgid "MIME types"
+msgstr ""
+
+#: ../../format-identifier.rst:19
+msgid ""
+"The file at :ref:`path_mimetypes_definitionfile` is used to identify the "
+"MIME type of the file.  If the file extension is missing from the MIME "
+"types file it will be set to ``application/octet-stream`` if "
+"``allow_unknown_file_types`` is set to ``True``. If "
+"``allow_unknown_file_types`` is set to ``False`` an exception will be "
+"raised."
+msgstr ""
+
+#: ../../format-identifier.rst:28
+msgid "Fido"
+msgstr ""
+
+#: ../../format-identifier.rst:30
+msgid ""
+"The fido library is used to get the format name, version and registry key"
+" of the file."
+msgstr ""
+

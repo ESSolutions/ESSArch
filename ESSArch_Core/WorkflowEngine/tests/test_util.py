@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from ESSArch_Core.WorkflowEngine.models import ProcessTask, ProcessStep
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 
@@ -8,15 +8,15 @@ class CreateWorkflowTestCase(TestCase):
     def test_tasks(self):
         spec = [
             {
-                "name": "foo.bar.task",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 "label": "Foo Bar Task",
-                "args": [1,2,3],
+                "args": [1, 2, 3],
                 "params": {'a': 'b'}
             },
             {
-                "name": "foo.bar.task2",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                 "label": "Foo Bar Task2",
-                "args": [3,2,1],
+                "args": [3, 2, 1],
                 "params": {'b': 'a'}
             }
         ]
@@ -39,15 +39,15 @@ class CreateWorkflowTestCase(TestCase):
                 "name": "My step",
                 "children": [
                     {
-                        "name": "foo.bar.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                         "label": "Foo Bar Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'}
                     },
                     {
-                        "name": "foo.bar.task2",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
-                        "args": [3,2,1],
+                        "args": [3, 2, 1],
                         "params": {'b': 'a'}
                     }
                 ]
@@ -71,18 +71,91 @@ class CreateWorkflowTestCase(TestCase):
         self.assertEqual(child_step.tasks.latest('processstep_pos').name, spec[0]['children'][1]['name'])
         self.assertEqual(child_step.on_error.count(), 0)
 
+    def test_empty_child_steps_are_removed(self):
+        spec = [
+            {
+                "step": True,
+                "name": "My step",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                        "label": "Foo Bar Task",
+                        "args": [1, 2, 3],
+                        "params": {'a': 'b'}
+                    },
+                    {
+                        "step": True,
+                        "name": "step_a",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_aa",
+                                "children": [
+                                    {
+                                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                                        "label": "Foo Bar Task 2",
+                                        "args": [1, 2, 3],
+                                        "params": {'a': 'b'}
+                                    },
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "step": True,
+                        "name": "step_b",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_ba",
+                                "children": []
+                            },
+                            {
+                                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                                "label": "Foo Bar Task 2",
+                                "args": [1, 2, 3],
+                                "params": {'a': 'b'}
+                            },
+                        ]
+                    },
+                    {
+                        "step": True,
+                        "name": "step_c",
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "step_ca",
+                                "children": []
+                            },
+                        ]
+                    },
+                ]
+            }
+        ]
+
+        create_workflow(spec)
+
+        # verify that only step_ba, step_c and step_ca has been deleted
+
+        self.assertEqual(ProcessStep.objects.count(), 5)
+        self.assertEqual(ProcessTask.objects.count(), 3)
+
+        self.assertFalse(ProcessStep.objects.filter(name="step_ba").exists())
+        self.assertFalse(ProcessStep.objects.filter(name="step_c").exists())
+        self.assertFalse(ProcessStep.objects.filter(name="step_ca").exists())
+
     def test_on_error_task(self):
         spec = [
             {
-                "name": "foo.bar.task",
+                "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                 "label": "Foo Bar Task",
-                "args": [1,2,3],
+                "args": [1, 2, 3],
                 "params": {'a': 'b'},
                 "on_error": [
                     {
-                        "name": "foo.bar.task2",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
-                        "args": [3,2,1],
+                        "args": [3, 2, 1],
                         "params": {'b': 'a'}
                     }
                 ]
@@ -111,17 +184,17 @@ class CreateWorkflowTestCase(TestCase):
                 "name": "My step",
                 "on_error": [
                     {
-                        "name": "on_error.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
                         "label": "On-error Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'},
                     }
                 ],
                 "children": [
                     {
-                        "name": "foo.bar.task",
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task",
-                        "args": [1,2,3],
+                        "args": [1, 2, 3],
                         "params": {'a': 'b'},
                     }
                 ]

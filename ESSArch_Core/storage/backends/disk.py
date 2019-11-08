@@ -4,10 +4,8 @@ import os
 import shutil
 import tarfile
 
-import six
-
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.copy import copy
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
 
 logger = logging.getLogger('essarch.storage.backends.disk')
@@ -30,16 +28,15 @@ class DiskStorageBackend(BaseStorageBackend):
         path = os.path.join(storage_object.content_location_value, file)
         return open(path, *args, **kwargs)
 
-    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
-        medium = storage_object.storage_medium
-        target = medium.storage_target
-        ip = storage_object.ip
+    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         src = storage_object.get_full_path()
 
         if storage_object.container:
+            ip = storage_object.ip
+            target = storage_object.storage_medium.storage_target.target
             src_tar = src
             src_xml = os.path.splitext(src)[0] + '.xml'
-            src_aic_xml = os.path.join(target.target, str(ip.aic.pk)) + '.xml'
+            src_aic_xml = os.path.join(target, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
                 copy(src_xml, dst, block_size=block_size)
@@ -51,8 +48,8 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             return copy(src, dst, block_size=block_size)
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=65536):
-        if isinstance(src, six.string_types):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+        if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
         logger.debug('Writing {src} to {dst}'.format(src=', '.join(src), dst=dst))
@@ -62,7 +59,7 @@ class DiskStorageBackend(BaseStorageBackend):
             logger.error(msg)
             raise ValueError(msg)
 
-        if not storage_method.containers:
+        if not container:
             dst = os.path.join(dst, ip.object_identifier_value)
 
         for idx, f in enumerate(src):
@@ -74,7 +71,7 @@ class DiskStorageBackend(BaseStorageBackend):
             content_location_value=content_location_value,
             content_location_type=DISK,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers,
+            container=container,
         )
 
     def delete(self, storage_object):

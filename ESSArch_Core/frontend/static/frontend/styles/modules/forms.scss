@@ -1,0 +1,20 @@
+.form-group {
+  margin-bottom: 20px;
+}
+
+.ui-select-custom-spinner {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 1000;
+}
+
+.spinner-with-clear {
+  right: 41px;
+}
+
+// Fix to make ui select search box with clear button have same border radius on the left corners
+.input-group .form-control:last-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}

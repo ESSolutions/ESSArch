@@ -1,8 +1,7 @@
-from __future__ import unicode_literals
-
 import logging
 import traceback
 
+import click
 from django.utils import timezone
 
 from ESSArch_Core.exceptions import ValidationError
@@ -19,7 +18,7 @@ class FormatValidator(BaseValidator):
     """
 
     def __init__(self, *args, **kwargs):
-        super(FormatValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         allow_unknown = self.options.get('allow_unknown_file_types', False)
         self.fid = FormatIdentifier(allow_unknown_file_types=allow_unknown)
@@ -70,3 +69,11 @@ class FormatValidator(BaseValidator):
             val_obj.time_done = timezone.now()
             val_obj.passed = passed
             val_obj.save(update_fields=['time_done', 'passed', 'message'])
+
+    @staticmethod
+    @click.command()
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    def cli(path):
+        fid = FormatIdentifier()
+        res = fid.identify_file_format(path)
+        click.echo(res)

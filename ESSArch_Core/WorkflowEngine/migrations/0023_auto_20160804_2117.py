@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -32,18 +32,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0021_auto_20160803_1628'),
+        ('WorkflowEngine', '0020_processstep_waitforparams'),
     ]
 
     operations = [
         migrations.RemoveField(
             model_name='processstep',
             name='task_set',
-        ),
-        migrations.AlterField(
-            model_name='processtask',
-            name='name',
-            field=models.CharField(choices=[('WorkflowEngine.tasks.ValidateMetadata', b'ValidateMetadata'), ('WorkflowEngine.tasks.AddPremisToMetsAmdSec', b'AddPremisToMetsAmdSec'), ('WorkflowEngine.tasks.CreateIPEventsFile', b'CreateIPEventsFile'), ('WorkflowEngine.tasks.Third', b'Third'), ('WorkflowEngine.tasks.UploadFile', b'UploadFile'), ('WorkflowEngine.tasks.CreateTAR', b'CreateTAR'), ('WorkflowEngine.tasks.Sleepy', b'Sleepy'), ('WorkflowEngine.tasks.GenerateXML', b'GenerateXML'), ('WorkflowEngine.tasks.CreatePhysicalModel', b'CreatePhysicalModel'), ('WorkflowEngine.tasks.Second', b'Second'), ('WorkflowEngine.tasks.ValidateLogicalPhysical', b'ValidateLogicalPhysical'), ('WorkflowEngine.tasks.First', b'First')], max_length=255),
         ),
         migrations.AlterField(
             model_name='processtask',

@@ -9,7 +9,7 @@ import picklefield.fields
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('WorkflowEngine', '0063_auto_20170331_1017'),
+        ('WorkflowEngine', '0062_auto_20170313_1402'),
     ]
 
     operations = [

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -24,15 +24,14 @@
 
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
-from django.contrib.auth.models import Permission, ContentType
+from django.contrib.auth.models import ContentType, Permission
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
-
+from rest_auth.serializers import LoginSerializer as rest_auth_LoginSerializer
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
 from ESSArch_Core.auth.util import get_organization_groups
-
 
 User = get_user_model()
 
@@ -60,6 +59,7 @@ class GroupDetailSerializer(GroupSerializer):
 
     class Meta(GroupSerializer.Meta):
         fields = GroupSerializer.Meta.fields + ('group_members',)
+
 
 class OrganizationDetailSerializer(GroupSerializer):
     group_members = serializers.SerializerMethodField()
@@ -152,7 +152,7 @@ class UserLoggedInSerializer(UserSerializer):
         user_profile.ip_list_view_type = profile_data.get(
             'ip_list_view_type',
             user_profile.ip_list_view_type
-         )
+        )
 
         user_profile.notifications_enabled = profile_data.get(
             'notifications_enabled',
@@ -161,7 +161,7 @@ class UserLoggedInSerializer(UserSerializer):
 
         user_profile.save()
 
-        return super(UserLoggedInSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     class Meta:
         model = User
@@ -193,7 +193,7 @@ class NotificationSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(NotificationSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = Notification
@@ -211,10 +211,6 @@ class NotificationReadSerializer(NotificationSerializer):
     class Meta:
         model = NotificationSerializer.Meta.model
         fields = NotificationSerializer.Meta.fields
-
-
-# Import from rest_auth.app_settings must be after UserLoggedInSerializer
-from rest_auth.app_settings import LoginSerializer as rest_auth_LoginSerializer
 
 
 class LoginSerializer(rest_auth_LoginSerializer):

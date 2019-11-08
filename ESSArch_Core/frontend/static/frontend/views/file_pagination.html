@@ -1,0 +1,11 @@
+<div class="file-pagination" ng-if="numPages && pages.length >= 2">
+  <div>
+    <a ng-if="currentPage > 1" ng-click="selectPage(1)"><span class="fas fa-angle-double-left"></span></a>
+    <a ng-if="currentPage > 1" ng-click="selectPage(currentPage-1)"><span class="fas fa-angle-left"></span></a>
+    <a ng-repeat="page in pages" ng-class="{active: page==currentPage}" ng-click="selectPage(page)">{{page}}</a>
+    <a ng-if="currentPage < numPages" ng-click="selectPage(currentPage+1)"><span class="fas fa-angle-right"></span></a>
+    <a ng-if="currentPage < numPages" ng-click="selectPage(numPages)"
+      ><span class="fas fa-angle-double-right"></span
+    ></a>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<div
+  ng-if="!subrow"
+  class="white-space-nowrap"
+  uib-tooltip="{{row.start_date | date:'yyyy-MM-dd HH:mm:ss'}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+>
+  {{row.start_date | date:"yyyy-MM-dd"}}
+</div>
+<div
+  ng-if="subrow"
+  class="white-space-nowrap"
+  uib-tooltip="{{subrow.start_date | date:'yyyy-MM-dd HH:mm:ss'}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+>
+  {{subrow.start_date | date:"yyyy-MM-dd"}}
+</div>

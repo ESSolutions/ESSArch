@@ -30,7 +30,6 @@
     vm.model = {
       name:"",
       profile_type:"",
-      name:"",
       type:"",
       status:"",
       label:"",

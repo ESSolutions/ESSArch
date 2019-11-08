@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('profiles', '0034_auto_20170803_1251'),
+        ('profiles', '0033_submissionagreement_published'),
     ]
 
     operations = [
@@ -24,9 +24,13 @@ class Migration(migrations.Migration):
                 ('data', jsonfield.fields.JSONField(default={})),
                 ('version', models.IntegerField(default=0)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('relation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.ProfileIP')),
+                ('relation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='data_versions', to='profiles.ProfileIP')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
+            options={
+                'ordering': ['version'],
+                'permissions': (('profile_management', 'Can manage profiles'),),
+            },
         ),
         migrations.AddField(
             model_name='profileip',

@@ -1,0 +1,63 @@
+.structure-edit-view {
+  .structure-edit-wrapper {
+    display: flex;
+    flex-direction: column;
+    @include large-screen-up {
+      flex-direction: row;
+    }
+    .structure-rules {
+      flex-grow: 1;
+      @include medium-screen {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+      }
+      @include small-screen {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+      }
+      .rule-type-input {
+        max-width: 150px;
+      }
+    }
+    .jstree-anchor {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .structure-tree {
+      @include large-screen-up {
+        width: 300px;
+        min-width: 300px;
+        max-width: 900px;
+      }
+
+      .jstree-anchor {
+        max-width: 90%;
+        @include large-screen-up() {
+          max-width: 98%;
+        }
+      }
+
+      .jstree {
+        padding-right: 25px;
+      }
+    }
+    .rules-header {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+  }
+}
+.search-admin {
+  .success {
+    color: $step-success;
+  }
+}
+
+.structure-type-select {
+  width: 200px;
+  margin-left: 5px;
+}

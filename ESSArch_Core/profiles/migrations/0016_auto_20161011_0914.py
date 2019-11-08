@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -39,6 +39,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='profile_type',
-            field=models.CharField(choices=[(b'transfer_project', b'Transfer Project'), (b'content_type', b'Content Type'), (b'data_selection', b'Data Selection'), (b'classification', b'Classification'), (b'import', b'Import'), (b'submit_description', b'Submit Description'), (b'sip', b'SIP'), (b'aip', b'AIP'), (b'dip', b'DIP'), (b'workflow', b'Workflow'), (b'preservation_metadata', b'Preservation Metadata'), (b'event', b'Event')], max_length=255),
+            field=models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('classification', 'Classification'), ('import', 'Import'), ('submit_description', 'Submit Description'), ('sip', 'SIP'), ('aip', 'AIP'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_metadata', 'Preservation Metadata'), ('event', 'Event')], max_length=255),
         ),
     ]

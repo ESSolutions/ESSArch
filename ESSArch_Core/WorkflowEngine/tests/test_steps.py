@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -29,9 +29,10 @@ import tempfile
 from celery import states as celery_states
 from django.conf import settings
 from django.db import connection
-from django.test import override_settings, TestCase, TransactionTestCase
+from django.test import TestCase, TransactionTestCase, override_settings
 from django_redis import get_redis_connection
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -60,7 +61,7 @@ class test_status(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((5*depth) + 2):
+        with self.assertNumQueries((6 * depth) + 2):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status(self):
@@ -90,7 +91,7 @@ class test_status(TestCase):
             processstep=self.step
         )
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_task(self):
@@ -102,7 +103,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_tasks(t)
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_create_child_step(self):
@@ -110,7 +111,7 @@ class test_status(TestCase):
 
         ProcessStep.objects.create(parent_step=self.step)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_add_child_step(self):
@@ -119,7 +120,7 @@ class test_status(TestCase):
         self.step.status
         self.step.add_child_steps(s)
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_run_task(self):
@@ -132,7 +133,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(6):
+        with self.assertNumQueries(7):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_task_in_nested_step(self):
@@ -146,7 +147,7 @@ class test_status(TestCase):
 
         t.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_task(self):
@@ -172,7 +173,7 @@ class test_status(TestCase):
         self.step.status
         s.run()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_undo_step(self):
@@ -186,7 +187,7 @@ class test_status(TestCase):
         self.step.status
         s.undo()
 
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_cached_status_retry_step(self):
@@ -201,7 +202,7 @@ class test_status(TestCase):
         self.step.status
         s.retry()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_resume_step(self):
@@ -226,20 +227,20 @@ class test_status(TestCase):
         self.step.status
         s.resume()
 
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_pending_task(self):
         t = ProcessTask.objects.create(status=celery_states.PENDING)
-        self.step.tasks = [t]
+        self.step.tasks.set([t])
         self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_pending_child_step(self):
         s = ProcessStep.objects.create()
         t = ProcessTask.objects.create(status=celery_states.PENDING)
 
-        s.tasks = [t]
-        self.step.child_steps = [s]
+        s.tasks.set([t])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_pending_child_step_and_task(self):
@@ -247,22 +248,22 @@ class test_status(TestCase):
         t1 = ProcessTask.objects.create(status=celery_states.PENDING)
         t2 = ProcessTask.objects.create(status=celery_states.PENDING)
 
-        s.tasks = [t1]
-        self.step.tasks = [t2]
-        self.step.child_steps = [s]
+        s.tasks.set([t1])
+        self.step.tasks.set([t2])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_started_task(self):
         t = ProcessTask.objects.create(status=celery_states.STARTED)
-        self.step.tasks = [t]
+        self.step.tasks.set([t])
         self.assertEqual(self.step.status, celery_states.STARTED)
 
     def test_started_child_step(self):
         s = ProcessStep.objects.create()
         t = ProcessTask.objects.create(status=celery_states.STARTED)
 
-        s.tasks = [t]
-        self.step.child_steps = [s]
+        s.tasks.set([t])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.STARTED)
 
     def test_started_child_step_and_task(self):
@@ -270,22 +271,22 @@ class test_status(TestCase):
         t1 = ProcessTask.objects.create(status=celery_states.STARTED)
         t2 = ProcessTask.objects.create(status=celery_states.STARTED)
 
-        s.tasks = [t1]
-        self.step.tasks = [t2]
-        self.step.child_steps = [s]
+        s.tasks.set([t1])
+        self.step.tasks.set([t2])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.STARTED)
 
     def test_succeeded_task(self):
         t = ProcessTask.objects.create(status=celery_states.SUCCESS)
-        self.step.tasks = [t]
+        self.step.tasks.set([t])
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_succeeded_child_step(self):
         s = ProcessStep.objects.create()
         t = ProcessTask.objects.create(status=celery_states.SUCCESS)
 
-        s.tasks = [t]
-        self.step.child_steps = [s]
+        s.tasks.set([t])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_succeeded_child_step_and_task(self):
@@ -293,22 +294,22 @@ class test_status(TestCase):
         t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t2 = ProcessTask.objects.create(status=celery_states.SUCCESS)
 
-        s.tasks = [t1]
-        self.step.tasks = [t2]
-        self.step.child_steps = [s]
+        s.tasks.set([t1])
+        self.step.tasks.set([t2])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_task(self):
         t = ProcessTask.objects.create(status=celery_states.FAILURE)
-        self.step.tasks = [t]
+        self.step.tasks.set([t])
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_failed_child_step(self):
         s = ProcessStep.objects.create()
         t = ProcessTask.objects.create(status=celery_states.FAILURE)
 
-        s.tasks = [t]
-        self.step.child_steps = [s]
+        s.tasks.set([t])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_failed_child_step_and_task(self):
@@ -316,23 +317,23 @@ class test_status(TestCase):
         t1 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
 
-        s.tasks = [t1]
-        self.step.tasks = [t2]
-        self.step.child_steps = [s]
+        s.tasks.set([t1])
+        self.step.tasks.set([t2])
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_failed_task_after_succeeded(self):
         t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
 
-        self.step.tasks = [t1, t2]
+        self.step.tasks.set([t1, t2])
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_started_task_after_succeeded(self):
         t1 = ProcessTask.objects.create(status=celery_states.SUCCESS)
         t2 = ProcessTask.objects.create(status=celery_states.STARTED)
 
-        self.step.tasks = [t1, t2]
+        self.step.tasks.set([t1, t2])
         self.assertEqual(self.step.status, celery_states.STARTED)
 
     def test_failed_task_between_succeeded(self):
@@ -340,7 +341,7 @@ class test_status(TestCase):
         t2 = ProcessTask.objects.create(status=celery_states.FAILURE)
         t3 = ProcessTask.objects.create(status=celery_states.SUCCESS)
 
-        self.step.tasks = [t1, t2, t3]
+        self.step.tasks.set([t1, t2, t3])
         self.assertEqual(self.step.status, celery_states.FAILURE)
 
     def test_succeeded_undone_task(self):
@@ -350,7 +351,7 @@ class test_status(TestCase):
         t1.undone = t1_undo
         t1.save()
 
-        self.step.tasks = [t1, t1_undo]
+        self.step.tasks.set([t1, t1_undo])
         self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_succeeded_retried_task(self):
@@ -362,7 +363,7 @@ class test_status(TestCase):
         t1.retried = t1_retry
         t1.save()
 
-        self.step.tasks = [t1, t1_undo, t1_retry]
+        self.step.tasks.set([t1, t1_undo, t1_retry])
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_failed_undone_task(self):
@@ -372,7 +373,7 @@ class test_status(TestCase):
         t1.undone = t1_undo
         t1.save()
 
-        self.step.tasks = [t1, t1_undo]
+        self.step.tasks.set([t1, t1_undo])
         self.assertEqual(self.step.status, celery_states.PENDING)
 
     def test_failed_retried_task(self):
@@ -384,7 +385,7 @@ class test_status(TestCase):
         t1.retried = t1_retry
         t1.save()
 
-        self.step.tasks = [t1, t1_undo, t1_retry]
+        self.step.tasks.set([t1, t1_undo, t1_retry])
         self.assertEqual(self.step.status, celery_states.SUCCESS)
 
 
@@ -412,7 +413,7 @@ class test_progress(TestCase):
         for i in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
-        with self.assertNumQueries((3*(depth+1))-1):
+        with self.assertNumQueries((3 * (depth + 1)) - 1):
             self.assertEqual(self.step.progress, 0)
 
     def test_cached_progress(self):
@@ -629,7 +630,7 @@ class test_progress(TestCase):
 
     def test_single_child_step(self):
         s = ProcessStep.objects.create()
-        self.step.child_steps = [s]
+        self.step.child_steps.set([s])
         self.assertEqual(self.step.progress, 0)
 
     def test_nested_task(self):
@@ -637,7 +638,7 @@ class test_progress(TestCase):
         t = ProcessTask.objects.create(progress=50)
 
         s.add_tasks(t)
-        self.step.child_steps = [s]
+        self.step.child_steps.set([s])
 
         self.assertEqual(self.step.progress, 50)
 
@@ -646,6 +647,8 @@ class test_running_steps(TransactionTestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+        Path.objects.create(entity='temp', value='temp')
 
         self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
@@ -670,7 +673,7 @@ class test_running_steps(TransactionTestCase):
         step.run().get()
         task.refresh_from_db()
 
-        self.assertEqual(task.result, x+y)
+        self.assertEqual(task.result, x + y)
 
     def test_serialized_step(self):
         t1_val = 123
@@ -704,7 +707,7 @@ class test_running_steps(TransactionTestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.save()
         step.run().get()
 
@@ -747,7 +750,7 @@ class test_running_steps(TransactionTestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.parallel = True
         step.save()
 
@@ -818,7 +821,7 @@ class test_running_steps(TransactionTestCase):
             processstep_pos=2,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
 
         with self.assertRaises(Exception):
             step.run().get()
@@ -853,7 +856,7 @@ class test_running_steps(TransactionTestCase):
             processstep_pos=2,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
 
         with self.assertRaises(Exception):
             step.run().get()
@@ -936,7 +939,7 @@ class test_running_steps(TransactionTestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.save()
 
         step.run().get()
@@ -947,13 +950,15 @@ class test_running_steps(TransactionTestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t1.result, t1_val * 2)
         self.assertEqual(t2.result, t1.result + t2_val)
         self.assertEqual(t3.result, t1.result + t3_val)
 
 
 @override_settings(CELERY_ALWAYS_EAGER=False)
 class test_running_steps_eagerly(TransactionTestCase):
+    def setUp(self):
+        Path.objects.create(entity='temp', value='temp')
 
     def test_empty_step(self):
         step = ProcessStep.objects.create()
@@ -991,7 +996,7 @@ class test_running_steps_eagerly(TransactionTestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.save()
         step.run()
 
@@ -1039,7 +1044,7 @@ class test_running_steps_eagerly(TransactionTestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.save()
 
         step.run()
@@ -1050,12 +1055,16 @@ class test_running_steps_eagerly(TransactionTestCase):
         t2.refresh_from_db()
         t3.refresh_from_db()
 
-        self.assertEqual(t1.result, t1_val*2)
+        self.assertEqual(t1.result, t1_val * 2)
         self.assertEqual(t2.result, t1.result + t2_val)
         self.assertEqual(t3.result, t1.result + t3_val)
 
 
 class test_undoing_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
@@ -1086,7 +1095,7 @@ class test_undoing_steps(TestCase):
             processstep_pos=1,
         )
 
-        step.tasks = [t1, t2]
+        step.tasks.set([t1, t2])
         step.save()
 
         with self.assertRaises(Exception):
@@ -1126,7 +1135,7 @@ class test_undoing_steps(TestCase):
             processstep_pos=1,
         )
 
-        step.tasks = [t1, t2]
+        step.tasks.set([t1, t2])
         step.save()
 
         with self.assertRaises(Exception):
@@ -1175,7 +1184,7 @@ class test_undoing_steps(TestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.parallel = True
         step.save()
 
@@ -1222,7 +1231,7 @@ class test_undoing_steps(TestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.parallel = True
         step.save()
 
@@ -1247,12 +1256,16 @@ class test_undoing_steps(TestCase):
 
 
 class test_retrying_steps(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+
     def setUp(self):
         self.test_dir = "test_dir"
 
         try:
             os.mkdir(self.test_dir)
-        except:
+        except BaseException:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -1261,7 +1274,7 @@ class test_retrying_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except:
+        except BaseException:
             pass
 
     def test_empty_step(self):
@@ -1294,7 +1307,7 @@ class test_retrying_steps(TestCase):
             processstep_pos=1,
         )
 
-        step.tasks = [t1, t2]
+        step.tasks.set([t1, t2])
         step.save()
 
         with self.assertRaises(AssertionError):
@@ -1347,7 +1360,7 @@ class test_retrying_steps(TestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2]
+        step.tasks.set([t1, t2])
         step.save()
 
         with self.assertRaises(AssertionError):
@@ -1412,7 +1425,7 @@ class test_retrying_steps(TestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.parallel = True
         step.save()
 
@@ -1474,7 +1487,7 @@ class test_retrying_steps(TestCase):
             information_package=ip,
         )
 
-        step.tasks = [t1, t2, t3]
+        step.tasks.set([t1, t2, t3])
         step.parallel = True
         step.save()
 
@@ -1613,7 +1626,7 @@ class test_resuming_steps(TestCase):
 
         try:
             os.mkdir(self.test_dir)
-        except:
+        except BaseException:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -1622,7 +1635,7 @@ class test_resuming_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except:
+        except BaseException:
             pass
 
     def test_empty_step(self):

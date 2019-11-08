@@ -1,0 +1,15 @@
+trailingComma: "es5"
+endOfLine: "lf"
+printWidth: 119
+tabWidth: 2
+semi: true
+singleQuote: true
+bracketSpacing: false
+overrides:
+  - files: "*.html"
+    options:
+      singleQuote: false
+      parser: "html"
+  - files: "*.scss"
+    options:
+      parser: "scss"

@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -28,32 +28,32 @@ import logging
 import os
 import re
 import uuid
-
-from django.template import Template, Context, TemplateSyntaxError
-from django.utils.encoding import DjangoUnicodeDecodeError
-
-from lxml import etree
-
-from natsort import natsorted
-
-from django.utils import timezone
-
 from os import walk
 
-import six
+from django.template import Context, Template, TemplateSyntaxError
+from django.utils import timezone
+from lxml import etree
+from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
-
 from ESSArch_Core.util import (
-    get_elements_without_namespace, make_unicode, nested_lookup,
+    get_elements_without_namespace,
+    in_directory,
+    make_unicode,
+    nested_lookup,
+    normalize_path,
 )
 
 logger = logging.getLogger('essarch.essxml.generator')
-leading_underscore_tag_re = re.compile('%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
+leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
+    for k, v in info.items():
+        if (isinstance(v, (str, bytes))):
+            info[k] = make_unicode(v)
+
     c = Context(info)
     try:
         t = Template(content)
@@ -63,7 +63,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
 
         def remove_underscore_prefix(d):
             new = {}
-            for k, v in six.iteritems(d):
+            for k, v in d.items():
                 if isinstance(v, dict):
                     v = remove_underscore_prefix(v)
                 if k.startswith('_'):
@@ -75,14 +75,7 @@ def parse_content_django(content, info=None, unicode_error=False, syntax_error=F
         regcontent = leading_underscore_tag_re.sub(r'{{\1}}', content)
         return parse_content_django(regcontent, info=new_data, syntax_error=True)
 
-    try:
-        return t.render(c)
-    except DjangoUnicodeDecodeError:
-        if unicode_error:
-            raise
-        for k, v in six.iteritems(info):
-            info[k] = make_unicode(v)
-        return parse_content_django(content, info=info, unicode_error=True)
+    return t.render(c)
 
 
 def parseContent(content, info=None):
@@ -92,8 +85,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-
-    if isinstance(content, six.string_types):
+    if isinstance(content, str):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -152,15 +144,15 @@ def findElementWithoutNamespace(tree, el_name):
         return root.find(".//{*}%s" % el_name)
 
 
-class XMLElement(object):
-    def __init__(self, template, nsmap=None):
+class XMLElement:
+    def __init__(self, template, nsmap=None, fid=None):
         if nsmap is None:
             nsmap = {}
 
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
-        except:
+        except BaseException:
             self.name = name
 
         self.nsmap = template.get('-nsmap', {})
@@ -179,15 +171,25 @@ class XMLElement(object):
         self.allowEmpty = template.get('-allowEmpty', False)
         self.hideEmptyContent = template.get('-hideEmptyContent', False)
         self.skipIfNoChildren = template.get('-skipIfNoChildren', False)
+        self.condition = template.get('-if', None)
         self.requiredParameters = template.get('-requiredParameters', [])
         self.children = []
         self.el = None
         self.parent = None
         self.parent_pos = 0
 
+        self._fid = fid
+
         for child in template.get('-children', []):
             child_el = XMLElement(child)
             self.children.append(child_el)
+
+    @property
+    def fid(self):
+        if self._fid is not None:
+            return self._fid
+
+        self._fid = FormatIdentifier()
 
     def parse(self, info):
         return parseContent(self.content, info)
@@ -279,7 +281,7 @@ class XMLElement(object):
 
         self.el.append(new.el)
 
-    def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None):
+    def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None, algorithm=None):
         if nsmap is None:
             nsmap = {}
 
@@ -293,45 +295,72 @@ class XMLElement(object):
         else:
             self.parent_pos = 0
 
-        logger.debug(u'Creating lxml-element for {path}'.format(path=self.get_path()))
-
         full_nsmap = nsmap.copy()
         full_nsmap.update(self.nsmap)
 
         if self.namespace:
-            self.el = etree.Element(u"{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{{{}}}{}".format(full_nsmap[self.namespace], self.name), nsmap=full_nsmap)
         else:
-            self.el = etree.Element(u"{}".format(self.name), nsmap=full_nsmap)
+            self.el = etree.Element("{}".format(self.name), nsmap=full_nsmap)
 
         self.el.text = self.parse(info)
 
-
         for req_param in self.requiredParameters:
-            if info.get(req_param) is None or len(info.get(req_param, '')) == 0:
+            if info.get(req_param) is None or info.get(req_param, '') == '':
                 return None
 
+        if self.condition is not None:
+            condition = parseContent(self.condition, info)
+            if condition == 'False':
+                return None
 
         for attr in self.attr:
             name, content, required = attr.parse(info, nsmap=full_nsmap)
 
             if required and not content:
-                raise ValueError(u"Missing value for required attribute '{}' on element '{}'".format(name, self.get_path()))
+                raise ValueError(
+                    "Missing value for required attribute '{}' on element '{}'".format(
+                        name, self.get_path()
+                    )
+                )
             elif content or attr.allow_empty:
                 self.el.set(name, content)
 
         if self.external:
-            ext_dirs = next(walk(os.path.join(folderToParse, self.external['-dir'])))[1]
-            for ext_dir in natsorted(ext_dirs):
-                ptr = XMLElement(self.external['-pointer'])
-                ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
+            ext_root = os.path.join(folderToParse, self.external['-dir'])
+            try:
+                ext_dirs = next(walk(ext_root))[1]
+            except StopIteration:
+                logger.info('No directories found in {}'.format(ext_root))
+            else:
+                for ext_dir in natsorted(ext_dirs):
+                    if '-pointer' in self.external:
+                        ptr = XMLElement(self.external['-pointer'], fid=self.fid)
+                        ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
+                        ptr_file_path = normalize_path(ptr_file_path)
 
-                ptr_info = info
-                ptr_info['_EXT'] = ext_dir
-                ptr_info['_EXT_HREF'] = ptr_file_path
-                child_el = ptr.createLXMLElement(ptr_info, full_nsmap, folderToParse=folderToParse, parent=self)
+                        ptr_info = info
+                        ptr_info['_EXT'] = ext_dir
+                        ptr_info['_EXT_HREF'] = ptr_file_path
 
-                if child_el is not None:
-                    self.add_element(ptr)
+                        filepath = os.path.join(folderToParse, ptr_file_path)
+                        fileinfo = parse_file(
+                            filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=ext_dir
+                        )
+
+                        for k, v in fileinfo.items():
+                            if k[0] == 'F':
+                                ptr_info['_EXT_{}'.format(k[1:])] = v
+                            else:
+                                ptr_info['_EXT_{}'.format(k)] = v
+
+                        child_el = ptr.createLXMLElement(
+                            ptr_info, full_nsmap, folderToParse=folderToParse, parent=self,
+                            algorithm=algorithm,
+                        )
+
+                        if child_el is not None:
+                            self.add_element(ptr)
 
         for child_idx, child in enumerate(self.children):
             child.parent = self
@@ -340,15 +369,22 @@ class XMLElement(object):
                 for fileinfo in files:
                     include = True
 
-                    for key, file_filter in six.iteritems(child.fileFilters):
+                    for key, file_filter in child.fileFilters.items():
                         if not re.search(file_filter, fileinfo.get(key)):
                             include = False
 
                     if include:
-                        logger.debug(u'Creating child element with additional file data: {data}'.format(data=fileinfo))
+                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
-                        child_el = child.createLXMLElement(full_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                        child_el = child.createLXMLElement(
+                            full_info,
+                            full_nsmap,
+                            files=files,
+                            folderToParse=folderToParse,
+                            parent=self,
+                            algorithm=algorithm,
+                        )
                         if child_el is not None:
                             self.add_element(child)
 
@@ -356,39 +392,59 @@ class XMLElement(object):
                 try:
                     foreach_el = info[child.foreach]
                 except KeyError:
-                    msg = u'Foreach key "{key}" for {el} not found in data'.format(key=child.foreach, el=child.get_path())
+                    msg = 'Foreach key "{key}" for {el} not found in data'.format(
+                        key=child.foreach, el=child.get_path()
+                    )
                     logger.warning(msg)
                     continue
 
                 try:
-                    iterator = six.iteritems(foreach_el)
+                    iterator = foreach_el.items()
                 except AttributeError:
                     iterator = enumerate(foreach_el)
 
                 for idx, v in iterator:
                     child_info = copy.deepcopy(info)
                     child_info.update(v)
-                    child_info[u'{foreach}__key'.format(foreach=child.foreach)] = idx
+                    child_info['{foreach}__key'.format(foreach=child.foreach)] = idx
 
-                    child_el = child.createLXMLElement(child_info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                    child_el = child.createLXMLElement(
+                        child_info,
+                        full_nsmap,
+                        files=files,
+                        folderToParse=folderToParse,
+                        parent=self,
+                        algorithm=algorithm,
+                    )
                     if child_el is not None:
                         self.add_element(child)
 
             else:
-                child_el = child.createLXMLElement(info, full_nsmap, files=files, folderToParse=folderToParse, parent=self)
+                child_el = child.createLXMLElement(
+                    info,
+                    full_nsmap,
+                    files=files,
+                    folderToParse=folderToParse,
+                    parent=self,
+                    algorithm=algorithm,
+                )
                 if child_el is not None:
                     self.add_element(child)
 
         if self.nestedXMLContent:
             # we encode the XML to get around LXML limitation with XML strings
             # containing encoding information.
-            # See https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
+            #
+            # See:
+            # https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
             if self.nestedXMLContent not in info:
-                logger.warn(u"Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent))
+                logger.warning(
+                    "Nested XML '{}' not found in data and will not be created".format(self.nestedXMLContent)
+                )
                 if not self.allowEmpty:
                     return None
             else:
-                nested_xml = six.binary_type(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
+                nested_xml = bytes(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
                 parser = etree.XMLParser(remove_blank_text=True)
                 self.el.append(etree.fromstring(nested_xml, parser=parser))
 
@@ -408,7 +464,7 @@ class XMLElement(object):
         return self.el
 
 
-class XMLAttribute(object):
+class XMLAttribute:
     """
         Args:
             template: The template for the attribute, example:
@@ -452,10 +508,47 @@ class XMLAttribute(object):
         return name, content, self.required
 
 
-class XMLGenerator(object):
-    def __init__(self, filepath=None):
+def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
+    files = []
+    external = [e[1] for e in external]
+    for root, dirnames, filenames in walk(path):
+        for fname in filenames:
+            filepath = os.path.join(root, fname)
+            relpath = os.path.relpath(filepath, path)
+
+            in_external = False
+            for e in external:
+                if in_directory(relpath, e):
+                    in_external = True
+            if in_external:
+                continue
+
+            fileinfo = parse_file(filepath, fid, relpath, algorithm=algorithm, rootdir=rootdir)
+            files.append(fileinfo)
+    return files
+
+
+def parse_files(fid, path, external, algorithm, rootdir):
+    files = []
+    if os.path.isfile(path):
+        relpath = os.path.basename(path)
+
+        file_info = parse_file(path, fid, relpath, algorithm=algorithm)
+        files.append(file_info)
+
+    elif os.path.isdir(path):
+        found_files = find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir)
+        files.extend(found_files)
+    return files
+
+
+class XMLGenerator:
+    def __init__(self, filepath=None, allow_unknown_file_types=False, allow_encrypted_files=False):
         self.parser = etree.XMLParser(remove_blank_text=True)
-        self.fid = FormatIdentifier(allow_unknown_file_types=False)
+        self.fid = FormatIdentifier(
+            allow_unknown_file_types=allow_unknown_file_types,
+            allow_encrypted_files=allow_encrypted_files,
+        )
 
         if filepath is not None:
             self.tree = etree.parse(filepath, parser=self.parser)
@@ -477,18 +570,20 @@ class XMLGenerator(object):
 
                 if path not in found_paths:
                     found_paths.append(path)
-                    dirs.append((x['-file'], x['-dir'], x['-specification'], spec['data']))
+                    dirs.append((x['-file'], x['-dir'], x['-specification'], x.get('-pointer'), spec['data']))
 
         return dirs
 
-    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, relpath=None, algorithm='SHA-256'):
+    def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None,
+                 parsed_files=None, relpath=None, algorithm='SHA-256'):
+
         self.toCreate = []
-        for fname, content in six.iteritems(filesToCreate):
+        for fname, content in filesToCreate.items():
             self.toCreate.append({
                 'file': fname,
                 'template': content['spec'],
                 'data': content.get('data', {}),
-                'root': XMLElement(content['spec'])
+                'root': XMLElement(content['spec'], fid=self.fid)
             })
 
         if extra_paths_to_parse is None:
@@ -510,66 +605,42 @@ class XMLGenerator(object):
         self.fid.allow_unknown_file_types = allow_unknown_file_types
 
         if folderToParse:
-            folderToParse = six.text_type(folderToParse).rstrip('/')
+            folderToParse = str(folderToParse).rstrip('/')
 
             external = self.find_external_dirs()
             if external:
                 external_gen = XMLGenerator()
 
-            for ext_file, ext_dir, ext_spec, ext_data in external:
-                ext_sub_dirs = next(walk(os.path.join(folderToParse, ext_dir)))[1]
-                for sub_dir in ext_sub_dirs:
-                    ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+            for ext_file, ext_dir, ext_spec, ext_pointer, ext_data in external:
+                ext_root = os.path.join(folderToParse, ext_dir)
+                try:
+                    ext_sub_dirs = next(walk(ext_root))[1]
+                except StopIteration:
+                    logger.info('No directories found in {}'.format(ext_root))
+                else:
+                    for sub_dir in ext_sub_dirs:
+                        ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+                        ptr_file_path = normalize_path(ptr_file_path)
 
-                    ext_info = copy.deepcopy(ext_data)
-                    ext_info['_EXT'] = sub_dir
-                    ext_info['_EXT_HREF'] = ptr_file_path
+                        ext_info = copy.deepcopy(ext_data)
+                        ext_info['_EXT'] = sub_dir
+                        ext_info['_EXT_HREF'] = ptr_file_path
 
-                    external_to_create={
-                        os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
-                    }
-                    external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                        external_to_create = {
+                            os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
+                        }
+                        external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                        if ext_pointer is not None:
+                            filepath = os.path.join(folderToParse, ptr_file_path)
+                            fileinfo = parse_file(
+                                filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
+                            )
+                            files.append(fileinfo)
 
-                    filepath = os.path.join(folderToParse, ptr_file_path)
-
-                    fileinfo = parse_file(filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir)
-                    files.append(fileinfo)
-
-            if os.path.isfile(folderToParse):
-                filepath = folderToParse
-                relpath = os.path.basename(folderToParse)
-
-                fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
-                files.append(fileinfo)
-
-            elif os.path.isdir(folderToParse):
-                for root, dirnames, filenames in walk(folderToParse):
-                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
-
-                    for fname in filenames:
-                        filepath = os.path.join(root, fname)
-                        relpath = os.path.relpath(filepath, folderToParse)
-
-                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm)
-                        files.append(fileinfo)
+            files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 
         for path in extra_paths_to_parse:
-            if os.path.isfile(path):
-                relpath = os.path.basename(path)
-
-                fileinfo = parse_file(path, self.fid, relpath, algorithm=algorithm)
-                files.append(fileinfo)
-
-            elif os.path.isdir(path):
-                for root, dirnames, filenames in walk(path):
-                    dirnames[:] = [d for d in dirnames if d not in [e[1] for e in external]]
-
-                    for fname in filenames:
-                        filepath = os.path.join(root, fname)
-                        relpath = os.path.relpath(filepath, path)
-
-                        fileinfo = parse_file(filepath, self.fid, relpath, algorithm=algorithm, rootdir=path)
-                        files.append(fileinfo)
+            files.extend(parse_files(self.fid, path, external, algorithm, rootdir=path))
 
         for idx, f in enumerate(self.toCreate):
             fname = f['file']
@@ -578,10 +649,8 @@ class XMLGenerator(object):
 
             data['_XML_FILENAME'] = os.path.basename(fname)
 
-            logger.debug(u'Creating {f} with {d}'.format(f=fname, d=data))
-
             self.tree = etree.ElementTree(
-                rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse)
+                rootEl.createLXMLElement(data, files=files, folderToParse=folderToParse, algorithm=algorithm)
             )
             self.write(fname)
 
@@ -635,7 +704,7 @@ class XMLGenerator(object):
         if data is None:
             data = {}
 
-        root_nsmap = {k: v for k, v in six.iteritems(target.nsmap) if k}
+        root_nsmap = {k: v for k, v in target.nsmap.items() if k}
         el = XMLElement(spec, nsmap=root_nsmap).createLXMLElement(data)
 
         return self.insert(target, el, index=index, before=before, after=after)

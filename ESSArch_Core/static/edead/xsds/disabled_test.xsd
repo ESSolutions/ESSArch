@@ -1,0 +1,602 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns="http://ead3.archivists.org/schema/"
+           elementFormDefault="qualified" targetNamespace="http://ead3.archivists.org/schema/">
+		   
+	<xs:element name="ead">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Encoded Archival Description
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+			    <xs:element name="control" type="control"/>
+				<xs:element name="archdesc" type="archdesc"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<!-- CONTROL -->
+	<xs:complexType name="control">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Control
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="recordid" type="recordid"/>
+			<xs:element name="filedesc" type="filedesc"/>
+			<xs:element name="maintenancestatus" type="maintenancestatus"/>
+			<xs:element name="maintenanceagency" type="maintenanceagency"/>
+			<xs:element name="maintenancehistory" type="maintenancehistory"/>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="recordid" mixed="true">
+		<xs:annotation>
+			<xs:appinfo>
+				<disabled/>
+		   </xs:appinfo>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Record Identifier
+		   </xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	
+	<xs:complexType name="filedesc">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			 File Description
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="titlestmt" type="titlestmt"/>
+        </xs:sequence>
+    </xs:complexType>
+	
+	<xs:complexType name="titlestmt" >
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Title Statement
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="titleproper" type="titleproper" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+	
+	<xs:complexType name="titleproper" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			 Title Proper of the Finding Aid
+		   </xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	
+	<xs:complexType name="maintenancestatus" mixed="true">
+		<xs:annotation>
+		   <xs:appinfo>
+				<disabled/>
+		   </xs:appinfo>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Maintenance Status
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:attribute name="value" use="required">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Value
+			   </xs:documentation>
+			</xs:annotation>
+			<xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="revised"/>
+                    <xs:enumeration value="deleted"/>
+                    <xs:enumeration value="new"/>
+                    <xs:enumeration value="deletedsplit"/>
+                    <xs:enumeration value="deletedmerged"/>
+                    <xs:enumeration value="deletedreplaced"/>
+                    <xs:enumeration value="cancelled"/>
+                    <xs:enumeration value="derived"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+	
+	<xs:complexType name="maintenanceagency">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Maintenance Agency
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="agencyname" type="agencyname" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+	
+	<xs:complexType name="agencyname" mixed="true">
+        <xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Agency Name
+		   </xs:documentation>
+		</xs:annotation>
+    </xs:complexType>
+	
+	 <xs:complexType name="maintenancehistory">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Maintenance History
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="maintenanceevent" type="maintenanceevent" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+	
+	<xs:complexType name="maintenanceevent">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Maintenance Event
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="eventtype" type="eventtype"/>
+            <xs:element name="eventdatetime" type="eventdatetime"/>
+            <xs:element name="agenttype" type="agenttype"/>
+            <xs:element name="agent" type="agent"/>
+            <xs:element name="eventdescription" type="eventdescription" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+	
+	<xs:complexType name="eventtype" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Event Type
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:attribute name="value" use="required">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Value
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="created"/>
+                    <xs:enumeration value="revised"/>
+                    <xs:enumeration value="deleted"/>
+                    <xs:enumeration value="cancelled"/>
+                    <xs:enumeration value="derived"/>
+                    <xs:enumeration value="updated"/>
+                    <xs:enumeration value="unknown"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+	
+	<xs:complexType name="eventdatetime" mixed="true">
+        <xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Event Date and Time
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:attribute name="standarddatetime" type="xs:string">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Standard Date and Time
+			   </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>		
+    </xs:complexType>
+  
+    <xs:complexType name="agenttype" mixed="true">
+         <xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Agent Type 
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:attribute name="value" use="required">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Value
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="human"/>
+                    <xs:enumeration value="machine"/>
+                    <xs:enumeration value="unknown"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+	
+	<xs:complexType name="agent" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Agent
+		   </xs:documentation>
+		</xs:annotation>
+    </xs:complexType>
+	
+	 <xs:complexType name="eventdescription" mixed="true">
+        <xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			 Event Description
+		   </xs:documentation>
+		</xs:annotation>
+    </xs:complexType>
+	
+	<!-- ARCHDESC -->
+	<xs:complexType name="archdesc">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Archival Description
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="did" type="did"/>
+			<xs:element name="accessrestrict" type="accessrestrict"/>
+			<xs:element name="dsc" type="dsc" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+
+		<xs:attribute name="level" use="required">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Level
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="class"/>
+                    <xs:enumeration value="collection"/>
+                    <xs:enumeration value="file"/>
+                    <xs:enumeration value="fonds"/>
+                    <xs:enumeration value="item"/>
+                    <xs:enumeration value="otherlevel"/>
+                    <xs:enumeration value="recordgrp"/>
+                    <xs:enumeration value="series"/>
+                    <xs:enumeration value="subfonds"/>
+                    <xs:enumeration value="subgrp"/>
+                    <xs:enumeration value="subseries"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+	</xs:complexType>
+	
+	<!-- did -->
+	<xs:complexType name="did">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Descriptive Identification
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="unitid" type="unitid" /> 
+			<xs:element name="unittitle" type="unittitle" /> 
+			<xs:element name="daoset" type="daoset" minOccurs="0" />
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="unitid" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			ID of the Unit
+		   </xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+
+	<xs:complexType name="unittitle" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Title of the Unit
+		   </xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	
+	<xs:complexType name="p" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl"></xs:documentation>
+		   <xs:documentation xml:lang="en"></xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	
+
+	
+	<xs:complexType name="accessrestrict" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Conditions Governing Access
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="p" type="p"/>
+		</xs:sequence>
+	</xs:complexType>
+	
+	<xs:complexType name="dsc">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Description of Subordinate Components
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="c" type="c" maxOccurs="unbounded"/>
+		</xs:sequence>	
+		<xs:attribute name="dsctype">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Description of Subordinate Components Type
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="analyticover"/>
+                    <xs:enumeration value="combined"/>
+                    <xs:enumeration value="in-depth"/>
+                    <xs:enumeration value="otherdsctype"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+	</xs:complexType>
+	
+	<xs:complexType name="c" mixed="true">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Component
+		   </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+		    <xs:element name="did" type="did"/>
+			 <xs:element name="c" type="c" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>	
+		<xs:attribute name="level">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Level
+			   </xs:documentation>
+			</xs:annotation>
+		  <xs:simpleType>
+			<xs:restriction base="xs:token">
+			  <xs:enumeration value="class"/>
+			  <xs:enumeration value="collection"/>
+			  <xs:enumeration value="file"/>
+			  <xs:enumeration value="fonds"/>
+			  <xs:enumeration value="item"/>
+			  <xs:enumeration value="otherlevel"/>
+			  <xs:enumeration value="recordgrp"/>
+			  <xs:enumeration value="series"/>
+			  <xs:enumeration value="subfonds"/>
+			  <xs:enumeration value="subgrp"/>
+			  <xs:enumeration value="subseries"/>
+			</xs:restriction>
+		  </xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
+	
+	
+	<xs:complexType name="daoset">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Digital Archival Object Set
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:sequence>
+            <xs:element name="dao" type="dao" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="label" type="xs:string">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Label
+			   </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+        <xs:attribute name="coverage">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Coverage
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="whole"/>
+                    <xs:enumeration value="part"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+	
+	<xs:complexType name="dao">
+        <xs:annotation>
+			<xs:appinfo>
+				<noinputfield/>
+		   </xs:appinfo>
+		   <xs:documentation xml:lang="sl">
+			I don't know in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Digital Archival Object
+		   </xs:documentation>
+		</xs:annotation>
+        <xs:attribute name="linktitle" type="xs:string">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Link Title
+			   </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+        <xs:attribute name="href" type="xs:string">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Hypertext Reference
+			   </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+        <xs:attribute name="identifier" type="xs:token">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Identifier 
+			   </xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+        <xs:attribute name="daotype" use="required">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Digital Archival Object Type
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="borndigital"/>
+                    <xs:enumeration value="derived"/>
+                    <xs:enumeration value="unknown"/>
+                    <xs:enumeration value="otherdaotype"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+		
+        <xs:attribute name="coverage">
+			<xs:annotation>
+			   <xs:documentation xml:lang="sl">
+				I don't know in Slovenian
+			   </xs:documentation>
+			   <xs:documentation xml:lang="en">
+				Coverage
+			   </xs:documentation>
+			</xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:token">
+                    <xs:enumeration value="whole"/>
+                    <xs:enumeration value="part"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+	
+	<!-- GENERAL -->
+	
+	<!--Definition of 'Add' on the buttons -->
+	<xs:complexType name="addText">
+		<xs:annotation>
+		   <xs:documentation xml:lang="sl">
+			Add in Slovenian
+		   </xs:documentation>
+		   <xs:documentation xml:lang="en">
+			Add
+		   </xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	
+	
+</xs:schema>

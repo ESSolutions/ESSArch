@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,44 +15,45 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-import datetime
 import itertools
-import pytz
 
 from celery import states as celery_states
 from django.db import transaction
 from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
-
-from rest_framework import exceptions
-from rest_framework.decorators import detail_route
+from rest_framework import exceptions, viewsets
+from rest_framework.decorators import action
 from rest_framework.generics import GenericAPIView
-from rest_framework.permissions import DjangoModelPermissions
 from rest_framework.response import Response
-from rest_framework.permissions import DjangoModelPermissions
-
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-from ESSArch_Core.WorkflowEngine.filters import ProcessStepFilter, ProcessTaskFilter
-from ESSArch_Core.WorkflowEngine.models import (ProcessStep, ProcessTask,)
-from ESSArch_Core.WorkflowEngine.permissions import CanRetry, CanUndo
-from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessStepSerializer,
-    ProcessStepDetailSerializer,
-    ProcessStepChildrenSerializer,
-    ProcessTaskSerializer,
-    ProcessTaskDetailSerializer,
-)
+from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.ip.models import InformationPackage
-
-from rest_framework import viewsets
+from ESSArch_Core.WorkflowEngine.filters import (
+    ProcessStepFilter,
+    ProcessTaskFilter,
+)
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.permissions import (
+    CanRetry,
+    CanRevoke,
+    CanRun,
+    CanUndo,
+)
+from ESSArch_Core.WorkflowEngine.serializers import (
+    ProcessStepChildrenSerializer,
+    ProcessStepDetailSerializer,
+    ProcessStepSerializer,
+    ProcessTaskDetailSerializer,
+    ProcessTaskSerializer,
+)
 
 
 class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
@@ -68,8 +69,7 @@ class ProcessViewSet(GenericAPIView, viewsets.ViewSet):
 
         queryset = sorted(
             itertools.chain(child_steps, tasks),
-            key=lambda instance: instance.time_started or
-            datetime.datetime(datetime.MAXYEAR, 1, 1, 1, 1, 1, 1, pytz.UTC)
+            key=lambda instance: instance.get_pos()
         )
 
         page = self.paginate_queryset(queryset)
@@ -88,7 +88,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     """
     queryset = ProcessStep.objects.none()
     serializer_class = ProcessStepSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProcessStepFilter
 
@@ -105,7 +105,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
 
         return ProcessStepDetailSerializer
 
-    @detail_route(methods=['get'], url_path='child-steps')
+    @action(detail=True, methods=['get'], url_path='child-steps')
     def child_steps(self, request, pk=None):
         step = self.get_object()
         child_steps = step.child_steps.all()
@@ -123,27 +123,44 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = ProcessTask.objects.none()
     serializer_class = ProcessTaskSerializer
-    permission_classes = (DjangoModelPermissions,)
+    permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = ProcessTaskFilter
 
     def get_queryset(self):
         user = self.request.user
         ips = InformationPackage.objects.visible_to_user(user)
-        queryset = ProcessTask.objects.select_related('responsible').filter(Q(information_package__in=ips) | Q(information_package__isnull=True)).distinct()
-        return queryset
+        queryset = ProcessTask.objects.select_related('responsible').filter(
+            Q(information_package__in=ips) | Q(information_package__isnull=True)
+        ).distinct()
+        return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
-        if self.action == 'list':
+        if self.action in ['create', 'list']:
             return ProcessTaskSerializer
 
         return ProcessTaskDetailSerializer
 
     @transaction.atomic
-    @detail_route(methods=['post'], permission_classes=[CanRetry])
+    @action(detail=True, methods=['post'], permission_classes=[CanRun])
+    def run(self, request, pk=None):
+        self.get_object().run()
+        return Response({'status': 'running task'})
+
+    @action(detail=True, methods=['post'], permission_classes=[CanRevoke])
+    def revoke(self, request, pk=None):
+        obj = self.get_object()
+        if obj.status != celery_states.STARTED:
+            raise exceptions.ParseError('Only running tasks can be revoked')
+
+        obj.revoke()
+        return Response({'status': 'revoked task'})
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
-        if obj.status != celery_states.FAILURE:
+        if obj.status not in celery_states.EXCEPTION_STATES:
             raise exceptions.ParseError('Only failed tasks can be retried')
 
         root = obj.get_root_step()
@@ -156,7 +173,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response({'status': 'retries task'})
 
     @transaction.atomic
-    @detail_route(methods=['post'], permission_classes=[CanUndo])
+    @action(detail=True, methods=['post'], permission_classes=[CanUndo])
     def undo(self, request, pk=None):
         self.get_object().undo()
         return Response({'status': 'undoing task'})

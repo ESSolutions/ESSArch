@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,63 +15,62 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from collections import OrderedDict
-
-import six
-from django.http import HttpResponse
-from django.utils.decorators import method_decorator
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from rest_framework.generics import get_object_or_404
-from .models import templatePackage, extensionPackage
-from ESSArch_Core.profiles.models import Profile
-from ESSArch_Core.essxml.ProfileMaker.xsdtojson import generateJsonRes, generateExtensionRef
-import requests
-from lxml import etree
-#file upload
-# import the logging library and get an instance of a logger
-import logging
-logger = logging.getLogger('code.exceptions')
-
-# import re
 import copy
 import json
+import logging
 import uuid
+from collections import OrderedDict
 
+import requests
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views.generic import View
-from django.http import JsonResponse
-from .forms import AddTemplateForm, AddExtensionForm
+from lxml import etree
+from rest_framework.generics import get_object_or_404
+
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
+from ESSArch_Core.profiles.models import Profile
+
+from .forms import AddExtensionForm, AddTemplateForm
+from .models import extensionPackage, templatePackage
+
+logger = logging.getLogger('code.exceptions')
 
 
 def constructContent(text):
     res = []
     i = text.find('{{')
-    if i > 0: # default text followed by variable
+    if i > 0:  # default text followed by variable
         d = {}
         d['text'] = text[0:i]
         res.append(d)
         r = constructContent(text[i:])
         for j in range(len(r)):
             res.append(r[j])
-    elif i == -1: # no variable found, only eventual default text
+    elif i == -1:  # no variable found, only eventual default text
         if len(text) > 0:
             d = {}
             d['text'] = text
             res.append(d)
-    else: # variable followed by eventual default text
-        d = {};
-        v = text[i+2:]
+    else:  # variable followed by eventual default text
+        d = {}
+        v = text[i + 2:]
         i = v.find('}}')
         d['var'] = v[0:i]
-        res.append(d);
-        r = constructContent(v[i+2:])
+        res.append(d)
+        r = constructContent(v[i + 2:])
         for j in range(len(r)):
             res.append(r[j])
     return res
@@ -133,7 +132,7 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
 
         att = OrderedDict()
 
-        if attrib['key'] in element['formData']: # if custom value has been entered
+        if attrib['key'] in element['formData']:  # if custom value has been entered
             content = constructContent(element['formData'][attrib['key']])
             att['#content'] = content
         else:
@@ -181,7 +180,9 @@ def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, n
     el['-children'] = []
 
     for child in element['children']:
-        e, f, d = generateElement(elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace)
+        e, f, d = generateElement(
+            elements, child['uuid'], takenNames, containsFiles=containsFiles, namespace=namespace
+        )
         if e:
             el['-children'].append(e)
             for field in f:
@@ -205,7 +206,7 @@ def getElements(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     res = []
     for extension in obj.extensions.all():
-        if extension.existingElements != None and len(extension.existingElements) > 0:
+        if extension.existingElements is not None and len(extension.existingElements) > 0:
             r = {}
             r['name'] = extension.namespace
             children = []
@@ -233,12 +234,12 @@ def removeChild(request, name, uuid):
         if child['uuid'] == uuid:
             try:
                 name = child['name'].split('#')[0]
-            except:
+            except BaseException:
                 name = child['name']
 
             deleted_name = name
             del parent['children'][index]
-            break;
+            break
 
         index += 1
 
@@ -247,14 +248,14 @@ def removeChild(request, name, uuid):
             try:
                 name, copy_idx = child['name'].split('#')
                 copy_idx = int(copy_idx)
-            except:
+            except BaseException:
                 name = child['name']
 
             if deleted_name == name:
                 if copy_idx and copy_idx == 1:
                     child['name'] = name
                 else:
-                    child['name'] = name + "#" + str(copy_idx-1)
+                    child['name'] = name + "#" + str(copy_idx - 1)
 
                 existingElements[child["uuid"]]["name"] = child["name"]
 
@@ -264,7 +265,7 @@ def removeChild(request, name, uuid):
     return JsonResponse(existingElements, safe=False)
 
 
-def removeChildren(existingElements , element):
+def removeChildren(existingElements, element):
     for child in element['children']:
         removeChildren(existingElements, existingElements[child['uuid']])
         del existingElements[child['uuid']]
@@ -349,7 +350,7 @@ def addChild(request, name, newElementName, elementUuid):
     newElement['parent'] = elementUuid
     existingElements[newUuid] = newElement
 
-    #calculate which elements should be before
+    # calculate which elements should be before
     cb = calculateChildrenBefore(existingElements[elementUuid]['availableChildren'], newElementName)
 
     index = 0
@@ -357,11 +358,11 @@ def addChild(request, name, newElementName, elementUuid):
     for idx, child in enumerate(existingElements[elementUuid]['children']):
         try:
             name = child['name'].split('#')[0]
-        except:
+        except BaseException:
             name = child['name']
 
         if name == newElementName:
-            index = idx+1
+            index = idx + 1
 
     if index > 0:
         newElementName += "#" + str(index)
@@ -398,7 +399,7 @@ def getAttributes(request, name):
     obj = get_object_or_404(templatePackage, pk=name)
     res = []
     for extension in obj.extensions.all():
-        if extension.allAttributes != None and len(extension.allAttributes) > 0:
+        if extension.allAttributes is not None and len(extension.allAttributes) > 0:
             r = {}
             r['name'] = extension.prefix
             children = []
@@ -453,7 +454,7 @@ class index(View):
     template_name = 'templateMaker/index.html'
 
     def get(self, request, *args, **kwargs):
-        objs = templatePackage.objects.all()#.values('name')
+        objs = templatePackage.objects.all()  # .values('name')
         context = {
             'templates': objs
         }
@@ -496,9 +497,9 @@ class add(View):
 
             schemadoc = etree.fromstring(schema_request.content)
             targetNamespace = schemadoc.get('targetNamespace')
-            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
 
-            existingElements, allElements = generateJsonRes(schemadoc, root, prefix);
+            existingElements, allElements = generateJsonRes(schemadoc, root, prefix)
             existingElements["root"]["nsmap"] = nsmap
 
             templatePackage.objects.create(
@@ -542,7 +543,7 @@ class addExtension(View):
             schema_request.raise_for_status()
 
             schemadoc = etree.fromstring(schema_request.content)
-            nsmap = {k: v for k, v in six.iteritems(schemadoc.nsmap) if k and v != "http://www.w3.org/2001/XMLSchema"}
+            nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
             targetNamespace = schemadoc.get('targetNamespace')
 
             extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)

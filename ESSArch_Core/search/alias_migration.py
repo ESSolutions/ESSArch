@@ -1,12 +1,13 @@
 """
 Methods for updating the mapping of a doctype by reindexing and updating the alias
 
-see https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f4ecf9ea1ce2e0387f/examples/alias_migration.py
+https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f4ecf9ea1ce2e0387f/examples/alias_migration.py
 """
 from datetime import datetime
 
 from elasticsearch_dsl import IndexTemplate
 from elasticsearch_dsl.connections import get_connection
+
 
 def setup_index(doctype):
     """
@@ -35,8 +36,6 @@ def setup_index(doctype):
                 {"add": {"alias": alias, "index": index}},
             ]
         })
-    else:
-        migrate(doctype, move_data=True, update_alias=True)
 
 
 def get_next_index(pattern):
@@ -58,7 +57,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     es = get_connection()
 
     # get current index name from the alias
-    current_index = es.indices.get_alias(doctype._index._name).keys()[0]
+    current_index = list(es.indices.get_alias(doctype._index._name))[0]
 
     # construct a new index name by appending current timestamp
     alias = doctype._index._name

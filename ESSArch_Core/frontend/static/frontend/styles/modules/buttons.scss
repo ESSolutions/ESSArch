@@ -1,0 +1,23 @@
+.btn-dark {
+  background-color: darken($header-color, 5%);
+  color: white;
+  border-color: darken($header-color, 7%);
+  &:hover,
+  &:focus {
+    color: white;
+    border-color: darken($header-color, 6%);
+    background-color: darken($header-color, 4%);
+  }
+  outline: 0;
+}
+
+.btn-small {
+  padding: 0px 16px;
+  width: auto;
+}
+
+.help-button {
+  color: $border-color;
+  padding: 0 5px;
+  display: inline;
+}

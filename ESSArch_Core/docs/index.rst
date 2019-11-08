@@ -1,25 +1,23 @@
-.. ESSArch Core documentation master file, created by
+.. ESSArch documentation master file, created by
    sphinx-quickstart on Wed Jan 25 14:11:42 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-ESSArch Core
+ESSArch
 ==================================================
 
 .. toctree::
     :maxdepth: 10
 
+    introduction
+    installation/index
+    authentication_authorization/index
     configuration/index
     development
     directory_structure
-    installation/index
+    external_logging
+    format-identifier
+    profiles/index
     restapi/index
-
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+    user_guide/index
+    xml-generator

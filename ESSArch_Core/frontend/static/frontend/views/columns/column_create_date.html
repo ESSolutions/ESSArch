@@ -1,0 +1,13 @@
+<div ng-if="!subrow">
+  <div ng-if="row.state !== 'At reception'" class="white-space-nowrap">
+    {{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
+  </div>
+  <div ng-if="row.state === 'At reception'" class="white-space-nowrap">
+    {{""}}
+  </div>
+</div>
+<div ng-if="subrow">
+  <div class="white-space-nowrap">
+    {{subrow.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
+  </div>
+</div>

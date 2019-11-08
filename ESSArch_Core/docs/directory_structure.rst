@@ -8,36 +8,27 @@ This the default structure of the data directories. Administrators can change
 these paths using the administration interface.
 
 
-.. code-block:: txt
+.. code-block:: text
 
     /ESSArch/data/
-    ├── epp
-    │   ├── access
-    │   ├── cache
-    │   ├── disseminations
-    │   ├── ingest
-    │   ├── orders
-    │   ├── reports
-    │   │   ├── appraisal
-    │   │   └── conversion
-    │   ├── temp
-    │   ├── work
-    │   └── workarea
-    ├── eta
+    ├── disseminations
+    ├── ingest
+    │   ├── packages
     │   ├── reception
-    │   │   └── eft
-    │   ├── uip
-    │   └── work
-    │       └── admin
-    ├── etp
+    │   └── uip
+    ├── orders
+    ├── preingest
     │   ├── prepare
-    │   ├── prepare_reception
-    │   └── reception
-    ├── gate
     │   └── reception
     ├── receipts
     │   └── xml
-    ├── remote
-    └── store
-        ├── disk1
-        └── longterm_disk1
+    ├── reports
+    │   ├── appraisal
+    │   └── conversion
+    ├── store
+    │   ├── cache
+    │   ├── disk1
+    │   └── longterm_disk1
+    ├── temp
+    ├── verify
+    └── workspace

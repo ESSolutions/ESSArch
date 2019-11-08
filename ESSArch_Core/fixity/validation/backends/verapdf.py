@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import errno
 import logging
 import os
@@ -26,7 +24,9 @@ def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
     policy = '--policyfile "{policy}"'.format(policy=policy) if policy else ''
     extract_features = '-x' if extract_features else ''
     validate = '' if validate else '-o'
-    cmd = 'verapdf {validate} {extract_features} {policy} "{file}"'.format(validate=validate, extract_features=extract_features, policy=policy, file=filepath)
+    cmd = 'verapdf {validate} {extract_features} {policy} "{file}"'.format(
+        validate=validate, extract_features=extract_features, policy=policy, file=filepath
+    )
 
     logger.debug(cmd)
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
@@ -37,17 +37,25 @@ def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
 def get_outcome(root):
     xpaths = []
 
-    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and (@*[local-name()="nonCompliant"] > 0 or @*[local-name()="failedJobs"] > 0)][1]'.format(
-        el='validationReports')
+    xpath = '''//*[local-name()="batchSummary"]
+                /*[local-name()="{el}" and
+                    (@*[local-name()="nonCompliant"] > 0 or @*[local-name()="failedJobs"] > 0)
+                ][1]'''.format(el='validationReports')
     xpaths.append(xpath)
 
-    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(el='featureReports')
+    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(
+        el='featureReports'
+    )
     xpaths.append(xpath)
 
-    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(el='repairReports')
+    xpath = '//*[local-name()="batchSummary"]/*[local-name()="{el}" and @*[local-name()="failedJobs"] > 0][1]'.format(
+        el='repairReports'
+    )
     xpaths.append(xpath)
 
-    xpath = '//*[local-name()="{el}" and @*[local-name()="{attr}"] > 0][1]'.format(el='policyReport', attr='failedChecks')
+    xpath = '//*[local-name()="{el}" and @*[local-name()="{attr}"] > 0][1]'.format(
+        el='policyReport', attr='failedChecks'
+    )
     xpaths.append(xpath)
 
     for xpath in xpaths:

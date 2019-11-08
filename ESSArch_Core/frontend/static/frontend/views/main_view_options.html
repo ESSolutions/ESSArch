@@ -1,0 +1,40 @@
+<div>
+  <div ng-controller="UtilCtrl" class="main-view-options">
+    <a href="/admin/" class="btn btn-primary"> {{ "SETTINGS" | translate }}&nbsp;<i class="fas fa-cog"></i> </a>
+    <a ui-sref="home.system" class="btn btn-primary">
+      {{ "HELP" | translate }}&nbsp;<i class="fas fa-question-circle"></i>
+    </a>
+    <a ng-click="gotoDocs()" class="btn btn-primary"> {{ "DOCS" | translate }}&nbsp;<i class="fas fa-book"></i> </a>
+  </div>
+  <div class="main-page-selects">
+    <div ng-controller="OrganizationCtrl" class="organization-select">
+      <label>
+        {{ "ORGANIZATION.ORGANIZATION" | translate }}
+      </label>
+      <select
+        tabindex="-1"
+        class="form-control"
+        ng-model="currentOrganization"
+        ng-disabled="availableOrganizations.length === 0"
+        ng-change="changeOrganization(); updateListView()"
+        ng-options="x as x.name for x in availableOrganizations track by x.id"
+      >
+        <option ng-hide="availableOrganizations.length > 0" selected value=""
+          >{{ "ORGANIZATION.NO_ORGANIZATIONS" | translate }}</option
+        >
+      </select>
+    </div>
+    <div ng-controller="LanguageCtrl as vm" class="language-select">
+      <label>
+        {{ "LANGUAGE" | translate }}
+      </label>
+      <select
+        tabindex="-1"
+        class="form-control"
+        ng-model="vm.currentLanguage"
+        ng-change="vm.changeLanguage(vm.currentLanguage)"
+        ng-options="x | translate for x in vm.availableLanguages"
+      ></select>
+    </div>
+  </div>
+</div>

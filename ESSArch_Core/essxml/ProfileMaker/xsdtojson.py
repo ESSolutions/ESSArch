@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -25,22 +25,17 @@
 import copy
 from collections import OrderedDict
 
-import six
-
 from ESSArch_Core.essxml.Generator.xmlStructure import (
-    xmlElement,
-    TYPE_ELEMENT,
     TYPE_CHOISE,
     TYPE_TO,
     TYPE_TO_CHOISE,
+    xmlElement,
 )
 
 complexTypes = OrderedDict()
 attributeGroups = OrderedDict()
 groups = OrderedDict()
 elementTypes = {}
-pretty = True
-eol_ = '\n'
 choiseCount = 0
 elCount = {}
 finishedGroups = OrderedDict()
@@ -108,7 +103,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                     usedTypes.append(key)
                     analyze2(elementTypes[key], tree, usedTypes=usedTypes)
                 else:
-                    print("type unknown: " +key)
+                    print("type unknown: " + key)
         else:
             t = xmlElement(element.get('name'), namespace=tree.namespace)
             t.karMin = minC
@@ -123,7 +118,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                 att['key'] = '#content'
                 att['type'] = 'input'
                 templateOptions = OrderedDict()
-                templateOptions['type'] = 'text' # TODO
+                templateOptions['type'] = 'text'  # TODO
                 templateOptions['label'] = 'Content'
                 templateOptions['placeholder'] = 'Content'
                 templateOptions['required'] = True
@@ -188,7 +183,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
                     analyze2(child, tree, usedTypes=usedTypes)
         else:
             att = parseAttribute(element)
-            if att != None:
+            if att is not None:
                 tree.attributes.append(att)
             else:
                 print('attribute == none')
@@ -208,7 +203,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
         att['key'] = '#content'
         att['type'] = 'input'
         templateOptions = OrderedDict()
-        templateOptions['type'] = 'text' # TODO
+        templateOptions['type'] = 'text'  # TODO
         templateOptions['label'] = 'Content'
         templateOptions['placeholder'] = 'Content'
         templateOptions['required'] = True
@@ -240,7 +235,7 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
             tree.addChild(t)
 
     elif tag == 'annotation':
-        pass # comments
+        pass  # comments
     else:
         print('other: ' + tag)
 
@@ -256,7 +251,7 @@ def parseAttribute(element):
         att['type'] = 'input'
         att['key'] = name
         templateOptions = OrderedDict()
-        templateOptions['type'] = 'text'  #TODO add options
+        templateOptions['type'] = 'text'  # TODO add options
         templateOptions['label'] = name
         use = element.get('use')
         if use is None or use == 'optional':
@@ -295,7 +290,7 @@ def parseAttribute(element):
                                     a['value'] = c.get('value')
                                     enumerations.append(a)
                                 elif isinstance(c.tag, str):
-                                    print("unknown restriction: " + c.tag) #TODO handle regex string
+                                    print("unknown restriction: " + c.tag)  # TODO handle regex string
                             if len(enumerations) > 0:
                                 if not req:
                                     a = OrderedDict()
@@ -317,26 +312,24 @@ def generateExtensionRef(schemadoc, namespace):
     global groups
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
-    thisSchema = ''
-    thisVersion = ''
 
-    for key, value in six.iteritems(schemadoc.attrib):
+    for key, value in schemadoc.attrib.items():
         if key == 'targetNamespace':
-            thisSchema = value
+            pass  # handle namespace? TODO
         elif key == 'version':
-            thisVersion = value
+            pass  # handle version? TODO
         elif key == 'id':
-            pass # handle id? TODO
+            pass  # handle id? TODO
         elif key == 'attributeFormDefault':
-            pass # handle attributeFormDefault? TODO
+            pass  # handle attributeFormDefault? TODO
         elif key == 'elementFormDefault':
-            pass # handle elementFormDefault? TODO
+            pass  # handle elementFormDefault? TODO
         elif key == 'blockDefault':
-            pass # handle blockDefault? TODO
+            pass  # handle blockDefault? TODO
         elif key == 'finalDefault':
-            pass # handle finalDefault? TODO
+            pass  # handle finalDefault? TODO
         elif key == 'xmlns':
-            pass # handle xmlns? TODO
+            pass  # handle xmlns? TODO
         else:
             print('unknown schema attribute: ' + key + ', ' + value)
 
@@ -385,26 +378,24 @@ def generateJsonRes(schemadoc, rootElement, namespace):
     global groups
     global elementTypes
     schema = '{http://www.w3.org/2001/XMLSchema}'
-    thisSchema = ''
-    thisVersion = ''
 
-    for key, value in six.iteritems(schemadoc.attrib):
+    for key, value in schemadoc.attrib.items():
         if key == 'targetNamespace':
-            thisSchema = value
+            pass  # handle namespace? TODO
         elif key == 'version':
-            thisVersion = value
+            pass  # handle version? TODO
         elif key == 'id':
-            pass # handle id? TODO
+            pass  # handle id? TODO
         elif key == 'attributeFormDefault':
-            pass # handle attributeFormDefault? TODO
+            pass  # handle attributeFormDefault? TODO
         elif key == 'elementFormDefault':
-            pass # handle elementFormDefault? TODO
+            pass  # handle elementFormDefault? TODO
         elif key == 'blockDefault':
-            pass # handle blockDefault? TODO
+            pass  # handle blockDefault? TODO
         elif key == 'finalDefault':
-            pass # handle finalDefault? TODO
+            pass  # handle finalDefault? TODO
         elif key == 'xmlns':
-            pass # handle xmlns? TODO
+            pass  # handle xmlns? TODO
         else:
             print('unknown schema attribute: ' + key + ', ' + value)
 
@@ -441,107 +432,6 @@ def generateJsonRes(schemadoc, rootElement, namespace):
                     return existingElements, allElements
 
     # root element not found
-    raise ValueError({'rootElement': 'Root must be in %s' % [c.get('name') for c in schemadoc.iterfind(schema + 'element')]})
-
-# a,b,c=generateExtensionRef("/Users/Axenu/Developer/ESSArch_Tools_Producer/ESSArch_TP2/esscore/template/templateGenerator/xlink.xsd", 'ead')
-# print c
-# for key in c:
-#     print key
-# print generate(2)
-# print generate(3)
-# print generate(4)
-                    # json.dump(tree.generateJSON(), outfile)
-                # with open('test2.txt', 'wb') as outfile:
-                #     name, content = tree.generateJSONTemplate()
-                #     arr = OrderedDict()
-                #     arr[name] = content
-                #     json.dump(arr, outfile)
-                # tree.printDebug()
-                # tree.printXML(xmlFile)
-                # print tree.generateJSON()
-            # ch = analyze(child)
-            # if ch != None:
-            #     for c in ch:
-            #         c.printXML(xmlFile)
-#     for c in child:
-#         if printTag(child.tag) == 'complexType':
-#             # go deeper
-#             for ch in c:
-#
-#     print printTag(child.tag)
-
-# attribute = {
-#     "MIMETYPE": {
-#         "type": "string",
-#         "use": "optional"
-#     },
-#     "CHECKSUMTYPE": {
-#         "type": "string",
-#         "use":"optional",
-#         "restrictions": {
-#             "enumeration": ["MD5", "SHA-1", "SHA-256"]
-#         }
-#     }
-# }
-#
-# attribute2 = [
-#     {
-#         'key': 'ROLE',
-#         'type': 'input',
-#         'templateOptions': {
-#             'type': 'text',
-#             'label': 'ROLE',
-#             'placeholder': 'string',
-#             'required': True
-#         }
-#     },
-#     {
-#         'key': 'OTHERROLE',
-#         'type': 'select',
-#         'templateOptions': {
-#             'label': 'OTHERROLE',
-#             'options': [
-#                 {'name': 'CREATOR', 'value': 'CREATOR'},
-#                 {'name': 'EDITOR', 'value': 'EDITOR'},
-#                 {'name': 'ARCHIVIST', 'value': 'ARCHIVIST'},
-#             ]
-#         }
-#     },
-# ]
-
-# result = {
-#     {
-#         "name": "mets",
-#         "children": [
-#             #repeat
-#         ],
-#         "attributes": [
-#             {
-#                 'key': 'ROLE',
-#                 'type': 'input',
-#                 'templateOptions': {
-#                     'type': 'text',
-#                     'label': 'ROLE',
-#                     'placeholder': 'string',
-#                     'required': 'True'
-#                 }
-#             },
-#             {
-#                 'key': 'OTHERROLE',
-#                 'type': 'select',
-#                 'templateOptions': {
-#                     'label': 'OTHERROLE',
-#                     'options': [
-#                         {'name': 'CREATOR', 'value': 'CREATOR'},
-#                         {'name': 'EDITOR', 'value': 'EDITOR'},
-#                         {'name': 'ARCHIVIST', 'value': 'ARCHIVIST'},
-#                     ]
-#                 }
-#             }
-#         ],
-#         "meta": {
-#             "min": "0",
-#             "max": "1"
-#         }
-#     }
-# }
+    raise ValueError({
+        'rootElement': 'Root must be in %s' % [c.get('name') for c in schemadoc.iterfind(schema + 'element')]
+    })

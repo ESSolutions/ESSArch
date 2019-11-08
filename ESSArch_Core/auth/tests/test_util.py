@@ -1,4 +1,3 @@
-import six
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -7,7 +6,11 @@ from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
 from ESSArch_Core.auth.models import Group, GroupMemberRole, GroupType
-from ESSArch_Core.auth.util import get_objects_for_user, get_user_groups, get_user_roles
+from ESSArch_Core.auth.util import (
+    get_objects_for_user,
+    get_user_groups,
+    get_user_roles,
+)
 from ESSArch_Core.ip.models import InformationPackage
 
 User = get_user_model()
@@ -34,7 +37,7 @@ class GetUserGroupsTests(TestCase):
     def test_multiple_groups_created_for_user(self):
         grp1 = Group.objects.create(name="1")
         grp2 = Group.objects.create(name="2")
-        grp3 = Group.objects.create(name="3")
+        Group.objects.create(name="3")
 
         grp1.add_member(self.member)
         grp2.add_member(self.member)
@@ -60,9 +63,9 @@ class GetUserGroupsTests(TestCase):
         grp1 = Group.objects.create(name="1")
         grp2 = Group.objects.create(name="2", parent=grp1)
         grp3 = Group.objects.create(name="3", parent=grp2)
-        grp4 = Group.objects.create(name="4", parent=grp3)
-        grp5 = Group.objects.create(name="5", parent=grp2)
-        grp6 = Group.objects.create(name="6", parent=grp1)
+        Group.objects.create(name="4", parent=grp3)
+        Group.objects.create(name="5", parent=grp2)
+        Group.objects.create(name="6", parent=grp1)
 
         grp2.add_member(self.member)
 
@@ -111,7 +114,7 @@ class GetUserRolesTests(TestCase):
     def test_only_roles_from_current_organization_is_returned(self):
         grp = Group.objects.create(name="1", group_type=self.org_group_type)
         grp2 = Group.objects.create(name="2", group_type=self.org_group_type)
-        
+
         role1 = GroupMemberRole.objects.create(codename="1")
         role2 = GroupMemberRole.objects.create(codename="2")
 
@@ -165,7 +168,7 @@ class GetUserRolesTests(TestCase):
 
         self.user.user_profile.current_organization = grp3
         self.user.user_profile.save()
-        six.assertCountEqual(self, list(get_user_roles(self.user).values_list('codename', flat=True)), ['1', '2', '3'])
+        self.assertCountEqual(list(get_user_roles(self.user).values_list('codename', flat=True)), ['1', '2', '3'])
 
 
 class GetObjectsForUserTests(TestCase):
@@ -181,10 +184,10 @@ class GetObjectsForUserTests(TestCase):
         qs = InformationPackage.objects.all()
         self.assertFalse(get_objects_for_user(self.user, qs, []).exists())
 
-    def test_no_objects_for_user_without_permission(self):
+    def test_objects_without_any_permissions_available_for_all(self):
         InformationPackage.objects.create()
         qs = InformationPackage.objects.all()
-        self.assertFalse(get_objects_for_user(self.user, qs, []).exists())
+        self.assertTrue(get_objects_for_user(self.user, qs, []).exists())
 
     def test_objects_added_to_user(self):
         ip = InformationPackage.objects.create()
@@ -227,7 +230,7 @@ class GetObjectsForUserTests(TestCase):
 
         parent = Group.objects.create(name='parent')
         parent.add_member(self.member)
-        group = Group.objects.create(parent=parent)
+        Group.objects.create(parent=parent)
 
         perm_name = get_permission_name('view_informationpackage', ip)
         assign_perm(perm_name, parent.django_group, ip)

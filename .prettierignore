@@ -1,0 +1,4 @@
+node_modules
+ESSArch_Core/frontend/static/frontend/build
+ESSArch_Core/**/templates
+ESSArch_Core/templates

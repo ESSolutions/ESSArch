@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
             name='ConversionJob',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('status', models.CharField(choices=[(b'RECEIVED', b'RECEIVED'), (b'RETRY', b'RETRY'), (b'REVOKED', b'REVOKED'), (b'SUCCESS', b'SUCCESS'), (b'STARTED', b'STARTED'), (b'FAILURE', b'FAILURE'), (b'PENDING', b'PENDING')], default=b'PENDING', max_length=50)),
+                ('status', models.CharField(choices=[('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('SUCCESS', 'SUCCESS'), ('STARTED', 'STARTED'), ('FAILURE', 'FAILURE'), ('PENDING', 'PENDING')], default='PENDING', max_length=50)),
                 ('start_date', models.DateTimeField(null=True)),
                 ('end_date', models.DateTimeField(null=True)),
             ],
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255)),
-                ('frequency', models.CharField(blank=True, default=b'', max_length=255)),
+                ('frequency', models.CharField(blank=True, default='', max_length=255)),
                 ('specification', jsonfield.fields.JSONField(default=None, null=True)),
                 ('information_packages', models.ManyToManyField(related_name='conversion_rules', to='ip.InformationPackage')),
             ],

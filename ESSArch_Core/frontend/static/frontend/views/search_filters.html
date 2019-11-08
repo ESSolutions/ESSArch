@@ -1,0 +1,68 @@
+<h3>Handlingar</h3>
+
+<label>
+  Handlingstyp
+  <input
+    ng-model="vm.filterObject.handlingstyp"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+<label>
+  Rubrik
+  <input
+    ng-model="vm.filterObject.rubrik"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+<label>
+  Status
+  <input
+    ng-model="vm.filterObject.status"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+
+<h3>Agenter</h3>
+
+<label>
+  Namn
+  <input
+    ng-model="vm.filterObject.agenter__namn"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+<label>
+  Roll
+  <input
+    ng-model="vm.filterObject.agenter__roll"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+<label>
+  Enhet
+  <input
+    ng-model="vm.filterObject.agenter__enhet"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>
+<label>
+  Organisation
+  <input
+    ng-model="vm.filterObject.status__organisation"
+    class="form-control"
+    ng-enter="vm.searchSubmit(vm.searchString)"
+    ng-blur="vm.searchSubmit(vm.searchString)"
+  />
+</label>

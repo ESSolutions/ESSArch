@@ -2,7 +2,13 @@ import importlib
 
 from django.conf import settings
 
-AVAILABLE_TRANSFORMERS = {}
+AVAILABLE_TRANSFORMERS = {
+    'content': 'ESSArch_Core.fixity.transformation.backends.content.ContentTransformer',
+    'filename': 'ESSArch_Core.fixity.transformation.backends.filename.FilenameTransformer',
+    'repeated_extension': (
+        'ESSArch_Core.fixity.transformation.backends.repeated_extension.RepeatedExtensionTransformer'
+    ),
+}
 
 extra_transformers = getattr(settings, 'ESSARCH_TRANSFORMERS', {})
 AVAILABLE_TRANSFORMERS.update(extra_transformers)

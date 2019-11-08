@@ -1,0 +1,189 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'INFORMATION_PACKAGE_INFORMATION' | translate}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <div ng-if="$ctrl.initLoad" class="loading-column text-center">{{'LOADING' | translate}}</div>
+  <div ng-if="!$ctrl.initLoad">
+    <div class="table-container table-x-overflow">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>{{'NAME' | translate}}</th>
+            <th>{{'VALUE' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{'OBJECT_IDENTIFIER_VALUE' | translate}}</td>
+            <td>{{$ctrl.ip.object_identifier_value}}</td>
+          </tr>
+          <tr>
+            <td>{{'LABEL' | translate}}</td>
+            <td>{{$ctrl.ip.label}}</td>
+          </tr>
+          <tr>
+            <td>{{'APPRAISAL_DATE' | translate}}</td>
+            <td>
+              <span ng-if="!$ctrl.editMode['appraisal_date']"
+                >{{$ctrl.ip.appraisal_date ? ($ctrl.ip.appraisal_date | date:"yyyy-MM-dd"):('UNSPECIFIED' |
+                translate)}}</span
+              >
+              <div ng-if="$ctrl.editMode['appraisal_date']" class="edit-field-row">
+                <div class="dropdown" uib-dropdown is-open="status.appraisal_date">
+                  <a class="dropdown-toggle" id="dropdown-appraisalDate" role="button" uib-dropdown-toggle>
+                    <div class="input-group">
+                      <input
+                        type="text"
+                        data-date-time-input="YYYY-MM-DD"
+                        class="form-control"
+                        ng-init="$ctrl.ipModifications['appraisal_date'] = $ctrl.ip.appraisal_date"
+                        data-ng-model="$ctrl.ipModifications['appraisal_date']"
+                        ng-enter="$ctrl.saveIpModifications()"
+                      /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+                    </div>
+                  </a>
+                  <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+                    <datetimepicker
+                      data-ng-model="$ctrl.ipModifications['appraisal_date']"
+                      ng-change="status.appraisal_date = false"
+                      data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType: 'YYYY-MM-DDTHH:mm:ssZ'}"
+                    />
+                  </ul>
+                </div>
+                <input
+                  ng-enter="$ctrl.saveIpModifications()"
+                  placeholder="{{'COMMENT' | translate}}..."
+                  class="signature form-control"
+                  ng-model="$ctrl.ipModifications['comment']"
+                />
+                <button
+                  class="btn btn-primary btn-sm"
+                  ng-disabled="$ctrl.ipModifications['appraisal_date'] == $ctrl.ip.appraisal_date || angular.isUndefined($ctrl.ipModifications['appraisal_date'])"
+                  ng-click="$ctrl.saveIpModifications()"
+                >
+                  {{'SAVE' | translate}}
+                </button>
+                <button class="btn btn-default btn-sm" ng-click="$ctrl.closeIpEdit('appraisal_date')">
+                  {{'CANCEL' | translate}}
+                </button>
+              </div>
+              &nbsp;<i
+                class="fas fa-pencil cursor-pointer"
+                ng-click="$ctrl.editField('appraisal_date')"
+                ng-if="!$ctrl.editMode['appraisal_date']"
+              ></i>
+            </td>
+          </tr>
+          <tr>
+            <td>{{'PACKAGE_TYPE' | translate}}</td>
+            <td>{{$ctrl.ip.package_type}}</td>
+          </tr>
+          <tr>
+            <td>{{'OBJECT_SIZE' | translate}}</td>
+            <td>{{$ctrl.ip.object_size}}</td>
+          </tr>
+          <tr>
+            <td>{{'RESPONSIBLE' | translate}}</td>
+            <td>{{$ctrl.ip.responsible.username}}</td>
+          </tr>
+          <tr>
+            <td>{{'CREATE_DATE' | translate}}</td>
+            <td>{{$ctrl.ip.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+          </tr>
+          <tr>
+            <td>{{'ENTRY_DATE' | translate}}</td>
+            <td>{{$ctrl.ip.entry_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+          </tr>
+          <tr>
+            <td>{{'LONGTERM_ARCHIVAL_STORAGE' | translate}}</td>
+            <td>{{$ctrl.ip.archived?'YES':'NO' | translate}}</td>
+          </tr>
+          <tr>
+            <td>{{'ARCHIVAL_STORAGE' | translate}}</td>
+            <td>{{$ctrl.ip.cached?'YES':'NO' | translate}}</td>
+          </tr>
+          <tr>
+            <td>{{'ARCHIVAL_INSTITUTION' | translate}}</td>
+            <td>{{$ctrl.ip.archival_institution}}</td>
+          </tr>
+          <tr>
+            <td>{{'ARCHIVIST_ORGANIZATION' | translate}}</td>
+            <td>{{$ctrl.ip.archivist_organization.name}}</td>
+          </tr>
+          <tr>
+            <td>{{'content_mets_create_date' | translate}}</td>
+            <td>{{$ctrl.ip.content_mets_create_date}}</td>
+          </tr>
+          <tr>
+            <td>{{'content_mets_size' | translate}}</td>
+            <td>{{$ctrl.ip.content_mets_size}}</td>
+          </tr>
+          <tr>
+            <td>{{'content_mets_digest_algorithm' | translate}}</td>
+            <td>{{$ctrl.ip.content_mets_digest_algorithm}}</td>
+          </tr>
+          <tr>
+            <td>{{'content_mets_digest' | translate}}</td>
+            <td>{{$ctrl.ip.content_mets_digest}}</td>
+          </tr>
+          <tr>
+            <td>{{'package_mets_create_date' | translate}}</td>
+            <td>{{$ctrl.ip.package_mets_create_date}}</td>
+          </tr>
+          <tr>
+            <td>{{'package_mets_size' | translate}}</td>
+            <td>{{$ctrl.ip.package_mets_size}}</td>
+          </tr>
+          <tr>
+            <td>{{'package_mets_digest_algorithm' | translate}}</td>
+            <td>{{$ctrl.ip.package_mets_digest_algorithm}}</td>
+          </tr>
+          <tr>
+            <td>{{'package_mets_digest' | translate}}</td>
+            <td>{{$ctrl.ip.package_mets_digest}}</td>
+          </tr>
+          <tr>
+            <td>{{'START_DATE' | translate}}</td>
+            <td>{{$ctrl.ip.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+          </tr>
+          <tr>
+            <td>{{'END_DATE' | translate}}</td>
+            <td>{{$ctrl.ip.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <h4>{{'STORAGE' | translate}}</h4>
+    <div id="list-view" class="list-view-table table-container table-x-overflow">
+      <table class="table table-striped" style="margin-bottom: 0px;">
+        <thead>
+          <tr>
+            <th class="column-label">{{'MEDIUM' | translate}}</th>
+            <th class="column-label">{{'TARGET_NAME' | translate}}</th>
+            <th class="column-label">{{'TARGET' | translate}}</th>
+            <th class="column-label">{{'LOCATION' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="object in $ctrl.storageObjects" ng-attr-context-menu="menuOptions" class="table-item">
+            <td>{{object.medium_id}}</td>
+            <td>{{object.target_name}}</td>
+            <td>{{object.target_target}}</td>
+            <td>{{object.content_location_value}}</td>
+          </tr>
+          <tr ng-if="!$ctrl.storageObjects.length && !ipLoading" class="empty-table-indicator">
+            <td colspan="8">{{'NO_RESULTS_FOUND' | translate}}</td>
+          </tr>
+          <tr ng-if="!$ctrl.storageObjects.length && ipLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="modal-footer">
+  <div class="receive-footer">
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</div>

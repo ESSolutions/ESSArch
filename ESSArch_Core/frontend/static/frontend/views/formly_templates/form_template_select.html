@@ -1,0 +1,12 @@
+<label
+  ng-if="options.templateOptions.label !== null"
+  class="control-label"
+  for="{{::id}}"
+  uib-tooltip="{{options.templateOptions.desc}}"
+  tooltip-placement="auto top"
+  tooltip-append-to-body="true"
+  >{{to.label}} {{to.required ? '*' : ''}}</label
+>
+<select class="form-control" id="{{::id}}" name="{{::id}}" class="form-control" ng-model="model[options.key]"
+  ><option ng-hide="to.notNull" value="">{{to.nullDisplay}}</option></select
+>

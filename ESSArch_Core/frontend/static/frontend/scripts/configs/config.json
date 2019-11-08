@@ -1,0 +1,48 @@
+{
+  "production": {
+    "appConfig": {
+      "name": "production",
+      "djangoUrl": "/api/",
+      "ipInterval": 10000,
+      "recordInterval": 10000,
+      "ipIdleInterval": 60000,
+      "stateInterval": 10000,
+      "eventInterval": 10000,
+      "tagsInterval": 10000,
+      "fileBrowserInterval": 10000,
+      "queueInterval": 30000,
+      "storageMediumInterval": 30000,
+      "storageObjectInterval": 30000,
+      "robotInterval": 30000,
+      "notificationInterval": 60000,
+      "debugInfo": false,
+      "logDebug": false,
+      "commentDirectives": false,
+      "cssClassDirectives": false,
+      "webSocketProtocol": "wss"
+    }
+  },
+  "development": {
+    "appConfig": {
+      "name": "development",
+      "djangoUrl": "/api/",
+      "ipInterval": 10000,
+      "recordInterval": 10000,
+      "ipIdleInterval": 60000,
+      "stateInterval": 10000,
+      "eventInterval": 10000,
+      "tagsInterval": 10000,
+      "fileBrowserInterval": 10000,
+      "queueInterval": 30000,
+      "storageMediumInterval": 30000,
+      "storageObjectInterval": 30000,
+      "robotInterval": 30000,
+      "notificationInterval": 60000,
+      "debugInfo": true,
+      "logDebug": true,
+      "commentDirectives": true,
+      "cssClassDirectives": true,
+      "webSocketProtocol": "ws"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+.profile-editor {
+  .data-version-list {
+    width: 10%;
+    min-width: 50px;
+    margin-left: 10px;
+    float: right;
+  }
+
+  .profile-name {
+    float: left;
+  }
+
+  .sa-table {
+    padding: 5px;
+    table {
+      table-layout: fixed;
+      tbody {
+        td {
+          border: none;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+      }
+      margin-top: 20px;
+      .flex-row {
+        select {
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+
+  .edit-form {
+    table {
+      table-layout: fixed;
+      .flex-row {
+        align-items: center;
+        p {
+          word-break: normal;
+        }
+      }
+      td {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+    .button-wrapper {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+      .btn-default {
+        margin-left: 5px;
+      }
+    }
+  }
+
+  .sa-edit {
+    .formly {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: baseline;
+      padding: 5px;
+      width: 100%;
+    }
+  }
+}

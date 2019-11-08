@@ -1,0 +1,34 @@
+<div class="user-settings">
+  <a
+    target="_blank"
+    class="help-button float-right p-0 m-0"
+    uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+    tooltip-position="top auto"
+    href="/docs/{{$translate.use()}}/user_guide/user-interface/user-settings.html"
+  >
+    <i class="far fa-question-circle"></i>
+  </a>
+  <div ng-include src="'static/frontend/views/main_view_options.html'"></div>
+  <div class="ip-view-type">
+    <label>
+      {{'IP_VIEW_TYPE' | translate}}
+      <select
+        class="form-control"
+        ng-change="changeIpViewType(auth.ip_list_view_type)"
+        ng-model="auth.ip_list_view_type"
+        ng-options="x for x in ['ip','aic','flat']"
+      ></select>
+    </label>
+  </div>
+  <hr />
+  <div ng-if="vm.activeColumns.options && vm.allColumns" class="active-columns">
+    <div ng-include src="'static/frontend/views/column_picker.html'"></div>
+  </div>
+  <br />
+  <div class="save-settings">
+    <button class="btn btn-primary" ng-click="saveColumns()">{{'SAVE' | translate}}</button>
+    <div uib-alert ng-if="saveAlert" ng-class="'alert-' + (saveAlert.type || 'warning')" close="closeAlert()">
+      {{saveAlert.msg | translate}}
+    </div>
+  </div>
+</div>

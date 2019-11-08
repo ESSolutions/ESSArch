@@ -1,0 +1,32 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ADD_ATTRIBUTE' | translate}}</h3>
+</div>
+<form class="attribute-form" ng-submit="$ctrl.saveAttribute()" name="$ctrl.form">
+  <div class="flex-wrap">
+    <formly-form
+      class="attribute-formly"
+      model="$ctrl.model"
+      fields="$ctrl.fields"
+      form="$ctrl.form"
+      class="floatingForm"
+    >
+    </formly-form>
+    <div class="attribute-tree">
+      <treecontrol
+        class="tree-classic"
+        tree-model="$ctrl.allAttributes"
+        options="$ctrl.treeOptions"
+        on-selection="$ctrl.addAttribute(node.data, $parentNode)"
+        selected-node="node1"
+        expanded-nodes="expandedNodes"
+        style="float:left;"
+      >
+        <span class="{{node.templateOnly}}">{{node.name}}</span>
+      </treecontrol>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.form.$invalid">{{'SAVE' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

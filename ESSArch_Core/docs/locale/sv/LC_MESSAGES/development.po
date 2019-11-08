@@ -1,0 +1,167 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-18 10:16+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../development.rst:5
+msgid "Development Environment"
+msgstr ""
+
+#: ../../development.rst:9
+msgid "Getting the source"
+msgstr ""
+
+#: ../../development.rst:11
+msgid "To get started, clone the repository:"
+msgstr ""
+
+#: ../../development.rst:18
+msgid "Setting up virtual Python environments"
+msgstr ""
+
+#: ../../development.rst:20
+msgid ""
+"You will need Python 3.7 along with ``pip``, which is what the backend of"
+" ESSArch is built on. It is recommended to have ESSArch in its own "
+"virtual python environment."
+msgstr ""
+
+#: ../../development.rst:24
+msgid ""
+"Creating and managing virtual environments can be done with the "
+"virtualenv_ Python package or using more advanced tools such as pyenv_ or"
+" pipenv_."
+msgstr ""
+
+#: ../../development.rst:29
+msgid "Installing Python dependencies"
+msgstr ""
+
+#: ../../development.rst:31
+msgid "Run the following to install ESSArch and its Python dependencies:"
+msgstr ""
+
+#: ../../development.rst:39
+msgid ""
+"ESSArch Core also contains a number of extra dependencies depending on "
+"the needs of the target environment. These are listed in the "
+"``extras_require`` section of the ``setup.py`` file at the root of the "
+"directory and are installed by appending a list of extras to the command "
+"above."
+msgstr ""
+
+#: ../../development.rst:44
+msgid ""
+"For example, to install the requirements for building the docs and "
+"running the tests:"
+msgstr ""
+
+#: ../../development.rst:53
+msgid "Setting environment variables"
+msgstr ""
+
+#: ../../development.rst:55
+msgid ""
+"If you have a config and/or plugin directory, these will also have to be "
+"added to the ``PYTHONPATH`` variable."
+msgstr ""
+
+#: ../../development.rst:63
+msgid "Configuring services"
+msgstr ""
+
+#: ../../development.rst:65
+msgid ""
+"ESSArch requires a relational database, RabbitMQ, Redis and "
+"Elasticsearch. Each service can be configured in the configuration file."
+msgstr ""
+
+#: ../../development.rst:70
+msgid ":ref:`configuration`"
+msgstr ""
+
+#: ../../development.rst:74
+msgid "Running migrations"
+msgstr ""
+
+#: ../../development.rst:76
+msgid "All changes to the database are applied using the `migrate` command:"
+msgstr ""
+
+#: ../../development.rst:83
+msgid "Installing initial data"
+msgstr ""
+
+#: ../../development.rst:85
+msgid ""
+"Use the installation script in ESSArch Core to setup the default "
+"configuration"
+msgstr ""
+
+#: ../../development.rst:93
+msgid ""
+"The paths created has to exist in the filesystem before being used. See "
+":ref:`directory-structure` for the default structure"
+msgstr ""
+
+#: ../../development.rst:98
+msgid "Building the frontend"
+msgstr ""
+
+#: ../../development.rst:100
+msgid ""
+"To build the frontend you need Node.js_ LTS with yarn_ installed, Then to"
+" build:"
+msgstr ""
+
+#: ../../development.rst:110
+msgid "Starting the development web server"
+msgstr ""
+
+#: ../../development.rst:112
+msgid ""
+"To start the development web server provided by Django, run the following"
+" in the project root directory:"
+msgstr ""
+
+#: ../../development.rst:119
+msgid ""
+"You can now access ESSArch from your web browser by visiting "
+"http://localhost:8000/"
+msgstr ""
+
+#: ../../development.rst:123
+msgid "Starting background workers"
+msgstr ""
+
+#: ../../development.rst:125
+msgid ""
+"Much of the work in ESSArch is done using background workers. These needs"
+" to run in addition to the web server. Run the following in the project "
+"root directory:"
+msgstr ""
+
+#: ../../development.rst:134
+msgid "Starting background beat processes"
+msgstr ""
+
+#: ../../development.rst:136
+msgid ""
+"Background beat processes are also needed to run some operations "
+"continuously. Run the following in the project root directory:"
+msgstr ""

@@ -9,7 +9,10 @@ from rest_framework.test import APIClient, APIRequestFactory
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
-from ESSArch_Core.WorkflowEngine.serializers import ProcessStepSerializer, ProcessTaskSerializer
+from ESSArch_Core.WorkflowEngine.serializers import (
+    ProcessStepSerializer,
+    ProcessTaskSerializer,
+)
 
 User = get_user_model()
 
@@ -63,7 +66,7 @@ class GetAuthorizedTasksTests(TestCase):
         self.user_role = GroupMemberRole.objects.create(codename='user_role')
         perms = Permission.objects.filter(codename='view_informationpackage')
         self.user_role.permissions.set(perms)
-        
+
         self.url = reverse('processtask-list')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
@@ -235,6 +238,22 @@ class GetAuthorizedStepsTests(TestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
+
+
+class GetStepTasksTests(TestCase):
+    def test_get_step_tasks(self):
+        client = APIClient()
+        user = User.objects.create(username='user')
+        client.force_authenticate(user=user)
+
+        step = ProcessStep.objects.create()
+        task_in_step = ProcessTask.objects.create(processstep=step)
+        ProcessTask.objects.create(name="task outside of step")
+
+        url = reverse('steps-tasks-list', args=(step.pk,))
+        response = client.get(url)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(task_in_step.pk))
 
 
 class CreateStepTests(TestCase):

@@ -24,7 +24,7 @@ def _get_permission_objs(user, obj=None):
     return perms.distinct()
 
 
-class GroupRoleBackend(object):
+class GroupRoleBackend:
     supports_object_permissions = True
 
     def authenticate(self, *args, **kwargs):
@@ -44,7 +44,9 @@ class GroupRoleBackend(object):
         else:
             full_name = Concat(F('content_type__app_label'), Value('.'), F('codename'))
 
-        return list(set(chain(*_get_permission_objs(user_obj, obj).annotate(full_name=full_name).values_list('full_name'))))
+        return list(set(chain(
+            *_get_permission_objs(user_obj, obj).annotate(full_name=full_name).values_list('full_name')
+        )))
 
     def has_perm(self, user_obj, perm, obj=None):
         if '.' in perm and obj is not None:

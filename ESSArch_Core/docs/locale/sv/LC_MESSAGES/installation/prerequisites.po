@@ -1,0 +1,179 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-21 16:37+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../installation/prerequisites.rst:5
+msgid "Prerequisites"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:9
+msgid ""
+"Hardware configuration for server, network and storage architecture is "
+"not affected in this guide. Software configurations for server operating "
+"systems occur preferably before the installation of ESSArch begins. The "
+"installation is expected to be done as user 'root'."
+msgstr ""
+
+#: ../../installation/prerequisites.rst:16
+msgid "Supported OS platforms"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:19
+msgid "**OS**"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:19
+msgid "**Version**"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:21
+#: ../../installation/prerequisites.rst:23
+msgid "CentOS / Redhat"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:21
+msgid "7 (x86\\_64)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:23
+msgid "8 (x86\\_64)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:25
+msgid "OpenSUSE / SLES"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:25
+msgid "15 (x86\\_64)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:27
+msgid "Windows Server"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:27
+msgid "2016 (x86\\_64)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:30
+msgid ""
+"(Other operating systems have been tested but are not yet fully "
+"supported, please send us a request with your needs)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:35
+#: ../../installation/prerequisites.rst:38
+msgid "Database"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:38
+msgid "Minimum Version"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:40
+msgid "`PostgreSQL <https://www.postgresql.org>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:40
+msgid "9.4"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:42
+msgid "`MySQL <https://www.mysql.com>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:42
+msgid "5.6"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:44
+msgid "`MariaDB <https://mariadb.org>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:44
+msgid "10.1"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:46
+msgid "`SQL Server <https://www.microsoft.com/sql-server>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:46
+msgid "2008"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:48
+msgid "`SQLite <https://www.sqlite.org>`_"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:48
+msgid "3.8.3"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:53
+msgid "`Redis <https://redis.io>`_ (Minimum version: 3.0)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:55
+msgid ""
+"ESSArch uses Redis as a cache to improve performance and to support real-"
+"time notifications."
+msgstr ""
+
+#: ../../installation/prerequisites.rst:58
+msgid "Docker image: https://hub.docker.com/_/redis/."
+msgstr ""
+
+#: ../../installation/prerequisites.rst:60
+msgid "To install on Windows, see https://github.com/microsoftarchive/redis"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:64
+msgid "`RabbitMQ <https://www.rabbitmq.com>`_ (Minimum version: 3.7.0)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:66
+msgid "RabbitMQ is used for the workflow management and distribution in ESSArch."
+msgstr ""
+
+#: ../../installation/prerequisites.rst:68
+msgid "Docker image: https://hub.docker.com/_/rabbitmq/"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:72
+msgid ""
+"`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ "
+"(Supported version: 6.5.x)"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:74
+msgid "Elasticsearch is the search engine used in ESSArch."
+msgstr ""
+
+#: ../../installation/prerequisites.rst:76
+msgid "Docker image: https://www.docker.elastic.co/"
+msgstr ""
+
+#: ../../installation/prerequisites.rst:78
+msgid ""
+"The `Ingest Attachment Processer Plugin "
+"<https://www.elastic.co/guide/en/elasticsearch/plugins/current/ingest-"
+"attachment.html>`_ is also required inorder to store and later search "
+"file contents."
+msgstr ""

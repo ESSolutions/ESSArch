@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,31 +15,36 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-import six
+import requests
+from lxml import etree
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
-from ESSArch_Core.exceptions import Conflict
-
-from ESSArch_Core.ip.models import (
-    InformationPackage,
+from ESSArch_Core.essxml.ProfileMaker.models import (
+    extensionPackage,
+    templatePackage,
 )
-
+from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
+    generateExtensionRef,
+    generateJsonRes,
+)
+from ESSArch_Core.exceptions import Conflict
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import (
-    SubmissionAgreement,
     Profile,
-    ProfileSA,
     ProfileIP,
     ProfileIPData,
     ProfileIPDataTemplate,
+    ProfileSA,
+    SubmissionAgreement,
 )
-
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template
 
@@ -66,20 +71,14 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         if self.instance is None and relation.data is not None and instance_data == relation.data.data:
             raise serializers.ValidationError('No changes made')
 
-        filtered_data = {}
-        extra_data = fill_specification_data(ip=relation.ip, sa=relation.ip.submission_agreement)
-        for k, v in six.iteritems(instance_data):
-            if k not in extra_data:
-                filtered_data[k] = v
-
-        validate_template(relation.profile.template, filtered_data)
-        data['data'] = filtered_data
+        validate_template(relation.profile.template, instance_data)
+        data['data'] = instance_data
         return data
 
     def create(self, validated_data):
         if 'user' not in validated_data:
             validated_data['user'] = self.context['request'].user
-        return super(ProfileIPDataSerializer, self).create(validated_data)
+        return super().create(validated_data)
 
     class Meta:
         model = ProfileIPData
@@ -95,14 +94,28 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
 
 
 class ProfileIPDataTemplateSerializer(serializers.ModelSerializer):
+    data = serializers.JSONField(required=False)
+
     class Meta:
         model = ProfileIPDataTemplate
         fields = ('id', 'name', 'data', 'created', 'profile')
 
 
 class ProfileIPSerializer(serializers.ModelSerializer):
+    profile = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
+    ip = serializers.PrimaryKeyRelatedField(
+        queryset=InformationPackage.objects.all(), required=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
     profile_type = serializers.SlugRelatedField(slug_field='profile_type', source='profile', read_only=True)
     profile_name = serializers.SlugRelatedField(slug_field='name', source='profile', read_only=True)
+    data_versions = serializers.PrimaryKeyRelatedField(
+        many=True, read_only=True,
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
 
     class Meta:
         model = ProfileIP
@@ -145,22 +158,57 @@ class ProfileIPWriteSerializer(ProfileIPSerializer):
 class SubmissionAgreementSerializer(serializers.ModelSerializer):
     published = serializers.BooleanField(read_only=True)
 
-    profile_transfer_project = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='transfer_project'))
-    profile_content_type = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'))
-    profile_data_selection = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'))
-    profile_authority_information = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'))
-    profile_archival_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'))
-    profile_import = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import'))
-    profile_submit_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'))
-    profile_sip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip'))
-    profile_aic_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description'))
-    profile_aip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip'))
-    profile_aip_description = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description'))
-    profile_dip = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip'))
-    profile_workflow = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'))
-    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'))
-    profile_event = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'))
-    profile_validation = serializers.PrimaryKeyRelatedField(default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation'))
+    profile_transfer_project = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True,
+        queryset=Profile.objects.filter(profile_type='transfer_project')
+    )
+    profile_content_type = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type')
+    )
+    profile_data_selection = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection')
+    )
+    profile_authority_information = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information')
+    )
+    profile_archival_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description')
+    )
+    profile_import = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import')
+    )
+    profile_submit_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description')
+    )
+    profile_sip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip')
+    )
+    profile_aic_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description')
+    )
+    profile_aip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip')
+    )
+    profile_aip_description = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description')
+    )
+    profile_dip = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip')
+    )
+    profile_workflow = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow')
+    )
+    profile_preservation_metadata = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata')
+    )
+    profile_event = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event')
+    )
+    profile_validation = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation')
+    )
+
+    template = serializers.JSONField(required=False)
 
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
@@ -171,74 +219,38 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmissionAgreement
         fields = (
-                'id', 'name', 'published', 'type', 'status', 'label',
+            'id', 'name', 'published', 'type', 'status', 'label',
 
-                'cm_version',
-                'cm_release_date',
-                'cm_change_authority',
-                'cm_change_description',
-                'cm_sections_affected',
+            'archivist_organization',
 
-                'producer_organization',
-                'producer_main_name',
-                'producer_main_address',
-                'producer_main_phone',
-                'producer_main_email',
-                'producer_main_additional',
-                'producer_individual_name',
-                'producer_individual_role',
-                'producer_individual_phone',
-                'producer_individual_email',
-                'producer_individual_additional',
+            'include_profile_transfer_project',
+            'include_profile_content_type',
+            'include_profile_data_selection',
+            'include_profile_authority_information',
+            'include_profile_archival_description', 'include_profile_import',
+            'include_profile_submit_description', 'include_profile_sip',
+            'include_profile_aip', 'include_profile_dip',
+            'include_profile_workflow',
+            'include_profile_preservation_metadata',
 
-                'archivist_organization',
-                'archivist_main_name',
-                'archivist_main_address',
-                'archivist_main_phone',
-                'archivist_main_email',
-                'archivist_main_additional',
-                'archivist_individual_name',
-                'archivist_individual_role',
-                'archivist_individual_phone',
-                'archivist_individual_email',
-                'archivist_individual_additional',
+            'profile_transfer_project',
+            'profile_content_type',
+            'profile_data_selection',
+            'profile_authority_information',
+            'profile_archival_description',
+            'profile_import',
+            'profile_submit_description',
+            'profile_sip',
+            'profile_aic_description',
+            'profile_aip',
+            'profile_aip_description',
+            'profile_dip',
+            'profile_workflow',
+            'profile_preservation_metadata',
+            'profile_event',
+            'profile_validation',
 
-                'designated_community_description',
-                'designated_community_individual_name',
-                'designated_community_individual_role',
-                'designated_community_individual_phone',
-                'designated_community_individual_email',
-                'designated_community_individual_additional',
-
-                'information_packages',
-                'include_profile_transfer_project',
-                'include_profile_content_type',
-                'include_profile_data_selection',
-                'include_profile_authority_information',
-                'include_profile_archival_description', 'include_profile_import',
-                'include_profile_submit_description', 'include_profile_sip',
-                'include_profile_aip', 'include_profile_dip',
-                'include_profile_workflow',
-                'include_profile_preservation_metadata',
-
-                'profile_transfer_project',
-                'profile_content_type',
-                'profile_data_selection',
-                'profile_authority_information',
-                'profile_archival_description',
-                'profile_import',
-                'profile_submit_description',
-                'profile_sip',
-                'profile_aic_description',
-                'profile_aip',
-                'profile_aip_description',
-                'profile_dip',
-                'profile_workflow',
-                'profile_preservation_metadata',
-                'profile_event',
-                'profile_validation',
-
-                'template',
+            'template',
         )
 
         read_only_fields = ('information_packages',)
@@ -254,6 +266,8 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     specification_data = serializers.SerializerMethodField()
     template = serializers.SerializerMethodField()
+    schemas = serializers.JSONField(required=False)
+    structure = serializers.JSONField(required=False)
 
     def get_specification_data(self, obj):
         data = obj.specification_data
@@ -381,6 +395,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileDetailSerializer(ProfileSerializer):
+    specification = serializers.JSONField(required=False)
+
     class Meta:
         model = ProfileSerializer.Meta.model
         fields = ProfileSerializer.Meta.fields + (
@@ -400,3 +416,89 @@ class ProfileWriteSerializer(ProfileDetailSerializer):
 
 class ProfileIPSerializerWithProfileAndData(ProfileIPSerializerWithData):
     profile = ProfileSerializer()
+
+
+class ProfileMakerExtensionSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        schema_url = validated_data.pop('schemaURL')
+        schema_request = requests.get(schema_url)
+        schema_request.raise_for_status()
+
+        schemadoc = etree.fromstring(schema_request.content)
+
+        print(schemadoc.nsmap)
+        nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
+        targetNamespace = schemadoc.get('targetNamespace')
+
+        prefix = validated_data.pop('prefix')
+        extensionElements, extensionAll, attributes = generateExtensionRef(schemadoc, prefix)
+
+        return extensionPackage.objects.create(
+            prefix=prefix, schemaURL=schema_url, targetNamespace=targetNamespace,
+            allElements=extensionAll, existingElements=extensionElements,
+            allAttributes=attributes, nsmap=nsmap, **validated_data
+        )
+
+    class Meta:
+        model = extensionPackage
+        fields = (
+            'id', 'allElements', 'existingElements', 'allAttributes', 'prefix', 'schemaURL', 'targetNamespace',
+        )
+
+        read_only_fields = (
+            'existingElements', 'allElements', 'allAttributes',
+        )
+
+        extra_kwargs = {
+            'targetNamespace': {
+                'required': False
+            }
+        }
+
+
+class ProfileMakerTemplateSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        schema_request = requests.get(validated_data['schemaURL'])
+        schema_request.raise_for_status()
+
+        schemadoc = etree.fromstring(schema_request.content)
+        targetNamespace = schemadoc.get('targetNamespace')
+        nsmap = {k: v for k, v in schemadoc.nsmap.items() if k and v != "http://www.w3.org/2001/XMLSchema"}
+
+        try:
+            existingElements, allElements = generateJsonRes(
+                schemadoc,
+                validated_data['root_element'],
+                validated_data['prefix']
+            )
+        except ValueError as e:
+            raise ValidationError(e)
+
+        return templatePackage.objects.create(
+            existingElements=existingElements, allElements=allElements,
+            targetNamespace=targetNamespace, nsmap=nsmap, **validated_data
+        )
+
+    class Meta:
+        model = templatePackage
+        fields = (
+            'existingElements', 'allElements', 'name', 'root_element',
+            'extensions', 'prefix', 'schemaURL', 'targetNamespace', 'structure'
+        )
+
+        read_only_fields = (
+            'existingElements', 'allElements',
+        )
+
+        extra_kwargs = {
+            'extensions': {
+                'required': False,
+                'allow_empty': True,
+            },
+            'root_element': {
+                'required': True
+            },
+            'targetNamespace': {
+                'required': False
+            }
+        }

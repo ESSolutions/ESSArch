@@ -1,0 +1,32 @@
+<div ng-if="!subrow && row.package_type != 1">
+  <div class="white-space-nowrap">
+    <uib-progressbar
+      class="progress"
+      ng-class="{'active progress-striped': row.step_state == 'STARTED'}"
+      animate="false"
+      value="row.status"
+      type="{{mapStepStateProgress(row)}}"
+      uib-tooltip="{{row.step_state | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <b>{{row.status | number : 0}}%</b>
+    </uib-progressbar>
+  </div>
+</div>
+<div ng-if="subrow">
+  <div class="white-space-nowrap">
+    <uib-progressbar
+      class="progress"
+      ng-class="{'active progress-striped': subrow.step_state == 'STARTED'}"
+      animate="false"
+      value="subrow.status"
+      type="{{mapStepStateProgress(subrow)}}"
+      uib-tooltip="{{subrow.step_state | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <b>{{subrow.status | number : 0}}%</b>
+    </uib-progressbar>
+  </div>
+</div>

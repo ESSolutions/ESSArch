@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
+import ESSArch_Core.auth.models
 import picklefield.fields
 
 
@@ -16,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='ip_list_columns',
-            field=picklefield.fields.PickledObjectField(default=[b'label', b'object_identifier_value', b'start_date', b'end_date', b'responsible', b'state', b'step_state', b'status', b'filebrowser', b'delete'], editable=False),
+            field=picklefield.fields.PickledObjectField(default=ESSArch_Core.auth.models.UserProfile.default_ip_list_columns, editable=False),
         ),
     ]

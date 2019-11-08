@@ -1,0 +1,148 @@
+<div class="search-admin">
+  <div class="content-wrapper">
+    <div class="table-container" st-table="vm.structures" st-pipe="vm.getArchives">
+      <div class="title-action-button-row">
+        <div class="title">
+          <h4>
+            {{'ACCESS.ARCHIVES' | translate}}
+          </h4>
+          <a
+            target="_blank"
+            class="help-button"
+            uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+            tooltip-position="top auto"
+            href="/docs/{{$translate.use()}}/user_guide/archival-description-management/archival-descriptions.html#top-level-resources"
+          >
+            <i class="far fa-question-circle"></i>
+          </a>
+        </div>
+        <div class="action-button">
+          <button
+            class="btn btn-primary"
+            ng-click="vm.newArchiveModal()"
+            permission
+            permission-only="'tags.create_archive'"
+          >
+            {{'ACCESS.NEW_ARCHIVE' | translate}}
+          </button>
+        </div>
+      </div>
+      <div class="search-prepare-wrapper">
+        <label for items-per-page></label>
+        <select
+          id="items-per-page"
+          style="margin-right: 10px;"
+          class="form-control items-per-page"
+          ng-model="vm.archivesPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="global-search">
+          <input
+            st-search=""
+            class="form-control"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'GLOBALSEARCHDESC_ARCHIVES' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+        </div>
+        <button
+          type="button"
+          ng-click="vm.getArchives(tableState)"
+          class="btn btn-primary btn-small"
+          style="margin-left: 5px;"
+          uib-tooltip="{{'SEARCH' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        >
+          {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+        </button>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.updateArchives()"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': vm.archivesLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="list-view-table table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th st-sort="name">
+                {{'NAME' | translate}}
+              </th>
+              <th st-sort="start_date">
+                {{'START_DATE' | translate}}
+              </th>
+              <th st-sort="end_date">
+                {{'END_DATE' | translate}}
+              </th>
+              <th permission permission-only="'tags.change_archive'" class="shrink">
+                {{'EDIT' | translate}}
+              </th>
+              <th permission permission-only="'tags.delete_archive'" class="white-space-nowrap shrink">
+                {{'REMOVE' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              ng-repeat="x in vm.archives"
+              class="selectable"
+              ng-class="{'selected': $stateParams && $stateParams.id === x.current_version.id}"
+              ng-click="vm.archiveClick(x)"
+            >
+              <td>
+                {{x.current_version.name}}
+              </td>
+              <td>
+                {{x.current_version.start_date | date:"yyyy-MM-dd"}}
+              </td>
+              <td>
+                {{x.current_version.end_date | date:"yyyy-MM-dd"}}
+              </td>
+              <td class="text-center shrink" permission permission-only="'tags.change_archive'">
+                <button
+                  class="fas fa-edit btn btn-default btn-sm"
+                  ng-click="$event.stopPropagation(); vm.editArchiveModal(x)"
+                ></button>
+              </td>
+              <td class="text-center shrink" permission permission-only="'tags.delete_archive'">
+                <button
+                  class="fas fa-trash-alt btn btn-default btn-sm"
+                  ng-click="$event.stopPropagation(); vm.removeArchiveModal(x.current_version)"
+                ></button>
+              </td>
+            </tr>
+            <tr ng-if="!vm.archives.length && !vm.archivesLoading" class="empty-table-indicator">
+              <td colspan="{{vm.getArchiveColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.archives.length && vm.archivesLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="{{vm.getArchiveColspan()}}">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <td ng-show="!initLoad" colspan="{{vm.getArchiveColspan()}}">
+        <div
+          class="text-center"
+          st-template="static/frontend/views/pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.archivesPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </td>
+    </div>
+    <div>
+      <div ui-view></div>
+    </div>
+  </div>
+</div>

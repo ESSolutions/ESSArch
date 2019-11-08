@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,14 +15,13 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-import os
 import uuid
 
 from lxml import etree
@@ -32,44 +31,8 @@ TYPE_CHOISE = 1
 TYPE_TO = 2
 TYPE_TO_CHOISE = 3
 
-debug = False
-eol_ = '\n'
 
-
-def dlog(string):
-    if debug:
-        print(string)
-
-
-def pretty_print(fd, level):
-    """
-    Print some tabs to give the xml output a better structure
-    """
-
-    os.write(fd, '    ' * level)
-
-
-class xmlAttribute(object):
-    '''
-    A class to contain and handle each attribute of a XML element
-    '''
-    attrName = ''
-    req = False
-    value = ''
-
-    def __init__(self, attrName, value=''):
-        self.attrName = attrName
-        self.value = value
-
-    def printXML(self, fd):
-        """
-        Print out the attribute
-        """
-        if self.value is not '':
-            os.write(fd, ' ' + self.attrName + '="' + self.value + '"')
-
-
-class xmlElement(object):
+class xmlElement:
     '''
     A class containing a complete XML element, a list of attributes and a list of children
     '''
@@ -77,7 +40,7 @@ class xmlElement(object):
     def __init__(self, tagName='', nsmap={}, namespace=None):
         try:
             self.tagName = tagName.split("#")[0]
-        except:
+        except BaseException:
             self.tagName = tagName
 
         self.children = []
@@ -93,7 +56,7 @@ class xmlElement(object):
         self.namespace = namespace
         try:
             self.full_namespace = nsmap.get(namespace)
-        except:
+        except BaseException:
             self.full_namespace = None
         self.completeTagName = ''
         self.containsFiles = False
@@ -129,44 +92,6 @@ class xmlElement(object):
 
         return el
 
-    def printXML(self, fd, level=0, pretty=True):
-        """
-        Print out the complete element.
-        """
-        if self.printed == 2:
-            return False
-        if self.printed == 0:
-            if pretty:
-                pretty_print(fd, level)
-
-            os.write(fd, '<' + self.completeTagName)
-            for a in self.attributes:
-                a.printXML(fd)
-        if self.children or self.value or self.containsFiles:
-            if self.printed == 0:
-                if self.value is not '':
-                    os.write(fd, '>')
-                else:
-                    os.write(fd, '>' + eol_)
-            if not self.containsFiles or self.printed == 1:
-                for child in self.children:
-                    if child.printXML(fd, level + 1, pretty):
-                        self.printed = 1
-                        return True
-                if self.value is not '':
-                    os.write(fd, self.value)
-                else:
-                    pretty_print(fd, level)
-
-                os.write(fd, '</' + self.completeTagName + '>' + eol_)
-                self.printed = 2
-            else:
-                self.printed = 1
-                return True
-        else:
-            os.write(fd, '/>' + eol_)
-            self.printed = 2
-
     def listAllElements(self, parent=None):
         res = {}
         if self.type == TYPE_ELEMENT:
@@ -182,7 +107,7 @@ class xmlElement(object):
             element['anyElement'] = self.anyElement
             element['containsFiles'] = False
             element['parent'] = parent
-            element['children'] = [];
+            element['children'] = []
             element['namespace'] = self.namespace
             children = []
             for child in self.children:
@@ -249,14 +174,6 @@ class xmlElement(object):
 
         return True
 
-    def printDebug(self):
-        """
-        Method for debugging only, prints out the name of the element and all children
-        """
-        print(self.tagName)
-        for child in self.children:
-            child.printDebug()
-
     def addAttribute(self, attribute):
         """
         Add an attribute to the element
@@ -280,27 +197,3 @@ class xmlElement(object):
         self.value = ''
         self.karMin = 0
         self.karMax = -1
-
-
-class fileInfo():
-    """
-    A way to contain the temporary files which are created
-    """
-    def __init__(self, element, filename, arguments={}, level=0):
-        self.element = element
-        self.filename = filename
-        self.arguments = arguments
-        self.level = level
-
-
-class fileObject():
-    """
-    A container class for all the files in the xml
-    """
-    def __init__(self, xmlFileName, template, fid, namespace=None):
-        self.xmlFileName = xmlFileName
-        self.template = template
-        self.namespace = namespace
-        self.fid = fid
-        self.files = []
-        self.rootElement = None

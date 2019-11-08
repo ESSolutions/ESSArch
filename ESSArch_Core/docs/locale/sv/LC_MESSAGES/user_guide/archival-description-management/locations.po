@@ -1,0 +1,37 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-21 12:36+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/archival-description-management/locations.rst:3
+msgid "Location Records"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/locations.rst:4
+msgid ""
+"Location records can describe any storage location; buildings, rooms "
+"shelves, file cabinets, etc. Location records are designed to track both "
+"the permanent and temporary locations of materials."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/locations.rst:6
+msgid ""
+"Location records are intended for physical spaces and not storage of "
+"digital AIP's / files. Locations for AIP's are managed via "
+"Administration/Media Information / Storage mediums"
+msgstr ""

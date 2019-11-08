@@ -1,0 +1,48 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-10-03 13:47+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../restapi/orders.rst:3 ../../restapi/orders.rst:9
+msgid "Orders"
+msgstr ""
+
+#: ../../restapi/orders.rst:11
+msgid "API endpoint that allows orders to be viewed or edited."
+msgstr ""
+
+#: ../../restapi/orders.rst:47
+msgid "creates a new order"
+msgstr ""
+
+#: ../../restapi/orders.rst
+msgid "Parameters"
+msgstr ""
+
+#: ../../restapi/orders.rst:49
+msgid "A label for the order"
+msgstr ""
+
+#: ../../restapi/orders.rst:50
+msgid "The user responsible for the order"
+msgstr ""
+
+#: ../../restapi/orders.rst:51
+msgid "IP's included in the order"
+msgstr ""
+

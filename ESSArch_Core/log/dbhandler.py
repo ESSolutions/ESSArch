@@ -1,9 +1,10 @@
-from _version import get_versions
-
 from logging import Handler
 
 from django.core.cache import cache
 from django.utils.text import Truncator
+
+from ESSArch_Core._version import get_versions
+
 
 class DBHandler(Handler):
     model_name = 'ESSArch_Core.ip.models.EventIP'
@@ -18,12 +19,12 @@ class DBHandler(Handler):
     def emit(self, record):
         try:
             EventIP = self.get_model(self.model_name)
-        except:
+        except BaseException:
             from ESSArch_Core.ip.models import EventIP
 
         try:
             EventType = self.get_model(self.event_type_model_name)
-        except:
+        except BaseException:
             from ESSArch_Core.configuration.models import EventType
 
         if getattr(record, 'event_type', None) is None:

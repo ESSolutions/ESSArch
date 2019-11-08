@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,19 +15,16 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
-from __future__ import absolute_import
-
 import os
 import uuid
 
-import six
 from lxml import etree
 
 from ESSArch_Core.fixity import checksum
@@ -85,6 +82,15 @@ PTR_ELEMENTS = {
         "pathprefix": ["file:///", "file:"]
     }
 }
+
+
+def get_premis_ref(tree):
+    elname = 'mdRef'
+    props = FILE_ELEMENTS[elname]
+    for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
+        return XMLFileElement(ptr, props)
+
+    return None
 
 
 def get_agent(el, ROLE=None, OTHERROLE=None, TYPE=None, OTHERTYPE=None):
@@ -223,7 +229,7 @@ def parse_submit_description(xmlfile, srcdir=''):
     return ip
 
 
-class XMLFileElement():
+class XMLFileElement:
     def __init__(self, el, props, path=None, rootdir=None):
         '''
         args:
@@ -235,7 +241,7 @@ class XMLFileElement():
         if self.path is None:
             self.paths = props.get('path', [''])
 
-            if isinstance(self.paths, six.string_types):
+            if isinstance(self.paths, str):
                 self.paths = [self.paths]
 
             for path in self.paths:
@@ -271,13 +277,18 @@ class XMLFileElement():
         string, we assume its a path and compares it as is
         '''
 
-        if isinstance(other, six.string_types):
+        if isinstance(other, str):
             return self.path == other
 
         return self.path == other.path
 
     def __hash__(self):
         return hash(self.path)
+
+
+def find_pointer(tree, elname, props):
+    for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
+        yield XMLFileElement(ptr, props)
 
 
 def find_pointers(xmlfile=None, tree=None):
@@ -287,9 +298,8 @@ def find_pointers(xmlfile=None, tree=None):
     if xmlfile is not None:
         tree = etree.ElementTree(file=xmlfile)
 
-    for elname, props in six.iteritems(PTR_ELEMENTS):
-        for ptr in tree.xpath('.//*[local-name()="%s"]' % elname):
-            yield XMLFileElement(ptr, props)
+    for elname, props in PTR_ELEMENTS.items():
+        yield from find_pointer(tree, elname, props)
 
 
 def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
@@ -301,12 +311,12 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
 
     root = tree.getroot()
 
-    for elname, props in six.iteritems(FILE_ELEMENTS):
+    for elname, props in FILE_ELEMENTS.items():
         for prefix in props.get('pathprefix', []) + ['']:
             fullpath = prefix + filepath
 
             props_paths = props.get('path')
-            if isinstance(props_paths, six.string_types):
+            if isinstance(props_paths, str):
                 props_paths = [props_paths]
 
             for props_path in props_paths:
@@ -320,24 +330,32 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
 
     for pointer in find_pointers(tree=tree):
         pointer_prefix = os.path.split(pointer.path)[0]
-        xml_el, el = find_file(filepath, xmlfile=os.path.join(rootdir, pointer.path), rootdir=rootdir, prefix=pointer_prefix)
+        xml_el, el = find_file(
+            filepath,
+            xmlfile=os.path.join(rootdir, pointer.path),
+            rootdir=rootdir,
+            prefix=pointer_prefix
+        )
         if xml_el is not None:
             return xml_el, el
 
 
-def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
+def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, current_dir=None):
     doc = etree.ElementTree(file=xmlfile)
     files = set()
 
     if skip_files is None:
         skip_files = []
 
-    for elname, props in six.iteritems(FILE_ELEMENTS):
+    if current_dir is None:
+        current_dir = rootdir
+
+    for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
 
         # Remove first object in premis file if it is a "fake" entry describing the tar
         if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
-            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR"]')):
+            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR" or . = "ZIP"]')):
                 file_elements.pop(0)
 
         for el in file_elements:
@@ -349,11 +367,26 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None):
 
             files.add(file_el)
 
-    for pointer in find_pointers(xmlfile=xmlfile):
-        pointer_prefix = os.path.split(pointer.path)[0]
-        if pointer.path not in skip_files:
-            files.add(pointer)
-        files |= find_files(os.path.join(rootdir, pointer.path), rootdir, pointer_prefix)
+    if recursive:
+        for pointer in find_pointers(xmlfile=xmlfile):
+            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+
+            if pointer.path not in skip_files:
+                pointer.path = os.path.join(prefix, pointer.path)
+                files.add(pointer)
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
+
+            files |= find_files(
+                pointer_path,
+                rootdir,
+                prefix,
+                recursive=recursive,
+                current_dir=current_dir,
+            )
 
     return files
 
@@ -396,6 +429,9 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
     if 'FChecksum' not in provided_data:
         fileinfo['FChecksum'] = checksum.calculate_checksum(filepath, algorithm)
 
+    if 'FEncrypted' not in provided_data:
+        fileinfo['FEncrypted'] = fid.identify_file_encryption(filepath)
+
     if any(x not in provided_data for x in ['FFormatName', 'FFormatVersion', 'FFormatRegistryKey']):
         (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
 
@@ -403,7 +439,7 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
         fileinfo['FFormatVersion'] = format_version
         fileinfo['FFormatRegistryKey'] = format_registry_key
 
-    for key, value in six.iteritems(provided_data):
+    for key, value in provided_data.items():
         fileinfo[key] = value
 
     return fileinfo

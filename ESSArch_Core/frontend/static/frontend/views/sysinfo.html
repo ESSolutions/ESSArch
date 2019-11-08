@@ -1,0 +1,135 @@
+<div class="version-info-page w-100">
+  <h3 class="py-base m-0">{{'SYSINFO.SYSTEMINFORMATION' | translate}}</h3>
+  <div class="row m-0" ng-if="sysInfo">
+    <div class="col-12 col-lg-6 p-0 pr-lg-base">
+      <p><b>{{'VERSION' | translate}}:</b> {{sysInfo.version.version}} - {{sysInfo.version.full}}</p>
+      <div class="flex-wrap">
+        <sys-info-component
+          class="sys-info-component"
+          name="Python"
+          version="{{sysInfo.python}}"
+          icon="fab fa-python"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="{{sysInfo.platform.os}}"
+          version="{{sysInfo.platform.version}}"
+          icon="{{sysInfo.platform.icon}}"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="{{sysInfo.database.vendor}}"
+          version="{{sysInfo.database.version}}"
+          icon="fas fa-database"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="{{'TIME' | translate}}"
+          version="{{sysInfo.time_checked | date: 'yyyy-MM-dd HH:mm'}}"
+          icon="fas fa-clock"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="RabbitMQ"
+          version="{{sysInfo.rabbitmq.version}}"
+          error="{{sysInfo.rabbitmq.error}}"
+        ></sys-info-component>
+        <sys-info-component
+          class="sys-info-component"
+          name="Redis"
+          version="{{sysInfo.redis.version}}"
+          error="{{sysInfo.redis.error}}"
+        ></sys-info-component>
+        <sys-info-component
+          ng-if="sysInfo.elasticsearch"
+          class="sys-info-component"
+          name="Elasticsearch"
+          version="{{sysInfo.elasticsearch.version.number || sysInfo.elasticsearch.version}}"
+          error="{{sysInfo.elasticsearch.error}}"
+        ></sys-info-component>
+      </div>
+      <p><b>{{'SYSINFO.HOSTNAME' | translate}}:</b> {{sysInfo.hostname}}</p>
+      <h4>{{'SYSINFO.SETTINGSFLAGS' | translate}}</h4>
+      <table class="table table-striped">
+        <tbody>
+          <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
+            <td>
+              {{flag.name}}
+            </td>
+            <td>
+              {{flag.actual.toString().toUpperCase()}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>{{'SYSINFO.WORKERS' | translate}}</h4>
+      <div class="table-container table-x-overflow">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>
+                {{'NAME' | translate}}
+              </th>
+              <th>
+                {{'SYSINFO.BROKER' | translate}}
+              </th>
+              <th>
+                {{'SYSINFO.PID' | translate}}
+              </th>
+              <th>
+                {{'SYSINFO.MAX_CONCURRENCY' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="(name, stats) in sysInfo.workers">
+              <td>
+                {{name}}
+              </td>
+              <td>
+                {{stats.broker.hostname}}:{{stats.broker.port}}
+              </td>
+              <td>
+                {{stats.pid}}
+              </td>
+              <td>
+                {{stats.pool['max-concurrency']}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
+      <p><b>{{'SYSINFO.PYTHONPACKAGES' | translate}}: </b></p>
+      <div class="table-container table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>
+                {{'PACKAGE' | translate}}
+              </th>
+              <th>
+                {{'VERSION' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="x in sysInfo.python_packages">
+              <td>
+                {{x[0]}}
+              </td>
+              <td>
+                {{x[1]}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div ng-if="!sysInfo" class="w-50 float-right">
+    <p>{{'LOADING' | translate}}...</p>
+  </div>
+</div>

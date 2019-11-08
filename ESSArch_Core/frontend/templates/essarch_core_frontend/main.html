@@ -1,28 +1,25 @@
 {% load rev %}
 <!doctype html>
-<html ng-app="essarch" ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
-    <head ng-controller="HeadCtrl as vm">
-        <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/styles.css" %}">
+<html ng-app="essarch" ng-strict-di ng-controller="AppCtrl as vm" ng-keydown="vm.questionMarkListener($event)">
+  <head ng-controller="HeadCtrl as vm">
+    <link rel="stylesheet" type="text/css" href="{% rev "frontend/build/main.css" %}">
+    <link rel="apple-touch-icon" href="/static/frontend/favicon.ico">
+    <link rel="icon" href="/static/frontend/favicon.ico" type="image/x-icon">
+    <!--App -->
+    <script src="{% rev "frontend/build/runtime.js" %}"></script>
+    <script src="{% rev "frontend/build/vendors.js" %}"></script>
+    <script src="{% rev "frontend/build/main.js" %}"></script>
 
-        <!--Polyfills -->
-        <script src="{% rev "frontend/build/polyfills.min.js" %}"></script>
-
-        <!--Vendors -->
-        <script src="{% rev "frontend/build/vendors.min.js" %}"></script>
-
-        <!--App -->
-        <script src="{% rev "frontend/build/scripts.min.js" %}"></script>
-
-        {% verbatim %}
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }</style>
-        <title ng-bind="vm.pageTitle"></title>
-        {% endverbatim %}
-    </head>
     {% verbatim %}
-    <body ui-view></body>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }</style>
+    <title ng-bind="vm.pageTitle"></title>
     {% endverbatim %}
-    <NOSCRIPT>
-        <h3>Enable Javascript to use this site.</h3>
-    </NOSCRIPT>
+  </head>
+  {% verbatim %}
+  <body ui-view></body>
+  {% endverbatim %}
+  <NOSCRIPT>
+    <h3>Enable Javascript to use this site.</h3>
+  </NOSCRIPT>
 </html>

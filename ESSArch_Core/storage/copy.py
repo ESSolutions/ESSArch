@@ -1,44 +1,31 @@
 import errno
 import logging
 import os
+import shutil
 import time
-
-from requests_toolbelt import MultipartEncoder
-from retrying import retry
 from os import walk
+
+from requests import RequestException
+from requests_toolbelt import MultipartEncoder
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_fixed,
+)
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
 
-MB = 1024*1024
+MB = 1024 * 1024
+DEFAULT_BLOCK_SIZE = 10 * MB
 
 logger = logging.getLogger('essarch.storage.copy')
 
 
-def copy_chunk_locally(src, dst, offset, file_size, block_size=65536):
-    with open(src, 'rb') as srcf, open(dst, 'ab') as dstf:
-        srcf.seek(offset)
-        dstf.seek(offset)
-
-        time_start = time.time()
-        dstf.write(srcf.read(block_size))
-        time_end = time.time()
-
-        time_elapsed = time_end-time_start
-
-        start = offset
-        end = offset + block_size - 1
-        if end > file_size:
-            end = file_size - 1
-        chunk_size = block_size / MB
-        try:
-            mb_per_sec = chunk_size / time_elapsed
-        except ZeroDivisionError:
-            mb_per_sec = chunk_size
-
-        logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, time_elapsed))
-
-
-def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
+@retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
     filename = os.path.basename(src)
 
     with open(src, 'rb') as srcf:
@@ -54,85 +41,70 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
     HTTP_CONTENT_RANGE = 'bytes %s-%s/%s' % (start, end, file_size)
     headers = {'Content-Range': HTTP_CONTENT_RANGE}
 
-    data = {'upload_id': upload_id}
-    files = {'the_file': (filename, chunk)}
+    data = {'upload_id': upload_id, 'dst': requests_session.params.get('dst')}
+    files = {'file': (filename, chunk)}
 
     response = requests_session.post(dst, data=data, files=files, headers=headers, timeout=60)
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except RequestException:
+        logger.exception("Failed to copy chunk to {}: {}".format(dst, response.content))
+        raise
+
     response_time = response.elapsed.total_seconds()
-    request_size = (end-start) / MB
+    request_size = (end - start) / MB
     try:
         mb_per_sec = request_size / response_time
     except ZeroDivisionError:
         mb_per_sec = request_size
 
-    logger.info('Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (start, end, file_size, src, dst, mb_per_sec, response_time))
+    logger.info(
+        'Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (
+            start, end, file_size, src, dst, mb_per_sec, response_time
+        )
+    )
 
     return response.json()['upload_id']
 
 
-def copy_chunk(src, dst, offset, file_size, requests_session=None, upload_id=None, block_size=65536):
-    """
-    Copies the given chunk to the given destination
+def copy_file_locally(src, dst):
+    fsize = os.stat(src).st_size
 
-    Args:
-        src: The file to copy
-        dst: Where the file should be copied to
-        requests_session: The session to be used
-        offset: The offset in the file
-        block_size: Size of each block to copy
-    Returns:
-        None
-    """
+    directory = os.path.dirname(dst)
+    os.makedirs(directory, exist_ok=True)
 
-    def local(src, dst, offset, file_size, block_size=65536):
-        return copy_chunk_locally(src, dst, offset, file_size, block_size=block_size)
+    time_start = time.time()
+    shutil.copyfile(src, dst)
+    time_end = time.time()
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
-    def remote(src, dst, offset, file_size, requests_session, upload_id=None, block_size=65536):
-        return copy_chunk_remotely(src, dst, offset, file_size,
-                                   requests_session=requests_session, upload_id=upload_id,
-                                   block_size=block_size)
+    time_elapsed = time_end - time_start
 
-    if requests_session is not None:
-        if file_size is None:
-            raise ValueError('file_size required on remote transfers')
+    fsize_mb = fsize / MB
 
-        return remote(src, dst, offset, file_size, requests_session, upload_id, block_size)
-    else:
-        local(src, dst, offset, file_size, block_size=block_size)
+    try:
+        mb_per_sec = fsize_mb / time_elapsed
+    except ZeroDivisionError:
+        mb_per_sec = fsize_mb
+
+    logger.info(
+        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
+            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        )
+    )
 
 
-def copy_file_locally(src, dst, block_size=65536):
+def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE):
     fsize = os.stat(src).st_size
     idx = 0
 
-    directory = os.path.dirname(dst)
-
-    try:
-        os.makedirs(directory)
-    except OSError as e:
-        if e.errno != errno.EEXIST:
-            raise
-
-    open(dst, 'wb').close()  # remove content of destination if it exists
-
-    while idx*block_size <= fsize:
-        copy_chunk(src, dst, idx*block_size, fsize, block_size=block_size)
-        idx += 1
-
-
-def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
-    file_size = os.stat(src).st_size
-    idx = 0
-
-    upload_id = copy_chunk(src, dst, idx*block_size, file_size,
-                           requests_session=requests_session, block_size=block_size)
+    time_start = time.time()
+    upload_id = copy_chunk_remotely(src, dst, idx * block_size, requests_session=requests_session,
+                                    file_size=fsize, block_size=block_size)
     idx += 1
 
-    while idx*block_size <= file_size:
-        copy_chunk(src, dst, idx*block_size, requests_session=requests_session,
-                   file_size=file_size, block_size=block_size, upload_id=upload_id)
+    while idx * block_size <= fsize:
+        copy_chunk_remotely(src, dst, idx * block_size, requests_session=requests_session,
+                            file_size=fsize, block_size=block_size, upload_id=upload_id)
         idx += 1
 
     md5 = calculate_checksum(src, algorithm='MD5', block_size=block_size)
@@ -144,19 +116,37 @@ def copy_file_remotely(src, dst, requests_session=None, block_size=65536):
             'path': os.path.basename(src),
             'upload_id': upload_id,
             'md5': md5,
+            'dst': requests_session.params.get('dst')
         }
     )
     headers = {'Content-Type': m.content_type}
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def send_completion_request():
-        response = requests_session.post(completion_url, data=m, headers=headers)
+        response = requests_session.post(completion_url, data=m, headers=headers, timeout=60)
         response.raise_for_status()
 
     send_completion_request()
 
+    time_end = time.time()
+    time_elapsed = time_end - time_start
 
-def copy_file(src, dst, requests_session=None, block_size=65536):
+    fsize_mb = fsize / MB
+
+    try:
+        mb_per_sec = fsize_mb / time_elapsed
+    except ZeroDivisionError:
+        mb_per_sec = fsize_mb
+
+    logger.info(
+        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
+            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        )
+    )
+
+
+def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given file to the given destination
 
@@ -177,41 +167,33 @@ def copy_file(src, dst, requests_session=None, block_size=65536):
     if requests_session is not None:
         copy_file_remotely(src, dst, requests_session, block_size=block_size)
     else:
-        copy_file_locally(src, dst, block_size=block_size)
+        copy_file_locally(src, dst)
 
-    logger.info('Copied %s to %s' % (src, dst))
     return dst
 
 
-def copy_dir(src, dst, requests_session=None, block_size=65536):
+def copy_dir(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     for root, dirs, files in walk(src):
         for f in files:
             src_filepath = os.path.join(root, f)
             src_relpath = os.path.relpath(src_filepath, src)
             dst_filepath = os.path.join(dst, src_relpath)
 
-            try:
-                os.makedirs(os.path.dirname(dst_filepath))
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
-
+            os.makedirs(os.path.dirname(dst_filepath), exist_ok=True)
             copy_file(src_filepath, dst_filepath, requests_session=requests_session, block_size=block_size)
 
         for d in dirs:
             src_dir = os.path.join(root, d)
             src_relpath = os.path.relpath(src_dir, src)
             dst_dir = os.path.join(dst, src_relpath)
-            try:
-                os.makedirs(os.path.dirname(dst_dir))
-            except OSError as exc:
-                if exc.errno != errno.EEXIST:
-                    raise
+            os.makedirs(os.path.dirname(dst_dir), exist_ok=True)
     return dst
 
 
-def copy(src, dst, requests_session=None, block_size=65536):
+def copy(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     if os.path.isfile(src):
         return copy_file(src, dst, requests_session=requests_session, block_size=block_size)
-
-    return copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
+    elif os.path.isdir(src):
+        return copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
+    else:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), src)

@@ -2,8 +2,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -30,15 +30,17 @@ import shutil
 import tempfile
 import unittest
 from collections import OrderedDict
-
+from os import walk
 from unittest import mock
-import six
+
 from django.test import TestCase
 from django.utils import dateparse, timezone
 from lxml import etree
-from os import walk
 
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
+)
 from ESSArch_Core.util import make_unicode, normalize_path
 
 
@@ -269,7 +271,10 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>')
+        self.assertEqual(
+            etree.tostring(tree.getroot(), encoding='unicode'),
+            '<root>\n  <bar>baz</bar>\n  <foo bar="baz"/>\n</root>'
+        )
 
     def test_generate_element_with_content_and_hideEmptyContent(self):
         specification = {
@@ -297,7 +302,10 @@ class GenerateXMLTestCase(TestCase):
         self.assertTrue(os.path.exists(self.fname))
 
         tree = etree.parse(self.fname)
-        self.assertEqual(etree.tostring(tree.getroot(), encoding='unicode'), '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>')
+        self.assertEqual(
+            etree.tostring(tree.getroot(), encoding='unicode'),
+            '<root>\n  <bar>baz</bar>\n  <foo bar="baz">baz</foo>\n</root>'
+        )
 
     def test_generate_element_with_empty_child_and_hideEmptyContent(self):
         specification = {
@@ -787,7 +795,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
+        with self.assertRaisesRegex(ValueError, re.escape(
+                "Missing value for required element '/foo[0]/bar[1]/baz[2]'")):
+
             self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
@@ -933,7 +943,9 @@ class GenerateXMLTestCase(TestCase):
             ]
         }
 
-        with six.assertRaisesRegex(self, ValueError, re.escape("Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
+        with self.assertRaisesRegex(ValueError, re.escape(
+                "Missing value for required attribute 'test' on element '/foo[0]/bar[1]/baz[2]'")):
+
             self.generator.generate({self.fname: {'spec': specification}})
 
         self.assertFalse(os.path.exists(self.fname))
@@ -1027,7 +1039,10 @@ class GenerateXMLTestCase(TestCase):
 
         self.generator.generate({self.fname: {'spec': specification, 'data': {'bar': 'baz'}}})
         tree = etree.parse(self.fname)
-        self.assertEqual('<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>', etree.tostring(tree.getroot(), encoding='unicode'))
+        self.assertEqual(
+            '<root>\n  <foo>\n    <bar>baz</bar>\n  </foo>\n</root>',
+            etree.tostring(tree.getroot(), encoding='unicode')
+        )
 
     def test_generate_element_with_requiredParameters_and_no_required_var(self):
         specification = {
@@ -1303,7 +1318,6 @@ class GenerateXMLTestCase(TestCase):
         self.assertEqual(len(bars2), 1)
 
         self.assertEqual(bars2[0].text, 'nested/first.xml')
-
 
     def test_multiple_to_create_with_files(self):
         specification = {
@@ -2274,7 +2288,6 @@ class ExternalTestCase(TestCase):
             },
         }
 
-
         self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
         self.assertTrue(os.path.isfile(self.fname))
 
@@ -2283,8 +2296,11 @@ class ExternalTestCase(TestCase):
 
         tree = etree.parse(self.fname)
 
-        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
-        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+        rel_external1 = normalize_path(os.path.relpath(external1_path, self.datadir))
+        rel_external2 = normalize_path(os.path.relpath(external2_path, self.datadir))
+
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % rel_external1)), 1)
+        self.assertEqual(len(tree.xpath(".//ptr[text()='%s']" % rel_external2)), 1)
 
         self.assertTrue(os.path.isfile(external1_path))
         self.assertTrue(os.path.isfile(external2_path))
@@ -2298,9 +2314,20 @@ class ExternalTestCase(TestCase):
     def test_external_with_files(self):
         specification = {
             '-name': 'root',
+            '-children': [
+                {
+                    '-name': 'file',
+                    '-containsFiles': True,
+                    '-attr': [
+                        {
+                            '-name': 'href',
+                            '#content': [{'var': 'href'}]
+                        },
+                    ],
+                },
+            ],
             '-external': {
                 '-dir': 'external',
-                '-file': 'external.xml',
                 '-pointer': {
                     '-name': 'ptr',
                     '-attr': [
@@ -2310,6 +2337,7 @@ class ExternalTestCase(TestCase):
                         },
                     ],
                 },
+                '-file': 'external.xml',
                 '-specification': {
                     '-name': 'mets',
                     '-attr': [
@@ -2334,9 +2362,26 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        with open(os.path.join(self.external1, "file1.txt"), "w") as f:
+        with open(os.path.join(self.external1, "ext1.txt"), "w") as f:
             f.write('a txt file')
-        with open(os.path.join(self.external2, "file1.pdf"), "w") as f:
+        with open(os.path.join(self.external2, "ext2.pdf"), "w") as f:
+            f.write('a pdf file')
+
+        # create nested external files
+        nested_external = os.path.join(self.datadir, "nested/external")
+        nested_external1 = os.path.join(nested_external, "external1")
+        nested_external2 = os.path.join(nested_external, "external2")
+        os.makedirs(nested_external1)
+        os.makedirs(nested_external2)
+
+        nested_file1 = os.path.join(nested_external1, "nested1.txt")
+        nested_file1 = normalize_path(nested_file1)
+        nested_file2 = os.path.join(nested_external2, "nested2.pdf")
+        nested_file2 = normalize_path(nested_file2)
+
+        with open(nested_file1, "w") as f:
+            f.write('a txt file')
+        with open(nested_file2, "w") as f:
             f.write('a pdf file')
 
         self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
@@ -2344,22 +2389,30 @@ class ExternalTestCase(TestCase):
 
         tree = etree.parse(self.fname)
 
+        rel_nested1 = normalize_path(os.path.relpath(nested_file1, self.datadir))
+        rel_nested2 = normalize_path(os.path.relpath(nested_file2, self.datadir))
+        self.assertEqual(len(tree.findall(".//file[@href='%s']" % rel_nested1)), 1)
+        self.assertEqual(len(tree.findall(".//file[@href='%s']" % rel_nested2)), 1)
+
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
+        rel_external1 = normalize_path(os.path.relpath(external1_path, self.datadir))
+        rel_external2 = normalize_path(os.path.relpath(external2_path, self.datadir))
 
-        self.assertIsNone(tree.find('.//file'))
-
-        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external1_path, self.datadir))), 1)
-        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % os.path.relpath(external2_path, self.datadir))), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % rel_external1)), 1)
+        self.assertEqual(len(tree.findall(".//ptr[@href='%s']" % rel_external2)), 1)
 
         self.assertTrue(os.path.isfile(external1_path))
         self.assertTrue(os.path.isfile(external2_path))
 
+        self.assertIsNone(tree.find(".//file[@href='ext1.txt']"))
+        self.assertIsNone(tree.find(".//file[@href='ext2.pdf']"))
+
         external1_tree = etree.parse(external1_path)
-        self.assertEqual(len(external1_tree.findall(".//file[@href='file1.txt']")), 1)
+        self.assertEqual(len(external1_tree.findall(".//file[@href='ext1.txt']")), 1)
 
         external2_tree = etree.parse(external2_path)
-        self.assertEqual(len(external2_tree.findall(".//file[@href='file1.pdf']")), 1)
+        self.assertEqual(len(external2_tree.findall(".//file[@href='ext2.pdf']")), 1)
 
     def test_external_info(self):
         specification = {
@@ -2388,7 +2441,10 @@ class ExternalTestCase(TestCase):
             },
         }
 
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
+        self.generator.generate(
+            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
+            folderToParse=self.datadir
+        )
         self.assertTrue(os.path.isfile(self.fname))
 
         external1_path = os.path.join(self.external1, 'external.xml')
@@ -2433,7 +2489,10 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
+        self.generator.generate(
+            {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
+            folderToParse=self.datadir
+        )
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
@@ -2482,7 +2541,15 @@ class ExternalTestCase(TestCase):
                 }
             },
         }
-        self.generator.generate({self.fname: {'spec': specification, 'data': {'foo': 'bar'}}}, folderToParse=self.datadir)
+        self.generator.generate(
+            {
+                self.fname: {
+                    'spec': specification,
+                    'data': {'foo': 'bar'}
+                }
+            },
+            folderToParse=self.datadir
+        )
 
         external1_path = os.path.join(self.external1, 'external.xml')
         external2_path = os.path.join(self.external2, 'external.xml')
@@ -2599,7 +2666,7 @@ class ParseContentTestCase(unittest.TestCase):
         self.assertEqual(contentobj, str(val))
 
     def test_parse_content_var_generate_current_time_isoformat(self):
-        content = [{"var": "_NOW",}]
+        content = [{"var": "_NOW"}]
         contentobj = parseContent(content, {})
         dt = dateparse.parse_datetime(contentobj)
         iso = dt.isoformat()
@@ -2608,13 +2675,13 @@ class ParseContentTestCase(unittest.TestCase):
 
     def test_parse_content_var_datetime_to_date(self):
         val = timezone.now()
-        content = [{"var": "foo__DATE",}]
+        content = [{"var": "foo__DATE"}]
         contentobj = parseContent(content, {'foo': val})
         self.assertEqual(contentobj, val.strftime('%Y-%m-%d'))
 
     def test_parse_content_var_datetime_to_local_timezone(self):
         val = timezone.now()
-        content = [{"var": "foo__LOCALTIME",}]
+        content = [{"var": "foo__LOCALTIME"}]
         contentobj = parseContent(content, {'foo': val})
         dt = dateparse.parse_datetime(contentobj)
         self.assertEqual(dt, timezone.localtime(val))
@@ -2662,15 +2729,18 @@ class ParseContentTestCase(unittest.TestCase):
 
         # django template system
         contentobj = parseContent("{{foo}}", {"foo": "åäö"})
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
     def test_iso_8859(self):
+        from ESSArch_Core.essxml.Generator.xmlGenerator import parse_content_django
         content = [{"var": "foo"}]
-        foo = u"åäö".encode("iso-8859-1")
+        foo = "åäö".encode("iso-8859-1")
         info = {"foo": foo}
         contentobj = parseContent(content, info)
-        self.assertEqual(contentobj, u"åäö")
+        self.assertEqual(contentobj, "åäö")
 
         # django template system
-        contentobj = parseContent("{{foo}}", info)
-        self.assertEqual(contentobj, u"åäö")
+        foo = "åäö".encode("iso-8859-1")
+        info = {"foo": foo}
+        contentobj = parse_content_django("{{foo}}", info)
+        self.assertEqual(contentobj, "åäö")

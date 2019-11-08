@@ -5,14 +5,22 @@ import shutil
 import tarfile
 import tempfile
 
-from django.db.models.functions import Cast
+from celery.result import allow_join_result
 from django.db.models import IntegerField
+from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import copy
-from ESSArch_Core.storage.models import TAPE, TapeDrive, StorageObject
-from ESSArch_Core.storage.tape import read_tape, set_tape_file_number, write_to_tape, DEFAULT_TAPE_BLOCK_SIZE
+from ESSArch_Core.storage.exceptions import StorageMediumFull
+from ESSArch_Core.storage.models import TAPE, StorageObject, TapeDrive
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+    read_tape,
+    set_tape_file_number,
+    write_to_tape,
+)
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 logger = logging.getLogger('essarch.storage.backends.tape')
 
@@ -20,11 +28,31 @@ logger = logging.getLogger('essarch.storage.backends.tape')
 class TapeStorageBackend(BaseStorageBackend):
     type = TAPE
 
+    @staticmethod
+    def prepare_for_io(storage_medium):
+        if storage_medium.tape_drive is not None:
+            # already mounted
+            return
+
+        with allow_join_result():
+            logger.debug('Queueing mount of storage medium "{}"'.format(str(storage_medium.pk)))
+            mount_task = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.MountTape",
+                args=[str(storage_medium.pk)],
+                eager=False,
+            )
+            mount_task.run().get()
+
+    def prepare_for_read(self, storage_medium):
+        """Prepare tape for reading by mounting it"""
+
+        return self.prepare_for_io(storage_medium)
+
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_TAPE_BLOCK_SIZE):
         tape_pos = int(storage_object.content_location_value)
         medium = storage_object.storage_medium
         ip = storage_object.ip
-        block_size = medium.block_size*512
+        block_size = medium.block_size * 512
 
         # TODO: Create temp dir inside configured temp directory
         tmp_path = tempfile.mkdtemp()
@@ -66,8 +94,13 @@ class TapeStorageBackend(BaseStorageBackend):
                 raise
         return new
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        block_size = storage_medium.block_size*512
+    def prepare_for_write(self, storage_medium):
+        """Prepare tape for writing by mounting it"""
+
+        return self.prepare_for_io(storage_medium)
+
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        block_size = storage_medium.block_size * 512
 
         last_written_obj = StorageObject.objects.filter(
             storage_medium=storage_medium
@@ -91,7 +124,9 @@ class TapeStorageBackend(BaseStorageBackend):
         except OSError as e:
             if e.errno == errno.ENOSPC:
                 storage_medium.mark_as_full()
+                raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
             else:
+                logger.exception('Error occurred when writing to tape')
                 raise
 
         drive.last_change = timezone.now()
@@ -101,8 +136,24 @@ class TapeStorageBackend(BaseStorageBackend):
             content_location_value=tape_pos,
             content_location_type=TAPE,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers
+            container=container
         )
 
     def delete(self, storage_object):
         pass
+
+    @classmethod
+    def post_mark_as_full(cls, storage_medium):
+        """Called after a medium has been successfully marked as full"""
+
+        drive_id = str(storage_medium.drive.pk)
+
+        with allow_join_result():
+            # unmount this tape
+            logger.debug('Queueing unmount of tape in drive {}'.format(drive_id))
+            unmount_task = ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.UnmountTape",
+                args=[str(drive_id)],
+                eager=False,
+            )
+            unmount_task.run().get()

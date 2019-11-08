@@ -1,63 +1,200 @@
-import errno
+import copy
 import logging
 import os
-import shutil
+import pathlib
 import tarfile
-import zipfile
+from urllib.parse import urljoin
 
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
-from lxml import etree
-from os import walk
+from groups_manager.utils import get_permission_name
+from guardian.shortcuts import assign_perm
 
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import ArchivePolicy, Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, parseContent
-from ESSArch_Core.essxml.util import get_agents, parse_submit_description
-from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT
-from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
+from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.util import parse_submit_description
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.util import (creation_date, find_destination, get_event_spec,
-                               get_premis_ip_object_element_spec, normalize_path,
-                               timestamp_to_datetime)
+from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.utils import (
+    download_schemas,
+    generate_aic_mets,
+    generate_content_mets,
+    generate_events_xml,
+    generate_package_mets,
+    generate_premis,
+    parse_submit_description_from_ip,
+)
+from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.models import StorageMethod, StorageTarget
+from ESSArch_Core.util import (
+    delete_path,
+    get_premis_ip_object_element_spec,
+    normalize_path,
+    zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
+
+
+class SubmitSIP(DBTask):
+    event_type = 10500
+
+    def run(self, delete_source=False, update_path=True):
+        ip = InformationPackage.objects.get(pk=self.ip)
+
+        reception = Path.objects.get(entity="ingest_reception").value
+        container_format = ip.get_container_format()
+        src = ip.object_path
+
+        try:
+            remote = ip.get_profile_data('transfer_project').get(
+                'preservation_organization_receiver_url'
+            )
+        except AttributeError:
+            remote = None
+
+        session = None
+
+        if remote:
+            if update_path:
+                raise ValueError('Cannot update path when submitting to remote host')
+
+            dst, remote_user, remote_pass = remote.split(',')
+            dst = urljoin(dst, 'api/ip-reception/upload/')
+
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (remote_user, remote_pass)
+        else:
+            dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
+
+        block_size = 8 * 1000000  # 8MB
+        copy_file(src, dst, requests_session=session, block_size=block_size)
+
+        src_xml = os.path.join(os.path.dirname(src), ip.object_identifier_value + ".xml")
+        if not remote:
+            dst_xml = os.path.join(reception, ip.object_identifier_value + ".xml")
+        else:
+            dst_xml = dst
+        copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
+
+        if update_path:
+            ip.object_path = dst
+            ip.package_mets_path = dst_xml
+            ip.save()
+
+        if delete_source:
+            delete_path(src)
+            delete_path(src_xml)
+
+        self.set_progress(100, total=100)
+
+    def undo(self, delete_source=False, update_path=True):
+        ip = InformationPackage.objects.get(pk=self.ip)
+
+        reception = Path.objects.get(entity="ingest_reception").value
+        container_format = ip.get_container_format()
+
+        tar = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
+        xml = os.path.join(reception, ip.object_identifier_value + ".xml")
+
+        os.remove(tar)
+        os.remove(xml)
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        ip = self.get_information_package()
+        return "Submitted %s" % ip.object_identifier_value
+
+
+class PrepareAIP(DBTask):
+    def run(self, sip_path):
+        sip_path, = self.parse_params(sip_path)
+        sip_path = pathlib.Path(sip_path)
+        user = User.objects.get(pk=self.responsible)
+        perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+        organization = user.user_profile.current_organization
+
+        object_identifier_value = sip_path.stem
+        existing_sip = InformationPackage.objects.filter(
+            Q(
+                Q(object_path=sip_path) |
+                Q(object_identifier_value=object_identifier_value),
+            ),
+            package_type=InformationPackage.SIP
+        ).first()
+        xmlfile = sip_path.with_suffix('.xml')
+
+        if existing_sip is None:
+            parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
+            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+
+            if parsed_sa is not None:
+                raise ValueError('No submission agreement found in xml')
+
+            sa = SubmissionAgreement.objects.get(pk=parsed_sa)
+
+            with transaction.atomic():
+                ip = InformationPackage.objects.create(
+                    object_identifier_value=object_identifier_value,
+                    sip_objid=object_identifier_value,
+                    sip_path=sip_path.as_posix(),
+                    package_type=InformationPackage.AIP,
+                    state='Prepared',
+                    responsible=user,
+                    submission_agreement=sa,
+                    submission_agreement_locked=True,
+                    object_path=sip_path.as_posix(),
+                    package_mets_path=xmlfile.as_posix(),
+                )
+
+                member = Member.objects.get(django_user=user)
+                user_perms = perms.pop('owner', [])
+
+                organization.assign_object(ip, custom_permissions=perms)
+                organization.add_object(ip)
+
+                for perm in user_perms:
+                    perm_name = get_permission_name(perm, ip)
+                    assign_perm(perm_name, member.django_user, ip)
+
+                # refresh date fields to convert them to datetime instances instead of
+                # strings to allow further datetime manipulation
+                ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+                ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], user)
+        else:
+            with transaction.atomic():
+                ip = existing_sip
+                ip.sip_objid = object_identifier_value
+                ip.sip_path = sip_path.as_posix()
+                ip.package_type = InformationPackage.AIP
+                ip.responsible = user
+                ip.state = 'Prepared'
+                ip.object_path = sip_path.as_posix()
+                ip.package_mets_path = xmlfile.as_posix()
+                ip.save()
+
+        return str(ip.pk)
 
 
 class GenerateContentMets(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = self.get_information_package()
-        mets_path = ip.get_content_mets_file_path()
-        profile_type = ip.get_package_type_display().lower()
-        profile_rel = ip.get_profile_rel(profile_type)
-        profile_data = ip.get_profile_data(profile_type)
-        files_to_create = {
-            mets_path: {
-                'spec': profile_rel.profile.specification,
-                'data': fill_specification_data(profile_data, ip=ip)
-            }
-        }
-        algorithm = ip.get_checksum_algorithm()
+        generate_content_mets(self.get_information_package())
 
-        generator = XMLGenerator()
-        generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
-
-        ip.content_mets_path = mets_path
-        ip.content_mets_create_date = timestamp_to_datetime(creation_date(mets_path)).isoformat()
-        ip.content_mets_size = os.path.getsize(mets_path)
-        ip.content_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-        ip.content_mets_digest = calculate_checksum(mets_path, algorithm=algorithm)
-        ip.save()
-
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.content_mets_path)
 
@@ -65,62 +202,37 @@ class GenerateContentMets(DBTask):
 class GeneratePackageMets(DBTask):
     event_type = 50600
 
-    def run(self):
+    def run(self, package_path=None, xml_path=None):
+        package_path, xml_path = self.parse_params(package_path, xml_path)
         ip = self.get_information_package()
-        sa = ip.submission_agreement
-        if ip.package_type == InformationPackage.SIP:
-            profile_type = 'submit_description'
-        elif ip.package_type == InformationPackage.AIP:
-            profile_type = 'aip_description'
-        else:
-            raise ValueError('Cannot create package mets for IP of type {package_type}'.format(package_type=ip.package_type))
-        profile_rel = ip.get_profile_rel(profile_type)
-        profile_data = ip.get_profile_data(profile_type)
-        xmlpath = os.path.splitext(ip.object_path)[0] + '.xml'
-        data = fill_specification_data(profile_data, ip=ip, sa=sa)
-        data["_IP_CREATEDATE"] = timestamp_to_datetime(creation_date(ip.object_path)).isoformat()
-        files_to_create = {
-            xmlpath: {
-                'spec': profile_rel.profile.specification,
-                'data': data
-            }
-        }
-        algorithm = ip.get_checksum_algorithm()
+        package_path = package_path if package_path is not None else ip.object_path
+        xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
 
-        generator = XMLGenerator()
-        generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+        generate_package_mets(ip, package_path, xml_path)
+        return xml_path
 
-        ip.package_mets_path = normalize_path(xmlpath)
-        ip.package_mets_create_date = timestamp_to_datetime(creation_date(xmlpath)).isoformat()
-        ip.package_mets_size = os.path.getsize(xmlpath)
-        ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-        ip.package_mets_digest = calculate_checksum(xmlpath, algorithm=algorithm)
-        ip.save()
+    def event_outcome_success(self, result, *args, **kwargs):
+        return 'Generated {xml}'.format(xml=result)
 
-    def event_outcome_success(self):
+
+class GenerateAICMets(DBTask):
+    def run(self, xml_path):
+        xml_path, = self.parse_params(xml_path)
         ip = self.get_information_package()
-        return 'Generated {xml}'.format(xml=ip.package_mets_path)
+        generate_aic_mets(ip, xml_path)
+        return xml_path
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        return 'Generated {xml}'.format(xml=result)
 
 
 class GeneratePremis(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = self.get_information_package()
-        premis_path = ip.get_premis_file_path()
-        premis_profile_rel = ip.get_profile_rel('preservation_metadata')
-        premis_profile_data = ip.get_profile_data('preservation_metadata')
-        files_to_create = {
-            premis_path: {
-                'spec': premis_profile_rel.profile.specification,
-                'data': fill_specification_data(premis_profile_data, ip=ip)
-            }
-        }
-        algorithm = ip.get_checksum_algorithm()
-        generator = XMLGenerator()
-        generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+        generate_premis(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_premis_file_path())
 
@@ -129,19 +241,9 @@ class GenerateEventsXML(DBTask):
     event_type = 50600
 
     def run(self):
-        ip = self.get_information_package()
-        xml_path = os.path.join(ip.object_path, ip.get_events_file_path())
-        files_to_create = {
-            xml_path: {
-                'spec': get_event_spec(),
-                'data': fill_specification_data(ip=ip)
-            }
-        }
-        algorithm = ip.get_checksum_algorithm()
-        generator = XMLGenerator()
-        generator.generate(files_to_create, algorithm=algorithm)
+        generate_events_xml(self.get_information_package())
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return 'Generated {xml}'.format(xml=ip.get_events_file_path())
 
@@ -150,51 +252,7 @@ class DownloadSchemas(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
 
     def run(self, verify=True):
-        ip = self.get_information_package()
-        ip_profile_type = ip.get_package_type_display().lower()
-        ip_profile = ip.get_profile_rel(ip_profile_type).profile
-        structure = ip.get_structure()
-        rootdir = ip.object_path
-
-        specifications = [ip_profile.specification, get_event_spec()]
-        premis_profile_rel = ip.get_profile_rel('preservation_metadata')
-        if premis_profile_rel is not None:
-            specifications.append(premis_profile_rel.profile.specification)
-
-        self.logger.debug(u'Downloading schemas')
-        for spec in specifications:
-            schema_preserve_loc = spec.get('-schemaPreservationLocation', 'xsd_files')
-            if schema_preserve_loc and structure:
-                reldir, _ = find_destination(schema_preserve_loc, structure)
-                dirname = os.path.join(rootdir, reldir)
-            else:
-                dirname = rootdir
-
-            for schema in spec.get('-schemasToPreserve', []):
-                dst = os.path.join(dirname, os.path.basename(schema))
-                self.logger.info(u'Downloading schema from {} to {}'.format(schema, dst))
-                try:
-                    r = requests.get(schema, stream=True, verify=verify)
-                    r.raise_for_status()
-                    with open(dst, 'wb') as f:
-                        for chunk in r:
-                            f.write(chunk)
-                except Exception:
-                    self.logger.exception(u'Download of schema failed: {}'.format(schema))
-                    try:
-                        self.logger.debug(u'Deleting downloaded file if it exists: {}'.format(dst))
-                        os.remove(dst)
-                    except OSError as e:
-                        if e.errno != errno.ENOENT:
-                            self.logger.exception(u'Failed to delete downloaded file: {}'.format(dst))
-                            raise
-                    else:
-                        self.logger.info(u'Deleted downloaded file: {}'.format(dst))
-                    raise
-                else:
-                    self.logger.info(u'Downloaded schema to {}'.format(dst))
-        else:
-            self.logger.info(u'No schemas to download')
+        download_schemas(self.get_information_package(), self.logger, verify)
 
 
 class AddPremisIPObjectElementToEventsFile(DBTask):
@@ -220,19 +278,6 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
 class CreatePhysicalModel(DBTask):
     event_type = 10300
 
-    def get_dirs(self, structure, data, root=""):
-        for content in structure:
-            if content.get('type') == 'folder':
-                name = content.get('name')
-                dirname = os.path.join(root, name)
-                dirname = parseContent(dirname, data)
-                if not content.get('create', True):
-                    continue
-
-                yield dirname
-                for x in self.get_dirs(content.get('children', []), data, dirname):
-                    yield x
-
     def run(self, structure=None, root=""):
         """
         Creates the IP physical model based on a logical model.
@@ -243,111 +288,56 @@ class CreatePhysicalModel(DBTask):
         """
 
         ip = self.get_information_package()
-        data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
-        structure = structure or ip.get_structure()
-        root = ip.object_path if not root else root
-
-        created = []
-        try:
-            for dirname in self.get_dirs(structure, data, root):
-                try:
-                    os.makedirs(dirname)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
-                created.append(dirname)
-        except Exception:
-            for dirname in created:
-                try:
-                    shutil.rmtree(dirname)
-                except OSError as e:
-                    if e.errno != errno.ENOENT:
-                        raise
-            raise
+        ip.create_physical_model(structure, root)
 
         self.set_progress(1, total=1)
 
-    def event_outcome_success(self, *args, **kwargs):
-        return "Created physical model for %s" % self.ip_objid
+    def event_outcome_success(self, result, *args, **kwargs):
+        ip = self.get_information_package()
+        return "Created physical model for %s" % ip.object_identifier_value
 
-    
+
 class CreateContainer(DBTask):
-    def run(self):
+    def run(self, src, dst):
+        src, dst = self.parse_params(src, dst)
+
         ip = self.get_information_package()
         container_format = ip.get_container_format().lower()
         tpp = ip.get_profile_rel('transfer_project').profile
         compress = tpp.specification_data.get('container_format_compression', False)
 
-        src = ip.object_path
-        dst_dir = Path.objects.cached('entity', 'path_preingest_reception', 'value')
-        dst_filename = ip.object_identifier_value + '.' + container_format
-        dst = normalize_path(os.path.join(dst_dir, dst_filename))
+        dst = normalize_path(dst)
+
+        if os.path.isdir(dst):
+            dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
+            dst = os.path.join(dst, dst_filename)
 
         if container_format == 'zip':
             self.event_type = 50410
-            compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-            with zipfile.ZipFile(dst, 'w', compression) as new_zip:
-                for root, dirs, files in walk(src):
-                    for d in dirs:
-                        filepath = os.path.join(root, d)
-                        arcname = os.path.relpath(filepath, src)
-                        new_zip.write(filepath, arcname)
-                    for f in files:
-                        filepath = os.path.join(root, f)
-                        arcname = os.path.relpath(filepath, src)
-                        new_zip.write(filepath, arcname)
+            zip_directory(dirname=src, zipname=dst, compress=compress)
         else:
             self.event_type = 50400
             compression = ':gz' if compress else ''
-            base_dir = os.path.basename(os.path.normpath(ip.object_path))
+            base_dir = os.path.basename(os.path.normpath(src))
             with tarfile.open(dst, 'w%s' % compression) as new_tar:
                 new_tar.add(src, base_dir)
 
-        ip.object_path = dst
-        ip.save()
-        shutil.rmtree(src)
         return dst
-
-    def event_outcome_success(self):
-        ip = self.get_information_package()
-        return "Created {path}".format(path=ip.object_path)
 
 
 class ParseSubmitDescription(DBTask):
     @transaction.atomic
     def run(self):
-        ip = self.get_information_package()
-        rootdir = os.path.dirname(ip.object_path) if os.path.isfile(ip.object_path) else ip.object_path
-        xml = ip.package_mets_path
-        parsed = parse_submit_description(xml, rootdir)
+        parse_submit_description_from_ip(self.get_information_package())
 
-        ip.label = parsed.get('label')
-        ip.entry_date = parsed.get('entry_date')
-        ip.start_date = parsed.get('start_date')
-        ip.end_date = parsed.get('end_date')
-
-        if ip.policy is None:
-            parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
-            ip.policy = ArchivePolicy.objects.get(policy_id=parsed_policy)
-
-        ip.information_class = parsed.get('information_class') or ip.policy.information_class
-        if ip.information_class != ip.policy.information_class:
-            raise ValueError('Information class in submit description ({}) and policy ({}) does not match'.format(
-                ip.information_class, ip.policy.information_class))
-
-        for agent_el in get_agents(etree.parse(xml)):
-            agent = Agent.objects.from_mets_element(agent_el)
-            ip.agents.add(agent)
-
-        ip.save()
-
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Parsed submit description at {}".format(ip.package_mets_path)
 
 
 class ParseEvents(DBTask):
     event_type = 50630
+    logger = logging.getLogger('essarch.core.ip.tasks.ParseEvents')
 
     def get_path(self, ip):
         return ip.get_events_file_path(from_container=True)
@@ -355,11 +345,17 @@ class ParseEvents(DBTask):
     @transaction.atomic
     def run(self):
         ip = self.get_information_package()
-        xmlfile = ip.open_file(self.get_path(ip), 'rb')
+        xmlfile_path = self.get_path(ip)
+        try:
+            xmlfile = ip.open_file(xmlfile_path, 'rb')
+        except (FileNotFoundError, KeyError):
+            self.logger.debug('No events file found at "{}"'.format(xmlfile_path))
+            return
+
         events = EventIP.objects.from_premis_file(xmlfile, save=False)
         EventIP.objects.bulk_create(events, 100)
 
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Parsed events from %s" % self.get_path(ip)
 
@@ -374,28 +370,91 @@ class Transform(DBTask):
         backend.transform(path)
 
 
-class CreateReceipt(DBTask):
-    def run(self, task, backend, template, destination, outcome, short_message, message, date=None):
+class PreserveInformationPackage(DBTask):
+    def run(self, storage_method_pk):
         ip = self.get_information_package()
-        template, destination, outcome, short_message, message, date = self.parse_params(template, destination, outcome,
-                                                                                         short_message, message, date)
+        policy = ip.policy
+
+        if policy is None:
+            raise ValueError('{} has no policy'.format(ip))
+
+        storage_method = StorageMethod.objects.get(pk=storage_method_pk)
+        policy_methods = policy.storage_methods.all()
+
+        if storage_method not in policy_methods and storage_method != policy.cache_storage:
+            raise ValueError('{} not part of {}'.format(storage_method, policy))
+
+        try:
+            storage_target = storage_method.enabled_target
+        except StorageTarget.DoesNotExist:
+            raise ValueError('No writeable target available for {}'.format(storage_method))
+
+        if storage_method.containers or storage_target.remote_server:
+            src = [
+                ip.get_temp_container_path(),
+                ip.get_temp_container_xml_path(),
+                ip.get_temp_container_aic_xml_path(),
+            ]
+        else:
+            src = [ip.object_path]
+
+        return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+
+
+class WriteInformationPackageToSearchIndex(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+        ip.write_to_search_index(self.get_processtask())
+
+
+class CreateReceipt(DBTask):
+    def run(self, task_id, backend, template, destination, outcome, short_message, message, date=None):
+        ip = self.get_information_package()
+        template, destination, outcome, short_message, message, date = self.parse_params(
+            template, destination, outcome, short_message, message, date
+        )
         if date is None:
             date = timezone.now()
 
-        backend = get_receipt_backend(backend, ip)
-        if task is None:
-            task = self.task_id
+        backend = get_receipt_backend(backend)
+        if task_id is None:
+            task = self.get_processtask()
+        else:
+            task = ProcessTask.objects.get(celery_id=task_id)
         backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
 
 
-class DeleteInformationPackage(DBTask):
-    def run(self, from_db=False):
+class MarkArchived(DBTask):
+    def run(self):
         ip = self.get_information_package()
-        ip.delete_workareas()
-        ip.delete_files()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
+
+
+class DeleteInformationPackage(DBTask):
+    def run(self, from_db=False, delete_files=True):
+        ip = self.get_information_package()
+
+        old_state = ip.state
+        ip.state = 'Deleting'
+        ip.save()
+        try:
+            ip.delete_workareas()
+            if delete_files:
+                ip.delete_files()
+        except BaseException:
+            ip.state = old_state
+            ip.save()
+            raise
+
+        self.set_progress(99, 100)
 
         if from_db:
-            ip.delete()
+            with transaction.atomic():
+                ip_content_type = ContentType.objects.get_for_model(ip)
+                GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+                ip.delete()
         else:
             ip.state = 'deleted'
             ip.save()
@@ -403,3 +462,18 @@ class DeleteInformationPackage(DBTask):
         Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
+
+class CreateWorkarea(DBTask):
+    def run(self, ip, user, type, read_only):
+        ip = InformationPackage.objects.get(pk=ip)
+        user = User.objects.get(pk=user)
+        Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+        Notification.objects.create(
+            message="%s is now in workarea" % ip.object_identifier_value,
+            level=logging.INFO, user=user, refresh=True
+        )
+
+
+class DeleteWorkarea(DBTask):
+    def run(self, pk):
+        Workarea.objects.filter(pk=pk).delete()

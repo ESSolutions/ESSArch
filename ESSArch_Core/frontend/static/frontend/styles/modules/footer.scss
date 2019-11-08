@@ -1,0 +1,48 @@
+.page-footer {
+  flex-shrink: 0;
+  width: 100%;
+  border-style: solid;
+  border-width: 1px;
+  border-color: $border-color;
+  background-color: $header-color;
+  color: white;
+  padding-top: 5px;
+  h4 {
+    text-align: center;
+  }
+  .footer-info {
+    padding-bottom: 5px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  .company-info-wrapper {
+    a {
+      color: white;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    padding: 5px;
+    .logo {
+      border-radius: 10%;
+      max-width: 50px;
+      max-height: 50px;
+      box-shadow: 0px 1px 0px $shadow-color;
+    }
+  }
+  .copyright {
+    margin: 0 auto;
+    padding: 10px;
+    text-align: center;
+    background-color: $sub-menu;
+    color: white;
+    a {
+      color: white;
+    }
+  }
+  .vertical-line-separator {
+    border-left: 1px solid white;
+  }
+}

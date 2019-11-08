@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='Notification',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('level', models.IntegerField(choices=[(10, b'debug'), (20, b'info'), (30, b'warning'), (40, b'error'), (50, b'critical')])),
+                ('level', models.IntegerField(choices=[(10, 'debug'), (20, 'info'), (30, 'warning'), (40, 'error'), (50, 'critical')])),
                 ('message', models.CharField(max_length=255)),
                 ('time_created', models.DateTimeField(auto_now_add=True)),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='notifications', to=settings.AUTH_USER_MODEL)),

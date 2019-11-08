@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='tag',
-            options={'permissions': (('search', 'Can search'), ('create_archive', 'Can create new archives'), ('delete_archive', 'Can delete archives'))},
+            options={'permissions': (('search', 'Can search'), ('create_archive', 'Can create new archives'), ('delete_archive', 'Can delete archives'), ('change_tag_location', 'Can change tag location'))},
         ),
     ]

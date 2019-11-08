@@ -1,0 +1,15 @@
+<div class="modal-heading">
+  <h3 ng-if="$ctrl.type == 'file'" class="modal-title" id="modal-title">{{'FILE_EXISTS_IN_IP' | translate}}</h3>
+  <h3 ng-if="$ctrl.type == 'dir'" class="modal-title" id="modal-title">{{'DIR_EXISTS_IN_IP' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.overwrite()">
+  <div class="modal-body" id="modal-body">
+    <p ng-if="$ctrl.type == 'file'" for="label">{{'FILE_EXISTS_IN_IP_DESC' | translate}}</p>
+    <p ng-if="$ctrl.type == 'dir'" for="label">{{'DIR_EXISTS_IN_IP_DESC' | translate}}</p>
+    <b>{{$ctrl.file.name}}</b>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" focused="true">{{'OK' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

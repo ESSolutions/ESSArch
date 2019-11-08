@@ -1,0 +1,170 @@
+<div class="file-explorer" st-table="deckGridData" st-pipe="dirPipe">
+  <div class="title-action-button-row">
+    <div class="title">
+      <h4>
+        {{'FILEBROWSER.FILEBROWSER' | translate}}
+      </h4>
+    </div>
+  </div>
+  <div class="nav-refresh-wrapper">
+    <div class="file-explorer-nav">
+      <li
+        ng-class="{'arrow-disabled': previousGridArrays.length == 0}"
+        class="far fa-arrow-alt-circle-left fa-2x clickable"
+        ng-click="previousGridArray()"
+      ></li>
+      <b ng-if="!('**.workarea.**' | includedByState)" class="dir-path"
+        >{{ip.object_identifier_value + '/' + previousGridArraysString()}}</b
+      >
+      <b ng-if="('**.workarea.**' | includedByState)" class="dir-path">{{previousGridArraysString()}}</b>
+    </div>
+    <div class="button-refresh-wrapper">
+      <div>
+        <select
+          class="form-control items-per-page"
+          ng-change="changeFilesPerPage(filesPerPage)"
+          ng-model="filesPerPage"
+          ng-options="x for x in [5, 10, 25, 50]"
+          uib-tooltip="{{'FILES_PER_PAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        >
+          {{x}}
+        </select>
+      </div>
+      <button
+        class="btn btn-default btn-sm"
+        ng-class="{'active': listView}"
+        ng-click="useListView()"
+        uib-tooltip="{{'LIST_VIEW' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        <i class="fas fa-th-list fa-lg"></i>
+      </button>
+      <button
+        class="btn btn-default btn-sm"
+        ng-class="{'active': gridView}"
+        ng-click="useGridView()"
+        uib-tooltip="{{'GRID_VIEW' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        <i class="fas fa-th fa-lg"></i>
+      </button>
+      <div class="refresh-filebrowser">
+        <span
+          ng-click="updateGridArray(ip)"
+          class="clickable angular-animate fas fa-sync-alt fa-lg"
+          ng-class="{'fa-sync-alt-animate': gridArrayLoading }"
+          uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+          tooltip-placement="auto left"
+          tooltip-append-to-body="true"
+        ></span>
+      </div>
+    </div>
+  </div>
+  <div ng-show="gridView">
+    <div class="deckgrid">
+      <div ng-if="!deckGridData.length && gridArrayLoading || openingNewPage" class="text-center">
+        <div class="loading-column">{{'LOADING' | translate}}</div>
+      </div>
+      <div ng-if="!deckGridData.length && !gridArrayLoading" class="text-center">
+        <div>{{'NO_RESULTS_FOUND' | translate}}</div>
+      </div>
+      <div class="flex-grid" ng-if="!openingNewPage">
+        <div
+          class="card"
+          ng-repeat="card in deckGridData"
+          ng-include
+          src="'static/frontend/views/deckgrid_card.html'"
+        ></div>
+      </div>
+    </div>
+  </div>
+  <div ng-show="listView" class="file-list-view">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th translate="NAME" class="name-column"></th>
+          <th translate="SIZE" class="size-column"></th>
+          <th translate="CHANGED" class="changed-column"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          ng-if="!openingNewPage"
+          ng-repeat="card in deckGridData"
+          class="clickable"
+          ng-dblClick="expandFile(ip, card)"
+          ng-class="isSelected(card)"
+          ng-click="cardSelect(card)"
+        >
+          <td
+            class="type-name-column"
+            uib-tooltip-html="'{{'NAME' | translate}}: {{card.name}}'"
+            tooltip-placement="auto top"
+            tooltip-popup-delay="1000"
+            tooltip-append-to-body="true"
+          >
+            <div ng-class="card.type" ng-if="card.type == 'file'">
+              <li class="fas fa-file"></li>
+            </div>
+            <div ng-class="card.type" ng-if="card.type == 'dir'">
+              <li class="fas fa-folder"></li>
+            </div>
+            <div class="one-row-ellipsis">
+              {{card.name}}
+            </div>
+          </td>
+          <td
+            uib-tooltip-html="'{{'SIZE' | translate}}: {{card.size | filesize}}'"
+            tooltip-placement="auto top"
+            tooltip-popup-delay="1000"
+            tooltip-append-to-body="true"
+          >
+            <div class="one-row-ellipsis">
+              {{card.size | filesize}}
+            </div>
+          </td>
+          <td
+            uib-tooltip-html="'{{'CHANGED' | translate}}: {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}'"
+            tooltip-placement="auto top"
+            tooltip-popup-delay="1000"
+            tooltip-append-to-body="true"
+          >
+            <div class="one-row-ellipsis">
+              {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}
+            </div>
+          </td>
+        </tr>
+        <tr ng-if="!deckGridData.length && !gridArrayLoading" class="empty-table-indicator">
+          <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+        </tr>
+        <tr ng-if="!deckGridData.length && gridArrayLoading || openingNewPage" class="empty-table-indicator">
+          <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="files-per-page-pagination-wrapper">
+    <div
+      st-template="static/frontend/views/file_pagination.html"
+      st-pagination=""
+      st-items-by-page="filesPerPage"
+      st-displayed-pages="7"
+    ></div>
+  </div>
+  <button
+    ng-if="selectedCards.length && ((ip.workarea && ip.workarea[0] && !ip.workarea[0].read_only) || (ip.state == 'Uploading' || ip.state == 'Prepared'))"
+    class="btn btn-default"
+    ng-click="removeFiles()"
+    translate="REMOVE"
+  ></button>
+  <button
+    ng-if="(ip.workarea && ip.workarea[0] && !ip.workarea[0].read_only) || (ip.state == 'Uploading' || ip.state == 'Prepared')"
+    ng-click="newDirModal()"
+    class="btn btn-default"
+    translate="FILEBROWSER.NEWFOLDER"
+  ></button>
+</div>

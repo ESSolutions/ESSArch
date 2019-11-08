@@ -33,19 +33,19 @@ def reverse_func(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0038_auto_20170824_1525'),
+        ('profiles', '0035_auto_20170817_1109'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(default=[]),
+            field=jsonfield.fields.JSONField(blank=True, default=[]),
         ),
         migrations.AlterField(
             model_name='profile',
             name='template',
-            field=jsonfield.fields.JSONField(default=[]),
+            field=jsonfield.fields.JSONField(blank=True, default=[]),
         ),
         migrations.RunPython(forwards_func, reverse_func),
     ]

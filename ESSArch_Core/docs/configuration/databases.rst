@@ -14,11 +14,30 @@ Here is an example using MySQL:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'etp',
-            'USER': 'arch',
+            'NAME': 'essarch',
+            'USER': 'essarch',
             'PASSWORD': 'password',
             'HOST': '127.0.0.1',
             'PORT': '3306',
+            'OPTIONS': {
+                'isolation_level': 'read committed',
+            }
+        }
+    }
+
+
+and using Postgres:
+
+.. code-block:: python
+
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'essarch',
+            'USER': 'essarch',
+            'PASSWORD': 'password',
+            'HOST': '127.0.0.1',
+            'PORT': '5432',
             'OPTIONS': {
                 'isolation_level': 'read committed',
             }

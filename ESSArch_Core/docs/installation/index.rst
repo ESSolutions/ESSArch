@@ -1,11 +1,20 @@
+.. _installation:
+
 =============
  Installation
 =============
 
+To install and run ESSArch, a set of services first needs to be setup.
+
 .. toctree::
     :maxdepth: 2
 
-    core/index
-    etp/index
-    eta/index
-    epp/index
+    prerequisites
+
+    automatic
+    docker
+    python
+
+    safety_backup_procedures
+    logfiles
+

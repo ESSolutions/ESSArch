@@ -1,0 +1,77 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_RULE' | translate}}</h3>
+</div>
+<form name="$ctrl.createForm" ng-submit="$ctrl.create()">
+  <div class="modal-body" id="modal-body">
+    <label>
+      {{'NAME' | translate}}
+      <input class="form-control" required ng-model="$ctrl.name" />
+    </label>
+    <br />
+    <label>
+      {{'DESCRIPTION' | translate}}
+      <textarea rows="2" maxlength="255" class="form-control" ng-model="$ctrl.description"></textarea>
+    </label>
+    <hr />
+    <label>
+      <input type="checkbox" ng-model="$ctrl.publicRule" />
+      {{'PUBLIC' | translate}}
+    </label>
+    <br />
+    <label>
+      <input type="checkbox" ng-model="$ctrl.manualRule" />
+      {{'ARCHIVE_MAINTENANCE.RUN_MANUALLY' | translate}}
+    </label>
+    <hr />
+    <div class="cron-form" ng-if="!$ctrl.manualRule">
+      <cron-selection
+        ng-model="$ctrl.frequency"
+        my-frequency="$ctrl.myFrequency"
+        template="static/frontend/views/cron_form.html"
+        config="$ctrl.cronConfig"
+      ></cron-selection>
+      <b
+        >{{'ARCHIVE_MAINTENANCE.FREQUENCY' | translate}}:
+        <span ng-class="{'color-red': !$ctrl.validCron($ctrl.frequency)}"
+          >{{$ctrl.prettyFrequency($ctrl.frequency)}}</span
+        ></b
+      >
+      <br />
+      <b>{{'ARCHIVE_MAINTENANCE.NEXT' | translate}}: {{$ctrl.nextPretty($ctrl.frequency)}}</b>
+    </div>
+    <br />
+    <label>
+      {{'ARCHIVE_MAINTENANCE.PATHS' | translate}}
+    </label>
+    <div class="flex-row">
+      <input class="form-control" ng-enter="$ctrl.addPath($ctrl.path)" ng-model="$ctrl.path" />
+      <button type="button" class="btn btn-success btn-small px-base" ng-click="$ctrl.addPath($ctrl.path)">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="path-row">
+      <div ng-repeat="path in $ctrl.pathList track by $index" class="path-item">
+        {{path}}&nbsp;<i ng-click="$ctrl.removePath(path)" class="fas fa-times clickable"></i>
+      </div>
+      <div ng-if="$ctrl.pathList.length == 0">
+        <span ng-if="!$ctrl.showRequired">{{'ARCHIVE_MAINTENANCE.NO_PATHS_CHOSEN' | translate}}</span>
+        <span ng-if="$ctrl.showRequired" style="color: red;"
+          >{{'ARCHIVE_MAINTENANCE.CHOOSE_AT_LEAST_ONE_PATH' | translate}} *</span
+        >
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      class="btn btn-primary"
+      type="submit"
+      ng-disabled="!$ctrl.validCron($ctrl.frequency) || $ctrl.addingRule"
+      focused="true"
+    >
+      {{'CREATE' | translate}} <i ng-if="$ctrl.addingRule" class="fas fa-spinner fa-spin"></i>
+    </button>
+    <button class="btn btn-default" ng-disabled="$ctrl.addingRule" type="button" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

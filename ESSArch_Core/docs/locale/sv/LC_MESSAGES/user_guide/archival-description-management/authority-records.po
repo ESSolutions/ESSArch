@@ -1,0 +1,287 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, ES Solutions
+# This file is distributed under the same license as the ESSArch Core
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch Core 3.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-09-18 10:16+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../user_guide/archival-description-management/authority-records.rst:3
+msgid "Authority records"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:4
+msgid ""
+"Describes corporate bodies, persons or families that are associated with "
+"the creation and maintenance of archives, such as creator, donor or "
+"custodian."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:7
+msgid ""
+"ESSArch adheres to `ISAAR (CPF), 2nd Edition "
+"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-"
+"edition_EN.pdf>`_ and comes with a standard set of controlled "
+"vocabularies for typed fields which can be customized or supplemented by "
+"additional values."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:9
+msgid ""
+"Authority Records are created and controlled separately from archival "
+"(resource) descriptions in ESSArch and are associated by linking."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:12
+msgid "By default there is three main types of Authority records in ESSArch:"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:14
+msgid "Person"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:15
+msgid "Family"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:16
+msgid "Corporate Body"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:18
+msgid ""
+"These three main types can be further `subdivided <Create custom "
+"vocabularies>`_ by the organization needs or other requirements of "
+"subdivision i.e."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:20
+msgid "Corporate body - State agency"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:21
+msgid "Family - Royal Family"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:24
+msgid ""
+"The :ref:`ICA Standards <ICA_Standards>` section provides a detailed "
+"documentation of the entry fields of an authority record in ESSArch, "
+"their relation to ISAAR-CPF and default values available from a standard "
+"installation."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:28
+msgid "Creating and managing authority records"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:30
+msgid ""
+"Be careful when updating Authority records! Updating of an Authority "
+"record changes it for every link to the referenced record."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:36
+msgid "Creating a new authority record"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:38
+msgid ""
+"A new authority record can be created by clicking the new button under "
+"the authority record section of ESSArch."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:40
+msgid ""
+"When initially creating an authority record the following fields are "
+"required for all types of authority records:"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:42
+msgid "Type"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:43
+msgid "Name (Authorized form)"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:44
+msgid "Language"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:45
+msgid "Reference code (institutional code)"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:46
+msgid "Create date (Auto populated)"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:53
+msgid "New authority record form"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:56
+msgid ""
+"For Authority records of type person the name field is automatically "
+"separated into  Firstname and Lastname fields."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:63
+msgid "Detail view of newly created authority record"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:67
+msgid "Adding other name forms"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:69
+msgid ""
+"By clicking the add button in the names subsection one can record "
+"additional name forms. i.e. Parallel forms of name, Standardized forms of"
+" name according to other rules and Other forms of name."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:79
+msgid ""
+"After the additional name form has been saved the record is available "
+"under the Names section."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:88
+msgid "Adding history, descriptive texts and notes"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:89
+msgid "In ESSArch one can have multiple descriptive texts / notes."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:92
+msgid ""
+"Custom note types will in future EAC exports be exported as "
+"<maintenanceEvent>  !"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:94
+msgid "Standard type of notes that can be used in ESSArch:"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:96
+msgid "Biography/History"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:97
+msgid "Maintenance"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:98
+msgid "Internal structures"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:99
+msgid "Genealogy"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:100
+msgid "General context"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:102
+msgid ""
+"To add a new descriptive text click on the History or Remarks tab and "
+"then the add button."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:110
+msgid ""
+"From the dropdown menu choose the appropriate note type, add text and "
+"click add to save."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:120
+msgid "Creating relations"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:122
+msgid ""
+"Relationships with other corporate bodies, persons and families can be "
+"described by linking authority records."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:124
+msgid ""
+"Relationship types in ESSArch are mirrored which means that if a relation"
+" is created on one authority record the relation will automatically be "
+"mirrored when viewing the referenced authority record."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:127
+msgid "**Type**"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:127
+msgid "**Mirrored Type**"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:129
+msgid "business partner"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:131
+#: ../../user_guide/archival-description-management/authority-records.rst:133
+msgid "successor"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:131
+#: ../../user_guide/archival-description-management/authority-records.rst:133
+msgid "predecessor"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:135
+#: ../../user_guide/archival-description-management/authority-records.rst:137
+msgid "owned by"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:135
+#: ../../user_guide/archival-description-management/authority-records.rst:137
+msgid "owner of"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:139
+#: ../../user_guide/archival-description-management/authority-records.rst:141
+msgid "controlling"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:139
+#: ../../user_guide/archival-description-management/authority-records.rst:141
+msgid "controlled"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:143
+#: ../../user_guide/archival-description-management/authority-records.rst:145
+msgid "subordinate"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:143
+#: ../../user_guide/archival-description-management/authority-records.rst:145
+msgid "superior"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/authority-records.rst:148
+msgid ""
+"To add a relation from one authority record to another click the add "
+"button in the related authority records section."
+msgstr ""
+

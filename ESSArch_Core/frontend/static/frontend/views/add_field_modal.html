@@ -1,0 +1,19 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.ADD_FIELD' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.updateField()">
+  <div class="modal-body" id="modal-body">
+    <label>
+      {{'ACCESS.KEY' | translate}}
+      <input focused="true" class="form-control" ng-model="$ctrl.field.key" />
+    </label>
+    <label>
+      {{'VALUE' | translate}}
+      <input class="form-control" ng-model="$ctrl.field.value" />
+    </label>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit">{{'OK' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

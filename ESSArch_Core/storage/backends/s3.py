@@ -1,23 +1,23 @@
 import errno
+import io
 import logging
 import os
-
-import boto3
-import six
-from django.conf import settings
 from os import walk
 
+import boto3
+from django.conf import settings
+
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import CAS, StorageObject
 
 logger = logging.getLogger('essarch.storage.backends.s3')
 AWS = settings.AWS
 
 s3 = boto3.resource('s3',
-    aws_access_key_id=AWS.get('ACCESS_KEY_ID'),
-    aws_secret_access_key=AWS.get('SECRET_ACCESS_KEY'),
-    endpoint_url=AWS.get('ENDPOINT_URL')
-)
+                    aws_access_key_id=AWS.get('ACCESS_KEY_ID'),
+                    aws_secret_access_key=AWS.get('SECRET_ACCESS_KEY'),
+                    endpoint_url=AWS.get('ENDPOINT_URL'))
 
 
 class S3StorageBackend(BaseStorageBackend):
@@ -27,7 +27,7 @@ class S3StorageBackend(BaseStorageBackend):
         raise NotImplementedError
 
     def open(self, storage_object, file, *args, **kwargs):
-        data = six.moves.StringIO()
+        data = io.StringIO()
         bucket_name, key = storage_object.content_location_value.split('/', 1)
         key = os.path.join(key, file)
         bucket = s3.Bucket(bucket_name)
@@ -35,7 +35,7 @@ class S3StorageBackend(BaseStorageBackend):
         data.seek(0)
         return data
 
-    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=65536):
+    def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         ip = storage_object.ip
 
         bucket_name, key = storage_object.content_location_value.split('/', 1)
@@ -63,8 +63,8 @@ class S3StorageBackend(BaseStorageBackend):
                 bucket.download_file(object_summary.key, dst_file)
             return dst
 
-    def write(self, src, ip, storage_method, storage_medium, block_size=65536):
-        if isinstance(src, six.string_types):
+    def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+        if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target
         logger.debug('Writing {src} to {dst}'.format(src=', '.join(src), dst=dst))
@@ -78,7 +78,7 @@ class S3StorageBackend(BaseStorageBackend):
                 key = os.path.basename(f)
                 bucket.upload_file(f, key)
                 if content_location_value is None:
-                    content_location_value = u'{}/{}'.format(bucket_name, key)
+                    content_location_value = '{}/{}'.format(bucket_name, key)
             except IOError as e:
                 if e.errno != errno.EISDIR:
                     raise
@@ -91,13 +91,13 @@ class S3StorageBackend(BaseStorageBackend):
                         bucket.upload_file(srcf, dstf)
 
                 if content_location_value is None:
-                    content_location_value = u'{}/{}'.format(bucket_name, os.path.basename(f))
+                    content_location_value = '{}/{}'.format(bucket_name, os.path.basename(f))
 
         return StorageObject.objects.create(
             content_location_value=content_location_value,
             content_location_type=CAS,
             ip=ip, storage_medium=storage_medium,
-            container=storage_method.containers,
+            container=container,
         )
 
     def delete(self, storage_object):

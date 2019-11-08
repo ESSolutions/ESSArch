@@ -1,0 +1,258 @@
+.content-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  position: relative;
+}
+.helper {
+  background: white;
+  border: 1px solid black;
+  padding: 3px;
+}
+.hover {
+  background-color: #ddddff;
+}
+.hover-up {
+  border-top: 1px solid red;
+}
+.hover-down {
+  border-bottom: 1px solid red;
+}
+.hover-middle {
+  text-decoration: line-through;
+}
+.column-label {
+  margin: auto;
+}
+.content-wrapper > div {
+  margin-bottom: 10px;
+}
+
+.text-center {
+  text-align: center;
+  margin: auto;
+}
+
+.clickable {
+  cursor: pointer;
+}
+.select-sub-edit-eventlog-wrapper {
+  @include container;
+  position: relative;
+  &:focus {
+    outline: 0;
+  }
+}
+
+.select-view {
+  margin: 5px;
+  padding: 5px;
+}
+.select-view > .checkbox {
+  height: 10px;
+}
+.select-view > .table > tbody > tr > td {
+  padding-top: 0px;
+  padding-bottom: 0px;
+}
+.table-col {
+  margin: 0;
+}
+.form-control {
+  height: 26px;
+  padding-left: 5px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 13px;
+}
+.sub-select-view > select {
+  margin-left: 20px;
+  height: 30px;
+}
+.sub-select-profile {
+  width: 25%;
+}
+.sub-select-agreement {
+  width: 25%;
+}
+.sub-select-nationality {
+  width: 10%;
+}
+
+.edit-view {
+  border-color: $border-color;
+  margin: 5px;
+  padding: 5px;
+  position: relative;
+  .formly {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    padding: 5px;
+    width: 100%;
+  }
+  .btn-danger {
+    float: right;
+  }
+}
+.eventlog-view {
+  border-color: $border-color;
+  display: flex;
+  flex-direction: row;
+  margin: 5px;
+  padding: 5px;
+  justify-content: space-between;
+}
+.eventlog-view .form-group {
+  display: flex;
+  flex-direction: column;
+  width: 33%;
+}
+.eventlog-view .btn-primary {
+  float: right;
+}
+input[type='checkbox'] {
+  transform: scale(1.2, 1.2);
+}
+.eventlog-form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: 10px;
+}
+.validator-choices {
+  border-bottom-style: solid;
+  border-bottom-width: 1px;
+  border-bottom-color: $border-color;
+  .formly {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-height: 70px;
+    .formly-field {
+      min-width: 105px;
+      width: 10%;
+    }
+    select {
+      width: 170px;
+    }
+  }
+}
+
+.receive-footer {
+  margin-top: 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  * {
+    margin-right: 3px;
+  }
+}
+
+.modal-validators {
+  .validator-choices {
+    border-bottom-style: none;
+    .formly {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      min-height: 45px;
+      .formly-field {
+        min-width: 105px;
+        width: 10%;
+      }
+      select {
+        width: 170px;
+      }
+    }
+  }
+}
+
+.modal-body {
+  .request-type {
+    box-shadow: none;
+  }
+  .request-params {
+    box-shadow: none;
+  }
+  .profile-editor {
+    @include container(10px);
+    box-shadow: none;
+  }
+}
+
+.reception,
+.profile-editor .edit-form,
+.sa-editor .edit-view {
+  .formly-field-group {
+    width: 100% !important;
+  }
+  .formly-field-group .formly-field {
+    width: 15%;
+  }
+  .formly-field {
+    width: 24%;
+    margin: 5px;
+  }
+}
+
+.submit-button {
+  margin-left: 5px;
+}
+.edit-view-tree {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+.edit-view-tree .formly {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+.edit-view-tree .formly-field {
+  width: 75%;
+  margin-left: 0;
+}
+
+.tree {
+  width: 30%;
+}
+.add-node-form-wrapper {
+  height: 50%;
+}
+
+.version-info-page {
+  @include container(10px);
+  margin-top: 10px;
+}
+
+.queues {
+  margin-top: 10px;
+}
+
+.migration {
+  margin-top: 10px;
+  .migration-form {
+    width: 50%;
+  }
+  .action-buttons {
+    float: right;
+  }
+}
+
+.receive-button-wrapper {
+  @include container(10px);
+  .request-form {
+    justify-content: flex-end;
+  }
+}
+
+.profile-manager {
+  margin-top: 10px;
+}

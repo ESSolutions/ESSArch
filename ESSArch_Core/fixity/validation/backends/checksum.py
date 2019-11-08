@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import traceback
 
@@ -28,7 +26,7 @@ class ChecksumValidator(BaseValidator):
     """
 
     def __init__(self, *args, **kwargs):
-        super(ChecksumValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         if not self.context:
             raise ValueError('Need something to compare to')
@@ -67,7 +65,9 @@ class ChecksumValidator(BaseValidator):
         try:
             actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
             if actual_checksum != checksum:
-                raise ValidationError("checksum for %s is not valid (%s != %s)" % (filepath, checksum, actual_checksum))
+                raise ValidationError("checksum for %s is not valid (%s != %s)" % (
+                    filepath, checksum, actual_checksum
+                ))
             passed = True
         except Exception:
             val_obj.message = traceback.format_exc()

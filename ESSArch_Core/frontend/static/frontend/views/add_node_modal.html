@@ -1,0 +1,23 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.ADD_NODE' | translate}}</h3>
+</div>
+<form name="$ctrl.form" ng-submit="$ctrl.submit()" novalidate>
+  <div class="modal-body" id="modal-body">
+    <formly-form model="$ctrl.newNode" fields="$ctrl.nodeFields" options="$ctrl.options"></formly-form>
+    <formly-form
+      class="custom-fields-form"
+      model="$ctrl.newNode.custom_fields"
+      fields="$ctrl.custom_fields_template"
+      options="{}"
+    ></formly-form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" ng-disabled="!$ctrl.changed() || $ctrl.submitting" type="submit">
+      {{'ADD' | translate}} <i ng-if="$ctrl.submitting" class="fas fa-spinner fa-spin"></i>
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.submitting" ng-click="$ctrl.cancel()">
+      {{'CANCEL' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>

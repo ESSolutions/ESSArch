@@ -16,16 +16,16 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processtask',
             name='args',
-            field=picklefield.fields.PickledObjectField(default=[], editable=False),
+            field=picklefield.fields.PickledObjectField(default=list, editable=False),
         ),
         migrations.AlterField(
             model_name='processtask',
             name='params',
-            field=picklefield.fields.PickledObjectField(default={}, editable=False),
+            field=picklefield.fields.PickledObjectField(default=dict, editable=False),
         ),
         migrations.AlterField(
             model_name='processtask',
             name='result_params',
-            field=picklefield.fields.PickledObjectField(default={}, editable=False),
+            field=picklefield.fields.PickledObjectField(default=dict, editable=False),
         ),
     ]

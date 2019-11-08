@@ -1,8 +1,8 @@
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -25,83 +25,91 @@
 import errno
 import logging
 import os
-import shutil
 import tarfile
-import tempfile
-import time
 import zipfile
+from os import walk
+from pathlib import PurePosixPath
 
 import requests
-import six
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.core.mail import EmailMessage, send_mail
+from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 from django_redis import get_redis_connection
-from elasticsearch import helpers as es_helpers
-from elasticsearch_dsl.connections import get_connection
 from lxml import etree
-from retrying import retry
-from os import walk
-from six.moves import cPickle
 
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
-from ESSArch_Core.WorkflowEngine.polling import get_backend
-from ESSArch_Core.WorkflowEngine.util import create_workflow
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Parameter
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator, findElementWithoutNamespace
-from ESSArch_Core.essxml.util import find_files
+from ESSArch_Core.crypto import decrypt_remote_credentials
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    findElementWithoutNamespace,
+)
+from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
 from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
-from ESSArch_Core.fixity.validation.backends.format import FormatValidator
-from ESSArch_Core.fixity.validation.backends.xml import DiffCheckValidator, XMLComparisonValidator, XMLSchemaValidator
-from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
-from ESSArch_Core.ip.utils import get_cached_objid
+from ESSArch_Core.fixity.validation.backends.xml import (
+    DiffCheckValidator,
+    XMLComparisonValidator,
+    XMLSchemaValidator,
+)
+from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.storage.copy import copy_file
-from ESSArch_Core.storage.exceptions import TapeDriveLockedError
-from ESSArch_Core.storage.models import StorageMedium, TapeDrive, TapeSlot
-from ESSArch_Core.storage.tape import (DEFAULT_TAPE_BLOCK_SIZE,
-                                       create_tape_label, get_tape_file_number,
-                                       is_tape_drive_online, mount_tape,
-                                       read_tape, rewind_tape, robot_inventory,
-                                       set_tape_file_number, tape_empty,
-                                       unmount_tape, verify_tape_label,
-                                       wait_to_come_online, write_to_tape)
-from ESSArch_Core.tags import (DELETION_PROCESS_QUEUE, DELETION_QUEUE,
-                               INDEX_PROCESS_QUEUE, INDEX_QUEUE,
-                               UPDATE_PROCESS_QUEUE, UPDATE_QUEUE)
-from ESSArch_Core.util import convert_file, get_event_element_spec, get_tree_size_and_count
+from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_dir, copy_file
+from ESSArch_Core.storage.models import TapeDrive
+from ESSArch_Core.storage.tape import (
+    DEFAULT_TAPE_BLOCK_SIZE,
+    get_tape_file_number,
+    is_tape_drive_online,
+    read_tape,
+    rewind_tape,
+    robot_inventory,
+    set_tape_file_number,
+    write_to_tape,
+)
+from ESSArch_Core.tasks_util import (
+    append_events,
+    mount_tape_medium_into_drive,
+    unmount_tape_from_drive,
+    validate_file_format,
+    validate_files,
+)
+from ESSArch_Core.util import (
+    convert_file,
+    delete_path,
+    find_destination,
+    get_tree_size_and_count,
+    zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.WorkflowEngine.polling import get_backend
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
 
-CLEAR_PROCESS_TAG_QUEUE_LUA = """
-    local values = redis.call("ZREVRANGEBYSCORE", KEYS[1], ARGV[1], "-inf", "LIMIT", "0", "1000")
-    if table.getn(values) > 0 then
-        redis.call("RPUSH", KEYS[2], unpack(values))
-        redis.call("ZREM", KEYS[1], unpack(values))
-    end"""
 
-PROCESS_TAG_QUEUE_LUA = """
-    local value = redis.call("RPOP", KEYS[1])
-    if value then
-        redis.call("ZADD", KEYS[2], ARGV[1], value)
-    end
-    return value"""
+class Notify(DBTask):
+    def run(self, message, level, refresh, recipient=None):
+        message, = self.parse_params(message)
+        if recipient is None:
+            recipient = User.objects.get(pk=self.responsible)
+
+        Notification.objects.create(
+            message=message,
+            level=level,
+            user=recipient,
+            refresh=refresh
+        )
 
 
 class GenerateXML(DBTask):
     event_type = 50600
 
-    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def run(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+            parsed_files=None, algorithm='SHA-256'):
         """
         Generates the XML using the specified data and folder, and adds the XML
         to the specified files
@@ -118,29 +126,41 @@ class GenerateXML(DBTask):
 
         ip = InformationPackage.objects.filter(pk=self.ip).first()
         sa = None
+        allow_unknown_file_types = False
+        allow_encrypted_files = False
         if ip is not None:
             sa = ip.submission_agreement
+            allow_unknown_file_types = ip.get_allow_unknown_file_types()
+            allow_encrypted_files = ip.get_allow_encrypted_files()
 
-        for _, v in six.iteritems(filesToCreate):
+        for _, v in filesToCreate.items():
             v['data'] = fill_specification_data(v['data'], ip=ip, sa=sa)
 
-        generator = XMLGenerator()
+        generator = XMLGenerator(
+            allow_unknown_file_types=allow_unknown_file_types,
+            allow_encrypted_files=allow_encrypted_files,
+        )
         generator.generate(
-            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse, parsed_files=parsed_files, algorithm=algorithm,
+            filesToCreate, folderToParse=folderToParse, extra_paths_to_parse=extra_paths_to_parse,
+            parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+             parsed_files=None, algorithm='SHA-256'):
+
         if filesToCreate is None:
             filesToCreate = {}
 
-        for f, template in six.iteritems(filesToCreate):
+        for f, template in filesToCreate.items():
             try:
                 os.remove(f)
             except OSError as e:
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None, parsed_files=None, algorithm='SHA-256'):
+    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+                              parsed_files=None, algorithm='SHA-256'):
+
         if filesToCreate is None:
             filesToCreate = {}
 
@@ -180,7 +200,7 @@ class InsertXML(DBTask):
 
         tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
-    def event_outcome_success(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
+    def event_outcome_success(self, result, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
         return "Inserted XML to element %s in %s" % (elementToAppendTo, filename)
 
 
@@ -188,63 +208,13 @@ class AppendEvents(DBTask):
     event_type = 50610
 
     def run(self, filename="", events=None):
-        if not filename:
-            ip = InformationPackage.objects.get(pk=self.ip)
-            filename = os.path.join(ip.object_path, ip.get_events_file_path())
-        generator = XMLGenerator(filepath=filename)
-        template = get_event_element_spec()
+        append_events(self.ip, events, filename)
 
-        if not events:
-            events = EventIP.objects.filter(linkingObjectIdentifierValue=self.ip)
-
-        id_types = {}
-
-        for id_type in ['event', 'linking_agent', 'linking_object']:
-            entity = '%s_identifier_type' % id_type
-            id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
-
-        target = generator.find_element('premis')
-        for event in events.iterator():
-            objid = get_cached_objid(event.linkingObjectIdentifierValue)
-
-            data = {
-                "eventIdentifierType": id_types['event'],
-                "eventIdentifierValue": str(event.eventIdentifierValue),
-                "eventType": str(event.eventType.code) if event.eventType.code is not None and event.eventType.code != '' else str(event.eventType.eventType),
-                "eventDateTime": str(event.eventDateTime),
-                "eventDetail": event.eventType.eventDetail,
-                "eventOutcome": str(event.eventOutcome),
-                "eventOutcomeDetailNote": event.eventOutcomeDetailNote,
-                "linkingAgentIdentifierType": id_types['linking_agent'],
-                "linkingAgentIdentifierValue": event.linkingAgentIdentifierValue,
-                "linkingAgentRole": event.linkingAgentRole,
-                "linkingObjectIdentifierType": id_types['linking_object'],
-                "linkingObjectIdentifierValue": objid,
-            }
-
-            generator.insert_from_specification(target, template, data)
-
-        generator.write(filename)
-
-    def event_outcome_success(self, filename="", events=None):
+    def event_outcome_success(self, result, filename="", events=None):
         if not filename:
             ip = InformationPackage.objects.get(pk=self.ip)
             filename = ip.get_events_file_path()
         return "Appended events to %s" % filename
-
-
-class ParseEvents(DBTask):
-    event_type = 50630
-
-    def run(self, xmlfile, delete_file=False):
-        events = EventIP.objects.from_premis_file(xmlfile, save=False)
-        EventIP.objects.bulk_create(events, 100)
-
-        if delete_file:
-            os.remove(xmlfile)
-
-    def event_outcome_success(self, xmlfile, delete_file=False):
-        return "Parsed events from %s" % xmlfile
 
 
 class CreateTAR(DBTask):
@@ -276,8 +246,18 @@ class CreateTAR(DBTask):
 
         os.remove(tarname)
 
-    def event_outcome_success(self, dirname=None, tarname=None, compress=False):
+    def event_outcome_success(self, result, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
+
+
+class ExtractTAR(DBTask):
+    def run(self, path, dst, compression=False):
+        compression = ':gz' if compression else ''
+        with tarfile.open(path, 'r%s' % compression) as tar:
+            tar.extractall(dst)
+
+        self.set_progress(100, total=100)
+        return dst
 
 
 class CreateZIP(DBTask):
@@ -293,17 +273,7 @@ class CreateZIP(DBTask):
             compress: Compresses the zip file if true
         """
 
-        compression = zipfile.ZIP_DEFLATED if compress else zipfile.ZIP_STORED
-        with zipfile.ZipFile(zipname, 'w', compression) as new_zip:
-            for root, dirs, files in walk(dirname):
-                for d in dirs:
-                    filepath = os.path.join(root, d)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
-                for f in files:
-                    filepath = os.path.join(root, f)
-                    arcname = os.path.relpath(filepath, dirname)
-                    new_zip.write(filepath, arcname)
+        zip_directory(dirname, zipname, compress)
 
         self.set_progress(100, total=100)
         return zipname
@@ -314,40 +284,15 @@ class CreateZIP(DBTask):
 
         os.remove(zipname)
 
-    def event_outcome_success(self, dirname=None, zipname=None, compress=False):
+    def event_outcome_success(self, result, dirname=None, zipname=None, compress=False):
         return "Created %s from %s" % (zipname, dirname)
 
 
 class ValidateFiles(DBTask):
     def run(self, ip=None, xmlfile=None, validate_fileformat=True, validate_integrity=True, rootdir=None):
-        if any([validate_fileformat, validate_integrity]):
-            if rootdir is None:
-                rootdir = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
+        validate_files(self.ip, self.responsible, rootdir, validate_fileformat, validate_integrity, xmlfile)
 
-            format_validator = FormatValidator()
-
-            for f in find_files(xmlfile, rootdir):
-                filename = os.path.join(rootdir, f.path)
-
-                if validate_fileformat and f.format is not None:
-                    format_validator.validate(filename, (f.format, None, None))
-
-                if validate_integrity and f.checksum is not None and f.checksum_type is not None:
-                    options = {'expected': f.checksum, 'algorithm': f.checksum_type}
-                    validator = ChecksumValidator(context='checksum_str', options=options)
-                    try:
-                        validator.validate(filename)
-                    except Exception as e:
-                        recipient = User.objects.get(pk=self.responsible).email
-                        if recipient and self.ip:
-                            ip = InformationPackage.objects.get(pk=self.ip)
-                            subject = 'Rejected "%s"' % ip.object_identifier_value
-                            body = '"%s" was rejected:\n%s' % (ip.object_identifier_value, str(e))
-                            send_mail(subject, body, None, [recipient], fail_silently=False)
-
-                        raise
-
-    def event_outcome_success(self, ip, xmlfile, validate_fileformat=True, validate_integrity=True, rootdir=None):
+    def event_outcome_success(self, result, ip, xmlfile, **kwargs):
         return "Validated files in %s" % xmlfile
 
 
@@ -355,40 +300,10 @@ class ValidateFileFormat(DBTask):
     queue = 'validation'
 
     def run(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
-        """
-        Validates the format of the given file
-        """
+        return validate_file_format(filename, format_name, format_registry_key, format_version)
 
-        task = ProcessTask.objects.values(
-            'information_package_id', 'responsible_id'
-        ).get(pk=self.request.id)
-
-        t = ProcessTask.objects.create(
-            name="ESSArch_Core.tasks.IdentifyFileFormat",
-            params={
-                "filename": filename,
-            },
-            information_package_id=task.get('information_package_id'),
-            responsible_id=task.get('responsible_id'),
-        )
-
-        actual_format_name, actual_format_version, actual_format_registry_key = t.run().get()
-
-        if format_name:
-            assert actual_format_name == format_name, "format name for %s is not valid, (%s != %s)" % (filename, format_name, actual_format_name)
-
-        if format_version:
-            assert actual_format_version == format_version, "format version for %s is not valid" % filename
-
-        if format_registry_key:
-            assert actual_format_registry_key == format_registry_key, "format registry key for %s is not valid" % filename
-
-        return "Success"
-
-    def undo(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
-        pass
-
-    def event_outcome_success(self, filename=None, format_name=None, format_version=None, format_registry_key=None):
+    def event_outcome_success(self, result, filename=None, format_name=None,
+                              format_version=None, format_registry_key=None):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
@@ -401,9 +316,23 @@ class ValidateWorkarea(DBTask):
         errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
 
         if errcount:
-            Notification.objects.create(message='Validation of "{ip}" failed with {errcount} error(s)'.format(ip=ip.object_identifier_value, errcount=errcount), level=logging.ERROR, user_id=self.responsible, refresh=True)
+            Notification.objects.create(
+                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
+                    ip=ip.object_identifier_value, errcount=errcount
+                ),
+                level=logging.ERROR,
+                user_id=self.responsible,
+                refresh=True
+            )
         else:
-            Notification.objects.create(message='"{ip}" was successfully validated'.format(ip=ip.object_identifier_value), level=logging.INFO, user_id=self.responsible, refresh=True)
+            Notification.objects.create(
+                message='"{ip}" was successfully validated'.format(
+                    ip=ip.object_identifier_value
+                ),
+                level=logging.INFO,
+                user_id=self.responsible,
+                refresh=True
+            )
 
     def run(self, workarea, validators, stop_at_failure=True):
         workarea = Workarea.objects.get(pk=workarea)
@@ -421,16 +350,19 @@ class ValidateWorkarea(DBTask):
 
         try:
             validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     task=self.task_id, stop_at_failure=stop_at_failure, responsible=responsible)
+                                     task=self.get_processtask(), stop_at_failure=stop_at_failure,
+                                     responsible=responsible)
         except ValidationError:
             self.create_notification(ip)
         else:
             self.create_notification(ip)
         finally:
             validations = ip.validation_set.all()
-            failed_validators = validations.values('validator').filter(passed=False, required=True).values_list('validator', flat=True)
+            failed_validators = validations.values('validator').filter(
+                passed=False, required=True
+            ).values_list('validator', flat=True)
 
-            for k, v in six.iteritems(workarea.successfully_validated):
+            for k, v in workarea.successfully_validated.items():
                 class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
                 workarea.successfully_validated[k] = class_name not in failed_validators
 
@@ -455,7 +387,7 @@ class ValidateXMLFile(DBTask):
         Validates (using LXML) an XML file using a specified schema file
         """
 
-        Validation.objects.filter(task=self.task_id).delete()
+        Validation.objects.filter(task=self.get_processtask()).delete()
         xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
         if rootdir is None and self.ip is not None:
             ip = InformationPackage.objects.get(pk=self.ip)
@@ -463,14 +395,16 @@ class ValidateXMLFile(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLSchemaValidator(context=schema_filename, options={'rootdir': rootdir}, ip=self.ip, task=self.task_id)
+        validator = XMLSchemaValidator(
+            context=schema_filename,
+            options={'rootdir': rootdir},
+            ip=self.ip,
+            task=self.get_processtask()
+        )
         validator.validate(xml_filename)
         return "Success"
 
-    def undo(self, xml_filename=None, schema_filename=None, rootdir=None):
-        pass
-
-    def event_outcome_success(self, xml_filename=None, schema_filename=None, rootdir=None):
+    def event_outcome_success(self, result, xml_filename=None, schema_filename=None, rootdir=None):
         xml_filename = self.parse_params(xml_filename)
         return "Validated %s against schema" % xml_filename
 
@@ -484,7 +418,7 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
     queue = 'validation'
 
     def run(self, path, xmlfile, skip_files=None, relpath=None):
-        Validation.objects.filter(task=self.task_id).delete()
+        Validation.objects.filter(task=self.get_processtask()).delete()
         path, xmlfile, = self.parse_params(path, xmlfile)
         if skip_files is None:
             skip_files = []
@@ -501,20 +435,22 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
 
         ip = InformationPackage.objects.get(pk=self.ip)
         validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
-                                       task=self.task_id, ip=self.ip, responsible=ip.responsible)
+                                       task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
         validator.validate(path)
 
-    def event_outcome_success(self, path, xmlfile, skip_files=None, relpath=None):
+    def event_outcome_success(self, result, path, xmlfile, skip_files=None, relpath=None):
         path, xmlfile = self.parse_params(path, xmlfile)
-        return "Successfully validated logical and physical structure of {path} against {xml}".format(path=path, xml=xmlfile)
+        return "Successfully validated logical and physical structure of {path} against {xml}".format(
+            path=path, xml=xmlfile
+        )
 
 
 class CompareXMLFiles(DBTask):
     event_type = 50240
     queue = 'validation'
 
-    def run(self, first, second, rootdir=None):
-        Validation.objects.filter(task=self.task_id).delete()
+    def run(self, first, second, rootdir=None, recursive=True):
+        Validation.objects.filter(task=self.get_processtask()).delete()
         first, second = self.parse_params(first, second)
         ip = InformationPackage.objects.get(pk=self.ip)
         if rootdir is None:
@@ -522,16 +458,54 @@ class CompareXMLFiles(DBTask):
         else:
             rootdir, = self.parse_params(rootdir)
 
-        validator = XMLComparisonValidator(context=first, options={'rootdir': rootdir}, task=self.task_id, ip=self.ip,
-                                           responsible=ip.responsible)
+        validator = XMLComparisonValidator(
+            context=first,
+            options={'rootdir': rootdir, 'recursive': recursive},
+            task=self.get_processtask(),
+            ip=self.ip,
+            responsible=ip.responsible,
+        )
         validator.validate(second)
 
-    def undo(self, first, second, rootdir=None):
-        pass
-
-    def event_outcome_success(self, first, second, rootdir=None):
+    def event_outcome_success(self, result, first, second, rootdir=None, recursive=True):
         first, second = self.parse_params(first, second)
         return "%s and %s has the same set of files" % (first, second)
+
+
+class CompareRepresentationXMLFiles(DBTask):
+    event_type = 50240
+    queue = 'validation'
+
+    def run(self):
+        Validation.objects.filter(task=self.get_processtask()).delete()
+        ip = InformationPackage.objects.get(pk=self.ip)
+
+        reps_path, reps_dir = find_destination("representations", ip.get_structure(), ip.object_path)
+        if reps_path is None:
+            return None
+
+        representations_dir = os.path.join(reps_path, reps_dir)
+
+        for p in find_pointers(ip.content_mets_path):
+            rep_mets_path = p.path
+            rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
+            rep_path = os.path.relpath(rep_mets_path, representations_dir)
+            rep_path = PurePosixPath(rep_path).parts[0]
+
+            rep_premis_path = get_premis_ref(etree.parse(rep_mets_path)).path
+            rep_premis_path = os.path.join(representations_dir, rep_path, rep_premis_path)
+
+            validator = XMLComparisonValidator(
+                context=rep_premis_path,
+                options={
+                    'rootdir': os.path.join(representations_dir, rep_path),
+                    'representation': rep_path,
+                },
+                task=self.get_processtask(),
+                ip=self.ip,
+                responsible=ip.responsible,
+            )
+            validator.validate(rep_mets_path)
 
 
 class UpdateIPStatus(DBTask):
@@ -542,20 +516,21 @@ class UpdateIPStatus(DBTask):
         status, = self.parse_params(status)
         ip = InformationPackage.objects.get(pk=self.ip)
         if prev is None:
-            t = ProcessTask.objects.get(pk=self.task_id)
+            t = self.get_processtask()
             t.params['prev'] = ip.state
             t.save()
         ip.state = status
         ip.save()
-        Notification.objects.create(message=u'{} {}'.format(status.capitalize(), ip.object_identifier_value),
+        Notification.objects.create(message='{} {}'.format(status.capitalize(), ip.object_identifier_value),
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
     def undo(self, status, prev=None):
         InformationPackage.objects.filter(pk=self.ip).update(state=prev)
 
-    def event_outcome_success(self, status, prev=None):
+    def event_outcome_success(self, result, status, prev=None):
+        ip = self.get_information_package()
         status, = self.parse_params(status)
-        return u"Updated status of {} to {}".format(get_cached_objid(str(self.ip)), status)
+        return "Updated status of {} to {}".format(ip.object_identifier_value, status)
 
 
 class UpdateIPPath(DBTask):
@@ -566,7 +541,7 @@ class UpdateIPPath(DBTask):
         path, = self.parse_params(path)
         ip = InformationPackage.objects.get(pk=self.ip)
         if prev is None:
-            t = ProcessTask.objects.get(pk=self.task_id)
+            t = self.get_processtask()
             t.params['prev'] = ip.object_path
             t.save()
         ip.object_path = path
@@ -575,9 +550,10 @@ class UpdateIPPath(DBTask):
     def undo(self, status, prev=None):
         InformationPackage.objects.filter(pk=self.ip).update(path=prev)
 
-    def event_outcome_success(self, path, prev=None):
+    def event_outcome_success(self, result, path, prev=None):
+        ip = self.get_information_package()
         path, = self.parse_params(path)
-        return "Updated path of %s to %s" % (get_cached_objid(str(self.ip)), path)
+        return "Updated path of {} to {}".format(ip.object_identifier_value, path)
 
 
 class UpdateIPSizeAndCount(DBTask):
@@ -594,10 +570,7 @@ class UpdateIPSizeAndCount(DBTask):
 
         return size, count
 
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Updated size and count of IP"
 
 
@@ -606,55 +579,53 @@ class DeleteFiles(DBTask):
 
     def run(self, path):
         path, = self.parse_params(path)
-        try:
-            shutil.rmtree(path)
-        except OSError as e:
-            if os.name == 'nt':
-                if e.errno == 267:
-                    os.remove(path)
-                elif e.errno != 3:
-                    raise
+        delete_path(path)
 
-            elif e.errno == errno.ENOTDIR:
-                os.remove(path)
-            elif e.errno != errno.ENOENT:
-                raise
-
-    def event_outcome_success(self, path):
+    def event_outcome_success(self, result, path):
+        path, = self.parse_params(path)
         return "Deleted %s" % path
 
 
 class CopyDir(DBTask):
-    def run(self, src, dst):
-        shutil.copytree(src, dst)
+    def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+        requests_session = None
+        if remote_credentials:
+            user, passw = decrypt_remote_credentials(remote_credentials)
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
 
-    def undo(self, src, dst):
-        pass
+        copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
 
-    def event_outcome_success(self, src, dst):
+    def event_outcome_success(self, result, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
         return "Copied %s to %s" % (src, dst)
 
 
 class CopyFile(DBTask):
-    def run(self, src, dst, requests_session=None, block_size=65536):
+    def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
         """
         Copies the given file to the given destination
 
         Args:
             src: The file to copy
             dst: Where the file should be copied to
-            requests_session: The request session to be used
+            remote_credentials: Credentials for remote server
             block_size: Size of each block to copy
         Returns:
             None
         """
 
+        src, dst = self.parse_params(src, dst)
+        requests_session = None
+        if remote_credentials:
+            user, passw = decrypt_remote_credentials(remote_credentials)
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+
         copy_file(src, dst, requests_session=requests_session, block_size=block_size)
 
-    def undo(self, src, dst, requests_session=None, block_size=65536):
-        pass
-
-    def event_outcome_success(self, src, dst, requests_session=None, block_size=65536):
+    def event_outcome_success(self, result, src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
         return "Copied %s to %s" % (src, dst)
 
 
@@ -688,150 +659,31 @@ class DownloadFile(DBTask):
                 for chunk in r:
                     f.write(chunk)
 
-    def undo(self, src=None, dst=None):
-        pass
-
-    def event_outcome_success(self, src=None, dst=None):
-        pass
-
 
 class MountTape(DBTask):
     event_type = 40200
+    queue = 'robot'
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
-    def run(self, medium=None, drive=None, timeout=120):
-        """
-        Mounts tape into drive
+    def run(self, medium_id, drive_id=None, timeout=120):
+        if drive_id is None:
+            drive = TapeDrive.objects.filter(
+                status=20, storage_medium__isnull=True, io_queue_entry__isnull=True, locked=False,
+            ).order_by('num_of_mounts').first()
 
-        Args:
-            medium: Which medium to mount
-            drive: Which drive to load to
-        """
+            if drive is None:
+                raise ValueError('No tape drive available')
 
-        medium = StorageMedium.objects.get(pk=medium)
-        slot = medium.tape_slot.slot_id
-        tape_drive = TapeDrive.objects.get(pk=drive)
+            drive_id = drive.pk
 
-        if tape_drive.locked:
-            raise TapeDriveLockedError()
-
-        tape_drive.locked = True
-        tape_drive.save(update_fields=['locked'])
-
-        try:
-            mount_tape(tape_drive.robot.device, slot, tape_drive.drive_id)
-            wait_to_come_online(tape_drive.device, timeout)
-        except:
-            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(slot_id=slot).update(status=100)
-            raise
-
-        TapeDrive.objects.filter(pk=drive).update(
-            num_of_mounts=F('num_of_mounts')+1,
-            last_change=timezone.now(),
-        )
-        StorageMedium.objects.filter(pk=medium.pk).update(
-            num_of_mounts=F('num_of_mounts')+1,
-            tape_drive_id=drive
-        )
-
-        xmlfile = tempfile.NamedTemporaryFile(delete=False)
-
-        try:
-            arcname = '%s_label.xml' % medium.medium_id
-
-            if medium.format not in [100, 101]:
-                if tape_empty(tape_drive.device):
-                    create_tape_label(medium, xmlfile.name)
-                    rewind_tape(tape_drive.device)
-                    write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
-                else:
-                    tar = tarfile.open(tape_drive.device, 'r|')
-                    first_member = tar.getmembers()[0]
-                    tar.close()
-                    rewind_tape(tape_drive.device)
-
-                    if first_member.name.endswith('_label.xml'):
-                        tar = tarfile.open(tape_drive.device, 'r|')
-                        xmlstring = tar.extractfile(first_member).read()
-                        tar.close()
-                        if not verify_tape_label(medium, xmlstring):
-                            raise ValueError('Tape contains invalid label file')
-                    elif first_member.name == 'reuse':
-                        create_tape_label(medium, xmlfile.name)
-                        rewind_tape(tape_drive.device)
-                        write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
-                    else:
-                        raise ValueError('Tape contains unknown information')
-
-                    rewind_tape(tape_drive.device)
-        except:
-            StorageMedium.objects.filter(pk=medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(slot_id=slot).update(status=100)
-            raise
-        finally:
-            xmlfile.close()
-            TapeDrive.objects.filter(pk=drive).update(locked=False)
-
-    def undo(self, medium=None, drive=None, timeout=120):
-        pass
-
-    def event_outcome_success(self, medium=None, drive=None, timeout=120):
-        pass
+        mount_tape_medium_into_drive(drive_id, medium_id, timeout)
 
 
 class UnmountTape(DBTask):
     event_type = 40100
+    queue = 'robot'
 
-    @retry(stop_max_attempt_number=5, wait_fixed=60000)
-    def run(self, drive=None):
-        """
-        Unmounts tape from drive into slot
-
-        Args:
-            drive: Which drive to unmount from
-        """
-
-        tape_drive = TapeDrive.objects.get(pk=drive)
-
-        if not hasattr(tape_drive, 'storage_medium'):
-            raise ValueError("No tape in tape drive to unmount")
-
-        slot = tape_drive.storage_medium.tape_slot
-        robot = tape_drive.robot
-
-        if tape_drive.locked:
-            raise TapeDriveLockedError()
-
-        tape_drive.locked = True
-        tape_drive.save(update_fields=['locked'])
-
-        try:
-            res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
-        except:
-            StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
-            TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
-            TapeSlot.objects.filter(pk=slot.pk).update(status=100)
-            raise
-
-        StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
-            tape_drive=None
-        )
-
-        tape_drive.last_change = timezone.now()
-        tape_drive.locked = False
-        tape_drive.save(update_fields=['last_change', 'locked'])
-
-        return res
-
-
-    def undo(self, robot=None, slot=None, drive=None):
-        pass
-
-    def event_outcome_success(self, robot=None, slot=None, drive=None):
-        pass
+    def run(self, drive_id):
+        return unmount_tape_from_drive(drive_id)
 
 
 class RewindTape(DBTask):
@@ -847,12 +699,6 @@ class RewindTape(DBTask):
 
         return rewind_tape(drive.device)
 
-    def undo(self, medium=None):
-        pass
-
-    def event_outcome_success(self, medium=None):
-        pass
-
 
 class IsTapeDriveOnline(DBTask):
     def run(self, drive=None):
@@ -867,12 +713,6 @@ class IsTapeDriveOnline(DBTask):
         """
 
         return is_tape_drive_online(drive)
-
-    def undo(self, drive=None):
-        pass
-
-    def event_outcome_success(self, drive=None):
-        pass
 
 
 class ReadTape(DBTask):
@@ -893,12 +733,6 @@ class ReadTape(DBTask):
 
         return res
 
-    def undo(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
-    def event_outcome_success(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
 
 class WriteToTape(DBTask):
     def run(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
@@ -918,12 +752,6 @@ class WriteToTape(DBTask):
 
         return res
 
-    def undo(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
-    def event_outcome_success(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        pass
-
 
 class GetTapeFileNumber(DBTask):
     def run(self, medium=None):
@@ -937,12 +765,6 @@ class GetTapeFileNumber(DBTask):
             raise ValueError("Tape not mounted")
 
         return get_tape_file_number(drive.device)
-
-    def undo(self, medium=None):
-        pass
-
-    def event_outcome_success(self, medium=None):
-        pass
 
 
 class SetTapeFileNumber(DBTask):
@@ -958,12 +780,6 @@ class SetTapeFileNumber(DBTask):
 
         return set_tape_file_number(drive.device, num)
 
-    def undo(self, medium=None, num=0):
-        pass
-
-    def event_outcome_success(self, medium=None, num=0):
-        pass
-
 
 class RobotInventory(DBTask):
     def run(self, robot):
@@ -978,12 +794,6 @@ class RobotInventory(DBTask):
         """
 
         robot_inventory(robot)
-
-    def undo(self, robot):
-        pass
-
-    def event_outcome_success(self, robot):
-        pass
 
 
 class ConvertFile(DBTask):
@@ -1018,134 +828,18 @@ class ConvertFile(DBTask):
                     if delete_original:
                         os.remove(filepath)
 
-    def undo(self, path, format_map, delete_original=True):
-        pass
-
-    def event_outcome_success(self, path, format_map, delete_original=True):
+    def event_outcome_success(self, result, path, format_map, delete_original=True):
         path, = self.parse_params(path)
         return "Converted %s file(s) at %s" % (self.files_count, path,)
 
 
-class ClearTagProcessQueue(DBTask):
-    def run(self):
-        """
-        Deletes items older than 60 seconds from the process queue
-        and pushes them into their original queue
-        """
+class RunWorkflowPollers(DBTask):
+    logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
 
-        max_time = int(time.time()) - 60
-        _clear_process_tag_queue = redis.register_script(CLEAR_PROCESS_TAG_QUEUE_LUA)
-
-        _clear_process_tag_queue(keys=[INDEX_PROCESS_QUEUE, INDEX_QUEUE], args=[max_time])
-        _clear_process_tag_queue(keys=[UPDATE_PROCESS_QUEUE, UPDATE_QUEUE], args=[max_time])
-        _clear_process_tag_queue(keys=[DELETION_PROCESS_QUEUE, DELETION_QUEUE], args=[max_time])
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
-
-class ProcessTags(DBTask):
-    id_pickles = {}
-    abstract = True
-
-    def deserialize(self, tags):
-        for tag_string in [t for t in tags if t is not None]:
-            d = cPickle.loads(tag_string)
-            self.id_pickles[str(d['_id'])] = tag_string
-            yield d
-
-    def run(self):
-        """
-        Uses a reliable queue to process the latest entries.
-
-        Entries are popped and returned from the queue while also being added
-        to the process queue. Each entry is then sent and processed by
-        elasticsearch. If elasticsearch returns a successful response
-        the entry is deleted from the process queue.
-        """
-        es = get_connection()
-        _process_tag_queue = redis.register_script(PROCESS_TAG_QUEUE_LUA)
-        tags = []
-        for i in range(100):
-            epoch_time = int(time.time())
-            # Pop the latest entry, add it to the process queue with the
-            # current time as score and return it
-            tags.append(_process_tag_queue(keys=[self.redis_queue, self.redis_process_queue], args=[epoch_time]))
-
-        doctypes = self.deserialize(tags)
-
-        # Send the entries in bulk to elasticsearch
-        errors = []
-        for result in es_helpers.streaming_bulk(es, doctypes, raise_on_exception=False, raise_on_error=False):
-            ok, info = result
-            if ok:
-                _id = self.get_id(info)
-                tag_string = self.id_pickles[_id]
-                # Delete successful entries from the process queue
-                redis.zrem(self.redis_process_queue, tag_string)
-            else:
-                if info.get('delete', {}).get('status') == 404:
-                    # trying to delete already deleted doc, delete it from
-                    # the process queue
-                    _id = self.get_id(info)
-                    tag_string = self.id_pickles[_id]
-                    redis.zrem(self.redis_process_queue, tag_string)
-                else:
-                    errors.append(info)
-
-        if errors:
-            raise es_helpers.BulkIndexError('%d document(s) failed to index.' % len(errors),
-                                            errors)
-
-    def undo(self):
-        pass
-
-    def event_outcome_success(self):
-        pass
-
-
-class IndexTags(ProcessTags):
-    redis_queue = INDEX_QUEUE
-    redis_process_queue = INDEX_PROCESS_QUEUE
-
-    def deserialize(self, tags):
-        for tag_string in [t for t in tags if t is not None]:
-            d = cPickle.loads(tag_string).to_dict(include_meta=True)
-            if d['_index'] == 'document':
-                d['pipeline'] = 'ingest_attachment'
-            self.id_pickles[str(d['_id'])] = tag_string
-            yield d
-
-    def get_id(self, data):
-        return data['index']['_id']
-
-
-class UpdateTags(ProcessTags):
-    redis_queue = UPDATE_QUEUE
-    redis_process_queue = UPDATE_PROCESS_QUEUE
-
-    def get_id(self, data):
-        return data['update']['_id']
-
-
-class DeleteTags(ProcessTags):
-    redis_queue = DELETION_QUEUE
-    redis_process_queue = DELETION_PROCESS_QUEUE
-
-    def get_id(self, data):
-        return data['delete']['_id']
-
-
-class RunWorkflowProfiles(DBTask):
-    logger = logging.getLogger('essarch.core.tasks.RunWorkflowProfiles')
-
-    def run(self):
-        proj = settings.PROJECT_SHORTNAME
+    @transaction.atomic
+    def get_workflows(self):
         pollers = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS', {})
-        for name, poller in six.iteritems(pollers):
+        for name, poller in pollers.items():
             backend = get_backend(name)
             poll_path = poller['path']
             poll_sa = poller.get('sa')
@@ -1156,19 +850,19 @@ class RunWorkflowProfiles(DBTask):
             for ip in backend.poll(poll_path, poll_sa):
                 profile = ip.submission_agreement.profile_workflow
                 try:
-                    spec = profile.specification[proj]
-                except KeyError:
-                    self.logger.debug(u'No workflow specified in {} for current project {}'.format(profile, proj))
-                    continue
+                    spec = profile.specification
                 except AttributeError:
                     if profile is None:
-                        self.logger.debug(u'No workflow profile in SA')
+                        self.logger.debug('No workflow profile in SA')
                         continue
                     raise
 
-                workflow = create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
-                                           on_error=spec.get('on_error'), context=context)
-                workflow.run()
+                yield create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                                      on_error=spec.get('on_error'), context=context)
+
+    def run(self):
+        for workflow in self.get_workflows():
+            workflow.run()
 
 
 class DeletePollingSource(DBTask):

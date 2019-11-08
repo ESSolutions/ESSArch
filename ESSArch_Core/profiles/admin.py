@@ -1,11 +1,8 @@
-#!/usr/bin/env /ESSArch/python27/bin/python
-# -*- coding: UTF-8 -*-
-
 """
     ESSArch is an open source archiving and digital preservation system
 
-    ESSArch Core
-    Copyright (C) 2005-2017 ES Solutions AB
+    ESSArch
+    Copyright (C) 2005-2019 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +15,7 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program. If not, see <http://www.gnu.org/licenses/>.
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
     Web - http://www.essolutions.se
@@ -28,14 +25,15 @@
 from django import forms
 from django.contrib import admin
 
-from .models import SubmissionAgreement, Profile
+from .models import Profile, SubmissionAgreement
 from .utils import profile_types
+
 
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        super(SubmissionAgreementForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
-            self.fields[u'profile_{}'.format(pt)].required = False
+            self.fields['profile_{}'.format(pt)].required = False
 
     class Meta:
         model = SubmissionAgreement
@@ -45,9 +43,9 @@ class SubmissionAgreementForm(forms.ModelForm):
 class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
         for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
-            context['adminform'].form.fields[u'profile_{}'.format(pt)].queryset = Profile.objects.filter(profile_type=pt)
-        return super(SubmissionAgreementAdmin, self).render_change_form(request, context, args, kwargs) 
-
+            qs = Profile.objects.filter(profile_type=pt)
+            context['adminform'].form.fields['profile_{}'.format(pt)].queryset = qs
+        return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
     list_display = ('name', 'type', 'status', 'label')
@@ -59,49 +57,15 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
             'classes': ('wide'),
             'fields': ('id', 'name', 'type', 'status', 'label',)
         }),
-        ('Change management', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'cm_version', 'cm_release_date', 'cm_change_authority',
-                'cm_change_description', 'cm_sections_affected'
-            )
-        }),
-        ('Informaton about Producer organization', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'producer_organization', 'producer_main_name',
-                'producer_main_address', 'producer_main_phone',
-                'producer_main_email', 'producer_main_additional',
-                'producer_individual_name', 'producer_individual_role',
-                'producer_individual_phone', 'producer_individual_email',
-                'producer_individual_additional',
-            )
-        }),
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'archivist_organization', 'archivist_main_name',
-                'archivist_main_address', 'archivist_main_phone',
-                'archivist_main_email', 'archivist_main_additional',
-                'archivist_individual_name', 'archivist_individual_role',
-                'archivist_individual_phone', 'archivist_individual_email',
-                'archivist_individual_additional',
-            )
-        }),
-        ('Information about designated community', {
-            'classes': ('collapse', 'wide'),
-            'fields': (
-                'designated_community_description',
-                'designated_community_individual_name',
-                'designated_community_individual_role',
-                'designated_community_individual_phone',
-                'designated_community_individual_email',
-                'designated_community_individual_additional',
+                'archivist_organization',
             )
         }),
         ('Profiles', {
             'classes': ('collapse', 'wide'),
-            'fields': tuple([u'profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
+            'fields': tuple(['profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
         }),
     )
 
@@ -136,7 +100,8 @@ class ProfileAdmin(admin.ModelAdmin):
         ('specification structure and data', {
             'classes': ('collapse', 'wide'),
             'fields': (
-                'specification', 'specification_data',
+                'specification',
+                'specification_data',
             )
         }),
     )

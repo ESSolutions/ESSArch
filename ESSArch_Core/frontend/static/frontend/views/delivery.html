@@ -1,0 +1,327 @@
+<div class="delivery-page content-view">
+  <div class="list-view mb-1">
+    <div ng-if="!vm.initLoad" class="table-container" st-table="vm.deliveries" st-pipe="vm.deliveryPipe">
+      <div class="title-action-button-row">
+        <div class="title">
+          <h4>
+            {{'DELIVERIES' | translate}}
+            <a
+              target="_blank"
+              class="help-button"
+              uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+              tooltip-position="top auto"
+              href="/docs/{{$translate.use()}}/user_guide/archival-description-management/accessions.html"
+            >
+              <i class="far fa-question-circle"></i>
+            </a>
+          </h4>
+        </div>
+        <div class="action-button">
+          <button class="btn btn-primary" ng-click="vm.createModal()" permission permission-only="'tags.add_delivery'">
+            {{'ADD' | translate}}
+          </button>
+        </div>
+      </div>
+      <div class="search-prepare-wrapper">
+        <label for items-per-page></label>
+        <select
+          id="items-per-page"
+          style="margin-right: 10px;"
+          class="form-control items-per-page"
+          ng-model="vm.itemsPerPage"
+          ng-options="x for x in [5,10,20,25,50]"
+          uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></select>
+        <div class="global-search">
+          <input
+            st-search=""
+            class="form-control"
+            ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+            type="text"
+            uib-tooltip="{{'ACCESS.GLOBALSEARCHDESC_DELIVERIES' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          />
+        </div>
+        <button
+          type="button"
+          ng-click="vm.deliveryPipe(vm.tableState)"
+          class="btn btn-primary btn-small"
+          style="margin-left: 5px;"
+          uib-tooltip="{{'SEARCH' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        >
+          {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+        </button>
+        <div class="refresh-icon">
+          <span
+            ng-click="vm.deliveryPipe(vm.tableState)"
+            class="clickable angular-animate fas fa-sync-alt fa-lg"
+            ng-class="{'fa-sync-alt-animate': vm.deliveriesLoading }"
+            uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+            tooltip-placement="auto left"
+            tooltip-append-to-body="true"
+          ></span>
+        </div>
+      </div>
+      <div class="list-view-table table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th class="cursor-pointer shrink" st-sort="id">{{ 'ID' | translate }}</th>
+              <th class="cursor-pointer" st-sort="name">{{ 'NAME' | translate }}</th>
+              <th class="cursor-pointer" st-sort="type">{{ 'TYPE' | translate }}</th>
+              <th class="cursor-pointer" st-sort="description">{{ 'DESCRIPTION' | translate }}</th>
+              <th class="cursor-pointer" st-sort="producer_organization">
+                {{ 'ACCESS.PRODUCER_ORGANIZATION' | translate }}
+              </th>
+              <th class="cursor-pointer" st-sort="submission_agreement">{{ 'SUBMISSION_AGREEMENT' | translate }}</th>
+              <th class="shrink" permission permission-only="'tags.change_delivery'">
+                {{'EDIT' | translate}}
+              </th>
+              <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_delivery'">
+                {{'REMOVE' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              ng-repeat="x in vm.deliveries"
+              class="selectable"
+              ng-class="{'selected': vm.selected.id === x.id}"
+              ng-click="vm.deliveryClick(x)"
+            >
+              <td class="text-center shrink">
+                {{x.id}}
+              </td>
+              <td>
+                {{x.name}}
+              </td>
+              <td>
+                {{x.type.name}}
+              </td>
+              <td>
+                {{x.description}}
+              </td>
+              <td>
+                {{x.producer_organization ? AgentName.getAuthorizedName(x.producer_organization).full_name : ''}}
+              </td>
+              <td>
+                {{x.submission_agreement.name}}
+              </td>
+              <td class="text-center shrink" permission permission-only="'tags.change_delivery'">
+                <button
+                  class="btn btn-default fas fa-edit btn-sm"
+                  ng-click="vm.editModal(x); $event.stopPropagation();"
+                  uib-tooltip="{{'EDIT' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                ></button>
+              </td>
+              <td class="text-center shrink" permission permission-only="'tags.delete_delivery'">
+                <button
+                  class="btn btn-default fas fa-trash-alt btn-sm"
+                  ng-click="vm.removeModal(x); $event.stopPropagation();"
+                  uib-tooltip="{{'REMOVE' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                ></button>
+              </td>
+            </tr>
+            <tr ng-if="!vm.deliveries.length && !vm.deliveriesLoading" class="empty-table-indicator">
+              <td colspan="{{vm.getDeliveryColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+            </tr>
+            <tr ng-if="!vm.deliveries.length && vm.deliveriesLoading" class="empty-table-indicator">
+              <td class="loading-column" colspan="{{vm.getDeliveryColspan()}}">{{'LOADING' | translate}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <td ng-show="!initLoad" colspan="{{vm.getDeliveryColspan()}}">
+        <div
+          class="text-center"
+          st-template="static/frontend/views/pagination.html"
+          st-pagination=""
+          st-items-by-page="vm.itemsPerPage"
+          st-displayed-pages="7"
+        ></div>
+      </td>
+    </div>
+  </div>
+  <uib-tabset ng-if="vm.selected !== null" active="vm.activeTab" class="tabs tabs-style-bar">
+    <uib-tab index="'events'" heading="{{'EVENT.EVENTS' | translate}}" ng-click="vm.tabClick('events')">
+      <div ng-if="vm.activeTab === 'events'" class="delivery-events-wrapper">
+        <!-- List with Events for transfer-->
+        <div
+          ng-if="!vm.readOnly && !vm.hideUnits"
+          class="w-100"
+          st-table="vm.deliveryEvents"
+          st-pipe="vm.deliveryEventsPipe"
+        >
+          <div class="title-action-button-row">
+            <div class="title">
+              <h4>
+                {{'EVENT.EVENTS' | translate}}
+              </h4>
+            </div>
+            <div class="action-button">
+              <button
+                class="btn btn-primary"
+                ng-click="vm.createEventModal({delivery: vm.selected})"
+                permission
+                permission-only="'ip.add_eventip'"
+              >
+                {{'ADD' | translate}}
+              </button>
+            </div>
+          </div>
+          <div class="search-prepare-wrapper">
+            <select
+              tabindex="-1"
+              id="items-per-page"
+              ng-change="vm.deliveryEventsPipe(vm.deliveryEventsTableState)"
+              class="form-control items-per-page"
+              ng-model="vm.eventsPerPage"
+              ng-options="x for x in [5,10,20,25,50]"
+              uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></select>
+
+            <div class="global-search">
+              <input
+                id="search-input"
+                st-search=""
+                class="form-control"
+                ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
+                type="text"
+                uib-tooltip="{{'EVENT.GLOBALSEARCHDESC_EVENT' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              />
+            </div>
+            <button
+              type="button"
+              ng-click="vm.deliveryEventsPipe(vm.deliveryEventsTableState)"
+              class="btn btn-primary btn-small"
+              style="margin-left: 5px;"
+              uib-tooltip="{{'SEARCH' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            >
+              {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
+            </button>
+
+            <div class="refresh-icon">
+              <span
+                ng-click="vm.deliveryEventsPipe(vm.deliveryEventsTableState)"
+                class="clickable angular-animate fas fa-sync-alt fa-lg"
+                ng-class="{'fa-sync-alt-animate': vm.deliveryEventsLoading }"
+                uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+                tooltip-placement="auto left"
+                tooltip-append-to-body="true"
+              ></span>
+            </div>
+          </div>
+          <div class="tags-table table-container table-x-overflow">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th st-sort="eventType" class="cursor-pointer">
+                    {{'EVENT.EVENTTYPE' | translate}}
+                  </th>
+                  <th st-sort="eventOutcomeDetailNote" class="cursor-pointer">
+                    {{'DESCRIPTION' | translate}}
+                  </th>
+                  <th st-sort="eventDateTime" class="cursor-pointer">
+                    {{'EVENT.EVENTTIME' | translate}}
+                  </th>
+                  <th st-sort="transfer" class="cursor-pointer">
+                    {{'ACCESS.TRANSFER' | translate}}
+                  </th>
+                  <th st-sort="linkingAgentIdentifierValue" class="cursor-pointer">
+                    {{'RESPONSIBLE' | translate}}
+                  </th>
+                  <th class="white-space-nowrap shrink" permission permission-only="'ip.change_eventip'">
+                    {{'EDIT' | translate}}
+                  </th>
+                  <th class="white-space-nowrap shrink" permission permission-only="'ip.delete_eventip'">
+                    {{'REMOVE' | translate}}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  ng-repeat="x in vm.deliveryEvents"
+                  ng-class="{selectable: x.transfer}"
+                  ng-click="vm.eventsClick(x)"
+                  uib-tooltip="{{'ACCESS.NAVIGATE_TO_TRANSFER' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-enable="x.transfer"
+                  tooltip-append-to-body="true"
+                >
+                  <td>
+                    {{x.eventDetail}}
+                  </td>
+                  <td class="white-space-nowrap">
+                    {{x.eventOutcomeDetailNote}}
+                  </td>
+                  <td>
+                    {{x.eventDateTime | date:'yyyy-MM-dd HH:mm:ss'}}
+                  </td>
+                  <td>
+                    {{x.transfer.name}}
+                  </td>
+                  <td>
+                    {{x.linkingAgentIdentifierValue}}
+                  </td>
+                  <td class="text-center shrink" permission permission-only="'ip.change_eventip'">
+                    <button
+                      class="btn btn-default fas fa-edit btn-sm"
+                      ng-click="vm.editEventModal(x, {}); $event.stopPropagation();"
+                      uib-tooltip="{{'EDIT' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                  </td>
+                  <td class="text-center shrink" permission permission-only="'ip.delete_eventip'">
+                    <button
+                      class="btn btn-default fas fa-trash-alt btn-sm"
+                      ng-click="vm.removeEventModal(x); $event.stopPropagation();"
+                      uib-tooltip="{{'REMOVE' | translate}}"
+                      tooltip-placement="auto top"
+                      tooltip-append-to-body="true"
+                    ></button>
+                  </td>
+                </tr>
+                <tr ng-if="!vm.deliveryEvents.length && !vm.deliveryEventsLoading" class="empty-table-indicator">
+                  <td colspan="{{vm.getEventColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+                </tr>
+                <tr ng-if="!vm.deliveryEvents.length && vm.deliveryEventsLoading" class="empty-table-indicator">
+                  <td class="loading-column" colspan="{{vm.getEventColspan()}}">{{'LOADING' | translate}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <td ng-show="!initLoad" colspan="{{vm.getEventColspan()}}">
+            <div
+              class="text-center"
+              st-template="static/frontend/views/pagination.html"
+              st-pagination=""
+              st-items-by-page="vm.eventsPerPage"
+              st-displayed-pages="5"
+            ></div>
+          </td>
+        </div>
+      </div>
+    </uib-tab>
+    <uib-tab index="'transfers'" heading="{{'ACCESS.TRANSFERS' | translate}}" ng-click="vm.tabClick('transfers')">
+      <div ng-if="vm.activeTab === 'transfers'" class="transfers-view-wrapper">
+        <div ui-view></div>
+      </div>
+    </uib-tab>
+  </uib-tabset>
+</div>

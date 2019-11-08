@@ -1,0 +1,43 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'REQUEST' | translate}}</h3>
+</div>
+<form id="request-form" name="$ctrl.requestForm" ng-submit="$ctrl.submit()">
+  <div class="modal-body" id="modal-body">
+    <p ng-if="$ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount'">ID: {{$ctrl.object.id}}</p>
+    <div class="request-layout request-form">
+      <div class="request-type">
+        <div ng-repeat="type in $ctrl.requestTypes">
+          <input type="radio" ng-model="$ctrl.request.type" value="{{type}}" />
+          <label>
+            {{type.toUpperCase() | translate}}
+          </label>
+        </div>
+      </div>
+      <div class="request-params">
+        <div
+          ng-if="$ctrl.request.type == 'inventory' || $ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount' || $ctrl.request.type == 'unmount_force'"
+        >
+          <label>
+            {{'COMMENT' | translate}}
+          </label>
+          <input required class="form-control" ng-model="$ctrl.request.purpose" focused="true" />
+        </div>
+        <div ng-if="$ctrl.request.type == 'mount' && $ctrl.tapeSlot == null">
+          <label>
+            {{'STORAGEMEDIUM' | translate}}
+          </label>
+          <select
+            required
+            class="form-control"
+            ng-model="$ctrl.request.storageMedium"
+            ng-options="medium.medium_id for medium in storageMediums"
+          ></select>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit">{{'OK' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  </div>
+</form>

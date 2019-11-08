@@ -32,12 +32,12 @@ class Migration(migrations.Migration):
             name='TagStructure',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('lft', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('rght', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('lft', models.PositiveIntegerField(editable=False)),
+                ('rght', models.PositiveIntegerField(editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
-                ('level', models.PositiveIntegerField(db_index=True, editable=False)),
+                ('level', models.PositiveIntegerField(editable=False)),
                 ('parent', mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='children', to='tags.TagStructure')),
-                ('structure', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='tags.Structure')),
+                ('structure', models.ForeignKey(limit_choices_to={'is_template': False}, on_delete=django.db.models.deletion.PROTECT, to='tags.Structure')),
             ],
             options={
                 'get_latest_by': 'structure__create_date',
