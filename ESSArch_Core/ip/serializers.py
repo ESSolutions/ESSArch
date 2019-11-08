@@ -127,6 +127,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     first_generation = serializers.SerializerMethodField()
     last_generation = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    new_version_in_progress = serializers.SerializerMethodField()
 
     def get_organization(self, obj):
         try:
@@ -195,6 +196,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
 
         return WorkareaSerializer(workareas, many=True, context=self.context).data
 
+    def get_new_version_in_progress(self, obj):
+        new = obj.new_version_in_progress()
+        if new is None:
+            return None
+        return WorkareaSerializer(new, context=self.context).data
+
     class Meta:
         model = InformationPackage
         fields = (
@@ -207,7 +214,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
-            'workarea', 'first_generation', 'last_generation', 'organization',
+            'workarea', 'first_generation', 'last_generation', 'organization', 'new_version_in_progress',
         )
         extra_kwargs = {
             'id': {
@@ -496,7 +503,6 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 class NestedInformationPackageSerializer(InformationPackageSerializer):
     information_packages = serializers.SerializerMethodField()
     workarea = serializers.SerializerMethodField()
-    new_version_in_progress = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
 
     search_filter = SearchFilter()
@@ -511,12 +517,6 @@ class NestedInformationPackageSerializer(InformationPackageSerializer):
             many=True,
             context={'request': request, 'perm_checker': self.context.get('perm_checker')}
         ).data
-
-    def get_new_version_in_progress(self, obj):
-        new = obj.new_version_in_progress()
-        if new is None:
-            return None
-        return WorkareaSerializer(new, context=self.context).data
 
     class Meta(InformationPackageSerializer.Meta):
         fields = (
