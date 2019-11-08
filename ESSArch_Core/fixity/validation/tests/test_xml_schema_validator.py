@@ -3,9 +3,11 @@ import shutil
 import tempfile
 from unittest import mock
 
+from click.testing import CliRunner
 from django.test import TestCase
 from lxml.etree import DocumentInvalid
 
+from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.xml import (
     XMLISOSchematronValidator,
@@ -44,7 +46,7 @@ class XMLSchemaValidatorTests(TestCase):
             ip=ip.id,
             task=task
         )
-        with self.assertRaises(DocumentInvalid):
+        with self.assertRaises(ValidationError):
             validator.validate("some_xml_file_path")
 
         validations = Validation.objects.filter(passed=False, validator="XMLSchemaValidator")
@@ -98,6 +100,22 @@ class XMLSchemaValidatorTests(TestCase):
             validator='XMLSchemaValidator'
         )
         self.assertEqual(validations.count(), 1)
+
+    @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator.validate")
+    def test_cli(self, mock_validate):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            open('foo.xml', 'a')
+            open('foo.xsd', 'a')
+            with mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator") as validator:
+                result = runner.invoke(XMLSchemaValidator.cli, ['foo.xml', '--schema', 'foo.xsd'])
+                validator.assert_called_once_with(context='foo.xsd')
+                self.assertEqual(result.exit_code, 0)
+
+            with mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator.validate") as validate:
+                result = runner.invoke(XMLSchemaValidator.cli, ['foo.xml', '--schema', 'foo.xsd'])
+                validate.assert_called_once_with('foo.xml')
+                self.assertEqual(result.exit_code, 0)
 
 
 class XMLSchematronValidatorTests(TestCase):
