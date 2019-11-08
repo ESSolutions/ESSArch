@@ -1,5 +1,5 @@
 export default class LocationTreeCtrl {
-  constructor($scope, $http, appConfig, $translate, $uibModal, $log, $transitions) {
+  constructor($scope, $http, appConfig, $translate, $uibModal, $log, $transitions, listViewService) {
     const vm = this;
     $scope.$translate = $translate;
     vm.treeData = [];
@@ -317,11 +317,11 @@ export default class LocationTreeCtrl {
         vm.getTags(vm.selected, {
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
         }).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = response.headers('Count');
+          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.tagsLoading = false;
           response.data.forEach(function(x) {

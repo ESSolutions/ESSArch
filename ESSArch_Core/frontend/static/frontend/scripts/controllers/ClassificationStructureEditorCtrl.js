@@ -176,6 +176,7 @@ export default class ClassificationStructureEditorCtrl {
         return Structure.query({
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
           is_template: true,
@@ -183,7 +184,6 @@ export default class ClassificationStructureEditorCtrl {
         }).$promise.then(function(resource) {
           vm.structures = resource;
           tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = resource.$httpHeaders('Count');
           $scope.initLoad = false;
           vm.structuresLoading = false;
           return resource;

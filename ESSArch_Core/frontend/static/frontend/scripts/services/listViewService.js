@@ -101,9 +101,7 @@ const listViewService = (
 
   //Gets data for list view i.e information packages
   function getListViewData(
-    pageNumber,
-    pageSize,
-    filters,
+    pagination,
     sortString,
     searchString,
     state,
@@ -115,8 +113,9 @@ const listViewService = (
   ) {
     let data = angular.extend(
       {
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
         ordering: sortString,
         state: state,
         search: searchString,
@@ -160,23 +159,14 @@ const listViewService = (
   }
 
   //Fetches IP's for given workarea (ingest or access)
-  function getWorkareaData(
-    workarea,
-    pageNumber,
-    pageSize,
-    filters,
-    sortString,
-    searchString,
-    viewType,
-    columnFilters,
-    user
-  ) {
+  function getWorkareaData(workarea, pagination, filters, sortString, searchString, viewType, columnFilters, user) {
     return Workarea.query(
       angular.extend(
         {
           workspace_type: workarea,
-          page: pageNumber,
-          page_size: pageSize,
+          page: pagination.pageNumber,
+          page_size: pagination.number,
+          pager: pagination.pager,
           ordering: sortString,
           search: searchString,
           view_type: viewType,
@@ -198,16 +188,16 @@ const listViewService = (
   }
 
   //Fetches IP's for given workarea (ingest or access)
-  function getDipPage(pageNumber, pageSize, filters, sortString, searchString, columnFilters) {
+  function getDipPage(pagination, sortString, searchString, columnFilters) {
     return IP.query(
       angular.extend(
         {
           package_type: 4,
-          page: pageNumber,
-          page_size: pageSize,
+          page: pagination.pageNumber,
+          page_size: pagination.number,
+          pager: pagination.pager,
           ordering: sortString,
           search: searchString,
-          tag: $rootScope.selectedTag != null ? $rootScope.selectedTag.id : null,
         },
         columnFilters
       )
@@ -222,13 +212,13 @@ const listViewService = (
       };
     });
   }
-  function getOrderPage(pageNumber, pageSize, filters, sortString, searchString) {
+  function getOrderPage(pagination, sortString, searchString) {
     return Order.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-      tag: $rootScope.selectedTag != null ? $rootScope.selectedTag.id : null,
     }).$promise.then(function(resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
@@ -241,16 +231,16 @@ const listViewService = (
     });
   }
 
-  function getReceptionIps(pageNumber, pageSize, filters, sortString, searchString, state, columnFilters) {
+  function getReceptionIps(pagination, sortString, searchString, state, columnFilters) {
     return IPReception.query(
       angular.extend(
         {
-          page: pageNumber,
-          page_size: pageSize,
+          page: pagination.pageNumber,
+          page_size: pagination.number,
+          pager: pagination.pager,
           ordering: sortString,
           state: state,
           search: searchString,
-          tag: $rootScope.selectedTag != null ? $rootScope.selectedTag.id : null,
         },
         columnFilters
       )
@@ -278,15 +268,16 @@ const listViewService = (
     });
   }
   //Returns all events for one ip
-  function getEvents(ip, pageNumber, pageSize, sortString, columnFilters, searchString) {
+  function getEvents(ip, pagination, sortString, columnFilters, searchString) {
     let promise;
     if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
       promise = Workarea.events(
         angular.extend(
           {
             id: ip.id,
-            page: pageNumber,
-            page_size: pageSize,
+            page: pagination.pageNumber,
+            page_size: pagination.number,
+            pager: pagination.pager,
             search: searchString,
             ordering: sortString,
           },
@@ -298,8 +289,9 @@ const listViewService = (
         angular.extend(
           {
             id: ip.id,
-            page: pageNumber,
-            page_size: pageSize,
+            page: pagination.pageNumber,
+            page_size: pagination.number,
+            pager: pagination.pager,
             search: searchString,
             ordering: sortString,
           },
@@ -614,11 +606,12 @@ const listViewService = (
     const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
     let number = pagination.number || defaultNumber; // Number of entries showed per page.
     const pageNumber = isNaN(start / number) ? 1 : start / number + 1;
-
-    if (pagination.number === 'all' && pagination.totalItemCount) {
-      number = pagination.totalItemCount;
+    let pager = null;
+    if (pagination.number === 'all') {
+      pager = 'none';
+      number = 1;
     }
-    return {start, pageNumber, number};
+    return {start, pageNumber, number, pager};
   }
 
   return {

@@ -213,11 +213,11 @@ export default class AgentCtrl {
         vm.getAgents({
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.agentsLoading = false;
           vm.parseAgents(response.data);
@@ -265,11 +265,11 @@ export default class AgentCtrl {
         vm.getAgentArchives(vm.agent, {
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.archivesLoading = false;
           vm.agent.archives = response.data;

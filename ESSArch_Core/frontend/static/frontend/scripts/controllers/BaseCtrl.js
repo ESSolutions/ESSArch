@@ -301,9 +301,7 @@ export default class BaseCtrl {
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getIpPage(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
+          paginationParams,
           params,
           sorting,
           search,
@@ -316,7 +314,6 @@ export default class BaseCtrl {
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
             $scope.initLoad = false;
             ipExists();
@@ -338,7 +335,6 @@ export default class BaseCtrl {
               listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
-                tableState.pagination.totalItemCount = result.count;
                 vm.callServer(tableState);
               });
             }

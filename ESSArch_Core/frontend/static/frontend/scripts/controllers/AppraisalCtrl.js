@@ -61,9 +61,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
-        Appraisal.getRules(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Appraisal.getRules(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.ruleTableState = tableState;
@@ -97,9 +95,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
-        Appraisal.getOngoing(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Appraisal.getOngoing(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.ongoingTableState = tableState;
@@ -126,9 +122,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
-        Appraisal.getNext(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Appraisal.getNext(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.nextTableState = tableState;
@@ -155,9 +149,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
-        Appraisal.getFinished(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Appraisal.getFinished(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.finishedTableState = tableState;

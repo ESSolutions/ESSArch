@@ -76,6 +76,7 @@ export default class ArchiveManagerCtrl {
               index: 'archive',
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
+              pager: paginationParams.pager,
               ordering: sortString,
               search: search,
             },
@@ -83,7 +84,6 @@ export default class ArchiveManagerCtrl {
           .then(function(response) {
             vm.archives = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-            tableState.pagination.totalItemCount = response.headers('Count');
             $scope.initLoad = false;
             vm.archivesLoading = false;
           });

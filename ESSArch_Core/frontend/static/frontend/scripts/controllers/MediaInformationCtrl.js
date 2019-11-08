@@ -116,18 +116,10 @@ export default class MediaInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getStorageMediums(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        )
+        Resource.getStorageMediums(paginationParams, tableState, sorting, search)
           .then(function(result) {
             vm.displayedMediums = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-            tableState.pagination.totalItemCount = result.count;
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedMediums, [], $scope.storageMedium);
@@ -164,9 +156,7 @@ export default class MediaInformationCtrl {
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.objectsPerPage);
         Resource.getStorageObjectsForMedium(
           $scope.storageMedium.id,
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
+          paginationParams,
           tableState,
           $scope.storageMedium,
           sorting,
@@ -175,7 +165,6 @@ export default class MediaInformationCtrl {
           .then(function(result) {
             vm.storageObjects = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
-            tableState.pagination.totalItemCount = result.count;
             $scope.objectLoading = false;
             $scope.initObjLoad = false;
           })

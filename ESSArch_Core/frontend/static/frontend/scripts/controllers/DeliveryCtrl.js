@@ -166,11 +166,11 @@ export default class DeliveryCtrl {
         vm.getDeliveries({
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.deliveriesLoading = false;
           vm.deliveries = response.data;
@@ -206,11 +206,11 @@ export default class DeliveryCtrl {
         vm.getDeliveryEvents(vm.selected, {
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
         }).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
-          tableState.pagination.totalItemCount = response.headers('Count');
           $scope.initLoad = false;
           vm.deliveryEventsLoading = false;
           vm.deliveryEvents = response.data;
