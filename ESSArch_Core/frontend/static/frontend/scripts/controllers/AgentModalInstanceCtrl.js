@@ -316,8 +316,9 @@ export default class AgentModalInstanceCtrl {
                 return $ctrl.options.language.choices;
               },
               refresh: function(search) {
-                $ctrl.getLanguages(search).then(function() {
+                return $ctrl.getLanguages(search).then(function() {
                   this.options = $ctrl.options.language.choices;
+                  return $ctrl.options.language.choices;
                 });
               },
               defaultValue: $ctrl.options.language.choices.length > 0 ? $ctrl.options.language.choices[0].id : null,

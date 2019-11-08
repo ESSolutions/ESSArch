@@ -630,6 +630,12 @@ class XMLGenerator:
                             os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
                         }
                         external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                        if ext_pointer is not None:
+                            filepath = os.path.join(folderToParse, ptr_file_path)
+                            fileinfo = parse_file(
+                                filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
+                            )
+                            files.append(fileinfo)
 
             files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
 

@@ -73,8 +73,9 @@ export default class AgentArchiveRelationModalInstanceCtrl {
               return $ctrl.options.archives;
             },
             refresh: function(search) {
-              $ctrl.getArchives(search).then(function() {
+              return $ctrl.getArchives(search).then(function() {
                 this.options = $ctrl.options.archives;
+                return $ctrl.options.archives;
               });
             },
           },
