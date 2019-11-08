@@ -64,7 +64,7 @@ matrix:
       before_install: skip
       install: yarn install --frozen-lockfile
       before_script: skip
-      script: yarn lint .
+      script: yarn lint
       after_success: skip
 
     - name: 'stylelint'
