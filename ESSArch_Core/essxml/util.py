@@ -22,8 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+import logging
 import os
+import pathlib
+import tempfile
 import uuid
+from urllib.parse import urlparse
 
 from lxml import etree
 
@@ -37,6 +41,8 @@ from ESSArch_Core.util import (
     timestamp_to_datetime,
     win_to_posix,
 )
+
+logger = logging.getLogger('essarch')
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
@@ -445,15 +451,32 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
     return fileinfo
 
 
+def download_imported_https_schemas(schema, dst):
+    from ESSArch_Core.ip.utils import download_schema
+    for url in schema.xpath('//*[local-name()="import"]/@schemaLocation'):
+        protocol = urlparse(url)
+        if protocol == 'http':
+            continue
+        new_path = download_schema(dst, logger, url)
+        new_path = pathlib.Path(new_path)
+        el = url.getparent()
+        el.attrib['schemaLocation'] = new_path.as_uri()
+
+    return schema
+
+
 def validate_against_schema(xmlfile, schema=None, rootdir=None):
     doc = etree.ElementTree(file=xmlfile)
 
     if schema:
-        xmlschema = etree.XMLSchema(etree.parse(schema))
+        xmlschema = etree.parse(schema)
     else:
         xmlschema = getSchemas(doc=doc)
 
-    xmlschema.assertValid(doc)
+    with tempfile.TemporaryDirectory() as tempdir:
+        xmlschema = download_imported_https_schemas(xmlschema, tempdir)
+        xmlschema = etree.XMLSchema(xmlschema)
+        xmlschema.assertValid(doc)
 
     if rootdir is None:
         rootdir = os.path.split(xmlfile)[0]

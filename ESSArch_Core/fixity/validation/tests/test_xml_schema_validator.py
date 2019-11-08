@@ -3,9 +3,12 @@ import shutil
 import tempfile
 from unittest import mock
 
+from click.testing import CliRunner
 from django.test import TestCase
+from lxml import etree
 from lxml.etree import DocumentInvalid
 
+from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.xml import (
     XMLISOSchematronValidator,
@@ -25,6 +28,157 @@ def create_mocked_error_log(line_number, error_msg):
 
 
 class XMLSchemaValidatorTests(TestCase):
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        try:
+            os.makedirs(self.datadir)
+        except OSError as e:
+            if e.errno != 17:
+                raise
+
+    def create_schema_file(self, path):
+        content = """<?xml version="1.0" encoding="UTF-8"?>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:complexType name="itemtype">
+              <xs:sequence>
+                <xs:element name="title" type="xs:string"/>
+                <xs:element name="price" type="xs:decimal"/>
+              </xs:sequence>
+            </xs:complexType>
+
+            <xs:element name="item" type="itemtype"/>
+        </xs:schema>
+        """
+        path = os.path.join(self.datadir, path)
+
+        with open(path, 'w') as f:
+            f.write(content)
+
+        return path
+
+    def create_schema_file_with_import(self, path):
+        content = """<?xml version="1.0" encoding="UTF-8"?>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+            <xs:import namespace="http://www.loc.gov/METS/"
+                       schemaLocation="https://www.loc.gov/standards/mets/mets.xsd"/>
+        </xs:schema>
+        """
+        path = os.path.join(self.datadir, path)
+
+        with open(path, 'w') as f:
+            f.write(content)
+
+        return path
+
+    def create_xml(self, xml_file_name):
+        xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
+        <item>
+            <title>good</title>
+            <price>12.3</price>
+        </item>
+        """
+
+        xml_file_path = os.path.join(self.datadir, xml_file_name)
+
+        with open(xml_file_path, 'w') as f:
+            f.write(xml_file_content)
+
+        return xml_file_path
+
+    def create_bad_xml(self, xml_file_name):
+        xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
+        <item>
+            <title>bad</title>
+            <price>foo</price>
+        </item>
+        """
+
+        xml_file_path = os.path.join(self.datadir, xml_file_name)
+
+        with open(xml_file_path, 'w') as f:
+            f.write(xml_file_content)
+
+        return xml_file_path
+
+    def test_validate_schema_against_valid_file(self):
+        schema_file_name = "schema.xsd"
+        schema_file_path = self.create_schema_file(schema_file_name)
+        xml_file_path = self.create_xml("xml_file.xml")
+
+        validator = XMLSchemaValidator(
+            context=schema_file_path,
+            options={'rootdir': self.datadir},
+        )
+        validator.validate(xml_file_path)
+
+    def test_validate_schema_against_bad_file(self):
+        schema_file_name = "schema.xsd"
+        schema_file_path = self.create_schema_file(schema_file_name)
+        xml_file_path = self.create_bad_xml("bad_xml_file.xml")
+
+        validator = XMLSchemaValidator(
+            context=schema_file_path,
+            options={'rootdir': self.datadir},
+        )
+
+        with self.assertRaises(ValidationError):
+            validator.validate(xml_file_path)
+
+        expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
+        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+
+    def test_validate_with_imported_schema(self):
+        schema_file_name = "schema.xsd"
+        schema_file_path = self.create_schema_file_with_import(schema_file_name)
+        xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
+        <mets:mets xmlns:mets="http://www.loc.gov/METS/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xlink="http://www.w3.org/1999/xlink">
+            <mets:metsHdr/>
+            <mets:structMap>
+                <mets:div/>
+            </mets:structMap>
+        </mets:mets>
+        """
+
+        xml_file_path = os.path.join(self.datadir, 'test.xml')
+        with open(xml_file_path, 'w') as f:
+            f.write(xml_file_content)
+
+        validator = XMLSchemaValidator(
+            context=schema_file_path,
+            options={'rootdir': self.datadir},
+        )
+        validator.validate(xml_file_path)
+
+        bad_xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
+        <mets:mets xmlns:mets="http://www.loc.gov/METS/"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:xlink="http://www.w3.org/1999/xlink">
+            <mets:metsHdr>
+                this is incorrect
+            </mets:metsHdr>
+            <mets:structMap>
+                <mets:div/>
+            </mets:structMap>
+        </mets:mets>
+        """
+
+        with open(xml_file_path, 'w') as f:
+            f.write(bad_xml_file_content)
+
+        with self.assertRaises(ValidationError):
+            validator.validate(xml_file_path)
+
+        expected_error_message = "Character content other than whitespace"
+        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+
+        # ensure that the schema has only been modified in memory and not the file
+        schema_doc = etree.parse(schema_file_path)
+        schemaLocation = schema_doc.xpath('//*[local-name()="import"]/@schemaLocation')[0]
+        self.assertEqual(schemaLocation, "https://www.loc.gov/standards/mets/mets.xsd")
 
     @mock.patch("ESSArch_Core.fixity.validation.backends.xml.validate_against_schema")
     def test_when_documentInvalid_raised_create_validation_objects(self, validate_against_schema):
@@ -44,7 +198,7 @@ class XMLSchemaValidatorTests(TestCase):
             ip=ip.id,
             task=task
         )
-        with self.assertRaises(DocumentInvalid):
+        with self.assertRaises(ValidationError):
             validator.validate("some_xml_file_path")
 
         validations = Validation.objects.filter(passed=False, validator="XMLSchemaValidator")
@@ -98,6 +252,22 @@ class XMLSchemaValidatorTests(TestCase):
             validator='XMLSchemaValidator'
         )
         self.assertEqual(validations.count(), 1)
+
+    @mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator.validate")
+    def test_cli(self, mock_validate):
+        runner = CliRunner()
+        with runner.isolated_filesystem():
+            open('foo.xml', 'a')
+            open('foo.xsd', 'a')
+            with mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator") as validator:
+                result = runner.invoke(XMLSchemaValidator.cli, ['foo.xml', '--schema', 'foo.xsd'])
+                validator.assert_called_once_with(context='foo.xsd')
+                self.assertEqual(result.exit_code, 0)
+
+            with mock.patch("ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator.validate") as validate:
+                result = runner.invoke(XMLSchemaValidator.cli, ['foo.xml', '--schema', 'foo.xsd'])
+                validate.assert_called_once_with('foo.xml')
+                self.assertEqual(result.exit_code, 0)
 
 
 class XMLSchematronValidatorTests(TestCase):
