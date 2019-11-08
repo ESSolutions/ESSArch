@@ -832,6 +832,154 @@ class DiffCheckValidatorTests(TestCase):
             self.validator.validate(self.datadir)
 
 
+class DiffCheckValidatorRecursiveTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.generator = XMLGenerator()
+
+    @classmethod
+    def tearDownClass(cls):
+        Path.objects.all().delete()
+
+    def setUp(self):
+        self.root = os.path.dirname(os.path.realpath(__file__))
+        self.datadir = os.path.join(self.root, "datadir")
+        self.external = os.path.join(self.datadir, "external")
+        self.level2 = os.path.join(self.external, "level2")
+        self.external_level2 = os.path.join(self.level2, "external")
+        self.level3 = os.path.join(self.external_level2, "level3")
+
+        self.root_xml = os.path.join(self.datadir, 'root.xml')
+        self.level2_xml = os.path.join(self.level2, 'level2.xml')
+        self.level3_xml = os.path.join(self.level3, 'level3.xml')
+
+        self.options = {'rootdir': self.datadir}
+
+        file_el = {
+            "-name": "file",
+            "-containsFiles": True,
+            "-attr": [
+                {
+                    "-name": "MIMETYPE",
+                    "#content": "{{FMimetype}}",
+                },
+                {
+                    "-name": "CHECKSUM",
+                    "#content": "{{FChecksum}}"
+                },
+                {
+                    "-name": "CHECKSUMTYPE",
+                    "#content": "{{FChecksumType}}"
+                },
+                {
+                    "-name": "SIZE",
+                    "#content": "{{FSize}}"
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "FLocat",
+                    "-attr": [
+                        {
+                            "-name": "href",
+                            "#content": "file:///{{href}}"
+                        },
+                    ]
+                }
+            ]
+        }
+
+        self.filesToCreate = {
+            self.root_xml: {
+                'data': {},
+                'spec': {
+                    '-name': 'root',
+                    "-external": {
+                        "-dir": "external",
+                        "-file": "level2.xml",
+                        "-pointer": {
+                            "-name": "mptr",
+                            "-attr": [
+                                {
+                                    "-name": "href",
+                                    "#content": [
+                                        {"text": "file:///"},
+                                        {"var": "_EXT_HREF"}
+                                    ]
+                                },
+                            ]
+                        },
+                        "-specification": {
+                            "-name": "root",
+                            "-external": {
+                                "-dir": "external",
+                                "-file": "level3.xml",
+                                "-pointer": {
+                                    "-name": "mptr",
+                                    "-attr": [
+                                        {
+                                            "-name": "href",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "_EXT_HREF"}
+                                            ]
+                                        },
+                                    ]
+                                },
+                                "-specification": {
+                                    '-name': 'root',
+                                    '-children': [
+                                        file_el,
+                                    ]
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        }
+
+        for d in [self.datadir, self.level2, self.level3]:
+            try:
+                os.makedirs(d)
+            except OSError as e:
+                if e.errno != 17:
+                    raise
+
+    def tearDown(self):
+        shutil.rmtree(self.datadir)
+
+    def create_files(self):
+        files = []
+        for i in range(3):
+            fname = os.path.join(self.level3, '%s.txt' % i)
+            with open(fname, 'w') as f:
+                f.write('%s' % i)
+            files.append(fname)
+
+        return files
+
+    def generate_xml(self):
+        self.generator.generate(self.filesToCreate, folderToParse=self.datadir)
+
+    def test_validation_with_unchanged_files(self):
+        self.create_files()
+        self.generate_xml()
+
+        self.validator = DiffCheckValidator(context=self.root_xml, options=self.options)
+        self.validator.validate(self.datadir)
+
+    def test_validation_with_deleted_file(self):
+        files = self.create_files()
+        self.generate_xml()
+        os.remove(files[1])
+
+        self.validator = DiffCheckValidator(context=self.root_xml, options=self.options)
+        msg = '4 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.root_xml)
+        with self.assertRaisesRegexp(ValidationError, msg):
+            self.validator.validate(self.datadir)
+
+
 class XMLSyntaxValidatorTests(TestCase):
     def setUp(self):
         self.datadir = tempfile.mkdtemp()

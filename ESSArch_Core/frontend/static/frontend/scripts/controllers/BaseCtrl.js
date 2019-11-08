@@ -73,6 +73,8 @@ export default class BaseCtrl {
     vm.itemsPerPage = $cookies.get('epp-ips-per-page') || 10;
     vm.archived = false;
     vm.specificTabs = [];
+    vm.columnFilters = {};
+    vm.fields = [];
 
     $scope.$translate = $translate;
 
@@ -144,17 +146,15 @@ export default class BaseCtrl {
           .then(ip => {
             vm.initialSearch = angular.copy($stateParams.id);
             $scope.ipTableClick(ip, {}, {noStateChange: true});
-            vm.createFilterModel();
+
             $timeout(() => {
               $scope.getListViewData();
             });
           })
           .catch(() => {
-            vm.createFilterModel();
             $state.go($state.current.name, {id: null});
           });
       } else {
-        vm.createFilterModel();
       }
     };
 
@@ -226,17 +226,6 @@ export default class BaseCtrl {
         }
       })
     );
-
-    vm.createFilterModel = () => {
-      const model = Filters.getIpFilters($state.current.name).model;
-      $scope.filterModel = angular.copy(model);
-      vm.initialColumnFilters = angular.copy(model);
-      $scope.columnFilters = angular.copy(model);
-    };
-
-    vm.createFilterFields = () => {
-      $scope.fields = Filters.getIpFilters($state.current.name).fields;
-    };
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
       $scope.getListViewData();
@@ -320,7 +309,7 @@ export default class BaseCtrl {
           search,
           ipSortString,
           $scope.expandedAics,
-          $scope.columnFilters,
+          vm.columnFilters,
           vm.archived,
           vm.workarea
         )
@@ -338,7 +327,7 @@ export default class BaseCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               if (vm.workarea) {
@@ -1047,7 +1036,6 @@ export default class BaseCtrl {
       }
     };
     vm.clearFilters = function() {
-      vm.createFilterModel();
       vm.createFilterFields();
       $scope.submitAdvancedFilters();
     };
@@ -1240,10 +1228,8 @@ export default class BaseCtrl {
     };
 
     //advanced filter form data
-    $scope.columnFilters = {};
     $scope.filterModel = {};
     $scope.options = {};
-    $scope.fields = [];
 
     //Toggle visibility of advanced filters
     $scope.toggleAdvancedFilters = function() {
@@ -1284,27 +1270,6 @@ export default class BaseCtrl {
     $scope.clearSearch = function() {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
-      $scope.getListViewData();
-    };
-
-    $scope.filterActive = function() {
-      let temp = false;
-      for (const key in $scope.columnFilters) {
-        if (
-          (angular.isUndefined(vm.initialColumnFilters[key]) &&
-            $scope.columnFilters[key] !== '' &&
-            $scope.columnFilters[key] !== null) ||
-          (!angular.isUndefined(vm.initialColumnFilters[key]) &&
-            $scope.columnFilters[key] !== vm.initialColumnFilters[key])
-        ) {
-          temp = true;
-        }
-      }
-      return temp;
-    };
-
-    $scope.submitAdvancedFilters = function() {
-      $scope.columnFilters = angular.copy($scope.filterModel);
       $scope.getListViewData();
     };
 

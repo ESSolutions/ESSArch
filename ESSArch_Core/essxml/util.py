@@ -22,8 +22,12 @@
     Email - essarch@essolutions.se
 """
 
+import logging
 import os
+import pathlib
+import tempfile
 import uuid
+from urllib.parse import urlparse
 
 from lxml import etree
 
@@ -37,6 +41,8 @@ from ESSArch_Core.util import (
     timestamp_to_datetime,
     win_to_posix,
 )
+
+logger = logging.getLogger('essarch')
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
@@ -340,12 +346,15 @@ def find_file(filepath, xmlfile=None, tree=None, rootdir='', prefix=''):
             return xml_el, el
 
 
-def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True):
+def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, current_dir=None):
     doc = etree.ElementTree(file=xmlfile)
     files = set()
 
     if skip_files is None:
         skip_files = []
+
+    if current_dir is None:
+        current_dir = rootdir
 
     for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
@@ -366,14 +375,23 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True):
 
     if recursive:
         for pointer in find_pointers(xmlfile=xmlfile):
-            pointer_prefix = os.path.split(pointer.path)[0]
+            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+
             if pointer.path not in skip_files:
+                pointer.path = os.path.join(prefix, pointer.path)
                 files.add(pointer)
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
+
             files |= find_files(
-                os.path.join(rootdir, pointer.path),
+                pointer_path,
                 rootdir,
-                pointer_prefix,
+                prefix,
                 recursive=recursive,
+                current_dir=current_dir,
             )
 
     return files
@@ -433,15 +451,32 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
     return fileinfo
 
 
+def download_imported_https_schemas(schema, dst):
+    from ESSArch_Core.ip.utils import download_schema
+    for url in schema.xpath('//*[local-name()="import"]/@schemaLocation'):
+        protocol = urlparse(url)
+        if protocol == 'http':
+            continue
+        new_path = download_schema(dst, logger, url)
+        new_path = pathlib.Path(new_path)
+        el = url.getparent()
+        el.attrib['schemaLocation'] = new_path.as_uri()
+
+    return schema
+
+
 def validate_against_schema(xmlfile, schema=None, rootdir=None):
     doc = etree.ElementTree(file=xmlfile)
 
     if schema:
-        xmlschema = etree.XMLSchema(etree.parse(schema))
+        xmlschema = etree.parse(schema)
     else:
         xmlschema = getSchemas(doc=doc)
 
-    xmlschema.assertValid(doc)
+    with tempfile.TemporaryDirectory() as tempdir:
+        xmlschema = download_imported_https_schemas(xmlschema, tempdir)
+        xmlschema = etree.XMLSchema(xmlschema)
+        xmlschema.assertValid(doc)
 
     if rootdir is None:
         rootdir = os.path.split(xmlfile)[0]

@@ -24,7 +24,7 @@
 
 from django_filters import rest_framework as filters
 
-from ESSArch_Core.api.filters import ListFilter
+from ESSArch_Core.api.filters import CharSuffixRangeFilter, ListFilter
 from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.storage.models import (
     StorageMedium,
@@ -43,6 +43,7 @@ class StorageMediumFilter(filters.FilterSet):
     deactivatable = filters.BooleanFilter(label='deactivatable', method='filter_deactivatable')
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
+    medium_id_range = CharSuffixRangeFilter(field_name='medium_id')
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
         field_name='storage_target__storage_method_target_relations__storage_method__storage_policies',
@@ -66,4 +67,4 @@ class StorageMediumFilter(filters.FilterSet):
 
     class Meta:
         model = StorageMedium
-        fields = ('status', 'medium_type', 'storage_type')
+        fields = ('status', 'medium_type', 'storage_type', 'medium_id',)

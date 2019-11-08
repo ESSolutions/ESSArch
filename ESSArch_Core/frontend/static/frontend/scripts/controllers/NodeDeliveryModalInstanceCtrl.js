@@ -55,8 +55,9 @@ export default class NodeDeliveryModalInstanceCtrl {
               return $ctrl.deliveries;
             },
             refresh: function(search) {
-              $ctrl.getDeliveries(search).then(function() {
+              return $ctrl.getDeliveries(search).then(function() {
                 this.options = $ctrl.deliveries;
+                return $ctrl.deliveries;
               });
             },
           },
@@ -78,8 +79,9 @@ export default class NodeDeliveryModalInstanceCtrl {
               return $ctrl.transfers;
             },
             refresh: function(search) {
-              $ctrl.getTransfers(search).then(function() {
+              return $ctrl.getTransfers(search).then(function() {
                 this.options = $ctrl.transfers;
+                return $ctrl.transfers;
               });
             },
           },

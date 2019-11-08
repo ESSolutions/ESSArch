@@ -95,7 +95,7 @@ export default class StorageMigrationCtrl {
               page_size: paginationParams.number,
               migratable: true,
             },
-            $scope.columnFilters
+            vm.columnFilters
           ),
         })
           .then(function(response) {
@@ -112,7 +112,7 @@ export default class StorageMigrationCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               if (vm.workarea) {
