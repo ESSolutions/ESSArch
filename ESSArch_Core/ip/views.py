@@ -2303,6 +2303,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 }
                             },
                             {
+                                "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                                "label": "Download Schemas",
+                            },
+                            {
                                 "name": "ESSArch_Core.ip.tasks.GeneratePremis",
                                 "if": generate_premis,
                                 "label": "Generate premis",
