@@ -325,7 +325,8 @@ class XMLSchemaValidator(BaseValidator):
         try:
             validate_against_schema(filepath, self.context, rootdir)
         except etree.DocumentInvalid as e:
-            logger.exception('Schema validation of {xml} failed'.format(xml=filepath))
+            msg = 'Schema validation of {xml} failed'.format(xml=filepath)
+            logger.exception(msg)
             done = timezone.now()
             validation_objs = []
             for error in e.error_log:
@@ -342,9 +343,10 @@ class XMLSchemaValidator(BaseValidator):
                 ))
 
             Validation.objects.bulk_create(validation_objs, 100)
-            raise
+            raise ValidationError(msg, errors=[o.message for o in validation_objs])
         except Exception as e:
-            logger.exception('Unknown error during schema validation of {xml}'.format(xml=filepath))
+            msg = 'Unknown error during schema validation of {xml}'.format(xml=filepath)
+            logger.exception(msg)
             done = timezone.now()
             Validation.objects.create(
                 passed=False,
@@ -368,6 +370,20 @@ class XMLSchemaValidator(BaseValidator):
             task=self.task,
         )
         logger.info("Successful schema validation of {xml}".format(xml=filepath))
+
+    @staticmethod
+    @click.command()
+    @click.option('--schema', metavar='INPUT', type=click.Path(exists=True), default=None)
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    def cli(path, schema):
+        validator = XMLSchemaValidator(context=schema)
+        try:
+            validator.validate(path)
+            click.echo('success!')
+        except ValidationError as e:
+            click.echo(e, err=True)
+            for error in e.errors:
+                click.echo(error, err=True)
 
 
 class XMLSyntaxValidator(BaseValidator):
