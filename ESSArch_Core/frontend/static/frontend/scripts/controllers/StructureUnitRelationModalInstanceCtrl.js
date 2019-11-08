@@ -159,8 +159,9 @@ export default class StructureUnitRelationModalInstanceCtrl {
                 search = angular.copy($ctrl.initArchiveSearch);
                 $ctrl.initArchiveSearch = null;
               }
-              $ctrl.getArchives(search).then(function() {
+              return $ctrl.getArchives(search).then(function() {
                 this.options = $ctrl.options.archive;
+                return $ctrl.options.archive;
               });
             },
           },
@@ -196,8 +197,9 @@ export default class StructureUnitRelationModalInstanceCtrl {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
-              $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function() {
+              return $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function() {
                 this.options = $ctrl.options.structure;
+                return $ctrl.options.structure;
               });
             },
           },
@@ -236,10 +238,11 @@ export default class StructureUnitRelationModalInstanceCtrl {
                 search = angular.copy($ctrl.initUnitSearch);
                 $ctrl.initUnitSearch = null;
               }
-              $ctrl
+              return $ctrl
                 .getStructureUnits(search, $ctrl.structureModel.structure, $ctrl.archiveModel.archive)
                 .then(function() {
                   this.options = $ctrl.unit.options;
+                  return $ctrl.unit.options;
                 });
             },
           },

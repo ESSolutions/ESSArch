@@ -167,8 +167,9 @@ export default class AddNodeModalInstanceCtrl {
               if (angular.isUndefined(search) || search === null || search === '') {
                 search = '';
               }
-              $ctrl.getInformationPackages(search).then(function() {
+              return $ctrl.getInformationPackages(search).then(function() {
                 this.options = $ctrl.options.ips;
+                return $ctrl.options.ips;
               });
             },
           },

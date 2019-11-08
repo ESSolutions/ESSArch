@@ -10,6 +10,8 @@
   <!-- Single selection -->
 
   <ui-select
+    spinner-enabled="true"
+    spinner-class="{{'fas fa-spinner fa-spin ui-select-custom-spinner' + (to.clearEnabled ? ' spinner-with-clear':'')}}"
     ng-if="to.multiple !== true"
     ng-model="model[options.key]"
     theme="bootstrap"
@@ -37,6 +39,8 @@
   <!-- Multiple selection -->
 
   <ui-select
+    spinner-enabled="true"
+    spinner-class="{{'fas fa-spinner fa-spin ui-select-custom-spinner' + (to.clearEnabled ? ' spinner-with-clear':'')}}"
     ng-if="to.multiple === true"
     multiple
     ng-model="model[options.key]"
