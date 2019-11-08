@@ -222,6 +222,7 @@ install:
   - pip install .
 
 before_script:
+  - pip check
   - essarch settings generate -qp local_essarch_settings.py
 
 script:
