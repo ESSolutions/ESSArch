@@ -184,6 +184,20 @@ class StorageMethodQueryset(models.QuerySet):
     def secure_storage(self):
         return self.filter(containers=True)
 
+    def filter_has_target_with_status(self, status: int, value: bool):
+        annotation_key = 'has_target_with_status_{}'.format(status)
+        qs = self.annotate(
+            **{
+                annotation_key: Exists(
+                    StorageMethodTargetRelation.objects.filter(
+                        storage_method=OuterRef('pk'),
+                        status=status,
+                    )
+                )
+            }
+        ).filter(**{annotation_key: value})
+        return self.filter(pk__in=qs)
+
     def fastest(self):
         container = Case(
             When(containers=False, then=Value(1)),
