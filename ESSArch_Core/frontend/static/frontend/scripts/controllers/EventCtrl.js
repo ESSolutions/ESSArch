@@ -150,9 +150,8 @@ export default class EventCtrl {
       const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
 
       Resource.getEventPage(
-        paginationParams.start,
-        paginationParams.number,
-        paginationParams.pageNumber,
+        $scope.ip,
+        paginationParams,
         tableState,
         $scope.selected,
         sorting,

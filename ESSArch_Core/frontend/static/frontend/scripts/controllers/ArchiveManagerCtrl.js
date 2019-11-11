@@ -76,6 +76,7 @@ export default class ArchiveManagerCtrl {
               index: 'archive',
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
+              pager: paginationParams.pager,
               ordering: sortString,
               search: search,
             },
