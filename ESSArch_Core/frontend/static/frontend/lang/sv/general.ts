@@ -10,6 +10,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     AGENT: 'Agent',
     AGENTS: 'Agenter',
     AIC_DESC: 'AIC för IP',
+    ALL: 'Alla',
     ALLOW_UNKNOWN_FILES: 'Tillåt okända filer',
     APPLY: 'Applicera',
     APPLYCHANGES: 'Spara ändringar',

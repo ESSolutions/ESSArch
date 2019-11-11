@@ -275,7 +275,7 @@ export default angular
     '$state',
     AngularTreeCtrl,
   ])
-  .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', AppCtrl])
+  .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', '$translate', AppCtrl])
   .controller('AppraisalModalInstanceCtrl', [
     'cronService',
     '$filter',

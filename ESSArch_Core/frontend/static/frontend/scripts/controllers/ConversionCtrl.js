@@ -64,9 +64,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
-        Conversion.getRules(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Conversion.getRules(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.ruleTableState = tableState;
           vm.ruleFilters.forEach(function(x) {
@@ -99,9 +97,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
-        Conversion.getOngoing(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Conversion.getOngoing(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.ongoingTableState = tableState;
           vm.ongoing = response.data;
@@ -127,9 +123,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
-        Conversion.getNext(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Conversion.getNext(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.nextTableState = tableState;
           vm.next = response.data;
@@ -155,9 +149,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
-        Conversion.getFinished(paginationParams.pageNumber, paginationParams.number, sortString, search).then(function(
-          response
-        ) {
+        Conversion.getFinished(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.finishedTableState = tableState;
           vm.finished = response.data;

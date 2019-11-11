@@ -1,9 +1,10 @@
 const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeSlot, TapeDrive) => {
   // Get storage mediums
-  function getStorageMediums(pageNumber, pageSize, filters, sortString, searchString) {
+  function getStorageMediums(pagination, filters, sortString, searchString) {
     return StorageMedium.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function successCallback(resource) {
@@ -19,11 +20,12 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   }
 
   // Get storage objects given storage medium
-  function getStorageObjectsForMedium(mediumId, pageNumber, pageSize, medium, sortString, searchString) {
+  function getStorageObjectsForMedium(mediumId, pagination, medium, sortString, searchString) {
     return StorageMedium.objects({
       id: mediumId,
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -39,10 +41,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   }
 
   // Get storage objects given storage medium
-  function getStorageObjects(pageNumber, pageSize, medium, sortString, searchString) {
+  function getStorageObjects(pagination, medium, sortString, searchString) {
     return StorageObject.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function successCallback(resource) {
@@ -58,10 +61,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   }
 
   // Get robots
-  function getRobots(pageNumber, pageSize, sortString, searchString) {
+  function getRobots(pagination, sortString, searchString) {
     return Robot.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -77,10 +81,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   }
 
   // Get tape slots given robot
-  function getTapeSlots(pageNumber, pageSize, sortString, searchString, robot) {
+  function getTapeSlots(pagination, sortString, searchString, robot) {
     return TapeSlot.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -96,10 +101,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   }
 
   // Get tape drives
-  function getTapeDrives(pageNumber, pageSize, sortString, searchString, robot) {
+  function getTapeDrives(pagination, sortString, searchString, robot) {
     return TapeDrive.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -114,11 +120,12 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
     });
   }
 
-  function getRobotQueueForRobot(pageNumber, pageSize, sortString, searchString, robot) {
+  function getRobotQueueForRobot(pagination, sortString, searchString, robot) {
     return Robot.queue({
       id: robot.id,
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -133,10 +140,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
     });
   }
 
-  function getRobotQueue(pageNumber, pageSize, sortString, searchString) {
+  function getRobotQueue(pagination, sortString, searchString) {
     return RobotQueue.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {
@@ -151,10 +159,11 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
     });
   }
 
-  function getIoQueue(pageNumber, pageSize, sortString, searchString) {
+  function getIoQueue(pagination, sortString, searchString) {
     return IOQueue.query({
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     }).$promise.then(function(resource) {

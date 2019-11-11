@@ -99,15 +99,7 @@ export default class RobotInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.drivesPerPage);
-        Resource.getTapeDrives(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search,
-          vm.selectedRobot
-        )
+        Resource.getTapeDrives(paginationParams, tableState, sorting, search, vm.selectedRobot)
           .then(function(result) {
             vm.tapeDrives = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -140,15 +132,7 @@ export default class RobotInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.slotsPerPage);
-        Resource.getTapeSlots(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search,
-          vm.selectedRobot
-        )
+        Resource.getTapeSlots(paginationParams, tableState, sorting, search, vm.selectedRobot)
           .then(function(result) {
             vm.tapeSlots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -181,15 +165,7 @@ export default class RobotInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotQueueItemsPerPage);
-        Resource.getRobotQueueForRobot(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search,
-          vm.selectedRobot
-        )
+        Resource.getRobotQueueForRobot(paginationParams, tableState, sorting, search, vm.selectedRobot)
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -225,14 +201,7 @@ export default class RobotInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
-        Resource.getRobots(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        )
+        Resource.getRobots(paginationParams, tableState, sorting, search)
           .then(function(result) {
             vm.robots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
