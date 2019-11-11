@@ -41,7 +41,10 @@ from ESSArch_Core.configuration.serializers import (
 )
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.storage.filters import StorageMediumFilter
+from ESSArch_Core.storage.filters import (
+    StorageMediumFilter,
+    StorageMethodFilter,
+)
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     TAPE,
@@ -342,6 +345,9 @@ class StorageMethodViewSet(viewsets.ModelViewSet):
     """
     queryset = StorageMethod.objects.all()
     serializer_class = StorageMethodSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
+    filterset_class = StorageMethodFilter
+    search_fields = ('name',)
 
 
 class StorageMethodTargetRelationViewSet(viewsets.ModelViewSet):
