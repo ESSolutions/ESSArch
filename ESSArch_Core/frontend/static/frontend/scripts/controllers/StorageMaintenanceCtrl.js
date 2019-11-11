@@ -23,6 +23,8 @@ export default class StorageMaintenanceCtrl {
     $scope.jobs = [];
     vm.displayedJobs = [];
     vm.displayedMediums = [];
+    vm.mediumFilterModel = {};
+    vm.mediumFilterFields = [];
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
       vm.updateStorageMediums();
@@ -40,102 +42,16 @@ export default class StorageMaintenanceCtrl {
 
     vm.filterFields = [];
 
+    vm.initLoad = true;
     vm.$onInit = () => {
-      vm.resetFilters();
       return $http.get(appConfig.djangoUrl + 'storage-policies/', {params: {pager: 'none'}}).then(response => {
-        vm.options.policy = response.data;
-        vm.buildFilters();
+        if (response.data.length > 0) {
+          vm.policyFilter = response.data[0];
+          vm.mediumFilterModel.policy = response.data[0].id;
+          vm.initLoad = false;
+        }
         return response.data;
       });
-    };
-
-    vm.buildFilters = () => {
-      vm.filterFields = [
-        {
-          type: 'select',
-          key: 'policy',
-          templateOptions: {
-            label: $translate.instant('STORAGE_POLICY'),
-            options: vm.options.policy,
-            labelProp: 'policy_name',
-            valueProp: 'id',
-          },
-          defaultValue: vm.options.policy.length > 0 ? vm.options.policy[0].id : null,
-        },
-        {
-          key: 'current_medium',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('CURRENTMEDIUMID'),
-          },
-        },
-      ];
-    };
-
-    // IP List
-    vm.callServer = function(tableState) {
-      $scope.ipLoading = true;
-      if (vm.displayedIps.length == 0) {
-        $scope.initLoad = true;
-      }
-      if (!angular.isUndefined(tableState)) {
-        $scope.tableState = tableState;
-        var search = '';
-        if (tableState.search.predicateObject) {
-          var search = tableState.search.predicateObject['$'];
-        }
-        let ordering = tableState.sort.predicate;
-        if (tableState.sort.reverse) {
-          ordering = '-' + ordering;
-        }
-
-        console.log('callserver storagemaintenance: ', angular.copy($scope.columnFilters));
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        $http({
-          method: 'GET',
-          url: appConfig.djangoUrl + 'information-packages/',
-          params: angular.extend(
-            {
-              search,
-              ordering,
-              view_type: $rootScope.auth.ip_list_view_type,
-              page: paginationParams.pageNumber,
-              page_size: paginationParams.number,
-              migratable: true,
-            },
-            $scope.columnFilters
-          ),
-        })
-          .then(function(response) {
-            vm.displayedIps = response.data;
-            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-            $scope.ipLoading = false;
-            $scope.initLoad = false;
-            ipExists();
-            SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
-          })
-          .catch(function(response) {
-            if (response.status == 404) {
-              const filters = angular.extend(
-                {
-                  state: ipSortString,
-                },
-                $scope.columnFilters
-              );
-
-              if (vm.workarea) {
-                filters.workarea = vm.workarea;
-              }
-
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function(response) {
-                tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start =
-                  response.numberOfPages * paginationParams.number - paginationParams.number;
-                vm.callServer(tableState);
-              });
-            }
-          });
-      }
     };
 
     // Medium List
@@ -159,15 +75,30 @@ export default class StorageMaintenanceCtrl {
           ordering = '-' + ordering;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        StorageMedium.query({
-          policy: $scope.columnFilters.policy,
-          active: $scope.columnFilters.active,
-          page: paginationParams.pageNumber,
-          page_size: paginationParams.number,
-          deactivatable: true,
-          ordering,
-          search,
-        })
+        if (
+          (vm.mediumFilterModel.policy === null || angular.isUndefined(vm.mediumFilterModel.policy)) &&
+          vm.policyFilter !== null
+        ) {
+          vm.mediumFilterModel.policy = vm.policyFilter.id;
+          vm.mediumFilterFields.forEach(x => {
+            if (x.key === 'policy') {
+              x.addDefault(vm.policyFilter);
+            }
+          });
+        }
+        StorageMedium.query(
+          angular.extend(
+            {
+              page: paginationParams.pageNumber,
+              page_size: paginationParams.number,
+              pager: paginationParams.pager,
+              deactivatable: true,
+              ordering,
+              search,
+            },
+            vm.mediumFilterModel
+          )
+        )
           .$promise.then(function(resource) {
             vm.displayedMediums = resource;
             tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
