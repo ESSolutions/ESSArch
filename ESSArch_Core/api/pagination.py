@@ -87,7 +87,14 @@ class NoPagination(pagination.PageNumberPagination):
         return self.count if self.count > 0 else 1
 
     def paginate_queryset(self, queryset, request, view=None):
-        self.count = queryset.count()
+        try:
+            self.count = queryset.count()
+        except TypeError:
+            if isinstance(queryset, list):
+                self.count = len(queryset)
+            else:
+                raise
+
         return super().paginate_queryset(queryset, request, view)
 
     def get_paginated_response(self, data):
