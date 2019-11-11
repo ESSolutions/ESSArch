@@ -3,7 +3,6 @@ export default class AdvancedFilterCtrl {
     const vm = this;
     vm.model = null;
     vm.initialColumnFilters = {};
-    vm.activeModel = {};
     vm.model = {};
     vm.options = {};
     vm.fields = [];
@@ -11,8 +10,13 @@ export default class AdvancedFilterCtrl {
     const currentState = $state.current.name;
 
     vm.$onInit = () => {
-      if (vm.type && (vm.activeModel === null || angular.equals(vm.activeModel, {}))) {
+      if (
+        vm.type &&
+        (angular.isUndefined(vm.activeModel) || vm.activeModel === null || angular.equals(vm.activeModel, {}))
+      ) {
         vm.createFilterModel();
+      } else if (vm.type) {
+        vm.createFilterModel(angular.copy(vm.activeModel));
       }
     };
 
@@ -38,8 +42,11 @@ export default class AdvancedFilterCtrl {
       }
     };
 
-    vm.createFilterModel = () => {
-      const model = getModel();
+    vm.createFilterModel = initialValue => {
+      let model = getModel();
+      if (!angular.isUndefined(initialValue)) {
+        model = angular.extend(model, initialValue);
+      }
       vm.model = angular.copy(model);
       vm.initialColumnFilters = angular.copy(model);
       vm.activeModel = angular.copy(model);
@@ -108,6 +115,10 @@ export default class AdvancedFilterCtrl {
     };
 
     vm.submitAdvancedFilters = function() {
+      if (vm.filterForm.$invalid) {
+        vm.filterForm.$setSubmitted();
+        return;
+      }
       vm.activeModel = angular.copy(vm.model);
       if (!angular.isUndefined(vm.update)) {
         $timeout(() => {
