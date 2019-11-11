@@ -2,6 +2,7 @@ import errno
 import os
 
 import requests
+from django.conf import settings
 from lxml import etree
 from requests import RequestException
 from tenacity import (
@@ -239,7 +240,10 @@ def download_schemas(ip, logger, verify):
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
        wait=wait_fixed(60))
-def download_schema(dirname, logger, schema, verify):
+def download_schema(dirname, logger, schema, verify=None):
+    if verify is None:
+        verify = settings.REQUESTS_VERIFY
+
     dst = os.path.join(dirname, os.path.basename(schema))
     logger.info('Downloading schema from {} to {}'.format(schema, dst))
     try:
@@ -262,3 +266,5 @@ def download_schema(dirname, logger, schema, verify):
         raise
     else:
         logger.info('Downloaded schema to {}'.format(dst))
+
+    return dst

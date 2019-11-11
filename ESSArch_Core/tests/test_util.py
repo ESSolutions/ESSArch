@@ -7,7 +7,7 @@ from unittest import mock
 
 from django.core.files.base import ContentFile
 from django.http.response import FileResponse
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from lxml import etree, objectify
 from rest_framework.exceptions import NotFound, ValidationError
 
@@ -128,7 +128,7 @@ class FlattenTest(TestCase):
         self.assertEqual(result_list, flatten(my_list))
 
 
-class GetSchemasTest(TestCase):
+class GetSchemasTest(SimpleTestCase):
 
     def setUp(self):
         self.datadir = tempfile.mkdtemp()
@@ -159,11 +159,11 @@ class GetSchemasTest(TestCase):
         doc = etree.parse(filename, parser=parser)
 
         schema = getSchemas(doc=doc)
-        self.assertTrue(type(schema) is etree.XMLSchema)
+        self.assertTrue(type(schema) is etree._Element)
 
     def test_get_schema_from_file(self):
         schema = getSchemas(filename=self.get_simple_valid_xml())
-        self.assertTrue(type(schema) is etree.XMLSchema)
+        self.assertTrue(type(schema) is etree._Element)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
         with self.assertRaisesRegexp(AttributeError, "'NoneType' object has no attribute 'getroot'"):

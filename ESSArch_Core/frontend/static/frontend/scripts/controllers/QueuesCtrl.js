@@ -44,6 +44,7 @@ export default class QueuesCtrl {
           .then(function(result) {
             vm.ioQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             vm.ioLoading = false;
           })
           .catch(function(response) {
@@ -84,6 +85,7 @@ export default class QueuesCtrl {
           .then(function(result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = result.count;
             vm.robotLoading = false;
           })
           .catch(function(response) {

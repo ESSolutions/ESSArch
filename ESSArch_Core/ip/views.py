@@ -524,16 +524,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-
-            lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-            ).order_by().values('aic')
-            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
-
-            qs = qs.annotate(
-                first_generation=self.first_generation_case(lower_higher),
-                last_generation=self.last_generation_case(lower_higher),
-            )
+            qs = self.annotate_generations(self.apply_filters(qs))
 
             self.queryset = qs
             return self.queryset
@@ -2303,6 +2294,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 }
                             },
                             {
+                                "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                                "label": "Download Schemas",
+                            },
+                            {
                                 "name": "ESSArch_Core.ip.tasks.GeneratePremis",
                                 "if": generate_premis,
                                 "label": "Generate premis",
@@ -2660,6 +2655,15 @@ class WorkareaViewSet(InformationPackageViewSet):
             self.inner_queryset = simple
             self.outer_queryset = simple
             self.queryset = outer
+            return self.queryset
+        elif self.action == 'list' and view_type == 'flat':
+            qs = InformationPackage.objects.visible_to_user(user).annotate(
+                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
+            ).filter(workarea_exists=True, active=True).exclude(
+                package_type=InformationPackage.AIC
+            )
+            qs = self.annotate_generations(self.apply_filters(qs))
+            self.queryset = qs.distinct()
             return self.queryset
 
         if self.action == 'retrieve':

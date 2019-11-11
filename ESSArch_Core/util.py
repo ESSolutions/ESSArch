@@ -231,14 +231,14 @@ def getSchemas(doc=None, filename=None):
     schema_locations = set(doc.xpath("//*/@xsi:schemaLocation", namespaces={'xsi': xsi_NS}))
     for schema_location in schema_locations:
         ns_locs = schema_location.split()
-        for ns, loc in zip(ns_locs[:-1], ns_locs[1:]):
+        for ns, loc in zip(ns_locs[::2], ns_locs[1::2]):
             res.append([ns, loc])
             etree.SubElement(root, xsd_NS + "import", attrib={
                 "namespace": ns,
                 "schemaLocation": loc
             })
 
-    return etree.XMLSchema(root)
+    return root
 
 
 def move_schema_locations_to_root(tree=None, filename=None):

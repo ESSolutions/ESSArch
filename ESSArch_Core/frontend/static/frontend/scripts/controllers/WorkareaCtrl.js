@@ -77,14 +77,12 @@ export default class WorkareaCtrl {
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getWorkareaIps(
           vm.workarea,
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
+          paginationParams,
           tableState,
           sorting,
           search,
           $scope.expandedAics,
-          $scope.columnFilters,
+          vm.columnFilters,
           vm.organizationMember.current
         )
           .then(function(result) {
@@ -101,7 +99,7 @@ export default class WorkareaCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               if (vm.workarea) {

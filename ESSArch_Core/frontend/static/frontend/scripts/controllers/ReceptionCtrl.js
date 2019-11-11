@@ -123,16 +123,7 @@ export default class ReceptionCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getReceptionPage(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search,
-          ipSortString,
-          $scope.columnFilters
-        )
+        Resource.getReceptionPage(paginationParams, tableState, sorting, search, ipSortString, vm.columnFilters)
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -146,7 +137,7 @@ export default class ReceptionCtrl {
                 {
                   state: ipSortString,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               listViewService.checkPages('reception', paginationParams.number, filters).then(function(result) {

@@ -22,32 +22,18 @@
         class="form-control items-per-page"
         ng-change="updateEventsPerPage(vm.itemsPerPage)"
         ng-model="vm.itemsPerPage"
-        ng-options="x for x in [5,10,20,25,50]"
+        ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
         uib-tooltip="{{ 'ITEMSPERPAGE' | translate }}"
         tooltip-placement="auto top"
         tooltip-append-to-body="true"
       >
       </select>
-      <span
-        class="fas fa-md fa-filter filter-icon"
-        ng-class="{'blue-border': showAdvancedFilters, 'filter-active': filterActive()}"
-        ng-click="toggleAdvancedFilters()"
-        uib-tooltip="{{ 'FILTERS' | translate }}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-      >
-      </span>
-      <div ng-show="showAdvancedFilters" class="advanced-filters">
-        <form name="form1" style="position: relative;" novalidate>
-          <div class="formly-buttons-wrapper">
-            <formly-form model="filterModel" fields="fields" options="options"> </formly-form>
-          </div>
-        </form>
-        <div class="filter-action-buttons">
-          <button class="btn btn-primary" ng-click="submitAdvancedFilters()">{{ "APPLY" | translate }}</button>
-          <button class="btn btn-default" type="button" ng-click="vm.clearFilters()">{{ "CLEAR" | translate }}</button>
-        </div>
-      </div>
+      <advanced-filters
+        type="event"
+        active-model="vm.columnFilters"
+        fields="vm.fields"
+        update="stCtrl.pipe()"
+      ></advanced-filters>
       <div class="global-search">
         <input
           id="event-search-input"

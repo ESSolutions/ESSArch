@@ -2,7 +2,17 @@ import LocationTreeCtrl from '../controllers/LocationTreeCtrl';
 
 export default {
   templateUrl: 'static/frontend/views/location_tree.html',
-  controller: ['$scope', '$http', 'appConfig', '$translate', '$uibModal', '$log', '$transitions', LocationTreeCtrl],
+  controller: [
+    '$scope',
+    '$http',
+    'appConfig',
+    '$translate',
+    '$uibModal',
+    '$log',
+    '$transitions',
+    'listViewService',
+    LocationTreeCtrl,
+  ],
   controllerAs: 'vm',
   bindings: {
     selected: '=',

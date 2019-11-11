@@ -406,3 +406,81 @@ class StorageMediumDeactivateTests(TestCase):
 
         self.storage_medium.refresh_from_db()
         self.assertEqual(self.storage_medium.status, 0)
+
+
+class StorageMethodListTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='user')
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.url = reverse('storagemethod-list')
+
+    def test_filter_has_migrate_target(self):
+        storage_method1 = StorageMethod.objects.create()
+        storage_target1 = StorageTarget.objects.create(name='1')
+
+        storage_method2 = StorageMethod.objects.create()
+        storage_target2 = StorageTarget.objects.create(name='2')
+
+        response = self.client.get(self.url, data={'has_migrate_target': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method1,
+            storage_target=storage_target1,
+            status=STORAGE_TARGET_STATUS_MIGRATE,
+        )
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method2,
+            storage_target=storage_target2,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        response = self.client.get(self.url, data={'has_migrate_target': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(storage_method1.pk))
+
+        response = self.client.get(self.url, data={'has_migrate_target': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(storage_method2.pk))
+
+    def test_filter_has_enabled_target(self):
+        storage_method1 = StorageMethod.objects.create()
+        storage_target1 = StorageTarget.objects.create(name='1')
+
+        storage_method2 = StorageMethod.objects.create()
+        storage_target2 = StorageTarget.objects.create(name='2')
+
+        response = self.client.get(self.url, data={'has_enabled_target': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method1,
+            storage_target=storage_target1,
+            status=STORAGE_TARGET_STATUS_MIGRATE,
+        )
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method2,
+            storage_target=storage_target2,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        response = self.client.get(self.url, data={'has_enabled_target': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(storage_method2.pk))
+
+        response = self.client.get(self.url, data={'has_enabled_target': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(storage_method1.pk))

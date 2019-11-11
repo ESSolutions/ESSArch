@@ -45,10 +45,10 @@ export default class {
       }
     };
     $scope.orderObjects = [];
-    listViewService.getOrderPage().then(function(response) {
+    listViewService.getOrderPage({pager: 'none'}).then(function(response) {
       $scope.orderObjects = response.data;
     });
-    vm.itemsPerPage = $cookies.get('epp-ips-per-page') || 10;
+    vm.itemsPerPage = $cookies.get('essarch-ips-per-page') || 10;
     $scope.initRequestData = function() {
       vm.request = {
         type: 'preserve',
@@ -138,15 +138,7 @@ export default class {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getDips(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search,
-          $scope.columnFilters
-        )
+        Resource.getDips(paginationParams, tableState, sorting, search, vm.columnFilters)
           .then(function(result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -161,7 +153,7 @@ export default class {
                   state: ipSortString,
                   package_type: 4,
                 },
-                $scope.columnFilters
+                vm.columnFilters
               );
 
               listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
@@ -409,7 +401,9 @@ export default class {
     };
 
     $scope.changeFilesPerPage = function(filesPerPage) {
-      $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
+      if (typeof filesPerPage === 'number') {
+        $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
+      }
     };
     $scope.previousGridArraysString = function(whichArray) {
       let retString = '';
@@ -437,8 +431,7 @@ export default class {
           .getWorkareaDir(
             'access',
             $scope.previousGridArraysString(1),
-            paginationParams.pageNumber,
-            paginationParams.number,
+            paginationParams,
             vm.organizationMember.current.id
           )
           .then(function(dir) {
@@ -466,19 +459,12 @@ export default class {
       if (!angular.isUndefined(tableState)) {
         $scope.dip_tableState = tableState;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
-        listViewService
-          .getDipDir(
-            $scope.ip,
-            $scope.previousGridArraysString(2),
-            paginationParams.pageNumber,
-            paginationParams.number
-          )
-          .then(function(dir) {
-            $scope.chosenFiles = dir.data;
-            $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-            $scope.gridArrayLoading = false;
-            $scope.initLoad = false;
-          });
+        listViewService.getDipDir($scope.ip, $scope.previousGridArraysString(2), paginationParams).then(function(dir) {
+          $scope.chosenFiles = dir.data;
+          $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+          $scope.gridArrayLoading = false;
+          $scope.initLoad = false;
+        });
       }
     };
     $scope.deckGridInit = function(ip) {

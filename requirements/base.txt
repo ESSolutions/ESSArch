@@ -1,6 +1,6 @@
-boto3==1.9.218
+boto3==1.10.9
 celery[tblib]==4.3.0
-cffi==1.13.1
+cffi==1.13.2
 channels==2.3.1
 channels_redis==2.4.1
 chardet==3.0.4
@@ -9,7 +9,7 @@ crontab==0.22.6
 cryptography==2.7
 daphne==2.3.0
 dj-database-url==0.5.0
-django==2.2.6
+django==2.2.7
 django-cors-headers==3.1.1
 django-countries-plus==1.2.1
 django-filter==2.2.0
@@ -40,6 +40,6 @@ redis==3.3.8
 regex==2019.11.1
 requests==2.22.0
 requests_toolbelt==0.9.1
-tenacity==5.1.4
+tenacity==5.1.5
 wand==0.5.7
 weasyprint==50

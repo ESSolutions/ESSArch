@@ -24,7 +24,7 @@ Email - essarch@essolutions.se
 
 const resource = (listViewService, Storage, $rootScope) => {
   //Get data for Events table
-  function getEventPage(start, number, pageNumber, params, selected, sort, columnFilters, search) {
+  function getEventPage(ip, pagination, params, selected, sort, columnFilters, search) {
     let sortString = sort.predicate;
     if (sort.predicate == 'eventDateTime') {
       if (sort.reverse) {
@@ -36,48 +36,23 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService
-      .getEvents($rootScope.ip, pageNumber, number, sortString, columnFilters, search)
-      .then(function(value) {
-        const eventCollection = value.data;
-        eventCollection.forEach(function(event) {
-          selected.forEach(function(item) {
-            if (item.id == event.id) {
-              event.class = 'selected';
-            }
-          });
+    return listViewService.getEvents(ip, pagination, sortString, columnFilters, search).then(function(value) {
+      const eventCollection = value.data;
+      eventCollection.forEach(function(event) {
+        selected.forEach(function(item) {
+          if (item.id == event.id) {
+            event.class = 'selected';
+          }
         });
-        /*
-
-            var filtered = params.search.predicateObject ? $filter('filter')(eventCollection, params.search.predicateObject) : eventCollection;
-
-            if (params.sort.predicate) {
-                filtered = $filter('orderBy')(filtered, params.sort.predicate, params.sort.reverse);
-            }
-
-            var result = filtered.slice(start, start + number);
-            */
-
-        return {
-          data: eventCollection,
-          numberOfPages: Math.ceil(value.count / number),
-        };
       });
+      return {
+        data: eventCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
+      };
+    });
   }
   //Get data for IP table
-  function getIpPage(
-    start,
-    number,
-    pageNumber,
-    params,
-    sort,
-    search,
-    state,
-    expandedAics,
-    columnFilters,
-    archived,
-    workarea
-  ) {
+  function getIpPage(pagination, params, sort, search, state, expandedAics, columnFilters, archived, workarea) {
     if ($rootScope.auth.ip_list_view_type) {
       var viewType = $rootScope.auth.ip_list_view_type;
     } else {
@@ -88,19 +63,7 @@ const resource = (listViewService, Storage, $rootScope) => {
       sortString = '-' + sortString;
     }
     return listViewService
-      .getListViewData(
-        pageNumber,
-        number,
-        $rootScope.navigationFilter,
-        sortString,
-        search,
-        state,
-        viewType,
-        columnFilters,
-        archived,
-        workarea,
-        params
-      )
+      .getListViewData(pagination, sortString, search, state, viewType, columnFilters, archived, workarea, params)
       .then(function(value) {
         const ipCollection = value.data;
         ipCollection.forEach(function(ip) {
@@ -114,23 +77,12 @@ const resource = (listViewService, Storage, $rootScope) => {
 
         return {
           data: ipCollection,
-          numberOfPages: Math.ceil(value.count / number),
+          numberOfPages: Math.ceil(value.count / pagination.number),
         };
       });
   }
 
-  function getWorkareaIps(
-    workarea,
-    start,
-    number,
-    pageNumber,
-    params,
-    sort,
-    search,
-    expandedAics,
-    columnFilters,
-    user
-  ) {
+  function getWorkareaIps(workarea, pagination, params, sort, search, expandedAics, columnFilters, user) {
     if ($rootScope.auth.ip_list_view_type) {
       var viewType = $rootScope.auth.ip_list_view_type;
     } else {
@@ -143,8 +95,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     return listViewService
       .getWorkareaData(
         workarea,
-        pageNumber,
-        number,
+        pagination,
         $rootScope.navigationFilter,
         sortString,
         search,
@@ -164,191 +115,183 @@ const resource = (listViewService, Storage, $rootScope) => {
         });
         return {
           data: ipCollection,
-          numberOfPages: Math.ceil(value.count / number),
+          numberOfPages: Math.ceil(value.count / pagination.number),
         };
       });
   }
 
-  function getDips(start, number, pageNumber, params, sort, search, columnFilters) {
+  function getDips(pagination, params, sort, search, columnFilters) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService
-      .getDipPage(pageNumber, number, $rootScope.navigationFilter, sortString, search, columnFilters)
-      .then(function(value) {
-        const ipCollection = value.data;
-        ipCollection.forEach(function(ip) {
-          ip.collapsed = false;
-        });
-        return {
-          data: ipCollection,
-          numberOfPages: Math.ceil(value.count / number),
-        };
+    return listViewService.getDipPage(pagination, sortString, search, columnFilters).then(function(value) {
+      const ipCollection = value.data;
+      ipCollection.forEach(function(ip) {
+        ip.collapsed = false;
       });
+      return {
+        data: ipCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
+      };
+    });
   }
 
-  function getOrders(start, number, pageNumber, params, sort, search) {
+  function getOrders(pagination, params, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService
-      .getOrderPage(pageNumber, number, $rootScope.navigationFilter, sortString, search)
-      .then(function(value) {
-        const ipCollection = value.data;
-        ipCollection.forEach(function(ip) {
-          ip.collapsed = false;
-        });
-        return {
-          data: ipCollection,
-          numberOfPages: Math.ceil(value.count / number),
-        };
+    return listViewService.getOrderPage(pagination, sortString, search).then(function(value) {
+      const ipCollection = value.data;
+      ipCollection.forEach(function(ip) {
+        ip.collapsed = false;
       });
+      return {
+        data: ipCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
+      };
+    });
   }
 
-  function getReceptionPage(start, number, pageNumber, params, sort, search, state, columnFilters) {
+  function getReceptionPage(pagination, params, sort, search, state, columnFilters) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService
-      .getReceptionIps(pageNumber, number, $rootScope.navigationFilter, sortString, search, state, columnFilters)
-      .then(function(value) {
-        const ipCollection = value.data;
-        return {
-          data: ipCollection,
-          numberOfPages: Math.ceil(value.count / number),
-        };
-      });
+    return listViewService.getReceptionIps(pagination, sortString, search, state, columnFilters).then(function(value) {
+      const ipCollection = value.data;
+      return {
+        data: ipCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
+      };
+    });
   }
 
   // Storage
 
-  function getStorageMediums(start, number, pageNumber, params, sort, search) {
+  function getStorageMediums(pagination, params, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageMediums(pageNumber, number, $rootScope.navigationFilter, sortString, search).then(
-      function(value) {
-        const storageMediumCollection = value.data;
-        return {
-          data: storageMediumCollection,
-          numberOfPages: Math.ceil(value.count / number),
-        };
-      }
-    );
-  }
-  function getStorageObjectsForMedium(mediumId, start, number, pageNumber, params, medium, sort, search) {
-    let sortString = sort.predicate;
-    if (sort.reverse) {
-      sortString = '-' + sortString;
-    }
-    return Storage.getStorageObjectsForMedium(mediumId, pageNumber, number, medium, sortString, search).then(function(
+    return Storage.getStorageMediums(pagination, $rootScope.navigationFilter, sortString, search).then(function(
       value
     ) {
-      const storageObjectCollection = value.data;
+      const storageMediumCollection = value.data;
       return {
-        data: storageObjectCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        data: storageMediumCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
-  function getStorageObjects(start, number, pageNumber, params, medium, sort, search) {
+  function getStorageObjectsForMedium(mediumId, pagination, params, medium, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageObjects(pageNumber, number, medium, sortString, search).then(function(value) {
+    return Storage.getStorageObjectsForMedium(mediumId, pagination, medium, sortString, search).then(function(value) {
       const storageObjectCollection = value.data;
       return {
         data: storageObjectCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
+      };
+    });
+  }
+  function getStorageObjects(pagination, params, medium, sort, search) {
+    let sortString = sort.predicate;
+    if (sort.reverse) {
+      sortString = '-' + sortString;
+    }
+    return Storage.getStorageObjects(pagination, medium, sortString, search).then(function(value) {
+      const storageObjectCollection = value.data;
+      return {
+        data: storageObjectCollection,
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getRobots(start, number, pageNumber, params, sort, search) {
+  function getRobots(pagination, params, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobots(pageNumber, number, sortString, search).then(function(value) {
+    return Storage.getRobots(pagination, sortString, search).then(function(value) {
       const robotCollection = value.data;
       return {
         data: robotCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getRobotQueue(start, number, pageNumber, params, sort, search) {
+  function getRobotQueue(pagination, params, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobotQueue(pageNumber, number, sortString, search).then(function(value) {
+    return Storage.getRobotQueue(pagination, sortString, search).then(function(value) {
       const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getRobotQueueForRobot(start, number, pageNumber, params, sort, search, robot) {
+  function getRobotQueueForRobot(pagination, params, sort, search, robot) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobotQueueForRobot(pageNumber, number, sortString, search, robot).then(function(value) {
+    return Storage.getRobotQueueForRobot(pagination, sortString, search, robot).then(function(value) {
       const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getIoQueue(start, number, pageNumber, params, sort, search) {
+  function getIoQueue(pagination, params, sort, search) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getIoQueue(pageNumber, number, sortString, search).then(function(value) {
+    return Storage.getIoQueue(pagination, sortString, search).then(function(value) {
       const ioQueueCollection = value.data;
       return {
         data: ioQueueCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getTapeDrives(start, number, pageNumber, params, sort, search, robot) {
+  function getTapeDrives(pagination, params, sort, search, robot) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getTapeDrives(pageNumber, number, sortString, search, robot).then(function(value) {
+    return Storage.getTapeDrives(pagination, sortString, search, robot).then(function(value) {
       const tapeDrivecollection = value.data;
       return {
         data: tapeDrivecollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
 
-  function getTapeSlots(start, number, pageNumber, params, sort, search, robot) {
+  function getTapeSlots(pagination, params, sort, search, robot) {
     let sortString = sort.predicate;
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getTapeSlots(pageNumber, number, sortString, search, robot).then(function(value) {
+    return Storage.getTapeSlots(pagination, sortString, search, robot).then(function(value) {
       const tapeSlotCollection = value.data;
       return {
         data: tapeSlotCollection,
-        numberOfPages: Math.ceil(value.count / number),
+        numberOfPages: Math.ceil(value.count / pagination.number),
       };
     });
   }
