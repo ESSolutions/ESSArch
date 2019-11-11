@@ -52,8 +52,9 @@
     <ui-select-match
       ui-lock-choice="$item.disabled == true"
       ng-attr-placeholder="{{options.templateOptions.placeholder}}"
-      >{{$item[options.templateOptions.labelProp]}}</ui-select-match
     >
+      <span ng-bind-html="$item[options.templateOptions.labelProp]"></span
+    ></ui-select-match>
     <ui-select-choices
       ng-hide="!$select.open"
       refresh-delay="300"

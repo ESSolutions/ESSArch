@@ -1075,6 +1075,7 @@ export default angular
     '$controller',
     '$translate',
     '$uibModal',
+    'StorageMedium',
     StorageMigrationCtrl,
   ])
   .controller('StorageMigrationModalInstanceCtrl', [
@@ -1084,6 +1085,8 @@ export default angular
     'appConfig',
     '$translate',
     '$log',
+    'EditMode',
+    '$scope',
     StorageMigrationModalInstanceCtrl,
   ])
   .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
