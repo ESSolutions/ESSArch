@@ -410,19 +410,21 @@ const listViewService = (
       return response;
     });
   }
-  function getWorkareaDir(workareaType, pathStr, pageNumber, pageSize, user) {
+  function getWorkareaDir(workareaType, pathStr, pagination, user) {
     let sendData;
     if (pathStr == '') {
       sendData = {
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
         type: workareaType,
         user: user,
       };
     } else {
       sendData = {
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
         path: pathStr,
         type: workareaType,
         user: user,
@@ -438,26 +440,28 @@ const listViewService = (
         return $q.reject(response);
       } else {
         return {
-          numberOfPages: Math.ceil(count / pageSize),
+          numberOfPages: Math.ceil(count / pagination.number),
           data: response.data,
         };
       }
     });
   }
 
-  function getDipDir(ip, pathStr, pageNumber, pageSize) {
+  function getDipDir(ip, pathStr, pagination) {
     let sendData;
     if (pathStr == '') {
       sendData = {
         id: ip.id,
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
       };
     } else {
       sendData = {
         id: ip.id,
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
         path: pathStr,
       };
     }
@@ -467,7 +471,7 @@ const listViewService = (
         count = data.length;
       }
       return {
-        numberOfPages: Math.ceil(count / pageSize),
+        numberOfPages: Math.ceil(count / pagination.number),
         data: data,
       };
     });
@@ -533,19 +537,21 @@ const listViewService = (
       });
   }
 
-  function getDir(ip, pathStr, pageNumber, pageSize) {
+  function getDir(ip, pathStr, pagination) {
     let sendData;
     if (pathStr == '') {
       sendData = {
         id: ip.id,
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
       };
     } else {
       sendData = {
         id: ip.id,
-        page: pageNumber,
-        page_size: pageSize,
+        page: pagination.pageNumber,
+        page_size: pagination.number,
+        pager: pagination.pager,
         path: pathStr,
       };
     }
@@ -558,7 +564,7 @@ const listViewService = (
             count = data.length;
           }
           return {
-            numberOfPages: Math.ceil(count / pageSize),
+            numberOfPages: Math.ceil(count / pagination.number),
             data: data,
           };
         })
@@ -573,7 +579,7 @@ const listViewService = (
             count = data.length;
           }
           return {
-            numberOfPages: Math.ceil(count / pageSize),
+            numberOfPages: Math.ceil(count / pagination.number),
             data: data,
           };
         })
