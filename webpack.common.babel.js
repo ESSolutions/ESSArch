@@ -60,12 +60,7 @@ module.exports = (env, argv) => {
 
         {
           test: /\.js$/,
-          include: [
-            path.resolve(basedir, 'scripts'),
-            path.resolve(basedir, 'lang'),
-            path.resolve(__dirname, 'node_modules/bufferutil'),
-            path.resolve(__dirname, 'node_modules/utf-8-validate'),
-          ],
+          include: [path.resolve(basedir, 'scripts'), path.resolve(basedir, 'lang')],
           use: {
             loader: 'babel-loader',
             options: {
