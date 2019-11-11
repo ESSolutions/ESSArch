@@ -697,7 +697,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         fields = (
             '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
-            'is_leaf_node', '_source', 'masked_fields',
+            'is_leaf_node', '_source', 'masked_fields', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
         )
@@ -900,6 +900,7 @@ class NodeWriteSerializer(serializers.Serializer):
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
 
     @staticmethod
     def create_notes(tag_version: TagVersion, notes_data):
@@ -1100,6 +1101,7 @@ class ComponentWriteSerializer(NodeWriteSerializer):
 
 class ArchiveWriteSerializer(NodeWriteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
     structures = serializers.PrimaryKeyRelatedField(
         queryset=Structure.objects.filter(is_template=True, published=True),
         many=True,

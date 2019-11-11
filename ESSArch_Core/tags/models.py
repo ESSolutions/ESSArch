@@ -749,6 +749,11 @@ class Tag(models.Model):
             ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
+            ('security_level_1', 'Can see security level 1'),
+            ('security_level_2', 'Can see security level 2'),
+            ('security_level_3', 'Can see security level 3'),
+            ('security_level_4', 'Can see security level 4'),
+            ('security_level_5', 'Can see security level 5'),
         )
 
 
@@ -907,6 +912,7 @@ class TagVersion(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = JSONField(default={})
+    security_level = models.IntegerField(_('security level'), null=True)
 
     def to_search_doc(self):
         try:

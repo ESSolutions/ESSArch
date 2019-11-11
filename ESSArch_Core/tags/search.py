@@ -174,6 +174,28 @@ class ComponentSearch(FacetedSearch):
             ]),
         ]))
 
+        from functools import reduce
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            self.user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+
+            highest_level = reduce((lambda x, y: max(x, y)), user_security_levels)
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('range', security_level={'lte': highest_level}),
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
+        else:
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
+
         if self.personal_identification_number not in EMPTY_VALUES:
             s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
 
