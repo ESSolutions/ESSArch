@@ -1,10 +1,11 @@
 const conversion = ($http, appConfig) => {
   const service = {};
-  service.getFinished = function(pageNumber, pageSize, sortString, searchString) {
+  service.getFinished = function(pagination, sortString, searchString) {
     const data = {
       end_date__isnull: false,
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     };
@@ -25,11 +26,12 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getNext = function(pageNumber, pageSize, sortString, searchString) {
+  service.getNext = function(pagination, sortString, searchString) {
     const data = {
       status: 'PENDING',
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     };
@@ -50,11 +52,12 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getOngoing = function(pageNumber, pageSize, sortString, searchString) {
+  service.getOngoing = function(pagination, sortString, searchString) {
     const data = {
       status: 'STARTED',
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     };
@@ -75,10 +78,11 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getRules = function(pageNumber, pageSize, sortString, searchString) {
+  service.getRules = function(pagination, sortString, searchString) {
     const data = {
-      page: pageNumber,
-      page_size: pageSize,
+      page: pagination.pageNumber,
+      page_size: pagination.number,
+      pager: pagination.pager,
       ordering: sortString,
       search: searchString,
     };

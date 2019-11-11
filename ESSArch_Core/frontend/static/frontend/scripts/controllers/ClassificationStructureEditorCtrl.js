@@ -176,6 +176,7 @@ export default class ClassificationStructureEditorCtrl {
         return Structure.query({
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
+          pager: paginationParams.pager,
           ordering: sortString,
           search: search,
           is_template: true,

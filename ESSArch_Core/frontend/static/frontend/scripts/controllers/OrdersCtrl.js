@@ -55,14 +55,7 @@ export default class {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getOrders(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        ).then(function(result) {
+        Resource.getOrders(paginationParams, tableState, sorting, search).then(function(result) {
           vm.displayedIps = result.data;
           tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
           $scope.ipLoading = false;

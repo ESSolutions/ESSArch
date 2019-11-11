@@ -1,7 +1,9 @@
 export default class FilebrowserController {
   constructor($scope, $rootScope, $sce, appConfig, listViewService, $uibModal, $window, $cookies, $state) {
     $scope.previousGridArrays = [];
+    $scope.deckGridData = [];
     const vm = this;
+
     vm.$onInit = function() {
       if (!$scope.ip) {
         $scope.ip = $rootScope.ip;
@@ -40,7 +42,9 @@ export default class FilebrowserController {
 
     $scope.filesPerPage = $cookies.get('files-per-page') || 50;
     $scope.changeFilesPerPage = function(filesPerPage) {
-      $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
+      if (typeof filesPerPage === 'number') {
+        $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
+      }
     };
 
     $scope.previousGridArraysString = function() {
@@ -61,7 +65,6 @@ export default class FilebrowserController {
       }
     };
 
-    $scope.deckGridData = [];
     $scope.dirPipe = function(tableState) {
       if (vm.browserstate) {
         vm.browserstate.path = $scope.previousGridArraysString();
@@ -78,8 +81,7 @@ export default class FilebrowserController {
             .getWorkareaDir(
               vm.workarea,
               $scope.previousGridArraysString(),
-              paginationParams.pageNumber,
-              paginationParams.number,
+              paginationParams,
               vm.user ? vm.user.id : null
             )
             .then(function(dir) {
@@ -90,15 +92,13 @@ export default class FilebrowserController {
               $scope.openingNewPage = false;
             });
         } else {
-          listViewService
-            .getDir($scope.ip, $scope.previousGridArraysString(), paginationParams.pageNumber, paginationParams.number)
-            .then(function(dir) {
-              $scope.deckGridData = dir.data;
-              tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-              $scope.gridArrayLoading = false;
-              $scope.initLoad = false;
-              $scope.openingNewPage = false;
-            });
+          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function(dir) {
+            $scope.deckGridData = dir.data;
+            tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+            $scope.gridArrayLoading = false;
+            $scope.initLoad = false;
+            $scope.openingNewPage = false;
+          });
         }
       }
     };
