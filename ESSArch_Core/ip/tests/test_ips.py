@@ -2424,6 +2424,11 @@ class FilesActionTests(TestCase):
         resp = self.client.get(self.url)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_get_method_with_no_pagination(self):
+        self.client.force_authenticate(user=self.user)
+        resp = self.client.get(self.url, data={'pager': 'none'})
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_path_response')
     def test_get_method_with_download_params_True(self, mock_ip_get_path_response):
         mock_ip_get_path_response.return_value = Response("dummy message")
