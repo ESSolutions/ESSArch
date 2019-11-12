@@ -54,6 +54,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       DELETE_FIELD: 'Vill du ta bort fält: {{field}}?',
       DELIVERY: 'Leverans',
       DESELECT_FILTER: 'Ta bort filterval',
+      DIP_PACKAGES: 'Utlämnandepaket',
       DOCUMENT: 'Document',
       DO_YOU_WANT_TO_REMOVE_AGENT_NAME: 'Vill du ta bort namn?',
       DO_YOU_WANT_TO_REMOVE_ARCHIVE_CREATOR: 'Vill du ta bort arkivbildare?',

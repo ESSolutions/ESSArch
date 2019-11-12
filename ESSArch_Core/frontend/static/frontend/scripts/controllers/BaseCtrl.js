@@ -637,6 +637,12 @@ export default class BaseCtrl {
             vm.moveToApprovalModal(ip, request);
           }
           break;
+        case 'download_dip':
+          vm.downloadDipModal(ip);
+          break;
+        case 'download_order':
+          vm.downloadOrderModal(ip);
+          break;
         case 'diff_check':
           console.log('request not implemented');
           break;
@@ -1225,6 +1231,56 @@ export default class BaseCtrl {
         .catch(function() {
           $log.info('modal-component dismissed at: ' + new Date());
         });
+    };
+
+    vm.downloadOrderModal = function(order) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/download_order_modal.html',
+        controller: 'OrderModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function() {
+            return {
+              order: order,
+              allow_close: true,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {},
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.downloadDipModal = function(ip) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/download_dip_modal.html',
+        controller: 'DownloadDipModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function() {
+            return {
+              ip,
+              allow_close: true,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {},
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
     };
 
     //advanced filter form data
