@@ -1250,12 +1250,9 @@ export default class BaseCtrl {
           },
         },
       });
-      modalInstance.result.then(
-        function(data) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
+      modalInstance.result.catch(function() {
+        $log.info('modal-component dismissed at: ' + new Date());
+      });
     };
 
     vm.downloadDipModal = function(ip) {
@@ -1275,12 +1272,9 @@ export default class BaseCtrl {
           },
         },
       });
-      modalInstance.result.then(
-        function(data) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
+      modalInstance.result.catch(function() {
+        $log.info('modal-component dismissed at: ' + new Date());
+      });
     };
 
     //advanced filter form data
