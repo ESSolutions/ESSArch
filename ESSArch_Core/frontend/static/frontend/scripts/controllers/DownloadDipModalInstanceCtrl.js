@@ -4,13 +4,7 @@ export default class DownloadDipModalInstanceCtrl {
     if (data) {
       $ctrl.data = data;
     }
-    $ctrl.order = {};
 
-    $ctrl.fields = [];
-    $ctrl.options = {
-      type: [],
-      consign_method: [],
-    };
     $ctrl.$onInit = () => {
       if (data.ip) {
         $ctrl.ip = angular.copy(data.ip);
