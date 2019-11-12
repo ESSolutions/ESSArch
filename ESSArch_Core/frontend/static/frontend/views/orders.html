@@ -137,56 +137,104 @@
       ></div>
     </td>
   </div>
-  <div ng-if="select" class="select-sub-edit-eventlog-wrapper">
-    <div ng-if="select" class="select-view">
-      <div class="table-container" st-table="vm.ips" st-pipe="vm.ipPipe">
-        <div class="search-prepare-wrapper">
-          <div class="refresh-icon">
-            <span
-              ng-click="vm.ipPipe(vm.ipTableState)"
-              class="clickable angular-animate fas fa-sync-alt fa-lg"
-              ng-class="{'fa-sync-alt-animate': ipsLoading }"
-              uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
-              tooltip-placement="auto left"
-              tooltip-append-to-body="true"
-            ></span>
+  <uib-tabset ng-if="(ip !== null || ips.length > 0)" active="vm.activeTab" class="tabs tabs-style-bar">
+    <uib-tab index="'order'" heading="{{'ORDER' | translate}}">
+      <div ng-if="vm.activeTab === 'order'">
+        <div class="request-layout" tabindex="-1" ng-keydown="vm.contentViewsKeydownListener($event)">
+          <form id="request-form" name="vm.requestForm" class="request-form" ng-submit="submitRequest(ip, vm.request)">
+            <div class="request-type">
+              <div>
+                <label>
+                  <input type="radio" ng-model="vm.request.type" value="download_order" />
+                  {{'DOWNLOAD' | translate}}
+                </label>
+              </div>
+            </div>
+            <div class="request-params">
+              <div ng-if="vm.request.type == 'download_order'"></div>
+            </div>
+          </form>
+        </div>
+        <div
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+          ng-if="vm.request.type == 'download_order'"
+          class="select-sub-edit-eventlog-wrapper"
+        >
+          <div class="eventlog-view">
+            <form class="eventlog-form">
+              <button
+                type="submit"
+                ng-click="clickSubmit()"
+                ng-dblClick=""
+                ng-disabled="vm.requestForm.$invalid || vm.submittingRequest"
+                class="btn btn-primary submit-button"
+              >
+                {{'SUBMIT' | translate}} <i ng-if="vm.submittingRequest" class="fas fa-spinner fa-spin"></i>
+              </button>
+            </form>
           </div>
         </div>
-        <div class="table-x-overflow">
-          <table class="table table-striped">
-            <thead>
-              <tr>
-                <th>{{'OBJECT_IDENTIFIER_VALUE' | translate}}</th>
-                <th>{{'LABEL' | translate}}</th>
-                <th>{{'CREATE_DATE' | translate}}</th>
-                <th>{{'ENTRY_DATE' | translate}}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                ng-repeat="x in vm.ips"
-                ng-click="vm.openFilebrowser(x);"
-                class="selectable"
-                ng-class="{'selected': vm.ip.id == x.id}"
-              >
-                <td>{{x.object_identifier_value}}</td>
-                <td>{{x.label}}</td>
-                <td>{{x.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-                <td>{{x.entry_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              </tr>
-              <tr ng-if="!vm.ips.length && !ipsLoading" class="empty-table-indicator">
-                <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
-              </tr>
-              <tr ng-if="!vm.ips.length && ipsLoading" class="empty-table-indicator">
-                <td class="loading-column" colspan="5">{{'LOADING' | translate}}</td>
-              </tr>
-            </tbody>
-          </table>
+      </div>
+    </uib-tab>
+    <uib-tab ng-if="ip !== null && ips.length == 0" index="'content'" heading="{{'CONTENT' | translate}}">
+      <div ng-if="vm.activeTab === 'content'" class="select-sub-edit-eventlog-wrapper">
+        <div ng-if="select" class="select-view">
+          <div class="table-container" st-table="vm.ips" st-pipe="vm.ipPipe">
+            <div class="search-prepare-wrapper">
+              <div class="title">
+                <h4>
+                  {{'ACCESS.DIP_PACKAGES' | translate}}
+                </h4>
+              </div>
+              <div class="refresh-icon">
+                <span
+                  ng-click="vm.ipPipe(vm.ipTableState)"
+                  class="clickable angular-animate fas fa-sync-alt fa-lg"
+                  ng-class="{'fa-sync-alt-animate': ipsLoading }"
+                  uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+                  tooltip-placement="auto left"
+                  tooltip-append-to-body="true"
+                ></span>
+              </div>
+            </div>
+            <div class="table-x-overflow">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>{{'OBJECT_IDENTIFIER_VALUE' | translate}}</th>
+                    <th>{{'LABEL' | translate}}</th>
+                    <th>{{'CREATE_DATE' | translate}}</th>
+                    <th>{{'ENTRY_DATE' | translate}}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    ng-repeat="x in vm.ips"
+                    ng-click="vm.openFilebrowser(x);"
+                    class="selectable"
+                    ng-class="{'selected': vm.ip.id == x.id}"
+                  >
+                    <td>{{x.object_identifier_value}}</td>
+                    <td>{{x.label}}</td>
+                    <td>{{x.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                    <td>{{x.entry_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                  </tr>
+                  <tr ng-if="!vm.ips.length && !ipsLoading" class="empty-table-indicator">
+                    <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
+                  </tr>
+                  <tr ng-if="!vm.ips.length && ipsLoading" class="empty-table-indicator">
+                    <td class="loading-column" colspan="5">{{'LOADING' | translate}}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div ng-if="vm.ip" style="padding: 10px;">
+          <filebrowser ip="vm.ip"></filebrowser>
         </div>
       </div>
-    </div>
-    <div ng-if="vm.ip" style="padding: 10px;">
-      <filebrowser ip="vm.ip"></filebrowser>
-    </div>
-  </div>
+    </uib-tab>
+  </uib-tabset>
 </div>

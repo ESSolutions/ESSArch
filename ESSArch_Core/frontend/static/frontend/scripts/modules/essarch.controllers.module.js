@@ -35,6 +35,7 @@ import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
 import DeliveryModalInstanceCtrl from '../controllers/DeliveryModalInstanceCtrl';
+import DownloadDipModalInstanceCtrl from '../controllers/DownloadDipModalInstanceCtrl';
 import EditNodeModalInstanceCtrl from '../controllers/EditNodeModalInstanceCtrl';
 import EditStructureUnitModalInstanceCtrl from '../controllers/EditStructureUnitModalInstanceCtrl';
 import ExportResultModalInstanceCtrl from '../controllers/ExportResultModalInstanceCtrl';
@@ -465,6 +466,14 @@ export default angular
     'AgentName',
     DeliveryModalInstanceCtrl,
   ])
+  .controller('DownloadDipModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'appConfig',
+    '$window',
+    '$sce',
+    DownloadDipModalInstanceCtrl,
+  ])
   .controller('EditNodeModalInstanceCtrl', [
     'Search',
     '$translate',
@@ -653,6 +662,8 @@ export default angular
     '$q',
     'EditMode',
     '$scope',
+    '$window',
+    '$sce',
     OrderModalInstanceCtrl,
   ])
   .controller('OrdersCtrl', [

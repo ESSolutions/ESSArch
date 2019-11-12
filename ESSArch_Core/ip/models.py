@@ -2119,6 +2119,11 @@ class Order(models.Model):
         'ip.ConsignMethod', on_delete=models.PROTECT, null=True, verbose_name=_('consign method')
     )
 
+    @property
+    def path(self):
+        root = Path.objects.get(entity='orders').value
+        return os.path.join(root, str(self.pk))
+
     class Meta:
         ordering = ["label"]
         permissions = (
