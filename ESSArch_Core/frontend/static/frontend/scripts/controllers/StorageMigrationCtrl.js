@@ -184,7 +184,7 @@ export default class StorageMigrationCtrl {
           data: function() {
             return {
               ips: ips,
-              policy: vm.columnFilters.policy,
+              policy: vm.mediumFilterModel.policy,
             };
           },
         },

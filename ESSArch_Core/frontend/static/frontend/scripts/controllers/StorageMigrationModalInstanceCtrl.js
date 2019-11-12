@@ -17,6 +17,7 @@ export default class StorageMigrationModalInstanceCtrl {
           }
         });
         $ctrl.migration.temp_path = temp;
+        $ctrl.migration.policy = data.policy;
       });
       EditMode.enable();
     };
