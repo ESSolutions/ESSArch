@@ -77,9 +77,7 @@ export default class WorkareaCtrl {
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getWorkareaIps(
           vm.workarea,
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
+          paginationParams,
           tableState,
           sorting,
           search,

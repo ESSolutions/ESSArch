@@ -116,14 +116,7 @@ export default class MediaInformationCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getStorageMediums(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        )
+        Resource.getStorageMediums(paginationParams, tableState, sorting, search)
           .then(function(result) {
             vm.displayedMediums = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -163,9 +156,7 @@ export default class MediaInformationCtrl {
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.objectsPerPage);
         Resource.getStorageObjectsForMedium(
           $scope.storageMedium.id,
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
+          paginationParams,
           tableState,
           $scope.storageMedium,
           sorting,

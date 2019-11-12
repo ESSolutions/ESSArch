@@ -125,6 +125,7 @@ export default class TaskInfoModalInstanceCtrl {
           .$promise.then(function(resource) {
             $ctrl.validations = resource;
             tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
+            tableState.pagination.totalItemCount = resource.$httpHeaders('Count');
             $scope.validationsLoading = false;
             return resource;
           })

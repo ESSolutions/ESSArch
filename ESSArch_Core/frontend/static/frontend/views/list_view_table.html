@@ -49,7 +49,7 @@
       ng-change="updateIpsPerPage(vm.itemsPerPage)"
       class="form-control items-per-page"
       ng-model="vm.itemsPerPage"
-      ng-options="x for x in [5,10,20,25,50]"
+      ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
       uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
       tooltip-placement="auto top"
       tooltip-append-to-body="true"

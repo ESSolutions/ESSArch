@@ -133,6 +133,9 @@
   .formly-field {
     width: 100% !important;
     margin-bottom: 5px !important;
+    .has-error {
+      margin-bottom: 14px !important;
+    }
   }
   .filter-action-buttons {
     display: flex;

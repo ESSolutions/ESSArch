@@ -199,13 +199,16 @@ export default (
       label: $translate.instant('STORAGE_POLICY'),
       labelProp: 'policy_name',
       valueProp: 'id',
-      clearEnabled: true,
+      required: true,
       optionsFunction: function() {
         return policies;
       },
       appendToBody: true,
       refresh: function(search) {
         getStoragePolicies(search);
+      },
+      addDefault: x => {
+        policies.unshift(x);
       },
     },
   };
@@ -424,7 +427,7 @@ export default (
   // Storage medium filters
 
   // Base filter fields for storage medium views
-  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [currentMedium];
+  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [policy, currentMedium];
 
   // Map states and additional IP filter fields
   let storageMediumStateFieldMap = {
