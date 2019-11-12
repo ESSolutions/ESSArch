@@ -1,0 +1,37 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'DO_YOU_WANT_TO_DOWNLOAD_DIP' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.download()">
+  <div class="modal-body" id="modal-body">
+    <div class="table-x-overflow">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>{{'LABEL' | translate}}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{{$ctrl.ip.object_identifier_value}}</td>
+            <td>{{$ctrl.ip.label}}</td>
+          </tr>
+          <tr ng-if="$ctrl.ip.package_type === 4" ng-repeat="x in $ctrl.ip.information_packages">
+            <td>{{x.object_identifier_value}}</td>
+            <td>{{x.label}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" type="submit" ng-disabled="$ctrl.downloading">
+      {{'DOWNLOAD' | translate}}
+      <i ng-if="$ctrl.downloading" class="fas fa-spinner fa-spin"></i>
+    </button>
+    <button class="btn btn-default" type="button" ng-disabled="$ctrl.downloading" ng-click="$ctrl.cancel()">
+      {{'CLOSE' | translate}}
+    </button>
+    <form-errors errors="$ctrl.nonFieldErrors"></form-errors>
+  </div>
+</form>
