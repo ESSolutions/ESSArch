@@ -9,7 +9,7 @@
   >
   </span>
   <div ng-show="vm.showAdvancedFilters" class="advanced-filters">
-    <form class="position-relative" novalidate>
+    <form name="vm.filterForm" class="position-relative" novalidate>
       <div class="formly-buttons-wrapper">
         <formly-form model="vm.model" fields="vm.fields" options="{}"></formly-form>
       </div>
