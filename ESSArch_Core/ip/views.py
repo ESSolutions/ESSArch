@@ -1,6 +1,7 @@
 import copy
 import errno
 import glob
+import io
 import itertools
 import json
 import logging
@@ -131,6 +132,7 @@ from ESSArch_Core.util import (
     parse_content_range_header,
     remove_prefix,
     timestamp_to_datetime,
+    zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
@@ -1484,6 +1486,23 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         dip = task.run().get()
         return Response(dip, status.HTTP_201_CREATED)
 
+    @action(detail=True, methods=['get'], url_path='download-dip')
+    def download_dip(self, request, pk):
+        ip = self.get_object()
+
+        if ip.package_type != InformationPackage.DIP:
+            raise exceptions.ParseError('{} is not a DIP'.format(ip.object_identifier_value))
+
+        zip_buffer = io.BytesIO()
+        zip_directory(ip.object_path, zip_buffer, arcroot=ip.object_identifier_value)
+
+        return generate_file_response(
+            zip_buffer,
+            content_type='application/zip',
+            force_download=True,
+            name='{}.zip'.format(ip.object_identifier_value),
+        )
+
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
     def files(self, request, pk=None):
         ip = self.get_object()
@@ -1885,6 +1904,20 @@ class OrderViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
             return OrderWriteSerializer
         return self.serializer_class
+
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk):
+        order = self.get_object()
+
+        zip_buffer = io.BytesIO()
+        zip_directory(order.path, zip_buffer, arcroot=order.label)
+
+        return generate_file_response(
+            zip_buffer,
+            content_type='application/zip',
+            force_download=True,
+            name='{}.zip'.format(order.label),
+        )
 
 
 class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):

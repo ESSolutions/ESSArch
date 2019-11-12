@@ -1,5 +1,18 @@
 export default class OrderModalInstanceCtrl {
-  constructor($uibModalInstance, data, $http, appConfig, listViewService, $translate, Utils, $q, EditMode, $scope) {
+  constructor(
+    $uibModalInstance,
+    data,
+    $http,
+    appConfig,
+    listViewService,
+    $translate,
+    Utils,
+    $q,
+    EditMode,
+    $scope,
+    $window,
+    $sce
+  ) {
     const $ctrl = this;
     if (data) {
       $ctrl.data = data;
@@ -34,7 +47,9 @@ export default class OrderModalInstanceCtrl {
       );
 
       $q.all(promises).then(responses => {
-        EditMode.enable();
+        if (!data.allow_close) {
+          EditMode.enable();
+        }
         $ctrl.buildForm();
       });
     };
@@ -161,6 +176,13 @@ export default class OrderModalInstanceCtrl {
           $ctrl.saving = false;
         });
     };
+
+    $ctrl.download = () => {
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'orders/' + data.order.id + '/download/');
+      $window.open(showFile, '_blank');
+      $uibModalInstance.close();
+    };
+
     $ctrl.remove = function(order) {
       $ctrl.removing = true;
       $http({
