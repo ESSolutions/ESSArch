@@ -2331,6 +2331,25 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 "label": "Download Schemas",
                             },
                             {
+                                "step": True,
+                                "name": "Create Log File",
+                                "children": [
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                                        "label": "Generate events xml file",
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.AppendEvents",
+                                        "label": "Add events to xml file",
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                                        "label": "Add premis IP object to xml file",
+                                    },
+
+                                ]
+                            },
+                            {
                                 "name": "ESSArch_Core.ip.tasks.GeneratePremis",
                                 "if": generate_premis,
                                 "label": "Generate premis",
