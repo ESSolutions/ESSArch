@@ -7,7 +7,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
     /* START CUSTOMIZATION HERE */
     // Change this to point to your Django REST Auth API
     // e.g. /api/rest-auth  (DO NOT INCLUDE ENDING SLASH)
-    API_URL: '/rest-auth',
+    API_URL: '/api/auth',
     // Set use_session to true to use Django sessions to store security token.
     // Set use_session to false to store the security token locally and transmit it as a custom header.
     use_session: true,
@@ -62,20 +62,6 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         );
       return deferred.promise;
     },
-    register: function(username, password1, password2, email, more) {
-      let data = {
-        username: username,
-        password1: password1,
-        password2: password2,
-        email: email,
-      };
-      data = angular.extend(data, more);
-      return this.request({
-        method: 'POST',
-        url: '/registration/',
-        data: data,
-      });
-    },
     login: function(username, password) {
       const djangoAuth = this;
       return this.request({
@@ -93,7 +79,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
       });
     },
     logout: function() {
-      return ($window.location.href = '/rest-auth/logout/');
+      return ($window.location.href = this.API_URL + '/logout/');
     },
     changePassword: function(password1, password2, oldPassword) {
       return this.request({

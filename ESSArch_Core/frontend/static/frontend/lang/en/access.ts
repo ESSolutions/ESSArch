@@ -54,6 +54,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       DELETE_FIELD: 'Do you want to delete field: {{field}}?',
       DELIVERY: 'Delivery',
       DESELECT_FILTER: 'Remove filter choice',
+      DIP_PACKAGES: 'Dissemination information packages',
       DOCUMENT: 'Document',
       DO_YOU_WANT_TO_REMOVE_AGENT_NAME: 'Do you want to remove agent name?',
       DO_YOU_WANT_TO_REMOVE_ARCHIVE_CREATOR: 'Do you want to remove authority record?',

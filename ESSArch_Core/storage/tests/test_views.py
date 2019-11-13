@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -484,3 +486,71 @@ class StorageMethodListTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(storage_method1.pk))
+
+
+class StorageMigrationTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='user', is_superuser=True)
+
+        cls.storage_method = StorageMethod.objects.create()
+        cls.storage_target = StorageTarget.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cls.storage_method,
+            storage_target=cls.storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        cls.storage_medium = StorageMedium.objects.create(
+            storage_target=cls.storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
+
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=cls.storage_method,
+            ingest_path=Path.objects.create(entity='test', value='foo')
+        )
+        cls.policy.storage_methods.add(cls.storage_method)
+
+        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        StorageObject.objects.create(
+            ip=cls.ip, storage_medium=cls.storage_medium,
+            content_location_type=DISK,
+        )
+
+        new_storage_method = StorageMethod.objects.create()
+        cls.policy.storage_methods.add(new_storage_method)
+        new_storage_target = StorageTarget.objects.create(name='new')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=new_storage_method,
+            storage_target=new_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.url = reverse('storage-migrations-list')
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_migrate(self, mock_task):
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        mock_task.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_bad_ip(self, mock_task):
+        ip = InformationPackage.objects.create(policy=self.policy)
+        data = {
+            'information_packages': [str(ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_task.assert_not_called()

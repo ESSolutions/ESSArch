@@ -25,6 +25,10 @@ const contentTabs = () => {
     'home.transferSip': {
       transfer_sip: ['Received'],
     },
+    'home.access.orders': {
+      order: ['order'],
+      content: ['order'],
+    },
     'home.access.createDip': {
       create_dip: ['Prepared'],
       preserve: ['Created'],
@@ -64,6 +68,9 @@ const contentTabs = () => {
       let list = [];
       if (specialTabs[page]) {
         ips.forEach(function(ip) {
+          if (angular.isUndefined(ip.state) && page === 'home.access.orders') {
+            ip.state = 'order';
+          }
           if (disabledStates.includes(ip.state)) {
             visible = false;
           }

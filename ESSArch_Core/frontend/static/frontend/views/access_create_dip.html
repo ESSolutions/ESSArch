@@ -21,15 +21,21 @@
             >
               <div class="request-type">
                 <div ng-if="checkPermission('ip.diff_check')">
-                  <input type="radio" ng-model="vm.request.type" value="diff_check" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="diff_check" />
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.preserve')">
-                  <input type="radio" ng-model="vm.request.type" value="preserve" />
                   <label>
+                    <input type="radio" ng-model="vm.request.type" value="preserve" />
                     {{'PRESERVE' | translate}}
+                  </label>
+                </div>
+                <div>
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="download_dip" />
+                    {{'DOWNLOAD' | translate}}
                   </label>
                 </div>
               </div>
@@ -64,7 +70,7 @@
           <div
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
-            ng-if="vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
+            ng-if="vm.request.type == 'download_dip' || vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
             class="select-sub-edit-eventlog-wrapper"
           >
             <div class="eventlog-view">
