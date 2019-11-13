@@ -2,7 +2,7 @@
   <div class="text-oneline-ellipsis">
     <div class="object-identifier-value">{{row.object_identifier_value}}</div>
     <div
-      ng-if="row.package_type != 1 && row.package_type != 4 && row.state !== 'At reception'"
+      ng-if="row.generation !== null && row.package_type != 1 && row.package_type != 4 && row.state !== 'At reception'"
       class="generation-indicator"
       uib-tooltip="{{'IP_GENERATION' | translate:row}}"
       tooltip-placement="auto top"
@@ -35,6 +35,7 @@
   <div class="text-oneline-ellipsis">
     <div style="display: inline-block" class="object-identifier-value">{{subrow.object_identifier_value}}</div>
     <div
+      ng-if="subrow.generation !== null"
       class="generation-indicator"
       uib-tooltip="{{'IP_GENERATION' | translate:subrow}}"
       tooltip-placement="auto top"
