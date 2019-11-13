@@ -23,6 +23,7 @@ export default class StorageMigrationCtrl {
     vm.displayedJobs = [];
     vm.displayedMediums = [];
     vm.medium = null;
+    vm.selectedMediums = [];
     vm.mediumsPerPage = 10;
     vm.mediumFilterModel = {};
     vm.mediumFilterFields = [];
@@ -78,7 +79,7 @@ export default class StorageMigrationCtrl {
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
               pager: paginationParams.pager,
-              medium: vm.medium ? vm.medium.id : null,
+              medium: vm.selectedMediums.length ? vm.selectedMediums.map(x => x.id) : null,
               migratable: true,
             },
             vm.columnFilters
@@ -287,16 +288,48 @@ export default class StorageMigrationCtrl {
     };
 
     vm.mediumSelected = medium => {
-      return vm.medium !== null && vm.medium.id === medium.id;
+      return (
+        vm.selectedMediums.filter(x => {
+          return x.id === medium.id;
+        }).length > 0
+      );
     };
 
     vm.selectMedium = (medium, event) => {
-      if (vm.medium !== null && vm.medium.id === medium.id) {
-        vm.medium = null;
-        $scope.ip = null;
+      if (vm.mediumSelected(medium)) {
+        let removeIndex = null;
+        vm.selectedMediums.forEach((x, idx) => {
+          if (x.id === medium.id) {
+            removeIndex = idx;
+          }
+        });
+        if (removeIndex !== null) {
+          vm.selectedMediums.splice(removeIndex, 1);
+        } else {
+        }
+        if (vm.selectedMediums.length === 0) {
+          $scope.ip = null;
+          $scope.ips = [];
+        } else {
+          $scope.getListViewData();
+        }
       } else {
-        vm.medium = medium;
+        vm.selectedMediums.push(medium);
+        $scope.getListViewData();
       }
+    };
+
+    vm.deselectAllMediums = () => {
+      vm.selectedMediums = [];
+    };
+
+    vm.selectAllMediums = () => {
+      vm.displayedMediums.forEach(x => {
+        if (!vm.mediumSelected(x)) {
+          vm.selectMedium(x);
+        }
+      });
+      $scope.getListViewData();
     };
   }
 }

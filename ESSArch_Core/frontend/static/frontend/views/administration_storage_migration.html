@@ -63,6 +63,12 @@
 
             <div id="list-view" class="list-view-table">
               <table class="table table-striped" style="margin-bottom: 0px;">
+                <a ng-if="vm.selectedMediums.length" ng-click="vm.deselectAllMediums()" translate="CLEAR_ALL"></a>
+                <a
+                  ng-if="vm.selectedMediums.length == 0 && vm.displayedMediums.length > 0"
+                  ng-click="vm.selectAllMediums()"
+                  translate="SELECT_ALL"
+                ></a>
                 <thead>
                   <tr>
                     <th class="clickable" st-sort="medium_id" class="column-label">ID</th>
@@ -130,7 +136,7 @@
             </td>
           </div>
 
-          <div ng-if="vm.medium" st-table="vm.displayedIps" st-pipe="vm.callServer">
+          <div ng-if="vm.selectedMediums.length > 0" st-table="vm.displayedIps" st-pipe="vm.callServer">
             <hr />
             <div class="title-action-button-row">
               <div class="title">
