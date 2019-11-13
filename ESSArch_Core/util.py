@@ -768,3 +768,34 @@ def has_write_access(directory):
             return False
     else:
         return os.access(directory, os.W_OK)
+
+
+def open_file(path='', *args, container=None, container_prefix='', **kwargs):
+    if container is None:
+        return open(path, *args, **kwargs)
+
+    if container is not None and path:
+        try:
+            with tarfile.open(container) as tar:
+                try:
+                    f = tar.extractfile(path)
+                except KeyError:
+                    full_path = normalize_path(os.path.join(container_prefix, path))
+                    f = tar.extractfile(full_path)
+                return io.BytesIO(f.read())
+        except tarfile.ReadError:
+            logger.debug('Invalid tar file, trying zipfile instead')
+            try:
+                with zipfile.ZipFile(container) as zipf:
+                    try:
+                        f = zipf.open(path)
+                    except KeyError:
+                        full_path = normalize_path(os.path.join(container_prefix, path))
+                        f = zipf.open(full_path)
+                    return io.BytesIO(f.read())
+            except zipfile.BadZipfile:
+                logger.debug('Invalid zip file')
+        except KeyError:
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(container, path))
+
+    return open(os.path.join(container, path), *args, **kwargs)
