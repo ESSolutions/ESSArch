@@ -22,7 +22,7 @@ const loginCtrl = (
 
   $http({
     method: 'GET',
-    url: '/rest-auth/services/',
+    url: djangoAuth.API_URL + '/services/',
   }).then(function(response) {
     $scope.auth_services = response.data;
   });
