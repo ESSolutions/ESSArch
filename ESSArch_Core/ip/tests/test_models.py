@@ -358,7 +358,7 @@ class InformationPackageOpenFileTests(TestCase):
             os.makedirs(dirname)
         fname = os.path.join(self.textdir, '%s' % filename)
         with open(fname, 'w') as f:
-            f.write("I'm a mets_xml")
+            f.write("this is a mets")
 
     def create_archive_file(self, archive_format):
         self.create_files()
@@ -413,41 +413,32 @@ class InformationPackageOpenFileTests(TestCase):
 
         mock_open.assert_called_once_with(path_to_mets_xml)
 
-    @mock.patch('ESSArch_Core.ip.models.io')
-    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar(self, mocked_io):
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar(self):
         self.create_mets_xml_file("mets.xml")
         archive_file = self.create_archive_file('tar')
         self.ip.object_path = archive_file
         self.ip.object_identifier_value = "identifier_value_that_does_not_match_mets_file_name"
         self.ip.save()
 
-        self.ip.open_file('./mets.xml')
+        self.assertEqual(self.ip.open_file('./mets.xml').read(), b'this is a mets')
 
-        mocked_io.BytesIO.assert_called_once()
-
-    @mock.patch('ESSArch_Core.ip.models.io')
-    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar_with_identifier(self, mocked_io):
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_tar_with_identifier(self):
         self.create_mets_xml_file("mets_folder/mets.xml")
         archive_file = self.create_archive_file('tar')
         self.ip.object_path = archive_file
         self.ip.object_identifier_value = "./mets_folder/"
         self.ip.save()
 
-        self.ip.open_file('mets.xml')
+        self.assertEqual(self.ip.open_file('mets.xml').read(), b'this is a mets')
 
-        mocked_io.BytesIO.assert_called_once()
-
-    @mock.patch('ESSArch_Core.ip.models.io')
-    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_zip(self, mocked_io):
+    def test_open_file_when_mets_path_not_set_then_read_mets_xml_from_zip(self):
         self.create_mets_xml_file("mets_folder/mets.xml")
         archive_file = self.create_archive_file('zip')
         self.ip.object_path = archive_file
         self.ip.object_identifier_value = "mets_folder/"
         self.ip.save()
 
-        self.ip.open_file('mets.xml')
-
-        mocked_io.BytesIO.assert_called_once()
+        self.assertEqual(self.ip.open_file('mets.xml').read(), b'this is a mets')
 
 
 class InformationPackageStepStateTests(TestCase):
