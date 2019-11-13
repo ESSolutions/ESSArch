@@ -226,11 +226,14 @@ except ImportError:
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
-        'hosts': [{
-            'host': elasticsearch_url.hostname,
-            'port': elasticsearch_url.port,
-            'timeout': 60,
-        }],
+        'hosts': [
+            {
+                'host': elasticsearch_url.hostname,
+                'port': elasticsearch_url.port,
+            },
+        ],
+        'timeout': 60,
+        'max_retries': 1,
     }
 }
 
