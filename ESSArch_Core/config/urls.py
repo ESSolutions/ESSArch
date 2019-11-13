@@ -2,7 +2,6 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
 
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
@@ -373,14 +372,14 @@ router.register(r'search', ComponentSearchViewSet, basename='search').register(
 urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
     url(r'^admin/', admin.site.urls),
+    url(r'^api/auth/', include('ESSArch_Core.auth.urls')),
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),
     url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
     url(r'^api/me/$', MeView.as_view(), name='me'),
     url(r'^api/', include(router.urls)),
-    url(r'^accounts/changepassword', auth_views.PasswordChangeView.as_view(), {'post_change_redirect': '/'}),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^rest-framework/', include('rest_framework.urls', namespace='rest_framework')),
     url(
         r'^api/submission-agreement-template/$',
         SubmissionAgreementTemplateView.as_view(),
@@ -388,9 +387,6 @@ urlpatterns = [
     ),
     url(r'^docs/', include('ESSArch_Core.docs.urls')),
     url(r'^template/', include('ESSArch_Core.essxml.ProfileMaker.urls')),
-    url(r'^accounts/login/$', auth_views.LoginView.as_view()),
-    url(r'^rest-auth/', include('ESSArch_Core.auth.urls')),
-    url(r'^rest-auth/registration/', include('rest_auth.registration.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
