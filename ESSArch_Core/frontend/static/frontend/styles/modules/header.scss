@@ -119,7 +119,6 @@
   justify-content: flex-end;
   margin-left: auto;
   min-width: 200px;
-  height: 100%;
   @include medium-screen {
     min-width: 0px;
     .organization-select {
