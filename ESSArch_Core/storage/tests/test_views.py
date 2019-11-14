@@ -13,6 +13,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_DISABLED,
     STORAGE_TARGET_STATUS_ENABLED,
     STORAGE_TARGET_STATUS_MIGRATE,
+    STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageMethod,
     StorageMethodTargetRelation,
@@ -542,6 +543,66 @@ class StorageMigrationTests(TestCase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         mock_task.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_storage_methods(self, mock_task):
+        storage_method = StorageMethod.objects.create()
+        self.policy.storage_methods.add(storage_method)
+
+        storage_target = StorageTarget.objects.create(name='another target')
+
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+            'storage_methods': [str(storage_method.pk)]
+        }
+
+        storage_rel = StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        with self.subTest('enabled status'):
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            mock_task.assert_called_once()
+
+        expected_msg = f'Invalid pk "{storage_method.pk}" - object does not exist.'
+
+        with self.subTest('disabled status'):
+            mock_task.reset_mock()
+            storage_rel.status = STORAGE_TARGET_STATUS_DISABLED
+            storage_rel.save()
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            msg = response.data['storage_methods'][0]
+            self.assertEqual(msg, expected_msg)
+
+            mock_task.assert_not_called()
+
+        with self.subTest('migrate status'):
+            mock_task.reset_mock()
+            storage_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+            storage_rel.save()
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            msg = response.data['storage_methods'][0]
+            self.assertEqual(msg, expected_msg)
+
+            mock_task.assert_not_called()
+
+        with self.subTest('read-only status'):
+            mock_task.reset_mock()
+            storage_rel.status = STORAGE_TARGET_STATUS_READ_ONLY
+            storage_rel.save()
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            msg = response.data['storage_methods'][0]
+            self.assertEqual(msg, expected_msg)
+
+            mock_task.assert_not_called()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_bad_ip(self, mock_task):

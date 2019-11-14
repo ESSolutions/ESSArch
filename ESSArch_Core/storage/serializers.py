@@ -13,6 +13,8 @@ from ESSArch_Core.ip.serializers import (
 )
 from ESSArch_Core.storage.models import (
     DISK,
+    STORAGE_TARGET_STATUS_ENABLED,
+    STORAGE_TARGET_STATUS_MIGRATE,
     AccessQueue,
     IOQueue,
     Robot,
@@ -357,11 +359,22 @@ class RobotQueueSerializer(serializers.ModelSerializer):
 class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         request = self.context['request']
-        qs = InformationPackage.objects.migratable()
+        policy = request.data['policy']
+        return InformationPackage.objects.migratable().filter(policy=policy)
 
-        policy = request.data.get('policy')
-        if policy is not None:
-            qs = qs.filter(policy=policy)
+
+class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context['request']
+        policy = request.data['policy']
+        qs = StorageMethod.objects.filter_has_target_with_status(
+            STORAGE_TARGET_STATUS_ENABLED, True,
+        ).filter(storage_policies=policy)
+
+        if request.data.get('redundant'):
+            qs = qs.filter_has_target_with_status(
+                STORAGE_TARGET_STATUS_MIGRATE, True,
+            )
 
         return qs
 
@@ -373,15 +386,26 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     policy = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=StoragePolicy.objects.all(),
     )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
+    redundant = serializers.BooleanField(write_only=True, default=False)
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 
     def create(self, validated_data):
         tasks = []
         for ip in validated_data['information_packages']:
-            storage_methods = ip.get_migratable_storage_methods()
-            if not storage_methods.exists():
-                raise ValueError('No storage methods available for migration')
+            storage_methods = validated_data.get(
+                'storage_methods',
+                StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+            )
 
+            if isinstance(storage_methods, list):
+                storage_methods = StorageMethod.objects.filter(
+                    pk__in=[s.pk for s in storage_methods]
+                )
+
+            storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
             for storage_method in storage_methods:
                 t = ProcessTask(
                     name='ESSArch_Core.storage.tasks.StorageMigration',
