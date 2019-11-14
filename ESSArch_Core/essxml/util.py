@@ -25,6 +25,7 @@
 import logging
 import os
 import pathlib
+import re
 import tempfile
 import uuid
 from urllib.parse import urlparse
@@ -155,6 +156,32 @@ def get_objectpath(el):
 
 def parse_reference_code(code):
     return code.strip('/ ').split('/')
+
+
+def parse_mets(xmlfile):
+    data = {}
+    doc = etree.parse(xmlfile)
+    root = doc.getroot()
+
+    if root.xpath('local-name()').lower() != 'mets':
+        raise ValueError('%s is not a valid mets file' % xmlfile)
+
+    # save root attributes without namespace prefix
+    localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
+    for k, v in root.attrib.items():
+        data[re.search(localname_pattern, k).group(1)] = v
+
+    data['agents'] = {}
+    for a in get_agents(root):
+        other_role = a.get("ROLE") == 'OTHER'
+        other_type = a.get("TYPE") == 'OTHER'
+        agent_role = a.get("OTHERROLE") if other_role else a.get("ROLE")
+        agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
+        name = a.xpath('*[local-name()="name"]')[0].text
+        notes = [n.text for n in a.xpath('*[local-name()="note"]')]
+        data['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
+
+    return data
 
 
 def parse_submit_description(xmlfile, srcdir=''):

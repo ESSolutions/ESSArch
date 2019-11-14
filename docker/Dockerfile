@@ -1,7 +1,7 @@
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
-RUN apk update && apk add python
+RUN apk update && apk add g++ make python
 COPY package.json yarn.lock webpack.common.babel.js webpack.prod.babel.js tsconfig.json ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
@@ -37,8 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Libreoffice
-ADD docker/libreoffice.sh /code/libreoffice.sh
-RUN /code/libreoffice.sh
+RUN apt-get update && apt-get install -y --no-install-recommends libreoffice
 
 ADD requirements /code/requirements
 ADD setup.py /code/setup.py
