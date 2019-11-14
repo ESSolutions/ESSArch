@@ -1,6 +1,7 @@
 import os
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicModelSerializer
@@ -394,30 +395,31 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         tasks = []
-        for ip in validated_data['information_packages']:
-            storage_methods = validated_data.get(
-                'storage_methods',
-                StorageMethod.objects.filter(storage_policies=validated_data['policy'])
-            )
-
-            if isinstance(storage_methods, list):
-                storage_methods = StorageMethod.objects.filter(
-                    pk__in=[s.pk for s in storage_methods]
+        with transaction.atomic():
+            for ip in validated_data['information_packages']:
+                storage_methods = validated_data.get(
+                    'storage_methods',
+                    StorageMethod.objects.filter(storage_policies=validated_data['policy'])
                 )
 
-            storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
-            for storage_method in storage_methods:
-                t = ProcessTask(
-                    name='ESSArch_Core.storage.tasks.StorageMigration',
-                    label='Migrate to {}'.format(storage_method),
-                    args=[str(storage_method.pk), validated_data['temp_path']],
-                    information_package=ip,
-                    responsible=self.context['request'].user,
-                    eager=False,
-                )
-                tasks.append(t)
+                if isinstance(storage_methods, list):
+                    storage_methods = StorageMethod.objects.filter(
+                        pk__in=[s.pk for s in storage_methods]
+                    )
 
-        ProcessTask.objects.bulk_create(tasks, 100)
+                storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
+                for storage_method in storage_methods:
+                    t = ProcessTask(
+                        name='ESSArch_Core.storage.tasks.StorageMigration',
+                        label='Migrate to {}'.format(storage_method),
+                        args=[str(storage_method.pk), validated_data['temp_path']],
+                        information_package=ip,
+                        responsible=self.context['request'].user,
+                        eager=False,
+                    )
+                    tasks.append(t)
+
+            ProcessTask.objects.bulk_create(tasks, 100)
 
         for t in tasks:
             t.run()
