@@ -566,7 +566,12 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     file_obj.seek(0)
 
     content_type = '{}; charset={}'.format(content_type, charset)
-    response = FileResponse(file_obj, content_type=content_type, as_attachment=force_download)
+    response = FileResponse(
+        file_obj,
+        content_type=content_type,
+        as_attachment=force_download,
+        filename=name,
+    )
 
     if not force_download:
         filename = get_filename_from_file_obj(file_obj, name)
@@ -725,7 +730,7 @@ def do_to_model(ModelClass, field_name, func):
     func(field)
 
 
-def zip_directory(dirname=None, zipname=None, compress=False):
+def zip_directory(dirname=None, zipname=None, compress=False, arcroot=''):
     """
     Creates a ZIP file from the specified directory
 
@@ -739,11 +744,11 @@ def zip_directory(dirname=None, zipname=None, compress=False):
         for root, dirs, files in walk(dirname):
             for d in dirs:
                 filepath = os.path.join(root, d)
-                arcname = os.path.relpath(filepath, dirname)
+                arcname = os.path.join(arcroot, os.path.relpath(filepath, dirname))
                 new_zip.write(filepath, arcname)
             for f in files:
                 filepath = os.path.join(root, f)
-                arcname = os.path.relpath(filepath, dirname)
+                arcname = os.path.join(arcroot, os.path.relpath(filepath, dirname))
                 new_zip.write(filepath, arcname)
 
 
@@ -763,3 +768,34 @@ def has_write_access(directory):
             return False
     else:
         return os.access(directory, os.W_OK)
+
+
+def open_file(path='', *args, container=None, container_prefix='', **kwargs):
+    if container is None:
+        return open(path, *args, **kwargs)
+
+    if container is not None and path:
+        try:
+            with tarfile.open(container) as tar:
+                try:
+                    f = tar.extractfile(path)
+                except KeyError:
+                    full_path = normalize_path(os.path.join(container_prefix, path))
+                    f = tar.extractfile(full_path)
+                return io.BytesIO(f.read())
+        except tarfile.ReadError:
+            logger.debug('Invalid tar file, trying zipfile instead')
+            try:
+                with zipfile.ZipFile(container) as zipf:
+                    try:
+                        f = zipf.open(path)
+                    except KeyError:
+                        full_path = normalize_path(os.path.join(container_prefix, path))
+                        f = zipf.open(full_path)
+                    return io.BytesIO(f.read())
+            except zipfile.BadZipfile:
+                logger.debug('Invalid zip file')
+        except KeyError:
+            raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(container, path))
+
+    return open(os.path.join(container, path), *args, **kwargs)

@@ -1768,6 +1768,10 @@ class OrderViewSetTestCase(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
+        orders_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, orders_dir)
+        self.orders_path = Path.objects.create(entity="orders", value=orders_dir)
+
     def test_list_empty(self):
         url = reverse('order-list')
         res = self.client.get(url)
@@ -1857,6 +1861,30 @@ class OrderViewSetTestCase(TestCase):
         res = self.client.post(url, {'label': 'foo', 'information_packages': [ip_url]})
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_download(self):
+        order = Order.objects.create(label='order1', responsible=self.user, type=self.order_type)
+        url = reverse('order-download', args=[order.pk])
+
+        os.makedirs(order.path)
+
+        with open(os.path.join(order.path, 'foo.txt'), 'w') as f:
+            f.write('test foo')
+
+        with open(os.path.join(order.path, 'bar.pdf'), 'w') as f:
+            f.write('test bar')
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'application/zip; charset=utf-8')
+        self.assertEqual(res['Content-Disposition'], 'attachment; filename="order1.zip"')
+
+        import io
+        import zipfile
+        data = io.BytesIO(res.getvalue())
+        with zipfile.ZipFile(data) as zip_file:
+            self.assertEqual(zip_file.read('order1/foo.txt'), b'test foo')
+            self.assertEqual(zip_file.read('order1/bar.pdf'), b'test bar')
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)

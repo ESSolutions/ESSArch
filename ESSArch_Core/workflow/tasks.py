@@ -49,6 +49,7 @@ from guardian.shortcuts import assign_perm
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -77,6 +78,7 @@ from ESSArch_Core.util import (
     creation_date,
     delete_path,
     find_destination,
+    open_file,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
@@ -124,6 +126,9 @@ class ReceiveSIP(DBTask):
 
         dst_name, = self.parse_params(dst_name)
         dst = os.path.join(dst_path, dst_name)
+        shutil.rmtree(dst)
+
+        sip_profile = aip.submission_agreement.profile_sip
 
         if aip.policy.receive_extract_sip:
             temp = Path.objects.cached('entity', 'temp', 'value')
@@ -165,6 +170,25 @@ class ReceiveSIP(DBTask):
             self.logger.debug('Copying {} to {}'.format(container, dst))
             shutil.copy2(container, dst)
             aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
+
+        sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, aip.sip_path)
+        if os.path.isfile(aip.sip_path):
+            sip_mets_data = parse_mets(
+                open_file(
+                    os.path.join(aip.object_path, sip_mets_dir, sip_mets_file),
+                    container=aip.sip_path,
+                    container_prefix=aip.object_identifier_value,
+                )
+            )
+        else:
+            sip_mets_data = parse_mets(open_file(os.path.join(aip.object_path, sip_mets_dir, sip_mets_file)))
+
+        # prefix all SIP data
+        sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+        aip_profile_rel_data = aip.get_profile_rel('aip').data
+        aip_profile_rel_data.data.update(sip_mets_data)
+        aip_profile_rel_data.save()
 
         if delete_sip:
             delete_path(old_sip_path)

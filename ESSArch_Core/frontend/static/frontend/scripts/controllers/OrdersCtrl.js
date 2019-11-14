@@ -17,6 +17,7 @@ export default class {
   ) {
     const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
+    vm.request.type = 'download_order';
 
     vm.getOrderListColspan = function() {
       if (myService.checkPermission('ip.change_order') && myService.checkPermission('ip.delete_order')) {

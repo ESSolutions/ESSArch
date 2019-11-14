@@ -371,7 +371,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
         write_only=True, many=True,
     )
     policy = serializers.PrimaryKeyRelatedField(
-        queryset=StoragePolicy.objects.all(),
+        write_only=True, queryset=StoragePolicy.objects.all(),
     )
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 

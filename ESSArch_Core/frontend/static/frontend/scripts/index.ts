@@ -1013,7 +1013,7 @@ angular
       $rootScope.app = 'ESSArch';
       $rootScope.flowObjects = {};
       djangoAuth
-        .initialize('/rest-auth', false)
+        .initialize('/api/auth', false)
         .then(function(response) {
           $rootScope.auth = response.data;
           myService.getPermissions(response.data.permissions);
