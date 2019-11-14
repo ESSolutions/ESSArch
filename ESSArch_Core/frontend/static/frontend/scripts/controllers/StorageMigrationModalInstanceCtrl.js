@@ -74,14 +74,28 @@ export default class StorageMigrationModalInstanceCtrl {
       },
       {
         type: 'checkbox',
+        key: 'redundant',
+        templateOptions: {
+          label: $translate.instant('FORCE_WRITE_MIGRATED'),
+        },
+      },
+      {
+        type: 'checkbox',
         key: 'migrate_all',
         templateOptions: {
           label: $translate.instant('MIGRATE_ALL_METHODS'),
         },
         defaultValue: true,
+        expressionProperties: {
+          'templateOptions.onChange': function($viewValue, $modelValue, scope) {
+            if ($modelValue === true) {
+              delete scope.model.storage_methods;
+            }
+          },
+        },
       },
       {
-        key: 'target',
+        key: 'storage_methods',
         type: 'uiselect',
         templateOptions: {
           label: $translate.instant('STORAGE_METHODS'),
@@ -98,13 +112,6 @@ export default class StorageMigrationModalInstanceCtrl {
         },
         hideExpression: ($viewValue, $modelValue, scope) => {
           return scope.model.migrate_all;
-        },
-      },
-      {
-        type: 'checkbox',
-        key: 'redundant',
-        templateOptions: {
-          label: $translate.instant('FORCE_WRITE_MIGRATED'),
         },
       },
     ];
