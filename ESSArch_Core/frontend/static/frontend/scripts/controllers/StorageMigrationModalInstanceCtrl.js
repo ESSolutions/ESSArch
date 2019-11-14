@@ -59,6 +59,8 @@ export default class StorageMigrationModalInstanceCtrl {
       });
     };
 
+    let tempModel = {};
+
     $ctrl.fields = [
       {
         type: 'input',
@@ -88,10 +90,11 @@ export default class StorageMigrationModalInstanceCtrl {
           label: $translate.instant('MIGRATE_ALL_METHODS'),
         },
         defaultValue: true,
+        model: tempModel,
         expressionProperties: {
           'templateOptions.onChange': function($viewValue, $modelValue, scope) {
             if ($modelValue === true) {
-              delete scope.model.storage_methods;
+              delete $ctrl.migration.storage_methods;
             }
           },
         },
@@ -113,7 +116,7 @@ export default class StorageMigrationModalInstanceCtrl {
           },
         },
         hideExpression: ($viewValue, $modelValue, scope) => {
-          return scope.model.migrate_all;
+          return tempModel.migrate_all;
         },
       },
     ];
