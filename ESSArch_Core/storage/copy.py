@@ -182,11 +182,12 @@ def copy_dir(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
             os.makedirs(os.path.dirname(dst_filepath), exist_ok=True)
             copy_file(src_filepath, dst_filepath, requests_session=requests_session, block_size=block_size)
 
-        for d in dirs:
-            src_dir = os.path.join(root, d)
-            src_relpath = os.path.relpath(src_dir, src)
-            dst_dir = os.path.join(dst, src_relpath)
-            os.makedirs(os.path.dirname(dst_dir), exist_ok=True)
+        if requests_session is None:
+            for d in dirs:
+                src_dir = os.path.join(root, d)
+                src_relpath = os.path.relpath(src_dir, src)
+                dst_dir = os.path.join(dst, src_relpath)
+                os.makedirs(dst_dir, exist_ok=True)
     return dst
 
 
