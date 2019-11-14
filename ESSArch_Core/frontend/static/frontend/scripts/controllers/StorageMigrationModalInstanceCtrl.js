@@ -49,12 +49,14 @@ export default class StorageMigrationModalInstanceCtrl {
 
     let methods = [];
     const getMethods = search => {
-      return $http
-        .get(appConfig.djangoUrl + 'storage-methods/', {params: {policy: data.policy, page: 1, page_size: 10, search}})
-        .then(response => {
-          methods = parseMethods(response.data);
-          return methods;
-        });
+      let params = {policy: data.policy, page: 1, page_size: 10, search, has_enabled_target: true};
+      if (!$ctrl.migration.redundant) {
+        params.has_migrate_target = true;
+      }
+      return $http.get(appConfig.djangoUrl + 'storage-methods/', {params}).then(response => {
+        methods = parseMethods(response.data);
+        return methods;
+      });
     };
 
     $ctrl.fields = [
