@@ -54,9 +54,12 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         method: 'POST',
         params: {action: 'prepare', id: '@id'},
       },
+      prepareNewDip: {
+        method: 'POST',
+      },
       prepareDip: {
         method: 'POST',
-        params: {action: 'prepare-dip'},
+        params: {action: 'prepare', id: '@id'},
       },
       createDip: {
         method: 'POST',

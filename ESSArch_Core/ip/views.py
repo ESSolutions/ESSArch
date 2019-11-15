@@ -97,6 +97,7 @@ from ESSArch_Core.ip.serializers import (
     ConsignMethodSerializer,
     EventIPSerializer,
     EventIPWriteSerializer,
+    InformationPackageCreateSerializer,
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
     InformationPackageReceptionReceiveSerializer,
@@ -105,7 +106,6 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     OrderTypeSerializer,
     OrderWriteSerializer,
-    PrepareDIPSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
@@ -620,18 +620,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         self.check_permissions(request)
 
-        try:
-            label = request.data['label']
-        except KeyError:
-            raise exceptions.ParseError('Missing parameter label')
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
 
-        object_identifier_value = request.data.get('object_identifier_value')
+        object_identifier_value = data['object_identifier_value']
         responsible = self.request.user
 
         if responsible.user_profile.current_organization is None:
             raise exceptions.ParseError('You must be part of an organization to prepare an IP')
 
-        prepare_path = Path.objects.get(entity="preingest").value
+        if data['package_type'] == InformationPackage.SIP:
+            prepare_path = Path.objects.get(entity="preingest").value
+        else:
+            prepare_path = Path.objects.get(entity="disseminations").value
+
         if object_identifier_value:
             ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
             if ip_exists:
@@ -643,10 +646,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         try:
             with transaction.atomic():
-                ip = InformationPackage.objects.create(object_identifier_value=object_identifier_value, label=label,
-                                                       responsible=responsible, state="Preparing",
-                                                       package_type=InformationPackage.SIP)
+                ip = InformationPackage.objects.create(
+                    object_identifier_value=object_identifier_value,
+                    label=data['label'],
+                    package_type=data['package_type'],
+                    responsible=responsible,
+                    state="Preparing",
+                )
                 ip.entry_date = ip.create_date
+
+                if ip.package_type == InformationPackage.DIP:
+                    ip.orders.add(*data['orders'])
+
                 extra = {
                     'event_type': 10100,
                     'object': str(ip.pk),
@@ -699,16 +710,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if sa is None or not ip.submission_agreement_locked:
             raise exceptions.ParseError('IP requires locked SA to be prepared')
 
-        profile_ip_sip = ProfileIP.objects.filter(ip=ip, profile=sa.profile_sip).first()
-        profile_ip_transfer_project = ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).first()
-        profile_ip_submit_description = ProfileIP.objects.filter(ip=ip, profile=sa.profile_submit_description).first()
+        if ip.package_type == InformationPackage.SIP:
+            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_sip).exists():
+                raise exceptions.ParseError('Information package missing SIP profile')
 
-        if profile_ip_sip is None:
-            raise exceptions.ParseError('Information package missing SIP profile')
-        if profile_ip_transfer_project is None:
+            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_submit_description).exists():
+                raise exceptions.ParseError('Information package missing Submit Description profile')
+
+        elif ip.package_type == InformationPackage.DIP:
+            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_dip).exists():
+                raise exceptions.ParseError('Information package missing DIP profile')
+
+        if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
-        if profile_ip_submit_description is None:
-            raise exceptions.ParseError('Information package missing Submit Description profile')
 
         for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
             try:
@@ -841,8 +855,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         }
 
         validators = request.data.get('validators', {})
-        validate_xml_file = validators.get('validate_xml_file', False)
-        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
+        validate_xml_file = validators.get('validate_xml_file', True)
+        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
         has_cts = ip.get_content_type_file() is not None
 
         dst_dir = Path.objects.cached('entity', 'preingest', 'value')
@@ -1098,6 +1112,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         return queryset.order_by(*tmp_qs.query.order_by)
 
     def get_serializer_class(self):
+        if self.action == 'create':
+            return InformationPackageCreateSerializer
+
         if self.action == 'list':
             view_type = self.request.query_params.get('view_type', 'aic')
             if view_type == 'flat':
@@ -1433,7 +1450,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workflow.run()
         return Response({'detail': 'Accessing %s...' % aip.object_identifier_value, 'step': workflow.pk})
 
-    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
         dip = InformationPackage.objects.get(pk=pk)
@@ -1444,63 +1460,159 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if dip.state != 'Prepared':
             raise exceptions.ParseError('"%s" is not in the "Prepared" state' % dip)
 
-        step = ProcessStep.objects.create(
-            name="Create DIP",
-            eager=False,
-            information_package=dip,
+        with transaction.atomic():
+            dip.state = 'Creating'
+            dip.save()
+
+        validators = request.data.get('validators', {})
+        validate_xml_file = validators.get('validate_xml_file', True)
+        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
+
+        generate_premis = dip.profile_locked('preservation_metadata')
+
+        dst = os.path.join(
+            os.path.dirname(dip.object_path),
+            dip.object_identifier_value + '.' + dip.get_container_format().lower(),
         )
 
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.workflow.tasks.CreateDIP",
-            params={
-                'ip': str(dip.pk),
+        order_path = Path.objects.get(entity='orders').value
+
+        workflow_spec = [
+            {
+                "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                "label": "Download Schemas",
             },
-            processstep=step,
-            information_package=dip,
-            responsible=request.user,
-            eager=False,
-        )
+            {
+                "step": True,
+                "name": "Create Log File",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                        "label": "Generate events xml file",
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.AppendEvents",
+                        "label": "Add events to xml file",
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                        "label": "Add premis IP object to xml file",
+                    },
 
-        task.run()
-
-        return Response()
-
-    @transaction.atomic
-    @action(detail=False, methods=['post'], url_path='prepare-dip')
-    def prepare_dip(self, request):
-        serializer = PrepareDIPSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer_data = serializer.validated_data
-
-        main_step = ProcessStep.objects.create(name='Prepare DIP',)
-        task = ProcessTask.objects.create(
-            name='ESSArch_Core.workflow.tasks.PrepareDIP',
-            params={
-                'label': serializer_data['label'],
-                'object_identifier_value': serializer_data['object_identifier_value'],
-                'orders': serializer_data['orders'],
+                ]
             },
-            processstep=main_step,
-            responsible=self.request.user,
-        )
-        dip = task.run().get()
-        return Response(dip, status.HTTP_201_CREATED)
+            {
+                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                "if": generate_premis,
+                "label": "Generate premis",
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                "label": "Generate content-mets",
+            },
+            {
+                "step": True,
+                "name": "Validation",
+                "if": any([validate_xml_file, validate_logical_physical_representation]),
+                "children": [
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "if": validate_xml_file,
+                        "label": "Validate content-mets",
+                        "params": {
+                            "xml_filename": "{{_CONTENT_METS_PATH}}",
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "if": generate_premis and validate_xml_file,
+                        "label": "Validate premis",
+                        "params": {
+                            "xml_filename": "{{_PREMIS_PATH}}",
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": validate_logical_physical_representation,
+                        "label": "Diff-check against content-mets",
+                        "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareXMLFiles",
+                        "if": generate_premis,
+                        "label": "Compare premis and content-mets",
+                        "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                        "params": {'recursive': False},
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                        "if": generate_premis,
+                        "label": "Compare representation premis and mets",
+                    }
+                ]
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateContainer",
+                "label": "Create container",
+                "args": [dip.object_path, dst]
+            },
+            {
+                "step": True,
+                "name": "Add to orders",
+                "if": dip.orders.exists(),
+                "children": [
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Add to order {}".format(order.label),
+                        "args": [
+                            dst,
+                            os.path.join(order_path, str(order.pk), os.path.basename(dst)),
+                        ]
+                    } for order in dip.orders.all()
+                ],
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPPath",
+                "label": "Update IP path",
+                "args": [dst]
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeleteFiles",
+                "label": "Delete IP directory",
+                "args": [dip.object_path]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to created",
+                "args": ["Created"],
+            },
+        ]
+        with transaction.atomic():
+            workflow = create_workflow(workflow_spec, dip)
+            workflow.name = "Create DIP"
+            workflow.information_package = dip
+            workflow.save()
+        workflow.run()
+        return Response({'status': 'creating dip'})
 
-    @action(detail=True, methods=['get'], url_path='download-dip')
-    def download_dip(self, request, pk):
+    @action(detail=True, methods=['get'])
+    def download(self, request, pk=None):
         ip = self.get_object()
-
+        path = ip.object_path
         if ip.package_type != InformationPackage.DIP:
-            raise exceptions.ParseError('{} is not a DIP'.format(ip.object_identifier_value))
+            raise exceptions.ParseError('Cannot download IP of package type {}'.format(ip.get_package_type_display()))
 
-        zip_buffer = io.BytesIO()
-        zip_directory(ip.object_path, zip_buffer, arcroot=ip.object_identifier_value)
+        if ip.state != 'Created':
+            raise exceptions.ParseError("Cannot download IP that is not in 'Created' state")
+
+        fid = FormatIdentifier(allow_unknown_file_types=True)
+        content_type = fid.get_mimetype(path)
 
         return generate_file_response(
-            zip_buffer,
-            content_type='application/zip',
+            open(path, 'rb'),
+            content_type=content_type,
             force_download=True,
-            name='{}.zip'.format(ip.object_identifier_value),
+            name=os.path.basename(path),
         )
 
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])

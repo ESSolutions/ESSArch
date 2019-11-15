@@ -43,6 +43,7 @@ export default class PrepareIpModalInstanceCtrl {
       return IP.prepare({
         label: $ctrl.data.label,
         object_identifier_value: $ctrl.data.objectIdentifierValue,
+        package_type: 0,
       })
         .$promise.then(function(resource) {
           $ctrl.preparing = false;

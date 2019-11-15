@@ -88,7 +88,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_TEMP_METS_PATH'] = ip.get_temp_container_xml_path()
         data['_TEMP_AIC_METS_PATH'] = ip.get_temp_container_aic_xml_path() if ip.aic else None
 
-        if ip.get_package_type_display() in ['SIP', 'AIP']:
+        if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
             ip_profile = ip.get_profile(ip.get_package_type_display().lower())
             if ip_profile is not None:
                 premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
