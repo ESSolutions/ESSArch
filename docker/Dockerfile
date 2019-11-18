@@ -2,10 +2,10 @@ FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
 RUN apk update && apk add g++ make python
-COPY package.json yarn.lock webpack.common.babel.js webpack.prod.babel.js tsconfig.json ./
+COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
-RUN yarn build:prod
+RUN yarn build:dev
 
 FROM python:3.7-buster as base
 
