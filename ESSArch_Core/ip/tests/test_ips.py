@@ -2274,8 +2274,9 @@ class DownloadIPTestCase(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        _, ip_path = tempfile.mkstemp(suffix='.tar')
-        self.ip = InformationPackage.objects.create(object_path=ip_path)
+        f = tempfile.NamedTemporaryFile(suffix='.tar', delete=False)
+        f.close()
+        self.ip = InformationPackage.objects.create(object_path=f.name)
         self.addCleanup(os.remove, self.ip.object_path)
 
         self.url = reverse('informationpackage-download', args=(str(self.ip.pk),))
