@@ -13,7 +13,7 @@ export default class DownloadDipModalInstanceCtrl {
 
     $ctrl.download = () => {
       const showFile = $sce.trustAsResourceUrl(
-        appConfig.djangoUrl + 'information-packages/' + data.ip.id + '/download-dip/'
+        appConfig.djangoUrl + 'information-packages/' + data.ip.id + '/download/'
       );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();

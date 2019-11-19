@@ -1831,7 +1831,8 @@ class InformationPackage(models.Model):
 
     class Meta:
         ordering = ["generation", "-create_date"]
-        verbose_name = 'Information Package'
+        verbose_name = _('information package')
+        verbose_name_plural = _('information packages')
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
