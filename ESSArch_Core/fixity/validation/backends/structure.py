@@ -86,7 +86,7 @@ class StructureValidator(BaseValidator):
                 for nested_idx, nested_valid in enumerate(valid):
                     valid[nested_idx] = normalize_path(os.path.join(path, nested_valid).format(**self.data))
 
-        for root, dirs, files in walk(path):
+        for root, _dirs, files in walk(path):
             for f in files:
                 file_count += 1
                 if len(valid_paths):

@@ -77,7 +77,7 @@ def _validate_directory(path, validators, task=None, ip=None, stop_at_failure=Tr
             if stop_at_failure:
                 raise
 
-    for root, dirs, files in walk(path):
+    for root, _dirs, files in walk(path):
         for f in files:
             _validate_file(
                 os.path.join(root, f),

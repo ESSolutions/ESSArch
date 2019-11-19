@@ -39,4 +39,4 @@ class CurrentOrganizationTests(TestCase):
 
         group2.remove_member(self.member)
         self.user.user_profile.refresh_from_db()
-        self.assertEqual(self.user.user_profile.current_organization, None)
+        self.assertIsNone(self.user.user_profile.current_organization)

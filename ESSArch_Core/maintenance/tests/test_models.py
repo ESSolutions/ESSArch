@@ -97,9 +97,9 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
         conversion_job = ConversionJob.objects.create()
 
         self.assertEqual(appraisal_job.status, celery_states.PENDING)
-        self.assertEqual(appraisal_job.end_date, None)
+        self.assertIsNone(appraisal_job.end_date)
         self.assertEqual(conversion_job.status, celery_states.PENDING)
-        self.assertEqual(conversion_job.end_date, None)
+        self.assertIsNone(conversion_job.end_date)
 
         appraisal_job._mark_as_complete()
         conversion_job._mark_as_complete()
@@ -122,9 +122,9 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
         conversion_job = ConversionJob.objects.create()
 
         self.assertEqual(appraisal_job.status, celery_states.PENDING)
-        self.assertEqual(appraisal_job.end_date, None)
+        self.assertIsNone(appraisal_job.end_date)
         self.assertEqual(conversion_job.status, celery_states.PENDING)
-        self.assertEqual(conversion_job.end_date, None)
+        self.assertIsNone(conversion_job.end_date)
 
         with self.assertRaises(Exception):
             appraisal_job._mark_as_complete()
@@ -323,9 +323,9 @@ class MaintenanceJobRunTests(TestCase):
         self.conversion_job.refresh_from_db()
 
         self.assertEqual(self.appraisal_job.status, celery_states.STARTED)
-        self.assertEqual(self.appraisal_job.end_date, None)
+        self.assertIsNone(self.appraisal_job.end_date)
         self.assertEqual(self.conversion_job.status, celery_states.STARTED)
-        self.assertEqual(self.conversion_job.end_date, None)
+        self.assertIsNone(self.conversion_job.end_date)
 
 
 class FindAllFilesTests(TestCase):

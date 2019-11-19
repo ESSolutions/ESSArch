@@ -61,8 +61,8 @@ class TapeMountOrUnmountTests(TestCase):
         tape_drive.refresh_from_db()
 
         mock_unmount_tape.assert_called_once_with("robot_device", 12, 2)
-        self.assertEqual(tape_drive.locked, False)
-        self.assertEqual(storage_medium.tape_drive, None)
+        self.assertFalse(tape_drive.locked)
+        self.assertIsNone(storage_medium.tape_drive)
         self.assertTrue(before <= tape_drive.last_change <= after)
         self.assertEqual(res, "dummy_output")
 
@@ -83,9 +83,9 @@ class TapeMountOrUnmountTests(TestCase):
         tape_drive.refresh_from_db()
 
         mock_unmount_tape.assert_called_once_with("robot_device", 12, 2)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(storage_medium.status, 100)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(tape_drive.status, 100)
         self.assertEqual(storage_medium.tape_slot.status, 100)
 
@@ -131,9 +131,9 @@ class TapeMountOrUnmountTests(TestCase):
         tape_drive.refresh_from_db()
 
         mock_mount_tape.assert_called_once_with("robot_device", 12, 2)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(storage_medium.status, 100)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(tape_drive.status, 100)
         self.assertEqual(storage_medium.tape_slot.status, 100)
 
@@ -154,9 +154,9 @@ class TapeMountOrUnmountTests(TestCase):
         tape_drive.refresh_from_db()
 
         mock_mount_tape.assert_called_once_with("robot_device", 12, 2)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(storage_medium.status, 100)
-        self.assertEqual(tape_drive.locked, False)
+        self.assertFalse(tape_drive.locked)
         self.assertEqual(tape_drive.status, 100)
         self.assertEqual(storage_medium.tape_slot.status, 100)
 
@@ -179,7 +179,7 @@ class TapeMountOrUnmountTests(TestCase):
         mount_tape.assert_called_once_with("robot_device", 12, 2)
         wait_to_come_online.assert_called_once_with("unique_char", 121)
         self.assertEqual(tape_drive.num_of_mounts, 1)
-        self.assertEqual(tape_drive.locked, True)
+        self.assertTrue(tape_drive.locked)
         self.assertTrue(before <= tape_drive.last_change <= after)
         self.assertEqual(storage_medium.num_of_mounts, 1)
         self.assertEqual(storage_medium.tape_drive_id, tape_drive.pk)

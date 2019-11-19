@@ -71,7 +71,7 @@ def getSuffix(tag):
     tag = tag.split(':')[-1]
 
 
-def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
+def analyze2(element, tree, usedTypes=None, minC=1, maxC=1, choise=-1):
     global choiseCount
     global elCount
     global complexTypes
@@ -79,6 +79,9 @@ def analyze2(element, tree, usedTypes=[], minC=1, maxC=1, choise=-1):
     global finishedGroups
     global attributesComplexTypes
     global elementTypes
+
+    if usedTypes is None:
+        usedTypes = []
 
     tag = printTag(element.tag)
     ref = element.get('ref')
