@@ -55,7 +55,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'classes': ('wide'),
-            'fields': ('id', 'name', 'type', 'status', 'label',)
+            'fields': ('id', 'name', 'type', 'status', 'label', 'template',)
         }),
         ('Information about Archival organization', {
             'classes': ('collapse', 'wide'),
