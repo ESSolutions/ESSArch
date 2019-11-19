@@ -56,8 +56,8 @@ class FormatIdentifierMimeTypeTests(TestCase):
         fid.handle_matches('fullname', [], mock.ANY)
 
         self.assertEqual(fid.format_name, 'Unknown File Format')
-        self.assertEqual(fid.format_version, None)
-        self.assertEqual(fid.format_registry_key, None)
+        self.assertIsNone(fid.format_version)
+        self.assertIsNone(fid.format_registry_key)
 
     @mock.patch("ESSArch_Core.fixity.format.mimetypes.guess_type", return_value=(None, mock.ANY))
     def test_handle_matches_when_no_matches_and_unknown_types_not_allowed(self, mock_mimetypes_init):
@@ -73,6 +73,6 @@ class FormatIdentifierMimeTypeTests(TestCase):
 
         fid.handle_matches('fullname', dummy_matches, mock.ANY)
 
-        self.assertEqual(fid.format_name, None)
-        self.assertEqual(fid.format_version, None)
-        self.assertEqual(fid.format_registry_key, None)
+        self.assertIsNone(fid.format_name)
+        self.assertIsNone(fid.format_version)
+        self.assertIsNone(fid.format_registry_key)

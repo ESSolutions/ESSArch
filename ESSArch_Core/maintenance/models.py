@@ -36,7 +36,7 @@ def find_all_files(datadir, ip, pattern):
     found_files = []
     for path in iglob(datadir + '/' + pattern):
         if os.path.isdir(path):
-            for root, dirs, files in walk(path):
+            for root, _dirs, files in walk(path):
                 rel = os.path.relpath(root, datadir)
 
                 for f in files:
@@ -164,7 +164,7 @@ class AppraisalRule(MaintenanceRule):
                 for pattern in self.specification:
                     found_files.extend(find_all_files(datadir, ip, pattern))
             else:
-                for root, dirs, files in walk(datadir):
+                for root, _dirs, files in walk(datadir):
                     rel = os.path.relpath(root, datadir)
 
                     for f in files:
@@ -209,7 +209,7 @@ class AppraisalJob(MaintenanceJob):
 
             if not self.rule.specification:
                 # register all files
-                for root, dirs, files in walk(srcdir):
+                for root, _dirs, files in walk(srcdir):
                     rel = os.path.relpath(root, srcdir)
 
                     for f in files:
@@ -243,7 +243,7 @@ class AppraisalJob(MaintenanceJob):
                 for pattern in self.rule.specification:
                     for path in iglob(dstdir + '/' + pattern):
                         if os.path.isdir(path):
-                            for root, dirs, files in walk(path):
+                            for root, _dirs, files in walk(path):
                                 rel = os.path.relpath(root, dstdir)
 
                                 for f in files:
@@ -307,7 +307,7 @@ class ConversionRule(MaintenanceRule):
         for ip in ips:
             storage_target = ip.policy.cache_storage.enabled_target.target
             datadir = os.path.join(storage_target, ip.object_identifier_value)
-            for pattern, spec in self.specification.items():
+            for pattern, _spec in self.specification.items():
                 found_files.extend(find_all_files(datadir, ip, pattern))
         return found_files
 
@@ -361,7 +361,7 @@ class ConversionJob(MaintenanceJob):
 
                 for path in iglob(dstdir + '/' + pattern):
                     if os.path.isdir(path):
-                        for root, dirs, files in walk(path):
+                        for root, _dirs, files in walk(path):
                             rel = os.path.relpath(root, dstdir)
 
                             for f in files:

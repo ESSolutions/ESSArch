@@ -511,7 +511,7 @@ class XMLAttribute:
 def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
     files = []
     external = [e[1] for e in external]
-    for root, dirnames, filenames in walk(path):
+    for root, _dirnames, filenames in walk(path):
         for fname in filenames:
             filepath = os.path.join(root, fname)
             relpath = os.path.relpath(filepath, path)
@@ -597,7 +597,7 @@ class XMLGenerator:
         # See if any profile allows unknown file types.
         # If atleast one does allow it, we allow it for all profiles.
         allow_unknown_file_types = False
-        for idx, f in enumerate(self.toCreate):
+        for _idx, f in enumerate(self.toCreate):
             allow_unknown_file_types = f.get('data', {}).get('allow_unknown_file_types', False)
             if allow_unknown_file_types:
                 break
