@@ -41,7 +41,10 @@ export default class PrepareSipCtrl {
   ) {
     const vm = this;
     const ipSortString = ['Created', 'Submitting', 'Submitted'];
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+    const params = {
+      package_type: 0,
+    };
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
     $scope.menuOptions = function(rowType, row) {
       const methods = [];
