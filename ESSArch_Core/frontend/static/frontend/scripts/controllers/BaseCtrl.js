@@ -1152,6 +1152,20 @@ export default class BaseCtrl {
       }
     };
 
+    vm.multipleIpResponsible = function() {
+      if ($scope.ips.length > 0) {
+        var responsible = true;
+        $scope.ips.forEach(function(ip) {
+          if (ip.responsible.id !== $rootScope.auth.id) {
+            responsible = false;
+          }
+        });
+        return responsible;
+      } else {
+        return false;
+      }
+    };
+
     //Create and show modal for remove ip
     $scope.removeIpModal = function(ipObject) {
       const modalInstance = $uibModal.open({
