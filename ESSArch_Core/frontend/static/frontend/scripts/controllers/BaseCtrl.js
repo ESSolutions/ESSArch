@@ -1166,6 +1166,20 @@ export default class BaseCtrl {
       }
     };
 
+    vm.multipleIpResponsible = function() {
+      if ($scope.ips.length > 0) {
+        var responsible = true;
+        $scope.ips.forEach(function(ip) {
+          if (ip.responsible.id !== $rootScope.auth.id) {
+            responsible = false;
+          }
+        });
+        return responsible;
+      } else {
+        return false;
+      }
+    };
+
     vm.allIncludedWithState = (list, state) => {
       return list.filter(x => x.state === state).length === list.length;
     };
