@@ -200,7 +200,7 @@ class DiffCheckValidator(BaseValidator):
         return delete_count
 
     def _validate_present_files(self, objs):
-        for present_hash, present_hash_files in self.present.items():
+        for _present_hash, present_hash_files in self.present.items():
             for f in present_hash_files:
                 self.added += 1
                 msg = '{f} is missing from {xml}'.format(f=f, xml=self.context)
@@ -215,7 +215,7 @@ class DiffCheckValidator(BaseValidator):
         logger.debug('Validating {path} against {xml}'.format(path=path, xml=xmlfile))
 
         if os.path.isdir(path):
-            for root, dirs, files in walk(path):
+            for root, _dirs, files in walk(path):
                 for f in files:
                     filepath = normalize_path(os.path.join(root, f))
                     if filepath in self.exclude or filepath == xmlfile:

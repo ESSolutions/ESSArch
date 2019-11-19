@@ -512,7 +512,7 @@ class InformationPackageStepStateTests(TestCase):
     def test_step_state_when_its_an_AIP_with_all_success_tasks_then_success(self):
         aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
 
-        for i in range(3):
+        for _ in range(3):
             ProcessTask.objects.create(information_package=aip, status=celery_state.SUCCESS)
 
         state = aip.step_state
@@ -557,7 +557,7 @@ class InformationPackageGetAgentTests(TestCase):
         ip.agents.add(agent)
         ip.save()
 
-        self.assertEqual(ip.get_agent("non existent role", "type_1"), None)
+        self.assertIsNone(ip.get_agent("non existent role", "type_1"))
 
     def test_get_agent_when_type_does_not_exists_should_return_None(self):
         agent = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
@@ -565,7 +565,7 @@ class InformationPackageGetAgentTests(TestCase):
         ip.agents.add(agent)
         ip.save()
 
-        self.assertEqual(ip.get_agent("role_1", "non existing type"), None)
+        self.assertIsNone(ip.get_agent("role_1", "non existing type"))
 
     def test_get_agent_when_exists_return_agent(self):
         agent = Agent.objects.create(role="role_1", type="type_1", name="name_1", code="code_1")
@@ -601,7 +601,7 @@ class InformationPackageIsLockedTests(TestCase):
 
     def test_is_locked_not_in_cache_should_return_False(self):
         ip = InformationPackage.objects.create()
-        self.assertEqual(ip.is_locked(), False)
+        self.assertFalse(ip.is_locked())
 
 
 class InformationPackageGetChecksumAlgorithmTests(TestCase):
@@ -655,14 +655,14 @@ class InformationPackageGetEmailRecipientTests(TestCase):
         ip = InformationPackage.objects.create()
         mock_profile_data.return_value = {}
 
-        self.assertEqual(ip.get_email_recipient(), None)
+        self.assertIsNone(ip.get_email_recipient())
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
     def test_get_email_recipient_when_profile_data_is_None_return_None(self, mock_profile_data):
         ip = InformationPackage.objects.create()
         mock_profile_data.return_value = None
 
-        self.assertEqual(ip.get_email_recipient(), None)
+        self.assertIsNone(ip.get_email_recipient())
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
     def test_get_email_recipient_get_from_profile_data(self, mock_profile_data):
@@ -715,21 +715,21 @@ class InformationPackageGenerationTests(TestCase):
     def test_is_first_generation_aic_is_None_should_return_True(self):
         aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
 
-        self.assertEqual(aip.is_first_generation(), True)
+        self.assertTrue(aip.is_first_generation())
 
     def test_is_first_generation_aic_with_single_aip_should_return_True(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
 
-        self.assertEqual(aip.is_first_generation(), True)
+        self.assertTrue(aip.is_first_generation())
 
     def test_is_first_generation_aic_with_multiple_aips(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
 
-        self.assertEqual(aip_1.is_first_generation(), False)
-        self.assertEqual(aip_2.is_first_generation(), True)
+        self.assertFalse(aip_1.is_first_generation())
+        self.assertTrue(aip_2.is_first_generation())
 
     def test_is_first_generation_aic_with_multiple_aips_when_workarea_read_only_is_False_should_be_filtered(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -737,34 +737,34 @@ class InformationPackageGenerationTests(TestCase):
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
         Workarea.objects.create(ip=aip_2, read_only=False, user=self.user)
 
-        self.assertEqual(aip_1.is_first_generation(), True)
-        self.assertEqual(aip_2.is_first_generation(), False)
+        self.assertTrue(aip_1.is_first_generation())
+        self.assertFalse(aip_2.is_first_generation())
 
     def test_is_first_generation_aic_when_workarea_read_only_is_False_should_be_filtered(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         Workarea.objects.create(ip=aip, read_only=False, user=self.user)
 
-        self.assertEqual(aip.is_first_generation(), False)
+        self.assertFalse(aip.is_first_generation())
 
     def test_is_last_generation_aic_is_None_should_return_True(self):
         aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
 
-        self.assertEqual(aip.is_last_generation(), True)
+        self.assertTrue(aip.is_last_generation())
 
     def test_is_last_generation_aic_with_single_aip_should_return_True(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
 
-        self.assertEqual(aip.is_last_generation(), True)
+        self.assertTrue(aip.is_last_generation())
 
     def test_is_last_generation_aic_with_multiple_aips(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip_1 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
 
-        self.assertEqual(aip_1.is_last_generation(), True)
-        self.assertEqual(aip_2.is_last_generation(), False)
+        self.assertTrue(aip_1.is_last_generation())
+        self.assertFalse(aip_2.is_last_generation())
 
     def test_is_last_generation_aic_with_multiple_aips_when_workarea_read_only_is_False_should_be_filtered(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -772,15 +772,15 @@ class InformationPackageGenerationTests(TestCase):
         aip_2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=13)
         Workarea.objects.create(ip=aip_1, read_only=False, user=self.user)
 
-        self.assertEqual(aip_1.is_last_generation(), False)
-        self.assertEqual(aip_2.is_last_generation(), True)
+        self.assertFalse(aip_1.is_last_generation())
+        self.assertTrue(aip_2.is_last_generation())
 
     def test_is_last_generation_aic_when_workarea_read_only_is_False_should_be_filtered(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=42)
         Workarea.objects.create(ip=aip, read_only=False, user=self.user)
 
-        self.assertEqual(aip.is_last_generation(), False)
+        self.assertFalse(aip.is_last_generation())
 
 
 class InformationPackageCreatePreservationWorkflowTests(TestCase):

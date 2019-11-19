@@ -71,7 +71,7 @@ class StorageTargetCreateStorageMediumTests(TestCase):
 
         self.assertEqual(medium.location, 'dummy_medium_location')
         self.assertEqual(medium.agent, 'dummy_agent_id')
-        self.assertEqual(medium.tape_slot, None)
+        self.assertIsNone(medium.tape_slot)
         self.assertEqual(medium.medium_id, storage_target_name)
 
     def test_when_no_storage_medium_exists_should_create_new_StorageMedium_for_TAPE(self):
@@ -146,7 +146,7 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
         medium, created = storage_target.get_or_create_storage_medium(None)
 
         self.assertEqual(medium, "Dummy_medium")
-        self.assertEqual(created, True)
+        self.assertTrue(created)
 
     @mock.patch('ESSArch_Core.storage.models.StorageTarget._create_storage_medium')
     def test_when_called_with_no_params_and_no_StorageMedium_exists_then_create(self, mock_create_storage_medium):
@@ -160,7 +160,7 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
         medium, created = storage_target.get_or_create_storage_medium()
 
         self.assertEqual(medium, "Dummy_medium")
-        self.assertEqual(created, True)
+        self.assertTrue(created)
 
     def test_when_qs_is_None_but_StorageMedium_exists_and_found_then_return_medium_from_DB(self):
         storage_target = StorageTarget.objects.create(
@@ -173,7 +173,7 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
         medium, created = storage_target.get_or_create_storage_medium()
 
         self.assertEqual(medium, storage_medium)
-        self.assertEqual(created, False)
+        self.assertFalse(created)
 
     @mock.patch('ESSArch_Core.storage.models.StorageTarget._create_storage_medium')
     def test_when_qs_is_None_and_StorageMedium_is_not_found_then_return_medium_from_DB(self, mock_create_sm):
@@ -192,7 +192,7 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
         medium, created = storage_target.get_or_create_storage_medium()
 
         self.assertEqual(medium, "dummy_medium")
-        self.assertEqual(created, True)
+        self.assertTrue(created)
 
     def test_when_qs_is_passed_as_parameter_then_return_medium_from_DB(self):
         storage_target = StorageTarget.objects.create(
@@ -206,7 +206,7 @@ class StorageTargetGetOrCreateStorageMediumTests(TestCase):
         medium, created = storage_target.get_or_create_storage_medium(qs)
 
         self.assertEqual(medium, storage_medium)
-        self.assertEqual(created, False)
+        self.assertFalse(created)
 
 
 class StorageTargetGetStorageBackendTests(TestCase):

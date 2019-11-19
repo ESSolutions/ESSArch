@@ -1094,16 +1094,16 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic.pk))
 
-        self.assertEqual(res.data[0]['information_packages'][0]['first_generation'], True)
-        self.assertEqual(res.data[0]['information_packages'][0]['last_generation'], False)
-        self.assertEqual(res.data[0]['information_packages'][1]['first_generation'], False)
-        self.assertEqual(res.data[0]['information_packages'][1]['last_generation'], True)
+        self.assertTrue(res.data[0]['information_packages'][0]['first_generation'])
+        self.assertFalse(res.data[0]['information_packages'][0]['last_generation'])
+        self.assertFalse(res.data[0]['information_packages'][1]['first_generation'])
+        self.assertTrue(res.data[0]['information_packages'][1]['last_generation'])
 
         self.assertEqual(len(res.data[1]['information_packages']), 2)
-        self.assertEqual(res.data[1]['information_packages'][0]['first_generation'], True)
-        self.assertEqual(res.data[1]['information_packages'][0]['last_generation'], False)
-        self.assertEqual(res.data[1]['information_packages'][1]['first_generation'], False)
-        self.assertEqual(res.data[1]['information_packages'][1]['last_generation'], False)
+        self.assertTrue(res.data[1]['information_packages'][0]['first_generation'])
+        self.assertFalse(res.data[1]['information_packages'][0]['last_generation'])
+        self.assertFalse(res.data[1]['information_packages'][1]['first_generation'])
+        self.assertFalse(res.data[1]['information_packages'][1]['last_generation'])
 
     def test_ip_view_type_aic_multiple_aips_different_states_filter_state(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)

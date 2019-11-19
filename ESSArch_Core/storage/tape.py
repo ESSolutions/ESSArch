@@ -190,7 +190,7 @@ def tape_empty(drive):
         logger.exception('Unknown error while opening tape in {drive}'.format(drive=drive))
         raise
     except tarfile.ReadError as e:
-        if e.message == 'empty file':
+        if str(e) == 'empty file':
             logger.debug('Empty file in tape in {drive}, tape is empty'.format(drive=drive))
             rewind_tape(drive)
             return True
