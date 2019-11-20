@@ -13,7 +13,9 @@ export default class ProfileCtrl {
     $log,
     $uibModal,
     $translate,
-    $filter
+    $filter,
+    $http,
+    appConfig
   ) {
     const vm = this;
     $scope.angular = angular;
@@ -26,6 +28,11 @@ export default class ProfileCtrl {
     $scope.aipAlert = $scope.alerts.aipError;
     $scope.dipAlert = $scope.alerts.dipError;
     vm.dataVersion = null;
+    $scope.saProfile = {
+      profile: null,
+      profiles: [],
+      disabled: false,
+    };
     $scope.selectRowCollapse = [];
     // On init
     vm.$onInit = function() {
@@ -75,8 +82,10 @@ export default class ProfileCtrl {
 
     vm.loadProfiles = function() {
       const sa = $scope.saProfile.profile;
+      $scope.profilesLoading = true;
       $scope.selectRowCollection = [];
       SA.profiles({id: sa.id}).$promise.then(function(resource) {
+        $scope.profilesLoading = false;
         $scope.selectRowCollection = resource;
       });
     };
@@ -85,6 +94,19 @@ export default class ProfileCtrl {
       ProfileIp.patch({id: profileIp.id}, {data: data}).$promise.then(function(resource) {
         vm.getAndShowProfile(vm.selectedProfile, {});
       });
+    };
+
+    vm.getSas = search => {
+      return $http
+        .get(appConfig.djangoUrl + 'submission-agreements/', {params: {page: 1, page_size: 10, search}})
+        .then(response => {
+          $scope.saProfile.profiles = response.data;
+          return response.data;
+        });
+    };
+
+    vm.saProfileOptions = () => {
+      return $scope.saProfile.profiles;
     };
 
     $scope.pushData = function() {
