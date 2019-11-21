@@ -37,11 +37,14 @@ class xmlElement:
     A class containing a complete XML element, a list of attributes and a list of children
     '''
 
-    def __init__(self, tagName='', nsmap={}, namespace=None):
+    def __init__(self, tagName='', nsmap=None, namespace=None):
         try:
             self.tagName = tagName.split("#")[0]
         except BaseException:
             self.tagName = tagName
+
+        if nsmap is None:
+            nsmap = {}
 
         self.children = []
         self.attributes = []

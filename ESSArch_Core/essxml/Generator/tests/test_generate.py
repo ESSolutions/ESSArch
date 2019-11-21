@@ -721,7 +721,7 @@ class GenerateXMLTestCase(TestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in walk(self.datadir):
+        for _root, _dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//bar[@name='%s']" % f)
                 self.assertIsNotNone(file_element)
@@ -1242,7 +1242,7 @@ class GenerateXMLTestCase(TestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in walk(self.datadir):
+        for root, _dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//bar[@name='%s']" % f)
                 self.assertIsNotNone(file_element)
@@ -1370,7 +1370,7 @@ class GenerateXMLTestCase(TestCase):
         bars1 = tree1.findall('.//bar')
         bars2 = tree2.findall('.//bar')
 
-        self.assertTrue(len(bars2) == len(bars1) + 1)
+        self.assertEqual(len(bars2), len(bars1) + 1)
 
     def test_element_with_containsFiles_without_files(self):
         specification = {
@@ -1445,7 +1445,7 @@ class GenerateXMLTestCase(TestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in walk(self.datadir):
+        for root, _dirs, files in walk(self.datadir):
             for f in files:
                 file_element = tree.find(".//{%s}bar[@name='%s']" % (nsmap['premis'], f))
                 self.assertIsNotNone(file_element)
@@ -1505,7 +1505,7 @@ class GenerateXMLTestCase(TestCase):
 
         num_of_files = 0
 
-        for root, dirs, files in walk(self.datadir):
+        for root, _dirs, files in walk(self.datadir):
             for f in files:
                 filepath = os.path.join(root, f)
                 relpath = normalize_path(os.path.relpath(filepath, self.datadir))
@@ -1726,7 +1726,7 @@ class GenerateXMLTestCase(TestCase):
         append_xml = '<appended>appended text</appended>'
 
         target = self.generator.find_element('foo')
-        for i in range(3):
+        for _ in range(3):
             self.generator.insert_from_xml_string(
                 target, append_xml,
             )
@@ -1758,7 +1758,7 @@ class GenerateXMLTestCase(TestCase):
         etree.ElementTree(append_el).write(append_xml, xml_declaration=True, encoding='UTF-8')
 
         target = self.generator.find_element('foo')
-        for i in range(3):
+        for _ in range(3):
             self.generator.insert_from_xml_file(
                 target, append_xml,
             )
@@ -1803,7 +1803,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         target = self.generator.find_element('foo')
-        for i in range(3):
+        for _ in range(3):
             self.generator.insert_from_specification(
                 target, append_specification, {},
             )
@@ -2124,7 +2124,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         target = self.generator.find_element('foo')
-        for i in range(3):
+        for _ in range(3):
             self.generator.insert_from_specification(
                 target, append_specification, {},
             )

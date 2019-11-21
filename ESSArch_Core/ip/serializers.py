@@ -3,7 +3,6 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
-from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
@@ -228,6 +227,36 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         }
 
 
+class InformationPackageCreateSerializer(serializers.ModelSerializer):
+    package_type = serializers.ChoiceField(
+        choices=[
+            (InformationPackage.SIP, 'SIP'),
+            (InformationPackage.DIP, 'DIP'),
+        ]
+    )
+    orders = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=Order.objects.all()),
+        allow_empty=True,
+        required=False,
+    )
+
+    class Meta:
+        model = InformationPackage
+        fields = ('label', 'object_identifier_value', 'package_type', 'orders',)
+        extra_kwargs = {
+            'label': {
+                'required': True,
+                'allow_blank': False,
+            },
+            'object_identifier_value': {
+                'required': False,
+                'default': None,
+                'allow_blank': True,
+                'validators': [],
+            }
+        }
+
+
 class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
     storage_policy = serializers.PrimaryKeyRelatedField(
         queryset=StoragePolicy.objects.all(),
@@ -270,22 +299,6 @@ class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
                 raise serializers.ValidationError('Invalid structure unit for selected structure')
 
         return data
-
-
-class PrepareDIPSerializer(serializers.Serializer):
-    label = serializers.CharField(required=True)
-    object_identifier_value = serializers.CharField(required=False, allow_null=True, allow_blank=True)
-    orders = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(queryset=Order.objects.all()),
-        allow_empty=True,
-    )
-
-    def validate_object_identifier_value(self, value):
-        ip_exists = InformationPackage.objects.filter(object_identifier_value=value).exists()
-        if ip_exists:
-            raise serializers.ValidationError(_('IP with object identifer value "%s" already exists' % value))
-
-        return value
 
 
 class OrderSerializer(serializers.ModelSerializer):

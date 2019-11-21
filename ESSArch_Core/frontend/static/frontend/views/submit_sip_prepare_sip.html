@@ -8,7 +8,7 @@
     >
       <uib-tab
         index="'submit_sip'"
-        ng-if="vm.specificTabs.includes('submit_sip')"
+        ng-if="(ip !== null && ip.state === 'Created') || (ips.length > 0 && vm.allIncludedWithState(ips, 'Created'))"
         heading="{{'SUBMITSIP' | translate}}"
       >
         <div ng-if="vm.activeTab === 'submit_sip'">

@@ -15,6 +15,8 @@ export default {
     '$uibModal',
     '$translate',
     '$filter',
+    '$http',
+    'appConfig',
     controller,
   ],
   controllerAs: 'vm',

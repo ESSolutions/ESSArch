@@ -38,8 +38,11 @@ export default class PrepareIpCtrl {
   ) {
     const vm = this;
     const ipSortString = ['Preparing'];
+    const params = {
+      package_type: 0,
+    };
     $scope.angular = angular;
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
     $scope.menuOptions = function(rowType, row) {
       const methods = [];
@@ -118,20 +121,6 @@ export default class PrepareIpCtrl {
           });
         }
         $scope.editSA = true;
-      }
-    };
-
-    vm.sa_locked = function() {
-      if ($scope.ip !== null && $scope.ips.length == 0) {
-        return $scope.ip.submission_agreement_locked;
-      } else {
-        let allLocked = true;
-        $scope.ips.forEach(function(ip) {
-          if (!ip.submission_agreement_locked) {
-            allLocked = false;
-          }
-        });
-        return allLocked;
       }
     };
 
