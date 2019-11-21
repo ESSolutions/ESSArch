@@ -30,6 +30,7 @@ const contentTabs = () => {
       content: ['order'],
     },
     'home.access.createDip': {
+      prepare_dip: ['Preparing'],
       create_dip: ['Prepared'],
       preserve: ['Created'],
     },

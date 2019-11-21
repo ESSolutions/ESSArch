@@ -83,12 +83,12 @@ class GetValueFromPathTest(TestCase):
     def test_get_value_from_path_when_path_is_none(self):
         xml = self.get_simple_xml()
         root_xml = objectify.fromstring(xml)
-        self.assertEqual(get_value_from_path(root_xml, None), None)
+        self.assertIsNone(get_value_from_path(root_xml, None))
 
     def test_get_value_from_path_when_attribute_is_missing(self):
         xml = self.get_simple_xml()
         root_xml = objectify.fromstring(xml)
-        self.assertEqual(get_value_from_path(root_xml, "anmerkningar@non_existing_attr"), None)
+        self.assertIsNone(get_value_from_path(root_xml, "anmerkningar@non_existing_attr"))
 
 
 class GetFilesAndDirsTest(TestCase):
@@ -159,11 +159,11 @@ class GetSchemasTest(SimpleTestCase):
         doc = etree.parse(filename, parser=parser)
 
         schema = getSchemas(doc=doc)
-        self.assertTrue(type(schema) is etree._Element)
+        self.assertIs(type(schema), etree._Element)
 
     def test_get_schema_from_file(self):
         schema = getSchemas(filename=self.get_simple_valid_xml())
-        self.assertTrue(type(schema) is etree._Element)
+        self.assertIs(type(schema), etree._Element)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
         with self.assertRaisesRegexp(AttributeError, "'NoneType' object has no attribute 'getroot'"):
@@ -361,7 +361,7 @@ class GenerateFileResponseTests(TestCase):
     def get_headers_from_response(self, response):
         if isinstance(response, FileResponse):
             headers = {}
-            for k, v in response.__dict__.get('_headers').items():
+            for _, v in response.__dict__.get('_headers').items():
                 headers[v[0]] = v[1]
 
             return headers

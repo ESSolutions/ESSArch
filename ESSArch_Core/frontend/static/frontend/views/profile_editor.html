@@ -1,7 +1,7 @@
 <div class="profile-editor">
   <div ng-if="select" id="select-view" class="select-view">
     <div class="sa-table table-container">
-      <table ng-if="!saAlert" style="margin-top: 20px;" class="table table-striped">
+      <table ng-if="!saAlert && saProfile" style="margin-top: 20px;" class="table table-striped">
         <thead>
           <tr>
             <th
@@ -29,17 +29,32 @@
               <p class="table-col">{{'SUBMISSIONAGREEMENT' | translate}}</p>
             </td>
             <td>
-              <select
-                class="form-control table-col"
+              <ui-select
+                spinner-enabled="true"
+                spinner-class="{{'fas fa-spinner fa-spin ui-select-custom-spinner'}}"
                 ng-disabled="saProfile.locked || vm.gettingSas"
                 ng-model="saProfile.profile"
+                theme="bootstrap"
                 ng-change="changeSaProfile(saProfile.profile, ip, {{saProfile.profiles.indexOf(saProfile.profile)}})"
-                ng-options="x as x.name for x in saProfile.profiles"
+                sortable="true"
+                append-to-body="true"
               >
-                <option ng-show="vm.gettingSas" value="" disabled selected
-                  >{{vm.gettingSas?('LOADING' | translate)+'...':''}}</option
+                <ui-select-match
+                  ng-attr-placeholder="{{vm.gettingSas ? ('LOADING' | translate) + ' ...' : ('SUBMISSIONAGREEMENT' | translate)}}"
+                  >{{$select.selected.name}}</ui-select-match
                 >
-              </select>
+                <ui-select-choices
+                  ng-hide="!$select.open"
+                  refresh-delay="300"
+                  refresh="vm.getSas($select.search)"
+                  repeat="x in vm.saProfileOptions() | propsFilter: {name: $select.search}"
+                >
+                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                </ui-select-choices>
+                <ui-select-no-choice>
+                  <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                </ui-select-no-choice>
+              </ui-select>
             </td>
             <td class="flex-row">
               <button
@@ -149,7 +164,6 @@
                       ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
                       <i class="fas fa-sm fa-pencil"></i>&nbsp;{{'EDIT' | translate}}
-                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
                     </button>
                     <button
                       ng-if="vm.disabled"
@@ -162,10 +176,16 @@
                       ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
                       <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
-                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
                     </button>
+                    <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
                   </td>
                 </div>
+              </tr>
+              <tr ng-if="!selectRowCollection.length && !profilesLoading" class="empty-table-indicator">
+                <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!selectRowCollection.length && profilesLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
               </tr>
             </tbody>
           </table>

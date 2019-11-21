@@ -112,10 +112,10 @@ export default class ModalInstanceCtrl {
           $ctrl.preparing = false;
         });
     };
-    $ctrl.prepareDip = function(label, objectIdentifierValue, orders) {
+    $ctrl.prepareNewDip = function(label, objectIdentifierValue, orders) {
       $ctrl.preparing = true;
       listViewService
-        .prepareDip(label, objectIdentifierValue, orders)
+        .prepareNewDip(label, objectIdentifierValue, orders)
         .then(function(response) {
           $ctrl.preparing = false;
           $uibModalInstance.close();

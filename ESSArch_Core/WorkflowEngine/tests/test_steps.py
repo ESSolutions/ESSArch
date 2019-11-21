@@ -58,7 +58,7 @@ class test_status(TestCase):
         depth = 5
         parent = self.step
 
-        for i in range(depth):
+        for _ in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
         with self.assertNumQueries((6 * depth) + 2):
@@ -75,7 +75,7 @@ class test_status(TestCase):
         depth = 5
         parent = self.step
 
-        for i in range(depth):
+        for _ in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
         self.step.status
@@ -410,7 +410,7 @@ class test_progress(TestCase):
         depth = 5
         parent = self.step
 
-        for i in range(depth):
+        for _ in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
         with self.assertNumQueries((3 * (depth + 1)) - 1):
@@ -427,7 +427,7 @@ class test_progress(TestCase):
         depth = 5
         parent = self.step
 
-        for i in range(depth):
+        for _ in range(depth):
             parent = ProcessStep.objects.create(parent_step=parent)
 
         self.step.progress

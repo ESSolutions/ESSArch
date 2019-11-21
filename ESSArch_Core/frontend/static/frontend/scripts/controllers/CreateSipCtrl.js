@@ -26,8 +26,10 @@ export default class CreateSipCtrl {
   constructor($http, Profile, $log, $scope, $rootScope, $uibModal, $anchorScroll, $controller, $translate) {
     const vm = this;
     const ipSortString = ['Uploaded', 'Creating'];
-
-    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+    const params = {
+      package_type: 0,
+    };
+    $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
     $scope.menuOptions = function(rowType, row) {
       const methods = [];

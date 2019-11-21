@@ -18,3 +18,8 @@
   border-top-left-radius: 4px;
   border-bottom-left-radius: 4px;
 }
+
+// Makes ui-select choices appear correctly in modals when using append-to-body
+.ui-select-bootstrap.open {
+  z-index: 1100 !important;
+}

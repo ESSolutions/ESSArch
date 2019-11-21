@@ -27,7 +27,7 @@ matrix:
       stage: lint
       python: '3.7'
       before_install: skip
-      install: pip install flake8==3.7.1
+      install: pip install -r requirements/lint.txt
       before_script: skip
       script: flake8
       after_success: skip
@@ -36,7 +36,7 @@ matrix:
       stage: lint
       python: '3.7'
       before_install: skip
-      install: pip install isort==4.3.20
+      install: pip install -r requirements/lint.txt
       before_script: skip
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip

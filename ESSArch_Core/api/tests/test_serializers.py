@@ -17,15 +17,15 @@ class DynamicModelSerializerTests(TestCase):
 
     def test_all_fields(self):
         data = InformationPackageSerializer(self.ip).data
-        self.assertTrue('label' in data)
-        self.assertTrue('object_identifier_value' in data)
+        self.assertIn('label', data)
+        self.assertIn('object_identifier_value', data)
 
     def test_selected_field(self):
         data = InformationPackageSerializer(self.ip, fields=['label']).data
-        self.assertTrue('label' in data)
-        self.assertFalse('object_identifier_value' in data)
+        self.assertIn('label', data)
+        self.assertNotIn('object_identifier_value', data)
 
     def test_omitted_field(self):
         data = InformationPackageSerializer(self.ip, omit=['label']).data
-        self.assertFalse('label' in data)
-        self.assertTrue('object_identifier_value' in data)
+        self.assertNotIn('label', data)
+        self.assertIn('object_identifier_value', data)
