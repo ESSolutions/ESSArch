@@ -62,6 +62,7 @@ import OrganizationModalInstanceCtrl from '../controllers/OrganizationModalInsta
 import OverwriteModalInstanceCtrl from '../controllers/OverwriteModalInstanceCtrl';
 import QueuesCtrl from '../controllers/QueuesCtrl';
 import PlaceNodeInArchiveModalInstanceCtrl from '../controllers/PlaceNodeInArchiveModalInstanceCtrl';
+import PrepareDipModalInstanceCtrl from '../controllers/PrepareDipModalInstanceCtrl';
 import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
@@ -718,6 +719,15 @@ export default angular
     '$translate',
     '$controller',
     PrepareIpCtrl,
+  ])
+  .controller('PrepareDipModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$q',
+    'IP',
+    PrepareDipModalInstanceCtrl,
   ])
   .controller('PrepareIpModalInstanceCtrl', [
     '$uibModalInstance',

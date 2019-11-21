@@ -19,19 +19,18 @@ from ESSArch_Core.storage.exceptions import (
     TapeMountedError,
     TapeUnmountedError,
 )
-
-from ESSArch_Core.storage.tape import (  # noqa isort:skip
-    mount_tape,
-    unmount_tape,
-    rewind_tape,
-    is_tape_drive_online,
-    wait_to_come_online,
-    tape_empty,
+from ESSArch_Core.storage.tape import (
     create_tape_label,
-    verify_tape_label,
     get_tape_file_number,
-    set_tape_file_number,
     get_tape_op_and_count,
+    is_tape_drive_online,
+    mount_tape,
+    rewind_tape,
+    set_tape_file_number,
+    tape_empty,
+    unmount_tape,
+    verify_tape_label,
+    wait_to_come_online,
 )
 
 
@@ -157,7 +156,7 @@ class TapeTests(TestCase):
         attrs = {'communicate.return_value': ('the drive is ONLINE now', 'error'), 'returncode': 0}
         mock_popen.return_value.configure_mock(**attrs)
 
-        self.assertEqual(is_tape_drive_online("device_to_verify"), True)
+        self.assertTrue(is_tape_drive_online("device_to_verify"))
 
         cmd = 'mt -f device_to_verify status'
         mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE, universal_newlines=True)
@@ -167,7 +166,7 @@ class TapeTests(TestCase):
         attrs = {'communicate.return_value': ('the drive is offline', 'error'), 'returncode': 0}
         mock_popen.return_value.configure_mock(**attrs)
 
-        self.assertEqual(is_tape_drive_online("device_to_verify"), False)
+        self.assertFalse(is_tape_drive_online("device_to_verify"))
 
         cmd = 'mt -f device_to_verify status'
         mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE, universal_newlines=True)
@@ -207,7 +206,7 @@ class TapeTests(TestCase):
         mocked_tar = mock.Mock()
         mock_tarfile.open.return_value = mocked_tar
 
-        self.assertEqual(tape_empty("some_drive"), False)
+        self.assertFalse(tape_empty("some_drive"))
 
         mock_tarfile.open.assert_called_once()
         mocked_tar.close.assert_called_once()
@@ -220,7 +219,7 @@ class TapeTests(TestCase):
         exception.errno = errno.EIO
         mock_tarfile.open.side_effect = exception
 
-        self.assertEqual(tape_empty("some_drive"), True)
+        self.assertTrue(tape_empty("some_drive"))
 
         mock_tarfile.open.assert_called_once()
         mock_rewind_tape.assert_called_once_with("some_drive")
@@ -240,11 +239,10 @@ class TapeTests(TestCase):
     @mock.patch('ESSArch_Core.storage.tape.tarfile.open')
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
     def test_tape_empty_when_tarfile_ReadError_with_msg_then_drive_is_empty(self, mock_rewind_tape, mock_tarfile_open):
-        exception = tarfile.ReadError()
-        exception.message = 'empty file'
+        exception = tarfile.ReadError('empty file')
         mock_tarfile_open.side_effect = exception
 
-        self.assertEqual(tape_empty("some_drive"), True)
+        self.assertTrue(tape_empty("some_drive"))
 
         mock_tarfile_open.assert_called_once()
         mock_rewind_tape.assert_called_once_with("some_drive")
@@ -407,21 +405,21 @@ class TapeLabelTest(TestCase):
         mock_medium = self.get_mocked_medium("code id", current_time, 103, 512, 325)
         xml_content = self.get_valid_xml_with_date("code id", current_time, 103, 512, 325)
 
-        self.assertEqual(verify_tape_label(mock_medium, xml_content.encode()), True)
+        self.assertTrue(verify_tape_label(mock_medium, xml_content.encode()))
 
     def test_verify_tape_label_bad_xml_should_return_False(self):
         current_time = timezone.now()
         mock_medium = self.get_mocked_medium("code id", current_time, 103, 512, 325)
         xml_content = """badXML"""
 
-        self.assertEqual(verify_tape_label(mock_medium, xml_content.encode()), False)
+        self.assertFalse(verify_tape_label(mock_medium, xml_content.encode()))
 
     def test_verify_tape_label_id_differs_should_return_False(self):
         current_time = timezone.now()
         mock_medium = self.get_mocked_medium("code id", current_time, 103, 512, 325)
         xml_content = self.get_valid_xml_with_date("some other id", current_time, 103, 512, 325)
 
-        self.assertEqual(verify_tape_label(mock_medium, xml_content.encode()), False)
+        self.assertFalse(verify_tape_label(mock_medium, xml_content.encode()))
 
     def test_verify_tape_label_tape_tag_missing_should_return_False(self):
         current_time = timezone.now()
@@ -433,4 +431,4 @@ class TapeLabelTest(TestCase):
 </label>
 """
 
-        self.assertEqual(verify_tape_label(mock_medium, xml_content.encode()), False)
+        self.assertFalse(verify_tape_label(mock_medium, xml_content.encode()))

@@ -172,7 +172,7 @@ export default class {
       if (row.state == 'Created') {
         $scope.openRequestForm(row);
       }
-      if (row.state === 'Creating' || (($scope.select || $scope.requestForm) && $scope.ip && $scope.ip.id == row.id)) {
+      if (($scope.select || $scope.requestForm) && $scope.ip && $scope.ip.id == row.id) {
         $scope.select = false;
         $scope.eventlog = false;
         $scope.edit = false;
@@ -259,6 +259,7 @@ export default class {
           data: function() {
             return {
               ip: ip,
+              validators: vm.validatorModel,
             };
           },
         },
@@ -266,18 +267,13 @@ export default class {
         controllerAs: '$ctrl',
       });
       modalInstance.result.then(function(data) {
-        $scope.select = false;
-        $scope.edit = false;
-        $scope.eventlog = false;
         $scope.selectedCards1 = [];
         $scope.selectedCards2 = [];
         $scope.chosenFiles = [];
         $scope.deckGridData = [];
-        $timeout(function() {
-          $scope.getListViewData();
-          $scope.openRequestForm(ip);
-          $anchorScroll();
-        });
+        $scope.ip = null;
+        $scope.ips = [];
+        $scope.getListViewData();
       });
     };
 
@@ -602,12 +598,12 @@ export default class {
         .pop()
         .toUpperCase();
     };
-    $scope.prepareDipModal = function() {
+    $scope.prepareNewDipModal = function() {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/prepare-dip-modal.html',
+        templateUrl: 'static/frontend/views/prepare-new-dip-modal.html',
         scope: $scope,
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
@@ -620,6 +616,39 @@ export default class {
           $scope.getListViewData();
         });
       });
+    };
+
+    vm.prepareDipModal = function() {
+      let ips = [];
+      if ($scope.ips.length) {
+        ips = $scope.ips;
+      } else {
+        ips = [$scope.ip];
+      }
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/prepare_dip_modal.html',
+        scope: $scope,
+        controller: 'PrepareDipModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: () => {
+            return {
+              ips,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $scope.getListViewData();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
     };
 
     $scope.newDirModal = function() {

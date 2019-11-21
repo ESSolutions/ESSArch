@@ -327,7 +327,7 @@ class ParseExtraIdTests(TestCase):
         root = get_xml_root_from_string(xml_string)
         data = self.importer.parse_extra_id(root)
 
-        self.assertEqual(data, None)
+        self.assertIsNone(data)
 
     def test_parse_extra_id_with_text_should_get_type_and_id(self):
         xml_string = '''<root ExtraIDTyp='some id type'>some_id_text</root>'''
@@ -989,7 +989,7 @@ class ParseActTests(TestCase):
         self.assertEqual(root.xpath("*[local-name()='Gallring']"), [])
 
         tag_version = self.importer.parse_act(root, self.errand, self.ip)
-        self.assertEqual(tag_version.custom_fields.get('gallring'), None)
+        self.assertIsNone(tag_version.custom_fields.get('gallring'))
 
     def test_parse_act_when_ExtraID_tag_has_no_text_then_should_not_add_to_data(self):
         root = self.get_arkivobjekt_handling()
@@ -997,7 +997,7 @@ class ParseActTests(TestCase):
         # Remove text for 'ExtraID' tag
         root.xpath("*[local-name()='ExtraID']")[0].clear()
         # Make sure 'ExtraID' text is cleared
-        self.assertEqual(root.xpath("*[local-name()='ExtraID']")[0].text, None)
+        self.assertIsNone(root.xpath("*[local-name()='ExtraID']")[0].text)
 
         tag_version = self.importer.parse_act(root, self.errand, self.ip)
 

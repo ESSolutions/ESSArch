@@ -594,7 +594,7 @@ def installPipelines():
 
 
 def installSearchIndices():
-    for index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
+    for _index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
         doctype = locate(index_class)
         alias_migration.setup_index(doctype)
 

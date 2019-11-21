@@ -355,6 +355,7 @@ const listViewService = (
   function prepareIp(label) {
     ip.post({
       label: label,
+      package_type: 0,
     }).$promise.then(function(response) {
       return 'created';
     });
@@ -389,18 +390,19 @@ const listViewService = (
     });
   }
 
-  function prepareDip(label, objectIdentifierValue, orders) {
-    return IP.prepareDip({
+  function prepareNewDip(label, objectIdentifierValue, orders) {
+    return IP.prepareNewDip({
       label: label,
       object_identifier_value: objectIdentifierValue,
       orders: orders,
+      package_type: 4,
     }).$promise.then(function(response) {
       return response;
     });
   }
 
-  function createDip(ip) {
-    return IP.createDip({id: ip.id}).$promise.then(function(response) {
+  function createDip(ip, validators) {
+    return IP.createDip(angular.extend({id: ip.id}, validators)).$promise.then(function(response) {
       return response;
     });
   }
@@ -640,7 +642,7 @@ const listViewService = (
     addNewWorkareaFolder: addNewWorkareaFolder,
     deleteFile: deleteFile,
     deleteWorkareaFile: deleteWorkareaFile,
-    prepareDip: prepareDip,
+    prepareNewDip: prepareNewDip,
     getDipPage: getDipPage,
     getOrderPage: getOrderPage,
     prepareOrder: prepareOrder,

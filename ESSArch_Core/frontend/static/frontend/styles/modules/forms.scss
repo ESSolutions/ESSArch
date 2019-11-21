@@ -24,3 +24,8 @@
   overflow-x: hidden;
   text-overflow: ellipsis;
 }
+
+// Makes ui-select choices appear correctly in modals when using append-to-body
+.ui-select-bootstrap.open {
+  z-index: 1100 !important;
+}

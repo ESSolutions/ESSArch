@@ -26,7 +26,7 @@ def ip_post_delete(sender, instance, using, **kwargs):
     GroupGenericObjects.objects.filter(object_id=str(instance.pk), content_type=ip_content_type).delete()
 
     try:
-        if getattr(instance, 'aic') is not None and not instance.aic.information_packages.exists():
+        if instance.aic is not None and not instance.aic.information_packages.exists():
             # this was the last IP in the AIC, delete the AIC as well
             instance.aic.delete()
     except InformationPackage.DoesNotExist:

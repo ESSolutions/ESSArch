@@ -84,7 +84,7 @@ class S3StorageBackend(BaseStorageBackend):
                     raise
 
                 parent_dir = os.path.dirname(f)
-                for root, dirs, files in walk(f):
+                for root, _dirs, files in walk(f):
                     for fi in files:
                         srcf = os.path.join(root, fi)
                         dstf = os.path.relpath(os.path.join(root, fi), parent_dir)
