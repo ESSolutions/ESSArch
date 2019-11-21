@@ -46,7 +46,6 @@ from ESSArch_Core.storage.filters import (
     StorageMethodFilter,
 )
 from ESSArch_Core.storage.models import (
-    STORAGE_TARGET_STATUS_ENABLED,
     TAPE,
     AccessQueue,
     IOQueue,
@@ -377,7 +376,7 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
 
 
-class StorageTargetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class StorageTargetViewSet(viewsets.ModelViewSet):
     """
     API endpoint for storage target
     """
@@ -387,19 +386,6 @@ class StorageTargetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('status', 'type',)
     search_fields = ('name',)
-
-    def get_queryset(self):
-        parents_query_dict = self.get_parents_query_dict()
-        ip_id = parents_query_dict.get('ip')
-        if ip_id is None:
-            return self.queryset
-
-        ip = InformationPackage.objects.get(pk=ip_id)
-        storage_methods = ip.get_migratable_storage_methods()
-        return StorageTarget.objects.filter(
-            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
-            storage_method_target_relations__storage_method__in=storage_methods,
-        )
 
 
 class RobotViewSet(viewsets.ModelViewSet):
