@@ -1,4 +1,4 @@
-const sa = ($resource, appConfig) => {
+export const sa = ($resource, appConfig) => {
   return $resource(
     appConfig.djangoUrl + 'submission-agreements/:id/:action/',
     {},
@@ -37,6 +37,22 @@ const sa = ($resource, appConfig) => {
         method: 'GET',
         isArray: true,
         params: {action: 'profiles', id: '@id'},
+      },
+    }
+  );
+};
+
+export const saIpData = ($resource, appConfig) => {
+  return $resource(
+    appConfig.djangoUrl + 'submission-agreement-ip-data/:id/:action/',
+    {},
+    {
+      get: {
+        method: 'GET',
+        params: {id: '@id'},
+      },
+      post: {
+        method: 'POST',
       },
     }
   );
