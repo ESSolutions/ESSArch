@@ -431,7 +431,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
-        fields = ('id', 'object_identifier_value',)
+        fields = ('id', 'label', 'object_identifier_value',)
 
 
 class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
