@@ -23,7 +23,6 @@
 """
 
 import errno
-import io
 import logging
 import math
 import os
@@ -106,6 +105,7 @@ from ESSArch_Core.util import (
     get_tree_size_and_count,
     in_directory,
     normalize_path,
+    open_file,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.util import create_workflow
@@ -394,6 +394,11 @@ class InformationPackage(models.Model):
         on_delete=models.PROTECT,
         related_name='information_packages',
         default=None,
+        null=True,
+    )
+    submission_agreement_data = models.ForeignKey(
+        'profiles.SubmissionAgreementIPData',
+        on_delete=models.SET_NULL,
         null=True,
     )
     submission_agreement_locked = models.BooleanField(default=False)
@@ -1796,28 +1801,10 @@ class InformationPackage(models.Model):
             if os.path.join(os.path.dirname(self.object_path), path) == xmlfile:
                 return open(xmlfile, *args)
 
-            try:
-                with tarfile.open(self.object_path) as tar:
-                    try:
-                        f = tar.extractfile(path)
-                    except KeyError:
-                        full_path = normalize_path(os.path.join(self.object_identifier_value, path))
-                        f = tar.extractfile(full_path)
-                    return io.BytesIO(f.read())
-            except tarfile.ReadError:
-                logger.debug('Invalid tar file, trying zipfile instead')
-                try:
-                    with zipfile.ZipFile(self.object_path) as zipf:
-                        try:
-                            f = zipf.open(path)
-                        except KeyError:
-                            full_path = normalize_path(os.path.join(self.object_identifier_value, path))
-                            f = zipf.open(full_path)
-                        return io.BytesIO(f.read())
-                except zipfile.BadZipfile:
-                    logger.debug('Invalid zip file')
-            except KeyError:
-                raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(self.object_path, path))
+            return open_file(
+                path, *args, container=self.object_path,
+                container_prefix=self.object_identifier_value, **kwargs
+            )
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
 
@@ -1849,7 +1836,8 @@ class InformationPackage(models.Model):
 
     class Meta:
         ordering = ["generation", "-create_date"]
-        verbose_name = 'Information Package'
+        verbose_name = _('information package')
+        verbose_name_plural = _('information packages')
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),

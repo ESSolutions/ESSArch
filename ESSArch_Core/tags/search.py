@@ -195,7 +195,7 @@ class ComponentSearch(FacetedSearch):
             for field in self.fields:
                 if '__' in field:
                     paths = field.split('__')
-                    for idx, path in enumerate(paths):
+                    for idx, _path in enumerate(paths):
                         if idx == 0:
                             continue
 

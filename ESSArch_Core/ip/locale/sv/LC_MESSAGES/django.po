@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-01-11 10:34+0100\n"
+"POT-Creation-Date: 2019-11-15 12:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,59 +22,104 @@ msgstr ""
 msgid "Information Package"
 msgstr "Informationspaket"
 
-#: filters.py:9
-msgid "Workarea"
-msgstr "Arbetsyta"
-
-#: filters.py:36
+#: filters.py:28
 msgid "Archivist Organization"
 msgstr "Arkivorganisation"
 
-#: filters.py:47
+#: filters.py:44
 msgid "Excluded Package Type"
 msgstr "Exkluderad pakettyp"
 
-#: models.py:185
+#: filters.py:48
+msgid "Workarea"
+msgstr "Arbetsyta"
+
+#: models.py:322
 msgid "create date"
 msgstr "skapandedatum"
 
-#: models.py:186
+#: models.py:323
 msgid "state"
 msgstr "tillstånd"
 
-#: models.py:189
+#: models.py:326
 msgid "object size"
 msgstr "objektstorlek"
 
-#: models.py:192
+#: models.py:329
 msgid "start date"
 msgstr "startdatum"
 
-#: models.py:193
+#: models.py:330
 msgid "end date"
 msgstr "slutdatum"
 
-#: models.py:216
+#: models.py:353
 msgid "entry date"
 msgstr "skapandedatum (SIP)"
 
-#: models.py:219
+#: models.py:356
 msgid "package type"
 msgstr "pakettyp"
 
-#: models.py:226
+#: models.py:363
 msgid "cached"
 msgstr "cachad"
 
-#: models.py:227
+#: models.py:364
 msgid "archived"
 msgstr "arkiverad"
 
-#: models.py:233
+#: models.py:370
 msgid "responsible"
 msgstr "ansvarig"
 
-#: tasks.py:403
+#: models.py:1834
+msgid "information package"
+msgstr "informationspaket"
+
+#: models.py:1835
+msgid "information packages"
+msgstr "informationspaket"
+
+#: models.py:2006
+msgid "transfer"
+msgstr ""
+
+#: models.py:2010
+msgid "delivery"
+msgstr ""
+
+#: models.py:2066 models.py:2077
+msgid "name"
+msgstr ""
+
+#: models.py:2072
+msgid "order type"
+msgstr "beställningstyp"
+
+#: models.py:2073
+msgid "order types"
+msgstr "beställningstyper"
+
+#: models.py:2083 models.py:2102
+msgid "consign method"
+msgstr "utlämnandemetod"
+
+#: models.py:2084
+msgid "consign methods"
+msgstr "utlämnandemetoder"
+
+#: models.py:2092
+msgid "type"
+msgstr ""
+
+#: serializers.py:299
+#, python-format
+msgid "IP with object identifer value \"%s\" already exists"
+msgstr ""
+
+#: tasks.py:462
 #, python-format
 msgid "%(ip)s has been deleted"
 msgstr "%(ip)s borttagen"

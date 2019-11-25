@@ -57,6 +57,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
             sa = ip.submission_agreement
             data.update(_fill_sa_specification_data(sa))
 
+        if ip.submission_agreement_data is not None:
+            for k, v in ip.submission_agreement_data.data.items():
+                data['SA_{}'.format(k)] = v
+
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
@@ -88,7 +92,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_TEMP_METS_PATH'] = ip.get_temp_container_xml_path()
         data['_TEMP_AIC_METS_PATH'] = ip.get_temp_container_aic_xml_path() if ip.aic else None
 
-        if ip.get_package_type_display() in ['SIP', 'AIP']:
+        if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
             ip_profile = ip.get_profile(ip.get_package_type_display().lower())
             if ip_profile is not None:
                 premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)

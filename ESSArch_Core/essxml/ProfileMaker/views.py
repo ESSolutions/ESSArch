@@ -76,7 +76,7 @@ def constructContent(text):
     return res
 
 
-def getTrail(elementTree, element, trail=[]):
+def getTrail(elementTree, element, trail=None):
     """
     Gets the path to the specified element via its parents.
 
@@ -98,6 +98,9 @@ def getTrail(elementTree, element, trail=[]):
         A list containing the ancestors of the specified element
     """
 
+    if trail is None:
+        trail = []
+
     parent = element.get('parent')
     trail.insert(0, element.get('name'))
 
@@ -107,7 +110,13 @@ def getTrail(elementTree, element, trail=[]):
         return trail
 
 
-def generateElement(elements, currentUuid, takenNames=[], containsFiles=False, namespace='', nsmap={}):
+def generateElement(elements, currentUuid, takenNames=None, containsFiles=False, namespace='', nsmap=None):
+    if takenNames is None:
+        takenNames = []
+
+    if nsmap is None:
+        nsmap = {}
+
     element = elements[currentUuid]
     el = OrderedDict()
     forms = []

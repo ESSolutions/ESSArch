@@ -1,15 +1,18 @@
 import errno
+import os
+import shutil
+import tempfile
 import uuid
 from unittest import mock
 
 import pyfakefs.fake_filesystem as fake_fs
 import requests
-from django.test import TestCase
+from django.test import SimpleTestCase
 
-from ESSArch_Core.storage.copy import copy_chunk_remotely, copy_file
+from ESSArch_Core.storage.copy import copy_chunk_remotely, copy_dir, copy_file
 
 
-class CopyChunkTestCase(TestCase):
+class CopyChunkTestCase(SimpleTestCase):
     fs = fake_fs.FakeFilesystem()
     fake_open = fake_fs.FakeFileOpen(fs)
 
@@ -83,7 +86,7 @@ class CopyChunkTestCase(TestCase):
         mock_post.assert_has_calls(calls)
 
 
-class CopyFileTestCase(TestCase):
+class CopyFileTestCase(SimpleTestCase):
     @mock.patch('ESSArch_Core.storage.copy.copy_file_remotely')
     @mock.patch('ESSArch_Core.storage.copy.copy_file_locally')
     def test_copy_file(self, mock_local, mock_remote):
@@ -95,3 +98,42 @@ class CopyFileTestCase(TestCase):
         session = requests.Session()
         copy_file(src, dst, requests_session=session)
         mock_remote.assert_called_once_with(src, dst, session, block_size=mock.ANY)
+
+
+class CopyDirTests(SimpleTestCase):
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root)
+
+    def test_copy_trees(self):
+        src = os.path.join(self.root, 'src')
+        os.makedirs(os.path.join(src, 'a'))
+        os.makedirs(os.path.join(src, 'b'))
+
+        open(os.path.join(src, 'a', 'foo.txt'), 'a').close()
+        open(os.path.join(src, 'b', 'bar.txt'), 'a').close()
+
+        dst = os.path.join(self.root, 'dst')
+        copy_dir(src, dst)
+
+        self.assertTrue(os.path.isfile(os.path.join(dst, 'a/foo.txt')))
+        self.assertTrue(os.path.isfile(os.path.join(dst, 'b/bar.txt')))
+
+        # ensure source still exists
+        self.assertTrue(os.path.isfile(os.path.join(src, 'a/foo.txt')))
+        self.assertTrue(os.path.isfile(os.path.join(src, 'b/bar.txt')))
+
+    def test_copy_empty_subdirs(self):
+        src = os.path.join(self.root, 'src')
+        os.makedirs(os.path.join(src, 'a'))
+        os.makedirs(os.path.join(src, 'b'))
+
+        dst = os.path.join(self.root, 'dst')
+        copy_dir(src, dst)
+
+        self.assertTrue(os.path.isdir(os.path.join(dst, 'a')))
+        self.assertTrue(os.path.isdir(os.path.join(dst, 'b')))
+
+        # ensure source still exists
+        self.assertTrue(os.path.isdir(os.path.join(src, 'a')))
+        self.assertTrue(os.path.isdir(os.path.join(src, 'b')))

@@ -342,6 +342,20 @@ export default class BaseCtrl {
       }
     };
 
+    vm.sa_locked = function() {
+      if ($scope.ip !== null && $scope.ips.length == 0) {
+        return $scope.ip.submission_agreement_locked;
+      } else {
+        let allLocked = true;
+        $scope.ips.forEach(function(ip) {
+          if (!ip.submission_agreement_locked) {
+            allLocked = false;
+          }
+        });
+        return allLocked;
+      }
+    };
+
     function ipExists() {
       if ($scope.ip != null) {
         let temp = false;
@@ -1150,6 +1164,24 @@ export default class BaseCtrl {
       } else {
         return true;
       }
+    };
+
+    vm.multipleIpResponsible = function() {
+      if ($scope.ips.length > 0) {
+        var responsible = true;
+        $scope.ips.forEach(function(ip) {
+          if (ip.responsible.id !== $rootScope.auth.id) {
+            responsible = false;
+          }
+        });
+        return responsible;
+      } else {
+        return false;
+      }
+    };
+
+    vm.allIncludedWithState = (list, state) => {
+      return list.filter(x => x.state === state).length === list.length;
     };
 
     //Create and show modal for remove ip

@@ -90,6 +90,34 @@
         </div>
       </uib-tab>
       <uib-tab
+        index="'prepare_dip'"
+        ng-if="(ip !== null && ip.state === 'Preparing') || (ips.length > 0 && vm.allIncludedWithState(ips, 'Preparing'))"
+        heading="{{'PREPAREDIP' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'prepare_dip'">
+          <div
+            tabindex="-1"
+            ng-keydown="vm.contentViewsKeydownListener($event)"
+            id="select-wrap"
+            class="select-sub-edit-eventlog-wrapper"
+          >
+            <profile-editor ng-if="ip !== null && ips.length === 0" ip="ip"></profile-editor>
+            <div class="eventlog-view" ng-class="{'border-none': ips.length > 0}">
+              <div class="eventlog-form">
+                <button
+                  ng-click="vm.prepareDipModal(ip)"
+                  type="button"
+                  class="btn btn-primary submit-button"
+                  ng-disabled="!vm.sa_locked()"
+                >
+                  {{'PREPARE' | translate}}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab
         ng-if="ip !== null && ips.length == 0 && ip.state === 'Prepared'"
         index="'create_dip'"
         heading="{{'CREATEDIP' | translate}}"
@@ -103,6 +131,10 @@
         >
           <div ng-if="select" id="select-view" class="select-view">
             <div ng-include src="'static/frontend/views/dip_filebrowser.html'"></div>
+          </div>
+          <div class="px-base">
+            <hr />
+            <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
           </div>
           <div class="eventlog-view">
             <form class="eventlog-form" ng-submit="vm.createDipModal(ip)">

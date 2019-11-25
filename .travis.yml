@@ -15,12 +15,6 @@ stages:
   - lint
   - test
 
-addons:
-  apt:
-    packages:
-      - libluajit-5.1-dev
-      - liblua5.2-dev
-
 templates:
   mariadb: &mariadb DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
   mysql: &mysql DATABASE_URL_ESSARCH="mysql://root@localhost/essarch?isolation_level=read committed"
@@ -33,7 +27,7 @@ matrix:
       stage: lint
       python: '3.7'
       before_install: skip
-      install: pip install flake8==3.7.1
+      install: pip install -r requirements/lint.txt
       before_script: skip
       script: flake8
       after_success: skip
@@ -42,7 +36,7 @@ matrix:
       stage: lint
       python: '3.7'
       before_install: skip
-      install: pip install isort==4.3.20
+      install: pip install -r requirements/lint.txt
       before_script: skip
       script: isort --recursive --check-only --diff ESSArch_Core
       after_success: skip
@@ -102,6 +96,32 @@ matrix:
       python: '3.7'
       services:
         - redis-server
+
+    - name: 'Linux (arm64) with SQLite'
+      stage: test
+      arch: arm64
+      dist: bionic
+      python: '3.7'
+      addons:
+        apt:
+          packages:
+            - libcairo2
+            - libffi-dev
+            - libgdk-pixbuf2.0-0
+            - libjpeg-dev
+            - libmagickwand-dev
+            - libpango-1.0-0
+            - libpangocairo-1.0-0
+            - libxml2
+            - libxslt-dev
+            - redis-server
+            - zlib1g-dev
+      env:
+        - ARCH=arm64 # workaround for cache
+      before_script:
+        - pip check
+        - essarch settings generate -qp local_essarch_settings.py
+        - redis-server --daemonize yes
 
     - name: 'Linux with MSSQL'
       stage: test

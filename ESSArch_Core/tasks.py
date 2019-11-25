@@ -151,7 +151,7 @@ class GenerateXML(DBTask):
         if filesToCreate is None:
             filesToCreate = {}
 
-        for f, template in filesToCreate.items():
+        for f, _template in filesToCreate.items():
             try:
                 os.remove(f)
             except OSError as e:
@@ -362,7 +362,7 @@ class ValidateWorkarea(DBTask):
                 passed=False, required=True
             ).values_list('validator', flat=True)
 
-            for k, v in workarea.successfully_validated.items():
+            for k, _v in workarea.successfully_validated.items():
                 class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
                 workarea.successfully_validated[k] = class_name not in failed_validators
 
@@ -815,7 +815,7 @@ class ConvertFile(DBTask):
                     os.remove(path)
             return
 
-        for root, dirs, filenames in walk(path):
+        for root, _dirs, filenames in walk(path):
             for fname in filenames:
                 filepath = os.path.join(root, fname)
                 try:

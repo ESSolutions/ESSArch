@@ -1,7 +1,7 @@
 <div class="profile-editor">
   <div ng-if="select" id="select-view" class="select-view">
     <div class="sa-table table-container">
-      <table ng-if="!saAlert" style="margin-top: 20px;" class="table table-striped">
+      <table ng-if="!saAlert && saProfile" style="margin-top: 20px;" class="table table-striped">
         <thead>
           <tr>
             <th
@@ -29,23 +29,50 @@
               <p class="table-col">{{'SUBMISSIONAGREEMENT' | translate}}</p>
             </td>
             <td>
-              <select
-                class="form-control table-col"
+              <ui-select
+                spinner-enabled="true"
+                spinner-class="{{'fas fa-spinner fa-spin ui-select-custom-spinner'}}"
                 ng-disabled="saProfile.locked || vm.gettingSas"
                 ng-model="saProfile.profile"
+                theme="bootstrap"
                 ng-change="changeSaProfile(saProfile.profile, ip, {{saProfile.profiles.indexOf(saProfile.profile)}})"
-                ng-options="x as x.name for x in saProfile.profiles"
+                sortable="true"
+                append-to-body="true"
               >
-                <option ng-show="vm.gettingSas" value="" disabled selected
-                  >{{vm.gettingSas?('LOADING' | translate)+'...':''}}</option
+                <ui-select-match
+                  ng-attr-placeholder="{{vm.gettingSas ? ('LOADING' | translate) + ' ...' : ('SUBMISSIONAGREEMENT' | translate)}}"
+                  >{{$select.selected.name}}</ui-select-match
                 >
-              </select>
+                <ui-select-choices
+                  ng-hide="!$select.open"
+                  refresh-delay="300"
+                  refresh="vm.getSas($select.search)"
+                  repeat="x in vm.saProfileOptions() | propsFilter: {name: $select.search}"
+                >
+                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                </ui-select-choices>
+                <ui-select-no-choice>
+                  <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                </ui-select-no-choice>
+              </ui-select>
             </td>
-            <td class="flex-row">
+            <td class="sa-button-row">
               <button
-                ng-if="saProfile.profile"
-                class="btn btn-default btn-small btn-sm"
-                ng-click="saClick(saProfile)"
+                ng-if="saProfile.profile && !vm.disabled && !saProfile.locked"
+                class="btn btn-default btn-sm"
+                ng-click="saClick(saProfile.profile)"
+                uib-tooltip="{{saProfile.profile.name}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+                ng-disabled="vm.loadingSa || vm.changingSa"
+              >
+                <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
+                <i ng-if="vm.loadingSa" class="fas fa-spinner fa-spin"></i>
+              </button>
+              <button
+                ng-if="saProfile.profile && (vm.disabled || saProfile.locked)"
+                class="btn btn-default btn-sm"
+                ng-click="saClick(saProfile.profile)"
                 uib-tooltip="{{saProfile.profile.name}}"
                 tooltip-placement="auto top"
                 tooltip-append-to-body="true"
@@ -57,12 +84,12 @@
               <button
                 ng-if="!saProfile.locked"
                 ng-disabled="vm.changingSa || !saProfile.profile || (ip.responsible.id != $root.auth.id && !checkPermission('ip.lock_sa'))"
-                class="btn btn-success btn-sm btn-small"
+                class="btn btn-success btn-sm"
                 ng-click="lockSaModal(saProfile)"
               >
                 <i class="fas fa-lock"></i>&nbsp;{{'LOCK' | translate}}
               </button>
-              <button ng-if="saProfile.locked" class="btn btn-danger btn-sm btn-small">
+              <button ng-if="saProfile.locked" class="btn btn-danger btn-sm">
                 <i class="fas fa-lock"></i>&nbsp;{{'LOCKED' | translate}}
               </button>
             </td>
@@ -70,18 +97,36 @@
           </tr>
         </tbody>
       </table>
-      <form ng-if="vm.saFields.length" class="edit-form sa-edit">
-        <formly-form
-          ng-if="vm.saFields.length"
-          model="vm.saModel"
-          fields="vm.saFields"
-          options="vm.options"
-          form="vm.editForm"
-        >
-        </formly-form>
+      <form ng-if="vm.saFields.length" ng-submit="vm.saveSaModel(vm.selectedSa, vm.saModel)" class="edit-form sa-edit">
+        <div ng-if="vm.saFields.length">
+          <h4 class="profile-name">{{ vm.selectedSa.name }}</h4>
+          <div ng-if="vm.saDataVersionList.length" class="data-version-list">
+            {{'VERSIONS' | translate}}
+            <select
+              class="form-control"
+              ng-disabled="vm.disabled"
+              ng-change="vm.changeSaDataVersion(vm.saDataVersion)"
+              ng-model="vm.saDataVersion"
+              ng-options="x as vm.saDataVersionList.indexOf(x) == 0 ? 'Default' : vm.saDataVersionList.indexOf(x) for x in vm.saDataVersionList"
+              >{{ x }}</select
+            >
+          </div>
+        </div>
+        <div class="loading-column w-100 text-center position-absolute absolute-top" ng-if="vm.fieldsLoading()">
+          {{'LOADING' | translate}}
+        </div>
+        <formly-form model="vm.saModel" fields="vm.saFields" options="vm.options" form="vm.editSaForm"> </formly-form>
         <div class="button-wrapper">
           <button
-            ng-if="vm.saFields.length && !vm.disabled"
+            ng-if="vm.saFields.length && !vm.disabled && !saProfile.locked"
+            type="submit"
+            class="btn btn-primary"
+            ng-disabled="vm.editSaForm.$invalid || angular.equals(vm.saOldModel, vm.saModel) || vm.savingSaModel"
+          >
+            {{'SAVE' | translate}} <i ng-if="vm.savingSaModel" class="fas fa-spinner fa-spin"></i>
+          </button>
+          <button
+            ng-if="vm.saFields.length"
             ng-click="vm.saCancel()"
             class="btn btn-default cancel-button"
             translate="CANCEL"
@@ -141,20 +186,19 @@
                     <button
                       ng-if="!vm.disabled"
                       type="button"
-                      class="btn btn-default btn-small btn-sm"
+                      class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"
                       tooltip-append-to-body="true"
                       ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
-                      <i class="fas fa-sm fa-pencil"></i>&nbsp;{{'EDIT' | translate}}
-                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
+                      <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
                     </button>
                     <button
                       ng-if="vm.disabled"
                       type="button"
-                      class="btn btn-default btn-small btn-sm"
+                      class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"
@@ -162,10 +206,16 @@
                       ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
                       <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
-                      <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
                     </button>
+                    <i ng-if="vm.loadingProfileData[profile.profile_type]" class="fas fa-spinner fa-spin"></i>
                   </td>
                 </div>
+              </tr>
+              <tr ng-if="!selectRowCollection.length && !profilesLoading" class="empty-table-indicator">
+                <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+              <tr ng-if="!selectRowCollection.length && profilesLoading" class="empty-table-indicator">
+                <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
               </tr>
             </tbody>
           </table>

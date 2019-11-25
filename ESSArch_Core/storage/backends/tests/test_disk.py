@@ -269,7 +269,7 @@ class DiskStorageBackendTests(TestCase):
         os.makedirs(dst)
         self.assertTrue(os.path.exists(dst))
 
-        self.assertTrue(os.listdir(dst) == [])
+        self.assertEqual(os.listdir(dst), [])
 
         disk_storage_backend._extract(mock_storage_obj, dst)
 

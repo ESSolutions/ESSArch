@@ -13,7 +13,10 @@ export default class ProfileCtrl {
     $log,
     $uibModal,
     $translate,
-    $filter
+    $filter,
+    $http,
+    appConfig,
+    SaIpData
   ) {
     const vm = this;
     $scope.angular = angular;
@@ -26,6 +29,11 @@ export default class ProfileCtrl {
     $scope.aipAlert = $scope.alerts.aipError;
     $scope.dipAlert = $scope.alerts.dipError;
     vm.dataVersion = null;
+    $scope.saProfile = {
+      profile: null,
+      profiles: [],
+      disabled: false,
+    };
     $scope.selectRowCollapse = [];
     // On init
     vm.$onInit = function() {
@@ -75,8 +83,10 @@ export default class ProfileCtrl {
 
     vm.loadProfiles = function() {
       const sa = $scope.saProfile.profile;
+      $scope.profilesLoading = true;
       $scope.selectRowCollection = [];
       SA.profiles({id: sa.id}).$promise.then(function(resource) {
+        $scope.profilesLoading = false;
         $scope.selectRowCollection = resource;
       });
     };
@@ -85,6 +95,19 @@ export default class ProfileCtrl {
       ProfileIp.patch({id: profileIp.id}, {data: data}).$promise.then(function(resource) {
         vm.getAndShowProfile(vm.selectedProfile, {});
       });
+    };
+
+    vm.getSas = search => {
+      return $http
+        .get(appConfig.djangoUrl + 'submission-agreements/', {params: {page: 1, page_size: 10, search}})
+        .then(response => {
+          $scope.saProfile.profiles = response.data;
+          return response.data;
+        });
+    };
+
+    vm.saProfileOptions = () => {
+      return $scope.saProfile.profiles;
     };
 
     $scope.pushData = function() {
@@ -141,10 +164,15 @@ export default class ProfileCtrl {
     vm.profileModel = {};
     vm.profileFields = [];
     vm.options = {};
+
+    vm.saModel = {};
+    vm.saFields = [];
+    vm.saOldModel = {};
+
     //Click function for sa view
     $scope.saClick = function(row) {
       vm.loadingSa = true;
-      if ($scope.selectedSa == row && $scope.editSA) {
+      if ($scope.selectedSa && $scope.selectedSa.id === row.id && $scope.editSA) {
         vm.loadingSa = false;
         vm.saCancel();
         $scope.editSA = false;
@@ -152,41 +180,137 @@ export default class ProfileCtrl {
         $scope.selectedSa = row;
         $scope.eventlog = false;
         $scope.edit = false;
-
-        const chosen = row.profile;
-
-        vm.saFields = [];
-        vm.saModel = {};
-
-        vm.saFields = reduce(
-          chosen.template,
-          function(memo, field) {
-            if (field.hidden) {
-              return memo;
-            }
-            vm.saModel[field.key] = chosen[field.key];
-            delete field.templateOptions.options;
-            field.type = 'input';
-            field.templateOptions.disabled = true;
-            if (field.key.startsWith('profile_')) {
-              $scope.selectRowCollection.forEach(function(profile) {
-                if (vm.saModel[field.key] == profile.id) {
-                  vm.saModel[field.key] = profile.name;
-                }
-              });
-              if (vm.saModel[field.key] == null) {
-                return memo;
-              }
-              field.templateOptions.label = field.key.replace('profile_', '');
-            }
-            memo.push(field);
-            return memo;
-          },
-          []
-        );
+        vm.getAndShowSa(row, {});
         vm.loadingSa = false;
         $scope.editSA = true;
       }
+    };
+
+    vm.saFieldsLoading = function() {
+      let val = false;
+      angular.forEach(vm.loadingSaData, function(value, key) {
+        if (value === true) {
+          val = true;
+        }
+      });
+      return val;
+    };
+
+    vm.saIp = null;
+    vm.selectedSa = null;
+    vm.loadingSaData = {};
+    vm.getAndShowSa = function(sa, row) {
+      vm.loadingSaData = true;
+      vm.selectedSa = sa;
+      SA.get({
+        id: sa.id,
+      })
+        .$promise.then(function(resource) {
+          if ($scope.ip.submission_agreement_data && $scope.ip.submission_agreement_data.id) {
+            const data = $scope.ip.submission_agreement_data.data;
+            const versions = $scope.ip.submission_agreement_data_versions;
+            vm.saOldModel = angular.copy(data);
+            vm.saModel = angular.copy(data);
+            vm.saDataVersion = $scope.ip.submission_agreement_data.id;
+            vm.saDataVersionList = versions;
+            vm.saFields = vm.getSaFields(sa);
+            vm.loadingSaData = false;
+          } else {
+            if ($scope.ip.submission_agreement_data && $scope.ip.submission_agreement_data.data) {
+              vm.saOldModel = angular.copy($scope.ip.submission_agreement_data.data);
+              vm.saModel = angular.copy($scope.ip.submission_agreement_data.data);
+            } else {
+              vm.saOldModel = {};
+              vm.saModel = {};
+            }
+            vm.saDataVersion = null;
+            vm.saDataVersionList = [];
+            vm.saFields = vm.getSaFields(sa);
+            vm.loadingSaData = false;
+          }
+        })
+        .catch(function(response) {
+          vm.loadingSaData = false;
+          vm.saCancel();
+        });
+    };
+
+    vm.getSaData = function(ip, sa) {
+      return SaIpData.get({ip: ip.id, sa: sa.id, pager: 'none'}).$promise.then(function(resource) {
+        let current = null;
+        resource.forEach(x => {
+          if (x.id === ip.submission_agreement_data) {
+            current = x;
+          }
+        });
+
+        return {current, list: resource};
+      });
+    };
+
+    vm.changeSaDataVersion = version => {
+      return $http({
+        url: appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/',
+        method: 'PATCH',
+        data: {
+          submission_agreement_data: version,
+        },
+      }).then(response => {
+        $scope.ip = response.data;
+        vm.getAndShowSa($scope.saProfile.profile, {});
+        $scope.$emit('REFRESH_LIST_VIEW', {});
+        return response.data;
+      });
+    };
+
+    vm.getSaFields = sa => {
+      const temp = [];
+      sa.template.forEach(function(x) {
+        if (!x.templateOptions.disabled) {
+          if (vm.disabled || $scope.saProfile.locked) {
+            x.templateOptions.disabled = true;
+            x.type = 'input';
+          }
+        }
+        if (!x.hidden) {
+          temp.push(x);
+        }
+      });
+      return temp;
+    };
+
+    vm.savingSaModel = false;
+    vm.saveSaModel = function(sa, model) {
+      vm.savingSaModel = true;
+      return SaIpData.post({
+        information_package: $scope.ip.id,
+        submission_agreement: sa.id,
+        data: model,
+        version: $scope.ip.submission_agreement_data_versions.length,
+      })
+        .$promise.then(function(resource) {
+          return $http({
+            url: appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/',
+            method: 'PATCH',
+            data: {
+              submission_agreement_data: resource.id,
+            },
+          })
+            .then(response => {
+              vm.savingSaModel = false;
+              $scope.ip = response.data;
+              $scope.$emit('REFRESH_LIST_VIEW', {});
+              vm.saCancel();
+              return response.data;
+            })
+            .catch(response => {
+              vm.savingSaModel = false;
+              return response;
+            });
+        })
+        .catch(function(response) {
+          vm.savingSaModel = false;
+        });
     };
 
     //Click function for profile view
@@ -218,7 +342,6 @@ export default class ProfileCtrl {
     vm.getAndShowProfile = function(profile, row) {
       vm.loadingProfileData[profile.profile_type] = true;
       vm.selectedProfile = profile;
-      const profileId = profile.id;
       Profile.get({
         id: profile.id,
       })
@@ -285,6 +408,7 @@ export default class ProfileCtrl {
           if (vm.saFields.length > 0) {
             vm.saCancel();
           }
+          $scope.$emit('REFRESH_LIST_VIEW', {});
           vm.changingSa = false;
         })
         .catch(function(response) {
@@ -374,6 +498,7 @@ export default class ProfileCtrl {
         ip: $scope.ip.id,
       }).$promise.then(function(response) {
         sa.locked = true;
+        vm.saCancel();
         $scope.$emit('REFRESH_LIST_VIEW', {});
         $scope.$emit('RELOAD_IP', {});
       });
@@ -477,22 +602,7 @@ export default class ProfileCtrl {
         return !$scope.updateMode.active && !$scope.addMode.active;
       },
     };
-    //Generates test data for map structure tree
-    function createSubTreeExampleData(level, width, prefix) {
-      if (level > 0) {
-        const res = [];
-        // if (!parent) parent = res;
-        for (let i = 1; i <= width; i++) {
-          res.push({
-            name: 'Node ' + prefix + i,
-            type: 'folder',
-            children: createSubTreeExampleData(level - 1, width, prefix + i + '.'),
-          });
-        }
 
-        return res;
-      } else return [];
-    }
     //Populate map structure tree view given tree width and amount of levels
     function getStructure(profile) {
       $scope.treeElements = [{name: 'root', type: 'folder', children: profile.structure}];

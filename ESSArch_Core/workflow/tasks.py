@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import copy
 import datetime
 import errno
 import logging
@@ -37,18 +36,16 @@ from celery import states as celery_states
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
 from crontab import CronTab
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
-from groups_manager.utils import get_permission_name
-from guardian.shortcuts import assign_perm
 
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
-from ESSArch_Core.auth.models import Member, Notification
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -77,10 +74,11 @@ from ESSArch_Core.util import (
     creation_date,
     delete_path,
     find_destination,
+    open_file,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 logger = logging.getLogger('essarch')
@@ -124,6 +122,9 @@ class ReceiveSIP(DBTask):
 
         dst_name, = self.parse_params(dst_name)
         dst = os.path.join(dst_path, dst_name)
+        shutil.rmtree(dst)
+
+        sip_profile = aip.submission_agreement.profile_sip
 
         if aip.policy.receive_extract_sip:
             temp = Path.objects.cached('entity', 'temp', 'value')
@@ -165,6 +166,25 @@ class ReceiveSIP(DBTask):
             self.logger.debug('Copying {} to {}'.format(container, dst))
             shutil.copy2(container, dst)
             aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
+
+        sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, aip.sip_path)
+        if os.path.isfile(aip.sip_path):
+            sip_mets_data = parse_mets(
+                open_file(
+                    os.path.join(aip.object_path, sip_mets_dir, sip_mets_file),
+                    container=aip.sip_path,
+                    container_prefix=aip.object_identifier_value,
+                )
+            )
+        else:
+            sip_mets_data = parse_mets(open_file(os.path.join(aip.object_path, sip_mets_dir, sip_mets_file)))
+
+        # prefix all SIP data
+        sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+        aip_profile_rel_data = aip.get_profile_rel('aip').data
+        aip_profile_rel_data.data.update(sip_mets_data)
+        aip_profile_rel_data.save()
 
         if delete_sip:
             delete_path(old_sip_path)
@@ -244,85 +264,6 @@ class AccessAIP(DBTask):
             storage_object = aip.get_fastest_readable_storage_object()
 
         aip.access(storage_object, self.get_processtask(), dst=dst)
-
-
-class PrepareDIP(DBTask):
-    logger = logging.getLogger('essarch.tasks.PrepareDIP')
-
-    def run(self, label, object_identifier_value=None, orders=[]):
-        disseminations = Path.objects.get(entity='disseminations').value
-
-        perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
-
-        ip = InformationPackage.objects.create(
-            object_identifier_value=object_identifier_value,
-            label=label,
-            responsible_id=self.responsible,
-            state="Prepared",
-            package_type=InformationPackage.DIP,
-        )
-
-        self.ip = ip.pk
-        ip.orders.add(*orders)
-
-        member = Member.objects.get(django_user__id=self.responsible)
-        user_perms = perms.pop('owner', [])
-        organization = member.django_user.user_profile.current_organization
-        organization.assign_object(ip, custom_permissions=perms)
-        organization.add_object(ip)
-
-        for perm in user_perms:
-            perm_name = get_permission_name(perm, ip)
-            assign_perm(perm_name, member.django_user, ip)
-
-        ProcessTask.objects.filter(pk=self.request.id).update(
-            information_package=ip,
-        )
-
-        ProcessStep.objects.filter(tasks__pk=self.request.id).update(
-            information_package=ip,
-        )
-
-        ip_dir = os.path.join(disseminations, ip.object_identifier_value)
-        os.mkdir(ip_dir)
-
-        ip.object_path = ip_dir
-        ip.save(update_fields=['object_path'])
-
-        return ip.pk
-
-    def event_outcome_success(self, result, label, object_identifier_value=None, orders=[]):
-        return 'Prepared DIP "%s"' % self.ip
-
-
-class CreateDIP(DBTask):
-    event_type = 30600
-
-    def run(self, ip):
-        ip = InformationPackage.objects.get(pk=ip)
-
-        if ip.package_type != InformationPackage.DIP:
-            raise ValueError('"%s" is not a DIP, it is a "%s"' % (ip, ip.package_type))
-
-        ip.state = 'Creating'
-        ip.save(update_fields=['state'])
-
-        src = ip.object_path
-        order_path = Path.objects.get(entity='orders').value
-
-        order_count = ip.orders.count()
-
-        for idx, order in enumerate(ip.orders.all()):
-            dst = os.path.join(order_path, str(order.pk), ip.object_identifier_value)
-            shutil.copytree(src, dst)
-
-            self.set_progress(idx + 1, order_count)
-
-        ip.state = 'Created'
-        ip.save(update_fields=['state'])
-
-    def event_outcome_success(self, result, ip):
-        return 'Created DIP "%s"' % ip
 
 
 class PollRobotQueue(DBTask):

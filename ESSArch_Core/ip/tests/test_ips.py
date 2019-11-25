@@ -25,10 +25,12 @@
 import errno
 import filecmp
 import glob
+import io
 import os
 import shutil
 import tempfile
 import uuid
+import zipfile
 from datetime import datetime
 from unittest import mock
 
@@ -57,6 +59,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPData,
     ProfileSA,
     SubmissionAgreement,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.storage.models import (
     DISK,
@@ -168,6 +171,7 @@ class WorkareaViewSetTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -316,6 +320,7 @@ class AIPInMultipleUsersWorkareaTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -438,6 +443,7 @@ class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -636,6 +642,7 @@ class InformationPackageViewSetTestCase(TestCase):
         Path.objects.create(entity='ingest_workarea', value='')
         Path.objects.create(entity='access_workarea', value='')
         Path.objects.create(entity='disseminations', value='')
+        Path.objects.create(entity="temp", value="temp")
 
         cls.org_group_type = GroupType.objects.create(label='organization')
 
@@ -1092,16 +1099,16 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic.pk))
 
-        self.assertEqual(res.data[0]['information_packages'][0]['first_generation'], True)
-        self.assertEqual(res.data[0]['information_packages'][0]['last_generation'], False)
-        self.assertEqual(res.data[0]['information_packages'][1]['first_generation'], False)
-        self.assertEqual(res.data[0]['information_packages'][1]['last_generation'], True)
+        self.assertTrue(res.data[0]['information_packages'][0]['first_generation'])
+        self.assertFalse(res.data[0]['information_packages'][0]['last_generation'])
+        self.assertFalse(res.data[0]['information_packages'][1]['first_generation'])
+        self.assertTrue(res.data[0]['information_packages'][1]['last_generation'])
 
         self.assertEqual(len(res.data[1]['information_packages']), 2)
-        self.assertEqual(res.data[1]['information_packages'][0]['first_generation'], True)
-        self.assertEqual(res.data[1]['information_packages'][0]['last_generation'], False)
-        self.assertEqual(res.data[1]['information_packages'][1]['first_generation'], False)
-        self.assertEqual(res.data[1]['information_packages'][1]['last_generation'], False)
+        self.assertTrue(res.data[1]['information_packages'][0]['first_generation'])
+        self.assertFalse(res.data[1]['information_packages'][0]['last_generation'])
+        self.assertFalse(res.data[1]['information_packages'][1]['first_generation'])
+        self.assertFalse(res.data[1]['information_packages'][1]['last_generation'])
 
     def test_ip_view_type_aic_multiple_aips_different_states_filter_state(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -1426,28 +1433,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_task.assert_called_once()
 
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_with_existing_object_identifier_value(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-
-        InformationPackage.objects.create(object_identifier_value='bar')
-        self.client.post(self.url, {'label': 'foo', 'object_identifier_value': 'bar'})
-
-        mock_prepare.assert_not_called()
-
-    @mock.patch('ESSArch_Core.workflow.tasks.PrepareDIP.run', side_effect=lambda *args, **kwargs: None)
-    def test_prepare_dip_with_non_existing_order(self, mock_prepare):
-        self.url = self.url + 'prepare-dip/'
-
-        order_type = OrderType.objects.create(name='foo')
-        orders = [str(Order.objects.create(responsible=self.user, type=order_type).pk), str(uuid.uuid4())]
-        self.client.post(self.url, {'label': 'foo', 'orders': orders}, format='json')
-
-        mock_prepare.assert_not_called()
-
-    @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_aip(self, mock_step):
-        Path.objects.create(entity='temp', value='temp')
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
@@ -1465,9 +1452,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
 
-    @mock.patch('ESSArch_Core.workflow.tasks.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
-        Path.objects.create(entity='temp', value='temp')
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
@@ -1508,6 +1494,29 @@ class InformationPackageViewSetTestCase(TestCase):
         with self.subTest('organization group with user'):
             res = self.client.post(self.url, data={'organization': grp.pk})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
+    def test_get_ip_with_submission_agreement(self, mock_data):
+        sa = SubmissionAgreement.objects.create(
+            template=[
+                {
+                    'key': 'foo',
+                }
+            ]
+        )
+        ip = InformationPackage.objects.create()
+
+        sa_ip_data = SubmissionAgreementIPData.objects.create(
+            user=self.user,
+            submission_agreement=sa,
+            information_package=ip,
+        )
+        ip.submission_agreement = sa
+        ip.submission_agreement_data = sa_ip_data
+
+        ip.save()
+
+        self.client.get(self.url)
 
 
 class InformationPackageReceptionViewSetTestCase(TestCase):
@@ -1757,6 +1766,152 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.assertTrue(ip_exists)
 
 
+class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.sa1 = SubmissionAgreement.objects.create()
+        cls.sa2 = SubmissionAgreement.objects.create()
+
+        Path.objects.create(entity='temp', value='')
+
+    def setUp(self):
+        self.user = User.objects.create(username="admin", password='admin')
+        permissions = Permission.objects.filter(codename__in=[
+            'change_sa', 'change_submissionagreementipdata',
+        ])
+        self.user.user_permissions.add(*permissions)
+        self.member = self.user.essauth_member
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.ip = InformationPackage.objects.create(submission_agreement=self.sa1)
+        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
+
+    def test_change_submission_agreement(self):
+        res = self.client.patch(self.url, data={'submission_agreement': str(self.sa2.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(res.data['submission_agreement_data'])
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement, self.sa2)
+
+    def test_change_submission_agreement_data(self):
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement_data, new_data)
+
+    def test_change_submission_agreement_and_data(self):
+        new_sa = SubmissionAgreement.objects.create()
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=new_sa,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(self.sa2.pk),
+            'submission_agreement_data': str(new_data.pk)
+        })
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(new_sa.pk),
+            'submission_agreement_data': str(new_data.pk)
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement_data, new_data)
+
+    def test_set_data_when_changing_submission_agreement(self):
+        sa1_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        self.ip.submission_agreement_data = sa1_data
+        self.ip.save()
+
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(self.sa2.pk),
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+        with self.subTest('change to SA with existing data'):
+            res = self.client.patch(self.url, data={
+                'submission_agreement': str(self.sa1.pk),
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.ip.refresh_from_db()
+            self.assertEqual(self.ip.submission_agreement_data, sa1_data)
+
+    def test_change_locked_submission_agreement(self):
+        self.ip.submission_agreement_locked = True
+        self.ip.save()
+
+        res = self.client.patch(self.url, data={'submission_agreement': str(self.sa2.pk)})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement, self.sa1)
+
+    def test_change_locked_submission_agreement_data(self):
+        self.ip.submission_agreement_locked = True
+        self.ip.save()
+
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+    def test_change_invalid_submission_agreement_data(self):
+        with self.subTest('wrong sa'):
+            new_data = SubmissionAgreementIPData.objects.create(
+                submission_agreement=self.sa2,
+                information_package=self.ip,
+                data={'hello': 'world'},
+                user=self.user,
+            )
+            res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.ip.refresh_from_db()
+            self.assertIsNone(self.ip.submission_agreement_data)
+
+        with self.subTest('wrong ip'):
+            new_ip = InformationPackage.objects.create()
+            new_data = SubmissionAgreementIPData.objects.create(
+                submission_agreement=self.sa1,
+                information_package=new_ip,
+                data={'hello': 'world'},
+                user=self.user,
+            )
+            res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.ip.refresh_from_db()
+            self.assertIsNone(self.ip.submission_agreement_data)
+
+
 class OrderViewSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -1879,8 +2034,6 @@ class OrderViewSetTestCase(TestCase):
         self.assertEqual(res['Content-Type'], 'application/zip; charset=utf-8')
         self.assertEqual(res['Content-Disposition'], 'attachment; filename="order1.zip"')
 
-        import io
-        import zipfile
         data = io.BytesIO(res.getvalue())
         with zipfile.ZipFile(data) as zip_file:
             self.assertEqual(zip_file.read('order1/foo.txt'), b'test foo')
@@ -2000,6 +2153,7 @@ class CreateIPTestCase(TestCase):
         cls.root = os.path.dirname(os.path.realpath(__file__))
         cls.datadir = os.path.join(cls.root, 'datadir')
         Path.objects.create(entity='preingest', value=cls.datadir)
+        Path.objects.create(entity='disseminations', value=cls.datadir)
 
         EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
         EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -2054,7 +2208,7 @@ class CreateIPTestCase(TestCase):
         perm = self.get_add_permission()
         self.user_role.permissions.add(perm)
 
-        data = {'label': 'my label', 'object_identifier_value': 'my objid'}
+        data = {'package_type': InformationPackage.SIP, 'label': 'my label', 'object_identifier_value': 'my objid'}
         res = self.client.post(self.url, data)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -2071,12 +2225,12 @@ class CreateIPTestCase(TestCase):
         perm = self.get_add_permission()
         self.user_role.permissions.add(perm)
 
-        data = {'label': 'my label'}
+        data = {'package_type': InformationPackage.SIP, 'label': 'my label'}
 
         res = self.client.post(self.url, data)
-        ip = InformationPackage.objects.get()
-
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        ip = InformationPackage.objects.get()
         self.assertEqual(str(ip.pk), ip.object_identifier_value)
 
     def test_create_ip_without_label(self):
@@ -2084,7 +2238,7 @@ class CreateIPTestCase(TestCase):
         perm = self.get_add_permission()
         self.user_role.permissions.add(perm)
 
-        data = {'object_identifier_value': 'my objid'}
+        data = {'package_type': InformationPackage.SIP, 'object_identifier_value': 'my objid'}
         res = self.client.post(self.url, data)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2097,7 +2251,7 @@ class CreateIPTestCase(TestCase):
 
         existing = InformationPackage.objects.create(object_identifier_value='objid')
 
-        data = {'label': 'my label', 'object_identifier_value': 'objid'}
+        data = {'package_type': InformationPackage.SIP, 'label': 'my label', 'object_identifier_value': 'objid'}
         res = self.client.post(self.url, data)
 
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
@@ -2110,7 +2264,7 @@ class CreateIPTestCase(TestCase):
         self.user_role.permissions.add(perm)
 
         os.mkdir(os.path.join(self.datadir, 'objid'))
-        data = {'label': 'my label', 'object_identifier_value': 'objid'}
+        data = {'package_type': InformationPackage.SIP, 'label': 'my label', 'object_identifier_value': 'objid'}
         res = self.client.post(self.url, data)
 
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
@@ -2122,11 +2276,205 @@ class CreateIPTestCase(TestCase):
         self.user_role.permissions.add(perm)
 
         InformationPackage.objects.create(label='label')
-        data = {'label': 'label'}
+        data = {'package_type': InformationPackage.SIP, 'label': 'label'}
         res = self.client.post(self.url, data)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(InformationPackage.objects.filter(label='label').count(), 2)
+
+    def test_create_dip_with_existing_object_identifier_value(self):
+        self.add_to_organization()
+        perm = self.get_add_permission()
+        self.user_role.permissions.add(perm)
+
+        InformationPackage.objects.create(object_identifier_value='bar')
+        data = {'package_type': InformationPackage.DIP, 'label': 'foo', 'object_identifier_value': 'bar'}
+        res = self.client.post(self.url, data)
+        self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+
+    def test_create_dip_with_non_existing_order(self):
+        self.add_to_organization()
+        perm = self.get_add_permission()
+        self.user_role.permissions.add(perm)
+
+        order_type = OrderType.objects.create(name='foo')
+        orders = [str(Order.objects.create(responsible=self.user, type=order_type).pk), str(uuid.uuid4())]
+        data = {'package_type': InformationPackage.DIP, 'label': 'foo', 'orders': orders}
+        res = self.client.post(self.url, data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['orders'][1][0].code, 'does_not_exist')
+
+    def test_create_dip_with_existing_order(self):
+        self.add_to_organization()
+        perm = self.get_add_permission()
+        self.user_role.permissions.add(perm)
+
+        order_type = OrderType.objects.create(name='foo')
+        order = Order.objects.create(responsible=self.user, type=order_type)
+        data = {'package_type': InformationPackage.DIP, 'label': 'foo', 'orders': [str(order.pk)]}
+        res = self.client.post(self.url, data)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(order.information_packages.exists())
+
+
+class PrepareIPTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.sa = SubmissionAgreement.objects.create()
+
+        Path.objects.create(entity='temp')
+        EventType.objects.create(eventType=10300, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+
+    def setUp(self):
+        self.client = APIClient()
+
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+        self.client.force_authenticate(user=self.user)
+
+    def get_prepare_permission(self):
+        return Permission.objects.get(codename='prepare_ip')
+
+    def create_profile(self, profile_type):
+        return Profile.objects.create(profile_type=profile_type)
+
+    def test_without_permission(self):
+        ip = InformationPackage.objects.create()
+        url = reverse('informationpackage-prepare', args=(ip.pk,))
+
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_invalid_state(self):
+        perm = self.get_prepare_permission()
+        self.user.user_permissions.add(perm)
+
+        ip = InformationPackage.objects.create()
+        url = reverse('informationpackage-prepare', args=(ip.pk,))
+
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['detail'], 'IP must be in state "Preparing"')
+
+    def test_unlocked_sa(self):
+        perm = self.get_prepare_permission()
+        self.user.user_permissions.add(perm)
+
+        ip = InformationPackage.objects.create(state='Preparing', submission_agreement=self.sa)
+        url = reverse('informationpackage-prepare', args=(ip.pk,))
+
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['detail'], 'IP requires locked SA to be prepared')
+
+    def test_missing_profiles(self):
+        perm = self.get_prepare_permission()
+        self.user.user_permissions.add(perm)
+
+        ip = InformationPackage.objects.create(
+            state='Preparing', submission_agreement=self.sa,
+            submission_agreement_locked=True,
+        )
+        url = reverse('informationpackage-prepare', args=(ip.pk,))
+
+        with self.subTest('SIP without SIP profile'):
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(res.data['detail'], 'Information package missing SIP profile')
+
+        with self.subTest('SIP without submit description profile'):
+            sip_profile = self.create_profile('sip')
+            ProfileIP.objects.create(ip=ip, profile=sip_profile)
+            self.sa.profile_sip = sip_profile
+            self.sa.save()
+
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(res.data['detail'], 'Information package missing Submit Description profile')
+
+        with self.subTest('SIP without transfer project profile'):
+            submit_description_profile = self.create_profile('submit_description')
+            ProfileIP.objects.create(ip=ip, profile=submit_description_profile)
+            self.sa.profile_submit_description = submit_description_profile
+            self.sa.save()
+
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(res.data['detail'], 'Information package missing Transfer Project profile')
+
+        with self.subTest('DIP without DIP profile'):
+            transfer_project_profile = self.create_profile('transfer_project')
+            ProfileIP.objects.create(ip=ip, profile=transfer_project_profile)
+            self.sa.profile_transfer_project = transfer_project_profile
+            self.sa.save()
+
+            ip.package_type = InformationPackage.DIP
+            ip.save()
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(res.data['detail'], 'Information package missing DIP profile')
+
+        with self.subTest('Valid DIP'):
+            dip_profile = self.create_profile('dip')
+            ProfileIP.objects.create(ip=ip, profile=dip_profile)
+            self.sa.profile_dip = dip_profile
+            self.sa.save()
+
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        with self.subTest('Valid SIP'):
+            ip.package_type = InformationPackage.SIP
+            ip.state = 'Preparing'
+            ip.save()
+
+            res = self.client.post(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        ip.refresh_from_db()
+        self.assertEqual(ip.state, 'Prepared')
+
+
+class DownloadIPTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='user')
+        cls.member = cls.user.essauth_member
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        f = tempfile.NamedTemporaryFile(suffix='.tar', delete=False)
+        f.close()
+        self.ip = InformationPackage.objects.create(object_path=f.name)
+        self.addCleanup(os.remove, self.ip.object_path)
+
+        self.url = reverse('informationpackage-download', args=(str(self.ip.pk),))
+
+    def test_download(self):
+        with self.subTest('invalid package type'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.ip.package_type = InformationPackage.DIP
+        self.ip.save()
+
+        with self.subTest('invalid state'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.ip.state = 'Created'
+        self.ip.save()
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res['Content-Type'], 'application/x-tar; charset=utf-8')
+        self.assertEqual(
+            res['Content-Disposition'],
+            'attachment; filename="{}"'.format(os.path.basename(self.ip.object_path)),
+        )
 
 
 class test_submit_ip(TestCase):
