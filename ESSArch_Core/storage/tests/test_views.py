@@ -489,18 +489,13 @@ class StorageMethodListTests(TestCase):
         self.assertEqual(response.data[0]['id'], str(storage_method1.pk))
 
 
-class StorageMigrationTests(TestCase):
+class StorageMigrationTestsBase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create(username='user', is_superuser=True)
 
         cls.storage_method = StorageMethod.objects.create()
         cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
         cls.storage_medium = StorageMedium.objects.create(
             storage_target=cls.storage_target,
             status=20, location_status=50, block_size=1024, format=103,
@@ -518,20 +513,31 @@ class StorageMigrationTests(TestCase):
             content_location_type=DISK,
         )
 
-        new_storage_method = StorageMethod.objects.create()
-        cls.policy.storage_methods.add(new_storage_method)
-        new_storage_target = StorageTarget.objects.create(name='new')
+        cls.new_storage_method = StorageMethod.objects.create()
+        cls.policy.storage_methods.add(cls.new_storage_method)
+        cls.new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(
-            storage_method=new_storage_method,
-            storage_target=new_storage_target,
+            storage_method=cls.new_storage_method,
+            storage_target=cls.new_storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
 
     def setUp(self):
+        self.storage_method_target_rel = StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=self.storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.url = reverse('storage-migrations-list')
+
+class StorageMigrationTests(StorageMigrationTestsBase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.url = reverse('storage-migrations-list')
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_migrate(self, mock_task):
@@ -615,3 +621,69 @@ class StorageMigrationTests(TestCase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         mock_task.assert_not_called()
+
+
+class StorageMigrationPreviewTests(StorageMigrationTestsBase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.url = reverse('storage-migrations-preview')
+
+    def test_preview_with_migratable_ip(self):
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+        }
+        res = self.client.post(self.url, data=data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+    def test_preview_with_specified_storage_method(self):
+        with self.subTest('old storage method'):
+            data = {
+                'information_packages': [str(self.ip.pk)],
+                'storage_methods': [str(self.storage_method.pk)],
+                'policy': str(self.policy.pk),
+            }
+            res = self.client.post(self.url, data=data)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data), 0)
+
+        with self.subTest('old storage method with new target'):
+            self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+            self.storage_method_target_rel.save()
+
+            target = StorageTarget.objects.create(name='new target, old method')
+            StorageMethodTargetRelation.objects.create(
+                storage_method=self.storage_method,
+                storage_target=target,
+                status=STORAGE_TARGET_STATUS_ENABLED,
+            )
+
+            data = {
+                'information_packages': [str(self.ip.pk)],
+                'storage_methods': [str(self.storage_method.pk)],
+                'policy': str(self.policy.pk),
+            }
+            res = self.client.post(self.url, data=data)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data), 1)
+
+        with self.subTest('new storage method'):
+            data = {
+                'information_packages': [str(self.ip.pk)],
+                'storage_methods': [str(self.new_storage_method.pk)],
+                'policy': str(self.policy.pk),
+            }
+            res = self.client.post(self.url, data=data)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data), 1)
+
+    def test_preview_with_specified_storage_method2(self):
+        ip = InformationPackage.objects.create()
+        data = {
+            'information_packages': [str(ip.pk)],
+            'policy': str(self.policy.pk),
+        }
+        res = self.client.post(self.url, data=data)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

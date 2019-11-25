@@ -67,6 +67,7 @@ from ESSArch_Core.storage.serializers import (
     RobotSerializer,
     StorageMediumSerializer,
     StorageMigrationCreateSerializer,
+    StorageMigrationPreviewWriteSerializer,
     StorageObjectSerializer,
     TapeDriveSerializer,
     TapeSlotSerializer,
@@ -530,6 +531,7 @@ class TapeSlotViewSet(viewsets.ModelViewSet):
 
 class StorageMigrationViewSet(viewsets.ModelViewSet):
     queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
+    serializer_class = ProcessTaskDetailSerializer
     filter_backends = (SearchFilter,)
     search_fields = (
         'label', 'information_package__id', 'information_package__object_identifier_value',
@@ -543,7 +545,12 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return ProcessTaskSerializer
 
-        return ProcessTaskDetailSerializer
+    @action(detail=False, methods=['post'])
+    def preview(self, request):
+        self.check_permissions(request)
+        serializer = StorageMigrationPreviewWriteSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        return Response(serializer.save())
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

@@ -178,7 +178,7 @@ class AgentNote(models.Model):
 
 
 class InformationPackageQuerySet(models.QuerySet):
-    def migratable(self):
+    def migratable(self, storage_methods=None):
         # TODO: This is really, really ugly but is required until Django 3.0 is released
         #
         # See:
@@ -194,7 +194,9 @@ class InformationPackageQuerySet(models.QuerySet):
                 return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
             return sql
 
-        method_with_old_migrate_and_new_enabled = StorageMethod.objects.annotate(
+        storage_methods = storage_methods or StorageMethod.objects.all()
+
+        method_with_old_migrate_and_new_enabled = storage_methods.annotate(
             status_migrate_with_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
                     SELECT 1 FROM storage_storagemethodtargetrelation U1
@@ -238,7 +240,7 @@ class InformationPackageQuerySet(models.QuerySet):
             storage_policies=OuterRef('policy'),
         )
 
-        method_with_enabled_target_without_ip = StorageMethod.objects.annotate(
+        method_with_enabled_target_without_ip = storage_methods.annotate(
             enabled_target_without_ip=RawSQL(mssql_wrapper("""
                 EXISTS(
                     SELECT 1 FROM storage_storagemethodtargetrelation AS U2

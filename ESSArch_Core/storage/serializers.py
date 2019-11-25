@@ -425,3 +425,36 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
             t.run()
 
         return ProcessTask.objects.filter(pk__in=[t.pk for t in tasks])
+
+
+class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InformationPackage
+        fields = ('id', 'object_identifier_value',)
+
+
+class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
+    information_packages = InformationPackagePolicyField(
+        write_only=True, many=True,
+    )
+    policy = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=StoragePolicy.objects.all(),
+    )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
+    redundant = serializers.BooleanField(write_only=True, default=False)
+
+    def create(self, validated_data):
+        information_packages = validated_data['information_packages']
+        storage_methods = validated_data.get(
+            'storage_methods',
+            StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+        )
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
+        information_packages = InformationPackage.objects.filter(pk__in=[ip.pk for ip in information_packages])
+        information_packages = information_packages.migratable(storage_methods=storage_methods)
+        return StorageMigrationPreviewSerializer(instance=information_packages, many=True).data
