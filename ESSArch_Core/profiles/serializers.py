@@ -44,6 +44,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPDataTemplate,
     ProfileSA,
     SubmissionAgreement,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.profiles.validators import validate_template
@@ -260,6 +261,35 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
                 'read_only': False,
                 'required': False,
             },
+        }
+
+
+class SubmissionAgreementIPDataSerializer(serializers.ModelSerializer):
+    data = serializers.JSONField(required=False)
+
+    def validate(self, data):
+        sa = data.get('submission_agreement', getattr(self.instance, 'submission_agreement', None))
+        instance_data = data.get('data', {})
+
+        validate_template(sa.template, instance_data)
+        data['data'] = instance_data
+        return data
+
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+    class Meta:
+        model = SubmissionAgreementIPData
+        fields = (
+            'id', 'submission_agreement', 'information_package', 'data', 'version', 'user', 'created',
+        )
+        extra_kwargs = {
+            'user': {
+                'read_only': True,
+                'default': serializers.CurrentUserDefault(),
+            }
         }
 
 

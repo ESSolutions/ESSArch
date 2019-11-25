@@ -396,6 +396,11 @@ class InformationPackage(models.Model):
         default=None,
         null=True,
     )
+    submission_agreement_data = models.ForeignKey(
+        'profiles.SubmissionAgreementIPData',
+        on_delete=models.SET_NULL,
+        null=True,
+    )
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
 

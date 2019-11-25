@@ -313,6 +313,27 @@ class SubmissionAgreement(models.Model):
         return clone
 
 
+class SubmissionAgreementIPData(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    submission_agreement = models.ForeignKey('profiles.SubmissionAgreement', on_delete=models.CASCADE)
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE)
+    data = jsonfield.JSONField(default={})
+    version = models.IntegerField(default=0)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (
+            ('submission_agreement', 'information_package', 'version'),
+        )
+        ordering = ['version']
+
+    def clean(self):
+        data = getattr(self.data, 'data', {})
+        data = fill_specification_data(data.copy(), ip=self.information_package, sa=self.submission_agreement)
+        validate_template(self.submission_agreement.template, data)
+
+
 PROFILE_TYPE_CHOICES = zip(
     [p.replace(' ', '_').lower() for p in profile_types],
     profile_types

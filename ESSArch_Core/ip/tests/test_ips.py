@@ -59,6 +59,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPData,
     ProfileSA,
     SubmissionAgreement,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.storage.models import (
     DISK,
@@ -170,6 +171,7 @@ class WorkareaViewSetTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -318,6 +320,7 @@ class AIPInMultipleUsersWorkareaTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -440,6 +443,7 @@ class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
         Path.objects.create(entity="ingest_workarea", value="")
+        Path.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -638,6 +642,7 @@ class InformationPackageViewSetTestCase(TestCase):
         Path.objects.create(entity='ingest_workarea', value='')
         Path.objects.create(entity='access_workarea', value='')
         Path.objects.create(entity='disseminations', value='')
+        Path.objects.create(entity="temp", value="temp")
 
         cls.org_group_type = GroupType.objects.create(label='organization')
 
@@ -1430,7 +1435,6 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_aip(self, mock_step):
-        Path.objects.create(entity='temp', value='temp')
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
@@ -1450,7 +1454,6 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_preserve_dip(self, mock_step):
-        Path.objects.create(entity='temp', value='temp')
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
@@ -1491,6 +1494,29 @@ class InformationPackageViewSetTestCase(TestCase):
         with self.subTest('organization group with user'):
             res = self.client.post(self.url, data={'organization': grp.pk})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
+    def test_get_ip_with_submission_agreement(self, mock_data):
+        sa = SubmissionAgreement.objects.create(
+            template=[
+                {
+                    'key': 'foo',
+                }
+            ]
+        )
+        ip = InformationPackage.objects.create()
+
+        sa_ip_data = SubmissionAgreementIPData.objects.create(
+            user=self.user,
+            submission_agreement=sa,
+            information_package=ip,
+        )
+        ip.submission_agreement = sa
+        ip.submission_agreement_data = sa_ip_data
+
+        ip.save()
+
+        self.client.get(self.url)
 
 
 class InformationPackageReceptionViewSetTestCase(TestCase):
@@ -1738,6 +1764,152 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
             responsible=self.user,
             submission_agreement=sa).exists()
         self.assertTrue(ip_exists)
+
+
+class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.sa1 = SubmissionAgreement.objects.create()
+        cls.sa2 = SubmissionAgreement.objects.create()
+
+        Path.objects.create(entity='temp', value='')
+
+    def setUp(self):
+        self.user = User.objects.create(username="admin", password='admin')
+        permissions = Permission.objects.filter(codename__in=[
+            'change_sa', 'change_submissionagreementipdata',
+        ])
+        self.user.user_permissions.add(*permissions)
+        self.member = self.user.essauth_member
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.ip = InformationPackage.objects.create(submission_agreement=self.sa1)
+        self.url = reverse('informationpackage-detail', args=(str(self.ip.pk),))
+
+    def test_change_submission_agreement(self):
+        res = self.client.patch(self.url, data={'submission_agreement': str(self.sa2.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIsNotNone(res.data['submission_agreement_data'])
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement, self.sa2)
+
+    def test_change_submission_agreement_data(self):
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement_data, new_data)
+
+    def test_change_submission_agreement_and_data(self):
+        new_sa = SubmissionAgreement.objects.create()
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=new_sa,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(self.sa2.pk),
+            'submission_agreement_data': str(new_data.pk)
+        })
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(new_sa.pk),
+            'submission_agreement_data': str(new_data.pk)
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement_data, new_data)
+
+    def test_set_data_when_changing_submission_agreement(self):
+        sa1_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        self.ip.submission_agreement_data = sa1_data
+        self.ip.save()
+
+        res = self.client.patch(self.url, data={
+            'submission_agreement': str(self.sa2.pk),
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+        with self.subTest('change to SA with existing data'):
+            res = self.client.patch(self.url, data={
+                'submission_agreement': str(self.sa1.pk),
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.ip.refresh_from_db()
+            self.assertEqual(self.ip.submission_agreement_data, sa1_data)
+
+    def test_change_locked_submission_agreement(self):
+        self.ip.submission_agreement_locked = True
+        self.ip.save()
+
+        res = self.client.patch(self.url, data={'submission_agreement': str(self.sa2.pk)})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertEqual(self.ip.submission_agreement, self.sa1)
+
+    def test_change_locked_submission_agreement_data(self):
+        self.ip.submission_agreement_locked = True
+        self.ip.save()
+
+        new_data = SubmissionAgreementIPData.objects.create(
+            submission_agreement=self.sa1,
+            information_package=self.ip,
+            data={'hello': 'world'},
+            user=self.user,
+        )
+        res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.ip.refresh_from_db()
+        self.assertIsNone(self.ip.submission_agreement_data)
+
+    def test_change_invalid_submission_agreement_data(self):
+        with self.subTest('wrong sa'):
+            new_data = SubmissionAgreementIPData.objects.create(
+                submission_agreement=self.sa2,
+                information_package=self.ip,
+                data={'hello': 'world'},
+                user=self.user,
+            )
+            res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.ip.refresh_from_db()
+            self.assertIsNone(self.ip.submission_agreement_data)
+
+        with self.subTest('wrong ip'):
+            new_ip = InformationPackage.objects.create()
+            new_data = SubmissionAgreementIPData.objects.create(
+                submission_agreement=self.sa1,
+                information_package=new_ip,
+                data={'hello': 'world'},
+                user=self.user,
+            )
+            res = self.client.patch(self.url, data={'submission_agreement_data': str(new_data.pk)})
+
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.ip.refresh_from_db()
+            self.assertIsNone(self.ip.submission_agreement_data)
 
 
 class OrderViewSetTestCase(TestCase):

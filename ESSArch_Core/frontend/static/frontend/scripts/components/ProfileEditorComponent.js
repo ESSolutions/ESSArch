@@ -17,6 +17,7 @@ export default {
     '$filter',
     '$http',
     'appConfig',
+    'SaIpData',
     controller,
   ],
   controllerAs: 'vm',
