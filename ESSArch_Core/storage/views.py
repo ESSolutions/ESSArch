@@ -28,8 +28,15 @@ import uuid
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import exceptions, filters, permissions, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import (
+    exceptions,
+    filters,
+    permissions,
+    status,
+    views,
+    viewsets,
+)
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -42,6 +49,7 @@ from ESSArch_Core.configuration.serializers import (
 )
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.storage.filters import (
     StorageMediumFilter,
     StorageMethodFilter,
@@ -560,32 +568,37 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
         )
 
 
-@api_view(['POST'])
-@permission_classes((permissions.IsAuthenticated,))
-def storage_migration_preview(request):
-    serializer = StorageMigrationPreviewWriteSerializer(data=request.data, context={'request': request})
-    serializer.is_valid(raise_exception=True)
-    return Response(serializer.save())
+class StorageMigrationPreviewView(views.APIView, PaginatedViewMixin):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = StorageMigrationPreviewWriteSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.save()
+
+        paginated = self.paginator.paginate_queryset(data, request)
+        return self.paginator.get_paginated_response(paginated)
 
 
-@api_view(['POST'])
-@permission_classes((permissions.IsAuthenticated,))
-def storage_migration_preview_detail(request, pk):
-    serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.data, context={'request': request})
-    serializer.is_valid(raise_exception=True)
-    data = serializer.validated_data
+class StorageMigrationPreviewDetailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
 
-    policy = data['policy']
-    storage_methods = data.get(
-        'storage_methods',
-        StorageMethod.objects.filter(storage_policies=policy)
-    )
-    if isinstance(storage_methods, list):
-        storage_methods = StorageMethod.objects.filter(
-            pk__in=[s.pk for s in storage_methods]
+    def post(self, request, pk):
+        serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        policy = data['policy']
+        storage_methods = data.get(
+            'storage_methods',
+            StorageMethod.objects.filter(storage_policies=policy)
         )
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
 
-    qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(policy=policy)
-    ip = get_object_or_404(qs, pk=pk)
+        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(policy=policy)
+        ip = get_object_or_404(qs, pk=pk)
 
-    return Response(serializer.save(information_package=ip))
+        return Response(serializer.save(information_package=ip))

@@ -73,13 +73,13 @@ from ESSArch_Core.storage.views import (
     StorageMediumViewSet,
     StorageMethodTargetRelationViewSet,
     StorageMethodViewSet,
+    StorageMigrationPreviewDetailView,
+    StorageMigrationPreviewView,
     StorageMigrationViewSet,
     StorageObjectViewSet,
     StorageTargetViewSet,
     TapeDriveViewSet,
     TapeSlotViewSet,
-    storage_migration_preview,
-    storage_migration_preview_detail,
 )
 from ESSArch_Core.tags.search import ComponentSearchViewSet
 from ESSArch_Core.tags.views import (
@@ -375,10 +375,14 @@ urlpatterns = [
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),
-    url(r'^api/storage-migrations-preview/$', storage_migration_preview, name='storage-migrations-preview'),
+    url(
+        r'^api/storage-migrations-preview/$',
+        StorageMigrationPreviewView.as_view(),
+        name='storage-migrations-preview',
+    ),
     path(
         'api/storage-migrations-preview/<uuid:pk>/',
-        storage_migration_preview_detail,
+        StorageMigrationPreviewDetailView.as_view(),
         name='storage-migrations-preview-detail',
     ),
     url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),

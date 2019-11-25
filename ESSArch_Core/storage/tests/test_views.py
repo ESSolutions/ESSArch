@@ -638,6 +638,47 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
 
+    def test_pagination(self):
+        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        StorageObject.objects.create(
+            ip=ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+        self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+        self.storage_method_target_rel.save()
+
+        target = StorageTarget.objects.create(name='new target, old method')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        data = {
+            'information_packages': [str(self.ip.pk), str(ip.pk)],
+            'policy': str(self.policy.pk),
+        }
+        res = self.client.post(self.url, data=data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+        res = self.client.post(self.url, data=data, QUERY_STRING='page_size=1')
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        first_page_ip = res.data[0]
+
+        res = self.client.post(self.url, data=data, **{'QUERY_STRING': 'page_size=1&page=2'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        second_page_ip = res.data[0]
+
+        self.assertNotEqual(first_page_ip, second_page_ip)
+
+        res = self.client.post(self.url, data=data, **{'QUERY_STRING': 'pager=none'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
     def test_preview_with_specified_storage_method(self):
         with self.subTest('old storage method'):
             data = {
