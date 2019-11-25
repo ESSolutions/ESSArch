@@ -13,6 +13,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 
 from ESSArch_Core.util import (
     convert_file,
+    delete_path,
     find_destination,
     flatten,
     generate_file_response,
@@ -496,6 +497,31 @@ class GenerateFileResponseTests(TestCase):
         )
 
         self.assertEqual(type(resp), FileResponse)
+
+
+class DeletePathTests(SimpleTestCase):
+    def setUp(self) -> None:
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+    def test_delete_directory(self):
+        path = os.path.join(self.datadir, 'foo')
+        os.mkdir(path)
+
+        delete_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_delete_file(self):
+        path = os.path.join(self.datadir, 'foo.txt')
+        open(path, 'a').close()
+
+        delete_path(path)
+        self.assertFalse(os.path.exists(path))
+
+    def test_delete_non_existing_path(self):
+        path = os.path.join(self.datadir, 'foo.txt')
+        delete_path(path)
+        self.assertFalse(os.path.exists(path))
 
 
 class FindDestinationTests(SimpleTestCase):
