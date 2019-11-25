@@ -14,6 +14,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from ESSArch_Core.util import (
     convert_file,
     delete_path,
+    find_destination,
     flatten,
     generate_file_response,
     get_files_and_dirs,
@@ -98,7 +99,7 @@ class GetFilesAndDirsTest(TestCase):
         self.assertEqual(get_files_and_dirs("this_folder_or_path_should_not_exist"), [])
 
 
-class ParseContentRangeHeaderTest(TestCase):
+class ParseContentRangeHeaderTest(SimpleTestCase):
 
     def test_parse_content_range_header(self):
         header = 'bytes 123-456/789'
@@ -117,7 +118,7 @@ class ParseContentRangeHeaderTest(TestCase):
             parse_content_range_header(header)
 
 
-class FlattenTest(TestCase):
+class FlattenTest(SimpleTestCase):
 
     def test_flatten_list_of_lists(self):
         my_list = [
@@ -521,3 +522,69 @@ class DeletePathTests(SimpleTestCase):
         path = os.path.join(self.datadir, 'foo.txt')
         delete_path(path)
         self.assertFalse(os.path.exists(path))
+
+
+class FindDestinationTests(SimpleTestCase):
+    def test_find_destination(self):
+        structure = [
+            {
+                'type': 'file',
+                'name': 'mets.xml',
+                'use': 'mets_file',
+            },
+            {
+                'type': 'folder',
+                'name': 'content',
+                'use': 'content',
+                'children': [
+                    {
+                        'type': 'file',
+                        "name": 'metadata.xml',
+                        'use': 'content_type_specification'
+                    },
+                    {
+                        'type': 'file',
+                        "name": 'metadata.xsd',
+                        'use': 'content_type_specification_schema'
+                    },
+                ],
+            },
+            {
+                'type': 'folder',
+                'name': 'metadata',
+                'use': 'metadata',
+                'children': [
+                    {
+                        'type': 'file',
+                        'use': 'xsd_files',
+                        'name': 'xsd_files'
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'premis.xml',
+                        'use': 'preservation_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'ead.xml',
+                        'use': 'archival_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'eac.xml',
+                        'use': 'authoritive_information_file',
+                    },
+                ]
+            },
+        ]
+
+        tests = (
+            ('mets_file', ('', 'mets.xml')),
+            ('xsd_files', ('metadata', 'xsd_files')),
+            ('preservation_description_file', ('metadata', 'premis.xml')),
+            ('foo', (None, None)),
+        )
+
+        for value, expected in tests:
+            with self.subTest(value=value):
+                self.assertEqual(find_destination(value, structure), expected)
