@@ -389,16 +389,17 @@ def get_premis_ip_object_element_spec():
 def delete_path(path):
     try:
         shutil.rmtree(path)
+    except NotADirectoryError:
+        os.remove(path)
+    except FileNotFoundError:
+        pass
     except OSError as e:
         if os.name == 'nt':
             if e.errno == 267:
                 os.remove(path)
             elif e.errno != 3:
                 raise
-
-        elif e.errno == errno.ENOTDIR:
-            os.remove(path)
-        elif e.errno != errno.ENOENT:
+        else:
             raise
 
 

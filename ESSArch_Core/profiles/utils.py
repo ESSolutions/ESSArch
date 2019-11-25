@@ -57,6 +57,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
             sa = ip.submission_agreement
             data.update(_fill_sa_specification_data(sa))
 
+        if ip.submission_agreement_data is not None:
+            for k, v in ip.submission_agreement_data.data.items():
+                data['SA_{}'.format(k)] = v
+
         data['_OBJID'] = ip.object_identifier_value
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label

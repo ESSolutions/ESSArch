@@ -102,6 +102,7 @@ from ESSArch_Core.ip.serializers import (
     InformationPackageFromMasterSerializer,
     InformationPackageReceptionReceiveSerializer,
     InformationPackageSerializer,
+    InformationPackageUpdateSerializer,
     NestedInformationPackageSerializer,
     OrderSerializer,
     OrderTypeSerializer,
@@ -1115,6 +1116,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return InformationPackageCreateSerializer
 
+        if self.action in ['partial_update', 'update']:
+            return InformationPackageUpdateSerializer
+
         if self.action == 'list':
             view_type = self.request.query_params.get('view_type', 'aic')
             if view_type == 'flat':
@@ -1980,11 +1984,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         ip = self.get_object()
 
-        if 'submission_agreement' in request.data:
+        if any(field in request.data for field in ['submission_agreement', 'submission_agreement_data']):
             if ip.submission_agreement_locked:
                 return Response("SA connected to IP is locked", status=status.HTTP_400_BAD_REQUEST)
 
-        return super().update(request, *args, **kwargs)
+        partial = kwargs.pop('partial', False)
+        serializer = self.get_serializer(ip, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(ip, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            ip._prefetched_objects_cache = {}
+
+        serializer = InformationPackageDetailSerializer(instance=ip)
+        return Response(serializer.data)
 
 
 class OrderTypeViewSet(viewsets.ModelViewSet):
