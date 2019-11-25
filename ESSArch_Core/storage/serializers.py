@@ -7,6 +7,7 @@ from rest_framework import serializers, validators
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.serializers import StorageTargetSerializer
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.serializers import (
     InformationPackageDetailSerializer,
@@ -458,3 +459,31 @@ class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
         information_packages = InformationPackage.objects.filter(pk__in=[ip.pk for ip in information_packages])
         information_packages = information_packages.migratable(storage_methods=storage_methods)
         return StorageMigrationPreviewSerializer(instance=information_packages, many=True).data
+
+
+class StorageMigrationPreviewDetailWriteSerializer(serializers.Serializer):
+    policy = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=StoragePolicy.objects.all(),
+    )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
+    redundant = serializers.BooleanField(write_only=True, default=False)
+
+    def create(self, validated_data):
+        ip = validated_data['information_package']
+        storage_methods = validated_data.get(
+            'storage_methods',
+            StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+        )
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
+        storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
+
+        targets = StorageTarget.objects.filter(
+            storage_method_target_relations__storage_method__in=storage_methods,
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        return StorageTargetSerializer(instance=targets, many=True).data

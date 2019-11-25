@@ -679,7 +679,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 1)
 
-    def test_preview_with_specified_storage_method2(self):
+    def test_preview_with_non_migratable_ip(self):
         ip = InformationPackage.objects.create()
         data = {
             'information_packages': [str(ip.pk)],
@@ -687,3 +687,76 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
         }
         res = self.client.post(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+
+    def test_preview_with_migratable_ip(self):
+        data = {
+            'policy': str(self.policy.pk),
+        }
+        url = reverse('storage-migrations-preview-detail', args=(str(self.ip.pk),))
+        res = self.client.post(url, data=data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], str(self.new_storage_target.pk))
+
+        self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+        self.storage_method_target_rel.save()
+
+        target = StorageTarget.objects.create(name='new target, old method')
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        res = self.client.post(url, data=data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+    def test_preview_with_specified_storage_method(self):
+        url = reverse('storage-migrations-preview-detail', args=(str(self.ip.pk),))
+
+        with self.subTest('old storage method with new target'):
+            self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+            self.storage_method_target_rel.save()
+
+            target = StorageTarget.objects.create(name='new target, old method')
+            StorageMethodTargetRelation.objects.create(
+                storage_method=self.storage_method,
+                storage_target=target,
+                status=STORAGE_TARGET_STATUS_ENABLED,
+            )
+
+            data = {
+                'storage_methods': [str(self.storage_method.pk)],
+                'policy': str(self.policy.pk),
+            }
+            res = self.client.post(url, data=data)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data), 1)
+            self.assertEqual(res.data[0]['id'], str(target.pk))
+
+        with self.subTest('new storage method'):
+            data = {
+                'storage_methods': [str(self.new_storage_method.pk)],
+                'policy': str(self.policy.pk),
+            }
+            res = self.client.post(url, data=data)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data), 1)
+            self.assertEqual(res.data[0]['id'], str(self.new_storage_target.pk))
+
+    def test_preview_with_non_migratable_ip(self):
+        ip = InformationPackage.objects.create()
+        data = {
+            'policy': str(self.policy.pk),
+        }
+        url = reverse('storage-migrations-preview-detail', args=(str(ip.pk),))
+        res = self.client.post(url, data=data)
+        print(res.data)
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)

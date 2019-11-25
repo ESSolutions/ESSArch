@@ -280,8 +280,8 @@ class InformationPackageManager(OrganizationManager):
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
-    def migratable(self):
-        return self.get_queryset().migratable()
+    def migratable(self, storage_methods=None):
+        return self.get_queryset().migratable(storage_methods=storage_methods)
 
 
 class InformationPackage(models.Model):

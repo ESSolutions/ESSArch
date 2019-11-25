@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import path
 
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
@@ -77,6 +78,8 @@ from ESSArch_Core.storage.views import (
     StorageTargetViewSet,
     TapeDriveViewSet,
     TapeSlotViewSet,
+    storage_migration_preview,
+    storage_migration_preview_detail,
 )
 from ESSArch_Core.tags.search import ComponentSearchViewSet
 from ESSArch_Core.tags.views import (
@@ -372,6 +375,12 @@ urlpatterns = [
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),
+    url(r'^api/storage-migrations-preview/$', storage_migration_preview, name='storage-migrations-preview'),
+    path(
+        'api/storage-migrations-preview/<uuid:pk>/',
+        storage_migration_preview_detail,
+        name='storage-migrations-preview-detail',
+    ),
     url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
     url(r'^api/me/$', MeView.as_view(), name='me'),
     url(r'^api/', include(router.urls)),
