@@ -59,6 +59,7 @@ from ESSArch_Core.profiles.views import (
     ProfileMakerTemplateViewSet,
     ProfileSAViewSet,
     ProfileViewSet,
+    SubmissionAgreementIPDataViewSet,
     SubmissionAgreementTemplateView,
     SubmissionAgreementViewSet,
 )
@@ -291,6 +292,7 @@ router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
 router.register(r'submission-agreements', SubmissionAgreementViewSet)
+router.register(r'submission-agreement-ip-data', SubmissionAgreementIPDataViewSet)
 router.register(r'profiles', ProfileViewSet)
 router.register(r'profile-sa', ProfileSAViewSet)
 router.register(r'profile-ip', ProfileIPViewSet)

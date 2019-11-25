@@ -35,6 +35,7 @@ from ESSArch_Core.profiles.models import (
     ProfileIPDataTemplate,
     ProfileSA,
     SubmissionAgreement,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.profiles.serializers import (
     ProfileDetailSerializer,
@@ -48,6 +49,7 @@ from ESSArch_Core.profiles.serializers import (
     ProfileSASerializer,
     ProfileSerializer,
     ProfileWriteSerializer,
+    SubmissionAgreementIPDataSerializer,
     SubmissionAgreementSerializer,
 )
 from ESSArch_Core.profiles.utils import profile_types
@@ -186,6 +188,13 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('This SA is not connected to the selected IP')
 
         ip.submission_agreement_locked = True
+
+        if ip.submission_agreement_data is not None:
+            try:
+                ip.submission_agreement_data.clean()
+            except ValidationError as e:
+                raise exceptions.ParseError(str(e))
+
         if sa.archivist_organization:
             existing_agents_with_notes = Agent.objects.all().with_notes([])
             ao_agent, _ = Agent.objects.get_or_create(
@@ -197,6 +206,20 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
 
         ip.create_profile_rels(self.get_profile_types(), request.user)
         return Response({'status': 'Locked submission agreement'})
+
+
+class SubmissionAgreementIPDataViewSet(viewsets.ModelViewSet):
+    queryset = SubmissionAgreementIPData.objects.all()
+    serializer_class = SubmissionAgreementIPDataSerializer
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.information_package.submission_agreement_locked:
+            detail = 'Method "{method}" is not allowed on locked SA'.format(method=request.method)
+            raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
+
+        return super().update(request, *args, **kwargs)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
