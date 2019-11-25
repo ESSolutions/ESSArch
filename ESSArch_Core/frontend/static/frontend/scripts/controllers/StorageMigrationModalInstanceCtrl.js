@@ -1,5 +1,5 @@
 export default class StorageMigrationModalInstanceCtrl {
-  constructor($uibModalInstance, data, $http, appConfig, $translate, $log, EditMode, $scope) {
+  constructor($uibModalInstance, data, $http, appConfig, $translate, $log, EditMode, $scope, $uibModal) {
     const $ctrl = this;
     $ctrl.data = data;
     $ctrl.migration = {};
@@ -147,6 +147,45 @@ export default class StorageMigrationModalInstanceCtrl {
         .catch(response => {
           $ctrl.migrating = false;
         });
+    };
+
+    $ctrl.preview = () => {
+      let sendDdata = {policy: data.policy, information_packages: data.ips.map(x => x.id)};
+      if ($ctrl.migration.storage_methods) {
+        sendDdata.storage_methods = $ctrl.migration.storage_methods;
+      }
+      if ($ctrl.migration.redundant) {
+        sendDdata.redundant = $ctrl.migration.redundant;
+      }
+      return $http.post(appConfig.djangoUrl + 'storage-migrations-preview/', sendDdata).then(response => {
+        return $uibModal
+          .open({
+            animation: true,
+            ariaLabelledBy: 'modal-title',
+            ariaDescribedBy: 'modal-body',
+            templateUrl: 'static/frontend/views/storage_migration_preview_modal.html',
+            controller: 'StorageMigrationPreviewModalInstanceCtrl',
+            controllerAs: '$ctrl',
+            size: 'lg',
+            resolve: {
+              data: function() {
+                return {
+                  preview: response.data,
+                  policy: data.policy,
+                  redundant: $ctrl.migration.redundant,
+                  storage_methods: $ctrl.migration.storage_methods,
+                };
+              },
+            },
+          })
+          .result.then(
+            function(data) {
+              $scope.getListViewData();
+              return data;
+            },
+            function() {}
+          );
+      });
     };
 
     $ctrl.cancel = function() {

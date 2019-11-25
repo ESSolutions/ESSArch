@@ -288,6 +288,10 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     PREPAREIPDESC: 'Gör ett nytt IP',
     PREPARESIP: 'Förbered SIP',
     PRESERVE: 'Arkivera',
+    PREVIEW: 'Förhandsgranska',
+    PREVIEW_MIGRATION: 'Förhandsgranska lagringsmigrering',
+    PREVIEW_MIGRATION_DESC:
+      'Klicka på raden för ett informationspaket för att se vilka lagringsplatser som kommer att migreras',
     PREVIOUSMEDIUMPREFIX: 'Föregående medie-prefix',
     PRODUCER: 'Producent',
     PROFILE: 'Profil',

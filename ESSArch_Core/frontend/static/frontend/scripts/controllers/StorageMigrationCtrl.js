@@ -80,6 +80,7 @@ export default class StorageMigrationCtrl {
               page_size: paginationParams.number,
               pager: paginationParams.pager,
               medium: vm.selectedMediums.length ? vm.selectedMediums.map(x => x.id) : null,
+              policy: vm.mediumFilterModel.policy,
               migratable: true,
             },
             vm.columnFilters

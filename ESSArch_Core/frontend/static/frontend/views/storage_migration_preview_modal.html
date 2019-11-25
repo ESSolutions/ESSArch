@@ -1,0 +1,63 @@
+<div class="modal-heading">
+  <div>
+    <h3 class="modal-title" id="modal-title">
+      {{'PREVIEW_MIGRATION' | translate}}
+    </h3>
+  </div>
+</div>
+<div class="modal-body" id="modal-body">
+  <p>
+    {{'PREVIEW_MIGRATION_DESC' | translate}}
+  </p>
+  <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th class="shrink"></th>
+          <th>ID</th>
+          <th>{{'LABEL' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          ng-repeat-start="previewItem in $ctrl.data.preview"
+          ng-click="$ctrl.togglePreviewRow(previewItem)"
+          class="selectable"
+        >
+          <td class="shrink">
+            <i
+              class="fas"
+              ng-class="{'fa-plus': previewItem.collapsed, 'fa-minus': !previewItem.collapsed, 'fa-spinner fa-spin': previewItem.targetsLoading}"
+            ></i>
+          </td>
+          <td>{{previewItem.object_identifier_value}}</td>
+          <td>{{previewItem.label}}</td>
+        </tr>
+        <tr
+          ng-if="previewItem.targets.length && !previewItem.collapsed"
+          ng-repeat="target in previewItem.targets"
+          style="background-color:rgba(50,120,255,.1);"
+          ng-repeat-end
+        >
+          <td></td>
+          <td>{{target.id}}</td>
+          <td>
+            {{target.name}}
+          </td>
+        </tr>
+        <tr ng-if="!previewItem.targets.length && previewItem.targetsLoading" class="empty-table-indicator">
+          <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
+        </tr>
+        <tr ng-if="!$ctrl.data.preview.length" class="empty-table-indicator">
+          <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal-footer">
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" focused="true">
+    {{ "CLOSE" | translate }}
+  </button>
+</div>

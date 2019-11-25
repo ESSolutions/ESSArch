@@ -27,6 +27,16 @@
   </div>
   <div class="modal-footer">
     <button
+      class="btn btn-success"
+      type="button"
+      ng-click="$ctrl.preview()"
+      ng-disabled="$ctrl.previewLoading"
+      focused="true"
+    >
+      <i class="fas fa-search"></i>&nbsp;{{'PREVIEW' | translate}}
+      <i ng-if="$ctrl.previewLoading" class="fas fa-spinner fa-spin"></i>
+    </button>
+    <button
       class="btn btn-primary"
       type="button"
       ng-click="$ctrl.migrate()"

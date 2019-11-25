@@ -87,6 +87,7 @@ import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl'
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
 import StorageMigrationModalInstanceCtrl from '../controllers/StorageMigrationModalInstanceCtrl';
+import StorageMigrationPreviewModalInstanceCtrl from '../controllers/StorageMigrationPreviewModalInstanceCtrl';
 import StructureModalInstanceCtrl from '../controllers/StructureModalInstanceCtrl';
 import StructureRuleModalCtrl from '../controllers/StructureRuleModalCtrl';
 import StructureUnitRelationModalInstanceCtrl from '../controllers/StructureUnitRelationModalInstanceCtrl';
@@ -1108,7 +1109,18 @@ export default angular
     '$log',
     'EditMode',
     '$scope',
+    '$uibModal',
     StorageMigrationModalInstanceCtrl,
+  ])
+  .controller('StorageMigrationPreviewModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$translate',
+    '$log',
+    '$scope',
+    StorageMigrationPreviewModalInstanceCtrl,
   ])
   .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
   .controller('WorkareaCtrl', [
