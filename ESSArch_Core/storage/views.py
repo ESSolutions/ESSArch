@@ -557,6 +557,14 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
 
         return ProcessTaskDetailSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        context['policy'] = self.request.data.get('policy')
+        context['redundant'] = self.request.data.get('redundant')
+
+        return context
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -571,8 +579,12 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
 class StorageMigrationPreviewView(views.APIView, PaginatedViewMixin):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        serializer = StorageMigrationPreviewWriteSerializer(data=request.data, context={'request': request})
+    def get(self, request):
+        context = {
+            'policy': request.query_params.get('policy'),
+            'redundant': request.query_params.get('redundant'),
+        }
+        serializer = StorageMigrationPreviewWriteSerializer(data=request.query_params, context=context)
         serializer.is_valid(raise_exception=True)
         data = serializer.save()
 
@@ -583,8 +595,12 @@ class StorageMigrationPreviewView(views.APIView, PaginatedViewMixin):
 class StorageMigrationPreviewDetailView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, pk):
-        serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.data, context={'request': request})
+    def get(self, request, pk):
+        context = {
+            'policy': request.query_params.get('policy'),
+            'redundant': request.query_params.get('redundant'),
+        }
+        serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.query_params, context=context)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
 

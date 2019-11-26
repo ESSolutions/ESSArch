@@ -634,7 +634,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
             'information_packages': [str(self.ip.pk)],
             'policy': str(self.policy.pk),
         }
-        res = self.client.post(self.url, data=data)
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
 
@@ -659,23 +659,28 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
             'information_packages': [str(self.ip.pk), str(ip.pk)],
             'policy': str(self.policy.pk),
         }
-        res = self.client.post(self.url, data=data)
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
 
-        res = self.client.post(self.url, data=data, QUERY_STRING='page_size=1')
+        data['page_size'] = 1
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         first_page_ip = res.data[0]
 
-        res = self.client.post(self.url, data=data, **{'QUERY_STRING': 'page_size=1&page=2'})
+        data['page'] = 2
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         second_page_ip = res.data[0]
 
         self.assertNotEqual(first_page_ip, second_page_ip)
 
-        res = self.client.post(self.url, data=data, **{'QUERY_STRING': 'pager=none'})
+        data.pop('page')
+        data.pop('page_size')
+        data['pager'] = 'none'
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
 
@@ -686,7 +691,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
                 'storage_methods': [str(self.storage_method.pk)],
                 'policy': str(self.policy.pk),
             }
-            res = self.client.post(self.url, data=data)
+            res = self.client.get(self.url, data=data)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 0)
 
@@ -706,7 +711,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
                 'storage_methods': [str(self.storage_method.pk)],
                 'policy': str(self.policy.pk),
             }
-            res = self.client.post(self.url, data=data)
+            res = self.client.get(self.url, data=data)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 1)
 
@@ -716,7 +721,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
                 'storage_methods': [str(self.new_storage_method.pk)],
                 'policy': str(self.policy.pk),
             }
-            res = self.client.post(self.url, data=data)
+            res = self.client.get(self.url, data=data)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 1)
 
@@ -726,7 +731,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
             'information_packages': [str(ip.pk)],
             'policy': str(self.policy.pk),
         }
-        res = self.client.post(self.url, data=data)
+        res = self.client.get(self.url, data=data)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
 
@@ -740,7 +745,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
             'policy': str(self.policy.pk),
         }
         url = reverse('storage-migrations-preview-detail', args=(str(self.ip.pk),))
-        res = self.client.post(url, data=data)
+        res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['id'], str(self.new_storage_target.pk))
@@ -755,7 +760,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
             status=STORAGE_TARGET_STATUS_ENABLED,
         )
 
-        res = self.client.post(url, data=data)
+        res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
 
@@ -777,7 +782,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
                 'storage_methods': [str(self.storage_method.pk)],
                 'policy': str(self.policy.pk),
             }
-            res = self.client.post(url, data=data)
+            res = self.client.get(url, data=data)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 1)
             self.assertEqual(res.data[0]['id'], str(target.pk))
@@ -787,7 +792,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
                 'storage_methods': [str(self.new_storage_method.pk)],
                 'policy': str(self.policy.pk),
             }
-            res = self.client.post(url, data=data)
+            res = self.client.get(url, data=data)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data), 1)
             self.assertEqual(res.data[0]['id'], str(self.new_storage_target.pk))
@@ -798,6 +803,5 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
             'policy': str(self.policy.pk),
         }
         url = reverse('storage-migrations-preview-detail', args=(str(ip.pk),))
-        res = self.client.post(url, data=data)
-        print(res.data)
+        res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)

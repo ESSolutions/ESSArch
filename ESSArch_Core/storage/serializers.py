@@ -360,20 +360,18 @@ class RobotQueueSerializer(serializers.ModelSerializer):
 
 class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        request = self.context['request']
-        policy = request.data['policy']
+        policy = self.context['policy']
         return InformationPackage.objects.migratable().filter(policy=policy)
 
 
 class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        request = self.context['request']
-        policy = request.data['policy']
+        policy = self.context['policy']
         qs = StorageMethod.objects.filter_has_target_with_status(
             STORAGE_TARGET_STATUS_ENABLED, True,
         ).filter(storage_policies=policy)
 
-        if request.data.get('redundant'):
+        if self.context.get('redundant'):
             qs = qs.filter_has_target_with_status(
                 STORAGE_TARGET_STATUS_MIGRATE, True,
             )
@@ -477,9 +475,13 @@ class StorageMigrationPreviewDetailWriteSerializer(serializers.Serializer):
             StorageMethod.objects.filter(storage_policies=validated_data['policy'])
         )
         if isinstance(storage_methods, list):
-            storage_methods = StorageMethod.objects.filter(
-                pk__in=[s.pk for s in storage_methods]
-            )
+            if len(storage_methods) == 0:
+                storage_methods = StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+            else:
+                storage_methods = StorageMethod.objects.filter(
+                    pk__in=[s.pk for s in storage_methods]
+                )
+
         storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
 
         targets = StorageTarget.objects.filter(
