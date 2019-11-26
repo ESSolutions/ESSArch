@@ -2,9 +2,29 @@
   <h3 class="modal-title" id="modal-title">{{'STORAGEMIGRATION' | translate}}</h3>
 </div>
 <form ng-submit="$ctrl.migrate()" name="$ctrl.form">
-  <div class="modal-body" id="modal-body">
+  <div class="modal-body" id="modal-body" st-safe-src="$ctrl.data.ips" st-table="$ctrl.ips">
     <formly-form class="pb-base" model="$ctrl.migration" fields="$ctrl.fields" options="{}"></formly-form>
-    <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
+    <hr class="small" />
+    <div class="title-action-button-row">
+      <div class="title">
+        <h4>
+          {{'INFORMATION_PACKAGES' | translate}}
+        </h4>
+      </div>
+      <div class="action-button"></div>
+    </div>
+    <div class="search-prepare-wrapper">
+      <select
+        tabindex="-1"
+        id="items-per-page"
+        class="form-control items-per-page"
+        ng-model="$ctrl.itemsPerPage"
+        ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
+        uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      ></select>
+    </div>
     <div class="table-x-overflow">
       <table class="table table-striped table-container">
         <thead>
@@ -14,15 +34,24 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="ip in $ctrl.data.ips">
+          <tr ng-repeat="ip in $ctrl.ips">
             <td>{{ip.object_identifier_value}}</td>
             <td>{{ip.label}}</td>
           </tr>
-          <tr ng-if="!$ctrl.data.ips.length" class="empty-table-indicator">
+          <tr ng-if="!$ctrl.ips.length" class="empty-table-indicator">
             <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
           </tr>
         </tbody>
       </table>
+    </div>
+    <div ng-show="!initLoad">
+      <div
+        class="text-center"
+        st-template="static/frontend/views/pagination.html"
+        st-pagination=""
+        st-items-by-page="$ctrl.itemsPerPage"
+        st-displayed-pages="7"
+      ></div>
     </div>
   </div>
   <div class="modal-footer">

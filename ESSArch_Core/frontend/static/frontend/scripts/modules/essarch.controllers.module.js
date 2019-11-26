@@ -1110,6 +1110,8 @@ export default angular
     'EditMode',
     '$scope',
     '$uibModal',
+    'listViewService',
+    '$q',
     StorageMigrationModalInstanceCtrl,
   ])
   .controller('StorageMigrationPreviewModalInstanceCtrl', [
@@ -1118,7 +1120,7 @@ export default angular
     '$http',
     'appConfig',
     '$translate',
-    '$log',
+    'listViewService',
     '$scope',
     StorageMigrationPreviewModalInstanceCtrl,
   ])

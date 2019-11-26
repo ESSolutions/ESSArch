@@ -1,8 +1,21 @@
 export default class StorageMigrationModalInstanceCtrl {
-  constructor($uibModalInstance, data, $http, appConfig, $translate, $log, EditMode, $scope, $uibModal) {
+  constructor(
+    $uibModalInstance,
+    data,
+    $http,
+    appConfig,
+    $translate,
+    $log,
+    EditMode,
+    $scope,
+    $uibModal,
+    listViewService,
+    $q
+  ) {
     const $ctrl = this;
     $ctrl.data = data;
     $ctrl.migration = {};
+    $ctrl.itemsPerPage = 10;
     $ctrl.$onInit = function() {
       if ($ctrl.data.ips == null) {
         $ctrl.data.ips = [$ctrl.data.ip];
@@ -42,7 +55,7 @@ export default class StorageMigrationModalInstanceCtrl {
         `;
         return {
           methodWithTarget,
-          id: enabledTarget.id,
+          id: enabledTarget.storage_method,
         };
       });
     };
@@ -50,9 +63,6 @@ export default class StorageMigrationModalInstanceCtrl {
     let methods = [];
     const getMethods = search => {
       let params = {policy: data.policy, page: 1, page_size: 10, search, has_enabled_target: true};
-      if (!$ctrl.migration.redundant) {
-        params.has_migrate_target = true;
-      }
       return $http.get(appConfig.djangoUrl + 'storage-methods/', {params}).then(response => {
         methods = parseMethods(response.data);
         return methods;
@@ -74,13 +84,6 @@ export default class StorageMigrationModalInstanceCtrl {
         key: 'purpose',
         templateOptions: {
           label: $translate.instant('PURPOSE'),
-        },
-      },
-      {
-        type: 'checkbox',
-        key: 'redundant',
-        templateOptions: {
-          label: $translate.instant('FORCE_WRITE_MIGRATED'),
         },
       },
       {
@@ -150,42 +153,31 @@ export default class StorageMigrationModalInstanceCtrl {
     };
 
     $ctrl.preview = () => {
-      let sendDdata = {policy: data.policy, information_packages: data.ips.map(x => x.id)};
-      if ($ctrl.migration.storage_methods) {
-        sendDdata.storage_methods = $ctrl.migration.storage_methods;
-      }
-      if ($ctrl.migration.redundant) {
-        sendDdata.redundant = $ctrl.migration.redundant;
-      }
-      return $http.post(appConfig.djangoUrl + 'storage-migrations-preview/', sendDdata).then(response => {
-        return $uibModal
-          .open({
-            animation: true,
-            ariaLabelledBy: 'modal-title',
-            ariaDescribedBy: 'modal-body',
-            templateUrl: 'static/frontend/views/storage_migration_preview_modal.html',
-            controller: 'StorageMigrationPreviewModalInstanceCtrl',
-            controllerAs: '$ctrl',
-            size: 'lg',
-            resolve: {
-              data: function() {
-                return {
-                  preview: response.data,
-                  policy: data.policy,
-                  redundant: $ctrl.migration.redundant,
-                  storage_methods: $ctrl.migration.storage_methods,
-                };
-              },
+      return $uibModal
+        .open({
+          animation: true,
+          ariaLabelledBy: 'modal-title',
+          ariaDescribedBy: 'modal-body',
+          templateUrl: 'static/frontend/views/storage_migration_preview_modal.html',
+          controller: 'StorageMigrationPreviewModalInstanceCtrl',
+          controllerAs: '$ctrl',
+          size: 'lg',
+          resolve: {
+            data: function() {
+              return {
+                policy: data.policy,
+                storage_methods: $ctrl.migration.storage_methods,
+                information_packages: data.ips.map(x => x.id),
+              };
             },
-          })
-          .result.then(
-            function(data) {
-              $scope.getListViewData();
-              return data;
-            },
-            function() {}
-          );
-      });
+          },
+        })
+        .result.then(
+          function(data) {
+            return data;
+          },
+          function() {}
+        );
     };
 
     $ctrl.cancel = function() {

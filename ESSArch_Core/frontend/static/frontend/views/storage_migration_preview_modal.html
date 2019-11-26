@@ -5,11 +5,41 @@
     </h3>
   </div>
 </div>
-<div class="modal-body" id="modal-body">
+<div class="modal-body" id="modal-body" st-table="$ctrl.previews" st-pipe="$ctrl.previewPipe">
   <p>
     {{'PREVIEW_MIGRATION_DESC' | translate}}
   </p>
-  <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
+  <hr class="small" />
+  <div class="title-action-button-row">
+    <div class="title">
+      <h4>
+        {{'INFORMATION_PACKAGES' | translate}}
+      </h4>
+    </div>
+    <div class="action-button"></div>
+  </div>
+  <div class="search-prepare-wrapper">
+    <select
+      tabindex="-1"
+      id="items-per-page"
+      class="form-control items-per-page"
+      ng-model="$ctrl.itemsPerPage"
+      ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
+      uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    ></select>
+    <div class="refresh-icon">
+      <span
+        ng-click="$ctrl.updatePreviews()"
+        class="clickable angular-animate fas fa-sync-alt fa-lg"
+        ng-class="{'fa-sync-alt-animate': $ctrl.previewLoading }"
+        uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+        tooltip-placement="auto left"
+        tooltip-append-to-body="true"
+      ></span>
+    </div>
+  </div>
   <div class="table-x-overflow">
     <table class="table table-striped table-container">
       <thead>
@@ -21,7 +51,7 @@
       </thead>
       <tbody>
         <tr
-          ng-repeat-start="previewItem in $ctrl.data.preview"
+          ng-repeat-start="previewItem in $ctrl.previews"
           ng-click="$ctrl.togglePreviewRow(previewItem)"
           class="selectable"
         >
@@ -47,13 +77,22 @@
           </td>
         </tr>
         <tr ng-if="!previewItem.targets.length && previewItem.targetsLoading" class="empty-table-indicator">
-          <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
+          <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
         </tr>
-        <tr ng-if="!$ctrl.data.preview.length" class="empty-table-indicator">
-          <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
+        <tr ng-if="!$ctrl.previews.length" class="empty-table-indicator">
+          <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
         </tr>
       </tbody>
     </table>
+  </div>
+  <div ng-show="!initLoad">
+    <div
+      class="text-center"
+      st-template="static/frontend/views/pagination.html"
+      st-pagination=""
+      st-items-by-page="$ctrl.itemsPerPage"
+      st-displayed-pages="7"
+    ></div>
   </div>
 </div>
 <div class="modal-footer">
