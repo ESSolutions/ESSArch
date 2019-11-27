@@ -6,11 +6,13 @@ import uuid
 from unittest import mock
 
 from celery import states as celery_state
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from rest_framework.test import APIRequestFactory
 
 from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
+from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
 from ESSArch_Core.storage.models import (
     DISK,
@@ -25,6 +27,8 @@ from ESSArch_Core.storage.models import (
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
+
+User = get_user_model()
 
 
 class InformationPackageListFilesTests(TestCase):
@@ -605,47 +609,65 @@ class InformationPackageIsLockedTests(TestCase):
 
 
 class InformationPackageGetChecksumAlgorithmTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create()
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
-    def test_get_checksum_algorithm_when_SIP_then_get_from_profile_data(self, mock_profile_data):
-        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
-        sip.profile_type = InformationPackage.SIP
+    @classmethod
+    def create_ip(cls, package_type, policy=None):
+        return InformationPackage.objects.create(
+            package_type=package_type,
+            policy=policy,
+        )
 
-        mock_profile_data.return_value = {'checksum_algorithm': 'DUMMY_ALGORITHM'}
+    @classmethod
+    def create_profile(cls, profile_type, ip, data):
+        profile = Profile.objects.create(profile_type=profile_type)
+        profile_ip = ProfileIP.objects.create(
+            profile=profile,
+            ip=ip,
+        )
 
-        self.assertEqual(sip.get_checksum_algorithm(), "DUMMY_ALGORITHM")
+        profile_ip_data = ProfileIPData.objects.create(
+            relation=profile_ip,
+            data=data,
+            user=cls.user,
+        )
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
-    def test_get_checksum_algorithm_when_SIP_and_key_missing_in_profile_data_then_default(self, mock_profile_data):
-        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
-        sip.profile_type = InformationPackage.SIP
+        profile_ip.data = profile_ip_data
+        profile_ip.save()
 
-        mock_profile_data.return_value = {}
+        return profile
 
-        self.assertEqual(sip.get_checksum_algorithm(), "SHA-256")
+    @classmethod
+    def create_policy(cls, checksum_algorithm):
+        return StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+            checksum_algorithm=checksum_algorithm,
+        )
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.get_profile_data')
-    def test_get_checksum_algorithm_when_SIP_and_profile_data_is_None(self, mock_profile_data):
-        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP)
-        sip.profile_type = InformationPackage.SIP
+    def test_sip(self):
+        sip = self.create_ip(InformationPackage.SIP)
+        data = {'checksum_algorithm': 'SHA-512'}
+        self.create_profile('transfer_project', sip, data)
 
-        mock_profile_data.return_value = None
+        self.assertEqual(sip.get_checksum_algorithm(), 'SHA-512')
 
-        self.assertEqual(sip.get_checksum_algorithm(), "SHA-256")
+    def test_sip_missing_key_and_use_default(self):
+        sip = self.create_ip(InformationPackage.SIP)
+        data = {}
+        self.create_profile('transfer_project', sip, data)
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.policy')
-    def test_get_checksum_algorithm_when_AIP_then_get_from_checksum_algo_display(self, mock_policy):
-        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
-        aip.profile_type = None
+        self.assertEqual(sip.get_checksum_algorithm(), 'SHA-256')
 
-        mock_policy.get_checksum_algorithm_display.return_value = "sho-257"
+    def test_aip(self):
+        policy = self.create_policy(StoragePolicy.SHA384)
+        aip = self.create_ip(InformationPackage.AIP, policy=policy)
+        data = {'checksum_algorithm': 'SHA-512'}
+        self.create_profile('transfer_project', aip, data)
 
-        self.assertEqual(aip.get_checksum_algorithm(), "SHO-257")
-
-    def test_get_checksum_algorithm_when_profile_type_not_set_return_default(self):
-        aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
-
-        self.assertEqual(aip.get_checksum_algorithm(), "SHA-256")
+        self.assertEqual(aip.get_checksum_algorithm(), 'SHA-384')
 
 
 class InformationPackageGetEmailRecipientTests(TestCase):
