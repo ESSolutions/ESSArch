@@ -1183,7 +1183,7 @@ class InformationPackage(models.Model):
                                     None,
                                     "xml",
                                     "receipts/xml.json",
-                                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                                    "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                                     "success",
                                     "Cached and indexed {{OBJID}}",
                                     "Cached and indexed {{OBJID}}",
