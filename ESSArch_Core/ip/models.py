@@ -711,15 +711,12 @@ class InformationPackage(models.Model):
             return 'tar'
 
     def get_checksum_algorithm(self):
-        try:
-            if self.profile_type == InformationPackage.SIP:
-                name = self.get_profile_data('transfer_project').get(
-                    'checksum_algorithm', 'SHA-256'
-                )
-            else:
-                name = self.policy.get_checksum_algorithm_display().upper()
-        except BaseException:
-            name = 'SHA-256'
+        if self.package_type != InformationPackage.AIP:
+            name = self.get_profile_data('transfer_project').get(
+                'checksum_algorithm', 'SHA-256'
+            )
+        else:
+            name = self.policy.get_checksum_algorithm_display().upper()
 
         return name
 
