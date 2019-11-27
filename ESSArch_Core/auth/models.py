@@ -318,7 +318,7 @@ class UserProfile(models.Model):
 
     def default_ip_list_columns():
         return [
-            'label', 'object_identifier_value', 'start_date', 'end_date', 'responsible',
+            'label', 'object_identifier_value', 'create_date', 'responsible',
             'state', 'step_state', 'status', 'filebrowser', 'delete',
         ]
 
