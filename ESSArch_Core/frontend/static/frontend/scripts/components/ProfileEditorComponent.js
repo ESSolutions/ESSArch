@@ -26,5 +26,6 @@ export default {
     sa: '<',
     shareData: '&',
     disabled: '<',
+    types: '<',
   },
 };
