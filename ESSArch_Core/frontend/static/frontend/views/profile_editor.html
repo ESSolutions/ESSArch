@@ -162,7 +162,7 @@
                   tooltip-placement="auto top"
                   tooltip-append-to-body="true"
                 >
-                  {{'TYPE' | translate}}
+                  {{'PROFILE' | translate}}
                 </th>
                 <th
                   class="column-profile"
@@ -170,7 +170,7 @@
                   tooltip-placement="auto top"
                   tooltip-append-to-body="true"
                 >
-                  {{'PROFILE' | translate}}
+                  {{'LABEL' | translate}}
                 </th>
                 <th class="column-view"></th>
               </tr>
@@ -184,7 +184,7 @@
                   </td>
                   <td>
                     <button
-                      ng-if="!vm.disabled"
+                      ng-if="!vm.disabled && (vm.types[profile.profile_type] && vm.types[profile.profile_type].disabled === false)"
                       type="button"
                       class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"
@@ -196,7 +196,7 @@
                       <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
                     </button>
                     <button
-                      ng-if="vm.disabled"
+                      ng-if="vm.disabled || (vm.types[profile.profile_type] && vm.types[profile.profile_type].disabled)"
                       type="button"
                       class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"

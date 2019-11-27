@@ -14,7 +14,16 @@
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
           >
-            <profile-editor disabled="true" ng-if="ip !== null && ips.length === 0" ip="ip"></profile-editor>
+            <profile-editor
+              disabled="true"
+              ng-if="ip !== null && ips.length === 0"
+              ip="ip"
+              types="{
+                transfer_project: {disabled: false},
+                sip: {disabled: false},
+                preservation_metadata: {disabled: false},
+              }"
+            ></profile-editor>
             <div id="edit-view" class="edit-view" ng-class="{'border-none': ips.length > 0}">
               <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
               <div ng-include src="'static/frontend/views/file_conversion.html'"></div>

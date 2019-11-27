@@ -1362,7 +1362,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         None,
                         "xml",
                         "receipts/xml.json",
-                        "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                        "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                         "success",
                         "Preserved {{OBJID}}",
                         "{{OBJID}} is now preserved",
