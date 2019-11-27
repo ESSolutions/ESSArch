@@ -158,7 +158,7 @@ class GenerateXML(DBTask):
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+    def event_outcome_success(self, result, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
                               parsed_files=None, algorithm='SHA-256'):
 
         if filesToCreate is None:
