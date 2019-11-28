@@ -559,10 +559,7 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-
         context['policy'] = self.request.data.get('policy')
-        context['redundant'] = self.request.data.get('redundant')
-
         return context
 
     def create(self, request, *args, **kwargs):
@@ -582,7 +579,6 @@ class StorageMigrationPreviewView(views.APIView, PaginatedViewMixin):
     def get(self, request):
         context = {
             'policy': request.query_params.get('policy'),
-            'redundant': request.query_params.get('redundant'),
         }
         serializer = StorageMigrationPreviewWriteSerializer(data=request.query_params, context=context)
         serializer.is_valid(raise_exception=True)
@@ -598,7 +594,6 @@ class StorageMigrationPreviewDetailView(views.APIView):
     def get(self, request, pk):
         context = {
             'policy': request.query_params.get('policy'),
-            'redundant': request.query_params.get('redundant'),
         }
         serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.query_params, context=context)
         serializer.is_valid(raise_exception=True)

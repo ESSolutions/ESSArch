@@ -367,16 +367,9 @@ class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
 class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         policy = self.context['policy']
-        qs = StorageMethod.objects.filter_has_target_with_status(
+        return StorageMethod.objects.filter_has_target_with_status(
             STORAGE_TARGET_STATUS_ENABLED, True,
         ).filter(storage_policies=policy)
-
-        if self.context.get('redundant'):
-            qs = qs.filter_has_target_with_status(
-                STORAGE_TARGET_STATUS_MIGRATE, True,
-            )
-
-        return qs
 
 
 class StorageMigrationCreateSerializer(serializers.Serializer):
@@ -389,7 +382,6 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     storage_methods = StorageMethodPolicyField(
         write_only=True, many=True, required=False,
     )
-    redundant = serializers.BooleanField(write_only=True, default=False)
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 
     def create(self, validated_data):
@@ -442,7 +434,6 @@ class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
     storage_methods = StorageMethodPolicyField(
         write_only=True, many=True, required=False,
     )
-    redundant = serializers.BooleanField(write_only=True, default=False)
 
     def create(self, validated_data):
         information_packages = validated_data['information_packages']
@@ -466,7 +457,6 @@ class StorageMigrationPreviewDetailWriteSerializer(serializers.Serializer):
     storage_methods = StorageMethodPolicyField(
         write_only=True, many=True, required=False,
     )
-    redundant = serializers.BooleanField(write_only=True, default=False)
 
     def create(self, validated_data):
         ip = validated_data['information_package']
