@@ -507,6 +507,9 @@ class CompareRepresentationXMLFiles(DBTask):
             )
             validator.validate(rep_mets_path)
 
+    def event_outcome_success(self, result):
+        return "All XML files in the representations have the same set of files"
+
 
 class UpdateIPStatus(DBTask):
     event_type = 50500

@@ -5,6 +5,9 @@ import inputTemplate from '../../views/formly_templates/form_template_input.html
 import selectTemplate from '../../views/formly_templates/form_template_select.html';
 import uiSelectTemplate from '../../views/formly_templates/ui_select_template.html';
 
+import apiCheck from 'api-check';
+apiCheck.globalConfig.disabled = true;
+
 const formlyConfig = [
   'formlyConfigProvider',
   function(formlyConfigProvider) {

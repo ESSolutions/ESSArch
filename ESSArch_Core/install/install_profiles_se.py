@@ -400,8 +400,8 @@ def installProfileSIP(sa):
                             "value": "Medical record"
                         },
                         {
-                            "name": "Economics",
-                            "value": "Economics systems"
+                            "name": "Economics systems",
+                            "value": "Economics"
                         },
                         {
                             "name": "Databases",
@@ -425,7 +425,7 @@ def installProfileSIP(sa):
                         },
                         {
                             "name": "Archival Information",
-                            "value": "Archival Information"
+                            "value": "Archival information"
                         },
                         {
                             "name": "Unstructured",
@@ -705,8 +705,8 @@ def installProfileAIP(sa):
                             "value": "Medical record"
                         },
                         {
-                            "name": "Economics",
-                            "value": "Economics systems"
+                            "name": "Economics systems",
+                            "value": "Economics"
                         },
                         {
                             "name": "Databases",
@@ -730,7 +730,7 @@ def installProfileAIP(sa):
                         },
                         {
                             "name": "Archival Information",
-                            "value": "Archival Information"
+                            "value": "Archival information"
                         },
                         {
                             "name": "Unstructured",
@@ -1161,8 +1161,8 @@ def installProfileDIP(sa):
                             "value": "Medical record"
                         },
                         {
-                            "name": "Economics",
-                            "value": "Economics systems"
+                            "name": "Economics systems",
+                            "value": "Economics"
                         },
                         {
                             "name": "Databases",
@@ -1186,7 +1186,7 @@ def installProfileDIP(sa):
                         },
                         {
                             "name": "Archival Information",
-                            "value": "Archival Information"
+                            "value": "Archival information"
                         },
                         {
                             "name": "Unstructured",

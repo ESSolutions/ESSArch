@@ -324,6 +324,9 @@ class CreateContainer(DBTask):
 
         return dst
 
+    def event_outcome_success(self, result, src, dst):
+        return "Created {}".format(dst)
+
 
 class ParseSubmitDescription(DBTask):
     @transaction.atomic
