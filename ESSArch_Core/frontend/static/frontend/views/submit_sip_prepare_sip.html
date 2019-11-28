@@ -25,22 +25,8 @@
                 ip="ip"
                 types="{transfer_project: {disabled: false}, submit_description: {disabled: false}}"
               ></profile-editor>
-              <div class="package-information">
-                <h4>{{'PACKAGEINFORMATION'| translate}}</h4>
-                <form novalidate>
-                  <formly-form model="vm.informationModel" fields="vm.informationFields" options="vm.options">
-                  </formly-form>
-                </form>
-              </div>
-              <div class="package-dependencies">
-                <h4>{{'PACKAGEDEPENDENCIES' | translate}}</h4>
-                <form novalidate>
-                  <formly-form model="vm.dependencyModel" fields="vm.dependencyFields" options="vm.options">
-                  </formly-form>
-                </form>
-              </div>
-              <div class="validators" ng-include src="'static/frontend/views/validator_choices.html'"></div>
-              <div class="file-list table-x-overflow">
+              <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
+              <div class="table-container table-x-overflow">
                 <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
                   <thead>
                     <tr>
@@ -55,12 +41,18 @@
                       <td>{{row.created | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                       <td>{{row.size | filesize}}</td>
                     </tr>
+                    <tr ng-if="!fileListRowCollection.length && !vm.fileListLoading" class="empty-table-indicator">
+                      <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+                    </tr>
+                    <tr ng-if="!fileListRowCollection.length && vm.fileListLoading" class="empty-table-indicator">
+                      <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
             </div>
             <div class="eventlog-view" ng-class="{'border-none': ips.length > 0}">
-              <form class="submit-sip-eventlog-form" ng-submit="emailModal(ip)">
+              <form class="submit-sip-eventlog-form" ng-submit="vm.submitSipModal(ip)">
                 <button
                   ng-disabled="(ip !== null && ip.responsible.id !== auth.id) || (ips.length > 0 && !vm.multipleIpResponsible()) || !checkPermission('ip.submit_sip')"
                   type="submit"
