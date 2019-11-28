@@ -1549,6 +1549,15 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
+    def create_profile(self, profile_type, ip):
+        profile = Profile.objects.create(profile_type=profile_type)
+        profile_ip = ProfileIP.objects.create(profile=profile, ip=ip)
+        profile_ip_data = ProfileIPData.objects.create(relation=profile_ip, user=self.user)
+        profile_ip.data = profile_ip_data
+        profile_ip.save()
+
+        return profile
+
     def test_receive_without_permission(self):
         ip = InformationPackage.objects.create()
         url = reverse('ip-reception-receive', args=[ip.pk])
@@ -1611,6 +1620,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_receive_ip_with_structure_unit(self, mock_step, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
+        self.create_profile('sip', ip)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
@@ -1678,6 +1688,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
     def test_receive_ip_with_correct_data(self, mock_receive, mock_isfile, mock_get_container):
         ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
+        self.create_profile('sip', ip)
         url = reverse('ip-reception-receive', args=[ip.pk])
         perms = {'group': ['view_informationpackage', 'ip.receive']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
