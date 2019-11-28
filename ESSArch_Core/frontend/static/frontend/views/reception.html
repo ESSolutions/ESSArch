@@ -12,16 +12,66 @@
         heading="{{'RECEIVE' | translate}}"
       >
         <div ng-if="vm.activeTab === 'receive'">
-          <div
-            class="select-sub-edit-eventlog-wrapper mb-base"
-            ng-if="(ips.length === 0 && ip !== null && ip.state === 'At reception')"
-          >
+          <div class="select-sub-edit-eventlog-wrapper mb-base" ng-if="(ips.length === 0 && ip !== null)">
             <div class="edit-view border-none">
-              <h4 style="margin-left: 10px;">Submit Description</h4>
-              <form>
-                <formly-form model="vm.sdModel" fields="vm.sdFields" options="vm.sdOptions"> </formly-form>
-              </form>
-              <div class="file-list">
+              <div ng-if="ip.altrecordids">
+                <h4>
+                  {{'SUBMITDESCRIPTION' | translate}}
+                </h4>
+                <div class="table-container table-x-overflow">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr ng-repeat="(key, value) in vm.parseAltrecordIds(ip.altrecordids)">
+                        <td>
+                          {{vm.formatSdLabel(key)}}
+                        </td>
+                        <td>
+                          {{value[0]}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div ng-if="ip.agents">
+                <h4>
+                  {{'AGENTS' | translate}}
+                </h4>
+                <div class="table-container table-x-overflow">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr ng-repeat-start="(key, value) in ip.agents">
+                        <td>
+                          {{vm.formatSdLabel(key)}}
+                        </td>
+                        <td>
+                          {{value.name}}
+                        </td>
+                        <td class="shrink">
+                          <a ng-if="value.notes.length" ng-click="value.expanded = !value.expanded">
+                            <i
+                              class="fas"
+                              ng-class="{'fa-caret-down': value.expanded, 'fa-caret-right': !value.expanded}"
+                            ></i
+                            >&nbsp;{{'NOTES' | translate}}
+                          </a>
+                        </td>
+                      </tr>
+                      <tr
+                        ng-if="value.expanded"
+                        style="background-color:rgba(50,120,255,.1);"
+                        ng-repeat-end
+                        ng-repeat="x in value.notes"
+                      >
+                        <td colspan="3">
+                          {{x}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="table-container table-x-overflow py-2">
                 <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
                   <thead>
                     <tr>
@@ -58,7 +108,7 @@
         index="'tasks'"
         heading="{{'TASKS' | translate}}"
       >
-        <div ng-if="vm.activeTab == 'tasks'" class="events-status-wrapper">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
           <div class="status-view">
             <state-tree-view ip="ip"></state-tree-view>
           </div>

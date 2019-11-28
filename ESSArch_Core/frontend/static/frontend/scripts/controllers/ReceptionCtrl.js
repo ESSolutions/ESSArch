@@ -164,155 +164,35 @@ export default class ReceptionCtrl {
         if (row.url) {
           row.url = appConfig.djangoUrl + 'ip-reception/' + row.id + '/';
         }
-        vm.sdModel = {};
         $scope.ip = row;
         $rootScope.ip = row;
         if (angular.isUndefined(options) || !options.noStateChange) {
           $state.go($state.current.name, {id: row.id});
         }
-        $scope.buildSdForm(row);
         $scope.getFileList(row);
       }
     };
 
-    vm.sdModel = {};
-    vm.sdFields = [
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Start date',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'start_date',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'End date',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'end_date',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Archivist Organization',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'archivist_organization',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Creator',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'creator',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Submitter Organization',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'submitter_organization',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Submitter Individual',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'submitter_individual',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Producer Organization',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'producer_organization',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Producer Individual',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'producer_individual',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'IP owner',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'ip_owner',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'Preservation Organization',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'preservation_organization',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'System Name',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'system_name',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'System Version',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'system_version',
-      },
-      {
-        templateOptions: {
-          type: 'text',
-          label: 'System Type',
-          disabled: true,
-        },
-        type: 'input',
-        key: 'system_type',
-      },
-    ];
-
-    $scope.buildSdForm = function(ip) {
-      vm.sdModel = {
-        start_date: $filter('date')(ip.start_date, 'yyyy-MM-dd'),
-        end_date: $filter('date')(ip.end_date, 'yyyy-MM-dd'),
-        archivist_organization: ip.agents.ARCHIVIST_ORGANIZATION.name,
-        creator: ip.agents.CREATOR_ORGANIZATION.name,
-        submitter_organization: ip.agents.SUBMITTER_ORGANIZATION.name,
-        submitter_individual: ip.agents.SUBMITTER_INDIVIDUAL.name,
-        producer_organization: ip.agents.PRODUCER_ORGANIZATION.name,
-        producer_individual: ip.agents.PRODUCER_INDIVIDUAL.name,
-        ip_owner: ip.agents.IPOWNER_ORGANIZATION.name,
-        preservation_organization: ip.agents.PRESERVATION_ORGANIZATION.name,
-        system_name: ip.agents.ARCHIVIST_SOFTWARE.name,
-        system_version: ip.system_version,
-        system_type: ip.system_type,
-      };
+    vm.formatSdLabel = key => {
+      return key
+        .toLowerCase()
+        .split('_')
+        .map(x => {
+          return x.charAt(0).toUpperCase() + x.slice(1);
+        })
+        .join(' ');
     };
+
+    vm.parseAltrecordIds = obj => {
+      let parsed = {};
+      angular.forEach(obj, (val, key) => {
+        if (key.slice(0, 8) !== 'PROFILE_' && (val[0] && val[0].slice(0, 8) !== 'ESSARCH_')) {
+          parsed[key] = val;
+        }
+      });
+      return parsed;
+    };
+
     $scope.getFileList = function(ip) {
       const array = [];
       const tempElement = {
@@ -357,13 +237,13 @@ export default class ReceptionCtrl {
       });
     };
 
-    //Create and show modal for remove ip
+    //Create and show modal for receive ip
     $scope.receiveModal = function(ip) {
       vm.receiveModalLoading = true;
       if (angular.isUndefined(ip) && $scope.ip !== null) {
         ip = $scope.ip;
       }
-      if (ip.state == 'At reception') {
+      if (ip.state === 'At reception') {
         IPReception.get({id: ip.id}).$promise.then(function(resource) {
           if (resource.altrecordids.SUBMISSIONAGREEMENT) {
             IPReception.prepare({id: resource.id, submission_agreement: resource.altrecordids.SUBMISSIONAGREEMENT[0]})
