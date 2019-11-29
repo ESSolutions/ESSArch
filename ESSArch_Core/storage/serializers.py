@@ -16,7 +16,6 @@ from ESSArch_Core.ip.serializers import (
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
-    STORAGE_TARGET_STATUS_MIGRATE,
     AccessQueue,
     IOQueue,
     Robot,
