@@ -1,19 +1,46 @@
 <div class="map-structure-editor">
   <h3>Map structure</h3>
-  <h4 ng-if="vm.noStructure">Currently there is no map structure</h4>
-  <div id="edit-tree" class="edit-view-tree">
-    <div class="tree">
-      <treecontrol
-        class="tree-classic"
-        tree-model="treeElements"
-        options="treeOptions"
-        on-selection="showSelected(node, $parentNode)"
-        selected-node="selectedNode"
-        expanded-nodes="expandedNodes"
-        style="float:left;"
-      >
-        <span class="tree-edit-item">{{node.name}}</span>
-      </treecontrol>
+  <div class="row">
+    <div id="edit-tree" class="edit-view-tree col-12 col-sm-4 col-m-3 col-lg-2 pb-1">
+      <div class="tree">
+        <treecontrol
+          class="tree-classic"
+          tree-model="treeElements"
+          options="treeOptions"
+          on-selection="showSelected(node, $parentNode)"
+          selected-node="selectedNode"
+          expanded-nodes="expandedNodes"
+          style="float:left;"
+        >
+          <span class="tree-edit-item">{{node.name}}</span>
+        </treecontrol>
+      </div>
+    </div>
+    <div ng-if="selectedNode" class="d-flex col-12 col-sm-8 col-m-8 col-lg-5">
+      <div class="px-2 table-container table-x-overflow">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>
+                {{'NAME' | translate}}
+              </th>
+              <th>
+                {{'USED_FOR' | translate}}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td uib-tooltip="{{selectedNode.name}}" tooltip-placement="auto top">
+                {{selectedNode.name}}
+              </td>
+              <td uib-tooltip="{{selectedNode.use}}" tooltip-placement="auto top">
+                {{selectedNode.use}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
