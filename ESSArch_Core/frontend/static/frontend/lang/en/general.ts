@@ -410,6 +410,7 @@ const general = $translateProvider => {
     USE_SELECTED_SA_AS_TEMPLATE: 'Use selected submission agreement as template',
     USE_TEMPLATE: 'Use template',
     USE: 'Use',
+    USED_FOR: 'Used for',
     USEDCAPACITY: 'Used capacity',
     USERNAME: 'Username',
     VALIDATEFILEFORMAT: 'Validate file format',
