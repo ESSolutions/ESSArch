@@ -1,10 +1,9 @@
 <div class="modal-heading">
   <h3 class="modal-title" id="modal-title">{{'PREPARE_NEW_IP' | translate}}</h3>
 </div>
-<form ng-submit="$ctrl.prepare()">
+<form name="$ctrl.form" ng-submit="$ctrl.prepare()">
   <div class="modal-body" id="modal-body">
-    <label for="label">{{'LABEL' | translate}}</label>
-    <input required focused="true" id="label" class="form-control" ng-model="$ctrl.label" />
+    <formly-form model="$ctrl.ipData" fields="$ctrl.labelField" options="{}"></formly-form>
     <button
       type="button"
       class="btn btn-default"
@@ -15,8 +14,7 @@
       ><i class="fas fa-plus" ng-if="!optionalOptions"></i> {{'OPTIONS' | translate}}
     </button>
     <div ng-if="optionalOptions" class="form-group" style="margin-top: 15px;">
-      <label for="objectIdentifierValue">{{'CUSTOM_IDENTIFICATION' | translate}}</label>
-      <input id="objectIdentifierValue" class="form-control" ng-model="$ctrl.objectIdentifierValue" />
+      <formly-form model="$ctrl.ipData" fields="$ctrl.identifierField" options="{}"></formly-form>
     </div>
   </div>
   <div class="modal-footer">
