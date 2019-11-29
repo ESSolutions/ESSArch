@@ -404,6 +404,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     USE_SELECTED_SA_AS_TEMPLATE: 'Använd vald leveransöverenskommelse som mall',
     USE_TEMPLATE: 'Använd mall',
     USE: 'Använd',
+    USED_FOR: 'Används till',
     USEDCAPACITY: 'Använd kapacitet',
     USERNAME: 'Användarnamn',
     VALIDATEFILEFORMAT: 'Validera filformat',
