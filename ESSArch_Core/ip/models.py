@@ -95,6 +95,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageMethod,
+    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
 )
@@ -439,12 +440,16 @@ class InformationPackage(models.Model):
         if not self.archived or not self.storage.exists():
             return StorageMethod.objects.none()
 
-        return self.policy.storage_methods.annotate(has_object=Exists(
-            StorageObject.objects.filter(
+        return self.policy.storage_methods.annotate(
+            has_object=Exists(StorageObject.objects.filter(
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            )),
+            has_enabled_rel=Exists(StorageMethodTargetRelation.objects.filter(
+                status=STORAGE_TARGET_STATUS_ENABLED,
+                storage_method=OuterRef('pk'),
             ))
-        ).filter(enabled=True).exclude(has_object=True)
+        ).filter(enabled=True, has_object=False, has_enabled_rel=True)
 
     def is_first_generation(self):
         if self.aic is None:

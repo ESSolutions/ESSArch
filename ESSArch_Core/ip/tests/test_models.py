@@ -867,31 +867,64 @@ class InformationPackagePreserveTests(TestCase):
 class InformationPackageGetMigratableStorageMethodsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.storage_method = StorageMethod.objects.create()
-        cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        cls.storage_medium = StorageMedium.objects.create(
-            storage_target=cls.storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
+            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
-        cls.policy.storage_methods.add(cls.storage_method)
-
         cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
 
+    def add_storage_method_rel(self, storage_type, target_name, status):
+        storage_method = StorageMethod.objects.create(
+            type=storage_type,
+        )
+        storage_target = StorageTarget.objects.create(
+            name=target_name,
+        )
+
+        return StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=status,
+        )
+
+    def add_storage_medium(self, target, status):
+        return StorageMedium.objects.create(
+            storage_target=target,
+            status=status, location_status=50, block_size=1024, format=103,
+        )
+
+    def add_storage_obj(self, ip, medium, loc_type, loc_value):
+        return StorageObject.objects.create(
+            ip=ip, storage_medium=medium,
+            content_location_type=loc_type,
+            content_location_value=loc_value,
+        )
+
     def test_no_change(self):
+        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(rel.storage_method)
+        self.add_storage_medium(rel.storage_target, 20)
+
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
 
+    def test_migrate_and_enabled_methods(self):
+        migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
+        self.add_storage_obj(self.ip, migrate_medium, DISK, '')
+
+        enabled_rel = self.add_storage_method_rel(DISK, 'old_enabled', STORAGE_TARGET_STATUS_ENABLED)
+
+        self.policy.storage_methods.add(enabled_rel.storage_method, migrate_rel.storage_method)
+
+        self.assertEqual(1, self.ip.get_migratable_storage_methods().count())
+        self.assertEqual(enabled_rel.storage_method, self.ip.get_migratable_storage_methods().get())
+
     def test_new_storage_method(self):
+        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(rel.storage_method)
+        medium = self.add_storage_medium(rel.storage_target, 20)
+
         new_storage_method = StorageMethod.objects.create()
         new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(
@@ -909,7 +942,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         # add IP to old method
 
         StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
+            ip=self.ip, storage_medium=medium,
             content_location_type=DISK,
         )
 
@@ -917,10 +950,9 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         self.assertTrue(method_exists)
 
     def test_new_storage_target(self):
-        # set the existing target as migratable
-        StorageMethodTargetRelation.objects.update(
-            status=STORAGE_TARGET_STATUS_MIGRATE
-        )
+        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        self.policy.storage_methods.add(rel.storage_method)
+        medium = self.add_storage_medium(rel.storage_target, 20)
 
         # the IP is not migratable until there is a new
         # enabled target available
@@ -932,7 +964,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
 
         new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(
-            storage_method=self.storage_method,
+            storage_method=rel.storage_method,
             storage_target=new_storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
@@ -944,7 +976,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         # add IP to old method
 
         StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
+            ip=self.ip, storage_medium=medium,
             content_location_type=DISK,
         )
 
