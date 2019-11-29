@@ -68,7 +68,7 @@ class SearchFilter(DRFSearchFilter):
     """
 
     def filter_queryset(self, request, queryset, view):
-        if connection.vendor == 'postgresql':
+        if connection.features.has_native_uuid_field:
             return super().filter_queryset(request, queryset, view)
 
         search_fields = self.get_search_fields(view, request)
