@@ -2717,7 +2717,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'folderToParse': container_file,
             },
             responsible=request.user,
-        ).run()
+        ).run().get()
 
         return Response({'status': 'Identified IP, created %s' % infoxml})
 
