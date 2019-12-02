@@ -1,8 +1,6 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
-from django.db import models
-from django.db.models.functions import Cast
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -636,8 +634,9 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         mock_task.assert_not_called()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
-    def test_migration_task_order(self, mock_task):
+    @mock.patch('ESSArch_Core.storage.serializers.ProcessTask', side_effect=ProcessTask)
+    @mock.patch('ESSArch_Core.storage.serializers.ProcessTask.run')
+    def test_migration_task_order(self, mock_task_run, mock_task):
         old = self.add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_ENABLED)
         old_medium = self.add_storage_medium(old.storage_target, 20)
 
@@ -674,23 +673,39 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        with self.subTest('disks before tapes'):
-            location_types = [t.information_package.storage.get().content_location_type
-                              for t in ProcessTask.objects.order_by('time_created')[:6]]
-            self.assertTrue(all(x == DISK for x in location_types))
+        class MockValidator(object):
+            def __init__(self, validator):
+                # validator is a function that takes a single argument and returns a bool.
+                self.validator = validator
 
-        with self.subTest('tape read order'):
-            actual = ['{} {}'.format(
-                str(t.information_package.pk), t.information_package.storage.get().content_location_value
-            ) for t in ProcessTask.objects.order_by('time_created')[6:]]
+            def __eq__(self, other):
+                return bool(self.validator(other))
 
-            expected = ['{} {}'.format(
-                str(s.ip.pk), s.content_location_value
-            ) for s in StorageObject.objects.filter(content_location_type=TAPE).annotate(
-                content_location_value_int=Cast('content_location_value', models.IntegerField())
-            ).order_by('content_location_value_int')]
-
-            self.assertEqual(actual, expected)
+        mock_task.assert_has_calls([
+            mock.call(
+                name='ESSArch_Core.storage.tasks.StorageMigration',
+                label=mock.ANY,
+                args=mock.ANY,
+                information_package=MockValidator(lambda x: ip in disk_ips),
+                responsible=mock.ANY,
+                eager=False,
+            ) for _ in range(6)] + [
+            mock.call(
+                name='ESSArch_Core.storage.tasks.StorageMigration',
+                label=mock.ANY,
+                args=mock.ANY,
+                information_package=ip,
+                responsible=mock.ANY,
+                eager=False,
+            ) for ip in [
+                tape_ips[0],
+                tape_ips[5],
+                tape_ips[3],
+                tape_ips[1],
+                tape_ips[2],
+                tape_ips[4],
+            ]],
+        )
 
 
 class StorageMigrationPreviewTests(StorageMigrationTestsBase):
