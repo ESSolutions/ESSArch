@@ -1,6 +1,8 @@
 from unittest import mock
 
 from django.contrib.auth import get_user_model
+from django.db import models
+from django.db.models.functions import Cast
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -14,12 +16,14 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     STORAGE_TARGET_STATUS_MIGRATE,
     STORAGE_TARGET_STATUS_READ_ONLY,
+    TAPE,
     StorageMedium,
     StorageMethod,
     StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
@@ -631,6 +635,62 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         mock_task.assert_not_called()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_migration_task_order(self, mock_task):
+        old = self.add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        old_medium = self.add_storage_medium(old.storage_target, 20)
+
+        tape_ips = [
+            InformationPackage.objects.create(archived=True, policy=self.policy)
+            for _ in range(6)
+        ]
+
+        tape_location_values = ['1', '4', '5', '3', '10', '2']
+        for idx, ip in enumerate(tape_ips):
+            self.add_storage_obj(ip, old_medium, TAPE, tape_location_values[idx])
+
+        disk_ips = [
+            InformationPackage.objects.create(archived=True, policy=self.policy)
+            for _ in range(6)
+        ]
+
+        disk_location_values = ['foo/bar', '0', '/data/test', '/data/test/aic', '1', 'baz']
+        for idx, ip in enumerate(disk_ips):
+            self.add_storage_obj(ip, old_medium, DISK, disk_location_values[idx])
+
+        ips = tape_ips + disk_ips
+
+        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+
+        data = {
+            'information_packages': [str(ip.pk) for ip in ips],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+            'storage_methods': [str(new.storage_method.pk)]
+        }
+
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        with self.subTest('disks before tapes'):
+            location_types = [t.information_package.storage.get().content_location_type
+                              for t in ProcessTask.objects.order_by('time_created')[:6]]
+            self.assertTrue(all(x == DISK for x in location_types))
+
+        with self.subTest('tape read order'):
+            actual = ['{} {}'.format(
+                str(t.information_package.pk), t.information_package.storage.get().content_location_value
+            ) for t in ProcessTask.objects.order_by('time_created')[6:]]
+
+            expected = ['{} {}'.format(
+                str(s.ip.pk), s.content_location_value
+            ) for s in StorageObject.objects.filter(content_location_type=TAPE).annotate(
+                content_location_value_int=Cast('content_location_value', models.IntegerField())
+            ).order_by('content_location_value_int')]
+
+            self.assertEqual(actual, expected)
 
 
 class StorageMigrationPreviewTests(StorageMigrationTestsBase):

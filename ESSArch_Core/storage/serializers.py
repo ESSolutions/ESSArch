@@ -2,6 +2,7 @@ import os
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import OuterRef, Subquery
 from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicModelSerializer
@@ -386,7 +387,19 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         tasks = []
         with transaction.atomic():
-            for ip in validated_data['information_packages']:
+            storage_objects = StorageObject.objects.filter(
+                pk__in=InformationPackage.objects.filter(
+                    pk__in=[ip.pk for ip in validated_data['information_packages']]
+                ).annotate(
+                    fastest=Subquery(
+                        StorageObject.objects.filter(
+                            ip=OuterRef('pk'),
+                        ).fastest().values('pk')[:1]
+                    )
+                ).values('fastest')
+            ).select_related('ip').fastest()
+
+            for storage_object in storage_objects:
                 storage_methods = validated_data.get(
                     'storage_methods',
                     StorageMethod.objects.filter(storage_policies=validated_data['policy'])
@@ -397,13 +410,14 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                         pk__in=[s.pk for s in storage_methods]
                     )
 
-                storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
+                storage_methods = storage_methods.filter(pk__in=storage_object.ip.get_migratable_storage_methods())
+
                 for storage_method in storage_methods:
                     t = ProcessTask(
                         name='ESSArch_Core.storage.tasks.StorageMigration',
                         label='Migrate to {}'.format(storage_method),
                         args=[str(storage_method.pk), validated_data['temp_path']],
-                        information_package=ip,
+                        information_package=storage_object.ip,
                         responsible=self.context['request'].user,
                         eager=False,
                     )
