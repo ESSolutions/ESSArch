@@ -291,7 +291,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     PREVIEW: 'Förhandsgranska',
     PREVIEW_MIGRATION: 'Förhandsgranska lagringsmigrering',
     PREVIEW_MIGRATION_DESC:
-      'Klicka på raden för ett informationspaket för att se vilka lagringsplatser som kommer att migreras',
+      'Klicka på ett informationspaket för att se vilka lagringsplatser det kommer migreras till',
     PREVIOUSMEDIUMPREFIX: 'Föregående medie-prefix',
     PRODUCER: 'Producent',
     PROFILE: 'Profil',

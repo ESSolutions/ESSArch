@@ -288,7 +288,7 @@ const general = $translateProvider => {
     PRESERVE: 'Preserve',
     PREVIEW: 'Preview',
     PREVIEW_MIGRATION: 'Preview storage migration',
-    PREVIEW_MIGRATION_DESC: 'Click information package row to see which storage targets will be migrated',
+    PREVIEW_MIGRATION_DESC: 'Select an information package to see which storage targets it will be migrated to',
     PREVIOUSMEDIUMPREFIX: 'Previous medium prefix',
     PRODUCER: 'Producer',
     PROFILE: 'Profile',
