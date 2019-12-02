@@ -79,7 +79,7 @@ def get_user_roles(user, start_group=None):
 
 def replace_func(field, field_type):
     # TODO: Fixed in Django 3
-    if connection.vendor == 'postgresql':
+    if connection.features.has_native_uuid_field:
         return F(field)
 
     if isinstance(field_type, UUIDField):
