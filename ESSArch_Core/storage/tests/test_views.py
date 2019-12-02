@@ -1,5 +1,6 @@
 from unittest import mock
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -634,7 +635,10 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         mock_task.assert_not_called()
 
-    @mock.patch('ESSArch_Core.storage.serializers.ProcessTask', side_effect=ProcessTask)
+    @mock.patch(
+        'ESSArch_Core.storage.serializers.ProcessTask.objects.get_or_create',
+        side_effect=ProcessTask.objects.get_or_create
+    )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessTask.run')
     def test_migration_task_order(self, mock_task_run, mock_task):
         old = self.add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_ENABLED)
@@ -685,18 +689,24 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             mock.call(
                 name='ESSArch_Core.storage.tasks.StorageMigration',
                 label=mock.ANY,
-                args=mock.ANY,
+                status__in=mock.ANY,
                 information_package=MockValidator(lambda x: ip in disk_ips),
-                responsible=mock.ANY,
-                eager=False,
+                defaults={
+                    'args': mock.ANY,
+                    'responsible': mock.ANY,
+                    'eager': False,
+                }
             ) for _ in range(6)] + [
             mock.call(
                 name='ESSArch_Core.storage.tasks.StorageMigration',
                 label=mock.ANY,
-                args=mock.ANY,
+                status__in=mock.ANY,
                 information_package=ip,
-                responsible=mock.ANY,
-                eager=False,
+                defaults={
+                    'args': mock.ANY,
+                    'responsible': mock.ANY,
+                    'eager': False,
+                }
             ) for ip in [
                 tape_ips[0],
                 tape_ips[5],
@@ -706,6 +716,44 @@ class StorageMigrationTests(StorageMigrationTestsBase):
                 tape_ips[4],
             ]],
         )
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
+    def test_queue_duplicate_migrations(self, mock_task):
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old_medium = self.add_storage_medium(old.storage_target, 20)
+        self.add_storage_obj(self.ip, old_medium, DISK, '')
+
+        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+
+        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+        }
+
+        for _ in range(5):
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        data['temp_path'] = 'temp2'
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEqual(ProcessTask.objects.count(), 1)
+        mock_task.assert_called_once()
+
+        with self.subTest('completed task'):
+            ProcessTask.objects.update(status=celery_states.SUCCESS)
+            mock_task.reset_mock()
+
+            for _ in range(5):
+                response = self.client.post(self.url, data=data)
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+            self.assertEqual(ProcessTask.objects.count(), 2)
+            mock_task.assert_called_once()
 
 
 class StorageMigrationPreviewTests(StorageMigrationTestsBase):

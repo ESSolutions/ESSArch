@@ -1,5 +1,6 @@
 import os
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
@@ -413,20 +414,24 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                 storage_methods = storage_methods.filter(pk__in=storage_object.ip.get_migratable_storage_methods())
 
                 for storage_method in storage_methods:
-                    t = ProcessTask(
+                    t, created = ProcessTask.objects.get_or_create(
                         name='ESSArch_Core.storage.tasks.StorageMigration',
                         label='Migrate to {}'.format(storage_method),
-                        args=[str(storage_method.pk), validated_data['temp_path']],
+                        status__in=[
+                            celery_states.PENDING,
+                            celery_states.RECEIVED,
+                            celery_states.STARTED,
+                        ],
                         information_package=storage_object.ip,
-                        responsible=self.context['request'].user,
-                        eager=False,
+                        defaults={
+                            'args': [str(storage_method.pk), validated_data['temp_path']],
+                            'responsible': self.context['request'].user,
+                            'eager': False,
+                        }
                     )
+                    if created:
+                        t.run()
                     tasks.append(t)
-
-            ProcessTask.objects.bulk_create(tasks, 100)
-
-        for t in tasks:
-            t.run()
 
         return ProcessTask.objects.filter(pk__in=[t.pk for t in tasks])
 
