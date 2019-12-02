@@ -12,3 +12,4 @@
     workspace/workspace
     maintenance/index
     archival-description-management/index
+    administration/storage-migration/index
