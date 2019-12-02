@@ -1015,16 +1015,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        email_subject = None
-        email_body = None
         recipient = ip.get_email_recipient()
-        if recipient:
-            for arg in ['subject', 'body']:
-                if arg not in request.data:
-                    raise exceptions.ParseError('%s parameter missing' % arg)
-
-            email_subject = request.data['subject']
-            email_body = request.data['body']
 
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', False)
@@ -1063,8 +1054,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "if": recipient,
                 "label": "Send email",
                 "params": {
-                    "subject": email_subject,
-                    "body": email_body,
+                    "subject": "Submitted {{_OBJID}}",
+                    "body": "{{_OBJID}} has been submitted",
                     "recipients": [recipient],
                     "attachments": [
                         "{{_PACKAGE_METS_PATH}}",

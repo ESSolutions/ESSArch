@@ -1,10 +1,15 @@
+import os
+import shutil
+import tarfile
+import tempfile
 from unittest import mock
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     StorageMethod,
@@ -12,9 +17,65 @@ from ESSArch_Core.storage.models import (
     StorageTarget,
 )
 from ESSArch_Core.testing.runner import TaskRunner
+from ESSArch_Core.util import normalize_path
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
+
+
+class CreateContainerTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Path.objects.create(entity='temp', value='temp')
+        EventType.objects.create(eventType=50400, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+        cls.user = User.objects.create()
+
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.ip = InformationPackage.objects.create()
+
+    def create_profile(self, data, ip):
+        profile = Profile.objects.create(profile_type='transfer_project')
+        profile_ip = ProfileIP.objects.create(profile=profile, ip=ip)
+        profile_ip_data = ProfileIPData.objects.create(relation=profile_ip, data=data, user=self.user)
+        profile_ip.data = profile_ip_data
+        profile_ip.save()
+
+        return profile
+
+    @TaskRunner()
+    def test_create_tar(self):
+        root = tempfile.mkdtemp(dir=self.datadir)
+        foo = os.path.join(root, 'foo')
+        os.makedirs(foo)
+        bar = os.path.join(root, 'bar')
+        os.makedirs(bar)
+        open(os.path.join(foo, '1.txt'), 'a').close()
+
+        dst = os.path.join(self.datadir, 'container.tar')
+
+        self.create_profile({'container_format': 'tar'}, self.ip)
+
+        task = ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.CreateContainer',
+            information_package=self.ip,
+            responsible=self.user,
+            args=[root, dst]
+        )
+        task.run().get()
+
+        root_base = os.path.basename(root)
+        expected = [
+            root_base,
+            os.path.join(root_base, 'foo'),
+            os.path.join(root_base, 'foo/1.txt'),
+            os.path.join(root_base, 'bar'),
+        ]
+        expected = [normalize_path(x) for x in expected]
+        with tarfile.open(dst) as tar:
+            self.assertCountEqual(expected, tar.getnames())
 
 
 class PreserveInformationPackageTests(TestCase):
