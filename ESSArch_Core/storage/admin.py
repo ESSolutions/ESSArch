@@ -25,7 +25,6 @@
 from django import forms
 from django.contrib import admin
 from django.utils.translation import ugettext as _
-from nested_inline.admin import NestedStackedInline
 
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
@@ -33,34 +32,10 @@ from ESSArch_Core.storage.models import (
     Robot,
     StorageMedium,
     StorageMethod,
-    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
     TapeDrive,
 )
-
-
-class StorageTargetInline(NestedStackedInline):
-    """
-    StorageTarget configuration
-    """
-    model = StorageMethodTargetRelation
-    fk_name = 'storage_method'
-    extra = 0
-    fields = (
-        'name',
-        'status',
-        'storage_target',
-    )
-    verbose_name = 'target relation'
-    verbose_name_plural = ''
-
-    def get_formset(self, request, obj=None, **kwargs):
-        formset = super().get_formset(request, obj, **kwargs)
-        form = formset.form
-        form.base_fields['storage_target'].widget.can_add_related = False
-        form.base_fields['storage_target'].widget.can_change_related = False
-        return formset
 
 
 class StorageMethodTargetRelationInlineFormSet(forms.models.BaseInlineFormSet):

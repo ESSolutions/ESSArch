@@ -652,8 +652,6 @@ class test_running_steps(TransactionTestCase):
 
         Path.objects.create(entity='temp', value='temp')
 
-        self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
-
     def test_empty_step(self):
         step = ProcessStep.objects.create()
         self.assertEqual(len(step.run().get()), 0)
