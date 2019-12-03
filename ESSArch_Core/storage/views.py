@@ -75,6 +75,7 @@ from ESSArch_Core.storage.serializers import (
     RobotQueueSerializer,
     RobotSerializer,
     StorageMediumSerializer,
+    StorageMediumWriteSerializer,
     StorageMigrationCreateSerializer,
     StorageMigrationPreviewDetailWriteSerializer,
     StorageMigrationPreviewWriteSerializer,
@@ -284,7 +285,6 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     API endpoint for storage medium
     """
     queryset = StorageMedium.objects.all()
-    serializer_class = StorageMediumSerializer
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
@@ -298,6 +298,12 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
     ordering = ('-create_date',)
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return StorageMediumSerializer
+
+        return StorageMediumWriteSerializer
 
     @action(detail=True, methods=['post'])
     def mount(self, request, pk=None):

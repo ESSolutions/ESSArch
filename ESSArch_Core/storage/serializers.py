@@ -34,12 +34,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
-    storage_target = serializers.PrimaryKeyRelatedField(
-        pk_field=serializers.UUIDField(format='hex_verbose'),
-        allow_null=False,
-        required=True,
-        queryset=StorageTarget.objects.all()
-    )
+    storage_target = StorageTargetSerializer(allow_null=False, required=True)
     tape_drive = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex_verbose'),
         allow_null=True,
@@ -77,6 +72,15 @@ class StorageMediumSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
+
+
+class StorageMediumWriteSerializer(StorageMediumSerializer):
+    storage_target = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=False,
+        required=True,
+        queryset=StorageTarget.objects.all()
+    )
 
 
 class StorageObjectSerializer(serializers.ModelSerializer):
