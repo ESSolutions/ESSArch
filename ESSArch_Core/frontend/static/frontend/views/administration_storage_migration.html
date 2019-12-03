@@ -63,7 +63,9 @@
 
             <div id="list-view" class="list-view-table">
               <table class="table table-striped" style="margin-bottom: 0px;">
-                <a ng-if="vm.selectedMediums.length" ng-click="vm.deselectAllMediums()" translate="CLEAR_ALL"></a>
+                <a ng-if="vm.selectedMediums.length" ng-click="vm.deselectAllMediums()">
+                  {{'CLEAR_ALL' | translate}} ({{vm.selectedMediums.length}})
+                </a>
                 <a
                   ng-if="vm.selectedMediums.length == 0 && vm.displayedMediums.length > 0"
                   ng-click="vm.selectAllMediums()"
@@ -226,7 +228,9 @@
                   ng-click="vm.collapseAll()"
                   translate="COLLAPSE_ALL"
                 ></a>
-                <a ng-if="(ips.length || ip !== null)" ng-click="vm.deselectAll()" translate="CLEAR_ALL"></a>
+                <a ng-if="(ips.length || ip !== null)" ng-click="vm.deselectAll()">
+                  {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}})
+                </a>
                 <a
                   ng-if="ips.length == 0 && ip === null && vm.displayedIps.length > 0"
                   ng-click="vm.selectAll()"
