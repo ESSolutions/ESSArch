@@ -756,10 +756,13 @@ class InformationPackage(models.Model):
         return normalize_path(os.path.join(self.object_path, path))
 
     def get_premis_file_path(self):
-        premis_dir, premis_name = find_destination("preservation_description_file", self.get_structure())
+        try:
+            premis_dir, premis_name = find_destination("preservation_description_file", self.get_structure())
+        except ProfileIP.DoesNotExist:
+            return None
+
         if premis_dir is not None:
             path = os.path.join(premis_dir, premis_name)
-            path = parseContent(path, fill_specification_data(ip=self))
         else:
             path = 'metadata/premis.xml'
 
@@ -854,10 +857,9 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        if self.state in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']:
+        if self.state == "Prepared":
             return 100
-
-        if self.state == "Preparing":
+        elif self.state == "Preparing":
             if not self.submission_agreement_locked:
                 return 33
 

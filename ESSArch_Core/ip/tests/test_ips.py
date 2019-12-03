@@ -36,7 +36,7 @@ from unittest import mock
 
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase, TransactionTestCase, override_settings
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from groups_manager.models import GroupType
@@ -2052,7 +2052,11 @@ class OrderViewSetTestCase(TestCase):
 
 
 @override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class IdentifyIP(TransactionTestCase):
+class IdentifyIP(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        EventType.objects.create(eventType=50600, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+
     def setUp(self):
         self.bd = os.path.dirname(os.path.realpath(__file__))
         self.datadir = os.path.join(self.bd, "datafiles")
@@ -2062,15 +2066,17 @@ class IdentifyIP(TransactionTestCase):
         except BaseException:
             pass
 
-        mimetypes = Path.objects.create(
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        mimetypes_file = Path.objects.create(
             entity="mimetypes_definitionfile",
             value=os.path.join(self.datadir, "mime.types"),
         ).value
-        with open(mimetypes, 'w') as f:
+        with open(mimetypes_file, 'w') as f:
             f.write('application/x-tar tar')
 
         self.path = Path.objects.create(entity="ingest_unidentified", value=self.datadir).value
-        Path.objects.create(entity="ingest_reception", value="ingest_reception").value
+        Path.objects.create(entity="ingest_reception", value="ingest_reception")
 
         self.user = User.objects.create(username="admin")
 
@@ -2083,12 +2089,6 @@ class IdentifyIP(TransactionTestCase):
         self.objid = 'unidentified_ip'
         fpath = os.path.join(self.path, '%s.tar' % self.objid)
         open(fpath, 'a').close()
-
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.datadir)
-        except BaseException:
-            pass
 
     def test_identify_ip(self):
         data = {
