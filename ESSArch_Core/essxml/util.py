@@ -388,7 +388,10 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
 
         # Remove first object in premis file if it is a "fake" entry describing the tar
         if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
-            if len(file_elements[0].xpath('.//*[local-name()="formatName"][. = "TAR" or . = "ZIP"]')):
+            # In XPath 1 we use translate() to make a case insensitive comparison
+            xpath_upper = 'translate(.,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")'
+            xpath_query = './/*[local-name()="formatName"][{up} = "TAR" or {up} = "ZIP"]'.format(up=xpath_upper)
+            if len(file_elements[0].xpath(xpath_query)):
                 file_elements.pop(0)
 
         for el in file_elements:
