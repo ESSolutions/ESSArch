@@ -857,10 +857,9 @@ class InformationPackage(models.Model):
         return state
 
     def status(self):
-        if self.state in ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']:
+        if self.state == "Prepared":
             return 100
-
-        if self.state == "Preparing":
+        elif self.state == "Preparing":
             if not self.submission_agreement_locked:
                 return 33
 
