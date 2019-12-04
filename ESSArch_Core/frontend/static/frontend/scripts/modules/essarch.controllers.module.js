@@ -1098,6 +1098,7 @@ export default angular
     '$translate',
     '$uibModal',
     'StorageMedium',
+    'Notifications',
     StorageMigrationCtrl,
   ])
   .controller('StorageMigrationModalInstanceCtrl', [

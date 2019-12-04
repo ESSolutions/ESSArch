@@ -9,7 +9,8 @@ export default class StorageMigrationCtrl {
     $controller,
     $translate,
     $uibModal,
-    StorageMedium
+    StorageMedium,
+    Notifications
   ) {
     const vm = this;
     $scope.select = true;
@@ -249,6 +250,9 @@ export default class StorageMigrationCtrl {
             }
           });
         }
+        if (vm.mediumFilterModel.medium_id_range_min || vm.mediumFilterModel.medium_id_range_max) {
+          $rootScope.skipErrorNotification = true;
+        }
         StorageMedium.query(
           angular.extend(
             {
@@ -282,6 +286,9 @@ export default class StorageMigrationCtrl {
                 vm.mediumPipe(tableState);
               });
             } else {
+              if (response.data && response.data.medium_id_range) {
+                Notifications.add(response.data.medium_id_range, 'error');
+              }
               $scope.mediumLoading = false;
             }
           });

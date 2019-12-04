@@ -3,13 +3,15 @@ import {IFieldGroup, IFieldObject} from '../formly/types';
 
 interface rootscope extends ng.IRootScopeService {
   auth: any;
+  skipErrorNotification: boolean;
 }
 
 export default (
   $translate: ng.translate.ITranslateService,
   $rootScope: rootscope,
   $http: ng.IHttpService,
-  appConfig: any
+  appConfig: any,
+  Notifications: any
 ) => {
   let policies: any = [];
   let users: any = [];
@@ -48,6 +50,7 @@ export default (
   };
 
   let getMediums = (search: string, params?: any) => {
+    $rootScope.skipErrorNotification = true;
     return $http
       .get(appConfig.djangoUrl + 'storage-mediums/', {
         params: angular.extend({page: 1, page_size: 10, search}, params),
@@ -55,6 +58,11 @@ export default (
       .then(response => {
         mediums = response.data;
         return response.data;
+      })
+      .catch(response => {
+        if (response.data && response.data.medium_id_range) {
+          Notifications.add(response.data.medium_id_range, 'error');
+        }
       });
   };
 
