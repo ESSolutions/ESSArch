@@ -6,6 +6,7 @@ import tarfile
 import time
 from subprocess import PIPE, Popen
 
+from django.utils import timezone
 from django.utils.timezone import localtime
 from lxml import etree
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -407,7 +408,9 @@ def robot_inventory(robot):
                         tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id
                     ).update(tape_drive=drive)
                 else:
-                    StorageMedium.objects.filter(tape_drive=drive).update(tape_drive=None)
+                    StorageMedium.objects.filter(tape_drive=drive).update(
+                        tape_drive=None, last_changed_local=timezone.now(),
+                    )
             except TapeDrive.DoesNotExist:
                 logger.warning(
                     'Drive {row} (drive_id={drive}, robot={robot}) not found in database'.format(
@@ -442,7 +445,9 @@ def robot_inventory(robot):
                             )
                         )
 
-                    StorageMedium.objects.filter(medium_id=volume_id).update(tape_slot=slot)
+                    StorageMedium.objects.filter(medium_id=volume_id).update(
+                        tape_slot=slot, last_changed_local=timezone.now(),
+                    )
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:

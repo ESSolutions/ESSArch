@@ -64,13 +64,15 @@ def unmount_tape_from_drive(drive):
     try:
         res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
     except BaseException:
-        StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(status=100)
+        StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
+            status=100, last_changed_local=timezone.now(),
+        )
         TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
         TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
 
     StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
-        tape_drive=None
+        tape_drive=None, last_changed_local=timezone.now(),
     )
 
     tape_drive.last_change = timezone.now()
@@ -106,7 +108,9 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
         mount_tape(tape_drive.robot.device, slot_id, tape_drive.drive_id)
         wait_to_come_online(tape_drive.device, timeout)
     except BaseException:
-        StorageMedium.objects.filter(pk=medium_id).update(status=100)
+        StorageMedium.objects.filter(pk=medium_id).update(
+            status=100, last_changed_local=timezone.now(),
+        )
         TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
         TapeSlot.objects.filter(slot_id=slot_id).update(status=100)
         raise
@@ -117,7 +121,8 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     )
     StorageMedium.objects.filter(pk=medium.pk).update(
         num_of_mounts=F('num_of_mounts') + 1,
-        tape_drive_id=drive_id
+        tape_drive_id=drive_id,
+        last_changed_local=timezone.now(),
     )
 
     write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive)
@@ -154,7 +159,9 @@ def write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive):
 
                 rewind_tape(tape_drive.device)
     except BaseException:
-        StorageMedium.objects.filter(pk=medium.pk).update(status=100)
+        StorageMedium.objects.filter(pk=medium.pk).update(
+            status=100, last_changed_local=timezone.now(),
+        )
         TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
         TapeSlot.objects.filter(slot_id=slot_id).update(status=100)
         raise

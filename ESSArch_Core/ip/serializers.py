@@ -4,6 +4,7 @@ import re
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
@@ -552,6 +553,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             policy.storage_methods.add(storage_method)
             # add to policy, dummy
 
+        aic_data['last_changed_local'] = timezone.now
         aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
 
         user = None
@@ -564,6 +566,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         validated_data['aic'] = aic
         validated_data['policy'] = policy
         validated_data['responsible'] = user
+        validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
 
         return ip

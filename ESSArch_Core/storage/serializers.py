@@ -1,6 +1,7 @@
 import os
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicModelSerializer
@@ -294,12 +295,14 @@ class IOQueueWriteSerializer(IOQueueSerializer):
         if storage_object_data is not None:
             storage_medium_data = storage_object_data.pop('storage_medium')
             storage_medium_data['agent'] = user
+            storage_medium_data['last_changed_local'] = timezone.now
             storage_medium, _ = StorageMedium.objects.update_or_create(
                 id=storage_medium_data['id'],
                 defaults=storage_medium_data
             )
 
             storage_object_data['storage_medium'] = storage_medium
+            storage_object_data['last_changed_local'] = timezone.now
             storage_object, _ = StorageObject.objects.update_or_create(
                 id=storage_object_data['id'],
                 defaults=storage_object_data

@@ -363,7 +363,7 @@ class InformationPackage(models.Model):
     cached = models.BooleanField(_('cached'), default=False)
     archived = models.BooleanField(_('archived'), default=False)
 
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     responsible = models.ForeignKey(
@@ -1769,7 +1769,8 @@ class InformationPackage(models.Model):
 
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
-                used_capacity=F('used_capacity') + write_size
+                used_capacity=F('used_capacity') + write_size,
+                last_changed_local=timezone.now(),
             )
 
         return str(storage_object.pk)
@@ -1890,7 +1891,7 @@ class InformationPackageMetadata(models.Model):
     message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
     message_digest = models.CharField(max_length=128, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     def check_db_sync(self):

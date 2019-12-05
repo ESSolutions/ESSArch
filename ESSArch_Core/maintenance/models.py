@@ -202,7 +202,9 @@ class AppraisalJob(MaintenanceJob):
 
         for ip in ips.iterator():
             # inactivate old generations
-            InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+            InformationPackage.objects.filter(
+                aic=ip.aic, generation__lte=ip.generation
+            ).update(active=False, last_changed_local=timezone.now())
 
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
