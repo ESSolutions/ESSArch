@@ -303,6 +303,7 @@ const general = $translateProvider => {
     RECEIVE_INFORMATION_PACKAGE: 'Receive information package',
     RECEIVESIP: 'Receive SIP',
     RECEPTION: 'Reception',
+    RECOVERY: 'Recovery',
     REDO: 'Retry',
     REFRESH: 'Refresh',
     REFRESHPAGE: 'Refresh page',

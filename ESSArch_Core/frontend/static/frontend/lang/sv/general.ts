@@ -305,6 +305,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     RECEIVE_INFORMATION_PACKAGE: 'Ta emot informationspaket',
     RECEIVESIP: 'Ta emot SIP',
     RECEPTION: 'Reception',
+    RECOVERY: 'Återinläsning',
     REDO: 'Gör om',
     REFRESH: 'Uppdatera',
     REFRESHPAGE: 'Uppdatera sida',

@@ -55,6 +55,9 @@ const contentTabs = () => {
     'home.administration.storageMigration': {
       migrate: ['Preserved'],
     },
+    'home.administration.recovery': {
+      migrate: ['Preserved'],
+    },
   };
   const service = {
     /**

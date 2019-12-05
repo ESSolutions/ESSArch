@@ -72,6 +72,7 @@ import PublishClassificationStructureCtrl from '../controllers/PublishClassifica
 import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
+import RecoveryCtrl from '../controllers/RecoveryCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RemoveStructureModalInstanceCtrl from '../controllers/RemoveStructureModalInstanceCtrl';
 import RemoveStructureUnitModalInstanceCtrl from '../controllers/RemoveStructureUnitModalInstanceCtrl';
@@ -1059,6 +1060,19 @@ export default angular
     '$transitions',
     'listViewService',
     QueuesCtrl,
+  ])
+  .controller('RecoveryCtrl', [
+    '$rootScope',
+    '$scope',
+    'appConfig',
+    '$http',
+    'listViewService',
+    'SelectedIPUpdater',
+    '$controller',
+    '$translate',
+    '$uibModal',
+    'StorageMedium',
+    RecoveryCtrl,
   ])
   .controller('StatsReportModalInstanceCtrl', [
     '$uibModalInstance',

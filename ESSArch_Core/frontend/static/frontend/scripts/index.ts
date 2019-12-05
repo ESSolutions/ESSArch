@@ -777,6 +777,20 @@ angular
             },
           },
         })
+        .state('home.administration.recovery', {
+          url: '/recovery',
+          templateUrl: 'static/frontend/views/administration_recovery.html',
+          controller: 'RecoveryCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.administration.recovery', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.administration.profileManager', {
           url: '/profile-manager',
           templateUrl: 'static/frontend/views/profile_manager.html',

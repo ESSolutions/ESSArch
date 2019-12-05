@@ -101,6 +101,9 @@
           "storageMaintenance": {
             "_permissions": ["storage.storage_maintenance"]
           },
+          "recovery": {
+            "_permissions": ["storage.storage_management"]
+          },
           "profileManager": {
             "saEditor": {
               "_permissions": ["profiles.add_submissionagreement"]

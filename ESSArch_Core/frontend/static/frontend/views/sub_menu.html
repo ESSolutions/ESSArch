@@ -198,6 +198,15 @@
     >
     <a
       tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.administration.recovery')"
+      ui-sref="home.administration.recovery"
+      ng-class="{chosen: $state.current.name == 'home.administration.recovery'}"
+      class="nav-item sliding-middle-out"
+      ng-if="checkPermissions('home.administration.recovery')"
+      >{{'RECOVERY' | translate}}</a
+    >
+    <a
+      tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.administration.profileManager')"
       ui-sref="home.administration.profileManager"
       ng-class="{chosen: $state.includes('home.administration.profileManager')}"
