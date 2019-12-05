@@ -118,7 +118,9 @@
         ng-click="vm.collapseAll()"
         translate="COLLAPSE_ALL"
       ></a>
-      <a ng-if="(ips.length || ip !== null)" ng-click="vm.deselectAll()" translate="CLEAR_ALL"></a>
+      <a ng-if="(ips.length || ip !== null)" ng-click="vm.deselectAll()">
+        {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}} {{'SELECTED' | translate}})
+      </a>
       <a
         ng-if="ips.length == 0 && ip === null && vm.displayedIps.length > 0"
         ng-click="vm.selectAll()"
