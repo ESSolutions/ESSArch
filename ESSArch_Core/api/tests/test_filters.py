@@ -33,6 +33,7 @@ class CharSuffixRangeFilterTests(TestCase):
         InformationPackage.objects.create(label="AA0A10")
         InformationPackage.objects.create(label="AA00BB")
         InformationPackage.objects.create(label="foo")
+        InformationPackage.objects.create(label="fooAA0010")
 
     def test_filtering(self):
         results = self.F(data={'label_min': 'AA0010', 'label_max': 'AA0050'})

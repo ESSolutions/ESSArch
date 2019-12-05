@@ -31,7 +31,7 @@ import django_filters
 from django.db import connection
 from django.db.models import F, IntegerField, Q, UUIDField
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.functions import Cast, Substr
+from django.db.models.functions import Cast, Length, Substr
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 from rest_framework.compat import distinct
@@ -198,6 +198,7 @@ class CharSuffixRangeFilter(filters.RangeFilter):
             )
 
         return base.annotate(
+            full_length=Length(self.field_name),
             suffix_number=cast_func(
                 Substr(
                     F(self.field_name),
@@ -206,7 +207,10 @@ class CharSuffixRangeFilter(filters.RangeFilter):
                 ),
                 IntegerField(),
             )
-        ).filter(**suffix_filter,)
+        ).filter(
+            full_length=len(start) if start else len(stop),
+            **suffix_filter,
+        )
 
 
 class UUIDInFilter(filters.BaseInFilter, filters.UUIDFilter):
