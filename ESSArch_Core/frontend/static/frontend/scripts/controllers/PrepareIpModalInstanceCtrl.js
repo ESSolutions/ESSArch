@@ -29,22 +29,51 @@ export default class PrepareIpModalInstanceCtrl {
     $ctrl.$onInit = () => {
       EditMode.enable();
     };
+    $ctrl.ipData = {
+      package_type: 0,
+    };
 
-    $ctrl.objectIdentifierValue = '';
-    $ctrl.label = '';
+    $ctrl.labelField = [
+      {
+        type: 'input',
+        key: 'label',
+        templateOptions: {
+          label: $translate.instant('LABEL'),
+          required: true,
+        },
+      },
+    ];
+
+    $ctrl.identifierField = [
+      {
+        type: 'input',
+        key: 'object_identifier_value',
+        validators: {
+          coordinate: {
+            expression: function(viewValue, modelValue) {
+              const value = modelValue || viewValue;
+              return (
+                /^[^/|\\|\||*|>|<|:|"|?]*$/.test(value) || value === '' || angular.isUndefined(value) || value === null
+              );
+            },
+            message: '("IDENTIFICATION_CAN_NOT_CONTAIN_DESC" | translate)',
+          },
+        },
+        templateOptions: {
+          type: 'text',
+          label: $translate.instant('CUSTOM_IDENTIFICATION'),
+        },
+      },
+    ];
 
     $ctrl.prepare = () => {
-      $ctrl.data = {
-        label: $ctrl.label,
-        objectIdentifierValue: $ctrl.objectIdentifierValue,
-      };
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
 
       $ctrl.preparing = true;
-      return IP.prepare({
-        label: $ctrl.data.label,
-        object_identifier_value: $ctrl.data.objectIdentifierValue,
-        package_type: 0,
-      })
+      return IP.prepare($ctrl.ipData)
         .$promise.then(function(resource) {
           $ctrl.preparing = false;
           EditMode.disable();

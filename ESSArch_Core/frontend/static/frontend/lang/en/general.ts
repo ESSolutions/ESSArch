@@ -160,6 +160,7 @@ const general = $translateProvider => {
     HELP: 'Help',
     ID: 'ID',
     IDENTIFICATION: 'Identification',
+    IDENTIFICATION_CAN_NOT_CONTAIN_DESC: 'Identifier can not contain /, :, *, ?, ", <, > or |',
     INCLUDE_AIC_XML: 'Include AIC XML',
     INCLUDE_INACTIVE_IPS: 'Include inactive information packages',
     INCLUDE_PACKAGE_XML: 'Include package XML',

@@ -2281,6 +2281,42 @@ class CreateIPTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
         self.assertFalse(InformationPackage.objects.exists())
 
+    def test_create_ip_with_invalid_objid(self):
+        self.add_to_organization()
+        perm = self.get_add_permission()
+        self.user_role.permissions.add(perm)
+
+        invalid_characters = '\\/:*?"<>|'
+        for c in invalid_characters:
+            with self.subTest(c):
+                data = {
+                    'package_type': InformationPackage.SIP,
+                    'label': 'my label',
+                    'object_identifier_value': 'objid{}'.format(c)
+                }
+                res = self.client.post(self.url, data)
+
+                self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertEqual(
+                    res.data['object_identifier_value'],
+                    ['Invalid character: {}'.format(c)],
+                )
+                self.assertFalse(InformationPackage.objects.exists())
+
+        with self.subTest(invalid_characters):
+            data = {
+                'package_type': InformationPackage.SIP,
+                'label': 'my label',
+                'object_identifier_value': 'objid{}'.format(invalid_characters)
+            }
+            res = self.client.post(self.url, data)
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(
+                res.data['object_identifier_value'],
+                ['Invalid character: {}'.format(invalid_characters[0])],
+            )
+            self.assertFalse(InformationPackage.objects.exists())
+
     def test_create_ip_with_same_label_as_existing(self):
         self.add_to_organization()
         perm = self.get_add_permission()

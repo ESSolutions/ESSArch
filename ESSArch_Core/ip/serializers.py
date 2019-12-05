@@ -1,5 +1,6 @@
 import errno
 import os
+import re
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
@@ -293,6 +294,16 @@ class InformationPackageCreateSerializer(serializers.ModelSerializer):
         allow_empty=True,
         required=False,
     )
+
+    def validate_object_identifier_value(self, value):
+        if value is None:
+            return value
+
+        match = re.search(r'[/|\\|\||*|>|<|:|\"|\?]', value)
+        if match:
+            raise serializers.ValidationError('Invalid character: {}'.format(match.group(0)))
+
+        return value
 
     class Meta:
         model = InformationPackage

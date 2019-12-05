@@ -162,6 +162,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     HELP: 'Hjälp',
     ID: 'ID',
     IDENTIFICATION: 'Identifikation',
+    IDENTIFICATION_CAN_NOT_CONTAIN_DESC: 'Identifierare får inte innehålla /, :, *, ?, ", <, > eller |',
     INCLUDE_AIC_XML: 'Inkludera AIC XML',
     INCLUDE_INACTIVE_IPS: 'Inkludera inaktiverade informationspaket',
     INCLUDE_PACKAGE_XML: 'Inkludera package XML',
