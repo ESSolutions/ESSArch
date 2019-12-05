@@ -55,7 +55,7 @@ export default (
     }
     return $http
       .get(appConfig.djangoUrl + 'storage-mediums/', {
-        params: angular.extend({page: 1, page_size: 10, search}, params),
+        params: angular.extend({page: 1, page_size: 10, ordering: 'medium_id', search}, params),
       })
       .then(response => {
         mediums = response.data;
