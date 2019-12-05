@@ -50,7 +50,9 @@ export default (
   };
 
   let getMediums = (search: string, params?: any) => {
-    $rootScope.skipErrorNotification = true;
+    if (params.medium_id_range_min || params.medium_id_range_max) {
+      $rootScope.skipErrorNotification = true;
+    }
     return $http
       .get(appConfig.djangoUrl + 'storage-mediums/', {
         params: angular.extend({page: 1, page_size: 10, search}, params),
@@ -271,7 +273,7 @@ export default (
               appendToBody: true,
               refresh: function(search) {
                 return getMediums(search, {
-                  medium_id_range_min: minMediumFilterValue,
+                  medium_id_range_max: minMediumFilterValue,
                   policy: mediumPolicyFilterValue,
                 });
               },
@@ -299,7 +301,7 @@ export default (
               appendToBody: true,
               refresh: function(search) {
                 return getMediums(search, {
-                  medium_id_range_max: maxMediumFilterValue,
+                  medium_id_range_min: maxMediumFilterValue,
                   policy: mediumPolicyFilterValue,
                 });
               },
