@@ -23,7 +23,6 @@ export default class StorageMigrationCtrl {
     $scope.jobs = [];
     vm.displayedJobs = [];
     vm.displayedMediums = [];
-    vm.medium = null;
     vm.selectedMediums = [];
     vm.mediumsPerPage = 10;
     vm.mediumFilterModel = {};
@@ -32,7 +31,7 @@ export default class StorageMigrationCtrl {
       if (vm.activePill === 'migrate') {
         vm.updateStorageMediums();
       }
-      if (vm.medium) {
+      if (vm.selectedMediums.length) {
         vm.callServer($scope.tableState);
       }
       if (vm.activePill === 'tasks') {
@@ -194,6 +193,9 @@ export default class StorageMigrationCtrl {
       });
       modalInstance.result.then(
         function(data) {
+          $scope.ips = [];
+          $scope.ip = null;
+          vm.selectedMediums = [];
           $scope.getListViewData();
         },
         function() {}
