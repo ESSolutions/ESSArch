@@ -23,6 +23,14 @@
     ng-if="profileEditor"
     ip="ip"
     share-data="vm.getProfileData($event)"
+    types="{
+      transfer_project: {disabled: false},
+      submit_description: {disabled: false},
+      aip: {disabled: false},
+      aic_description: {disabled: false},
+      aip_description: {disabled: false},
+      preservation_metadata: {disabled: false},
+    }"
   ></profile-editor>
   <div ng-if="requestForm" class="request-layout">
     <form id="request-form" name="vm.form" class="request-form" ng-submit="vm.receive(ips[0])">

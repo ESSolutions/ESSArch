@@ -210,7 +210,7 @@ export default class DeliveryCtrl {
           ordering: sortString,
           search: search,
         }).then(function(response) {
-          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
+          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.deliveryEventsLoading = false;
           vm.deliveryEvents = response.data;

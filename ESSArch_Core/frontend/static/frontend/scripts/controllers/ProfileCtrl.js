@@ -53,6 +53,19 @@ export default class ProfileCtrl {
         disabled: false,
       };
       $scope.ip = vm.ip;
+      if (!vm.types) {
+        vm.types = {
+          transfer_project: {visible: true, disabled: false},
+          submit_description: {visible: true, disabled: false},
+          sip: {visible: true, disabled: false},
+          aic_description: {visible: true, disabled: false},
+          aip: {visible: true, disabled: false},
+          aip_description: {visible: true, disabled: false},
+          dip: {visible: true, disabled: false},
+          workflow: {visible: true, disabled: false},
+          preservation_metadata: {visible: true, disabled: false},
+        };
+      }
       vm.cancel();
       vm.saCancel();
       vm.gettingSas = true;
@@ -87,7 +100,7 @@ export default class ProfileCtrl {
       $scope.selectRowCollection = [];
       SA.profiles({id: sa.id}).$promise.then(function(resource) {
         $scope.profilesLoading = false;
-        $scope.selectRowCollection = resource;
+        $scope.selectRowCollection = resource.filter(x => vm.types[x.profile_type]);
       });
     };
 
@@ -342,6 +355,7 @@ export default class ProfileCtrl {
     vm.getAndShowProfile = function(profile, row) {
       vm.loadingProfileData[profile.profile_type] = true;
       vm.selectedProfile = profile;
+      $scope.selectedNode = null;
       Profile.get({
         id: profile.id,
       })
@@ -363,7 +377,10 @@ export default class ProfileCtrl {
               const temp = [];
               row.active.template.forEach(function(x) {
                 if (!x.templateOptions.disabled) {
-                  if (vm.disabled) {
+                  if (
+                    vm.disabled ||
+                    (vm.types[row.active.profile_type] && vm.types[row.active.profile_type].disabled)
+                  ) {
                     x.templateOptions.disabled = true;
                     x.type = 'input';
                   }

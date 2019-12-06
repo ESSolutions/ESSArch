@@ -6,7 +6,7 @@
             "args": [
                 "xml",
                 "receipts/xml.json",
-                "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                 "error",
                 "Failed to preserve {{OBJID}}",
                 "Preservation of {{OBJID}} failed"
@@ -314,7 +314,7 @@
                 null,
                 "xml",
                 "receipts/xml.json",
-                "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                 "success",
                 "Preserved {{OBJID}}",
                 "{{OBJID}} is now preserved"
