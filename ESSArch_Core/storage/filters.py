@@ -68,6 +68,19 @@ class StorageMediumFilter(filters.FilterSet):
         else:
             return queryset.non_migratable()
 
+    ordering = filters.OrderingFilter(
+        fields=(
+            ('id', 'id'),
+            ('medium_id', 'medium_id'),
+            ('storage_target__name', 'storage_target'),
+            ('status', 'status'),
+            ('location', 'location'),
+            ('location_status', 'location_status'),
+            ('used_capacity', 'used_capacity'),
+            ('create_date', 'create_date'),
+        ),
+    )
+
     class Meta:
         model = StorageMedium
         fields = ('status', 'medium_type', 'storage_type', 'medium_id',)
