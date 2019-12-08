@@ -28,7 +28,7 @@ drf-extensions==0.5.0
 drf-proxy-pagination==0.2.0
 elasticsearch-dsl==6.3.1
 glob2==0.7
-jsonfield==2.0.2
+jsonfield2==3.1.0
 lxml==4.4.2
 msoffcrypto-tool==4.10.1
 natsort==6.0.0
