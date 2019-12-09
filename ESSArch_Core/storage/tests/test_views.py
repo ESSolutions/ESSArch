@@ -219,25 +219,6 @@ class StorageMediumDeactivatableTests(TestCase):
 class StorageMediumMigratableTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.storage_method = StorageMethod.objects.create()
-        cls.storage_target = StorageTarget.objects.create()
-        cls.storage_method_target_rel = StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        cls.storage_medium = StorageMedium.objects.create(
-            storage_target=cls.storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
-        cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
-            ingest_path=Path.objects.create(entity='test', value='foo')
-        )
-        cls.policy.storage_methods.add(cls.storage_method)
-
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -245,7 +226,46 @@ class StorageMediumMigratableTests(TestCase):
         self.client.force_authenticate(user=self.user)
         self.url = reverse('storagemedium-list')
 
+        self.policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(entity='test', value='foo')
+        )
+
+    def add_storage_method_rel(self, storage_type, target_name, status):
+        storage_method = StorageMethod.objects.create(
+            type=storage_type,
+        )
+        storage_target = StorageTarget.objects.create(
+            name=target_name,
+        )
+
+        return StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=status,
+        )
+
+    def add_storage_medium(self, target, status, medium_id):
+        return StorageMedium.objects.create(
+            storage_target=target, medium_id=medium_id,
+            status=status, location_status=50, block_size=1024, format=103,
+        )
+
+    def add_storage_obj(self, ip, medium, loc_type, loc_value):
+        return StorageObject.objects.create(
+            ip=ip, storage_medium=medium,
+            content_location_type=loc_type,
+            content_location_value=loc_value,
+        )
+
     def test_no_change(self):
+        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        old_medium = self.add_storage_medium(old.storage_target, 20, '1')
+        self.add_storage_obj(ip, old_medium, DISK, '')
+        self.policy.storage_methods.add(old.storage_method)
+
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -253,27 +273,23 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+        self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
     def test_migrated_ip(self):
+        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old_medium = self.add_storage_medium(old.storage_target, 20, '1')
+        self.add_storage_obj(ip, old_medium, DISK, '')
+        self.policy.storage_methods.add(old.storage_method)
+
         new_storage_target = StorageTarget.objects.create(name='new')
         new_rel = StorageMethodTargetRelation.objects.create(
-            storage_method=self.storage_method,
+            storage_method=old.storage_method,
             storage_target=new_storage_target,
             status=STORAGE_TARGET_STATUS_DISABLED
         )
-        new_storage_medium = StorageMedium.objects.create(
-            medium_id="new_medium", storage_target=new_storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-        self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
-        self.storage_method_target_rel.save()
-
-        # Add IP to old medium
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
+        new_storage_medium = self.add_storage_medium(new_storage_target, 20, '2')
 
         # New medium exists but it is disabled
         response = self.client.get(self.url, data={'migratable': True})
@@ -292,18 +308,18 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+        self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
         # Add IP to new medium
         StorageObject.objects.create(
-            ip=self.ip, storage_medium=new_storage_medium,
+            ip=ip, storage_medium=new_storage_medium,
             content_location_type=DISK,
         )
 
         # All objects migrated and old medium is deactivatable
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        self.assertEqual(len(response.data), 0)
 
         # Add new IP to old medium
         new_ip = InformationPackage.objects.create(
@@ -311,7 +327,7 @@ class StorageMediumMigratableTests(TestCase):
             policy=self.policy
         )
         StorageObject.objects.create(
-            ip=new_ip, storage_medium=self.storage_medium,
+            ip=new_ip, storage_medium=old_medium,
             content_location_type=DISK,
         )
 
@@ -319,7 +335,7 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+        self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
         # Add new IP to new medium
         StorageObject.objects.create(
@@ -331,6 +347,53 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
+
+    def test_multiple_ips(self):
+        ip_0933 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            archived=True,
+            policy=self.policy,
+        )
+        ip_1520 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            archived=True,
+            policy=self.policy,
+        )
+
+        # default
+        default_rel = self.add_storage_method_rel(DISK, 'default', STORAGE_TARGET_STATUS_MIGRATE)
+        default_medium = self.add_storage_medium(default_rel.storage_target, 20, 'default')
+
+        more_target = StorageTarget.objects.create(name='more_target')
+        more_rel = StorageMethodTargetRelation.objects.create(
+            storage_method=default_rel.storage_method,
+            storage_target=more_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        more_medium = self.add_storage_medium(more_rel.storage_target, 20, 'more')
+
+
+        # long term
+        long_term_rel = self.add_storage_method_rel(DISK, 'default_long_term', STORAGE_TARGET_STATUS_ENABLED)
+        long_term_medium = self.add_storage_medium(long_term_rel.storage_target, 0, 'long_term')
+
+        self.policy.storage_methods.add(
+            default_rel.storage_method,
+            more_rel.storage_method,
+
+            long_term_rel.storage_method,
+        )
+
+        self.add_storage_obj(ip_0933, default_medium, DISK, '')
+        self.add_storage_obj(ip_0933, more_medium, DISK, '')
+
+        self.add_storage_obj(ip_0933, long_term_medium, DISK, '')
+        self.add_storage_obj(ip_1520, long_term_medium, DISK, '')
+
+
+        response = self.client.get(self.url, data={'migratable': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
 
 
 class StorageMediumDeactivateTests(TestCase):
