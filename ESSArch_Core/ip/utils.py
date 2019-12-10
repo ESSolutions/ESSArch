@@ -13,7 +13,10 @@ from tenacity import (
 )
 
 from ESSArch_Core.configuration.models import StoragePolicy
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
+)
 from ESSArch_Core.essxml.util import get_agents, parse_submit_description
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
@@ -183,13 +186,14 @@ def generate_aic_mets(ip, xml_path):
 
 
 def generate_premis(ip):
-    premis_path = ip.get_premis_file_path()
     premis_profile_rel = ip.get_profile_rel('preservation_metadata')
     premis_profile_data = ip.get_profile_data('preservation_metadata')
+    data = fill_specification_data(premis_profile_data, ip=ip)
+    premis_path = parseContent(ip.get_premis_file_path(), data)
     files_to_create = {
         premis_path: {
             'spec': premis_profile_rel.profile.specification,
-            'data': fill_specification_data(premis_profile_data, ip=ip)
+            'data': data,
         }
     }
     algorithm = ip.get_checksum_algorithm()

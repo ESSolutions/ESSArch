@@ -355,6 +355,7 @@ export default class ProfileCtrl {
     vm.getAndShowProfile = function(profile, row) {
       vm.loadingProfileData[profile.profile_type] = true;
       vm.selectedProfile = profile;
+      $scope.selectedNode = null;
       Profile.get({
         id: profile.id,
       })

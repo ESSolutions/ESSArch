@@ -208,23 +208,6 @@ input[type='checkbox'] {
 .edit-view-tree {
   display: flex;
   flex-direction: row;
-  width: 100%;
-}
-.edit-view-tree .formly {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-}
-.edit-view-tree .formly-field {
-  width: 75%;
-  margin-left: 0;
-}
-
-.tree {
-  width: 30%;
-}
-.add-node-form-wrapper {
-  height: 50%;
 }
 
 .version-info-page {
