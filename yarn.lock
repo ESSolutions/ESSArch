@@ -700,10 +700,10 @@
     "@types/angular" "*"
     "@types/angular-ui-router" "*"
 
-"@types/angular-translate@^2.16.0":
-  version "2.16.0"
-  resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.0.tgz#673423f8d006d6a44662e71f0e1b9d017924e96e"
-  integrity sha512-ZW7w6+N95EVJSmi+PhIB4gGtl4ABpBOg6wFqk24+vXSIpExqZ88PnfX0O6jQwLDuKUh75rmQZRBy3KvF/JPx3Q==
+"@types/angular-translate@^2.16.1":
+  version "2.16.1"
+  resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.1.tgz#cb9c1cf7bb04e2144236b5ca4dbe7a96012ff46e"
+  integrity sha512-0fnHHEaR2NhX4m4ahRGvNF/oFS3cPBOzeobDWi+Fno3sSn11MVDey3M+RpBLmEMs0/KURE+q2u+WLkF9rXUHZw==
   dependencies:
     "@types/angular" "*"
 
