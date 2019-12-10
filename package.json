@@ -7,7 +7,7 @@
     "@flowjs/ng-flow": "~2.7.8",
     "@fortawesome/fontawesome-free": "~5.10.2",
     "@intervolga/optimize-cssnano-plugin": "^1.0.6",
-    "@types/angular": "^1.6.56",
+    "@types/angular": "^1.6.57",
     "@types/angular-formly": "^7.2.34",
     "@types/angular-permission": "^2.3.22",
     "@types/angular-translate": "^2.16.0",
