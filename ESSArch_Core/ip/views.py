@@ -859,6 +859,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validate_xml_file = validators.get('validate_xml_file', True)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
         has_cts = ip.get_content_type_file() is not None
+        has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
 
         dst_dir = Path.objects.cached('entity', 'preingest', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
@@ -949,7 +950,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     },
                     {
                         "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                        "if": generate_premis,
+                        "if": has_representations and generate_premis,
                         "label": "Compare representation premis and mets",
                     }
                 ]
@@ -1014,16 +1015,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        email_subject = None
-        email_body = None
         recipient = ip.get_email_recipient()
-        if recipient:
-            for arg in ['subject', 'body']:
-                if arg not in request.data:
-                    raise exceptions.ParseError('%s parameter missing' % arg)
-
-            email_subject = request.data['subject']
-            email_body = request.data['body']
 
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', False)
@@ -1062,8 +1054,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "if": recipient,
                 "label": "Send email",
                 "params": {
-                    "subject": email_subject,
-                    "body": email_body,
+                    "subject": "Submitted {{_OBJID}}",
+                    "body": "{{_OBJID}} has been submitted",
                     "recipients": [recipient],
                     "attachments": [
                         "{{_PACKAGE_METS_PATH}}",
@@ -1362,7 +1354,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         None,
                         "xml",
                         "receipts/xml.json",
-                        "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                        "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                         "success",
                         "Preserved {{OBJID}}",
                         "{{OBJID}} is now preserved",
@@ -1473,6 +1465,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
 
         generate_premis = dip.profile_locked('preservation_metadata')
+        has_representations = find_destination("representations", dip.get_structure(), dip.object_path)[1] is not None
 
         dst = os.path.join(
             os.path.dirname(dip.object_path),
@@ -1550,7 +1543,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     },
                     {
                         "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                        "if": generate_premis,
+                        "if": has_representations and generate_premis,
                         "label": "Compare representation premis and mets",
                     }
                 ]
@@ -2388,6 +2381,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         validate_xml_file = validators.get('validate_xml_file', False)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
         has_cts = ip.get_content_type_file() is not None
+        has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
 
         workflow_spec = [
             {
@@ -2521,7 +2515,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                             },
                             {
                                 "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                                "if": generate_premis,
+                                "if": has_representations and generate_premis,
                                 "label": "Compare representation premis and mets",
                             }
                         ]
@@ -2723,7 +2717,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'folderToParse': container_file,
             },
             responsible=request.user,
-        ).run()
+        ).run().get()
 
         return Response({'status': 'Identified IP, created %s' % infoxml})
 

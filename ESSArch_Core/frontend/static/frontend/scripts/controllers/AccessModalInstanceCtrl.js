@@ -49,10 +49,14 @@ export default class AccessModalInstanceCtrl {
           })
         );
       });
-      $q.all(promises).then(function(data) {
-        $uibModalInstance.close(data);
-        $ctrl.accessing = false;
-      });
+      $q.all(promises)
+        .then(function(data) {
+          $uibModalInstance.close(data);
+          $ctrl.accessing = false;
+        })
+        .catch(() => {
+          $ctrl.accessing = false;
+        });
     };
   }
 }

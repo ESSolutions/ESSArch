@@ -440,6 +440,7 @@ def installDefaultPaths():
         'temp': '/ESSArch/data/temp',
         'appraisal_reports': '/ESSArch/data/reports/appraisal',
         'conversion_reports': '/ESSArch/data/reports/conversion',
+        'receipts': '/ESSArch/data/receipts',
     }
 
     for key in dct:

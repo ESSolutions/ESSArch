@@ -158,7 +158,7 @@ class GenerateXML(DBTask):
                 if e.errno != errno.ENOENT:
                     raise
 
-    def event_outcome_success(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
+    def event_outcome_success(self, result, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
                               parsed_files=None, algorithm='SHA-256'):
 
         if filesToCreate is None:
@@ -506,6 +506,9 @@ class CompareRepresentationXMLFiles(DBTask):
                 responsible=ip.responsible,
             )
             validator.validate(rep_mets_path)
+
+    def event_outcome_success(self, result):
+        return "All XML files in the representations have the same set of files"
 
 
 class UpdateIPStatus(DBTask):

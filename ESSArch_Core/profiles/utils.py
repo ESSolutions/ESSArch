@@ -1,8 +1,9 @@
 import collections
-import os
+from collections.abc import Mapping
+
+from django.core.exceptions import ObjectDoesNotExist
 
 from ESSArch_Core.configuration.models import Parameter, Path
-from ESSArch_Core.util import find_destination
 
 profile_types = [
     "Transfer Project",
@@ -22,6 +23,39 @@ profile_types = [
     "Event",
     "Validation",
 ]
+
+
+class LazyDict(Mapping):
+    def __init__(self, *args, **kw):
+        self._raw_dict = dict(*args, **kw)
+
+    def __getitem__(self, key):
+        val = self._raw_dict.__getitem__(key)
+        if isinstance(val, tuple) and callable(val[0]):
+            func, *args = val
+            return func(*args)
+
+        return val
+
+    def __setitem__(self, key, value):
+        if key.startswith('_'):
+            self._raw_dict.__setitem__(key, value)
+            self._raw_dict.__setitem__(key[1:], value)
+        else:
+            return self._raw_dict.__setitem__(key, value)
+
+    def copy(self):
+        return LazyDict(self._raw_dict.copy())
+
+    def update(self, data):
+        data.update(_remove_leading_underscores(data))
+        return self._raw_dict.update(data)
+
+    def __iter__(self):
+        return iter(self._raw_dict)
+
+    def __len__(self):
+        return len(self._raw_dict)
 
 
 def _remove_leading_underscores(d):
@@ -45,9 +79,45 @@ def _fill_sa_specification_data(sa):
     }
 
 
+def _get_profile_id_by_type(profile_type, ip):
+    try:
+        return str(ip.get_profile(profile_type).pk)
+    except AttributeError:
+        return None
+
+
+def _get_agents(ip):
+    agents = {}
+
+    for a in ip.agents.all():
+        agent = {
+            '_AGENTS_NAME': a.name,
+            '_AGENTS_NOTES': [{'_AGENTS_NOTE': n.note} for n in a.notes.all()],
+        }
+
+        if a.other_role:
+            agent['_AGENTS_ROLE'] = 'OTHER'
+            agent['_AGENTS_OTHERROLE'] = a.role
+        else:
+            agent['_AGENTS_ROLE'] = a.role
+
+        if a.other_type:
+            agent['_AGENTS_TYPE'] = 'OTHER'
+            agent['_AGENTS_OTHERTYPE'] = a.type
+        else:
+            agent['_AGENTS_TYPE'] = a.type
+
+        agent_key = '{role}_{type}'.format(role=a.role.upper(), type=a.type.upper())
+        agents[agent_key] = agent
+
+    return agents
+
+
 def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
     data = data or {}
     ignore = ignore or []
+
+    data = LazyDict(data)
 
     if sa:
         data.update(_fill_sa_specification_data(sa))
@@ -72,9 +142,9 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_INFORMATIONCLASS'] = ip.information_class
 
         if '_CTS_PATH' not in ignore:
-            data['_CTS_PATH'] = ip.get_content_type_file()
+            data['_CTS_PATH'] = (ip.get_content_type_file,)
         if '_CTS_SCHEMA_PATH' not in ignore:
-            data['_CTS_SCHEMA_PATH'] = ip.get_content_type_schema_file()
+            data['_CTS_SCHEMA_PATH'] = (ip.get_content_type_schema_file,)
 
         data['_CONTENT_METS_PATH'] = ip.content_mets_path
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
@@ -88,27 +158,15 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
         data['_PACKAGE_METS_DIGEST'] = ip.package_mets_digest
 
-        data['_TEMP_CONTAINER_PATH'] = ip.get_temp_container_path()
-        data['_TEMP_METS_PATH'] = ip.get_temp_container_xml_path()
-        data['_TEMP_AIC_METS_PATH'] = ip.get_temp_container_aic_xml_path() if ip.aic else None
+        data['_TEMP_CONTAINER_PATH'] = (ip.get_temp_container_path,)
+        data['_TEMP_METS_PATH'] = (ip.get_temp_container_xml_path,)
+        data['_TEMP_AIC_METS_PATH'] = (ip.get_temp_container_aic_xml_path,) if ip.aic else None
 
         if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
-            ip_profile = ip.get_profile(ip.get_package_type_display().lower())
-            if ip_profile is not None:
-                premis_dir, premis_file = find_destination("preservation_description_file", ip_profile.structure)
-                if premis_dir is not None and premis_file is not None:
-                    data['_PREMIS_PATH'] = os.path.join(ip.object_path, premis_dir, premis_file)
-            data['allow_unknown_file_types'] = ip.get_allow_unknown_file_types()
+            data['_PREMIS_PATH'] = (ip.get_premis_file_path,)
+            data['allow_unknown_file_types'] = (ip.get_allow_unknown_file_types,)
 
-        try:
-            # do we have a transfer project profile?
-            ip.get_profile('transfer_project')
-        except AttributeError:
-            container = 'TAR'
-        else:
-            container = ip.get_container_format()
-
-        data['_IP_CONTAINER_FORMAT'] = container.upper()
+        data['_IP_CONTAINER_FORMAT'] = (ip.get_container_format,)
         data['_IP_PACKAGE_TYPE'] = ip.get_package_type_display()
 
         if ip.policy is not None:
@@ -118,37 +176,14 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
             data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
         else:
             try:
-                # do we have a transfer project profile?
-                ip.get_profile('transfer_project')
-            except AttributeError:
-                pass
-            else:
                 transfer_project_data = ip.get_profile_data('transfer_project')
                 data['_POLICYUUID'] = transfer_project_data.get('storage_policy_uuid')
                 data['_POLICYID'] = transfer_project_data.get('storage_policy_id')
                 data['_POLICYNAME'] = transfer_project_data.get('storage_policy_name')
+            except ObjectDoesNotExist:
+                pass
 
-        data['_AGENTS'] = {}
-        for a in ip.agents.all():
-            agent = {
-                '_AGENTS_NAME': a.name,
-                '_AGENTS_NOTES': [{'_AGENTS_NOTE': n.note} for n in a.notes.all()],
-            }
-
-            if a.other_role:
-                agent['_AGENTS_ROLE'] = 'OTHER'
-                agent['_AGENTS_OTHERROLE'] = a.role
-            else:
-                agent['_AGENTS_ROLE'] = a.role
-
-            if a.other_type:
-                agent['_AGENTS_TYPE'] = 'OTHER'
-                agent['_AGENTS_OTHERTYPE'] = a.type
-            else:
-                agent['_AGENTS_TYPE'] = a.type
-
-            agent_key = '{role}_{type}'.format(role=a.role.upper(), type=a.type.upper())
-            data['_AGENTS'][agent_key] = agent
+        data['_AGENTS'] = (_get_agents, ip,)
 
         profile_ids = zip(
             [x.lower().replace(' ', '_') for x in profile_types],
@@ -156,10 +191,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         )
 
         for (profile_type, key) in profile_ids:
-            try:
-                data[key] = str(ip.get_profile(profile_type).pk)
-            except AttributeError:
-                pass
+            data[key] = (_get_profile_id_by_type, profile_type, ip)
 
     for p in Parameter.objects.iterator():
         data['_PARAMETER_%s' % p.entity.upper()] = p.value
@@ -167,6 +199,4 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
     for p in Path.objects.iterator():
         data['_PATH_%s' % p.entity.upper()] = p.value
 
-    without_underscores = _remove_leading_underscores(data)
-    data.update(without_underscores)
     return data

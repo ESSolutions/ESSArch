@@ -18,7 +18,10 @@ from guardian.shortcuts import assign_perm
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.essxml.Generator.xmlGenerator import (
+    XMLGenerator,
+    parseContent,
+)
 from ESSArch_Core.essxml.util import parse_submit_description
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
@@ -234,7 +237,10 @@ class GeneratePremis(DBTask):
 
     def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
-        return 'Generated {xml}'.format(xml=ip.get_premis_file_path())
+        data = fill_specification_data(ip=ip)
+        path = parseContent(ip.get_premis_file_path(), data)
+
+        return 'Generated {xml}'.format(xml=path)
 
 
 class GenerateEventsXML(DBTask):
@@ -323,6 +329,9 @@ class CreateContainer(DBTask):
                 new_tar.add(src, base_dir)
 
         return dst
+
+    def event_outcome_success(self, result, src, dst):
+        return "Created {}".format(dst)
 
 
 class ParseSubmitDescription(DBTask):
