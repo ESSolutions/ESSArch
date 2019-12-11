@@ -372,7 +372,6 @@ class StorageMediumMigratableTests(TestCase):
         )
         more_medium = self.add_storage_medium(more_rel.storage_target, 20, 'more')
 
-
         # long term
         long_term_rel = self.add_storage_method_rel(DISK, 'default_long_term', STORAGE_TARGET_STATUS_ENABLED)
         long_term_medium = self.add_storage_medium(long_term_rel.storage_target, 0, 'long_term')
@@ -389,7 +388,6 @@ class StorageMediumMigratableTests(TestCase):
 
         self.add_storage_obj(ip_0933, long_term_medium, DISK, '')
         self.add_storage_obj(ip_1520, long_term_medium, DISK, '')
-
 
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
