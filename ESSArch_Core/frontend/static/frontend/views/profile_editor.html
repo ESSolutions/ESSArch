@@ -56,11 +56,23 @@
                 </ui-select-no-choice>
               </ui-select>
             </td>
-            <td class="flex-row">
+            <td class="sa-button-row">
               <button
-                ng-if="saProfile.profile"
-                class="btn btn-default btn-small btn-sm"
-                ng-click="saClick(saProfile)"
+                ng-if="saProfile.profile && !vm.disabled && !saProfile.locked"
+                class="btn btn-default btn-sm"
+                ng-click="saClick(saProfile.profile)"
+                uib-tooltip="{{saProfile.profile.name}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+                ng-disabled="vm.loadingSa || vm.changingSa"
+              >
+                <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
+                <i ng-if="vm.loadingSa" class="fas fa-spinner fa-spin"></i>
+              </button>
+              <button
+                ng-if="saProfile.profile && (vm.disabled || saProfile.locked)"
+                class="btn btn-default btn-sm"
+                ng-click="saClick(saProfile.profile)"
                 uib-tooltip="{{saProfile.profile.name}}"
                 tooltip-placement="auto top"
                 tooltip-append-to-body="true"
@@ -72,12 +84,12 @@
               <button
                 ng-if="!saProfile.locked"
                 ng-disabled="vm.changingSa || !saProfile.profile || (ip.responsible.id != $root.auth.id && !checkPermission('ip.lock_sa'))"
-                class="btn btn-success btn-sm btn-small"
+                class="btn btn-success btn-sm"
                 ng-click="lockSaModal(saProfile)"
               >
                 <i class="fas fa-lock"></i>&nbsp;{{'LOCK' | translate}}
               </button>
-              <button ng-if="saProfile.locked" class="btn btn-danger btn-sm btn-small">
+              <button ng-if="saProfile.locked" class="btn btn-danger btn-sm">
                 <i class="fas fa-lock"></i>&nbsp;{{'LOCKED' | translate}}
               </button>
             </td>
@@ -85,18 +97,36 @@
           </tr>
         </tbody>
       </table>
-      <form ng-if="vm.saFields.length" class="edit-form sa-edit">
-        <formly-form
-          ng-if="vm.saFields.length"
-          model="vm.saModel"
-          fields="vm.saFields"
-          options="vm.options"
-          form="vm.editForm"
-        >
-        </formly-form>
+      <form ng-if="vm.saFields.length" ng-submit="vm.saveSaModel(vm.selectedSa, vm.saModel)" class="edit-form sa-edit">
+        <div ng-if="vm.saFields.length">
+          <h4 class="profile-name">{{ vm.selectedSa.name }}</h4>
+          <div ng-if="vm.saDataVersionList.length" class="data-version-list">
+            {{'VERSIONS' | translate}}
+            <select
+              class="form-control"
+              ng-disabled="vm.disabled"
+              ng-change="vm.changeSaDataVersion(vm.saDataVersion)"
+              ng-model="vm.saDataVersion"
+              ng-options="x as vm.saDataVersionList.indexOf(x) == 0 ? 'Default' : vm.saDataVersionList.indexOf(x) for x in vm.saDataVersionList"
+              >{{ x }}</select
+            >
+          </div>
+        </div>
+        <div class="loading-column w-100 text-center position-absolute absolute-top" ng-if="vm.fieldsLoading()">
+          {{'LOADING' | translate}}
+        </div>
+        <formly-form model="vm.saModel" fields="vm.saFields" options="vm.options" form="vm.editSaForm"> </formly-form>
         <div class="button-wrapper">
           <button
-            ng-if="vm.saFields.length && !vm.disabled"
+            ng-if="vm.saFields.length && !vm.disabled && !saProfile.locked"
+            type="submit"
+            class="btn btn-primary"
+            ng-disabled="vm.editSaForm.$invalid || angular.equals(vm.saOldModel, vm.saModel) || vm.savingSaModel"
+          >
+            {{'SAVE' | translate}} <i ng-if="vm.savingSaModel" class="fas fa-spinner fa-spin"></i>
+          </button>
+          <button
+            ng-if="vm.saFields.length"
             ng-click="vm.saCancel()"
             class="btn btn-default cancel-button"
             translate="CANCEL"
@@ -132,7 +162,7 @@
                   tooltip-placement="auto top"
                   tooltip-append-to-body="true"
                 >
-                  {{'TYPE' | translate}}
+                  {{'PROFILE' | translate}}
                 </th>
                 <th
                   class="column-profile"
@@ -140,7 +170,7 @@
                   tooltip-placement="auto top"
                   tooltip-append-to-body="true"
                 >
-                  {{'PROFILE' | translate}}
+                  {{'LABEL' | translate}}
                 </th>
                 <th class="column-view"></th>
               </tr>
@@ -154,21 +184,21 @@
                   </td>
                   <td>
                     <button
-                      ng-if="!vm.disabled"
+                      ng-if="!vm.disabled && (vm.types[profile.profile_type] && vm.types[profile.profile_type].disabled === false)"
                       type="button"
-                      class="btn btn-default btn-small btn-sm"
+                      class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"
                       tooltip-append-to-body="true"
                       ng-disabled="profile.template.length === 0 || vm.loadingProfileData[profile.profile_type]"
                     >
-                      <i class="fas fa-sm fa-pencil"></i>&nbsp;{{'EDIT' | translate}}
+                      <i class="fas fa-sm fa-pencil-alt"></i>&nbsp;{{'EDIT' | translate}}
                     </button>
                     <button
-                      ng-if="vm.disabled"
+                      ng-if="vm.disabled || (vm.types[profile.profile_type] && vm.types[profile.profile_type].disabled)"
                       type="button"
-                      class="btn btn-default btn-small btn-sm"
+                      class="btn btn-default btn-sm"
                       ng-click="profileClick(profile, {})"
                       uib-tooltip="{{profile.name}}"
                       tooltip-placement="auto top"

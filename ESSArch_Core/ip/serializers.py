@@ -1,5 +1,6 @@
 import errno
 import os
+import re
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
@@ -23,9 +24,15 @@ from ESSArch_Core.ip.models import (
     OrderType,
     Workarea,
 )
-from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.serializers import ProfileIPSerializer
-from ESSArch_Core.profiles.utils import profile_types
+from ESSArch_Core.profiles.models import (
+    SubmissionAgreement,
+    SubmissionAgreementIPData,
+)
+from ESSArch_Core.profiles.serializers import (
+    ProfileIPSerializer,
+    SubmissionAgreementIPDataSerializer,
+)
+from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.storage.models import (
     StorageMethod,
     StorageMethodTargetRelation,
@@ -127,6 +134,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     last_generation = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     new_version_in_progress = serializers.SerializerMethodField()
+    submission_agreement_data = serializers.SerializerMethodField()
+    submission_agreement_data_versions = serializers.SerializerMethodField()
 
     def get_organization(self, obj):
         try:
@@ -201,11 +210,57 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             return None
         return WorkareaSerializer(new, context=self.context).data
 
+    def get_submission_agreement_data(self, obj):
+        if obj.submission_agreement_data is not None:
+            serializer = SubmissionAgreementIPDataSerializer(obj.submission_agreement_data)
+            data = serializer.data
+        else:
+            data = {'data': {}}
+
+        extra_data = fill_specification_data(ip=obj, sa=obj.submission_agreement)
+
+        for field in getattr(obj.submission_agreement, 'template', []):
+            if field['key'] in extra_data:
+                data['data'][field['key']] = extra_data[field['key']]
+
+        return data
+
+    def get_submission_agreement_data_versions(self, obj):
+        return SubmissionAgreementIPData.objects.filter(
+            information_package=obj,
+            submission_agreement=obj.submission_agreement,
+        ).order_by('created').values_list('pk', flat=True)
+
+    def validate(self, data):
+        if 'submission_agreement_data' in data:
+            sa = data.get('submission_agreement', getattr(self.instance, 'submission_agreement', None))
+            if sa != data['submission_agreement_data'].submission_agreement:
+                raise serializers.ValidationError('SubmissionAgreement and its data does not match')
+
+        return data
+
+    def update(self, instance, validated_data):
+        if 'submission_agreement' in validated_data:
+            if 'submission_agreement_data' not in validated_data:
+                sa = validated_data['submission_agreement']
+                try:
+                    data = SubmissionAgreementIPData.objects.filter(
+                        submission_agreement=sa,
+                        information_package=instance,
+                    ).latest(field_name='created')
+                except SubmissionAgreementIPData.DoesNotExist:
+                    data = None
+
+                validated_data['submission_agreement_data'] = data
+
+        return super().update(instance, validated_data)
+
     class Meta:
         model = InformationPackage
         fields = (
-            'id', 'label', 'object_identifier_value', 'object_size',
-            'object_path', 'submission_agreement', 'submission_agreement_locked',
+            'id', 'label', 'object_identifier_value', 'object_size', 'object_path',
+            'submission_agreement', 'submission_agreement_locked', 'submission_agreement_data',
+            'submission_agreement_data_versions',
             'package_type', 'package_type_display', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
             'archived', 'cached', 'aic', 'generation', 'agents',
@@ -240,6 +295,16 @@ class InformationPackageCreateSerializer(serializers.ModelSerializer):
         required=False,
     )
 
+    def validate_object_identifier_value(self, value):
+        if value is None:
+            return value
+
+        match = re.search(r'[/|\\|\||*|>|<|:|\"|\?]', value)
+        if match:
+            raise serializers.ValidationError('Invalid character: {}'.format(match.group(0)))
+
+        return value
+
     class Meta:
         model = InformationPackage
         fields = ('label', 'object_identifier_value', 'package_type', 'orders',)
@@ -255,6 +320,20 @@ class InformationPackageCreateSerializer(serializers.ModelSerializer):
                 'validators': [],
             }
         }
+
+
+class InformationPackageSubmissionAgreementDataPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        return SubmissionAgreementIPData.objects.filter(
+            information_package=self.root.instance,
+        )
+
+
+class InformationPackageUpdateSerializer(InformationPackageSerializer):
+    submission_agreement_data = InformationPackageSubmissionAgreementDataPrimaryKeyRelatedField()
+
+    class Meta(InformationPackageSerializer.Meta):
+        fields = InformationPackageSerializer.Meta.fields + ('submission_agreement_data',)
 
 
 class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
@@ -538,7 +617,8 @@ class NestedInformationPackageSerializer(InformationPackageSerializer):
             'step_state', 'archived', 'cached', 'aic', 'information_packages',
             'generation', 'policy', 'message_digest', 'agents',
             'message_digest_algorithm', 'submission_agreement', 'object_path',
-            'submission_agreement_locked', 'workarea', 'object_size',
+            'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
+            'workarea', 'object_size',
             'first_generation', 'last_generation', 'start_date', 'end_date',
             'new_version_in_progress', 'appraisal_date', 'permissions',
             'organization',

@@ -1,6 +1,6 @@
 sudo: required
 language: python
-dist: xenial
+dist: bionic
 
 cache:
   pip: true
@@ -100,7 +100,6 @@ matrix:
     - name: 'Linux (arm64) with SQLite'
       stage: test
       arch: arm64
-      dist: bionic
       python: '3.7'
       addons:
         apt:
@@ -116,8 +115,6 @@ matrix:
             - libxslt-dev
             - redis-server
             - zlib1g-dev
-      env:
-        - ARCH=arm64 # workaround for cache
       before_script:
         - pip check
         - essarch settings generate -qp local_essarch_settings.py
@@ -176,6 +173,7 @@ matrix:
 
     - name: 'Linux with PostgreSQL'
       stage: test
+      dist: xenial
       python: '3.7'
       services:
         - postgresql
@@ -202,7 +200,7 @@ matrix:
         - powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
         - wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi
         - powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
-        - choco install python --version 3.7.4
+        - choco install python --version 3.7.5
         - choco install imagemagick
         - choco install redis-64
         - start redis-server
@@ -226,10 +224,6 @@ matrix:
 before_install:
   - sudo mkdir -p /ESSArch/log/
   - sudo chmod 777 /ESSArch/log/
-
-  - sudo apt-add-repository -y ppa:jonathonf/backports;
-  - sudo apt-get -y update && sudo apt-get install -y sqlite3;
-  - sqlite3 --version
 
   - python -m pip install --upgrade pip wheel codecov setuptools
 

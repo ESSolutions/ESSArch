@@ -14,7 +14,16 @@
             id="select-wrap"
             class="select-sub-edit-eventlog-wrapper"
           >
-            <profile-editor ng-if="ip !== null && ips.length === 0" ip="ip"></profile-editor>
+            <profile-editor
+              ng-if="ip !== null && ips.length === 0"
+              ip="ip"
+              types="{
+                transfer_project: {disabled: false},
+                submit_description: {disabled: false},
+                sip: {disabled: false},
+                preservation_metadata: {disabled: false},
+              }"
+            ></profile-editor>
             <div class="eventlog-view" ng-class="{'border-none': ips.length > 0}">
               <div class="eventlog-form">
                 <button

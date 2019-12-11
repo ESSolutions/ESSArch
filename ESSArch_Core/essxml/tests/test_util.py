@@ -60,7 +60,7 @@ class FindFilesTestCase(TestCase):
 
         expected = []
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertEqual(len(found), len(expected))
+        self.assertCountEqual(found, expected)
 
     def test_files_file_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -77,7 +77,7 @@ class FindFilesTestCase(TestCase):
 
         expected = ['1.txt', '2.txt', '3.txt', '4.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertCountEqual([x.path for x in found], expected)
+        self.assertCountEqual(found, expected)
 
     def test_files_mdRef_element(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -92,9 +92,52 @@ class FindFilesTestCase(TestCase):
 
         expected = ['1.txt', '2.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertEqual(len(found), len(expected))
+        self.assertCountEqual(found, expected)
 
     def test_files_object_element(self):
+        xmlfile = os.path.join(self.datadir, "test.xml")
+
+        with open(xmlfile, 'w') as xml:
+            xml.write('''<?xml version="1.0" encoding="UTF-8" ?>
+            <root xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                <object xsi:type="premis:file">
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///1.tar</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                    <objectCharacteristics>
+                        <compositionLevel>0</compositionLevel>
+                        <format>
+                            <formatDesignation>
+                                <formatName>TaR</formatName>
+                            </formatDesignation>
+                        </format>
+                    </objectCharacteristics>
+                </object>
+                <object xsi:type="premis:file">
+                    <storage>
+                        <contentLocation>
+                            <contentLocationValue>file:///2.tar</contentLocationValue>
+                        </contentLocation>
+                    </storage>
+                    <objectCharacteristics>
+                        <compositionLevel>0</compositionLevel>
+                        <format>
+                            <formatDesignation>
+                                <formatName>TaR</formatName>
+                            </formatDesignation>
+                        </format>
+                    </objectCharacteristics>
+                </object>
+            </root>
+            ''')
+
+        expected = ['2.tar']
+        found = find_files(xmlfile, rootdir=self.datadir)
+        self.assertCountEqual(found, expected)
+
+    def test_files_ignore_premis_fake_object(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
 
         with open(xmlfile, 'w') as xml:
@@ -119,7 +162,7 @@ class FindFilesTestCase(TestCase):
 
         expected = ['1.txt', '2.txt']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertEqual(len(found), len(expected))
+        self.assertCountEqual(found, expected)
 
     def test_pointer(self):
         xmlfile = os.path.join(self.datadir, "test.xml")
@@ -152,7 +195,6 @@ class FindFilesTestCase(TestCase):
 
         expected = ['ext1.xml', 'ext2.xml', '1.txt', '1.pdf', '2.txt', '2.pdf']
         found = find_files(xmlfile, rootdir=self.datadir)
-        self.assertEqual(len(found), len(expected))
         self.assertCountEqual(found, expected)
 
 

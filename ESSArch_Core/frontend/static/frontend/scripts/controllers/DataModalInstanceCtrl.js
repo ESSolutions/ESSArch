@@ -4,10 +4,6 @@ export default class DataModalInstanceCtrl {
     if (data.vm) {
       var vm = data.vm;
     }
-    $ctrl.email = {
-      subject: '',
-      body: '',
-    };
     $scope.prepareAlert = null;
     $ctrl.data = data;
 
@@ -101,17 +97,12 @@ export default class DataModalInstanceCtrl {
     };
 
     // Submit SIP
-    $ctrl.submit = function(email) {
-      if (!email) {
-        var sendData = {validators: vm.validatorModel};
-      } else {
-        var sendData = {validators: vm.validatorModel, subject: email.subject, body: email.body};
-      }
+    $ctrl.submit = function() {
       $ctrl.submitting = true;
       const promises = [];
       $ctrl.data.ips.forEach(function(ip) {
         promises.push(
-          IP.submit(angular.extend({id: ip.id}, sendData))
+          IP.submit(angular.extend({id: ip.id}, {validators: vm.validatorModel}))
             .$promise.then(function(response) {
               $ctrl.submitting = false;
               $uibModalInstance.close();

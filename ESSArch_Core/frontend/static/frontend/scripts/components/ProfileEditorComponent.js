@@ -17,6 +17,7 @@ export default {
     '$filter',
     '$http',
     'appConfig',
+    'SaIpData',
     controller,
   ],
   controllerAs: 'vm',
@@ -25,5 +26,6 @@ export default {
     sa: '<',
     shareData: '&',
     disabled: '<',
+    types: '<',
   },
 };

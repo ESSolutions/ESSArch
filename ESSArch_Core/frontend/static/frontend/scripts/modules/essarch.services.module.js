@@ -23,7 +23,7 @@ import requests from '../services/requests';
 import resource from '../services/resource';
 import robot from '../services/robot';
 import robotQueue from '../services/robotQueue';
-import sa from '../services/sa';
+import {sa, saIpData} from '../services/sa';
 import search from '../services/search';
 import selectedIPUpdater from '../services/SelectedIPUpdater';
 import stateTree from '../services/StateTree';
@@ -90,6 +90,7 @@ export default angular
   .factory('Robot', ['$resource', 'appConfig', robot])
   .factory('RobotQueue', ['$resource', 'appConfig', robotQueue])
   .factory('SA', ['$resource', 'appConfig', sa])
+  .factory('SaIpData', ['$resource', 'appConfig', saIpData])
   .factory('Search', ['$http', '$sce', 'appConfig', search])
   .factory('SelectedIPUpdater', selectedIPUpdater)
   .factory('StateTree', ['IP', 'Step', '$filter', 'linkHeaderParser', 'Workarea', '$state', stateTree])
