@@ -243,6 +243,7 @@ const general = $translateProvider => {
     NO_SUBMISSION_AGREEMENT_AVAILABLE: 'No Submission Agreement available',
     NO_AUTHORIZED_NAME_TYPE: 'Authorized name type missing',
     NO: 'No',
+    NOTES: 'Notes',
     NUMBEROFMOUNTS: 'Number of mounts',
     OBJECT: 'Object',
     OBJECTID: 'Object ID',
