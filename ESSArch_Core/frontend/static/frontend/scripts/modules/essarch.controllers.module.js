@@ -14,6 +14,7 @@ import AgentNameModalInstanceCtrl from '../controllers/AgentNameModalInstanceCtr
 import AgentNoteModalInstanceCtrl from '../controllers/AgentNoteModalInstanceCtrl';
 import AgentPlaceModalInstanceCtrl from '../controllers/AgentPlaceModalInstanceCtrl';
 import AngularTreeCtrl from '../controllers/AngularTreeCtrl';
+import DeactivateMediumModalInstanceCtrl from '../controllers/DeactivateMediumModalInstanceCtrl';
 import NodeLocationModalInstanceCtrl from '../controllers/NodeLocationModalInstanceCtrl';
 import NodeNoteModalInstanceCtrl from '../controllers/NodeNoteModalInstanceCtrl';
 import AgentRelationModalInstanceCtrl from '../controllers/AgentRelationModalInstanceCtrl';
@@ -444,6 +445,15 @@ export default angular
     'data',
     '$q',
     DataModalInstanceCtrl,
+  ])
+  .controller('DeactivateMediumModalInstanceCtrl', [
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    '$scope',
+    'data',
+    '$q',
+    DeactivateMediumModalInstanceCtrl,
   ])
   .controller('DeliveryModalInstanceCtrl', [
     'appConfig',
@@ -1125,7 +1135,19 @@ export default angular
     '$scope',
     StorageMigrationPreviewModalInstanceCtrl,
   ])
-  .controller('StorageMaintenanceCtrl', ['$scope', '$rootScope', StorageMaintenanceCtrl])
+  .controller('StorageMaintenanceCtrl', [
+    '$rootScope',
+    '$scope',
+    'appConfig',
+    '$http',
+    'listViewService',
+    'SelectedIPUpdater',
+    '$controller',
+    '$translate',
+    '$uibModal',
+    'StorageMedium',
+    StorageMaintenanceCtrl,
+  ])
   .controller('WorkareaCtrl', [
     'vm',
     'ipSortString',

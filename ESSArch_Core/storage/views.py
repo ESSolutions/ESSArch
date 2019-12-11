@@ -285,15 +285,11 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     API endpoint for storage medium
     """
     queryset = StorageMedium.objects.all()
-    filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
-    )
-
+    
+    serializer_class = StorageMediumSerializer
+    filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_class = StorageMediumFilter
 
-    ordering_fields = (
-        'id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
-    )
     search_fields = (
         '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
