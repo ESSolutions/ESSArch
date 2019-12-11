@@ -1,29 +1,29 @@
 import importlib
 
-from celery import states as celery_states
-from celery.result import AsyncResult
 from django.db import transaction
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
-def get_result(pk, eager=False):
-    if not eager and AsyncResult(str(pk)).successful():
-        return AsyncResult(str(pk)).result
-    else:
-        return ProcessTask.objects.values_list('result', flat=True).get(pk=pk, status=celery_states.SUCCESS)
+def get_result(step, reference):
+    return ProcessTask.objects.values_list('result', flat=True).get(
+        processstep=step, reference=reference,
+    )
 
 
 def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):
     for on_error_idx, on_error in enumerate(l):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
+        result_params = on_error.get('result_params', {})
         yield ProcessTask.objects.create(
             name=on_error['name'],
+            reference=on_error.get('reference', None),
             label=on_error.get('label'),
             hidden=on_error.get('hidden', False),
             args=args,
             params=params,
+            result_params=result_params,
             eager=eager,
             information_package=ip,
             responsible=responsible,
@@ -75,11 +75,14 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
             args = flow_entry.get('args', [])
             params = flow_entry.get('params', {})
+            result_params = flow_entry.get('result_params', {})
             task = ProcessTask.objects.create(
                 name=name,
+                reference=flow_entry.get('reference', None),
                 label=flow_entry.get('label'),
                 args=args,
                 params=params,
+                result_params=result_params,
                 eager=parent_step.eager,
                 allow_failure=flow_entry.get('allow_failure', False),
                 information_package=ip,
