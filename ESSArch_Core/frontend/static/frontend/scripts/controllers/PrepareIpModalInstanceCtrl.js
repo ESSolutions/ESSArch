@@ -40,6 +40,7 @@ export default class PrepareIpModalInstanceCtrl {
         templateOptions: {
           label: $translate.instant('LABEL'),
           required: true,
+          focus: true,
         },
       },
     ];
