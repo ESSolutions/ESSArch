@@ -79,7 +79,7 @@ class DBTask(Task):
         self.allow_failure = options.get('allow_failure') or self.allow_failure
 
         for k, v in self.result_params.items():
-            kwargs[k] = get_result(v, self.eager)
+            kwargs[k] = get_result(self.step, v)
 
         if self.track:
             ProcessTask.objects.filter(celery_id=self.task_id).update(
