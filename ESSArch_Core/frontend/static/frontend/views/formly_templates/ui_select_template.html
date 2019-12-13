@@ -4,6 +4,7 @@
   uib-tooltip="{{options.templateOptions.desc}}"
   tooltip-placement="auto top"
   tooltip-append-to-body="true"
+  ng-if="to.label"
   >{{to.label}} {{to.required ? '*' : ''}}</label
 >
 <div ng-class="{'input-group': to.clearEnabled}">

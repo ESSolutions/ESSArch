@@ -792,6 +792,7 @@ export default angular
     'appConfig',
     '$q',
     'EditMode',
+    'IPReception',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [

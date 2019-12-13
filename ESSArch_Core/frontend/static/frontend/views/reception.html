@@ -96,7 +96,7 @@
           </div>
           <div ng-if="ips.length > 0 || ip !== null" class="receive-button-wrapper">
             <div id="request-form" class="request-form receive-modal-button">
-              <button class="btn btn-primary" ng-click="receiveModal(ips[0])" ng-disabled="vm.receiveModalLoading">
+              <button class="btn btn-primary" ng-click="receiveModal(ips)" ng-disabled="vm.receiveModalLoading">
                 {{'RECEIVE' | translate}} <i ng-if="vm.receiveModalLoading" class="fas fa-spinner fa-spin"></i>
               </button>
               <p style="margin-left: 5px; margin-bottom: 0;">

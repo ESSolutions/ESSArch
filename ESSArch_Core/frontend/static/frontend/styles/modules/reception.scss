@@ -239,3 +239,21 @@ input[type='checkbox'] {
 .profile-manager {
   margin-top: 10px;
 }
+
+.receive-modal-table {
+  .failed {
+    background-color: $task-validation-bg-red !important;
+    color: $task-validation-text-red;
+  }
+  .success {
+    background-color: $task-validation-bg-green !important;
+    color: $task-validation-text-green;
+  }
+}
+.receive-modal-table-row {
+  height: 3rem;
+  overflow-y: hidden;
+  .form-group {
+    margin: 0;
+  }
+}
