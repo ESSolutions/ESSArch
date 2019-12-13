@@ -595,6 +595,7 @@ class ProcessTask(Process):
     _states.sort()
     TASK_STATE_CHOICES = _states
 
+    reference = models.CharField(max_length=255, blank=True, null=True, default=None)
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
@@ -867,6 +868,7 @@ class ProcessTask(Process):
         db_table = 'ProcessTask'
         ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
+        unique_together = (('reference', 'processstep'))
 
         permissions = (
             ('can_run', 'Can run tasks'),
