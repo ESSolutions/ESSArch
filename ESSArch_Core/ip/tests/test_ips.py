@@ -108,12 +108,13 @@ class AccessTestCase(TestCase):
             block_size=1024, format=103
         )
 
-        self.ip = InformationPackage.objects.create()
-        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        self.ip.policy = StoragePolicy.objects.create(
+        policy = StoragePolicy.objects.create(
             cache_storage=cache,
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        self.ip = InformationPackage.objects.create(submission_agreement=sa)
+        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
 
         StorageObject.objects.create(
             storage_medium=storage_medium, ip=self.ip,
@@ -1386,7 +1387,8 @@ class InformationPackageViewSetTestCase(TestCase):
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
-        ip = InformationPackage.objects.create(object_path='foo', policy=policy)
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        ip = InformationPackage.objects.create(object_path='foo', submission_agreement=sa)
         url = reverse('informationpackage-detail', args=(str(ip.pk),))
 
         # no permission
@@ -1440,7 +1442,10 @@ class InformationPackageViewSetTestCase(TestCase):
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIP, aic=aic, policy=policy)
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, aic=aic, submission_agreement=sa,
+        )
         self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
         self.url = self.url + 'preserve/'
 
@@ -1458,15 +1463,14 @@ class InformationPackageViewSetTestCase(TestCase):
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
-
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
-        self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
-        self.url = self.url + 'preserve/'
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP, submission_agreement=sa)
+        self.url = reverse('informationpackage-preserve', args=(self.ip.pk,))
 
         perms = {'group': ['view_informationpackage']}
         self.member.assign_object(self.group, self.ip, custom_permissions=perms)
 
-        self.client.post(self.url, {'policy': str(policy.pk)})
+        self.client.post(self.url)
         mock_step.assert_called_once()
 
         self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
@@ -1497,7 +1501,12 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
     def test_get_ip_with_submission_agreement(self, mock_data):
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
         sa = SubmissionAgreement.objects.create(
+            policy=policy,
             template=[
                 {
                     'key': 'foo',
@@ -1534,8 +1543,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
 
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         Path.objects.create(entity='ingest_unidentified', value='ingest_reception_unidentified')
-
-        cls.sa = SubmissionAgreement.objects.create()
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
         aip_profile = Profile.objects.create(profile_type='aip')
         ProfileSA.objects.create(submission_agreement=cls.sa, profile=aip_profile)
 
@@ -1598,19 +1606,6 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
         # return 400 when any of the files doesn't exist
         ip.package_type = InformationPackage.AIP
         ip.save()
-        res = self.client.post(url, data={})
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_receive_ip_with_missing_policy(self, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
-
-        # return 400 when invalid or no policy is provided
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -1744,7 +1739,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
     def test_prepare_with_valid_sa_without_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
                                                                       mock_parse_sd):
-        sa = SubmissionAgreement.objects.create()
+        sa = SubmissionAgreement.objects.create(policy=self.policy)
         mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [sa.pk]}}
 
         url = reverse('ip-reception-prepare', args=[123])
@@ -1758,6 +1753,7 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
     def test_prepare_with_valid_sa_with_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
                                                                    mock_parse_sd):
         sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
             profile_aic_description=Profile.objects.create(),
             profile_aip=Profile.objects.create(),
             profile_aip_description=Profile.objects.create(),
@@ -1780,8 +1776,12 @@ class InformationPackageReceptionViewSetTestCase(TestCase):
 class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.sa1 = SubmissionAgreement.objects.create()
-        cls.sa2 = SubmissionAgreement.objects.create()
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        cls.sa1 = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.sa2 = SubmissionAgreement.objects.create(policy=cls.policy)
 
         Path.objects.create(entity='temp', value='')
 
@@ -1821,7 +1821,7 @@ class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
         self.assertEqual(self.ip.submission_agreement_data, new_data)
 
     def test_change_submission_agreement_and_data(self):
-        new_sa = SubmissionAgreement.objects.create()
+        new_sa = SubmissionAgreement.objects.create(policy=self.policy)
         new_data = SubmissionAgreementIPData.objects.create(
             submission_agreement=new_sa,
             information_package=self.ip,
@@ -2368,7 +2368,11 @@ class CreateIPTestCase(TestCase):
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.sa = SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        cls.sa = SubmissionAgreement.objects.create(policy=policy)
 
         Path.objects.create(entity='temp')
         EventType.objects.create(eventType=10300, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -2539,7 +2543,12 @@ class test_submit_ip(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.sa = SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+
+        self.sa = SubmissionAgreement.objects.create(policy=policy)
         self.ip = InformationPackage.objects.create(submission_agreement=self.sa)
         self.url = reverse('informationpackage-submit', args=(self.ip.pk,))
 

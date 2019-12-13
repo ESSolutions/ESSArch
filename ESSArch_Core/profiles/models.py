@@ -192,6 +192,11 @@ class SubmissionAgreement(models.Model):
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
     archivist_organization = models.CharField(blank=True, max_length=255)
+    policy = models.ForeignKey(
+        'configuration.StoragePolicy',
+        on_delete=models.PROTECT,
+        related_name='submission_agreements',
+    )
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
     include_profile_data_selection = models.BooleanField(default=False)

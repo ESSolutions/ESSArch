@@ -57,7 +57,7 @@ from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -1317,21 +1317,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError('IP already preserved')
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
-
-            if ip.package_type == InformationPackage.DIP:
-                policy = request.data.get('policy')
-
-                if not policy:
-                    raise exceptions.ParseError('Policy required')
-
-                try:
-                    ip.policy = StoragePolicy.objects.get(pk=policy)
-                except StoragePolicy.DoesNotExist:
-                    raise exceptions.ParseError('Policy "%s" does not exist' % policy)
-                except ValueError as e:
-                    raise exceptions.ParseError(e)
-
-                ip.save(update_fields=['policy'])
             elif ip.policy is None:
                 raise ValueError('{} has no policy')
 
@@ -2335,7 +2320,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             )
             raise exceptions.ParseError('%s does not exist' % container)
 
-        policy = serializer_data['storage_policy']
         archive = serializer_data.get('archive')
 
         if archive is not None:
@@ -2371,8 +2355,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         # TODO: use default structure unit from CTS, if available
         # and no other structure unit is provided in the request
-
-        ip.policy = policy
         ip.save()
 
         generate_premis = ip.profile_locked('preservation_metadata')

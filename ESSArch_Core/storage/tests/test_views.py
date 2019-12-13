@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_DISABLED,
@@ -44,7 +45,8 @@ class StorageMediumDeactivatableTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -97,7 +99,7 @@ class StorageMediumDeactivatableTests(TestCase):
         # Add new IP to old medium
         new_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy
+            submission_agreement=self.sa,
         )
         StorageObject.objects.create(
             ip=new_ip, storage_medium=self.storage_medium,
@@ -124,7 +126,7 @@ class StorageMediumDeactivatableTests(TestCase):
         # Add new inactive IP to old medium
         inactive_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy, active=False
+            submission_agreement=self.sa, active=False
         )
         StorageObject.objects.create(
             ip=inactive_ip, storage_medium=self.storage_medium,
@@ -232,8 +234,9 @@ class StorageMediumMigratableTests(TestCase):
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         cls.policy.storage_methods.add(cls.storage_method)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -304,7 +307,7 @@ class StorageMediumMigratableTests(TestCase):
         # Add new IP to old medium
         new_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy
+            submission_agreement=self.sa,
         )
         StorageObject.objects.create(
             ip=new_ip, storage_medium=self.storage_medium,
@@ -356,7 +359,8 @@ class StorageMediumDeactivateTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -511,7 +515,8 @@ class StorageMigrationTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         StorageObject.objects.create(
             ip=cls.ip, storage_medium=cls.storage_medium,
             content_location_type=DISK,
@@ -545,7 +550,7 @@ class StorageMigrationTests(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_bad_ip(self, mock_task):
-        ip = InformationPackage.objects.create(policy=self.policy)
+        ip = InformationPackage.objects.create(submission_agreement=self.sa)
         data = {
             'information_packages': [str(ip.pk)],
             'policy': str(self.policy.pk),

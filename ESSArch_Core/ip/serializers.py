@@ -12,8 +12,7 @@ from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
-from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
-from ESSArch_Core.configuration.serializers import StoragePolicySerializer
+from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import (
     Agent,
     AgentNote,
@@ -264,7 +263,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'package_type', 'package_type_display', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
             'archived', 'cached', 'aic', 'generation', 'agents',
-            'policy', 'message_digest', 'message_digest_algorithm',
+            'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
@@ -337,9 +336,6 @@ class InformationPackageUpdateSerializer(InformationPackageSerializer):
 
 
 class InformationPackageReceptionReceiveSerializer(serializers.Serializer):
-    storage_policy = serializers.PrimaryKeyRelatedField(
-        queryset=StoragePolicy.objects.all(),
-    )
     archive = serializers.PrimaryKeyRelatedField(
         required=False,
         queryset=TagVersion.objects.filter(
@@ -464,7 +460,6 @@ class InformationPackageAICSerializer(DynamicModelSerializer):
 
 class InformationPackageDetailSerializer(InformationPackageSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
-    policy = StoragePolicySerializer()
     submission_agreement = serializers.PrimaryKeyRelatedField(
         queryset=SubmissionAgreement.objects.all(),
         pk_field=serializers.UUIDField(format='hex_verbose'),
@@ -505,7 +500,6 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
-    policy = StoragePolicySerializer()
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -532,29 +526,8 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
-        policy_data = validated_data.pop('policy')
-        storage_method_set_data = policy_data.pop('storage_methods')
-
-        cache_storage_data = policy_data.pop('cache_storage')
-        ingest_path_data = policy_data.pop('ingest_path')
-
-        cache_storage = self.create_storage_method(cache_storage_data)
-        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
-
-        policy_data['cache_storage'] = cache_storage
-        policy_data['ingest_path'] = ingest_path
-
-        policy, _ = StoragePolicy.objects.update_or_create(policy_id=policy_data['policy_id'],
-                                                           defaults=policy_data)
-
-        for storage_method_data in storage_method_set_data:
-            storage_method = self.create_storage_method(storage_method_data)
-            policy.storage_methods.add(storage_method)
-            # add to policy, dummy
-
         aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
 
-        user = None
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
@@ -562,7 +535,6 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             user = User.objects.get(username="system")
 
         validated_data['aic'] = aic
-        validated_data['policy'] = policy
         validated_data['responsible'] = user
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
 
@@ -574,7 +546,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'id', 'label', 'object_identifier_value', 'object_size',
             'object_path', 'package_type', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
-            'archived', 'cached', 'aic', 'generation', 'policy',
+            'archived', 'cached', 'aic', 'generation',
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
@@ -615,7 +587,7 @@ class NestedInformationPackageSerializer(InformationPackageSerializer):
             'id', 'label', 'object_identifier_value', 'package_type', 'package_type_display',
             'responsible', 'create_date', 'entry_date', 'state', 'status',
             'step_state', 'archived', 'cached', 'aic', 'information_packages',
-            'generation', 'policy', 'message_digest', 'agents',
+            'generation', 'message_digest', 'agents',
             'message_digest_algorithm', 'submission_agreement', 'object_path',
             'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
             'workarea', 'object_size',

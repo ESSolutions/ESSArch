@@ -12,7 +12,12 @@ from rest_framework.test import APIRequestFactory
 
 from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
-from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    ProfileIPData,
+    SubmissionAgreement,
+)
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
 from ESSArch_Core.storage.models import (
     DISK,
@@ -615,9 +620,10 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
 
     @classmethod
     def create_ip(cls, package_type, policy=None):
+        sa = SubmissionAgreement.objects.create(policy=policy)
         return InformationPackage.objects.create(
             package_type=package_type,
-            policy=policy,
+            submission_agreement=sa,
         )
 
     @classmethod
@@ -648,18 +654,11 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
         )
 
     def test_sip(self):
-        sip = self.create_ip(InformationPackage.SIP)
+        sip = self.create_ip(InformationPackage.SIP, self.create_policy(StoragePolicy.SHA256))
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', sip, data)
 
         self.assertEqual(sip.get_checksum_algorithm(), 'SHA-512')
-
-    def test_sip_missing_key_and_use_default(self):
-        sip = self.create_ip(InformationPackage.SIP)
-        data = {}
-        self.create_profile('transfer_project', sip, data)
-
-        self.assertEqual(sip.get_checksum_algorithm(), 'SHA-256')
 
     def test_aip(self):
         policy = self.create_policy(StoragePolicy.SHA384)
@@ -822,7 +821,8 @@ class InformationPackageCreatePreservationWorkflowTests(TestCase):
             ingest_path=Path.objects.create(),
         )
         aic = InformationPackage.objects.create()
-        ip = InformationPackage.objects.create(aic=aic, policy=policy)
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        ip = InformationPackage.objects.create(aic=aic, submission_agreement=sa)
 
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create()
@@ -884,8 +884,9 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         cls.policy.storage_methods.add(cls.storage_method)
+        sa = SubmissionAgreement.objects.create(policy=cls.policy)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=sa)
 
     def test_no_change(self):
         method_exists = self.ip.get_migratable_storage_methods().exists()
@@ -992,7 +993,8 @@ class InformationPackageManagerTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=sa)
 
     def test_get_migratable_no_change(self):
         StorageObject.objects.create(
