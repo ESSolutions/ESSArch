@@ -2048,16 +2048,13 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         'submission_agreement__name', 'start_date', 'end_date',
     )
 
+    permission_classes = ()
+
     def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger('essarch.reception')
         self.reception = Path.objects.get(entity="ingest_reception").value
         self.uip = Path.objects.get(entity="ingest_unidentified").value
         super().__init__(*args, **kwargs)
-
-    def get_queryset(self):
-        user = self.request.user
-        return InformationPackage.objects.visible_to_user(user).filter(
-            state='Prepared').exclude(package_type=InformationPackage.AIC)
 
     def find_xml_files(self, path):
         for xmlfile in glob.glob(os.path.join(path, "*.xml")):
@@ -2140,14 +2137,21 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
 
         from_db = InformationPackage.objects.visible_to_user(request.user).filter(
-            package_type=InformationPackage.AIP,
-            state__in=['Prepared', 'Receiving'],
+            package_type=InformationPackage.SIP,
+            state__in=['Receiving'],
             **conditions
         )
         serializer = InformationPackageSerializer(
             data=from_db, many=True, context={'request': request, 'view': self}
         )
         serializer.is_valid()
+
+        # Remove IPs from new_ips if they already are in the database
+        db_ip_ids = from_db.filter(
+            object_identifier_value__in=[i['id'] for i in new_ips]
+        ).values_list('object_identifier_value', flat=True)
+        new_ips = [ip for ip in new_ips if ip['id'] not in db_ip_ids]
+
         new_ips.extend(serializer.data)
 
         if self.paginator is not None:
@@ -2166,8 +2170,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return Response(parse_submit_description(fullpath, srcdir=path))
 
     @transaction.atomic
-    @action(detail=True, methods=['post'])
-    def prepare(self, request, pk=None):
+    @permission_required_or_403(['ip.receive'])
+    @action(detail=True, methods=['post'], url_path='receive')
+    def receive(self, request, pk=None):
+        print("huh?")
         logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization
@@ -2229,15 +2235,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip = InformationPackage.objects.create(
                 object_identifier_value=pk,
-                sip_objid=pk,
-                sip_path=pk,
-                package_type=InformationPackage.AIP,
-                state='Prepared',
-                responsible=request.user,
                 submission_agreement=sa,
                 submission_agreement_locked=True,
-                object_path=container,
-                package_mets_path=xmlfile,
             )
 
             member = Member.objects.get(django_user=request.user)
@@ -2251,16 +2250,18 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 assign_perm(perm_name, member.django_user, ip)
         else:
             ip = existing_sip
-            ip.sip_objid = pk
-            ip.sip_path = pk
-            ip.package_type = InformationPackage.AIP
-            ip.state = 'Prepared'
-            ip.object_path = container
-            ip.package_mets_path = xmlfile
-            ip.responsible = request.user
-            ip.save()
 
-            sa = ip.submission_agreement
+        ip.sip_objid = pk
+        ip.sip_path = pk
+        ip.package_type = InformationPackage.SIP
+        ip.state = 'Receiving'
+        ip.object_path = container
+        ip.package_mets_path = xmlfile
+        ip.responsible = request.user
+
+        ip.save()
+
+        sa = ip.submission_agreement
 
         if sa.profile_aic_description is None:
             raise exceptions.ParseError('Submission agreement missing AIC Description profile')
@@ -2278,258 +2279,52 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         # strings to allow further datetime manipulation
         ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
 
-        ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], request.user)
-        data = InformationPackageDetailSerializer(ip, context={'request': request}).data
-
-        logger.info('Prepared information package %s' % str(ip.pk), extra={'user': request.user.pk})
-        return Response(data, status=status.HTTP_201_CREATED)
-
-    @transaction.atomic
-    @permission_required_or_403(['ip.receive'])
-    @action(detail=True, methods=['post'], url_path='receive')
-    def receive(self, request, pk=None):
-        logger = logging.getLogger('essarch.ingest')
-
-        try:
-            ip = get_object_or_404(self.get_queryset(), id=pk)
-        except (ValueError, ValidationError):
-            raise exceptions.NotFound('Information package with id="%s" not found' % pk)
-
-        serializer = InformationPackageReceptionReceiveSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer_data = serializer.validated_data
-
-        if ip.state != 'Prepared':
-            logger.warn(
-                'Tried to receive IP %s from reception which is in state "%s"' % (pk, ip.state),
-                extra={'user': request.user.pk}
-            )
-            raise exceptions.ParseError('Information package must be in state "Prepared"')
-
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
-            try:
-                profile_ip.clean()
-            except ValidationError as e:
-                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, e[0]))
-
-            profile_ip.LockedBy = request.user
-            profile_ip.save()
-
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
-
-        objid = ip.object_identifier_value
-        xmlfile = os.path.join(reception, '%s.xml' % objid)
-
-        if not os.path.isfile(xmlfile):
-            logger.warn(
-                'Tried to receive IP %s from reception with missing XML file %s' % (pk, xmlfile),
-                extra={'user': request.user.pk}
-            )
-            raise exceptions.ParseError('%s does not exist' % xmlfile)
-
-        container = os.path.join(reception, self.get_container_for_xml(xmlfile))
-        if not os.path.isfile(container):
-            logger.warn(
-                'Tried to receive IP %s from reception with missing container file %s' % (pk, container),
-                extra={'user': request.user.pk}
-            )
-            raise exceptions.ParseError('%s does not exist' % container)
-
-        policy = serializer_data['storage_policy']
-        archive = serializer_data.get('archive')
-
-        if archive is not None:
-            tag = Tag.objects.create(
-                information_package=ip,
-            )
-            try:
-                TagVersion.objects.create(
-                    name=ip.label or ip.object_identifier_value,
-                    reference_code=ip.object_identifier_value,
-                    tag=tag,
-                    type=TagVersionType.objects.get(information_package_type=True),
-                    elastic_index='component',
-                )
-            except TagVersionType.DoesNotExist:
-                msg = TagVersionType.information_package_type_not_found_error
-                logger.exception(msg)
-                raise exceptions.ParseError(msg)
-
-            structure = serializer_data.get('structure')
-            structure_unit = serializer_data.get('structure_unit')
-            archive_structure = TagStructure.objects.get(tag=archive.tag, structure=structure)
-
-            if ip.tag is None:
-                ip.tag = archive_structure
-
-            TagStructure.objects.create(
-                tag=tag,
-                structure=structure,
-                structure_unit=structure_unit,
-                parent=archive_structure,
-            )
-
-        # TODO: use default structure unit from CTS, if available
-        # and no other structure unit is provided in the request
-
-        ip.policy = policy
-        ip.save()
-
-        generate_premis = ip.profile_locked('preservation_metadata')
-
-        validators = request.data.get('validators', {})
-        validate_xml_file = validators.get('validate_xml_file', False)
-        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
         has_cts = ip.get_content_type_file() is not None
-        has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
 
         workflow_spec = [
             {
-                "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to receiving",
-                "args": ["Receiving"],
-            },
-            {
                 "step": True,
-                "name": "Receive SIP",
+                "name": "Validation",
                 "children": [
                     {
-                        "step": True,
-                        "name": "Validation",
-                        "if": any([validate_xml_file, validate_logical_physical_representation]),
-                        "children": [
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "if": validate_xml_file,
-                                "label": "Validate package-mets",
-                                "params": {
-                                    "xml_filename": "{{_PACKAGE_METS_PATH}}",
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                                "if": validate_logical_physical_representation,
-                                "label": "Diff-check against package-mets",
-                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
-                            },
-                        ]
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate package-mets",
+                        "params": {
+                            "xml_filename": "{{_PACKAGE_METS_PATH}}",
+                        }
                     },
                     {
-                        "step": True,
-                        "name": "Generate AIP",
-                        "children": [
-                            {
-                                "name": "ESSArch_Core.ip.tasks.ParseSubmitDescription",
-                                "label": "Parse submit description",
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.ParseEvents",
-                                "label": "Parse events",
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                                "label": "Create Physical Model",
-                                'params': {'root': '{{POLICY_INGEST_PATH}}/{{_OBJID}}'}
-                            },
-                            {
-                                "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
-                                "label": "Receive SIP",
-                                "params": {
-                                    'purpose': request.data.get('purpose'),
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "label": "Validate cts",
-                                "if": has_cts and validate_xml_file,
-                                "run_if": "{{_CTS_PATH | path_exists}}",
-                                "params": {
-                                    "xml_filename": "{{_CTS_PATH}}",
-                                    "schema_filename": "{{_CTS_SCHEMA_PATH}}",
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
-                                "label": "Download Schemas",
-                            },
-                            {
-                                "step": True,
-                                "name": "Create Log File",
-                                "children": [
-                                    {
-                                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
-                                        "label": "Generate events xml file",
-                                    },
-                                    {
-                                        "name": "ESSArch_Core.tasks.AppendEvents",
-                                        "label": "Add events to xml file",
-                                    },
-                                    {
-                                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
-                                        "label": "Add premis IP object to xml file",
-                                    },
-
-                                ]
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                                "if": generate_premis,
-                                "label": "Generate premis",
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                                "label": "Generate content-mets",
-                            },
-                        ]
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "label": "Diff-check against package-mets",
+                        "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
                     },
                     {
-                        "step": True,
-                        "name": "Validate AIP",
-                        "children": [
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "label": "Validate content-mets",
-                                "params": {
-                                    "xml_filename": "{{_CONTENT_METS_PATH}}",
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "if": generate_premis,
-                                "label": "Validate premis",
-                                "params": {
-                                    "xml_filename": "{{_PREMIS_PATH}}",
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                                "label": "Diff-check against content-mets",
-                                "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                                "if": generate_premis,
-                                "label": "Compare premis and content-mets",
-                                "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
-                                "params": {'recursive': False},
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                                "if": has_representations and generate_premis,
-                                "label": "Compare representation premis and mets",
-                            }
-                        ]
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
-                        "label": "Update IP size and file count",
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                        "label": "Set status to received",
-                        "args": ["Received"],
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate cts",
+                        "if": has_cts,
+                        "run_if": "{{_CTS_PATH | path_exists}}",
+                        "params": {
+                            "xml_filename": "{{_CTS_PATH}}",
+                            "schema_filename": "{{_CTS_SCHEMA_PATH}}",
+                        }
                     },
                 ]
+            },
+            {
+                "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
+                "label": "Receive SIP",
+                "params": {
+                    'purpose': request.data.get('purpose'),
+                }
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                "label": "Update IP size and file count",
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to received",
+                "args": ["Received"],
             },
         ]
         workflow = create_workflow(workflow_spec, ip)
@@ -2537,8 +2332,11 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workflow.information_package = ip
         workflow.save()
         workflow.run()
-        logger.info('Started receiving {objid} from reception'.format(objid=objid), extra={'user': request.user.pk})
-        return Response({'detail': 'Receiving %s' % objid})
+        logger.info(
+            'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
+            extra={'user': request.user.pk},
+        )
+        return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
 
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):
