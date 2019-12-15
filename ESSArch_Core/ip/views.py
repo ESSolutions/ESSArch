@@ -1311,6 +1311,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
 
+            temp_dir = Path.objects.get(entity='temp').value
+
+            old_ip_object_path = ip.object_path
+            new_ip_object_path = os.path.join(temp_dir, ip.object_identifier_value)
+
+            ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=ip.responsible,
+                                                    label=ip.label, start_date=ip.start_date, end_date=ip.end_date)
+            ip.generation = 0
+            ip.object_path = new_ip_object_path
+            ip.package_type = InformationPackage.AIP
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
             ip.save()
@@ -1321,7 +1331,124 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
             ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
 
-            workflow = ip.create_preservation_workflow()
+            generate_premis = ip.profile_locked('preservation_metadata')
+            has_representations = find_destination(
+                "representations", ip.get_structure(), ip.object_path,
+            )[1] is not None
+
+            sip_dst_path, sip_dst_name = find_destination('sip', ip.get_profile('aip').structure, ip.object_path)
+            if sip_dst_path is None:
+                sip_dst_path, sip_dst_name = find_destination('content', ip.get_profile('aip').structure, ip.object_path)
+
+            sip_dst = os.path.join(sip_dst_path, sip_dst_name)
+
+            if os.path.isdir(old_ip_object_path):
+                copy_task = "ESSArch_Core.tasks.CopyDir"
+            else:
+                copy_task = "ESSArch_Core.tasks.CopyFile"
+
+            workflow = [
+                {
+                    "step": True,
+                    "name": "Generate AIP",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                            "label": "Create Physical Model",
+                            'params': {'root': new_ip_object_path}
+                        },
+                        {
+                            "name": copy_task,
+                            "label": "Add SIP",
+                            "args": [
+                                old_ip_object_path,
+                                sip_dst,
+                            ]
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.UpdateIPPath",
+                            "args": [
+                                new_ip_object_path,
+                            ]
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                            "label": "Download Schemas",
+                        },
+                        {
+                            "step": True,
+                            "name": "Create Log File",
+                            "children": [
+                                {
+                                    "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                                    "label": "Generate events xml file",
+                                },
+                                {
+                                    "name": "ESSArch_Core.tasks.AppendEvents",
+                                    "label": "Add events to xml file",
+                                },
+                                {
+                                    "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                                    "label": "Add premis IP object to xml file",
+                                },
+
+                            ]
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                            "if": generate_premis,
+                            "label": "Generate premis",
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                            "label": "Generate content-mets",
+                        },
+                    ]
+                },
+                {
+                    "step": True,
+                    "name": "Validate AIP",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "label": "Validate content-mets",
+                            "params": {
+                                "xml_filename": "{{_CONTENT_METS_PATH}}",
+                            }
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "if": generate_premis,
+                            "label": "Validate premis",
+                            "params": {
+                                "xml_filename": "{{_PREMIS_PATH}}",
+                            }
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                            "label": "Diff-check against content-mets",
+                            "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CompareXMLFiles",
+                            "if": generate_premis,
+                            "label": "Compare premis and content-mets",
+                            "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                            "params": {'recursive': False},
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                            "if": has_representations and generate_premis,
+                            "label": "Compare representation premis and mets",
+                        }
+                    ]
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                    "label": "Update IP size and file count",
+                },
+            ]
+            workflow += ip.create_preservation_workflow()
             workflow += [
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateReceipt",
@@ -2230,8 +2357,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.sip_path = pk
         ip.package_type = InformationPackage.SIP
         ip.state = 'Receiving'
-        ip.object_path = container
-        ip.package_mets_path = xmlfile
+        ip.object_path = normalize_path(container)
+        ip.package_mets_path = normalize_path(xmlfile)
         ip.responsible = request.user
 
         ip.save()

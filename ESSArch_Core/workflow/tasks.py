@@ -67,7 +67,12 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     TapeDrive,
 )
-from ESSArch_Core.util import creation_date, delete_path, timestamp_to_datetime
+from ESSArch_Core.util import (
+    creation_date,
+    delete_path,
+    normalize_path,
+    timestamp_to_datetime,
+)
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -133,7 +138,7 @@ class ReceiveSIP(DBTask):
             self.logger.debug('Copying {} to {}'.format(container, dst))
             dst = shutil.copy2(container, dst)
 
-        sip.object_path = dst
+        sip.object_path = normalize_path(dst)
         sip.save()
 
     def event_outcome_success(self, result, purpose=None):

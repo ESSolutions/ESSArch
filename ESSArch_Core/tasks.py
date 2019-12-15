@@ -591,6 +591,7 @@ class DeleteFiles(DBTask):
 
 class CopyDir(DBTask):
     def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+        src, dst = self.parse_params(src, dst)
         requests_session = None
         if remote_credentials:
             user, passw = decrypt_remote_credentials(remote_credentials)
