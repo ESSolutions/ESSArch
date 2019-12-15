@@ -36,7 +36,10 @@ from ESSArch_Core.ip.utils import (
     parse_submit_description_from_ip,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.profiles.utils import (
+    fill_specification_data,
+    lowercase_profile_types,
+)
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
@@ -175,7 +178,7 @@ class PrepareAIP(DBTask):
                 # refresh date fields to convert them to datetime instances instead of
                 # strings to allow further datetime manipulation
                 ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-                ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], user)
+                ip.create_profile_rels(lowercase_profile_types, user)
         else:
             with transaction.atomic():
                 ip = existing_sip

@@ -26,13 +26,13 @@ from django import forms
 from django.contrib import admin
 
 from .models import Profile, SubmissionAgreement
-from .utils import profile_types
+from .utils import lowercase_profile_types
 
 
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
+        for pt in lowercase_profile_types:
             self.fields['profile_{}'.format(pt)].required = False
 
     class Meta:
@@ -42,7 +42,7 @@ class SubmissionAgreementForm(forms.ModelForm):
 
 class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
-        for pt in [pt.lower().replace(' ', '_') for pt in profile_types]:
+        for pt in lowercase_profile_types:
             qs = Profile.objects.filter(profile_type=pt)
             context['adminform'].form.fields['profile_{}'.format(pt)].queryset = qs
         return super().render_change_form(request, context, args, kwargs)
@@ -65,7 +65,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         }),
         ('Profiles', {
             'classes': ('collapse', 'wide'),
-            'fields': tuple(['profile_{}'.format(pt.lower().replace(' ', '_')) for pt in profile_types])
+            'fields': tuple(['profile_{}'.format(pt) for pt in lowercase_profile_types])
         }),
     )
 

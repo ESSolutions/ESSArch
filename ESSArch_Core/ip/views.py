@@ -112,7 +112,6 @@ from ESSArch_Core.ip.serializers import (
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
-from ESSArch_Core.profiles.utils import profile_types
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.models import (
     Tag,
@@ -2218,8 +2217,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 start_date=parsed['start_date'],
                 end_date=parsed['end_date'],
                 submission_agreement=sa,
-                submission_agreement_locked=True,
             )
+            sa.lock_to_information_package(ip, request.user)
 
             member = Member.objects.get(django_user=request.user)
             user_perms = perms.pop('owner', [])

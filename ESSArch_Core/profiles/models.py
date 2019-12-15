@@ -30,7 +30,11 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
-from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.profiles.utils import (
+    fill_specification_data,
+    lowercase_profile_types,
+    profile_types,
+)
 from ESSArch_Core.profiles.validators import validate_template
 
 Profile_Status_CHOICES = (
@@ -276,7 +280,7 @@ class SubmissionAgreement(models.Model):
         return '%s - %s' % (self.name, self.id)
 
     def get_profiles(self):
-        return [getattr(self, 'profile_%s' % p_type.lower().replace(' ', '_'), None) for p_type in profile_types]
+        return [getattr(self, 'profile_%s' % p_type, None) for p_type in lowercase_profile_types]
 
     def get_profile_rel(self, profile_type):
         return self.profilesa_set.filter(
@@ -290,6 +294,24 @@ class SubmissionAgreement(models.Model):
             return rel.profile
 
         return None
+
+    def lock_to_information_package(self, ip, user):
+        from ESSArch_Core.ip.models import Agent
+
+        ip.submission_agreement_locked = True
+
+        if ip.submission_agreement_data is not None:
+            ip.submission_agreement_data.clean()
+
+        if self.archivist_organization:
+            existing_agents_with_notes = Agent.objects.all().with_notes([])
+            ao_agent, _ = Agent.objects.get_or_create(
+                role='ARCHIVIST', type='ORGANIZATION',
+                name=self.archivist_organization, pk__in=existing_agents_with_notes
+            )
+            ip.agents.add(ao_agent)
+        ip.save()
+        ip.create_profile_rels(lowercase_profile_types, user)
 
     def copy(self, new_data, new_name):
         """
@@ -340,7 +362,7 @@ class SubmissionAgreementIPData(models.Model):
 
 
 PROFILE_TYPE_CHOICES = zip(
-    [p.replace(' ', '_').lower() for p in profile_types],
+    lowercase_profile_types,
     profile_types
 )
 

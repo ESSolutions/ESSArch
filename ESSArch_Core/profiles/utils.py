@@ -24,6 +24,8 @@ profile_types = [
     "Validation",
 ]
 
+lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
+
 
 class LazyDict(Mapping):
     def __init__(self, *args, **kw):
@@ -186,7 +188,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_AGENTS'] = (_get_agents, ip,)
 
         profile_ids = zip(
-            [x.lower().replace(' ', '_') for x in profile_types],
+            lowercase_profile_types,
             ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types]
         )
 
