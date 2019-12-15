@@ -33,10 +33,4 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='submission_agreements', to='configuration.StoragePolicy'),
         ),
         migrations.RunPython(copy_policies_from_ips, migrations.RunPython.noop),
-        migrations.AlterField(
-            model_name='submissionagreement',
-            name='policy',
-            field=models.ForeignKey(null=False, on_delete=django.db.models.deletion.PROTECT,
-                                    related_name='submission_agreements', to='configuration.StoragePolicy'),
-        ),
     ]
