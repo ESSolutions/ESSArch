@@ -646,7 +646,7 @@ class StorageObjectQueryset(models.QuerySet):
 
     def readable(self):
         return self.filter(
-            storage_medium__storage_target__methods__storage_policies__information_packages=F('ip'),
+            storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
                 STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY

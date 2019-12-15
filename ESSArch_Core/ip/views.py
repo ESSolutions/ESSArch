@@ -1318,23 +1318,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
 
-            if ip.package_type == InformationPackage.DIP:
-                policy = request.data.get('policy')
-
-                if not policy:
-                    raise exceptions.ParseError('Policy required')
-
-                try:
-                    ip.policy = StoragePolicy.objects.get(pk=policy)
-                except StoragePolicy.DoesNotExist:
-                    raise exceptions.ParseError('Policy "%s" does not exist' % policy)
-                except ValueError as e:
-                    raise exceptions.ParseError(e)
-
-                ip.save(update_fields=['policy'])
-            elif ip.policy is None:
-                raise ValueError('{} has no policy')
-
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
             ip.save()
@@ -2173,7 +2156,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     @permission_required_or_403(['ip.receive'])
     @action(detail=True, methods=['post'], url_path='receive')
     def receive(self, request, pk=None):
-        print("huh?")
         logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization

@@ -13,6 +13,7 @@ from ESSArch_Core.ip.utils import (
     download_schema,
     parse_submit_description_from_ip,
 )
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import StorageMethod
 from ESSArch_Core.util import normalize_path
 
@@ -20,7 +21,6 @@ from ESSArch_Core.util import normalize_path
 class ParseSubmitDescriptionFromIpTests(TestCase):
 
     def setUp(self):
-        self.ip = InformationPackage.objects.create()
         self.policy = StoragePolicy.objects.create(
             policy_id="some_unique_id",
             policy_name="dummy_name",
@@ -28,6 +28,8 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
             ingest_path=Path.objects.create(entity='some other unique entity', value="some other value"),
             information_class=2,
         )
+        self.sa = SubmissionAgreement.objects.create(policy=self.policy)
+        self.ip = InformationPackage.objects.create()
 
     @mock.patch('ESSArch_Core.ip.utils.add_agents_from_xml')
     @mock.patch('ESSArch_Core.ip.utils.parse_submit_description')
@@ -42,8 +44,9 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
             'start_date': yesterday,
             'end_date': tomorrow,
             'information_class': 2,
+            'altrecordids': {'POLICYID': [self.policy.policy_id]},
         }
-        self.ip.policy = self.policy
+        self.ip.submission_agreement = self.sa
         self.ip.save()
 
         parse_submit_description_from_ip(self.ip)
@@ -59,7 +62,7 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
 
     @mock.patch('ESSArch_Core.ip.utils.add_agents_from_xml')
     @mock.patch('ESSArch_Core.ip.utils.parse_submit_description')
-    def test_parse_submit_desc_with_policy_when_ip_is_missing_info_class(self, mock_parse_desc, mock_agents):
+    def test_parse_submit_desc_with_incorrect_policy(self, mock_parse_desc, mock_agents):
         now = timezone.now()
         tomorrow = now + datetime.timedelta(days=1)
         yesterday = now - datetime.timedelta(days=1)
@@ -69,8 +72,33 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
             'entry_date': now,
             'start_date': yesterday,
             'end_date': tomorrow,
+            'information_class': 2,
+            'altrecordids': {'POLICYID': ['incorrect']},
         }
-        self.ip.policy = self.policy
+        self.ip.submission_agreement = self.sa
+        self.ip.save()
+
+        expected_message = "Policy in submit description ({}) and submission agreement ({}) does not match".format(
+            'incorrect', self.sa.policy.policy_id,
+        )
+        with self.assertRaisesMessage(ValueError, expected_message):
+            parse_submit_description_from_ip(self.ip)
+
+    @mock.patch('ESSArch_Core.ip.utils.add_agents_from_xml')
+    @mock.patch('ESSArch_Core.ip.utils.parse_submit_description')
+    def test_parse_submit_desc_with_policy_without_info_class(self, mock_parse_desc, mock_agents):
+        now = timezone.now()
+        tomorrow = now + datetime.timedelta(days=1)
+        yesterday = now - datetime.timedelta(days=1)
+
+        mock_parse_desc.return_value = {
+            'label': 'some label',
+            'entry_date': now,
+            'start_date': yesterday,
+            'end_date': tomorrow,
+            'altrecordids': {'POLICYID': [self.policy.policy_id]},
+        }
+        self.ip.submission_agreement = self.sa
         self.ip.save()
 
         parse_submit_description_from_ip(self.ip)
@@ -99,10 +127,11 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
             'altrecordids': {'POLICYID': [self.policy.policy_id]},
             'information_class': 2,
         }
+        self.ip.submission_agreement = self.sa
+        self.ip.save()
 
         parse_submit_description_from_ip(self.ip)
 
-        self.assertEqual(self.ip.policy, self.policy)
         self.assertEqual(self.ip.label, "some label")
         self.assertEqual(self.ip.entry_date, now)
         self.assertEqual(self.ip.start_date, yesterday)
@@ -127,6 +156,9 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
             'altrecordids': {'POLICYID': [self.policy.policy_id]},
             'information_class': 1,
         }
+
+        self.ip.submission_agreement = self.sa
+        self.ip.save()
 
         with self.assertRaisesRegexp(ValueError, "Information class.*{}.*{}.*".format(1, 2)):
             parse_submit_description_from_ip(self.ip)

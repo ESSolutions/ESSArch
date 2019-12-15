@@ -31,6 +31,7 @@ django.setup()
 
 from django.conf import settings  # noqa isort:skip
 
+from ESSArch_Core.configuration.models import StoragePolicy  # noqa isort:skip
 from ESSArch_Core.profiles.models import (  # noqa isort:skip
     SubmissionAgreement,
     Profile,
@@ -54,12 +55,19 @@ def installProfiles():
 
 
 def installSubmissionAgreement():
+    try:
+        policy = StoragePolicy.objects.get(name="default")
+    except StoragePolicy.DoesNotExist:
+        policy = StoragePolicy.objects.first()
+        if policy is None:
+            raise
 
     dct = {
         'name': 'SA National Archive and Government NO',
         'type': 'Standard',
         'status': 'Agreed',
         'label': 'Submission Agreement National Archive x and Government x',
+        'policy': policy,
         'archivist_organization': 'National Archive xx',
         'template': [
             {

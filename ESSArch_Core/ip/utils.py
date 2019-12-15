@@ -12,7 +12,6 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -54,14 +53,16 @@ def parse_submit_description_from_ip(ip):
     ip.start_date = parsed.get('start_date')
     ip.end_date = parsed.get('end_date')
 
-    if ip.policy is None:
+    if ip.policy is not None:
         parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
-        ip.policy = StoragePolicy.objects.get(policy_id=parsed_policy)
+        if ip.policy.policy_id != parsed_policy:
+            raise ValueError('Policy in submit description ({}) and submission agreement ({}) does not match'.format(
+                parsed_policy, ip.policy.policy_id))
 
-    ip.information_class = parsed.get('information_class') or ip.policy.information_class
-    if ip.information_class != ip.policy.information_class:
-        raise ValueError('Information class in submit description ({}) and policy ({}) does not match'.format(
-            ip.information_class, ip.policy.information_class))
+        ip.information_class = parsed.get('information_class') or ip.policy.information_class
+        if ip.information_class != ip.policy.information_class:
+            raise ValueError('Information class in submit description ({}) and policy ({}) does not match'.format(
+                ip.information_class, ip.policy.information_class))
 
     add_agents_from_xml(ip, xml)
 

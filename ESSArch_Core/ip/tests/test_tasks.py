@@ -9,7 +9,12 @@ from django.test import TestCase
 
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    ProfileIPData,
+    SubmissionAgreement,
+)
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     StorageMethod,
@@ -91,7 +96,8 @@ class PreserveInformationPackageTests(TestCase):
         )
 
         self.user = User.objects.create()
-        self.ip = InformationPackage.objects.create(policy=self.storage_policy, object_path='foo/bar')
+        sa = SubmissionAgreement.objects.create(policy=self.storage_policy)
+        self.ip = InformationPackage.objects.create(submission_agreement=sa, object_path='foo/bar')
 
     @TaskRunner()
     @mock.patch.object(InformationPackage, 'preserve', return_value=None)

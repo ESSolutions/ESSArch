@@ -361,7 +361,7 @@ class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
 
         policy = request.data.get('policy')
         if policy is not None:
-            qs = qs.filter(policy=policy)
+            qs = qs.filter(submission_agreement__policy=policy)
 
         return qs
 
