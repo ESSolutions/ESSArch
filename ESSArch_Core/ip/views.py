@@ -57,7 +57,7 @@ from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -100,7 +100,6 @@ from ESSArch_Core.ip.serializers import (
     InformationPackageCreateSerializer,
     InformationPackageDetailSerializer,
     InformationPackageFromMasterSerializer,
-    InformationPackageReceptionReceiveSerializer,
     InformationPackageSerializer,
     InformationPackageUpdateSerializer,
     NestedInformationPackageSerializer,
@@ -113,12 +112,6 @@ from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
-from ESSArch_Core.tags.models import (
-    Tag,
-    TagStructure,
-    TagVersion,
-    TagVersionType,
-)
 from ESSArch_Core.util import (
     creation_date,
     find_destination,

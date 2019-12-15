@@ -23,10 +23,8 @@
 """
 
 import datetime
-import errno
 import logging
 import os
-import pathlib
 import shutil
 import tarfile
 import tempfile
@@ -45,7 +43,6 @@ from django.utils import timezone
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -70,13 +67,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     TapeDrive,
 )
-from ESSArch_Core.util import (
-    creation_date,
-    delete_path,
-    find_destination,
-    open_file,
-    timestamp_to_datetime,
-)
+from ESSArch_Core.util import creation_date, delete_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
