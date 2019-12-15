@@ -601,7 +601,10 @@ export default class BaseCtrl {
           templateOptions: {
             type: 'text',
             label: $translate.instant('CONVERTFILES'),
-            options: [{name: translations.YES, value: true}, {name: translations.NO, value: false}],
+            options: [
+              {name: translations.YES, value: true},
+              {name: translations.NO, value: false},
+            ],
           },
           defaultValue: false,
           type: 'select',
