@@ -2060,10 +2060,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip_id = os.path.splitext(os.path.basename(xmlfile))[0]
 
-            existing_ips = InformationPackage.objects.filter(
-                object_identifier_value=ip_id, package_type=InformationPackage.AIP
-            )
-            if existing_ips.exists():
+            if InformationPackage.objects.filter(object_identifier_value=ip_id).exists():
                 continue
 
             ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
