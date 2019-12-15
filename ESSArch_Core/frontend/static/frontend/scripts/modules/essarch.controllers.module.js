@@ -792,6 +792,7 @@ export default angular
     'appConfig',
     '$q',
     'EditMode',
+    'IPReception',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [
@@ -1156,7 +1157,15 @@ export default angular
     'SelectedIPUpdater',
     WorkareaCtrl,
   ])
-  .controller('PreserveModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', PreserveModalInstanceCtrl])
+  .controller('PreserveModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'Requests',
+    '$q',
+    '$controller',
+    '$scope',
+    PreserveModalInstanceCtrl,
+  ])
   .controller('TemplateModalInstanceCtrl', [
     'ProfileMakerTemplate',
     '$uibModalInstance',

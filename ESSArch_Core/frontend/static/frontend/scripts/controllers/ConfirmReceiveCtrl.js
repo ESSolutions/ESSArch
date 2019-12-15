@@ -10,17 +10,7 @@ export default class ConfirmReceiveCtrl {
       $ctrl.receiving = true;
       let requestData = {
         id: ip.id,
-        storage_policy: data.request.storagePolicy.value.id,
-        purpose: data.request.purpose,
-        structure_unit: data.structure_unit,
-        validators: data.validatorModel,
       };
-      if (data.archive) {
-        requestData.archive = data.archive;
-      }
-      if (data.structure) {
-        requestData.structure = data.structure;
-      }
       return IPReception.receive(requestData)
         .$promise.then(function(response) {
           $ctrl.data = {received: true, status: 'received'};

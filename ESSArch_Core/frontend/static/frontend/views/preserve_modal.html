@@ -12,27 +12,143 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="ip in $ctrl.data.ips">
+        <tr ng-repeat="ip in vm.data.ips">
           <td>{{ip.object_identifier_value}}</td>
           <td>{{ip.label}}</td>
         </tr>
-        <tr ng-if="!$ctrl.data.ips.length" class="empty-table-indicator">
+        <tr ng-if="!vm.data.ips.length" class="empty-table-indicator">
           <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>
         </tr>
       </tbody>
     </table>
   </div>
+  <div class="request-layout">
+    <div id="request-form" name="vm.form" class="request-form">
+      <div class="request-type">
+        <div>
+          <label>{{'COMMENT' | translate}}</label>
+          <input class="form-control" ng-model="vm.request.purpose" />
+        </div>
+        <div>
+          <label>{{'ACCESS.ARCHIVE' | translate}}</label>
+          <div class="input-group">
+            <ui-select
+              ng-disabled="vm.data.ips[0].archive != null"
+              allow-clear
+              ng-model="vm.tags.archive.value"
+              on-select="archiveChanged($item)"
+              theme="bootstrap"
+              sortable="true"
+              close-on-select="true"
+              append-to-body="false"
+            >
+              <ui-select-match ng-attr-placeholder="{{'ACCESS.ARCHIVE' | translate}}"
+                >{{vm.tags.archive.value.name}}</ui-select-match
+              >
+              <ui-select-choices
+                ng-hide="!$select.open"
+                refresh-delay="0"
+                refresh="getArchives($select.search)"
+                repeat="x in vm.tags.archive.options | propsFilter: {name: $select.search}"
+              >
+                <div ng-bind-html="x.name | highlight: $select.search"></div>
+              </ui-select-choices>
+              <ui-select-no-choice>
+                <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+              </ui-select-no-choice>
+            </ui-select>
+            <span class="input-group-btn">
+              <button
+                ng-disabled="vm.sa.profile_content_type"
+                type="button"
+                ng-click="vm.tags.archive.value = null"
+                class="btn btn-sm btn-default"
+              >
+                <span class="fas fa-trash-alt"></span>
+              </button>
+            </span>
+          </div>
+          <div ng-if="vm.tags.archive.value" class="margin-top-5">
+            <label>{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}</label>
+            <div class="input-group">
+              <ui-select
+                allow-clear
+                ng-model="vm.tags.structure.value"
+                on-select="structureChanged($item)"
+                theme="bootstrap"
+                sortable="true"
+                close-on-select="true"
+                append-to-body="false"
+              >
+                <ui-select-match ng-attr-placeholder="{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}"
+                  >{{vm.tags.structure.value.name}}</ui-select-match
+                >
+                <ui-select-choices
+                  ng-hide="!$select.open"
+                  refresh-delay="0"
+                  refresh="getStructures(vm.tags.archive.value)"
+                  repeat="x in vm.tags.structure.options | propsFilter: {name: $select.search}"
+                >
+                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                </ui-select-choices>
+                <ui-select-no-choice>
+                  <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                </ui-select-no-choice>
+              </ui-select>
+              <span class="input-group-btn">
+                <button
+                  ng-disabled="vm.sa.profile_content_type"
+                  type="button"
+                  ng-click="vm.tags.structure.value = null"
+                  class="btn btn-sm btn-default"
+                >
+                  <span class="fas fa-trash-alt"></span>
+                </button>
+              </span>
+            </div>
+          </div>
+          <div ng-if="vm.tags.structure.value && vm.tags.archive.value && !ip.has_cts" class="margin-top-5">
+            <label>{{'ACCESS.STRUCTURE_UNIT' | translate}}</label>
+            <div class="input-group">
+              <ui-select
+                allow-clear
+                ng-model="vm.tags.structureUnits.value"
+                theme="bootstrap"
+                sortable="true"
+                close-on-select="true"
+                append-to-body="false"
+              >
+                <ui-select-match ng-attr-placeholder="{{'ACCESS.STRUCTURE_UNIT' | translate}}"
+                  >{{vm.tags.structureUnits.value.name}}</ui-select-match
+                >
+                <ui-select-choices
+                  ng-hide="!$select.open"
+                  refresh-delay="0"
+                  refresh="getStructureUnits(vm.tags.archive.value.parent_id, vm.tags.structure.value.id, $select.search)"
+                  repeat="x in vm.tags.structureUnits.options | propsFilter: {name: $select.search}"
+                >
+                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                </ui-select-choices>
+                <ui-select-no-choice>
+                  <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                </ui-select-no-choice>
+              </ui-select>
+              <span class="input-group-btn">
+                <button type="button" ng-click="vm.tags.structureUnits.value = null" class="btn btn-sm btn-default">
+                  <span class="fas fa-trash-alt"></span>
+                </button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 <div class="modal-footer">
-  <button
-    class="btn btn-primary"
-    ng-disabled="$ctrl.preserving"
-    type="button"
-    ng-click="$ctrl.preserve()"
-    focused="true"
-  >
+  <button class="btn btn-primary" ng-disabled="vm.preserving" type="button" ng-click="vm.preserve()" focused="true">
     {{'PRESERVE' | translate}}
-    <span ng-if="$ctrl.presering"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
+    <span ng-if="vm.presering"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
   </button>
-  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  <button class="btn btn-default" type="button" ng-click="vm.cancel()">{{'CANCEL' | translate}}</button>
 </div>

@@ -677,7 +677,8 @@ export default class BaseCtrl {
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/preserve_modal.html',
         controller: 'PreserveModalInstanceCtrl',
-        controllerAs: '$ctrl',
+        controllerAs: 'vm',
+        size: 'lg',
         resolve: {
           data: function() {
             return {

@@ -91,42 +91,23 @@ class ReceiveSIP(DBTask):
     @transaction.atomic
     def run(self, purpose=None, delete_sip=False):
         self.logger.debug('Receiving SIP')
-        aip = InformationPackage.objects.get(pk=self.ip)
-        algorithm = aip.get_checksum_algorithm()
-        container = aip.object_path
+        sip = InformationPackage.objects.get(pk=self.ip)
+        algorithm = sip.get_checksum_algorithm()
+        container = sip.object_path
         objid, container_type = os.path.splitext(os.path.basename(container))
         container_type = container_type.lower()
-        xml = aip.package_mets_path
-        aip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
-        aip.package_mets_size = os.path.getsize(xml)
-        aip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-        aip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
-        aip.generation = 0
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=aip.responsible,
-                                                label=aip.label, start_date=aip.start_date, end_date=aip.end_date)
-        old_sip_path = aip.object_path
-        aip.aic = aic
-        aip_dir = os.path.join(aip.policy.ingest_path.value, objid)
-        aip.object_path = aip_dir
-        try:
-            os.makedirs(aip_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
+        xml = sip.package_mets_path
+        sip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
+        sip.package_mets_size = os.path.getsize(xml)
+        sip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+        sip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
+        sip.save()
 
-        aip.save()
+        if sip.policy.receive_extract_sip:
+            dst = os.path.join(sip.policy.ingest_path.value, objid)
+            # remove any existing directory from previous attempts
+            delete_path(dst)
 
-        dst_path, dst_name = find_destination('sip', aip.get_profile('aip').structure, aip.object_path)
-        if dst_path is None:
-            dst_path, dst_name = find_destination('content', aip.get_profile('aip').structure, aip.object_path)
-
-        dst_name, = self.parse_params(dst_name)
-        dst = os.path.join(dst_path, dst_name)
-        shutil.rmtree(dst)
-
-        sip_profile = aip.submission_agreement.profile_sip
-
-        if aip.policy.receive_extract_sip:
             temp = Path.objects.cached('entity', 'temp', 'value')
             with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
                 self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
@@ -142,11 +123,7 @@ class ReceiveSIP(DBTask):
                     raise ValueError('Invalid container type: {}'.format(container))
 
                 dst = os.path.join(dst, '')
-                try:
-                    os.makedirs(dst)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
+                os.makedirs(dst)
 
                 tmpsrc = tmpdir
                 if len(os.listdir(tmpdir)) == 1 and os.listdir(tmpdir)[0] == root_member_name:
@@ -160,40 +137,15 @@ class ReceiveSIP(DBTask):
                     shutil.move(os.path.join(tmpsrc, f), dst)
 
                 self.logger.debug('Deleting {}'.format(tmpdir))
-
-            aip.sip_path = os.path.relpath(dst, aip.object_path)
         else:
+            dst = os.path.join(sip.policy.ingest_path.value, objid)
             self.logger.debug('Copying {} to {}'.format(container, dst))
-            shutil.copy2(container, dst)
-            aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
+            dst = shutil.copy2(container, dst)
 
-        sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, aip.sip_path)
-        if os.path.isfile(aip.sip_path):
-            sip_mets_data = parse_mets(
-                open_file(
-                    os.path.join(aip.object_path, sip_mets_dir, sip_mets_file),
-                    container=aip.sip_path,
-                    container_prefix=aip.object_identifier_value,
-                )
-            )
-        else:
-            sip_mets_data = parse_mets(open_file(os.path.join(aip.object_path, sip_mets_dir, sip_mets_file)))
+        sip.object_path = dst
+        sip.save()
 
-        # prefix all SIP data
-        sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
-
-        aip_profile_rel_data = aip.get_profile_rel('aip').data
-        aip_profile_rel_data.data.update(sip_mets_data)
-        aip_profile_rel_data.save()
-
-        if delete_sip:
-            delete_path(old_sip_path)
-            delete_path(pathlib.Path(old_sip_path).with_suffix('.xml'))
-
-        self.logger.debug('sip_path set to {}'.format(aip.sip_path))
-        aip.save()
-
-    def event_outcome_success(self, result, purpose=None, delete_sip=False):
+    def event_outcome_success(self, result, purpose=None):
         return "Received SIP"
 
 
