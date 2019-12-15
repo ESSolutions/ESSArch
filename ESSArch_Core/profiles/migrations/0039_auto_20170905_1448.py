@@ -3,7 +3,9 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import jsonfield.fields
+
+from ESSArch_Core.fields import JSONField
+
 
 def forwards_func(apps, schema_editor):
     Profile = apps.get_model("profiles", "Profile")
@@ -40,12 +42,12 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(blank=True, default=[]),
+            field=JSONField(blank=True, default=[]),
         ),
         migrations.AlterField(
             model_name='profile',
             name='template',
-            field=jsonfield.fields.JSONField(blank=True, default=[]),
+            field=JSONField(blank=True, default=[]),
         ),
         migrations.RunPython(forwards_func, reverse_func),
     ]
