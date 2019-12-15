@@ -2214,6 +2214,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip = InformationPackage.objects.create(
                 object_identifier_value=pk,
+                label=parsed['label'],
+                start_date=parsed['start_date'],
+                end_date=parsed['end_date'],
                 submission_agreement=sa,
                 submission_agreement_locked=True,
             )
