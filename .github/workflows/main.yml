@@ -262,6 +262,7 @@ jobs:
           mysql database: essarch
           mysql user: arkiv
           mysql password: password
+          mysql root password: password
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
         with:
