@@ -204,9 +204,9 @@ jobs:
             health_cmd: true
           - db: mariadb
             database_url: 'mysql://root:password@127.0.0.1:13306/essarch?isolation_level=read committed'
-            image: mariadb
-            port: 3306
-            health_cmd: mysqladmin ping --user=root -ppassword
+            image: busybox
+            port: 1234
+            health_cmd: true
           - db: mysql
             database_url: 'mysql://root:password@127.0.0.1:13306/essarch?isolation_level=read committed'
             image: mysql
@@ -284,10 +284,14 @@ jobs:
           essarch settings generate -qp local_essarch_settings.py
           sudo mkdir -p /ESSArch/log
           sudo chmod 777 /ESSArch/log/
-      - name: Config database
+      - name: Start MariaDB
+        uses: getong/mariadb-action@v1.1
         if: matrix.db == 'mariadb'
-        run: |
-          docker exec ${{ job.services.mariadb.id }} mysql -h 127.0.0.1 -P 3306 --protocol=tcp --user=root -ppassword --execute="SET GLOBAL character_set_server='utf8mb4'"
+        with:
+          host port: 13306
+          mysql database: essarch
+          mysql user: arkiv
+          mysql password: password
       - name: Test
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
