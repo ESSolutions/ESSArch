@@ -108,6 +108,7 @@ from ESSArch_Core.ip.serializers import (
     OrderWriteSerializer,
     WorkareaSerializer,
 )
+from ESSArch_Core.ip.utils import parse_submit_description_from_ip
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
@@ -2206,11 +2207,11 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip = InformationPackage.objects.create(
                 object_identifier_value=pk,
-                label=parsed['label'],
-                start_date=parsed['start_date'],
-                end_date=parsed['end_date'],
                 submission_agreement=sa,
+                object_path=container,
+                package_mets_path=xmlfile,
             )
+            parse_submit_description_from_ip(ip)
             sa.lock_to_information_package(ip, request.user)
 
             member = Member.objects.get(django_user=request.user)
