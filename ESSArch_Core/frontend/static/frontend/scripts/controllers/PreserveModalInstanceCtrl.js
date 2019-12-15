@@ -1,39 +1,54 @@
 export default class PreserveModalInstanceCtrl {
-  constructor($uibModalInstance, data, Requests, $q) {
-    const $ctrl = this;
-    $ctrl.angular = angular;
-    $ctrl.data = data;
-    $ctrl.requestTypes = data.types;
-    $ctrl.request = data.request;
-    $ctrl.preserving = false;
+  constructor($uibModalInstance, data, Requests, $q, $controller, $scope) {
+    const vm = this;
+    $controller('TagsCtrl', {$scope: $scope, vm: vm});
 
-    $ctrl.$onInit = function() {
-      if ($ctrl.data.ips == null) {
-        $ctrl.data.ips = [$ctrl.data.ip];
+    vm.angular = angular;
+    vm.data = data;
+    vm.requestTypes = data.types;
+    vm.request = data.request;
+    vm.preserving = false;
+
+    vm.$onInit = function() {
+      if (!vm.data.ips) {
+        vm.data.ips = [vm.data.ip];
       }
+      $scope.getArchives().then(function(result) {
+        vm.tags.archive.options = result;
+      });
     };
-    $ctrl.ok = function() {
+
+    $scope.updateTags = function() {
+      $scope.tagsLoading = true;
+      $scope.getArchives().then(result => {
+        vm.tags.archive.options = result;
+        $scope.requestForm = true;
+        $scope.tagsLoading = false;
+      });
+    };
+
+    vm.ok = function() {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    vm.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };
 
     // Preserve IP
-    $ctrl.preserve = function() {
-      $ctrl.preserving = true;
-      const params = {purpose: $ctrl.request.purpose};
-      params.policy =
-        $ctrl.request.storagePolicy && $ctrl.request.storagePolicy.value != ''
-          ? $ctrl.request.storagePolicy.value.id
-          : null;
-      if ($ctrl.request.appraisal_date != null) {
-        params.appraisal_date = $ctrl.request.appraisal_date;
+    vm.preserve = function() {
+      vm.preserving = true;
+      let data = {
+        purpose: vm.request.purpose,
+        archive: vm.tags.archive.value ? vm.tags.archive.value.id : null,
+        structure: vm.tags.structure.value ? vm.tags.structure.value.id : null,
+      };
+      if (vm.tags.structureUnits.value) {
+        data.structure_unit = vm.tags.structureUnits.value.id;
       }
       const promises = [];
-      $ctrl.data.ips.forEach(function(ip) {
+      vm.data.ips.forEach(function(ip) {
         promises.push(
-          Requests.preserve(ip, params)
+          Requests.preserve(ip, data)
             .then(function(result) {
               return result;
             })
@@ -44,7 +59,7 @@ export default class PreserveModalInstanceCtrl {
       });
       $q.all(promises).then(function(data) {
         $uibModalInstance.close(data);
-        $ctrl.preserving = false;
+        vm.preserving = false;
       });
     };
   }
