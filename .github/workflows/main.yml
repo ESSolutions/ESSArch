@@ -254,6 +254,14 @@ jobs:
           --health-retries 10
 
     steps:
+      - name: Start MariaDB
+        uses: getong/mariadb-action@v1.1
+        if: matrix.db == 'mariadb'
+        with:
+          host port: 13307
+          mysql database: essarch
+          mysql user: arkiv
+          mysql password: password
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
         with:
@@ -284,14 +292,6 @@ jobs:
           essarch settings generate -qp local_essarch_settings.py
           sudo mkdir -p /ESSArch/log
           sudo chmod 777 /ESSArch/log/
-      - name: Start MariaDB
-        uses: getong/mariadb-action@v1.1
-        if: matrix.db == 'mariadb'
-        with:
-          host port: 13307
-          mysql database: essarch
-          mysql user: arkiv
-          mysql password: password
       - name: Test
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
