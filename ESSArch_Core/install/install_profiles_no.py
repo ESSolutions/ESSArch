@@ -56,7 +56,7 @@ def installProfiles():
 
 def installSubmissionAgreement():
     try:
-        policy = StoragePolicy.objects.get(name="default")
+        policy = StoragePolicy.objects.get(policy_name="default")
     except StoragePolicy.DoesNotExist:
         policy = StoragePolicy.objects.first()
         if policy is None:
