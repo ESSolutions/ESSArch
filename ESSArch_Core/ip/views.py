@@ -1314,12 +1314,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             temp_dir = Path.objects.get(entity='temp').value
 
             old_ip_object_path = ip.object_path
-            new_ip_object_path = os.path.join(temp_dir, ip.object_identifier_value)
+            temp_ip_object_path = os.path.join(temp_dir, ip.object_identifier_value)
 
             ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=ip.responsible,
                                                     label=ip.label, start_date=ip.start_date, end_date=ip.end_date)
             ip.generation = 0
-            ip.object_path = new_ip_object_path
+            ip.object_path = temp_ip_object_path
             ip.package_type = InformationPackage.AIP
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -1355,7 +1355,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         {
                             "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
                             "label": "Create Physical Model",
-                            'params': {'root': new_ip_object_path}
+                            'params': {'root': temp_ip_object_path}
                         },
                         {
                             "name": copy_task,
@@ -1368,7 +1368,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         {
                             "name": "ESSArch_Core.tasks.UpdateIPPath",
                             "args": [
-                                new_ip_object_path,
+                                temp_ip_object_path,
                             ]
                         },
                         {
@@ -1481,6 +1481,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
                     "args": [ip_ingest_path]
+                },
+                {
+                    "name": "ESSArch_Core.tasks.DeleteFiles",
+                    "label": "Delete from temp",
+                    "args": [temp_ip_object_path]
                 },
             ]
             workflow = create_workflow(workflow, ip, name='Preserve Information Package')
