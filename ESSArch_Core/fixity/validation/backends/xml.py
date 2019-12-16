@@ -58,7 +58,6 @@ class DiffCheckValidator(BaseValidator):
                 'type': 'checkbox',
                 'templateOptions': {
                     'label': 'Recursive',
-                    'required': True,
                 }
             },
             {
@@ -331,7 +330,6 @@ class XMLComparisonValidator(DiffCheckValidator):
                 'type': 'checkbox',
                 'templateOptions': {
                     'label': 'Recursive',
-                    'required': True,
                 }
             },
             {
@@ -513,13 +511,6 @@ class XMLSyntaxValidator(BaseValidator):
                 }
             },
         ]
-
-    @classmethod
-    def get_options_serializer_class(cls):
-        class OptionsSerializer(serializers.Serializer):
-            pass
-
-        return OptionsSerializer
 
     def validate(self, filepath, expected=None):
         logger.debug('Validating syntax of {xml}'.format(xml=filepath))
