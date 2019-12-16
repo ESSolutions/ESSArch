@@ -1,6 +1,9 @@
+import os
+
+from django.db import transaction
 from django.db.models import Exists, Max, Min, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, views, viewsets
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -17,6 +20,7 @@ from ESSArch_Core.fixity.validation import (
     get_backend as get_validator,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep
+from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 
 class ValidatorViewSet(viewsets.ViewSet):
@@ -52,11 +56,38 @@ class ValidatorWorkflowViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        workflow_spec = []
+        ip = serializer.validated_data['information_package']
 
-        for validator in serializer.data['validators']:
-            klass = get_validator(validator['name'])
-            klass_serializer = klass.get_serializer_class()(data=validator['data'])
-            klass_serializer.is_valid(raise_exception=True)
+        for validator in serializer.validated_data['validators']:
+            name = validator['name']
+            klass = get_validator(name)
+            options_serializer = klass.get_options_serializer_class()(data=validator.get('options', {}))
+            options_serializer.is_valid(raise_exception=True)
+            options = options_serializer.validated_data
+
+            path = os.path.join(ip.object_path, validator['path'])
+            context = os.path.join(ip.object_path, validator['context'])
+            options['rootdir'] = ip.object_path
+
+            task_spec = {
+                'name': 'ESSArch_Core.fixity.validation.tasks.Validate',
+                'label': 'Validate using {}'.format(klass.label),
+                'args': [name, path],
+                'params': {'context': context, 'options': options},
+            }
+
+            workflow_spec.append(task_spec)
+
+        with transaction.atomic():
+            step = {
+                'step': True,
+                'name': 'Validation',
+                'children': workflow_spec
+            }
+            workflow = create_workflow([step], ip=ip, name='Validation')
+
+        workflow.run()
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

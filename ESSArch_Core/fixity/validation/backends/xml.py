@@ -31,24 +31,25 @@ class DiffCheckValidator(BaseValidator):
     the XML was generated.
     """
 
+    label = "Diff-check validator"
     file_validator = False
 
     @classmethod
     def form(cls):
         return [
             {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Path to validate',
+                }
+            },
+            {
                 'key': 'context',
                 'type': 'input',
                 'templateOptions': {
                     'label': 'Metadata file',
                     'required': True,
-                }
-            },
-            {
-                'key': 'options.rootdir',
-                'type': 'input',
-                'templateOptions': {
-                    'label': 'Directory (leave empty for all files)',
                 }
             },
             {
@@ -82,7 +83,7 @@ class DiffCheckValidator(BaseValidator):
         ]
 
     @classmethod
-    def get_serializer_class(cls) -> serializers.Serializer:
+    def get_options_serializer_class(cls):
         class OptionsSerializer(serializers.Serializer):
             rootdir = serializers.CharField(default='', allow_blank=True)
             recursive = serializers.BooleanField(default=True)
@@ -91,12 +92,7 @@ class DiffCheckValidator(BaseValidator):
                 default='SHA-256',
             )
 
-        class DiffCheckValidatorSerializer(serializers.Serializer):
-            context = serializers.CharField(label='Metadata file')
-            options = OptionsSerializer()
-
-        return DiffCheckValidatorSerializer
-
+        return OptionsSerializer
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
