@@ -34,7 +34,7 @@ class ValidatorViewSet(viewsets.ViewSet):
             try:
                 form = klass.form()
             except AttributeError:
-                form = {}
+                form = []
 
             validator = {
                 'label': label,
