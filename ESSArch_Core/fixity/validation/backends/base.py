@@ -1,4 +1,5 @@
 import click
+from rest_framework import serializers
 
 
 class BaseValidator:
@@ -18,6 +19,13 @@ class BaseValidator:
         self.task = task
         self.ip = ip
         self.responsible = responsible
+
+    @classmethod
+    def get_options_serializer_class(cls):
+        class OptionsSerializer(serializers.Serializer):
+            pass
+
+        return OptionsSerializer
 
     def validate(self, filepath, expected=None):
         raise NotImplementedError('subclasses of BaseValidator must provide a validate() method')
