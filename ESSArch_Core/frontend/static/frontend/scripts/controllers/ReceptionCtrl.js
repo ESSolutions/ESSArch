@@ -188,7 +188,8 @@ export default class ReceptionCtrl {
       angular.forEach(obj, (val, key) => {
         if (
           key.slice(0, 8) !== 'PROFILE_' &&
-          (val[0] && val[0].slice(0, 8) !== 'ESSARCH_') &&
+          val[0] &&
+          val[0].slice(0, 8) !== 'ESSARCH_' &&
           key !== 'SUBMISSIONAGREEMENT'
         ) {
           parsed[key] = val;

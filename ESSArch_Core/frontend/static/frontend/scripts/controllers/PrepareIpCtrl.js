@@ -209,7 +209,10 @@ export default class PrepareIpCtrl {
         id: $scope.ip.id,
         type: type,
         checked: checked,
-      }).$promise.then(function success(response) {}, function error(response) {});
+      }).$promise.then(
+        function success(response) {},
+        function error(response) {}
+      );
     };
 
     $scope.optionalOptions = true;
@@ -256,7 +259,10 @@ export default class PrepareIpCtrl {
         templateOptions: {
           type: 'text',
           label: $translate.instant('TYPE'),
-          options: [{name: 'folder', value: 'folder'}, {name: 'file', value: 'file'}],
+          options: [
+            {name: 'folder', value: 'folder'},
+            {name: 'file', value: 'file'},
+          ],
           required: true,
         },
         type: 'select',

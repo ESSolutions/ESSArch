@@ -1,0 +1,310 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+            
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/lint.txt
+          yarn install --frozen-lockfile
+
+      - name: flake8
+        run: |
+          flake8
+
+      - name: isort
+        run: |
+          isort --recursive --check-only --diff
+
+      - name: prettier
+        run: |
+          yarn prettier --check "ESSArch_Core/frontend/static/frontend/**/*.{ts,js,scss,html}"
+
+      - name: stylelint
+        run: |
+          yarn stylelint
+          
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+            
+      - name: Get yarn cache
+        id: yarn-cache
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+            
+      - uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+            
+      - uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Set up Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12'
+
+      - name: Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build:prod
+          
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: '3.8'
+
+      - name: Install
+        run: |
+          sudo mkdir -p /ESSArch/log/
+          sudo chmod 777 /ESSArch/log/
+          python -m pip install --upgrade pip wheel setuptools
+
+          # Pin six to avoid dependency errors,
+          # see https://github.com/pypa/pip/issues/4887
+          pip install --upgrade six>=1.12.0
+
+          pip install .[docs]
+          essarch settings generate -qp local_essarch_settings.py
+
+      - name: Build
+        run: |
+            cd ESSArch_Core/docs
+            make html SPHINXOPTS="-W"
+          
+  test-windows:
+    runs-on: windows-latest
+    env:
+      DATABASE_URL_ESSARCH: "mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install
+        run: |          
+          powershell wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe -OutFile gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
+          powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
+          powershell wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi -OutFile msodbcsql_17.3.1.1_x64.msi
+          powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
+          
+          choco install imagemagick
+          choco install redis-64
+
+          python -m pip install --upgrade pip wheel setuptools
+          pip install --upgrade six>=1.12.0
+          pip install .[mssql]
+          pip install -r requirements/tests.txt
+          pip check
+          essarch settings generate -qp local_essarch_settings.py
+          mkdir /ESSArch/log
+          
+          # Make all PATH additions global
+          echo "::set-env name=PATH::$env:PATH;C:\Program Files\GTK3-Runtime Win64\bin"
+      - name: Test
+        run: |
+          start redis-server
+          docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1809
+          coverage run manage.py test
+      - name: Report code coverage
+        run: |
+          coverage xml
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: Windows
+          file: ./coverage.xml
+          flags: backend
+
+  test-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [ sqlite, mariadb, mysql, postgres, mssql ]
+
+        include:
+          - db: sqlite
+            database_url: 'sqlite:///db.sqlite'
+            image: busybox
+            port: 1234
+            health_cmd: true
+          - db: mariadb
+            database_url: 'mysql://root:password@127.0.0.1:13307/essarch?isolation_level=read committed'
+            image: busybox
+            port: 1234
+            health_cmd: true
+          - db: mysql
+            database_url: 'mysql://root:password@127.0.0.1:13306/essarch?isolation_level=read committed'
+            image: mysql
+            port: 3306
+            health_cmd: mysqladmin ping --user=root -ppassword
+          - db: postgres
+            database_url: 'postgres://postgres:postgres@localhost:13306/essarch?isolation_level=read committed'
+            image: postgres
+            port: 5432
+            health_cmd: pg_isready
+          - db: mssql
+            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+            image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+            port: 1433
+            health_cmd: true
+            
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+
+      ${{ matrix.db }}:
+        image: ${{ matrix.image }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: essarch
+
+          MYSQL_DATABASE: essarch
+          MYSQL_USER: arkiv
+          MYSQL_PASSWORD: password
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+
+          ACCEPT_EULA: Y
+          SA_PASSWORD: MyPassword42
+        ports:
+          - 13306:${{ matrix.port }}
+        options: >-
+          -it
+          --health-cmd="${{ matrix.health_cmd }}"
+          --health-interval 2s
+          --health-timeout 10s
+          --health-retries 10
+
+    steps:
+      - name: Start MariaDB
+        uses: getong/mariadb-action@v1.1
+        if: matrix.db == 'mariadb'
+        with:
+          host port: 13307
+          mysql database: essarch
+          mysql user: arkiv
+          mysql password: password
+          mysql root password: password
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Install
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
+
+          python -m pip install --upgrade pip wheel setuptools
+          
+          # Pin six to avoid dependency errors,
+          # see https://github.com/pypa/pip/issues/4887
+          pip install --upgrade six>=1.12.0
+          
+          pip install .[mssql,mysql,postgres]
+          pip install -r requirements/tests.txt
+          pip check
+          essarch settings generate -qp local_essarch_settings.py
+          sudo mkdir -p /ESSArch/log
+          sudo chmod 777 /ESSArch/log/
+      - name: Test
+        env:
+          DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
+        run: |
+          coverage run manage.py test
+      - name: Report code coverage
+        run: |
+          coverage xml
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          name: Linux (${{matrix.db}})
+          file: ./coverage.xml
+          flags: backend
