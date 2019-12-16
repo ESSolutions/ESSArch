@@ -15,7 +15,9 @@ class ConversionToolSerializer(serializers.ModelSerializer):
 
 class ValidatorDataSerializer(serializers.Serializer):
     name = serializers.ChoiceField(choices=list(AVAILABLE_VALIDATORS.keys()))
-    data = serializers.JSONField()
+    path = serializers.CharField(label='Path to validate', allow_blank=True, default='')
+    context = serializers.CharField(label='Metadata file')
+    options = serializers.JSONField(required=False)
 
 
 class ValidatorWorkflowSerializer(serializers.Serializer):
