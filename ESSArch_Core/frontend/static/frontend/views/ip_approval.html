@@ -105,6 +105,11 @@
           </div>
         </div>
       </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'validation'" heading="{{'VALIDATION' | translate}}">
+        <div ng-if="vm.activeTab === 'validation'" class="events-status-wrapper">
+          <validation-view ip="ip"></validation-view>
+        </div>
+      </uib-tab>
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
         <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
           <div class="status-view">
