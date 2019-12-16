@@ -27,7 +27,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import jsonfield.fields
+
+from ESSArch_Core.fields import JSONField
 
 
 class Migration(migrations.Migration):
@@ -40,6 +41,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processtask',
             name='params',
-            field=jsonfield.fields.JSONField(null=True),
+            field=JSONField(null=True),
         ),
     ]
