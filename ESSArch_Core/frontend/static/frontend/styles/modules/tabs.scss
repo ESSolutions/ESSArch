@@ -3,3 +3,16 @@
 .no-tabs-available {
   @include container(10px);
 }
+
+.nav-pills > li:hover > a {
+  background: transparent;
+  border-color: transparent;
+}
+
+.nav-pills > li.hover > a {
+  background: #eeeeee;
+}
+
+.nav-pills > li.dragging {
+  opacity: 0.5;
+}

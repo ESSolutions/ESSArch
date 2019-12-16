@@ -1,0 +1,89 @@
+<div class="validation-view">
+  <form name="vm.form">
+    <uib-tabset active="vm.activeTab" type="pills">
+      <uib-tab
+        sortable-tab
+        ng-repeat="validation in vm.validations track by $index"
+        ng-click="vm.updateValidatorForm(validation)"
+        index="'validation' + $index"
+        heading="{{validation.label}}"
+      >
+        <uib-accordion ng-if="vm.activeTab === 'validation' + $index" close-others="false" class="p-base">
+          <div uib-accordion-group class="panel-default" is-open="true" heading="{{'VALIDATION' | translate}}">
+            <uib-accordion-heading>
+              {{'VALIDATION' | translate}}
+            </uib-accordion-heading>
+            <div>
+              <label class="control-label">
+                {{'VALIDATION_VIEW.VALIDATOR' | translate}}
+              </label>
+              <div>
+                <ui-select
+                  ng-model="validation.validator"
+                  on-select="vm.updateValidatorForm(validation)"
+                  theme="bootstrap"
+                  sortable="true"
+                  close-on-select="true"
+                  append-to-body="true"
+                >
+                  <ui-select-match ng-attr-placeholder="{{'VALIDATION_VIEW.VALIDATOR' | translate}}"
+                    >{{validation.validator.label}}</ui-select-match
+                  >
+                  <ui-select-choices
+                    ng-hide="!$select.open"
+                    refresh-delay="0"
+                    refresh="vm.getValidators($select.search)"
+                    repeat="x in vm.options.validators | propsFilter: {label: $select.search}"
+                  >
+                    <div ng-bind-html="x.label | highlight: $select.search"></div>
+                  </ui-select-choices>
+                  <ui-select-no-choice>
+                    <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                  </ui-select-no-choice>
+                </ui-select>
+              </div>
+              <div ng-if="vm.fields.length">
+                <hr class="small" />
+                <formly-form
+                  form="vm.form"
+                  model="vm.currentValidation.data"
+                  fields="vm.fields"
+                  options="{}"
+                ></formly-form>
+              </div>
+            </div>
+          </div>
+        </uib-accordion>
+      </uib-tab>
+      <uib-tab
+        ng-click="vm.addValidator()"
+        uib-tooltip="{{'VALIDATION_VIEW.ADD_VALIDATOR' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+        index="'new_validator'"
+      >
+        <uib-tab-heading>
+          <i class="fas fa-plus"></i>
+        </uib-tab-heading>
+      </uib-tab>
+    </uib-tabset>
+    <hr class="small" />
+    <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
+    <div class="flex-row justify-content-end">
+      <button
+        ng-if="vm.validations.length > 1"
+        class="btn btn-danger"
+        ng-click="vm.removeValidationModal(vm.currentValidation)"
+      >
+        {{'REMOVE' | translate}}
+      </button>
+      <button
+        class="btn btn-primary"
+        ng-disabled="vm.currentValidation.validator === null && vm.validations.length === 1"
+        ng-click="vm.startValidation()"
+      >
+        {{'VALIDATION_VIEW.RUN_VALIDATIONS' | translate}}
+      </button>
+    </div>
+  </form>
+</div>
