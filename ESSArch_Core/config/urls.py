@@ -32,7 +32,12 @@ from ESSArch_Core.configuration.views import (
     StoragePolicyViewSet,
     SysInfoView,
 )
-from ESSArch_Core.fixity.views import ValidationFilesViewSet, ValidationViewSet
+from ESSArch_Core.fixity.views import (
+    ValidationFilesViewSet,
+    ValidationViewSet,
+    ValidatorViewSet,
+    ValidatorWorkflowViewSet,
+)
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
     EventIPViewSet,
@@ -294,6 +299,8 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'conversion-rules', ConversionRuleViewSet)
+router.register(r'validators', ValidatorViewSet, basename='validators')
+router.register(r'validator-workflows', ValidatorWorkflowViewSet, basename='validator-workflows')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)

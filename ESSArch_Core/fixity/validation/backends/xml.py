@@ -6,6 +6,7 @@ from os import walk
 import click
 from django.utils import timezone
 from lxml import etree, isoschematron
+from rest_framework import serializers
 
 from ESSArch_Core.essxml.util import (
     find_files,
@@ -31,6 +32,71 @@ class DiffCheckValidator(BaseValidator):
     """
 
     file_validator = False
+
+    @classmethod
+    def form(cls):
+        return [
+            {
+                'key': 'context',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Metadata file',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.rootdir',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Directory (leave empty for all files)',
+                }
+            },
+            {
+                'key': 'options.recursive',
+                'defaultValue': True,
+                'type': 'checkbox',
+                'templateOptions': {
+                    'label': 'Recursive',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.default_algorithm',
+                'type': 'select',
+                'defaultValue': 'SHA-256',
+                'templateOptions': {
+                    'label': 'Default checksum algorithm',
+                    'required': True,
+                    'labelProp': 'name',
+                    'valueProp': 'value',
+                    'options': [
+                        {'name': 'MD5', 'value': 'MD5'},
+                        {'name': 'SHA-1', 'value': 'SHA-1'},
+                        {'name': 'SHA-224', 'value': 'SHA-224'},
+                        {'name': 'SHA-256', 'value': 'SHA-256'},
+                        {'name': 'SHA-384', 'value': 'SHA-384'},
+                        {'name': 'SHA-512', 'value': 'SHA-512'},
+                    ]
+                }
+            },
+        ]
+
+    @classmethod
+    def get_serializer_class(cls) -> serializers.Serializer:
+        class OptionsSerializer(serializers.Serializer):
+            rootdir = serializers.CharField(default='', allow_blank=True)
+            recursive = serializers.BooleanField(default=True)
+            default_algorithm = serializers.ChoiceField(
+                choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
+                default='SHA-256',
+            )
+
+        class DiffCheckValidatorSerializer(serializers.Serializer):
+            context = serializers.CharField(label='Metadata file')
+            options = OptionsSerializer()
+
+        return DiffCheckValidatorSerializer
+
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

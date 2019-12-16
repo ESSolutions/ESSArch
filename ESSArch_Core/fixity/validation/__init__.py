@@ -34,6 +34,15 @@ AVAILABLE_VALIDATORS.update(extra_validators)
 PATH_VARIABLE = "_PATH"
 
 
+def get_backend(name):
+    try:
+        module_name, klass = AVAILABLE_VALIDATORS[name].rsplit('.', 1)
+    except KeyError:
+        raise ValueError('Validator "%s" not found' % name)
+
+    return getattr(importlib.import_module(module_name), klass)
+
+
 def _validate_file(path, validators, task=None, ip=None, stop_at_failure=True, responsible=None):
     for validator in validators:
         included = False
@@ -94,13 +103,7 @@ def validate_path(path, validators, profile, data=None, task=None, ip=None, stop
     validator_instances = []
 
     for name in validators:
-        try:
-            module_name, validator_class = AVAILABLE_VALIDATORS[name].rsplit('.', 1)
-        except KeyError:
-            raise ValueError('Validator "%s" not found' % name)
-
-        validator = getattr(importlib.import_module(module_name), validator_class)
-
+        validator_klass = get_backend(name)
         for specification in profile.specification.get(name, []):
             required = specification.get('required', True)
             context = specification.get('context')
@@ -108,7 +111,8 @@ def validate_path(path, validators, profile, data=None, task=None, ip=None, stop
             exclude = [os.path.join(path, excluded) for excluded in specification.get('exclude', [])]
             options = specification.get('options', {})
 
-            validator_instance = validator(
+            validator_instance = validator_klass(
+                name,
                 context=context,
                 include=include,
                 exclude=exclude,

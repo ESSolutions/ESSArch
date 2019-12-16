@@ -25,6 +25,8 @@ class ChecksumValidator(BaseValidator):
        * ``block_size``: Defaults to 65536
     """
 
+    label = 'Checksum Validator'
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
