@@ -1311,6 +1311,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
 
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+                try:
+                    profile_ip.clean()
+                except ValidationError as e:
+                    raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+
+                profile_ip.LockedBy = request.user
+                profile_ip.save()
+
             temp_dir = Path.objects.get(entity='temp').value
 
             old_ip_object_path = ip.object_path
@@ -2349,7 +2358,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 package_mets_path=xmlfile,
             )
             parse_submit_description_from_ip(ip)
-            sa.lock_to_information_package(ip, request.user)
 
             member = Member.objects.get(django_user=request.user)
             user_perms = perms.pop('owner', [])
@@ -2362,6 +2370,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 assign_perm(perm_name, member.django_user, ip)
         else:
             ip = existing_sip
+            sa = ip.submission_agreement
+
+        ProfileIP.objects.filter(ip=ip).delete()
+        sa.lock_to_information_package(ip, request.user)
 
         ip.sip_objid = pk
         ip.sip_path = pk
@@ -2372,8 +2384,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.responsible = request.user
 
         ip.save()
-
-        sa = ip.submission_agreement
 
         if sa.profile_aic_description is None:
             raise exceptions.ParseError('Submission agreement missing AIC Description profile')
