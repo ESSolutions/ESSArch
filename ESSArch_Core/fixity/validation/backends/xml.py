@@ -304,6 +304,57 @@ class DiffCheckValidator(BaseValidator):
 
 
 class XMLComparisonValidator(DiffCheckValidator):
+    label = "XML Comparison validator"
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'First XML',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'context',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Second XML',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.recursive',
+                'defaultValue': True,
+                'type': 'checkbox',
+                'templateOptions': {
+                    'label': 'Recursive',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.default_algorithm',
+                'type': 'select',
+                'defaultValue': 'SHA-256',
+                'templateOptions': {
+                    'label': 'Default checksum algorithm',
+                    'required': True,
+                    'labelProp': 'name',
+                    'valueProp': 'value',
+                    'options': [
+                        {'name': 'MD5', 'value': 'MD5'},
+                        {'name': 'SHA-1', 'value': 'SHA-1'},
+                        {'name': 'SHA-224', 'value': 'SHA-224'},
+                        {'name': 'SHA-256', 'value': 'SHA-256'},
+                        {'name': 'SHA-384', 'value': 'SHA-384'},
+                        {'name': 'SHA-512', 'value': 'SHA-512'},
+                    ]
+                }
+            },
+        ]
+
     def _get_files(self):
         skip_files = [p.path for p in find_pointers(self.context)]
         self.logical_files = find_files(
