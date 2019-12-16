@@ -8,7 +8,7 @@ from ESSArch_Core.ip.models import InformationPackage
 class ValidatorDataSerializer(serializers.Serializer):
     name = serializers.ChoiceField(choices=list(AVAILABLE_VALIDATORS.keys()))
     path = serializers.CharField(label='Path to validate', allow_blank=True, default='')
-    context = serializers.CharField(label='Metadata file')
+    context = serializers.CharField(label='Metadata file', allow_blank=True, default='')
     options = serializers.JSONField(required=False)
 
 

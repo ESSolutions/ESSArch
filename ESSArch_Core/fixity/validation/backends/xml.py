@@ -500,6 +500,27 @@ class XMLSchemaValidator(BaseValidator):
 
 
 class XMLSyntaxValidator(BaseValidator):
+    label = "XML syntax validator"
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Path to validate',
+                }
+            },
+        ]
+
+    @classmethod
+    def get_options_serializer_class(cls):
+        class OptionsSerializer(serializers.Serializer):
+            pass
+
+        return OptionsSerializer
+
     def validate(self, filepath, expected=None):
         logger.debug('Validating syntax of {xml}'.format(xml=filepath))
 
