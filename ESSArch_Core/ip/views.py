@@ -2184,8 +2184,13 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 continue
 
             ip_id = os.path.splitext(os.path.basename(xmlfile))[0]
+            existing_ips = InformationPackage.objects.filter(
+                object_identifier_value=ip_id
+            ).exclude(
+                state="Submitted"
+            )
 
-            if InformationPackage.objects.filter(object_identifier_value=ip_id).exists():
+            if existing_ips.exists():
                 continue
 
             ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
