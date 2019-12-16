@@ -82,7 +82,7 @@ class ValidatorWorkflowViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
         with transaction.atomic():
             step = {
                 'step': True,
-                'name': 'Validation',
+                'name': serializer.validated_data['purpose'],
                 'children': workflow_spec
             }
             workflow = create_workflow([step], ip=ip, name='Validation')

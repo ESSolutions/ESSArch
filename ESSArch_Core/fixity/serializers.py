@@ -13,6 +13,7 @@ class ValidatorDataSerializer(serializers.Serializer):
 
 
 class ValidatorWorkflowSerializer(serializers.Serializer):
+    purpose = serializers.CharField(default='Validation')
     information_package = serializers.PrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
     validators = serializers.ListField(
         child=ValidatorDataSerializer(),
