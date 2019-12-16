@@ -98,9 +98,12 @@ export default class ValidationCtrl {
         vm.form.$setSubmitted();
         return;
       }
-      vm.validations = vm.validations.filter(a => {
+      let validations = vm.validations.filter(a => {
         return a.validator !== null;
       });
+      if (validations.length > 0) {
+        vm.validations = validations;
+      }
       let data = angular.extend(vm.flowOptions, {
         information_package: vm.ip.id,
         validators: vm.validations.map(x => {
