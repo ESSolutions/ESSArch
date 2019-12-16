@@ -31,11 +31,11 @@ class DiffCheckValidator(BaseValidator):
     the XML was generated.
     """
 
-    label = "Diff-check validator"
     file_validator = False
+    label = "Diff-check validator"
 
     @classmethod
-    def form(cls):
+    def get_form(cls):
         return [
             {
                 'key': 'path',
