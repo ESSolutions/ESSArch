@@ -38,6 +38,8 @@ from ESSArch_Core.fixity.views import (
     ConversionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
+    ValidatorViewSet,
+    ValidatorWorkflowViewSet,
 )
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
@@ -295,7 +297,6 @@ router.register(r'tasks', ProcessTaskViewSet).register(
 
 
 router.register(r'organizations', OrganizationViewSet, basename='organizations')
-
 router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
     r'information-packages',
     AppraisalJobInformationPackageViewSet,
@@ -321,6 +322,8 @@ router.register(r'conversion-jobs', ConversionJobViewSet).register(
 router.register(r'conversion-templates', ConversionTemplateViewSet)
 router.register(r'conversion-tools', ConversionToolViewSet)
 router.register(r'features', FeatureViewSet, basename='features')
+router.register(r'validators', ValidatorViewSet, basename='validators')
+router.register(r'validator-workflows', ValidatorWorkflowViewSet, basename='validator-workflows')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
