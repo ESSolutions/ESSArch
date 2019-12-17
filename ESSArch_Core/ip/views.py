@@ -851,7 +851,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', True)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
-        has_cts = ip.get_content_type_file() is not None
+        cts = ip.get_content_type_file()
+        has_cts = cts is not None and os.path.exists(cts)
         has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
 
         dst_dir = Path.objects.cached('entity', 'preingest', 'value')
@@ -1504,14 +1505,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'])
     def access(self, request, pk=None):
-        aip = self.get_object()
+        ip = self.get_object()
 
-        if aip.state != 'Received' and not aip.archived:
+        if ip.state != 'Received' and not ip.archived:
             raise exceptions.ParseError('IP must either have state "Received" or be archived to be accessed')
 
         data = request.data
 
-        options = ['tar', 'extracted', 'new']
+        options = ['tar', 'extracted']
+        if ip.package_type == InformationPackage.AIP:
+            options.append('new')
 
         if not any(x in options for x in data.keys()):
             raise exceptions.ParseError('No option set')
@@ -1523,26 +1526,29 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('"extracted" and "tar" cannot both be true')
 
         if data.get('new'):
+            if ip.package_type != InformationPackage.AIP:
+                raise exceptions.ParseError('{} is not an AIP'.format(ip.object_identifier_value))
+
             if request.user.user_profile.current_organization is None:
                 raise exceptions.ParseError('You must be part of an organization to create a new generation of an IP')
 
-            if aip.archived and not request.user.has_perm('get_from_storage_as_new', aip):
+            if ip.archived and not request.user.has_perm('get_from_storage_as_new', ip):
                 raise exceptions.PermissionDenied('You do not have permission to create new generations of this IP')
 
-            if not aip.archived and not request.user.has_perm('add_to_ingest_workarea_as_new', aip):
+            if not ip.archived and not request.user.has_perm('add_to_ingest_workarea_as_new', ip):
                 raise exceptions.PermissionDenied('You do not have permission to create new generations of this IP')
 
-            if aip.new_version_in_progress() is not None:
-                working_user = aip.new_version_in_progress().ip.responsible
+            if ip.new_version_in_progress() is not None:
+                working_user = ip.new_version_in_progress().ip.responsible
                 raise exceptions.ParseError(
                     'User %s already has a new generation in their workarea' % working_user.username
                 )
 
             data['extracted'] = True
 
-        workarea_type = Workarea.INGEST if aip.state == 'Received' else Workarea.ACCESS
+        workarea_type = Workarea.INGEST if ip.state == 'Received' else Workarea.ACCESS
 
-        ip_workarea = aip.workareas.filter(user=request.user)
+        ip_workarea = ip.workareas.filter(user=request.user)
         ingest_path = Path.objects.get(entity='ingest_workarea')
         access_path = Path.objects.get(entity='access_workarea')
 
@@ -1553,7 +1559,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not data.get('new') and ip_already_in_workarea:
             raise Conflict('IP already in workarea')
 
-        workflow = aip.create_access_workflow(
+        workflow = ip.create_access_workflow(
             self.request.user,
             tar=data.get('tar', False),
             extracted=data.get('extracted', False),
@@ -1561,7 +1567,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
         )
         workflow.run()
-        return Response({'detail': 'Accessing %s...' % aip.object_identifier_value, 'step': workflow.pk})
+        return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
 
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
@@ -2401,7 +2407,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         # strings to allow further datetime manipulation
         ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
 
-        has_cts = ip.get_content_type_file() is not None
+        cts = ip.get_content_type_file()
+        has_cts = cts is not None and os.path.exists(cts)
 
         workflow_spec = [
             {
