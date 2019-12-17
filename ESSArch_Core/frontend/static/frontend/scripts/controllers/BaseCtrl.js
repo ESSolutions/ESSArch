@@ -660,6 +660,13 @@ export default class BaseCtrl {
         case 'download_order':
           vm.downloadOrderModal(ip);
           break;
+        case 'transfer_sip':
+          if ($scope.ips.length > 0) {
+            vm.transferModal($scope.ips, request);
+          } else {
+            vm.transferModal(ip, request);
+          }
+          break;
         case 'diff_check':
           console.log('request not implemented');
           break;
@@ -703,6 +710,38 @@ export default class BaseCtrl {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
+    };
+
+    vm.transferModal = (ip, request) => {
+      let ips = null;
+      if (Array.isArray(ip)) {
+        ips = ip;
+      } else {
+        ips = [ip];
+      }
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/transfer_sip_modal.html',
+        scope: $scope,
+        controller: 'TransferSipModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            ip,
+            ips,
+            request,
+          },
+        },
+      });
+      modalInstance.result.then(() => {
+        $scope.ip = null;
+        $rootScope.ip = null;
+        $scope.ips = [];
+        $scope.initRequestData();
+        $scope.getListViewData();
+      });
     };
 
     vm.accessModal = function(ip, request) {

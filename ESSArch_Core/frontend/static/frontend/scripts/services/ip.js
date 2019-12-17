@@ -145,6 +145,10 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         params: {action: 'storage-objects', id: '@id'},
         isArray: true,
       },
+      transfer: {
+        method: 'POST',
+        params: {action: 'transfer', id: '@id'},
+      },
       update: {
         method: 'PATCH',
         params: {id: '@id'},

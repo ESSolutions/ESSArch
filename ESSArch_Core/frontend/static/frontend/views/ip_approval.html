@@ -32,6 +32,12 @@
                     {{'GET_AS_NEW_GENERATION' | translate}}
                   </label>
                 </div>
+                <div ng-if="checkPermission('ip.transfer_sip')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="transfer_sip" />
+                    {{'TRANSFER_SIP' | translate}}
+                  </label>
+                </div>
                 <div ng-if="checkPermission('ip.diff_check')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="diff_check" />
@@ -48,7 +54,7 @@
               <div class="request-params">
                 <div
                   class="form-group"
-                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
+                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_as_new' || vm.request.type == 'transfer_sip' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
                 >
                   <label>
                     {{'COMMENT' | translate}}
@@ -86,7 +92,7 @@
           <div
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
-            ng-if="(vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'get' || vm.request.type == 'get_as_new')"
+            ng-if="(vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'transfer_sip' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'get' || vm.request.type == 'get_as_new')"
             class="select-sub-edit-eventlog-wrapper"
           >
             <div ng-if="eventlog" class="eventlog-view">

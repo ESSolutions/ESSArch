@@ -95,6 +95,7 @@ import StructureVersionModalInstanceCtrl from '../controllers/StructureVersionMo
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import TransferCtrl from '../controllers/TransferCtrl';
+import TransferSipModalInstanceCtrl from '../controllers/TransferSipModalInstanceCtrl';
 import TemplateModalInstanceCtrl from '../controllers/TemplateModalInstanceCtrl';
 import TransferModalInstanceCtrl from '../controllers/TransferModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -1162,6 +1163,14 @@ export default angular
     '$uibModalInstance',
     'data',
     TemplateModalInstanceCtrl,
+  ])
+  .controller('TransferSipModalInstanceCtrl', [
+    'data',
+    '$uibModalInstance',
+    'EditMode',
+    'IP',
+    '$q',
+    TransferSipModalInstanceCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .controller('VersionModalInstanceCtrl', [
