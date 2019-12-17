@@ -4,6 +4,7 @@ import os
 import traceback
 from subprocess import PIPE, Popen
 
+import click
 from django.utils import timezone
 from lxml import etree
 
