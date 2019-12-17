@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('profiles', '0053_submissionagreement_policy'),
+        ('profiles', '0054_auto_20191215_2347'),
         ('ip', '0084_informationpackage_submission_agreement_data'),
     ]
 

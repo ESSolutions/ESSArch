@@ -4,19 +4,6 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
-def copy_policies_from_ips(apps, schema_editor):
-    InformationPackage = apps.get_model("ip", "InformationPackage")
-    StoragePolicy = apps.get_model("configuration", "StoragePolicy")
-    SubmissionAgreement = apps.get_model("profiles", "SubmissionAgreement")
-    db_alias = schema_editor.connection.alias
-
-    for ip in InformationPackage.objects.using(db_alias).filter(policy__isnull=False).select_related('submission_agreement'):
-        ip.submission_agreement.policy = ip.policy
-        ip.submission_agreement.save()
-
-    # Update SAs without policy
-    default_policy = StoragePolicy.objects.first()
-    SubmissionAgreement.objects.using(db_alias).filter(policy__isnull=True).update(policy=default_policy)
 
 
 class Migration(migrations.Migration):
@@ -32,5 +19,4 @@ class Migration(migrations.Migration):
             name='policy',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.PROTECT, related_name='submission_agreements', to='configuration.StoragePolicy'),
         ),
-        migrations.RunPython(copy_policies_from_ips, migrations.RunPython.noop),
     ]
