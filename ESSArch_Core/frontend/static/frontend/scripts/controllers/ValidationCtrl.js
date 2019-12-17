@@ -11,7 +11,6 @@ export default class ValidationCtrl {
         type: 'input',
         templateOptions: {
           label: $translate.instant('PURPOSE'),
-          required: true,
         },
       },
     ];
@@ -103,6 +102,9 @@ export default class ValidationCtrl {
       });
       if (validations.length > 0) {
         vm.validations = validations;
+      }
+      if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+        delete vm.flowOptions.purpose;
       }
       let data = angular.extend(vm.flowOptions, {
         information_package: vm.ip.id,
