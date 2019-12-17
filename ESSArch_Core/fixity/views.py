@@ -54,7 +54,7 @@ class ValidatorWorkflowViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
     serializer_class = ValidatorWorkflowSerializer
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(data=request.data, context={'request': self.request})
         serializer.is_valid(raise_exception=True)
         workflow_spec = []
         ip = serializer.validated_data['information_package']
