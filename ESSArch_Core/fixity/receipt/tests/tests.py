@@ -8,8 +8,12 @@ from django.template.exceptions import TemplateDoesNotExist
 from django.test import TestCase
 from lxml import etree
 
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends import email, xml
+from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.profiles.models import Profile, ProfileIP
+from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
@@ -93,6 +97,70 @@ class XMLReceiptBackendTests(TestCase):
                 short_message="some_short_message",
                 message="some message nothuentohe notehu"
             )
+
+    def test_with_content_type_file(self):
+        backend = xml.XMLReceiptBackend()
+        Path.objects.create(entity='temp')
+
+        ip = InformationPackage.objects.create(
+            object_path=self.datadir,
+            package_type=InformationPackage.AIP,
+        )
+        ProfileIP.objects.create(
+            ip=ip,
+            profile=Profile.objects.create(
+                profile_type='aip',
+                structure=[
+                    {
+                        'name': 'cts.xml',
+                        'use': 'content_type_specification',
+                    }
+                ]
+            )
+        )
+
+        tag_version = TagVersion.objects.create(
+            tag=Tag.objects.create(information_package=ip),
+            type=TagVersionType.objects.create(name='foo'),
+            reference_code="ABC 1234",
+            elastic_index='index',
+        )
+
+        xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
+        <ArkivobjektArende>
+            <ArkivobjektID>ABC 1234</ArkivobjektID>
+            <Arendemening>Makulerat</Arendemening>
+            <EgnaElement>
+                <EgetElement Namn="Recno">
+                  <Varde>123456</Varde>
+                </EgetElement>
+            </EgnaElement>
+        </ArkivobjektArende>
+        """
+
+        xml_file_path = os.path.join(self.datadir, 'cts.xml')
+        with open(xml_file_path, 'w') as f:
+            f.write(xml_file_content)
+
+        dest_file_path = os.path.join(self.datadir, "dest_file.xml")
+
+        backend.create(
+            ip=ip,
+            template="receipts/xml.json",
+            destination=dest_file_path,
+            outcome="outcome data",
+            short_message="some short message",
+            message="some longer message",
+        )
+
+        expected_attributes = {
+            'id': str(tag_version.pk),
+            'ArkivobjektID': 'ABC 1234',
+            'Recno': '123456',
+        }
+        receipt = etree.parse(dest_file_path)
+        el = receipt.xpath('//ärende')[0]
+        self.assertEqual(el.attrib, expected_attributes)
 
     def test_with_no_ip_should_create_xml(self):
         backend = xml.XMLReceiptBackend()
