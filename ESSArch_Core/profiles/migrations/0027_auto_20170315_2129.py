@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import jsonfield.fields
+
+from ESSArch_Core.fields import JSONField
 
 
 class Migration(migrations.Migration):
@@ -16,26 +17,26 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='schemas',
-            field=jsonfield.fields.JSONField(default={}),
+            field=JSONField(default={}),
         ),
         migrations.AlterField(
             model_name='profile',
             name='specification',
-            field=jsonfield.fields.JSONField(default={}, blank=True),
+            field=JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='specification_data',
-            field=jsonfield.fields.JSONField(default={}, blank=True),
+            field=JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(default={}, blank=True),
+            field=JSONField(default={}, blank=True),
         ),
         migrations.AlterField(
             model_name='profile',
             name='template',
-            field=jsonfield.fields.JSONField(default={}, blank=True),
+            field=JSONField(default={}, blank=True),
         ),
     ]

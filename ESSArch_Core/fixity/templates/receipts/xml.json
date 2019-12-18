@@ -74,6 +74,10 @@
                         {
                             "-name": "id",
                             "#content": "{{id}}"
+                        },
+                        {
+                            "-name": "Recno",
+                            "#content": "{{Recno}}"
                         }
                     ]
                 }

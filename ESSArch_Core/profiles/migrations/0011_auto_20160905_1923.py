@@ -27,7 +27,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import jsonfield.fields
+
+from ESSArch_Core.fields import JSONField
 
 def forwards_func(apps, schema_editor):
     Profile = apps.get_model("profiles", "Profile")
@@ -50,6 +51,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='structure',
-            field=jsonfield.fields.JSONField(null=True),
+            field=JSONField(null=True),
         ),
     ]

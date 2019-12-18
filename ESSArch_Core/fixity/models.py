@@ -1,8 +1,9 @@
 import uuid
 
-import jsonfield
 from django.contrib.auth import get_user_model
 from django.db import models
+
+from ESSArch_Core.fields import JSONField
 
 User = get_user_model()
 
@@ -11,7 +12,7 @@ class Validation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     filename = models.CharField(max_length=255)
     validator = models.CharField(max_length=255)
-    specification = jsonfield.JSONField(null=True)
+    specification = JSONField(null=True)
     time_started = models.DateTimeField(null=True)
     time_done = models.DateTimeField(null=True)
     passed = models.NullBooleanField(null=True)
