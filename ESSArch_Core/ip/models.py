@@ -1281,6 +1281,48 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+        if not self.archived:
+            ingest_workarea = Path.objects.get(entity='ingest_workarea').value
+            container = os.path.isfile(self.object_path)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+
+            workflow = [
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
+                    "label": "Create workarea",
+                    "args": [str(self.pk), str(user.pk), Workarea.INGEST, True]
+                },
+                {
+                    "name": "ESSArch_Core.tasks.ExtractTAR",
+                    "label": "Extract container to workarea",
+                    "if": container and extracted,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CopyFile",
+                    "label": "Copy information package to workarea",
+                    "if": container and not extracted,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CopyDir",
+                    "label": "Copy information package to workarea",
+                    "if": not container,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+            ]
+            workflow = {"step": True, "name": "Access IP", "children": workflow}
+            return create_workflow([workflow], self, name='Access Information Package')
+
         if tar:
             try:
                 storage_object = self.storage.readable().secure_storage().fastest()[0]
