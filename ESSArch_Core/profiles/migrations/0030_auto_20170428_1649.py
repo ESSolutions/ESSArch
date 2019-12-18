@@ -3,7 +3,8 @@
 from __future__ import unicode_literals
 
 from django.db import migrations
-import jsonfield.fields
+
+from ESSArch_Core.fields import JSONField
 
 
 class Migration(migrations.Migration):
@@ -16,6 +17,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='submissionagreement',
             name='template',
-            field=jsonfield.fields.JSONField(default=[]),
+            field=JSONField(default=[]),
         ),
     ]

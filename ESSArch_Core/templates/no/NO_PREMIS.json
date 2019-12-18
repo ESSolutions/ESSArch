@@ -290,14 +290,14 @@
                         {
                             "-name": "agentIdentifierValue",
                             "-namespace": "premis",
-                            "#content": [{"var":"agent_identifier_value"}]
+                            "#content": "ESSArch"
                         }
                     ]
                 },
                 {
                     "-name": "agentName",
                     "-namespace": "premis",
-                    "#content": [{"var": "agent_name"}]
+                    "#content": "ESSArch"
                 },
                 {
                     "-name": "agentType",
