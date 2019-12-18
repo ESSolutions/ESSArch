@@ -97,11 +97,8 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 
     def get_params(self, obj):
         params = obj.params
-        for param, task in obj.result_params.items():
-            try:
-                params[param] = get_result(task)
-            except ProcessTask.DoesNotExist:
-                params[param] = 'waiting on result from %s ...' % task
+        for param, reference in obj.result_params.items():
+            params[param] = get_result(obj.processstep, reference)
 
         return params
 
