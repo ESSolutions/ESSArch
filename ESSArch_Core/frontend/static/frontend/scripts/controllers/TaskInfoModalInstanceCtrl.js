@@ -167,7 +167,10 @@ export default class TaskInfoModalInstanceCtrl {
           data: {},
         },
       });
-      modalInstance.result.then(function(data) {}, function() {});
+      modalInstance.result.then(
+        function(data) {},
+        function() {}
+      );
     };
   }
 }

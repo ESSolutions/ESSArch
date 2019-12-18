@@ -1,4 +1,4 @@
-# ESSArch [![Build Status](https://github.com/ESSolutions/ESSArch/workflows/Tests/badge.svg)](https://travis-ci.org/ESSolutions/ESSArch) [![codecov](https://codecov.io/gh/ESSolutions/ESSArch/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch)
+# ESSArch [![Build Status](https://github.com/ESSolutions/ESSArch/workflows/Tests/badge.svg)](https://github.com/ESSolutions/ESSArch) [![codecov](https://codecov.io/gh/ESSolutions/ESSArch/branch/master/graph/badge.svg)](https://codecov.io/gh/ESSolutions/ESSArch)
 
 # Getting started
 

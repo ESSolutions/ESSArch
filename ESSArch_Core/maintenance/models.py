@@ -6,7 +6,6 @@ import uuid
 from operator import itemgetter
 from os import walk
 
-import jsonfield
 from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -17,6 +16,7 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.util import convert_file, find_destination, has_write_access
 from ESSArch_Core.WorkflowEngine.util import create_workflow
@@ -57,7 +57,7 @@ class MaintenanceRule(models.Model):
     frequency = models.CharField(max_length=255, blank=True, default='')
 
     # empty for all files in IP or all fields in tree node
-    specification = jsonfield.JSONField(null=True, default=None)
+    specification = JSONField(null=True, default=None)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     public = models.BooleanField(default=True)
 
