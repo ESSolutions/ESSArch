@@ -1321,7 +1321,7 @@ class InformationPackage(models.Model):
                     ],
                 },
             ]
-            workflow = {"step": True, "name": "Access SIP", "children": workflow}
+            workflow = {"step": True, "name": "Access IP", "children": workflow}
             return create_workflow([workflow], self, name='Access Information Package')
 
         if tar:
