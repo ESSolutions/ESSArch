@@ -28,7 +28,7 @@ class ValidatorViewSet(viewsets.ViewSet):
 
     def list(self, request, format=None):
         validators = {}
-        for k, v in AVAILABLE_VALIDATORS.items():
+        for k in AVAILABLE_VALIDATORS.keys():
             klass = get_validator(k)
             try:
                 label = klass.label

@@ -1326,8 +1326,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             old_ip_object_path = ip.object_path
             temp_ip_object_path = os.path.join(temp_dir, ip.object_identifier_value)
 
-            ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=ip.responsible,
-                                                    label=ip.label, start_date=ip.start_date, end_date=ip.end_date)
+            ip.aic = InformationPackage.objects.create(
+                package_type=InformationPackage.AIC,
+                responsible=ip.responsible,
+                label=ip.label,
+                start_date=ip.start_date,
+                end_date=ip.end_date,
+            )
             ip.generation = 0
             ip.object_path = temp_ip_object_path
             ip.package_type = InformationPackage.AIP
@@ -1348,7 +1353,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             sip_dst_path, sip_dst_name = find_destination('sip', ip.get_profile('aip').structure, ip.object_path)
             if sip_dst_path is None:
-                sip_dst_path, sip_dst_name = find_destination('content', ip.get_profile('aip').structure, ip.object_path)
+                sip_dst_path, sip_dst_name = find_destination(
+                    'content',
+                    ip.get_profile('aip').structure,
+                    ip.object_path,
+                )
 
             sip_dst = os.path.join(sip_dst_path, sip_dst_name)
 
