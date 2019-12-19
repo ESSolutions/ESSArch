@@ -122,7 +122,6 @@ class ReceiveSIP(DBTask):
 
         dst_name, = self.parse_params(dst_name)
         dst = os.path.join(dst_path, dst_name)
-        shutil.rmtree(dst)
 
         sip_profile = aip.submission_agreement.profile_sip
 
