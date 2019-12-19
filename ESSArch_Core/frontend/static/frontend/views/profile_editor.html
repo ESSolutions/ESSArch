@@ -176,7 +176,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr ng-repeat="profile in selectRowCollection">
+              <tr ng-repeat="profile in selectRowCollection" ng-if="profile.template.length">
                 <div ng-if="profile.name">
                   <td>{{vm.mapProfileType(profile.profile_type)}}</td>
                   <td>
