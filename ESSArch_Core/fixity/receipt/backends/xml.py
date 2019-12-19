@@ -19,7 +19,7 @@ logger = logging.getLogger('essarch.core.fixity.receipt.xml')
 
 
 class XMLReceiptBackend(BaseReceiptBackend):
-    def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None):
+    def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None, **kwargs):
         logger.debug('Creating XML receipt: {}'.format(destination))
         spec = json.loads(get_template(template).template.source)
 
@@ -61,3 +61,5 @@ class XMLReceiptBackend(BaseReceiptBackend):
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)
         logger.info('XML receipt created: {}'.format(destination))
+
+        return destination
