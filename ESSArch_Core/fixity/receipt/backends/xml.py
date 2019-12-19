@@ -34,11 +34,16 @@ class XMLReceiptBackend(BaseReceiptBackend):
             data['validations'] = ValidationSerializer(validations, many=True).data
 
         data['ärenden'] = []
+        data['makulerat'] = "false"
         if ip is not None:
             cts = ip.get_content_type_file()
             if cts is not None and os.path.isfile(cts):
                 tree = etree.parse(ip.open_file(cts, 'rb'))
                 for arende in tree.xpath("//*[local-name()='ArkivobjektArende']"):
+                    arende_mening = arende.xpath("*[local-name()='Arendemening']")[0].text
+                    if arende_mening == 'Makulerat':
+                        data['makulerat'] = "true"
+
                     arende_id = arende.xpath("*[local-name()='ArkivobjektID']")[0].text
                     tv = TagVersion.objects.get(
                         reference_code=arende_id,
