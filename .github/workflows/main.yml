@@ -19,18 +19,18 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/lint.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-            
+
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
-            
+
       - uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-            
+
       - uses: actions/cache@v1
         with:
           path: node_modules
@@ -51,8 +51,12 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements/lint.txt
+          pip install -r requirements/docs.txt -r requirements/lint.txt
           yarn install --frozen-lockfile
+
+      - name: doc8
+        run: |
+          doc8 ESSArch_Core/docs
 
       - name: flake8
         run: |
@@ -69,23 +73,23 @@ jobs:
       - name: stylelint
         run: |
           yarn stylelint
-          
+
   build-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-            
+
       - name: Get yarn cache
         id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
-            
+
       - uses: actions/cache@v1
         with:
           path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
-            
+
       - uses: actions/cache@v1
         with:
           path: node_modules
@@ -102,7 +106,7 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build:prod
-          
+
   build-docs:
     runs-on: ubuntu-latest
     steps:
@@ -134,13 +138,13 @@ jobs:
 
       - name: Build
         run: |
-            cd ESSArch_Core/docs
-            make html SPHINXOPTS="-W"
-          
+          cd ESSArch_Core/docs
+          make html SPHINXOPTS="-W"
+
   test-windows:
     runs-on: windows-latest
     env:
-      DATABASE_URL_ESSARCH: "mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server"
+      DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
@@ -154,12 +158,12 @@ jobs:
         with:
           python-version: 3.7
       - name: Install
-        run: |          
+        run: |
           powershell wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2018-10-03/gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe -OutFile gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe
           powershell 'Start-Process -FilePath "gtk3-runtime-3.24.1-2018-10-03-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
           powershell wget https://download.microsoft.com/download/E/6/B/E6BFDC7A-5BCD-4C51-9912-635646DA801E/en-US/msodbcsql_17.3.1.1_x64.msi -OutFile msodbcsql_17.3.1.1_x64.msi
           powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql_17.3.1.1_x64.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
-          
+
           choco install imagemagick
           choco install redis-64
 
@@ -170,7 +174,7 @@ jobs:
           pip check
           essarch settings generate -qp local_essarch_settings.py
           mkdir /ESSArch/log
-          
+
           # Make all PATH additions global
           echo "::set-env name=PATH::$env:PATH;C:\Program Files\GTK3-Runtime Win64\bin"
       - name: Test
@@ -194,7 +198,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: [ sqlite, mariadb, mysql, postgres, mssql ]
+        db: [sqlite, mariadb, mysql, postgres, mssql]
 
         include:
           - db: sqlite
@@ -222,7 +226,7 @@ jobs:
             image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
             port: 1433
             health_cmd: true
-            
+
     services:
       redis:
         image: redis
@@ -240,7 +244,7 @@ jobs:
           MYSQL_USER: arkiv
           MYSQL_PASSWORD: password
           MYSQL_ROOT_PASSWORD: password
-          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
 
           ACCEPT_EULA: Y
           SA_PASSWORD: MyPassword42
@@ -282,11 +286,11 @@ jobs:
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
 
           python -m pip install --upgrade pip wheel setuptools
-          
+
           # Pin six to avoid dependency errors,
           # see https://github.com/pypa/pip/issues/4887
           pip install --upgrade six>=1.12.0
-          
+
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
           pip check

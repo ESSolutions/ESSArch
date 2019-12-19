@@ -32,39 +32,100 @@ class EmailReceiptBackendTests(TestCase):
         with self.assertRaises(email.NoEmailRecipientError):
             self.backend.create('receipt/email', '', 'outcome', 'short msg', 'msg')
 
-    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail')
-    def test_recipient_from_task(self, mock_send_mail):
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_recipient_from_task(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
         self.backend.create('receipts/email.txt', None, 'outcome', 'short msg', 'msg', task=task)
-        mock_send_mail.assert_called_once_with('short msg', mock.ANY, None, [user.email], fail_silently=False)
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            [user.email],
+        )
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
 
-    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail')
-    def test_recipient_from_arg(self, mock_mail):
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_recipient_from_arg(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
 
         self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg')
-        mock_mail.assert_called_once_with('short msg', mock.ANY, None, ['custom@example.com'], fail_silently=False)
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            ['custom@example.com'],
+        )
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
 
-    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail')
-    def test_recipient_from_arg_and_task(self, mock_mail):
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_recipient_from_arg_and_task(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
         self.backend.create('receipts/email.txt', 'custom@example.com', 'outcome', 'short msg', 'msg', task=task)
-        mock_mail.assert_called_once_with('short msg', mock.ANY, None, ['custom@example.com'], fail_silently=False)
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            ['custom@example.com'],
+        )
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
 
-    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.send_mail', return_value=0)
-    def test_invalid_recipient(self, mock_mail):
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage.send', return_value=0)
+    def test_invalid_recipient(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
         user = User.objects.create(email="user@example.com")
         task = ProcessTask.objects.create(responsible=user)
 
         with self.assertRaises(email.NoEmailSentError):
             self.backend.create('receipts/email.txt', 'example', 'outcome', 'short msg', 'msg', task=task)
+
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_information_package(self, MockEmailMessage):
+        self.backend = email.EmailReceiptBackend()
+        ip = InformationPackage.objects.create()
+
+        self.backend.create(
+            'receipts/email.txt',
+            'custom@example.com',
+            'outcome',
+            'short msg',
+            'msg',
+            ip=ip,
+        )
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            ['custom@example.com'],
+        )
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
+
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_attachments(self, MockEmailMessage):
+        self.backend = email.EmailReceiptBackend()
+
+        attachments = ['foo/bar.pdf']
+        self.backend.create(
+            'receipts/email.txt',
+            'custom@example.com',
+            'outcome',
+            'short msg',
+            'msg',
+            attachments=attachments,
+        )
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            ['custom@example.com'],
+        )
+        MockEmailMessage.return_value.attach_file.assert_called_once_with('foo/bar.pdf')
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
 
 
 class XMLReceiptBackendTests(TestCase):

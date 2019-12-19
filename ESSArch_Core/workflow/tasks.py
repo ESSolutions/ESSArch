@@ -126,6 +126,11 @@ class ReceiveSIP(DBTask):
 
         sip_profile = aip.submission_agreement.profile_sip
 
+        try:
+            shutil.rmtree(dst)
+        except FileNotFoundError:
+            pass
+
         if aip.policy.receive_extract_sip:
             temp = Path.objects.cached('entity', 'temp', 'value')
             with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
