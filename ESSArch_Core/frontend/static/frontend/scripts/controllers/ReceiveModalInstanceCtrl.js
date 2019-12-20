@@ -1,17 +1,5 @@
 export default class ReceiveModalInstanceCtrl {
-  constructor(
-    $uibModalInstance,
-    $scope,
-    data,
-    $translate,
-    $uibModal,
-    $log,
-    $http,
-    appConfig,
-    $q,
-    EditMode,
-    IPReception
-  ) {
+  constructor($uibModalInstance, $scope, data, $translate, $http, appConfig, $q, EditMode, IPReception) {
     const $ctrl = this;
     $scope.angular = angular;
     $scope.saAlert = null;
@@ -32,7 +20,6 @@ export default class ReceiveModalInstanceCtrl {
     };
 
     $ctrl.getIpById = (ips, id) => {
-      console.log('getIpById', ips, id);
       let ip = null;
       for (let i = 0; i < ips.length; i++) {
         if (ips[i].id === id) {
@@ -143,7 +130,7 @@ export default class ReceiveModalInstanceCtrl {
         ip.receiving = true;
         let data = {id: ip.id};
         if ($ctrl.unidentifiedIpSas[ip.id]) {
-          data.submission_agreement = $ctrl.unidentifiedIpSas[ip.id];
+          data.submission_agreement = $ctrl.unidentifiedIpSas[ip.id].submission_agreement;
         }
         promises.push(
           IPReception.receive(data)

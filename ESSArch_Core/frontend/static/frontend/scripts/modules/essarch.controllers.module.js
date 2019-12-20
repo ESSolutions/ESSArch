@@ -788,8 +788,6 @@ export default angular
     '$scope',
     'data',
     '$translate',
-    '$uibModal',
-    '$log',
     '$http',
     'appConfig',
     '$q',
