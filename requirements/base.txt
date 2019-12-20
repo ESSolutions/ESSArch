@@ -7,7 +7,7 @@ chardet==3.0.4
 click==7.0
 crontab==0.22.6
 cryptography==2.8
-daphne==2.4.0
+daphne==2.4.1
 dj-database-url==0.5.0
 django==2.2.8
 django-cors-headers==3.2.0
