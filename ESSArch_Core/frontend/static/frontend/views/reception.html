@@ -8,7 +8,7 @@
     >
       <uib-tab
         index="'receive'"
-        ng-if="ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('receive')"
+        ng-if="checkPermission('ip.receive') && (ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('receive'))"
         heading="{{'RECEIVE' | translate}}"
       >
         <div ng-if="vm.activeTab === 'receive'">
@@ -104,6 +104,111 @@
               </p>
             </div>
           </div>
+        </div>
+      </uib-tab>
+      <uib-tab
+        index="'transfer'"
+        ng-if="checkPermission('ip.transfer_sip') && (ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('transfer'))"
+        heading="{{'TRANSFER_SIP' | translate}}"
+      >
+        <div ng-if="vm.activeTab === 'transfer'">
+          <div class="select-sub-edit-eventlog-wrapper mb-base" ng-if="(ips.length === 0 && ip !== null)">
+            <div class="edit-view border-none">
+              <div ng-if="ip.altrecordids">
+                <h4>
+                  {{'SUBMITDESCRIPTION' | translate}}
+                </h4>
+                <div class="table-container table-x-overflow">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr ng-repeat="(key, value) in vm.parseAltrecordIds(ip.altrecordids)">
+                        <td>
+                          {{vm.formatSdLabel(key)}}
+                        </td>
+                        <td>
+                          {{value[0]}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div ng-if="ip.agents">
+                <h4>
+                  {{'AGENTS' | translate}}
+                </h4>
+                <div class="table-container table-x-overflow">
+                  <table class="table table-striped">
+                    <tbody>
+                      <tr ng-repeat-start="(key, value) in ip.agents">
+                        <td>
+                          {{vm.formatSdLabel(key)}}
+                        </td>
+                        <td>
+                          {{value.name}}
+                        </td>
+                        <td class="shrink">
+                          <a ng-if="value.notes.length" ng-click="value.expanded = !value.expanded">
+                            <i
+                              class="fas"
+                              ng-class="{'fa-caret-down': value.expanded, 'fa-caret-right': !value.expanded}"
+                            ></i
+                            >&nbsp;{{'NOTES' | translate}}
+                          </a>
+                        </td>
+                      </tr>
+                      <tr
+                        ng-if="value.expanded"
+                        style="background-color:rgba(50,120,255,.1);"
+                        ng-repeat-end
+                        ng-repeat="x in value.notes"
+                      >
+                        <td colspan="3">
+                          {{x}}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="table-container table-x-overflow py-1">
+                <h4>
+                  SIP
+                </h4>
+                <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th class="clickable" st-sort="filename">{{'FILENAME' | translate}}</th>
+                      <th class="clickable" st-sort="created">{{'CREATED' | translate}}</th>
+                      <th class="clickable" st-sort="size">{{'SIZE' | translate}}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="row in fileListRowCollection">
+                      <td>{{row.filename}}</td>
+                      <td>{{row.created | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                      <td>{{row.size | filesize}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div ng-if="ips.length > 0 || ip !== null" class="receive-button-wrapper">
+            <div id="request-form" class="request-form receive-modal-button">
+              <button class="btn btn-primary" ng-click="vm.transferModal(ips)" ng-disabled="vm.transferModalLoading">
+                {{'TRANSFER_SIP' | translate}} <i ng-if="vm.transferModalLoading" class="fas fa-spinner fa-spin"></i>
+              </button>
+              <p style="margin-left: 5px; margin-bottom: 0;">
+                {{ips.length > 0?ips.length:1}} {{'SELECTED' | translate}}
+              </p>
+            </div>
+          </div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'validation'" heading="{{'VALIDATION' | translate}}">
+        <div ng-if="vm.activeTab === 'validation'" class="events-status-wrapper">
+          <validation-view ip="ip" base-url="ip-reception"></validation-view>
         </div>
       </uib-tab>
       <uib-tab

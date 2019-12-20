@@ -395,6 +395,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     TOACCESS: 'för att få tillgång.',
     TOIP: 'till IP',
     TRACEBACK: 'Traceback',
+    TRANSFER: 'Överför',
+    TRANSFER_SIP: 'Överför SIP',
     TYPE: 'Typ',
     UNAVAILABLE: 'Inte tillgänglig',
     UNDO: 'Ångra',

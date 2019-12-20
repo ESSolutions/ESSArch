@@ -1,0 +1,84 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'TRANSFER_SIP' | translate}}</h3>
+</div>
+<form ng-submit="$ctrl.transfer($ctrl.ips)">
+  <div class="modal-body" id="modal-body">
+    <div class="table-x-overflow receive-modal-table">
+      <table class="table table-striped table-container">
+        <thead>
+          <tr>
+            <th></th>
+            <th>ID</th>
+            <th>{{'LABEL' | translate}}</th>
+            <th>
+              {{'SUBMISSION_AGREEMENT' | translate}}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-repeat-start="ip in $ctrl.ips"
+            class="receive-modal-table-row"
+            ng-class="{'failed': !ip.loading && (ip.transferred === false || ip.hasValidSa === false), 'success': !ip.loading && ip.transferred}"
+          >
+            <td class="text-center pr-0">
+              <i
+                class="fas fa-check"
+                ng-if="!ip.loading && ip.transferred"
+                uib-tooltip="{{ 'TRANSFERRED' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+              </i>
+              <i
+                class="fas fa-times"
+                ng-if="!ip.loading && (ip.transferred === false || ip.hasValidSa === false)"
+                uib-tooltip="{{ 'FAILED' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+              </i>
+            </td>
+            <td>{{ip.object_identifier_value}}</td>
+            <td>{{ip.label}}</td>
+            <td>
+              <div ng-if="ip.sa && ip.hasValidSa && !ip.saLoading">
+                {{ip.sa.label}}
+              </div>
+              <div ng-if="ip.sa === null && !ip.hasValidSa && !ip.saLoading">
+                {{'INVALID_SUBMISSION_AGREEMENT' | translate}}
+              </div>
+              <div class="p-0" ng-if="angular.isUndefined(ip.sa)&& !ip.saLoading">
+                <formly-form model="$ctrl.unidentifiedIpSas[ip.id]" fields="$ctrl.saSelect"></formly-form>
+              </div>
+              <div ng-if="ip.saLoading">
+                <i class="fas fa-spinner fa-spin"></i>
+              </div>
+            </td>
+          </tr>
+          <tr ng-repeat-end ng-if="ip.error" class="failed">
+            <td colspan="4">
+              <div ng-if="ip.error">
+                {{ip.error}}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button
+      class="btn btn-primary"
+      type="button"
+      focused="true"
+      ng-click="$ctrl.transfer()"
+      ng-disabled="$ctrl.transferring || $ctrl.form.$invalid || !$ctrl.hasSelectedSa($ctrl.ips)"
+    >
+      {{'TRANSFER' | translate}} <i ng-if="$ctrl.transferring" class="fas fa-spinner fa-spin" />
+    </button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.transferring">
+      {{'CANCEL' | translate}}
+    </button>
+  </div>
+</form>

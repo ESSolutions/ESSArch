@@ -706,6 +706,30 @@ export default class BaseCtrl {
       );
     };
 
+    vm.transferModal = ips => {
+      if (ips.length === 0 && $scope.ip) {
+        ips = [$scope.ip];
+      }
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/transfer_sip_modal.html',
+        controller: 'TransferSipModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            ips,
+          },
+        },
+      });
+      modalInstance.result.then(() => {
+        $scope.getListViewData();
+        $scope.ips = [];
+      });
+    };
+
     vm.accessModal = function(ip, request) {
       let ips = null;
       if (Array.isArray(ip)) {

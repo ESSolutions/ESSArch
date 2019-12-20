@@ -393,6 +393,8 @@ const general = $translateProvider => {
     TOACCESS: 'to gain access.',
     TOIP: 'to IP',
     TRACEBACK: 'Traceback',
+    TRANSFER: 'Transfer',
+    TRANSFER_SIP: 'Transfer SIP',
     TYPE: 'Type',
     UNAVAILABLE: 'Unavailable',
     UNDO: 'Undo',
