@@ -1321,11 +1321,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 profile_ip.LockedBy = request.user
                 profile_ip.save()
 
-            temp_dir = Path.objects.get(entity='temp').value
-
-            old_ip_object_path = ip.object_path
-            temp_ip_object_path = os.path.join(temp_dir, ip.object_identifier_value)
-
             ip.aic = InformationPackage.objects.create(
                 package_type=InformationPackage.AIC,
                 responsible=ip.responsible,
@@ -1334,8 +1329,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 end_date=ip.end_date,
             )
             ip.generation = 0
-            ip.object_path = temp_ip_object_path
-            ip.package_type = InformationPackage.AIP
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
             ip.save()
@@ -1359,37 +1352,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     ip.object_path,
                 )
 
-            sip_dst = os.path.join(sip_dst_path, sip_dst_name)
-
-            if os.path.isdir(old_ip_object_path):
-                copy_task = "ESSArch_Core.tasks.CopyDir"
-            else:
-                copy_task = "ESSArch_Core.tasks.CopyFile"
-
             workflow = [
                 {
                     "step": True,
                     "name": "Generate AIP",
                     "children": [
-                        {
-                            "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                            "label": "Create Physical Model",
-                            'params': {'root': temp_ip_object_path}
-                        },
-                        {
-                            "name": copy_task,
-                            "label": "Add SIP",
-                            "args": [
-                                old_ip_object_path,
-                                sip_dst,
-                            ]
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.UpdateIPPath",
-                            "args": [
-                                temp_ip_object_path,
-                            ]
-                        },
                         {
                             "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
                             "label": "Download Schemas",
@@ -1500,11 +1467,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
                     "args": [ip_ingest_path]
-                },
-                {
-                    "name": "ESSArch_Core.tasks.DeleteFiles",
-                    "label": "Delete from temp",
-                    "args": [temp_ip_object_path]
                 },
             ]
             workflow = create_workflow(workflow, ip, name='Preserve Information Package')
@@ -2271,7 +2233,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
 
         from_db = InformationPackage.objects.visible_to_user(request.user).filter(
-            package_type=InformationPackage.SIP,
+            package_type=InformationPackage.AIP,
             state__in=['Receiving'],
             **conditions
         )
@@ -2392,7 +2354,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         ip.sip_objid = pk
         ip.sip_path = pk
-        ip.package_type = InformationPackage.SIP
+        ip.package_type = InformationPackage.AIP
         ip.state = 'Receiving'
         ip.object_path = normalize_path(container)
         ip.package_mets_path = normalize_path(xmlfile)
@@ -2419,6 +2381,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         cts = ip.get_content_type_file()
         has_cts = cts is not None and os.path.exists(cts)
 
+        aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
         workflow_spec = [
             {
                 "step": True,
@@ -2447,6 +2410,11 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                         }
                     },
                 ]
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                "label": "Create Physical Model",
+                'params': {'root': aip_object_path}
             },
             {
                 "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",

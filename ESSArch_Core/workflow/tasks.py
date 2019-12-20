@@ -70,7 +70,7 @@ from ESSArch_Core.storage.models import (
 from ESSArch_Core.util import (
     creation_date,
     delete_path,
-    normalize_path,
+    find_destination,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
@@ -87,22 +87,30 @@ class ReceiveSIP(DBTask):
     @transaction.atomic
     def run(self, purpose=None, delete_sip=False):
         self.logger.debug('Receiving SIP')
-        sip = InformationPackage.objects.get(pk=self.ip)
-        algorithm = sip.get_checksum_algorithm()
-        container = sip.object_path
+        ip = self.get_information_package()
+        algorithm = ip.get_checksum_algorithm()
+        container = ip.object_path
         objid, container_type = os.path.splitext(os.path.basename(container))
         container_type = container_type.lower()
-        xml = sip.package_mets_path
-        sip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
-        sip.package_mets_size = os.path.getsize(xml)
-        sip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-        sip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
-        sip.save()
+        xml = ip.package_mets_path
+        ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
+        ip.package_mets_size = os.path.getsize(xml)
+        ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+        ip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
 
-        if sip.policy.receive_extract_sip:
-            dst = os.path.join(sip.policy.ingest_path.value, objid)
+        ip.object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+        ip.save()
+
+        sip_dst_path, sip_dst_name = find_destination('sip', ip.get_structure(), ip.object_path)
+        if sip_dst_path is None:
+            sip_dst_path, sip_dst_name = find_destination('content', ip.get_structure(), ip.object_path)
+
+        sip_dst_name, = self.parse_params(sip_dst_name)
+        sip_dst = os.path.join(sip_dst_path, sip_dst_name)
+
+        if ip.policy.receive_extract_sip:
             # remove any existing directory from previous attempts
-            delete_path(dst)
+            delete_path(sip_dst)
 
             temp = Path.objects.cached('entity', 'temp', 'value')
             with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
@@ -118,8 +126,8 @@ class ReceiveSIP(DBTask):
                 else:
                     raise ValueError('Invalid container type: {}'.format(container))
 
-                dst = os.path.join(dst, '')
-                os.makedirs(dst)
+                sip_dst = os.path.join(sip_dst, '')
+                os.makedirs(sip_dst)
 
                 tmpsrc = tmpdir
                 if len(os.listdir(tmpdir)) == 1 and os.listdir(tmpdir)[0] == root_member_name:
@@ -127,19 +135,18 @@ class ReceiveSIP(DBTask):
                     if os.path.isdir(new_tmpsrc):
                         tmpsrc = new_tmpsrc
 
-                self.logger.debug('Moving content of {} to {}'.format(tmpsrc, dst))
+                self.logger.debug('Moving content of {} to {}'.format(tmpsrc, sip_dst))
 
                 for f in os.listdir(tmpsrc):
-                    shutil.move(os.path.join(tmpsrc, f), dst)
+                    shutil.move(os.path.join(tmpsrc, f), sip_dst)
 
                 self.logger.debug('Deleting {}'.format(tmpdir))
         else:
-            dst = os.path.join(sip.policy.ingest_path.value, objid)
-            self.logger.debug('Copying {} to {}'.format(container, dst))
-            dst = shutil.copy2(container, dst)
+            self.logger.debug('Copying {} to {}'.format(container, sip_dst))
+            shutil.copy2(container, sip_dst)
 
-        sip.object_path = normalize_path(dst)
-        sip.save()
+        ip.save()
+        return sip_dst
 
     def event_outcome_success(self, result, purpose=None):
         return "Received SIP"
