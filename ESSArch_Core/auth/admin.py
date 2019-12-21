@@ -81,7 +81,7 @@ class GroupMemberInline(NestedTabularInline):
     extra = 0
     verbose_name_plural = _('Assigned roles')
 
-    def has_add_permission(self, request):
+    def has_add_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
