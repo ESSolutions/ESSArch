@@ -38,6 +38,7 @@ from ESSArch_Core.util import (
     get_elements_without_namespace,
     get_value_from_path,
     getSchemas,
+    normalize_path,
     remove_prefix,
     timestamp_to_datetime,
     win_to_posix,
@@ -270,32 +271,9 @@ class XMLFileElement:
             props: 'dict with properties from FILE_ELEMENTS'
         '''
 
+        self.el = el
+        self.props = props
         self.path = path
-        if self.path is None:
-            self.paths = props.get('path', [''])
-
-            if isinstance(self.paths, str):
-                self.paths = [self.paths]
-
-            for path in self.paths:
-                self.path = get_value_from_path(el, path)
-
-                if self.path is not None:
-                    break
-
-            self.path_prefix = props.get('pathprefix', [])
-            for prefix in sorted(self.path_prefix, key=len, reverse=True):
-                no_prefix = remove_prefix(self.path, prefix)
-
-                if no_prefix != self.path:
-                    self.path = no_prefix
-                    break
-
-            if props.get('path_includes_root', False):
-                self.path = self.path.split('/', 1)[-1]
-
-            self.path = self.path.lstrip('/ ')
-
         self.checksum = get_value_from_path(el, props.get('checksum', ''))
         self.checksum = self.checksum.lower() if self.checksum is not None else self.checksum
         self.checksum_type = get_value_from_path(el, props.get('checksumtype', ''))
@@ -303,6 +281,39 @@ class XMLFileElement:
         self.size = get_value_from_path(el, props.get('size', ''))
         self.size = int(self.size) if self.size is not None else None
         self.format = get_value_from_path(el, props.get('format', ''))
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, path):
+        if path is None:
+            self.paths = self.props.get('path', [''])
+
+            if isinstance(self.paths, str):
+                self.paths = [self.paths]
+
+            for path in self.paths:
+                path = get_value_from_path(self.el, path)
+
+                if path is not None:
+                    break
+
+            self.path_prefix = self.props.get('pathprefix', [])
+            for prefix in sorted(self.path_prefix, key=len, reverse=True):
+                no_prefix = remove_prefix(path, prefix)
+
+                if no_prefix != path:
+                    path = no_prefix
+                    break
+
+            if self.props.get('path_includes_root', False):
+                path = path.split('/', 1)[-1]
+
+            path = path.lstrip('/ ')
+
+        self._path = normalize_path(path)
 
     def __eq__(self, other):
         '''
