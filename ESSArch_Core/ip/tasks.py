@@ -257,7 +257,7 @@ class GenerateEventsXML(DBTask):
 class DownloadSchemas(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
 
-    def run(self, verify=True):
+    def run(self, verify=settings.REQUESTS_VERIFY):
         download_schemas(self.get_information_package(), self.logger, verify)
 
 
