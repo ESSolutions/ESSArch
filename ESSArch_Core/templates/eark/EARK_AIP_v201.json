@@ -1,0 +1,2061 @@
+{
+    "-name": "mets",
+    "-namespace": "mets",
+    "-nsmap": {
+        "mets": "http://www.loc.gov/METS/",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xlink": "http://www.w3.org/1999/xlink",
+        "csip": "https://DILCIS.eu/XML/METS/CSIPExtensionMETS",
+        "sip": "https://DILCIS.eu/XML/METS/SIPExtensionMETS"
+    },
+    "-schemasToPreserve": [
+        "http://www.loc.gov/standards/mets/mets.xsd",
+        "https://earkcsip.dilcis.eu/schema/DILCISExtensionMETS.xsd",
+        "https://earksip.dilcis.eu/schema/DILCISExtensionSIPMETS.xsd",
+        "http://www.loc.gov/standards/mets/xlink.xsd",
+        "https://www.loc.gov/standards/premis/premis.xsd"
+    ],
+    "-schemaPreservationLocation": "xsd_files",
+    "-attr": [
+        {
+            "-name": "schemaLocation",
+            "#content": [{"text": "http://www.loc.gov/METS/ http://www.loc.gov/standards/mets/mets.xsd https://DILCIS.eu/XML/METS/CSIPExtensionMETS https://earkcsip.dilcis.eu/schema/DILCISExtensionMETS.xsd https://DILCIS.eu/XML/METS/SIPExtensionMETS https://earksip.dilcis.eu/schema/DILCISExtensionSIPMETS.xsd"}],
+            "-namespace": "xsi"
+        },
+        {
+            "-name": "ID",
+            "-req": 0,
+            "#content": [
+                {"text": "ID"},
+                {"var": "_UUID"}
+            ]
+        },
+        {
+            "-name": "OBJID",
+            "-req": 1,
+            "#content": [
+                {"text": "UUID:"},
+                {"var": "_OBJID"}
+            ]
+        },
+        {
+            "-name": "TYPE",
+            "-req": 1,
+            "#content": "{{SIP_TYPE}}"
+        },
+        {
+            "-name": "OTHERTYPE",
+            "-req": 0,
+            "-namespace": "csip",
+            "#content": "{{SIP_OTHERTYPE}}"
+        },
+        {
+            "-name": "CONTENTINFORMATIONTYPE",
+            "-req": 0,
+            "-namespace": "csip",
+            "#content": "{{SIP_CONTENTINFORMATIONTYPE}}"
+        },
+        {
+            "-name": "OTHERCONTENTINFORMATIONTYPE",
+            "-req": 0,
+            "-namespace": "csip",
+            "#content": "{{SIP_OTHERCONTENTINFORMATIONTYPE}}"
+        },
+        {
+            "-name": "LABEL",
+            "-req": 0,
+            "#content": [
+                {"var": "_OBJLABEL"}
+            ]
+        },
+        {
+            "-name": "PROFILE",
+            "-req": 1,
+            "#content": [
+                {"text": "https://earksip.dilcis.eu/profile/E-ARK-SIP.xml"}
+            ]
+        }
+    ],
+    "-children": [
+        {
+            "-name": "metsHdr",
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 0,
+                    "#content": [
+                        {
+                            "text": "ID"
+                        },
+                        {
+                            "var": "_UUID"
+                        }
+                    ]
+                },
+                {
+                    "-name": "ADMID",
+                    "-req": 0,
+                    "#content": [
+                        {
+                            "var": "mets.metsHdr.ADMID"
+                        }
+                    ]
+                },
+                {
+                    "-name": "CREATEDATE",
+                    "-req": 1,
+                    "#content": [
+                        {
+                            "var": "_NOW"
+                        }
+                    ]
+                },
+                {
+                    "-name": "LASTMODDATE",
+                    "-req": 0,
+                    "#content": [
+                        {
+                            "var": "mets.metsHdr.LASTMODDATE"
+                        }
+                    ]
+                },
+                {
+                    "-name": "RECORDSTATUS",
+                    "-req": 0,
+                    "#content": [
+                        {
+                            "var": "RECORDSTATUS"
+                        }
+                    ]
+                },
+                {
+                    "-name": "OAISPACKAGETYPE",
+                    "-req": 1,
+                    "-namespace": "csip",
+                    "#content": [
+                        {
+                            "text": "AIP"
+                        }
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "agent",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"text":"CREATOR"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"text":"OTHER"}]
+                        },
+                        {
+                            "-name": "OTHERTYPE",
+                            "-req": 1,
+                            "#content": [{"text":"SOFTWARE"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "#content": "{{SIP_AGENTS.CREATOR_SOFTWARE.name}}"
+                        },
+                        {
+                            "-name": "note",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-attr": [{
+                                "-name": "NOTETYPE",
+                                "-req": 1,
+                                "-namespace": "csip",
+                                "#content": "SOFTWARE VERSION"
+                            }],
+                            "#content": "{{SIP_AGENTS.CREATOR_SOFTWARE.notes.0}}"
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"text":"ARCHIVIST"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"text":"ORGANIZATION"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-req": 0,
+                            "-namespace": "mets",
+                            "#content": [{"var":"_IP_ARCHIVIST_ORGANIZATION"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-req": 0,
+                            "-namespace": "mets",
+                            "-attr": [{
+                                "-name": "NOTETYPE",
+                                "-req": 1,
+                                "-namespace": "sip",
+                                "#content": "IDENTIFICATIONCODE"
+                            }],
+                            "#content": [{"var": "archivist_organization_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"text": "CREATOR"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"text": "ORGANIZATION"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "#content": [{"var": "creator_organization_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-req": 0,
+                            "-namespace": "mets",
+                            "-attr": [{
+                                "-name": "NOTETYPE",
+                                "-req": 1,
+                                "-namespace": "sip",
+                                "#content": "IDENTIFICATIONCODE"
+                            }],
+                            "#content": [{"var":"creator_organization_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"text": "CREATOR"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"text": "INDIVIDUAL"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "#content": [{"var": "creator_individual_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-req": 0,
+                            "-namespace": "mets",
+                            "#content": [{"var":"creator_individual_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "agent",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ROLE",
+                            "-req": 1,
+                            "#content": [{"text": "PRESERVATION"}]
+                        },
+                        {
+                            "-name": "TYPE",
+                            "-req": 1,
+                            "#content": [{"text": "ORGANIZATION"}]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "name",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "#content": [{"var": "preservation_organization_name"}]
+                        },
+                        {
+                            "-name": "note",
+                            "-req": 0,
+                            "-namespace": "mets",
+                            "-attr": [{
+                                "-name": "NOTETYPE",
+                                "-req": 1,
+                                "-namespace": "sip",
+                                "#content": "IDENTIFICATIONCODE"
+                            }],
+                            "#content": [{"var":"preservation_organization_note"}]
+                        }
+                    ]
+                },
+                {
+                    "-name": "altRecordID",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "TYPE",
+                            "-req": 0,
+                            "#content": [
+                                {
+                                    "text": "SUBMISSIONAGREEMENT"
+                                }
+                            ]
+                        }
+                    ],
+                    "#content": [
+                        {
+                            "var": "_SA_NAME"
+                        }
+                    ]
+                },
+                {
+                    "-name": "metsDocumentID",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-attr": [],
+                    "-children": [],
+                    "#content": [
+                        {
+                            "var": "_XML_FILENAME"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "dmdSec",
+            "-req": 0,
+            "-namespace": "mets",
+            "-containsFiles": true,
+            "-filters": {"href": "(^metadata/descriptive/ead.xml)"},
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 1,
+                    "#content": [
+                        {"text": "ID"},
+                        {"var": "_UUID"}
+                    ]
+                },
+                {
+                    "-name": "CREATED",
+                    "-req": 1,
+                    "#content": [
+                        {"var": "_NOW"}
+                    ]
+                },
+                {
+                    "-name": "STATUS",
+                    "-req": 0,
+                    "#content": [
+                        {"var": "dmdSecStatus"}
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "mdRef",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "LOCTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FLoctype"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "type",
+                            "-req": 1,
+                            "-namespace": "xlink",
+                            "#content": [
+                                {
+                                    "text": "simple"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "href",
+                            "-req": 1,
+                            "-namespace": "xlink",
+                            "#content": [
+                                {
+                                    "text": "file:///"
+                                },
+                                {
+                                    "var": "href"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MDTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "EAD"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MIMETYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FMimetype"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "SIZE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FSize"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CREATED",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CHECKSUM",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FChecksum"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CHECKSUMTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FChecksumType"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "ID",
+                            "-req": 0,
+                            "#content": [
+                                {
+                                    "text": "ID"
+                                },
+                                {
+                                    "var": "FID"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MDTYPEVERSION",
+                            "-req": 0,
+                            "#content": [
+                                {
+                                    "text": "3"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "dmdSec",
+            "-req": 0,
+            "-namespace": "mets",
+            "-containsFiles": true,
+            "-filters": {"href": "(^metadata/descriptive/eac.xml)"},
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 1,
+                    "#content": [
+                        {"text": "ID"},
+                        {"var": "_UUID"}
+                    ]
+                },
+                {
+                    "-name": "CREATED",
+                    "-req": 1,
+                    "#content": [
+                        {"var": "_NOW"}
+                    ]
+                },
+                {
+                    "-name": "STATUS",
+                    "-req": 0,
+                    "#content": [
+                        {"var": "dmdSecStatus"}
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "mdRef",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "LOCTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FLoctype"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "type",
+                            "-req": 1,
+                            "-namespace": "xlink",
+                            "#content": [
+                                {
+                                    "text": "simple"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "href",
+                            "-req": 1,
+                            "-namespace": "xlink",
+                            "#content": [
+                                {
+                                    "text": "file:///"
+                                },
+                                {
+                                    "var": "href"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MDTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "EAD"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MIMETYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FMimetype"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "SIZE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FSize"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CREATED",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FCreated"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CHECKSUM",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FChecksum"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "CHECKSUMTYPE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "var": "FChecksumType"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "ID",
+                            "-req": 0,
+                            "#content": [
+                                {
+                                    "text": "ID"
+                                },
+                                {
+                                    "var": "FID"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "MDTYPEVERSION",
+                            "-req": 0,
+                            "#content": [
+                                {
+                                    "text": "3"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "amdSec",
+            "-req": 0,
+            "-namespace": "mets",
+            "-skipIfNoChildren": true,
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 0,
+                    "#content": [
+                        {"text": "ID"},
+                        {"var": "_UUID"}
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "digiprovMD",
+                    "-req": 0,
+                    "-namespace": "mets",
+                    "-skipIfNoChildren": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "ID"},
+                                {"var": "_UUID"}
+                            ]
+                        },
+                        {
+                            "-name": "STATUS",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "amdSecStatus"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "mdRef",
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "(^metadata/preservation/premis.xml)"},
+                            "-attr": [
+                                {
+                                    "-name": "LOCTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FLoctype"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "type",
+                                    "-req": 1,
+                                    "-namespace": "xlink",
+                                    "#content": [
+                                        {
+                                            "text": "simple"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "href",
+                                    "-req": 1,
+                                    "-namespace": "xlink",
+                                    "#content": [
+                                        {
+                                            "text": "file:///"
+                                        },
+                                        {
+                                            "var": "href"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "MDTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "text": "PREMIS"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FMimetype"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FSize"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FCreated"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FChecksum"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {
+                                            "var": "FChecksumType"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "ID",
+                                    "-req": 0,
+                                    "#content": [
+                                        {
+                                            "text": "ID"
+                                        },
+                                        {
+                                            "var": "FID"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "MDTYPEVERSION",
+                                    "-req": 0,
+                                    "#content": [
+                                        {
+                                            "text": "3"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "fileSec",
+            "-req": 0,
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 1,
+                    "#content": [
+                        {"text": "ID"},
+                        {"var": "_UUID"}
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "ID"
+                                },
+                                {
+                                    "var": "_UUID"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "root"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "(^ipevents.xml)"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "ID"
+                                },
+                                {
+                                    "var": "_UUID"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "metadata/other"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "^metadata/other/*"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "ID"
+                                },
+                                {
+                                    "var": "_UUID"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {
+                                    "text": "representations/rep1"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "(^representations/rep1/mets.xml)"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "ID"},
+                                {"var": "_UUID"}
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "schemas"}
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "(^schemas/*)"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "ID"},
+                                {"var": "_UUID"}
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "documentation"}
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "(^documentation/*)"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "fileGrp",
+                    "-req": 1,
+                    "-namespace": "mets",
+                    "-allowEmpty": true,
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "ID"},
+                                {"var": "_UUID"}
+                            ]
+                        },
+                        {
+                            "-name": "USE",
+                            "-req": 1,
+                            "#content": [
+                                {"text": "submission"}
+                            ]
+                        },
+                        {
+                            "-name": "VERSDATE",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.VERSDATE"}
+                            ]
+                        },
+                        {
+                            "-name": "ADMID",
+                            "-req": 0,
+                            "#content": [
+                                {"var": "mets.fileSec.fileGrp.ADMID"}
+                            ]
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "file",
+                            "-req": 1,
+                            "-namespace": "mets",
+                            "-containsFiles": true,
+                            "-filters": {"href": "^submission(?:/[^/]*){2}$"},
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "ID"},
+                                        {"var": "FID"}
+                                    ]
+                                },
+                                {
+                                    "-name": "MIMETYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FMimetype"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATNAME",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatName"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATVERSION",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatVersion"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATREGISTRY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"text": "PRONOM"}
+                                    ]
+                                },
+                                {
+                                    "-name": "FILEFORMATKEY",
+                                    "-req": 0,
+                                    "-namespace": "sip",
+                                    "#content": [
+                                        {"var": "FFormatRegistryKey"}
+                                    ]
+                                },
+                                {
+                                    "-name": "SIZE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FSize"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CREATED",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FCreated"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUM",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksum"}
+                                    ]
+                                },
+                                {
+                                    "-name": "CHECKSUMTYPE",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"var": "FChecksumType"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "FLocat",
+                                    "-req": 1,
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "-req": 1,
+                                            "#content": [
+                                                {"text": "URL"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "file:///"},
+                                                {"var": "href"}
+                                            ]
+                                        },
+                                        {
+                                            "-name": "type",
+                                            "-req": 1,
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {"text": "simple"}
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "-name": "structMap",
+            "-namespace": "mets",
+            "-attr": [
+                {
+                    "-name": "ID",
+                    "-req": 0,
+                    "#content": [
+                        {"text": "ID"},
+                        {"var": "_UUID"}
+                    ]
+                },
+                {
+                    "-name": "TYPE",
+                    "-req": 1,
+                    "#content": [
+                        {"text": "physical"}
+                    ]
+                },
+                {
+                    "-name": "LABEL",
+                    "-req": 1,
+                    "#content": [
+                        {"text": "AIP"}
+                    ]
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "div",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "#content": [{"text": "ID"}, {"var": "_UUID"}],
+                            "-name": "ID"
+                        },
+                        {
+                            "#content": [
+                                {"var": "_OBJID"}
+                            ],
+                            "-name": "LABEL",
+                            "-req": 1
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "-req": 1,
+                                    "#content": [
+                                        {"text": "metadata"}
+                                    ]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "div",
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "ID",
+                                            "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                        },
+                                        {
+                                            "-name": "LABEL",
+                                            "-req": 0,
+                                            "#content": [
+                                                {"text": "descriptive"}
+                                            ]
+                                        }
+                                    ],
+                                    "-children": [
+                                        {
+                                            "-name": "fptr",
+                                            "-namespace": "mets",
+                                            "-containsFiles": true,
+                                            "-filters": {"href": "(^metadata/descriptive/*)"},
+                                            "-attr": [
+                                                {
+                                                    "-name": "FILEID",
+                                                    "-req": 1,
+                                                    "#content": [{"text": "ID"},{"var": "FID"}]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "div",
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "ID",
+                                            "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                        },
+                                        {
+                                            "-name": "LABEL",
+                                            "-req": 0,
+                                            "#content": [
+                                                {"text": "other"}
+                                            ]
+                                        }
+                                    ],
+                                    "-children": [
+                                        {
+                                            "-name": "fptr",
+                                            "-namespace": "mets",
+                                            "-containsFiles": true,
+                                            "-filters": {"href": "(^metadata/other/*)"},
+                                            "-attr": [
+                                                {
+                                                    "-name": "FILEID",
+                                                    "-req": 1,
+                                                    "#content": [{"text": "ID"},{"var": "FID"}]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "-name": "div",
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "ID",
+                                            "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                        },
+                                        {
+                                            "-name": "LABEL",
+                                            "-req": 0,
+                                            "#content": [{"text": "preservation"}] }
+                                    ],
+                                    "-children": [
+                                        {
+                                            "-name": "fptr",
+                                            "-namespace": "mets",
+                                            "-containsFiles": true,
+                                            "-filters": {"href": "(^metadata/preservation/*)"},
+                                            "-attr": [
+                                                {
+                                                    "-name": "FILEID",
+                                                    "-req": 1,
+                                                    "#content": [{"text": "ID"},{"var": "FID"}]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "-req": 0,
+                                    "#content": [{"text": "schemas"}]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "fptr",
+                                    "-namespace": "mets",
+                                    "-containsFiles": true,
+                                    "-filters": {"href": "(^schemas/*)"},
+                                    "-attr": [
+                                        {
+                                            "-name": "FILEID",
+                                            "-req": 1,
+                                            "#content": [{"text": "ID"},{"var": "FID"}]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "-req": 0,
+                                    "#content": [{"text": "documentation"}]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "fptr",
+                                    "-namespace": "mets",
+                                    "-containsFiles": true,
+                                    "-filters": {"href": "(^documentation/*)"},
+                                    "-attr": [
+                                        {
+                                            "-name": "FILEID",
+                                            "-req": 1,
+                                            "#content": [{"text": "ID"},{"var": "FID"}]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ID",
+                                    "#content": [{"text": "ID"}, {"var": "_UUID"}]
+                                },
+                                {
+                                    "-name": "LABEL",
+                                    "-req": 0,
+                                    "#content": [{"text": "submission"}]
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "mptr",
+                                    "-namespace": "mets",
+                                    "-containsFiles": true,
+                                    "-filters": {"href": "^submission(?:/[^/]*){2}$"},
+                                    "-attr": [
+                                        {
+                                            "-name": "type",
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {
+                                                    "text": "simple"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "-name": "href",
+                                            "-namespace": "xlink",
+                                            "#content": [
+                                                {
+                                                    "text": "file:///"
+                                                },
+                                                {
+                                                    "var": "href"
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "-name": "LOCTYPE",
+                                            "#content": [
+                                                {
+                                                    "text": "URL"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
