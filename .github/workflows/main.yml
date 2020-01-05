@@ -192,6 +192,7 @@ jobs:
           name: Windows
           file: ./coverage.xml
           flags: backend
+          fail_ci_if_error: true
 
   test-linux:
     runs-on: ubuntu-latest
@@ -312,3 +313,4 @@ jobs:
           name: Linux (${{matrix.db}})
           file: ./coverage.xml
           flags: backend
+          fail_ci_if_error: true
