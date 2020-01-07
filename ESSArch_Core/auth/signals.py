@@ -81,12 +81,20 @@ def user_logged_in(sender, user, request, **kwargs):
 
         user.user_profile.save()
 
-    logger.info("User {} successfully logged in from host: {}".format(user, request.META['REMOTE_ADDR']))
+    host = request.META.get('REMOTE_ADDR')
+    if host is None:
+        logger.info("User {} successfully logged in from unknown host".format(user))
+    else:
+        logger.info("User {} successfully logged in from host: {}".format(user, host))
 
 
 @receiver(user_logged_out)
 def user_logged_out(sender, user, request, **kwargs):
-    logger.info("User {} successfully logged out from host: {}".format(user, request.META['REMOTE_ADDR']))
+    host = request.META.get('REMOTE_ADDR')
+    if host is None:
+        logger.info("User {} successfully logged out from unknown host".format(user))
+    else:
+        logger.info("User {} successfully logged out from host: {}".format(user, host))
 
 
 @receiver(user_login_failed)
