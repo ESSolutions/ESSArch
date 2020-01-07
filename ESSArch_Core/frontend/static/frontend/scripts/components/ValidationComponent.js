@@ -6,5 +6,6 @@ export default {
   controllerAs: 'vm',
   bindings: {
     ip: '<',
+    baseUrl: '@',
   },
 };
