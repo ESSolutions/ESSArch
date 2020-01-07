@@ -29,7 +29,6 @@ import logging
 import uuid
 from urllib.parse import urljoin
 
-import jsonfield
 import tblib
 from celery import chain, group, states as celery_states
 from celery.result import EagerResult
@@ -49,6 +48,8 @@ from tenacity import (
     stop_after_attempt,
     wait_fixed,
 )
+
+from ESSArch_Core.fields import JSONField
 
 logger = logging.getLogger('essarch.WorkflowEngine')
 
@@ -153,7 +154,7 @@ class ProcessStep(MPTTModel, Process):
     )
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
-    context = jsonfield.JSONField(default={}, null=True)
+    context = JSONField(default={}, null=True)
 
     def get_pos(self):
         return self.parent_step_pos
@@ -585,7 +586,7 @@ class ProcessStep(MPTTModel, Process):
 
 class OrderedProcessTaskManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().order_by('processstep_pos')
+        return super().get_queryset().order_by('processstep_pos', 'time_created')
 
 
 class ProcessTask(Process):
@@ -595,6 +596,7 @@ class ProcessTask(Process):
     _states.sort()
     TASK_STATE_CHOICES = _states
 
+    reference = models.CharField(max_length=255, blank=True, null=True, default=None)
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
@@ -867,6 +869,7 @@ class ProcessTask(Process):
         db_table = 'ProcessTask'
         ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
+        unique_together = (('reference', 'processstep'))
 
         permissions = (
             ('can_run', 'Can run tasks'),

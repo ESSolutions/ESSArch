@@ -44,6 +44,12 @@ class LazyDict(Mapping):
         else:
             return self._raw_dict.__setitem__(key, value)
 
+    def to_dict(self):
+        d = {}
+        for k, v in self._raw_dict.items():
+            d[k] = v
+        return d
+
     def copy(self):
         return LazyDict(self._raw_dict.copy())
 

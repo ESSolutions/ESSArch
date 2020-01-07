@@ -134,7 +134,10 @@ export default class StepInfoModalInstanceCtrl {
           data: {},
         },
       });
-      modalInstance.result.then(function(data) {}, function() {});
+      modalInstance.result.then(
+        function(data) {},
+        function() {}
+      );
     };
   }
 }
