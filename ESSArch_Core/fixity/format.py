@@ -20,11 +20,6 @@ logger = logging.getLogger('essarch.fixity.format')
 
 DEFAULT_MIMETYPE = 'application/octet-stream'
 
-FORMAT_FILES = [
-    'formats-v94.xml',
-    'format_extensions.xml'
-]
-
 
 class FormatIdentifier:
     _fido = None
@@ -37,7 +32,7 @@ class FormatIdentifier:
     def fido(self):
         if self._fido is None:
             logger.debug('Initiating fido')
-            self._fido = Fido(handle_matches=self.handle_matches, format_files=FORMAT_FILES)
+            self._fido = Fido(handle_matches=self.handle_matches)
             logger.info('Initiated fido')
         return self._fido
 
