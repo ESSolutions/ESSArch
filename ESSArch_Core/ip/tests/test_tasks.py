@@ -100,6 +100,7 @@ class CreateReceiptTests(TestCase):
             information_package=self.ip,
             responsible=self.user,
             processstep=step,
+            processstep_pos=0,
             args=[
                 None,
                 'xml',
@@ -116,6 +117,7 @@ class CreateReceiptTests(TestCase):
             information_package=self.ip,
             responsible=self.user,
             processstep=step,
+            processstep_pos=1,
             args=[
                 None,
                 'xml',
@@ -132,6 +134,7 @@ class CreateReceiptTests(TestCase):
             information_package=self.ip,
             responsible=self.user,
             processstep=step,
+            processstep_pos=2,
             args=[None, 'email', 'receipts/email.txt', None, 'success', 'short msg', 'msg'],
             result_params={
                 'attachments': ['xml2', 'xml1']
