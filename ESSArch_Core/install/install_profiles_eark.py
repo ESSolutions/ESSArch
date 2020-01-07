@@ -507,7 +507,8 @@ def installProfileSIP(sa):
                         {
                             "name": "Interactive resource",
                             "value": "Interactive resource",
-                            'definition': "A resource requiring interaction from the user to be understood, executed, or experienced."
+                            'definition': "A resource requiring interaction from the user to be "
+                                          "understood, executed, or experienced."
                         },
                         {
                             "name": "Physical object",
@@ -1326,7 +1327,8 @@ def installProfileDIP(sa):
                         {
                             "name": "Interactive resource",
                             "value": "Interactive resource",
-                            'definition': "A resource requiring interaction from the user to be understood, executed, or experienced."
+                            'definition': "A resource requiring interaction from the user to be "
+                                          "understood, executed, or experienced."
                         },
                         {
                             "name": "Physical object",
@@ -2009,7 +2011,9 @@ def installProfilePM(sa):
                 "key": "$transfer_project__container_format",
             }
         ],
-        'specification': json.loads(open(os.path.join(settings.BASE_DIR, 'templates/eark/EARK_PREMIS_v300.json')).read()),
+        'specification': json.loads(open(
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_PREMIS_v300.json')
+        ).read()),
     }
 
     profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
