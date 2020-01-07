@@ -194,6 +194,15 @@ input[type='checkbox'] {
     width: 100% !important;
   }
 }
+.sa-editor .edit-view {
+  .formly-field-group .formly-field {
+    width: 15%;
+  }
+  .formly-field {
+    width: 24%;
+    margin: 5px;
+  }
+}
 
 .submit-button {
   margin-left: 5px;
