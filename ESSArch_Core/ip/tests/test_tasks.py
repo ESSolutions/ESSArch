@@ -18,7 +18,7 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.util import normalize_path
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 User = get_user_model()
 
@@ -76,6 +76,80 @@ class CreateContainerTests(TestCase):
         expected = [normalize_path(x) for x in expected]
         with tarfile.open(dst) as tar:
             self.assertCountEqual(expected, tar.getnames())
+
+
+class CreateReceiptTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(email="user@example.com")
+        Path.objects.create(entity="temp")
+
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.ip = InformationPackage.objects.create()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.receipt.backends.email.EmailMessage')
+    def test_step(self, MockEmailMessage):
+        step = ProcessStep.objects.create()
+        ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.CreateReceipt',
+            reference='xml1',
+            information_package=self.ip,
+            responsible=self.user,
+            processstep=step,
+            args=[
+                None,
+                'xml',
+                'receipts/xml.json',
+                os.path.join(self.datadir, 'first_{% now "ymdHis" %}.xml'),
+                'success',
+                'short msg',
+                'msg',
+            ],
+        )
+        ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.CreateReceipt',
+            reference='xml2',
+            information_package=self.ip,
+            responsible=self.user,
+            processstep=step,
+            args=[
+                None,
+                'xml',
+                'receipts/xml.json',
+                os.path.join(self.datadir, 'second_{% now "ymdHis" %}.xml'),
+                'success',
+                'short msg',
+                'msg'
+            ],
+        )
+        ProcessTask.objects.create(
+            name='ESSArch_Core.ip.tasks.CreateReceipt',
+            reference='email',
+            information_package=self.ip,
+            responsible=self.user,
+            processstep=step,
+            args=[None, 'email', 'receipts/email.txt', None, 'success', 'short msg', 'msg'],
+            result_params={
+                'attachments': ['xml2', 'xml1']
+            }
+        )
+        step.run().get()
+        MockEmailMessage.assert_called_once_with(
+            "short msg",
+            mock.ANY,
+            None,
+            [self.user.email],
+        )
+
+        MockEmailMessage.return_value.attach_file.assert_has_calls([
+            mock.call(ProcessTask.objects.values_list('result', flat=True).get(reference='xml2')),
+            mock.call(ProcessTask.objects.values_list('result', flat=True).get(reference='xml1')),
+        ])
+        MockEmailMessage.return_value.send.assert_called_once_with(fail_silently=False)
 
 
 class PreserveInformationPackageTests(TestCase):

@@ -25,11 +25,11 @@
 import uuid
 from copy import copy
 
-import jsonfield
 from django.conf import settings
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 
+from ESSArch_Core.fields import JSONField
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
 from ESSArch_Core.profiles.validators import validate_template
 
@@ -157,7 +157,7 @@ class ProfileIP(models.Model):
 class ProfileIPData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     relation = models.ForeignKey('ProfileIP', on_delete=models.CASCADE, related_name='data_versions')
-    data = jsonfield.JSONField(default={})
+    data = JSONField(default={})
     version = models.IntegerField(default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
@@ -171,7 +171,7 @@ class ProfileIPData(models.Model):
 
 class ProfileIPDataTemplate(models.Model):
     name = models.CharField(max_length=50, blank=False)
-    data = jsonfield.JSONField(default={})
+    data = JSONField(default={})
     created = models.DateTimeField(auto_now_add=True)
     profile = models.ForeignKey('Profile', on_delete=models.CASCADE)
 
@@ -255,7 +255,7 @@ class SubmissionAgreement(models.Model):
         'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa'
     )
 
-    template = jsonfield.JSONField(default=[])
+    template = JSONField(default=[])
 
     class Meta:
         ordering = ["name"]
@@ -317,7 +317,7 @@ class SubmissionAgreementIPData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     submission_agreement = models.ForeignKey('profiles.SubmissionAgreement', on_delete=models.CASCADE)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE)
-    data = jsonfield.JSONField(default={})
+    data = JSONField(default={})
     version = models.IntegerField(default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
@@ -359,7 +359,7 @@ class Profile(models.Model):
     cm_change_authority = models.CharField(max_length=255, blank=True)
     cm_change_description = models.CharField(max_length=255, blank=True)
     cm_sections_affected = models.CharField(max_length=255, blank=True)
-    schemas = jsonfield.JSONField(default={})
+    schemas = JSONField(default={})
     representation_info = models.CharField(max_length=255, blank=True)
     preservation_descriptive_info = models.CharField(max_length=255, blank=True)
     supplemental = models.CharField(max_length=255, blank=True)
@@ -369,10 +369,10 @@ class Profile(models.Model):
     submission_method = models.CharField(max_length=255, blank=True)
     submission_schedule = models.CharField(max_length=255, blank=True)
     submission_data_inventory = models.CharField(max_length=255, blank=True)
-    structure = jsonfield.JSONField(default=[], blank=True)
-    template = jsonfield.JSONField(default=[], blank=True)
-    specification = jsonfield.JSONField(default={}, blank=True)
-    specification_data = jsonfield.JSONField(default={}, blank=True)
+    structure = JSONField(default=[], blank=True)
+    template = JSONField(default=[], blank=True)
+    specification = JSONField(default={}, blank=True)
+    specification_data = JSONField(default={}, blank=True)
 
     def get_value_for_key(self, key):
         return self.specification_data.get(key)

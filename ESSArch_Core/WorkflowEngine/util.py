@@ -6,9 +6,13 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 def get_result(step, reference):
-    return ProcessTask.objects.values_list('result', flat=True).get(
-        processstep=step, reference=reference,
-    )
+    tasks = ProcessTask.objects.values_list('reference', 'result').filter(processstep=step, reference__isnull=False)
+    results = dict((x, y) for x, y in tasks)
+
+    if isinstance(reference, list):
+        return [results[ref] for ref in reference]
+
+    return results[reference]
 
 
 def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):

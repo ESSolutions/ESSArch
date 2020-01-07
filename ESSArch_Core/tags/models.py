@@ -1,7 +1,6 @@
 import logging
 import uuid
 
-import jsonfield
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -14,6 +13,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
 
@@ -198,7 +198,7 @@ class Structure(models.Model):
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
-    specification = jsonfield.JSONField(default={})
+    specification = JSONField(default={})
     rule_convention_type = models.ForeignKey('tags.RuleConventionType', on_delete=models.PROTECT, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
@@ -849,7 +849,7 @@ class TagVersionType(models.Model):
 
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
     archive_type = models.BooleanField(_('archive type'), default=False)
-    custom_fields_template = jsonfield.JSONField(default=[], blank=True)
+    custom_fields_template = JSONField(default=[], blank=True)
     information_package_type = models.BooleanField(_('information package type'), default=False)
 
     def clean(self):
@@ -895,7 +895,7 @@ class TagVersion(models.Model):
     capacity = models.IntegerField(_('capacity'), null=True)  # FloatField or DecimalField instead?
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
-    custom_fields = jsonfield.JSONField(default={})
+    custom_fields = JSONField(default={})
 
     def to_search_doc(self):
         try:
@@ -1189,7 +1189,7 @@ class TagStructure(MPTTModel):
 
 
 class Search(models.Model):
-    query = jsonfield.JSONField(null=False)
+    query = JSONField(null=False)
     name = models.CharField(max_length=255, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='searches')
 

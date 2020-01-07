@@ -1381,38 +1381,9 @@ def installProfilePreservationMetadata(sa):
         'profile_type': 'preservation_metadata',
         'type': 'Implementation',
         'status': 'Draft',
-        'label': 'Preservation profile for AIP xxyy',
-        'template': [
-            {
-                "templateOptions": {
-                    "type": "text",
-                    "label": "Agent Identifier Value"
-                },
-                "type": "input",
-                "defaultValue": "ESSArch_Preservation_Platform",
-                "key": "agent_identifier_value"
-            },
-            {
-                "templateOptions": {
-                    "type": "text",
-                    "label": "Agent Name"
-                },
-                "type": "input",
-                "defaultValue": "ESSArch",
-                "key": "agent_name"
-            },
-            {
-                "templateOptions": {
-                    "disabled": True,
-                    "type": "text",
-                    "label": "Container Format"
-                },
-                "hidden": True,
-                "type": "input",
-                "key": "$transfer_project__container_format",
-            }
-        ],
+        'label': 'Preservation profile for NO',
         'specification': json.loads(open(os.path.join(settings.BASE_DIR, 'templates/no/NO_PREMIS.json')).read()),
+        'template': [],
     }
 
     profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)

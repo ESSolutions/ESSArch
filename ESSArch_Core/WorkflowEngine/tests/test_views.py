@@ -23,10 +23,33 @@ class GetAllTasksTests(TestCase):
         self.user = User.objects.create(username='user')
         self.url = reverse('processtask-list')
 
-        ProcessTask.objects.create(name="example.Foo", args=[1], params={'bar': 'baz'})
-        ProcessTask.objects.create(name="example.Greet", args=[2], params={'hello': 'world'})
-        ProcessTask.objects.create(name="example.HelloWorld", args=[3],
-                                   params={'first_name': 'John', 'last_name': 'Smith'})
+        step = ProcessStep.objects.create()
+        ProcessTask.objects.create(
+            name="example.Foo",
+            reference='first',
+            processstep=step,
+            args=[1],
+            params={'bar': 'baz'},
+            result='result from first',
+        )
+        ProcessTask.objects.create(
+            name="example.Greet",
+            reference='second',
+            processstep=step,
+            args=[2],
+            params={'hello': 'world'},
+            result='result from second',
+        )
+        ProcessTask.objects.create(
+            name="example.HelloWorld",
+            processstep=step,
+            args=[3],
+            params={'first_name': 'John', 'last_name': 'Smith'},
+            result_params={
+                'foo': 'first',
+                'bar': 'second',
+            },
+        )
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)

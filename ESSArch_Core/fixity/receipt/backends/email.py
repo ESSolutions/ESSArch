@@ -1,6 +1,6 @@
 import logging
 
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.utils import timezone
 
@@ -21,7 +21,7 @@ class NoEmailSentError(ESSArchException):
 
 
 class EmailReceiptBackend(BaseReceiptBackend):
-    def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None):
+    def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None, **kwargs):
         if task is not None and destination is None:
             destination = task.responsible.email
 
@@ -35,7 +35,7 @@ class EmailReceiptBackend(BaseReceiptBackend):
 
         data = {}
         if ip is not None:
-            data = fill_specification_data(data=data, ip=ip)
+            data = fill_specification_data(data=data, ip=ip).to_dict()
         data['outcome'] = outcome
         data['message'] = message
         data['date'] = date or timezone.now()
@@ -45,7 +45,18 @@ class EmailReceiptBackend(BaseReceiptBackend):
             data['validations'] = Validation.objects.filter(task=task).order_by('time_started')
 
         body = render_to_string(template, data)
-        msg_count = send_mail(subject, body, None, [destination], fail_silently=False)
+
+        msg = EmailMessage(
+            subject,
+            body,
+            None,
+            [destination],
+        )
+
+        for attachment in kwargs.get('attachments', []):
+            msg.attach_file(attachment)
+
+        msg_count = msg.send(fail_silently=False)
 
         logger.debug('{} emails sent (including cc and bcc entries)'.format(msg_count))
         if not msg_count:
