@@ -586,7 +586,7 @@ class ProcessStep(MPTTModel, Process):
 
 class OrderedProcessTaskManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().order_by('processstep_pos')
+        return super().get_queryset().order_by('processstep_pos', 'time_created')
 
 
 class ProcessTask(Process):
