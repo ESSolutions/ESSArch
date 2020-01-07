@@ -107,14 +107,14 @@ export default class ValidationCtrl {
         delete vm.flowOptions.purpose;
       }
       let data = angular.extend(vm.flowOptions, {
-        information_package: vm.ip.id,
         validators: vm.validations.map(x => {
           let item = x.data;
           item.name = x.validator.name;
           return item;
         }),
       });
-      $http.post(appConfig.djangoUrl + 'validator-workflows/', data).then(() => {
+      let id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+      $http.post(appConfig.djangoUrl + vm.baseUrl + '/' + id + '/validate/', data).then(() => {
         $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
       });
     };
