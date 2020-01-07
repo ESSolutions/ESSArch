@@ -1,3 +1,9 @@
+# [3.0.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.1)
+
+## Fixed
+
+- Fixed bug when trying to edit archive with unpublished structure (#591)
+
 # [3.0.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.0)
 
 ## Introduction
