@@ -1,5 +1,9 @@
 # [3.0.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.1)
 
+## Changed
+
+- Use debug mode in docker as default (#569)
+
 ## Fixed
 
 - Fixed bug when trying to edit archive with unpublished structure (#591)
