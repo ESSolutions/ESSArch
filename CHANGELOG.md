@@ -19,7 +19,7 @@
 - Ability to specify custom task references in order to use results as parameters to other tasks in the same step (#734)
 - Makulerat and Recno to XML receipts (#790, #797)
 - Ability to attach xml receipt to email receipt (#794)
-- EARK 3 profiles (#830)
+- EARK 2.0.x profiles (#830)
 
 ## Changed
 
