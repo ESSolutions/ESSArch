@@ -741,7 +741,7 @@ def installProfileSIP(sa):
             },
         ],
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_SIP_v201.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_SIP_v202.json')
         ).read()),
     }
 
@@ -1561,7 +1561,7 @@ def installProfileDIP(sa):
             },
         ],
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_DIP_v201.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_DIP_v202.json')
         ).read()),
     }
 
@@ -1695,7 +1695,7 @@ def installProfileSD(sa):
             },
         ],
         'specification': json.loads(
-            open(os.path.join(settings.BASE_DIR, 'templates/eark/EARK_SD_ESSArch_v300.json')).read()),
+            open(os.path.join(settings.BASE_DIR, 'templates/eark/EARK_SD_ESSArch.json')).read()),
     }
 
     profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
@@ -1806,7 +1806,7 @@ def installProfileAICD(sa):
         'submission_data_inventory': 'According to Submission Agreement',
         'template': [],
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_AICD_ESSArch_v300.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_AICD_ESSArch.json')
         ).read()),
     }
 
@@ -1960,7 +1960,7 @@ def installProfileAIPD(sa):
             },
         ],
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_AIPD_ESSArch_v300.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_AIPD_ESSArch.json')
         ).read()),
     }
 
@@ -2012,7 +2012,7 @@ def installProfilePM(sa):
             }
         ],
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_PREMIS_v300.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_PREMIS.json')
         ).read()),
     }
 
@@ -2034,7 +2034,7 @@ def installProfileWF(sa):
         'status': 'Draft',
         'label': 'Workflow profile',
         'specification': json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_WF_ESSArch_v300.json')
+            os.path.join(settings.BASE_DIR, 'templates/eark/EARK_WF_ESSArch.json')
         ).read()),
     }
 
