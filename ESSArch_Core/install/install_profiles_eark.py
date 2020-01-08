@@ -27,6 +27,8 @@ import os
 
 import django
 
+from ESSArch_Core._version import get_versions
+
 django.setup()
 
 from django.conf import settings  # noqa isort:skip
@@ -167,7 +169,7 @@ def installSA():
             {
                 "key": "creator_software_note",
                 "type": "input",
-                "defaultValue": "3.0.0",
+                "defaultValue": get_versions()['version'],
                 "templateOptions": {
                     "required": True,
                     "disabled": False,
