@@ -1010,6 +1010,35 @@ class UpdateStructureUnitInstanceTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_move_to_structure_unit_with_tag(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+        parent = create_structure_unit(self.structure_unit_type, instance, "A")
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=parent.structure, structure_unit=parent)
+
+        response = self.client.patch(
+            url,
+            data={
+                'parent': parent.pk,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
 
 class RelatedStructureUnitTests(APITestCase):
     @classmethod

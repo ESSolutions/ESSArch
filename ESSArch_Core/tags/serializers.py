@@ -4,7 +4,7 @@ import elasticsearch
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
@@ -426,6 +426,16 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                 if not structure_type.movable_instance_units:
                     raise serializers.ValidationError(
                         _('Units in instances of type {} cannot be moved').format(structure_type)
+                    )
+
+                parent = copied['parent']
+                has_tags = parent.structure.tagstructure_set.annotate(
+                    versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+                ).filter(structure_unit=parent, versions_exists=True)
+
+                if has_tags:
+                    raise serializers.ValidationError(
+                        _('Units cannot be placed in a unit with tags').format(structure_type)
                     )
 
                 copied.pop('parent', None)
