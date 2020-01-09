@@ -804,19 +804,6 @@ angular
             },
           },
         })
-        .state('home.administration.profileManager.profileMaker', {
-          url: '/profile-maker',
-          template: '<profile-maker></profile-maker>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.administration.profileManager.profileMaker', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
         .state('home.administration.profileManager.import', {
           url: '/import',
           template: '<import></import>',
