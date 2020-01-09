@@ -257,7 +257,7 @@ class GenerateEventsXML(DBTask):
 class DownloadSchemas(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
 
-    def run(self, verify=True):
+    def run(self, verify=settings.REQUESTS_VERIFY):
         download_schemas(self.get_information_package(), self.logger, verify)
 
 
@@ -417,7 +417,7 @@ class WriteInformationPackageToSearchIndex(DBTask):
 
 
 class CreateReceipt(DBTask):
-    def run(self, task_id, backend, template, destination, outcome, short_message, message, date=None):
+    def run(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
         ip = self.get_information_package()
         template, destination, outcome, short_message, message, date = self.parse_params(
             template, destination, outcome, short_message, message, date
@@ -430,7 +430,7 @@ class CreateReceipt(DBTask):
             task = self.get_processtask()
         else:
             task = ProcessTask.objects.get(celery_id=task_id)
-        backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task)
+        return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
 
 
 class MarkArchived(DBTask):

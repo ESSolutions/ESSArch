@@ -122,9 +122,13 @@ class ReceiveSIP(DBTask):
 
         dst_name, = self.parse_params(dst_name)
         dst = os.path.join(dst_path, dst_name)
-        shutil.rmtree(dst)
 
         sip_profile = aip.submission_agreement.profile_sip
+
+        try:
+            shutil.rmtree(dst)
+        except FileNotFoundError:
+            pass
 
         if aip.policy.receive_extract_sip:
             temp = Path.objects.cached('entity', 'temp', 'value')
