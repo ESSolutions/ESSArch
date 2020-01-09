@@ -328,7 +328,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     ROOT: 'rot',
     RULES_SAVED: 'Regler sparade',
     SA_PUBLISHED: 'Leveransöverenskommelse: {{name}} har publicerats',
-    SAEDITOR: 'SA editor',
+    SAEDITOR: 'Leveransöverenskommelser',
     SAVE_ERROR: 'Ett fel uppstod!',
     SAVE: 'Spara',
     SAVED_MESSAGE: 'Sparad!',
