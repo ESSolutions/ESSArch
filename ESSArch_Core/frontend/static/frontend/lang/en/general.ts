@@ -326,7 +326,7 @@ const general = $translateProvider => {
     ROOT: 'Root',
     RULES_SAVED: 'Rules saved',
     SA_PUBLISHED: 'Submission agreement: {{name}} has been published',
-    SAEDITOR: 'SA editor',
+    SAEDITOR: 'Submission agreements',
     SAVE_ERROR: 'An error occured!',
     SAVE: 'Save',
     SAVED_MESSAGE: 'Saved!',
