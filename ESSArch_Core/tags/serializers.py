@@ -339,25 +339,33 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True, read_only=True)
     notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
+    is_tag_leaf_node = serializers.SerializerMethodField()
     is_unit_leaf_node = serializers.SerializerMethodField()
     related_structure_units = StructureUnitRelationSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
 
-    def get_is_unit_leaf_node(self, obj):
+    @staticmethod
+    def get_is_unit_leaf_node(obj):
         return obj.is_leaf_node()
 
+    @staticmethod
+    def get_is_tag_leaf_node(obj):
+        archive_descendants = obj.structure.tagstructure_set.annotate(
+            versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+        ).filter(structure_unit=obj, versions_exists=True)
+        return not archive_descendants.exists()
+
     def get_is_leaf_node(self, obj):
-        archive_descendants = obj.structure.tagstructure_set.filter(structure_unit=obj)
-        return obj.is_leaf_node() and not archive_descendants.exists()
+        return self.get_is_unit_leaf_node(obj) and self.get_is_tag_leaf_node(obj)
 
     class Meta:
         model = StructureUnit
         fields = (
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
-            'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units', 'structure',
+            'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
+            'identifiers', 'notes', 'related_structure_units',
         )
 
 
