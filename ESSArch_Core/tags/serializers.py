@@ -436,6 +436,16 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                         _('Units in instances of type {} cannot be moved').format(structure_type)
                     )
 
+                parent = copied['parent']
+                has_tags = parent.structure.tagstructure_set.annotate(
+                    versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+                ).filter(structure_unit=parent, versions_exists=True)
+
+                if has_tags:
+                    raise serializers.ValidationError(
+                        _('Units cannot be placed in a unit with tags').format(structure_type)
+                    )
+
                 copied.pop('parent', None)
 
             copied.pop('structure_unit_relations_a', None)
