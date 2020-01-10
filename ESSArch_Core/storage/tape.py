@@ -6,6 +6,7 @@ import tarfile
 import time
 from subprocess import PIPE, Popen
 
+from django.conf import settings
 from django.utils.timezone import localtime
 from lxml import etree
 from tenacity import retry, stop_after_attempt, wait_fixed
@@ -19,6 +20,9 @@ from ESSArch_Core.storage.exceptions import (
     RobotUnmountException,
     TapeMountedError,
     TapeUnmountedError,
+)
+from ESSArch_Core.storage.tape_identification import (
+    get_backend as get_tape_identification_backend,
 )
 
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
@@ -368,6 +372,9 @@ def robot_inventory(robot):
         TapeSlot,
     )
 
+    backend_name = settings.ESSARCH_TAPE_IDENTIFICATION_BACKEND
+    backend = get_tape_identification_backend(backend_name)
+
     cmd = 'mtx -f %s status' % robot
     p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
@@ -402,9 +409,11 @@ def robot_inventory(robot):
 
                 if status == 'Full':
                     slot_id = dt_el[7]
-                    volume_id = dt_el[10][:6]
+                    medium_id = dt_el[10][:6]
+                    backend.identify_tape(medium_id)
+
                     StorageMedium.objects.filter(
-                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id
+                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=medium_id
                     ).update(tape_drive=drive)
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(tape_drive=None)
@@ -424,25 +433,26 @@ def robot_inventory(robot):
                 status = s_el[4]
 
                 if status == 'Full':
-                    volume_id = s_el[6][:6]
+                    medium_id = s_el[6][:6]
+                    backend.identify_tape(medium_id)
 
                     slot, created = TapeSlot.objects.update_or_create(
-                        robot=robot, slot_id=slot_id, defaults={'medium_id': volume_id}
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id}
                     )
                     if created:
                         logger.debug(
                             'Created tape slot with slot_id={slot}, medium_id={medium}'.format(
-                                slot=slot_id, medium=volume_id
+                                slot=slot_id, medium=medium_id
                             )
                         )
                     else:
                         logger.debug(
                             'Updated tape slot with slot_id={slot}, medium_id={medium}'.format(
-                                slot=slot_id, medium=volume_id
+                                slot=slot_id, medium=medium_id
                             )
                         )
 
-                    StorageMedium.objects.filter(medium_id=volume_id).update(tape_slot=slot)
+                    StorageMedium.objects.filter(medium_id=medium_id).update(tape_slot=slot)
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
