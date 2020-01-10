@@ -33,6 +33,7 @@ django.setup()
 
 from django.conf import settings  # noqa isort:skip
 
+from ESSArch_Core.configuration.models import StoragePolicy  # noqa isort:skip
 from ESSArch_Core.profiles.models import (  # noqa isort:skip
     SubmissionAgreement,
     Profile,
@@ -59,6 +60,12 @@ def installProfiles():
 
 
 def installSA():
+    try:
+        policy = StoragePolicy.objects.get(policy_name="default")
+    except StoragePolicy.DoesNotExist:
+        policy = StoragePolicy.objects.first()
+        if policy is None:
+            raise
 
     dct = {
         'name': 'SA Archive and Organization (EARK)',
@@ -66,6 +73,7 @@ def installSA():
         'type': 'Standard',
         'status': 'Draft',
         'label': 'Submission Agreement Archive x and Organization y',
+        'policy': policy,
         'archivist_organization': 'Archival Creator Organization xx',
         'template': [
             {
