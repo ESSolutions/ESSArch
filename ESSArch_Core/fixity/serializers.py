@@ -25,7 +25,10 @@ class ValidatorWorkflowSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['validators'] = serializers.ListField(child=ValidatorDataSerializer(context=kwargs['context']))
+        self.fields['validators'] = serializers.ListField(
+            min_length=1,
+            child=ValidatorDataSerializer(context=kwargs['context']),
+        )
 
 
 class ValidationSerializer(serializers.ModelSerializer):
