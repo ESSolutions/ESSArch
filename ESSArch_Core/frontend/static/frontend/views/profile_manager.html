@@ -14,15 +14,6 @@
           >
           <a
             tabindex="0"
-            ng-keydown="navKeydownListener($event, 'home.administration.profileManager.profileMaker')"
-            ui-sref="home.administration.profileManager.profileMaker"
-            ng-class="{chosen: $state.current.name == 'home.administration.profileManager.profileMaker'}"
-            ng-if="checkPermissions('home.administration.profileManager.profileMaker')"
-            class="nav-item sliding-middle-out"
-            >{{'PROFILEMAKER' | translate}}</a
-          >
-          <a
-            tabindex="0"
             ng-keydown="navKeydownListener($event, 'home.administration.profileManager.import')"
             ui-sref="home.administration.profileManager.import"
             ng-class="{chosen: $state.current.name == 'home.administration.profileManager.import'}"

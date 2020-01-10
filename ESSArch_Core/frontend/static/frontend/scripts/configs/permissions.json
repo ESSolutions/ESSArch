@@ -105,9 +105,6 @@
             "saEditor": {
               "_permissions": ["profiles.add_submissionagreement"]
             },
-            "profileMaker": {
-              "_permissions": ["profiles.add_profile"]
-            },
             "import": {
               "_permissions": ["profiles.add_submissionagreement"]
             },
