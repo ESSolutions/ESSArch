@@ -1806,6 +1806,7 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        archive_tag_version.refresh_from_db()
 
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_delete_archive_with_permission(self, mock_signal):
@@ -1822,6 +1823,12 @@ class DeleteTagTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        with self.assertRaises(TagVersion.DoesNotExist):
+            archive_tag_version.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            archive_tag.refresh_from_db()
+
     def test_delete_component_without_permission(self):
         tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
@@ -1831,6 +1838,7 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        tag_version.refresh_from_db()
 
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_delete_component_with_permission(self, mock_signal):
@@ -1838,14 +1846,36 @@ class DeleteTagTests(TestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
-        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        url = reverse('search-detail', args=(tag_version.pk,))
+        with self.subTest('single version'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            with self.assertRaises(Tag.DoesNotExist):
+                tag.refresh_from_db()
+
+        with self.subTest('multiple versions'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+            tag_version2 = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            tag_version2.refresh_from_db()
+            tag.refresh_from_db()
 
 
 class CreateDeliveryTests(TestCase):
