@@ -40,6 +40,14 @@ def pre_tag_version_delete(sender, instance, **kwargs):
 
 
 @receiver(post_delete, sender=TagVersion)
+def post_tag_version_delete(sender, instance, **kwargs):
+    tag = instance.tag
+
+    if not tag.versions.exists():
+        tag.delete()
+
+
+@receiver(post_delete, sender=TagVersion)
 def log_after_deleting_tag_version(sender, instance, **kwargs):
     logger.debug(f"TagVersion '{instance}' was deleted.")
 
