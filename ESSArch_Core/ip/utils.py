@@ -54,10 +54,16 @@ def parse_submit_description_from_ip(ip):
     ip.end_date = parsed.get('end_date')
 
     if ip.policy is not None:
-        parsed_policy = parsed.get('altrecordids', {}).get('POLICYID')[0]
-        if ip.policy.policy_id != parsed_policy:
-            raise ValueError('Policy in submit description ({}) and submission agreement ({}) does not match'.format(
-                parsed_policy, ip.policy.policy_id))
+        try:
+            parsed_policy = parsed.get('altrecordids', {}).get('POLICYID', [])[0]
+            if ip.policy.policy_id != parsed_policy:
+                raise ValueError(
+                    'Policy in submit description ({}) and submission agreement ({}) does not match'.format(
+                        parsed_policy, ip.policy.policy_id
+                    )
+                )
+        except IndexError:
+            pass
 
         ip.information_class = parsed.get('information_class') or ip.policy.information_class
         if ip.information_class != ip.policy.information_class:

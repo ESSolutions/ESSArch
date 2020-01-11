@@ -2273,39 +2273,39 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization
 
-        existing_aip = InformationPackage.objects.filter(
-            object_identifier_value=pk, package_type=InformationPackage.AIP
-        ).first()
+        existing_non_sip = InformationPackage.objects.filter(
+            object_identifier_value=pk,
+        ).exclude(package_type=InformationPackage.SIP).first()
         existing_sip = InformationPackage.objects.filter(
             object_identifier_value=pk, package_type=InformationPackage.SIP
         ).first()
 
-        if existing_aip is not None:
-            logger.warn('Tried to prepare IP with id %s which already exists' % pk, extra={'user': request.user.pk})
+        if existing_non_sip is not None:
+            logger.warning('Tried to receive IP with id %s which already exists' % pk, extra={'user': request.user.pk})
             raise Conflict('IP with id {} already exists'.format(pk))
 
         reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
         xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
 
         if not os.path.isfile(xmlfile):
-            logger.warn('Tried to prepare IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
-            raise exceptions.ParseError('%s does not exist' % xmlfile)
+            logger.warning('Tried to receive IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
+            raise exceptions.NotFound('%s does not exist' % xmlfile)
         try:
             container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
         except etree.LxmlError:
-            logger.warn('Tried to prepare IP with invalid XML file %s' % xmlfile, extra={'user': request.user.pk})
+            logger.warning('Tried to receive IP with invalid XML file %s' % xmlfile, extra={'user': request.user.pk})
             raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
 
         if not os.path.isfile(container):
-            logger.warn(
-                'Tried to prepare IP with missing container file %s' % container,
+            logger.warning(
+                'Tried to receive IP with missing container file %s' % container,
                 extra={'user': request.user.pk}
             )
-            raise exceptions.ParseError('%s does not exist' % container)
+            raise exceptions.NotFound('%s does not exist' % container)
 
         if existing_sip is None:
             if organization is None:
-                raise exceptions.ParseError('You must be part of an organization to prepare an IP')
+                raise exceptions.ParseError('You must be part of an organization to receive IP')
 
             parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
             provided_sa = request.data.get('submission_agreement')

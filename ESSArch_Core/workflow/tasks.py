@@ -112,7 +112,7 @@ class ReceiveSIP(DBTask):
             # remove any existing directory from previous attempts
             delete_path(sip_dst)
 
-            temp = Path.objects.cached('entity', 'temp', 'value')
+            temp = Path.objects.get(entity='temp').value
             with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
                 self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
                 if container_type == '.tar':

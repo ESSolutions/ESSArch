@@ -21,13 +21,13 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-
 import errno
 import filecmp
 import glob
 import io
 import os
 import shutil
+import tarfile
 import tempfile
 import uuid
 import zipfile
@@ -43,10 +43,11 @@ from groups_manager.models import GroupType
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.ip.models import (
     InformationPackage,
     Order,
@@ -57,7 +58,6 @@ from ESSArch_Core.profiles.models import (
     Profile,
     ProfileIP,
     ProfileIPData,
-    ProfileSA,
     SubmissionAgreement,
     SubmissionAgreementIPData,
 )
@@ -69,16 +69,6 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
-)
-from ESSArch_Core.tags.models import (
-    Structure,
-    StructureType,
-    StructureUnit,
-    StructureUnitType,
-    Tag,
-    TagStructure,
-    TagVersion,
-    TagVersionType,
 )
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -1528,249 +1518,479 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.get(self.url)
 
 
-class InformationPackageReceptionViewSetTestCase(TestCase):
+class InformationPackageReceptionViewSetTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="temp", value="temp")
-
         cls.cache = StorageMethod.objects.create()
-        cls.ingest = Path.objects.create(entity='ingest', value='ingest')
-        cls.policy = StoragePolicy.objects.create(cache_storage=cls.cache, ingest_path=cls.ingest)
 
-        cls.org_group_type = GroupType.objects.create(label='organization')
+        org_group_type = GroupType.objects.create(label='organization')
+        cls.group = Group.objects.create(name='organization', group_type=org_group_type)
+        cls.receive_perm = Permission.objects.get(content_type__app_label='ip', codename='receive')
 
-        cls.url = reverse('ip-reception-list')
-
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        Path.objects.create(entity='ingest_unidentified', value='ingest_reception_unidentified')
-        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
-        aip_profile = Profile.objects.create(profile_type='aip')
-        ProfileSA.objects.create(submission_agreement=cls.sa, profile=aip_profile)
+    def add_user_to_group(self):
+        self.group.add_member(self.user.essauth_member)
 
     def setUp(self):
-        self.user = User.objects.create(username="admin", password='admin')
-
-        self.client = APIClient()
+        self.user = User.objects.create()
         self.client.force_authenticate(user=self.user)
 
-        self.member = self.user.essauth_member
-        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
-        self.group.add_member(self.member)
+        self.reception = tempfile.mkdtemp()
+        temp = tempfile.mkdtemp()
+        ingest_unidentified = tempfile.mkdtemp()
+        ingest = tempfile.mkdtemp()
 
-    def create_profile(self, profile_type, ip):
-        profile = Profile.objects.create(profile_type=profile_type)
-        profile_ip = ProfileIP.objects.create(profile=profile, ip=ip)
-        profile_ip_data = ProfileIPData.objects.create(relation=profile_ip, user=self.user)
-        profile_ip.data = profile_ip_data
-        profile_ip.save()
+        self.addCleanup(shutil.rmtree, self.reception)
+        self.addCleanup(shutil.rmtree, temp)
+        self.addCleanup(shutil.rmtree, ingest_unidentified)
+        self.addCleanup(shutil.rmtree, ingest)
 
-        return profile
+        Path.objects.create(entity="temp", value=temp)
+        Path.objects.create(entity='ingest_reception', value=self.reception)
+        Path.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
+        ingest = Path.objects.create(entity='ingest', value=ingest)
+
+        policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest, receive_extract_sip=True)
+        self.sa = SubmissionAgreement.objects.create(
+            policy=policy,
+            profile_aic_description=Profile.objects.create(profile_type='aic_description'),
+            profile_aip=Profile.objects.create(
+                profile_type='aip',
+                structure=[
+                    {
+                        'type': 'file',
+                        'name': 'mets.xml',
+                        'use': 'mets_file',
+                    },
+                    {
+                        'type': 'folder',
+                        'name': 'content',
+                        'use': 'content',
+                        'children': [
+                            {
+                                'type': 'folder',
+                                'name': '{{INNER_IP_OBJID}}',
+                                'use': 'sip',
+                            },
+                        ]
+                    },
+                    {
+                        'type': 'folder',
+                        'name': 'metadata',
+                        'use': 'metadata',
+                        'children': [
+                            {
+                                'type': 'file',
+                                'use': 'xsd_files',
+                                'name': 'xsd_files'
+                            },
+                            {
+                                'type': 'file',
+                                'name': 'premis.xml',
+                                'use': 'preservation_description_file',
+                            },
+                        ]
+                    },
+                ],
+            ),
+            profile_aip_description=Profile.objects.create(profile_type='aip_description'),
+            profile_dip=Profile.objects.create(profile_type='dip'),
+        )
+
+    def get_package_path(self, objid):
+        return os.path.join(self.reception, '{}.tar'.format(objid))
+
+    def create_ip_package(self, objid):
+        path = self.get_package_path(objid)
+        with tarfile.open(path, 'w') as tar:
+            tar.add(__file__, arcname='content/test.txt')
+        return path
+
+    def get_xml_path(self, objid):
+        return os.path.join(self.reception, '{}.xml'.format(objid))
+
+    def create_ip_xml(self, objid, package, sa):
+        path = self.get_xml_path(objid)
+        open(path, 'w').close()
+
+        spec = {
+            "-name": "mets",
+            "-namespace": "mets",
+            "-nsmap": {
+                "mets": "http://www.loc.gov/METS/",
+                "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+                "xlink": "http://www.w3.org/1999/xlink"
+            },
+            "-attr": [
+                {
+                    "-name": "schemaLocation",
+                    "-namespace": "xsi",
+                    "#content": [
+                        {
+                            "text": "http://www.loc.gov/METS/ "
+                            "http://xml.essarch.org/METS/version10/SubmitDescription.xsd"
+                        }
+                    ]
+                },
+                {
+                    "-name": "ID",
+                    "#content": "ID{% uuid4 %}"
+                },
+                {
+                    "-name": "OBJID",
+                    "#content": "UUID:{{OBJID}}"
+                },
+                {
+                    "-name": "TYPE",
+                    "#content": "SIP"
+                },
+                {
+                    "-name": "PROFILE",
+                    "#content": "http://example.com"
+                }
+            ],
+            "-children": [
+                {
+                    "-name": "metsHdr",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "CREATEDATE",
+                            "#content": "{% now 'c' %}"
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "agent",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ROLE",
+                                    "#content": "CREATOR"
+                                },
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "ORGANIZATION"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "name",
+                                    "-namespace": "mets",
+                                    "#content": "creator"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "agent",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ROLE",
+                                    "#content": "OTHER"
+                                },
+                                {
+                                    "-name": "OTHERROLE",
+                                    "#content": "SUBMITTER"
+                                },
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "ORGANIZATION"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "name",
+                                    "-namespace": "mets",
+                                    "#content": "submitter_organization"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "agent",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "ROLE",
+                                    "#content": "OTHER"
+                                },
+                                {
+                                    "-name": "OTHERROLE",
+                                    "#content": "SUBMITTER"
+                                },
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "INDIVIDUAL"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "name",
+                                    "-namespace": "mets",
+                                    "#content": "submitter_individual"
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "altRecordID",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "SUBMISSIONAGREEMENT"
+                                }
+                            ],
+                            "#content": str(sa.pk)
+                        },
+                        {
+                            "-name": "altRecordID",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "STARTDATE"
+                                }
+                            ],
+                            "#content": "2020-01-01 00:00:00+00:00"
+                        },
+                        {
+                            "-name": "altRecordID",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "TYPE",
+                                    "#content": "ENDDATE"
+                                }
+                            ],
+                            "#content": "2020-12-31 00:00:00+00:00"
+                        },
+                    ]
+                },
+                {
+                    "-name": "fileSec",
+                    "-namespace": "mets",
+                    "-attr": [
+                        {
+                            "-name": "ID",
+                            "#content": "ID{{UUID}}"
+                        }
+                    ],
+                    "-children": [
+                        {
+                            "-name": "fileGrp",
+                            "-namespace": "mets",
+                            "-children": [
+                                {
+                                    "-name": "file",
+                                    "-namespace": "mets",
+                                    "-containsFiles": True,
+                                    "-filters": {"href": r".+\.tar$"},
+                                    "-attr": [
+                                        {
+                                            "-name": "ID",
+                                            "#content": "ID{{FID}}"
+                                        },
+                                        {
+                                            "-name": "MIMETYPE",
+                                            "#content": "{{FMimetype}}"
+                                        },
+                                        {
+                                            "-name": "SIZE",
+                                            "#content": "{{FSize}}"
+                                        },
+                                        {
+                                            "-name": "USE",
+                                            "#content": "{{FUse}}"
+                                        },
+                                        {
+                                            "-name": "CREATED",
+                                            "#content": "{{FCreated}}"
+                                        },
+                                        {
+                                            "-name": "CHECKSUM",
+                                            "#content": "{{FChecksum}}"
+                                        },
+                                        {
+                                            "-name": "CHECKSUMTYPE",
+                                            "#content": "{{FChecksumType}}"
+                                        }
+                                    ],
+                                    "-children": [
+                                        {
+                                            "-name": "FLocat",
+                                            "-namespace": "mets",
+                                            "-attr": [
+                                                {
+                                                    "-name": "LOCTYPE",
+                                                    "#content": "URL"
+                                                },
+                                                {
+                                                    "-name": "href",
+                                                    "-namespace": "xlink",
+                                                    "#content": "file:///{{href}}"
+                                                },
+                                                {
+                                                    "-name": "type",
+                                                    "-namespace": "xlink",
+                                                    "#content": "simple"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "-name": "structMap",
+                    "-namespace": "mets",
+                    "-children": [
+                        {
+                            "-name": "div",
+                            "-namespace": "mets",
+                            "-attr": [
+                                {
+                                    "-name": "LABEL",
+                                    "#content": "Package"
+                                }
+                            ],
+                            "-children": [
+                                {
+                                    "-name": "div",
+                                    "-namespace": "mets",
+                                    "-attr": [
+                                        {
+                                            "-name": "LABEL",
+                                            "#content": "Datafiles"
+                                        }
+                                    ],
+                                    "-children": [
+                                        {
+                                            "-name": "fptr",
+                                            "-namespace": "mets",
+                                            "-containsFiles": True,
+                                            "-attr": [
+                                                {
+                                                    "-name": "FILEID",
+                                                    "#content": "ID{{FID}}"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+
+        XMLGenerator().generate(filesToCreate={path: {'spec': spec}}, folderToParse=package)
+        return path
 
     def test_receive_without_permission(self):
-        ip = InformationPackage.objects.create()
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
-
-        # return 403 when user doesn't have ip.receive permission
+        url = reverse('ip-reception-receive', args=('foo',))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_receive_ip_with_wrong_state(self):
-        ip = InformationPackage.objects.create()
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    def test_receive_existing_non_sip(self):
+        self.user.user_permissions.add(self.receive_perm)
 
-        # return 404 when IP is not in state Prepared
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
-        res = self.client.post(url, data={})
+        package_types = [
+            InformationPackage.AIC,
+            InformationPackage.AIP,
+            InformationPackage.AIU,
+            InformationPackage.DIP,
+        ]
+        for package_type in package_types:
+            with self.subTest(package_type):
+                ip = InformationPackage.objects.create(
+                    object_identifier_value='existing_{}'.format(package_type),
+                    package_type=package_type,
+                )
+                url = reverse('ip-reception-receive', args=(ip.object_identifier_value,))
+                res = self.client.post(url)
+                self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+
+    def test_receive_invalid_xml(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        xml_path = self.get_xml_path("invalid-xml")
+        with open(xml_path, 'w') as f:
+            f.write('invalid')
+
+        url = reverse('ip-reception-receive', args=('invalid-xml',))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_receive_missing_xml(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        url = reverse('ip-reception-receive', args=('does-not-exist',))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_receive_ip_with_incorrect_package_type(self):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIC)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    def test_receive_missing_package(self):
+        self.user.user_permissions.add(self.receive_perm)
 
-        # return 404 when IP is of type AIC
-        res = self.client.post(url, data={})
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+        os.remove(ip_package)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_receive_ip_with_missing_files(self):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    def test_receive_missing_profiles(self):
+        self.user.user_permissions.add(self.receive_perm)
 
-        # return 400 when any of the files doesn't exist
-        ip.package_type = InformationPackage.AIP
-        ip.save()
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        profile_types = [
+            'dip',
+            'aip_description',
+            'aip',
+            'aic_description',
+        ]
+        for ptype in profile_types:
+            with self.subTest(ptype):
+                setattr(self.sa, 'profile_{}'.format(ptype), None)
+                self.sa.save()
+
+                url = reverse('ip-reception-receive', args=(objid,))
+                res = self.client.post(url, data={})
+                self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_receive_without_organization(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_receive_ip_with_structure_unit(self, mock_step, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        self.create_profile('sip', ip)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    def test_receive_ip(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        structure_type = StructureType.objects.create(name='foo')
-        structure_template = Structure.objects.create(is_template=True, type=structure_type)
-        structure = Structure.objects.create(is_template=False, type=structure_type, template=structure_template)
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
 
-        archive_tag = Tag.objects.create()
-        archive_tag_version_type = TagVersionType.objects.create(name='archive', archive_type=True)
-        archive_tag_version = TagVersion.objects.create(
-            tag=archive_tag,
-            type=archive_tag_version_type,
-            elastic_index='archive',
-        )
-        TagStructure.objects.create(tag=archive_tag, structure=structure,)
-
-        structure_unit_type = StructureUnitType.objects.create(name='foo', structure_type=structure_type)
-        structure_unit_template = StructureUnit.objects.create(structure=structure_template, type=structure_unit_type)
-        structure_unit = StructureUnit.objects.create(
-            structure=structure, type=structure_unit_type,
-            template=structure_unit_template,
-        )
-        tag_version_type = TagVersionType.objects.create(name='foo', information_package_type=True)
-
-        with self.subTest('unit template'):
-            """Structure unit template is not valid"""
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'structure_unit': structure_unit_template.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-        with self.subTest('non-published unit'):
-            """Structure template must be published"""
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'structure_unit': structure_unit.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-        structure_template.publish()
-        with self.subTest('published unit'):
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'archive': archive_tag_version.pk,
-                'structure': structure.pk,
-                'structure_unit': structure_unit.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-        self.assertTrue(
-            TagVersion.objects.filter(
-                tag__information_package=ip,
-                type=tag_version_type,
-                tag__structures__structure_unit=structure_unit,
-            ).exists()
-        )
-
-        mock_step.assert_called_once()
-
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive_ip_with_correct_data(self, mock_receive, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        self.create_profile('sip', ip)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
-
-        tag = Tag.objects.create()
-        structure_type = StructureType.objects.create()
-        structure = Structure.objects.create(is_template=True, type=structure_type)
-        tag_structure = TagStructure.objects.create(tag=tag, structure=structure)
-        res = self.client.post(url, data={'storage_policy': self.policy.pk, 'tag': tag_structure.pk})
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        mock_receive.assert_called_once()
-
-    def test_prepare_conflict(self):
-        ip = InformationPackage.objects.create(object_identifier_value='foo', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-prepare', args=[ip.object_identifier_value])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
-
-        ip.package_type = InformationPackage.SIP
-        ip.save()
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_prepare_missing_package(self):
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description', return_value={})
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_without_sa(self, mock_isfile, mock_get_container, mock_parse_sd):
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_invalid_sa_in_xml(self, mock_isfile, mock_get_container, mock_parse_sd):
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [uuid.uuid4()]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_valid_sa_without_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
-                                                                      mock_parse_sd):
-        sa = SubmissionAgreement.objects.create(policy=self.policy)
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [sa.pk]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_valid_sa_with_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
-                                                                   mock_parse_sd):
-        sa = SubmissionAgreement.objects.create(
-            policy=self.policy,
-            profile_aic_description=Profile.objects.create(),
-            profile_aip=Profile.objects.create(),
-            profile_aip_description=Profile.objects.create(),
-            profile_dip=Profile.objects.create(),
-        )
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [sa.pk]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-
-        ip_exists = InformationPackage.objects.filter(
-            object_identifier_value='123',
-            package_type=InformationPackage.AIP,
-            responsible=self.user,
-            submission_agreement=sa).exists()
-        self.assertTrue(ip_exists)
+        aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
+        with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
+            self.assertEqual(f.read(), expected.read())
 
 
 class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
