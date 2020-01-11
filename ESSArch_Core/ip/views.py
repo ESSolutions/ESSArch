@@ -2316,10 +2316,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     sa = provided_sa
                 else:
                     raise exceptions.ParseError(detail='Must use SA specified in XML')
-            elif parsed_sa and not provided_sa:
-                sa = parsed_sa
-            elif provided_sa and not parsed_sa:
-                sa = provided_sa
+            elif any([parsed_sa, provided_sa]):
+                sa = parsed_sa or provided_sa
             else:
                 raise exceptions.ParseError(detail='Missing parameter submission_agreement')
 

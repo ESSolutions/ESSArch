@@ -1944,6 +1944,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
 
     def test_receive_missing_profiles(self):
         self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
         objid = 'foo'
         ip_package = self.create_ip_package(objid)
@@ -1976,6 +1977,73 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @TaskRunner()
+    def test_receive_existing_sip(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        ip = InformationPackage.objects.create(
+            object_identifier_value=objid,
+            package_type=InformationPackage.SIP,
+            object_path=ip_package,
+            submission_agreement=self.sa,
+        )
+        self.sa.lock_to_information_package(ip, self.user)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
+        with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
+            self.assertEqual(f.read(), expected.read())
+
+    def test_receive_ip_missing_sa(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
+
+        tree = etree.parse(xml)
+        for sa_el in tree.xpath("//*[local-name()='altRecordID'][@TYPE='SUBMISSIONAGREEMENT']"):
+            sa_el.getparent().remove(sa_el)
+        with open(xml, 'wb') as f:
+            tree.write(f, encoding="utf-8", xml_declaration=True)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_receive_ip_non_matching_parsed_and_provided_sa(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={'submission_agreement': "invalid-sa"})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_receive_ip_matching_parsed_and_provided_sa(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={'submission_agreement': str(self.sa.pk)})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    @TaskRunner()
     def test_receive_ip(self):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
@@ -1985,7 +2053,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         self.create_ip_xml(objid, ip_package, self.sa)
 
         url = reverse('ip-reception-receive', args=(objid,))
-        res = self.client.post(url, data={})
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
