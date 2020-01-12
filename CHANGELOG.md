@@ -1,8 +1,51 @@
-## [Unreleased]
+# [3.1.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.0)
 
-### Added
+## Added
 
-- deactivatable-filter for storage mediums - [#574](https://github.com/ESSolutions/ESSArch/pull/574)
+- XML comparison of METS and PREMIS in IP representations (#593)
+- saml2 route to API when ENABLE_ADFS_LOGIN is enabled (#605)
+- Favicon (#604)
+- XML schema downloading for AIPs in manual workflow (#645)
+- Event file creation to AIPs in manual workflow (#674)
+- XML schema validator to CLI (#643)
+- Mediaconch validator to CLI (#787)
+- Ability to download DIPs and orders (#661)
+- METS data from SIP is now parsed and stored in AIP profile during ingest (#673)
+- More advanced DIP creation similar to SIP creation (#688)
+- Ability to store data for IP and SA relation (#697)
+- Receipt path configuration (#710)
+- Protection against problematic characters in IP identifiers (#722)
+- New storage maintenance page (#663)
+- Ability to specify custom task references in order to use results as parameters to other tasks in the same step (#734)
+- Makulerat and Recno to XML receipts (#790, #797)
+- Ability to attach xml receipt to email receipt (#794)
+- EARK 2.0.x profiles (#830)
+
+## Changed
+
+- Build dev version of frontend in docker (#682)
+- Only show relevant filters for IPs and events (#582)
+
+## Fixed
+
+- Docs generation and removed redundant step in docker build (#564)
+- XML validation against schemas with https imports (#642)
+- XML validation against schemas specified in `schemaLocation` attribute (#651)
+- Default ELASTICSEARCH_CONNECTIONS (#669)
+- Copying of empty subdirectories (#675)
+- Usage of checksum algorithm (#708)
+- mets@TYPE options in SE profiles (#716)
+- IDs in XML receipts (#790)
+
+# [3.0.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.1)
+
+## Changed
+
+- Use debug mode in docker as default (#569)
+
+## Fixed
+
+- Fixed bug when trying to edit archive with unpublished structure (#591)
 
 # [3.0.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.0.0)
 

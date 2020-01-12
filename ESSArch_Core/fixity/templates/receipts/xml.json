@@ -61,6 +61,10 @@
             ]
         },
         {
+            "-name": "makulerat",
+            "#content": "{{makulerat}}"
+        },
+        {
             "-name": "ärenden",
             "-children": [
                 {
