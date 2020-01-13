@@ -830,7 +830,7 @@ export default class SearchDetailCtrl {
       if (src.original._is_structure_unit && !dst.original._is_structure_unit) {
         droppable = false;
       }
-      if (src.original._is_structure_unit && dst.children.length > 0) {
+      if (src.original._is_structure_unit && !dst.original.is_tag_leaf_node) {
         droppable = false;
       }
       if (!src.original._is_structure_unit && dst.original._is_structure_unit && !dst.original.is_unit_leaf_node) {
