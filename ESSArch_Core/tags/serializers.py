@@ -351,6 +351,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_is_tag_leaf_node(obj):
+        # TODO: Make this a recursive check and add a separate field indicating if this unit have any direct tag children
         archive_descendants = obj.structure.tagstructure_set.annotate(
             versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
         ).filter(structure_unit=obj, versions_exists=True)
