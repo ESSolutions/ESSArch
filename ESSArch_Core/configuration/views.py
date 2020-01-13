@@ -127,7 +127,7 @@ def get_rabbitmq_info(full=False):
         if full:
             return props
         return {'version': props['version']}
-    except (ConnectionError, OSError):
+    except OSError:
         logger.exception("Could not connect to RabbitMQ.")
         return {
             'version': 'unknown',
