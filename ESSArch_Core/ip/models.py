@@ -1014,7 +1014,7 @@ class InformationPackage(models.Model):
                 force_download=force_download,
                 name=path
             )
-        except (IOError, OSError) as e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
 
