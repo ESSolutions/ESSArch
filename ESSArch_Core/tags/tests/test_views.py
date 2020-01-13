@@ -1122,7 +1122,6 @@ class UpdateStructureUnitInstanceTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-
     def test_move_to_root(self):
         instance = create_structure(self.structure_type)
         instance.is_template = False
