@@ -827,14 +827,17 @@ export default class SearchDetailCtrl {
 
     vm.checkDroppable = (src, dst) => {
       let droppable = true;
-      if (src.original._is_structure_unit && !dst.original._is_structure_unit) {
-        droppable = false;
-      }
-      if (src.original._is_structure_unit && !dst.original.is_tag_leaf_node) {
-        droppable = false;
-      }
-      if (!src.original._is_structure_unit && dst.original._is_structure_unit && !dst.original.is_unit_leaf_node) {
-        droppable = false;
+      if (src.original._is_structure_unit) {
+        if (!dst.original._is_structure_unit && dst.original._index !== 'archive') {
+          droppable = false;
+        }
+        if (dst.original._is_structure_unit && !dst.original.is_tag_leaf_node) {
+          droppable = false;
+        }
+      } else {
+        if (dst.original._is_structure_unit && !dst.original.is_unit_leaf_node) {
+          droppable = false;
+        }
       }
       return droppable;
     };
