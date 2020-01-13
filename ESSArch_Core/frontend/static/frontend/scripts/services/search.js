@@ -62,6 +62,22 @@ export default ($http, $sce, appConfig) => {
     });
   };
 
+  service.updateStructureUnit = (node, data, refresh) => {
+    if (angular.isUndefined(refresh)) {
+      refresh = false;
+    }
+    return $http({
+      method: 'PATCH',
+      url: url + 'structure-units/' + node._id + '/',
+      params: {
+        refresh: refresh,
+      },
+      data: data,
+    }).then(response => {
+      return response;
+    });
+  };
+
   service.updateNodeAndDescendants = function(node, data, deletedFields, refresh) {
     if (angular.isUndefined(refresh)) {
       refresh = false;
