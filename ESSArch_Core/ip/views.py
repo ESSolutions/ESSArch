@@ -2261,7 +2261,15 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         fullpath = os.path.join(path, "%s.xml" % pk)
 
         if not os.path.exists(fullpath):
-            raise exceptions.NotFound
+            try:
+                ip = InformationPackage.objects.get(
+                    object_identifier_value=pk,
+                    package_type=InformationPackage.AIP,
+                    state='Receiving',
+                )
+                return Response(InformationPackageDetailSerializer(instance=ip).data)
+            except InformationPackage.DoesNotExist:
+                raise exceptions.NotFound
 
         return Response(parse_submit_description(fullpath, srcdir=path))
 

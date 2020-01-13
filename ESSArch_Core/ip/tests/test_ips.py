@@ -1885,14 +1885,69 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
             ]
         }
 
-        XMLGenerator().generate(filesToCreate={path: {'spec': spec}}, folderToParse=package)
+        XMLGenerator().generate(filesToCreate={path: {'spec': spec, 'data': {'OBJID': objid}}}, folderToParse=package)
         return path
 
+    def test_list(self):
+        url = reverse('ip-reception-list')
+
+        # empty
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, [])
+
+        # contained
+        package = self.create_ip_package('foo')
+        self.create_ip_xml('foo', package, self.sa)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['object_identifier_value'], 'foo')
+        self.assertEqual(res.data[0]['object_path'], package)
+
+        # packages in database with state receiving
+        InformationPackage.objects.create(
+            object_identifier_value='bar',
+            package_type=InformationPackage.AIP,
+            state='Receiving',
+        )
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+    def test_retrieve(self):
+        url = reverse('ip-reception-detail', args=('foo',))
+
+        # non existing
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+        # contained
+        package = self.create_ip_package('foo')
+        self.create_ip_xml('foo', package, self.sa)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['object_identifier_value'], 'foo')
+        self.assertEqual(res.data['object_path'], package)
+
+        # packages in database with state receiving
+        InformationPackage.objects.create(
+            object_identifier_value='bar',
+            package_type=InformationPackage.AIP,
+            state='Receiving',
+        )
+        url = reverse('ip-reception-detail', args=('bar',))
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['object_identifier_value'], 'bar')
+
+    @TaskRunner()
     def test_receive_without_permission(self):
         url = reverse('ip-reception-receive', args=('foo',))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
+    @TaskRunner()
     def test_receive_existing_non_sip(self):
         self.user.user_permissions.add(self.receive_perm)
 
@@ -1912,6 +1967,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
                 res = self.client.post(url)
                 self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
 
+    @TaskRunner()
     def test_receive_invalid_xml(self):
         self.user.user_permissions.add(self.receive_perm)
 
@@ -1923,6 +1979,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @TaskRunner()
     def test_receive_missing_xml(self):
         self.user.user_permissions.add(self.receive_perm)
 
@@ -1930,6 +1987,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
+    @TaskRunner()
     def test_receive_missing_package(self):
         self.user.user_permissions.add(self.receive_perm)
 
@@ -1942,6 +2000,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
+    @TaskRunner()
     def test_receive_missing_profiles(self):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
@@ -1965,6 +2024,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
                 res = self.client.post(url, data={})
                 self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @TaskRunner()
     def test_receive_without_organization(self):
         self.user.user_permissions.add(self.receive_perm)
 
@@ -2001,6 +2061,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
             self.assertEqual(f.read(), expected.read())
 
+    @TaskRunner()
     def test_receive_ip_missing_sa(self):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
@@ -2019,6 +2080,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @TaskRunner()
     def test_receive_ip_non_matching_parsed_and_provided_sa(self):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
@@ -2031,6 +2093,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         res = self.client.post(url, data={'submission_agreement': "invalid-sa"})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @TaskRunner()
     def test_receive_ip_matching_parsed_and_provided_sa(self):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
