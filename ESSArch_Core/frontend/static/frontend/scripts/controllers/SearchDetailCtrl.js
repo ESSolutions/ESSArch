@@ -792,21 +792,51 @@ export default class SearchDetailCtrl {
     vm.dropNode = function(jqueryObj, data) {
       const node = data.node;
       const parentNode = vm.recordTreeInstance.jstree(true).get_node(node.parent);
-      var data = {structure: vm.structure};
+      if (vm.checkDroppable(node, parentNode)) {
+        var data = {structure: vm.structure};
 
-      if (parentNode.original._is_structure_unit) {
-        data.structure_unit = parentNode.id;
+        if (parentNode.original._is_structure_unit && !node.original._is_structure_unit) {
+          data.structure_unit = parentNode.id;
+        } else if (parentNode.original._index === 'archive') {
+          data.parent = null;
+        } else {
+          data.parent = parentNode.id;
+        }
+
+        let promise;
+        $rootScope.skipErrorNotification = true;
+        if (node.original._is_structure_unit) {
+          promise = Search.updateStructureUnit(node.original, data, true);
+        } else {
+          promise = Search.updateNode(node.original, data, true);
+        }
+
+        promise
+          .then(() => {
+            vm.loadRecordAndTree();
+          })
+          .catch(() => {
+            vm.loadRecordAndTree();
+            Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
+          });
       } else {
-        data.parent = parentNode.id;
+        vm.loadRecordAndTree();
+        Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
       }
+    };
 
-      Search.updateNode(node.original, data, true)
-        .then(function(response) {
-          vm.loadRecordAndTree();
-        })
-        .catch(function(response) {
-          Notifications.add('Could not be moved', 'error');
-        });
+    vm.checkDroppable = (src, dst) => {
+      let droppable = true;
+      if (src.original._is_structure_unit && !dst.original._is_structure_unit) {
+        droppable = false;
+      }
+      if (src.original._is_structure_unit && dst.children.length > 0) {
+        droppable = false;
+      }
+      if (!src.original._is_structure_unit && dst.original._is_structure_unit && !dst.original.is_unit_leaf_node) {
+        droppable = false;
+      }
+      return droppable;
     };
 
     vm.setType = function() {
