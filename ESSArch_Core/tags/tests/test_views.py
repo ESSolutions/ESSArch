@@ -1123,6 +1123,25 @@ class UpdateStructureUnitInstanceTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
+    def test_move_to_root(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(url, data={'parent': None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class RelatedStructureUnitTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
