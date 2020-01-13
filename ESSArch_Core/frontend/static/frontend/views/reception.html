@@ -206,11 +206,6 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'validation'" heading="{{'VALIDATION' | translate}}">
-        <div ng-if="vm.activeTab === 'validation'" class="events-status-wrapper">
-          <validation-view ip="ip" base-url="ip-reception"></validation-view>
-        </div>
-      </uib-tab>
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && ip.state !== 'At reception'"
         index="'tasks'"

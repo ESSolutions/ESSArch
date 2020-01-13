@@ -23,7 +23,6 @@ import SaEditorComponent from '../components/SaEditorComponent';
 import searchFilter from '../components/SearchFilterComponent';
 import search from '../components/SearchComponent';
 import StateTreeView from '../components/StateTreeViewComponent';
-import Validation from '../components/ValidationComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
@@ -51,5 +50,4 @@ export default angular
   .component('sysInfoComponent', sysInfoComponent)
   .component('search', search)
   .component('searchFilter', searchFilter)
-  .component('userDropdown', UserDropdownComponent)
-  .component('validationView', Validation).name;
+  .component('userDropdown', UserDropdownComponent).name;

@@ -76,7 +76,6 @@ import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RemoveStructureModalInstanceCtrl from '../controllers/RemoveStructureModalInstanceCtrl';
 import RemoveStructureUnitModalInstanceCtrl from '../controllers/RemoveStructureUnitModalInstanceCtrl';
-import RemoveValidationModalInstanceCtrl from '../controllers/RemoveValidationModalInstanceCtrl';
 import RequestModalInstanceCtrl from '../controllers/RequestModalInstanceCtrl';
 import RestrictedCtrl from '../controllers/RestrictedCtrl';
 import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
@@ -841,7 +840,6 @@ export default angular
     '$translate',
     RemoveStructureUnitModalInstanceCtrl,
   ])
-  .controller('RemoveValidationModalInstanceCtrl', ['$uibModalInstance', 'data', RemoveValidationModalInstanceCtrl])
   .controller('RestrictedCtrl', ['$scope', RestrictedCtrl])
   .controller('SavedSearchModalInstanceCtrl', [
     '$uibModalInstance',
