@@ -38,6 +38,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       COMPONENT: 'Component',
       CONTENTS: 'Contents',
       CONTENT_TYPE: 'Content type',
+      COULD_NOT_BE_MOVED: 'Could not be moved',
       CPF: 'Cpf',
       CREATE_ARCHIVE_CREATOR: 'New authority record',
       CREATE_DELIVERY: 'Create delivery',
