@@ -1,10 +1,11 @@
 from unittest import mock
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
@@ -13,12 +14,17 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_DISABLED,
     STORAGE_TARGET_STATUS_ENABLED,
     STORAGE_TARGET_STATUS_MIGRATE,
+    Robot,
     StorageMedium,
     StorageMethod,
     StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
+    TapeDrive,
+    TapeSlot,
 )
+from ESSArch_Core.testing.runner import TaskRunner
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
@@ -554,3 +560,56 @@ class StorageMigrationTests(TestCase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         mock_task.assert_not_called()
+
+
+class RobotTests(APITestCase):
+    def setUp(self):
+        user = User.objects.create(is_superuser=True)
+        self.client.force_authenticate(user=user)
+
+    @TaskRunner()
+    def test_inventory(self):
+        robot = Robot.objects.create()
+
+        for drive_id in range(4):
+            TapeDrive.objects.create(drive_id=str(drive_id), device='/dev/st{}'.format(drive_id), robot=robot)
+
+        for slot_id in range(2):
+            TapeSlot.objects.create(slot_id=str(slot_id), medium_id='HPS00{}'.format(slot_id + 1), robot=robot)
+
+        storage_target = StorageTarget.objects.create()
+
+        StorageMedium.objects.create(
+            medium_id='HPS001', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='0'),
+        )
+        StorageMedium.objects.create(
+            medium_id='HPS002', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+        )
+
+        output = '''
+  Storage Changer /dev/sg8:4 Drives, 52 Slots ( 4 Import/Export )
+Data Transfer Element 0:Full (Storage Element 0 Loaded):VolumeTag = HPS001L3
+Data Transfer Element 1:Empty
+Data Transfer Element 2:Empty
+Data Transfer Element 3:Empty
+      Storage Element 0:Empty
+      Storage Element 1:Full :VolumeTag=HPS002L3'''
+
+        with mock.patch('ESSArch_Core.storage.tape.Popen.communicate', return_value=(output, '')):
+            url = reverse('robot-inventory', args=(robot.pk,))
+            response = self.client.post(url)
+            self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+
+            t = ProcessTask.objects.get()
+            self.assertEqual(t.status, celery_states.SUCCESS)
+
+            self.assertEqual(StorageMedium.objects.get(medium_id='HPS001').tape_drive.drive_id, 0)
+            self.assertEqual(StorageMedium.objects.get(medium_id='HPS001').tape_slot.slot_id, 0)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS002').tape_drive)
+            self.assertEqual(StorageMedium.objects.get(medium_id='HPS002').tape_slot.slot_id, 1)
