@@ -186,7 +186,7 @@ def tape_empty(drive):
     try:
         logger.debug('Opening tape in {drive}'.format(drive=drive))
         tar = tarfile.open(drive, 'r|')
-    except (IOError, OSError) as e:
+    except OSError as e:
         if e.errno == errno.EIO:
             logger.debug('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
             rewind_tape(drive)
