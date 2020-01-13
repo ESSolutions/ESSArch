@@ -351,6 +351,9 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def get_is_tag_leaf_node(obj):
+        # TODO: Make this a recursive check and add a separate field
+        # indicating if this unit have any direct tag children
+
         archive_descendants = obj.structure.tagstructure_set.annotate(
             versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
         ).filter(structure_unit=obj, versions_exists=True)
@@ -437,14 +440,16 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                     )
 
                 parent = copied['parent']
-                has_tags = parent.structure.tagstructure_set.annotate(
-                    versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
-                ).filter(structure_unit=parent, versions_exists=True)
 
-                if has_tags:
-                    raise serializers.ValidationError(
-                        _('Units cannot be placed in a unit with tags').format(structure_type)
-                    )
+                if parent is not None:
+                    has_tags = parent.structure.tagstructure_set.annotate(
+                        versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+                    ).filter(structure_unit=parent, versions_exists=True)
+
+                    if has_tags:
+                        raise serializers.ValidationError(
+                            _('Units cannot be placed in a unit with tags').format(structure_type)
+                        )
 
                 copied.pop('parent', None)
 
