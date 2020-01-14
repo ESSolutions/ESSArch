@@ -3,7 +3,11 @@
     {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
   </label>
   <div class="flex-row">
-    <select class="form-control version-select" ng-model="vm.structure" ng-change="vm.structureChanged(vm.structure)">
+    <select
+      class="form-control version-select"
+      ng-model="vm.structure.id"
+      ng-change="vm.structureChanged(vm.structure.id)"
+    >
       <option
         ng-repeat="classification in vm.archiveStructures"
         value="{{classification.id}}"
@@ -20,6 +24,7 @@
     ng-disabled="vm.locationButtonDisabled()"
     class="btn btn-sm btn-primary"
     style="margin-right: 2px;"
+    ng-if="vm.recordTreeInstance"
     ng-click="vm.addNodeLocationModal(vm.getChecked())"
     permission
     permission-only="'tags.change_tag_location'"
@@ -29,6 +34,7 @@
   <button
     ng-disabled="vm.deliveryButtonDisabled()"
     class="btn btn-sm btn-primary"
+    ng-if="vm.recordTreeInstance"
     ng-click="vm.addNodeDeliveryModal(vm.getChecked())"
     permission
     permission-only="'tags.change_transfer'"
