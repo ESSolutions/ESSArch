@@ -46,7 +46,11 @@ export default class SearchDetailCtrl {
     });
 
     vm.$onInit = function() {
-      vm.loadRecordAndTree();
+      if ($stateParams.structure) {
+        vm.loadRecordAndTree($stateParams.structure);
+      } else {
+        vm.loadRecordAndTree();
+      }
     };
 
     vm.idCopyDone = function() {
@@ -416,11 +420,11 @@ export default class SearchDetailCtrl {
       if (isStructureUnit)
         $state.go(
           'home.archivalDescriptions.search.structure_unit',
-          {id: id, archive: vm.archive._id},
+          {id: id, archive: vm.archive._id, structure: vm.structure.id},
           {notify: true}
         );
       else {
-        $state.go('home.archivalDescriptions.search.component', {id: id}, {notify: true});
+        $state.go('home.archivalDescriptions.search.component', {id: id, structure: vm.structure.id}, {notify: true});
       }
     };
 
