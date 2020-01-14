@@ -115,7 +115,6 @@ export default class SearchDetailCtrl {
       vm.archive = archive;
       vm.archiveStructures = angular.copy(archive.structures);
       vm.structure = vm.getStructureById(vm.archiveStructures, vm.structureId);
-      console.log(vm.structure);
 
       if (!vm.structure && vm.record.structures.length > 0) {
         vm.structure = vm.record.structures[vm.record.structures.length - 1];
