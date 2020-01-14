@@ -537,7 +537,7 @@ export default class SearchDetailCtrl {
             return (
               (node.original._is_structure_unit &&
                 !(
-                  $scope.checkPermission('tags.move_structureunit_instances') &&
+                  $scope.checkPermission('tags.move_structureunit_instance') &&
                   vm.structure.type.movable_instance_units
                 )) ||
               node.original._index === 'archive'
