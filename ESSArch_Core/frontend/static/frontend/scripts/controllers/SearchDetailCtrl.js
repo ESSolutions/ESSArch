@@ -933,11 +933,13 @@ export default class SearchDetailCtrl {
 
     vm.getStructureById = function(structures, id) {
       let structure = null;
-      structures.forEach(function(x) {
-        if (x.id === id) {
-          structure = x;
-        }
-      });
+      if (structures && structures.length > 0) {
+        structures.forEach(function(x) {
+          if (x.id === id) {
+            structure = x;
+          }
+        });
+      }
       return structure;
     };
 
