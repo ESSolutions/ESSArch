@@ -810,14 +810,14 @@ export default class SearchDetailCtrl {
 
         promise
           .then(() => {
-            vm.loadRecordAndTree();
+            vm.loadRecordAndTree(vm.structure.id);
           })
           .catch(() => {
-            vm.loadRecordAndTree();
+            vm.loadRecordAndTree(vm.structure.id);
             Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
           });
       } else {
-        vm.loadRecordAndTree();
+        vm.loadRecordAndTree(vm.structure.id);
         Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
       }
     };
