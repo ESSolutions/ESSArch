@@ -431,6 +431,7 @@ def installDefaultPaths():
         'preingest_reception': '/ESSArch/data/preingest/reception',
         'ingest': '/ESSArch/data/ingest/packages',
         'ingest_reception': '/ESSArch/data/ingest/reception',
+        'ingest_transfer': '/ESSArch/data/ingest/transfer',
         'ingest_unidentified': '/ESSArch/data/ingest/uip',
         'access_workarea': '/ESSArch/data/workspace',
         'ingest_workarea': '/ESSArch/data/workspace',

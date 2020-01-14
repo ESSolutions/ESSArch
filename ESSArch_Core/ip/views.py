@@ -2020,54 +2020,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response("Validating IP")
 
-    @lock_obj(blocking_timeout=0.1)
-    @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
-    def transfer(self, request, pk=None):
-        ip = self.get_object()
-
-        workflow_spec = [
-            {
-                "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to transferring",
-                "args": ["Transferring"],
-            },
-            {
-                "step": True,
-                "name": "Create Log File",
-                "children": [
-                    {
-                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
-                        "label": "Generate events xml file",
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.AppendEvents",
-                        "label": "Add events to xml file",
-                    },
-                    {
-                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
-                        "label": "Add premis IP object to xml file",
-                    },
-
-                ]
-            },
-            {
-                "name": "preingest.tasks.TransferSIP",
-                "label": "Transfer SIP",
-            },
-            {
-                "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to transferred",
-                "args": ["Transferred"],
-            },
-        ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Transfer SIP"
-        workflow.information_package = ip
-        workflow.save()
-        workflow.run()
-        return Response({'status': 'transferring ip'})
-
     def update(self, request, *args, **kwargs):
         ip = self.get_object()
 
@@ -2233,8 +2185,16 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
 
         from_db = InformationPackage.objects.visible_to_user(request.user).filter(
-            package_type=InformationPackage.AIP,
-            state__in=['Receiving'],
+            Q(
+                Q(
+                    package_type=InformationPackage.AIP,
+                    state__in=['Receiving']
+                ) |
+                Q(
+                    package_type=InformationPackage.SIP,
+                    state__in=['Transferring', 'Transferred']
+                )
+            ),
             **conditions
         )
         serializer = InformationPackageSerializer(
@@ -2449,6 +2409,144 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             extra={'user': request.user.pk},
         )
         return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+
+    @lock_obj(blocking_timeout=0.1)
+    @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
+    def transfer(self, request, pk=None):
+        logger = logging.getLogger('essarch.ingest')
+        perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+        organization = request.user.user_profile.current_organization
+
+        existing_ip = InformationPackage.objects.filter(object_identifier_value=pk).first()
+
+        if existing_ip is not None:
+            ip = existing_ip
+
+            workflow_spec = [
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to transferring",
+                    "args": ["Transferring"],
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.TransferIP",
+                    "label": "Transfer IP",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to transferred",
+                    "args": ["Transferred"],
+                },
+            ]
+        else:
+            reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+            xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
+
+            if not os.path.isfile(xmlfile):
+                logger.warning(
+                    'Tried to transfer IP with missing XML file %s' % xmlfile,
+                    extra={'user': request.user.pk}
+                )
+                raise exceptions.NotFound('%s does not exist' % xmlfile)
+            try:
+                container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
+            except etree.LxmlError:
+                logger.warning(
+                    'Tried to transfer IP with invalid XML file %s' % xmlfile,
+                    extra={'user': request.user.pk}
+                )
+                raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
+
+            if not os.path.isfile(container):
+                logger.warning(
+                    'Tried to transfer IP with missing container file %s' % container,
+                    extra={'user': request.user.pk}
+                )
+                raise exceptions.NotFound('%s does not exist' % container)
+
+            if organization is None:
+                raise exceptions.ParseError('You must be part of an organization to transfer IP')
+
+            parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
+            provided_sa = request.data.get('submission_agreement')
+            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+
+            if parsed_sa is not None and provided_sa is not None:
+                if provided_sa == parsed_sa:
+                    sa = provided_sa
+                else:
+                    raise exceptions.ParseError(detail='Must use SA specified in XML')
+            elif any([parsed_sa, provided_sa]):
+                sa = parsed_sa or provided_sa
+            else:
+                raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+
+            try:
+                sa = SubmissionAgreement.objects.get(pk=sa)
+            except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
+                raise exceptions.ParseError(e)
+
+            ip = InformationPackage.objects.create(
+                object_identifier_value=pk,
+                submission_agreement=sa,
+                responsible=request.user,
+                object_path=container,
+                package_mets_path=normalize_path(xmlfile),
+            )
+            parse_submit_description_from_ip(ip)
+
+            member = Member.objects.get(django_user=request.user)
+            user_perms = perms.pop('owner', [])
+
+            organization.assign_object(ip, custom_permissions=perms)
+            organization.add_object(ip)
+
+            for perm in user_perms:
+                perm_name = get_permission_name(perm, ip)
+                assign_perm(perm_name, member.django_user, ip)
+
+            workflow_spec = [
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to transferring",
+                    "args": ["Transferring"],
+                },
+                {
+                    "step": True,
+                    "name": "Create Log File",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                            "label": "Generate events xml file",
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.AppendEvents",
+                            "label": "Add events to xml file",
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                            "label": "Add premis IP object to xml file",
+                        },
+
+                    ]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.TransferIP",
+                    "label": "Transfer IP",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to transferred",
+                    "args": ["Transferred"],
+                },
+            ]
+        workflow = create_workflow(workflow_spec, ip)
+        workflow.name = "Transfer IP"
+        workflow.information_package = ip
+        workflow.save()
+        workflow.run()
+        return Response({'status': 'transferring ip'})
 
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):

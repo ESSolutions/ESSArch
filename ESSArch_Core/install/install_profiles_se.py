@@ -166,6 +166,14 @@ def installProfileTransferProject(sa):
                 },
                 "type": "input",
                 "key": "preservation_organization_receiver_url"
+            }, {
+                "templateOptions": {
+                    "type": "text",
+                    "remote": "",
+                    "label": "Transfer destination url (empty for local)",
+                },
+                "type": "input",
+                "key": "transfer_destination_url"
             }
         ],
     }

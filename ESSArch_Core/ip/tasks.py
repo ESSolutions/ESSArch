@@ -124,6 +124,56 @@ class SubmitSIP(DBTask):
         return "Submitted %s" % ip.object_identifier_value
 
 
+class TransferIP(DBTask):
+    event_type = 20600
+
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        src = ip.object_path
+        srcdir, srcfile = os.path.split(src)
+
+        remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
+        session = None
+        if remote:
+            dst, remote_user, remote_pass = remote.split(',')
+
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (remote_user, remote_pass)
+
+        if not remote:
+            dst = Path.objects.get(entity="ingest_transfer").value
+
+        block_size = 8 * 1000000  # 8MB
+        copy_file(src, dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(50, total=100)
+
+        objid = ip.object_identifier_value
+        src = ip.get_events_file_path()
+        if os.path.isfile(src):
+            if not remote:
+                xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
+            else:
+                xml_dst = dst
+            copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(75, total=100)
+
+        src = os.path.join(srcdir, "%s.xml" % objid)
+        if remote:
+            xml_dst = dst
+        else:
+            xml_dst = os.path.join(dst, "%s.xml" % objid)
+
+        copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+        self.set_progress(100, total=100)
+        return dst
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        return "Transferred IP"
+
+
 class PrepareAIP(DBTask):
     def run(self, sip_path):
         sip_path, = self.parse_params(sip_path)

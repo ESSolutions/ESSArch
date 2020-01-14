@@ -71,6 +71,7 @@ def create_data_directories(path):
         'disseminations',
         'ingest/packages',
         'ingest/reception',
+        'ingest/transfer',
         'ingest/uip',
         'orders',
         'preingest/packages',

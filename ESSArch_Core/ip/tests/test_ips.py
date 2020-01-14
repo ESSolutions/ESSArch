@@ -34,6 +34,7 @@ import zipfile
 from datetime import datetime
 from unittest import mock
 
+import requests
 from django.contrib.auth.models import Permission, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
@@ -46,8 +47,14 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
-from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    EventType,
+    Parameter,
+    Path,
+    StoragePolicy,
+)
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     InformationPackage,
     Order,
@@ -1526,6 +1533,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         org_group_type = GroupType.objects.create(label='organization')
         cls.group = Group.objects.create(name='organization', group_type=org_group_type)
         cls.receive_perm = Permission.objects.get(content_type__app_label='ip', codename='receive')
+        cls.transfer_perm = Permission.objects.get(content_type__app_label='ip', codename='transfer_sip')
 
     def add_user_to_group(self):
         self.group.add_member(self.user.essauth_member)
@@ -1534,15 +1542,13 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         self.user = User.objects.create()
         self.client.force_authenticate(user=self.user)
 
-        self.reception = tempfile.mkdtemp()
-        temp = tempfile.mkdtemp()
-        ingest_unidentified = tempfile.mkdtemp()
-        ingest = tempfile.mkdtemp()
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
-        self.addCleanup(shutil.rmtree, self.reception)
-        self.addCleanup(shutil.rmtree, temp)
-        self.addCleanup(shutil.rmtree, ingest_unidentified)
-        self.addCleanup(shutil.rmtree, ingest)
+        self.reception = tempfile.mkdtemp(dir=self.datadir)
+        temp = tempfile.mkdtemp(dir=self.datadir)
+        ingest_unidentified = tempfile.mkdtemp(dir=self.datadir)
+        ingest = tempfile.mkdtemp(dir=self.datadir)
 
         Path.objects.create(entity="temp", value=temp)
         Path.objects.create(entity='ingest_reception', value=self.reception)
@@ -2122,6 +2128,89 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
         with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
             self.assertEqual(f.read(), expected.read())
+
+    @TaskRunner()
+    def test_transfer_ip(self):
+        self.user.user_permissions.add(self.transfer_perm)
+        self.add_user_to_group()
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+
+        transfer_dst = tempfile.mkdtemp(dir=self.datadir)
+        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-transfer', args=(objid,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        expected_package_checksum = calculate_checksum(ip_package)
+        expected_xml_checksum = calculate_checksum(xml)
+
+        self.assertEqual(calculate_checksum(os.path.join(transfer_dst, 'foo.tar')), expected_package_checksum)
+        self.assertEqual(calculate_checksum(os.path.join(transfer_dst, 'foo.xml')), expected_xml_checksum)
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.ip.tasks.requests.Session', return_value=requests.Session())
+    @mock.patch('ESSArch_Core.ip.tasks.copy_file')
+    def test_transfer_ip_remote(self, mock_upload, mock_session):
+        self.user.user_permissions.add(self.transfer_perm)
+        self.add_user_to_group()
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+
+        transfer_dst = tempfile.mkdtemp(dir=self.datadir)
+        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
+
+        ip = InformationPackage.objects.create(
+            object_identifier_value=objid,
+            package_type=InformationPackage.SIP,
+            object_path=ip_package,
+            submission_agreement=self.sa,
+            responsible=self.user,
+        )
+        self.sa.profile_transfer_project = Profile.objects.create(
+            profile_type='transfer_project',
+            template=[
+                {
+                    "type": "input",
+                    "key": "transfer_destination_url",
+                    'defaultValue': 'http://example.com/api/ip-reception/upload/,user,pass',
+                }
+            ],
+        )
+        self.sa.save()
+        self.sa.lock_to_information_package(ip, self.user)
+
+        url = reverse('ip-reception-transfer', args=(objid,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        mock_upload.assert_has_calls([
+            mock.call(
+                ip_package, 'http://example.com/api/ip-reception/upload/',
+                block_size=mock.ANY, requests_session=mock.ANY,
+            ),
+            mock.call(
+                xml, 'http://example.com/api/ip-reception/upload/',
+                block_size=mock.ANY, requests_session=mock.ANY,
+            ),
+        ])
+
+        kwargs = mock_upload.mock_calls[0][-1]
+        self.assertEqual(kwargs['requests_session'].auth, ('user', 'pass'))
+
+        kwargs = mock_upload.mock_calls[1][-1]
+        self.assertEqual(kwargs['requests_session'].auth, ('user', 'pass'))
 
 
 class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
