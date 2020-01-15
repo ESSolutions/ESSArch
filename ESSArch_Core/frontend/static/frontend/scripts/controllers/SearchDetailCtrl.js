@@ -46,7 +46,11 @@ export default class SearchDetailCtrl {
     });
 
     vm.$onInit = function() {
-      vm.loadRecordAndTree();
+      if ($stateParams.structure) {
+        vm.loadRecordAndTree($stateParams.structure);
+      } else {
+        vm.loadRecordAndTree();
+      }
     };
 
     vm.idCopyDone = function() {
@@ -91,11 +95,7 @@ export default class SearchDetailCtrl {
         } else {
           archiveId = vm.record.archive;
         }
-        if (structure) {
-          vm.structure = structure;
-        } else {
-          vm.structure = vm.record.structure;
-        }
+        vm.structureId = structure ? structure : vm.record.structure;
 
         if (vm.record._id === archiveId) {
           vm.createArchiveNode(startNode, vm.record);
@@ -114,9 +114,10 @@ export default class SearchDetailCtrl {
       delete archive.parent;
       vm.archive = archive;
       vm.archiveStructures = angular.copy(archive.structures);
+      vm.structure = vm.getStructureById(vm.archiveStructures, vm.structureId);
 
       if (!vm.structure && vm.record.structures.length > 0) {
-        vm.structure = vm.record.structures[vm.record.structures.length - 1].id;
+        vm.structure = vm.record.structures[vm.record.structures.length - 1];
       }
 
       vm.buildTree(startNode, archive).then(function(children) {
@@ -165,7 +166,8 @@ export default class SearchDetailCtrl {
     };
 
     vm.getNode = function(id) {
-      return $http.get(vm.url + 'search/' + id + '/', {params: {structure: vm.structure}}).then(function(response) {
+      const structureId = vm.structure ? vm.structure.id : vm.structureId;
+      return $http.get(vm.url + 'search/' + id + '/', {params: {structure: structureId}}).then(function(response) {
         response.data._is_structure_unit = false;
         return vm.createNode(response.data);
       });
@@ -202,10 +204,10 @@ export default class SearchDetailCtrl {
       if (node._is_structure_unit === true) {
         url = vm.url + 'structure-units/' + node._id + '/children/';
       } else if (node._id === vm.archive._id) {
-        return vm.getClassificationStructureChildren(vm.structure);
+        return vm.getClassificationStructureChildren(vm.structure.id);
       } else {
         url = vm.url + 'search/' + node._id + '/children/';
-        params.structure = vm.structure;
+        params.structure = vm.structure.id;
       }
 
       console.log('Getting children to', node, 'in archive', archive._id);
@@ -295,9 +297,9 @@ export default class SearchDetailCtrl {
           if (parent !== null) {
             parent.children = [start];
             parent.state = {opened: true};
-            return vm.buildTree(parent, archive, vm.structure);
+            return vm.buildTree(parent, archive, vm.structure.id);
           } else {
-            return vm.getClassificationStructureChildren(vm.structure).then(function(children) {
+            return vm.getClassificationStructureChildren(vm.structure.id).then(function(children) {
               const result = [];
               children.data.forEach(function(child) {
                 if (start._id === child._id) {
@@ -417,11 +419,11 @@ export default class SearchDetailCtrl {
       if (isStructureUnit)
         $state.go(
           'home.archivalDescriptions.search.structure_unit',
-          {id: id, archive: vm.archive._id},
+          {id: id, archive: vm.archive._id, structure: vm.structure.id},
           {notify: true}
         );
       else {
-        $state.go('home.archivalDescriptions.search.component', {id: id}, {notify: true});
+        $state.go('home.archivalDescriptions.search.component', {id: id, structure: vm.structure.id}, {notify: true});
       }
     };
 
@@ -538,8 +540,8 @@ export default class SearchDetailCtrl {
             return (
               (node.original._is_structure_unit &&
                 !(
-                  $scope.checkPermission('tags.move_structureunit_instances') &&
-                  vm.getStructureById(vm.archiveStructures, vm.structure).type.movable_instance_units
+                  $scope.checkPermission('tags.move_structureunit_instance') &&
+                  vm.structure.type.movable_instance_units
                 )) ||
               node.original._index === 'archive'
             );
@@ -550,7 +552,7 @@ export default class SearchDetailCtrl {
 
           let structure = null;
           vm.archiveStructures.forEach(function(struct) {
-            if (struct.id === vm.structure) {
+            if (struct.id === vm.structure.id) {
               structure = struct;
             }
           });
@@ -567,15 +569,14 @@ export default class SearchDetailCtrl {
               return (
                 node.original._is_structure_unit &&
                 !(
-                  $scope.checkPermission('tags.change_structureunit_instance') &&
-                  vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instances
+                  $scope.checkPermission('tags.change_structureunit_instance') && vm.structure.type.editable_instances
                 ) &&
                 !(!node.original._is_structure_unit && $scope.checkPermission('tags.change_tagversion'))
               );
             },
             action: function update() {
               if (node.original._is_structure_unit) {
-                const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+                const struct = vm.structure;
                 struct.structureType = angular.copy(struct.type);
                 vm.editStructureUnitModal(node.original, struct);
               } else if (node.original._index === 'archive') {
@@ -591,19 +592,18 @@ export default class SearchDetailCtrl {
               return node.original._index === 'archive' || !$scope.checkPermission('tags.add_tag');
             },
             action: function() {
-              vm.addNodeModal(node, vm.structure);
+              vm.addNodeModal(node, vm.structure.id);
             },
           };
           const addStructureUnit = {
             label: $translate.instant('ACCESS.ADD_STRUCTURE_UNIT'),
             _disabled: function() {
               return !(
-                $scope.checkPermission('tags.add_structureunit_instance') &&
-                vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instances
+                $scope.checkPermission('tags.add_structureunit_instance') && vm.structure.type.editable_instances
               );
             },
             action: function() {
-              const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+              const struct = vm.structure;
               struct.structureType = angular.copy(struct.type);
               vm.addStructureUnitModal(node.original, struct);
             },
@@ -615,7 +615,7 @@ export default class SearchDetailCtrl {
                 (node.original._is_structure_unit &&
                   !(
                     $scope.checkPermission('tags.delete_structureunit_instance') &&
-                    vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instances
+                    vm.structure.type.editable_instances
                   )) ||
                 node.original._index === 'archive' ||
                 !$scope.checkPermission('tags.delete_tagversion')
@@ -623,7 +623,7 @@ export default class SearchDetailCtrl {
             },
             action: function() {
               if (node.original._is_structure_unit) {
-                const struct = vm.getStructureById(vm.archiveStructures, vm.structure);
+                const struct = vm.structure;
                 struct.structureType = angular.copy(struct.type);
                 vm.removeStructureUnitModal(node, struct);
               } else {
@@ -661,7 +661,7 @@ export default class SearchDetailCtrl {
             action: function() {
               let struct;
               vm.archiveStructures.forEach(function(item) {
-                if (item.id == vm.structure) {
+                if (item.id === vm.structure.id) {
                   struct = item;
                 }
               });
@@ -792,21 +792,54 @@ export default class SearchDetailCtrl {
     vm.dropNode = function(jqueryObj, data) {
       const node = data.node;
       const parentNode = vm.recordTreeInstance.jstree(true).get_node(node.parent);
-      var data = {structure: vm.structure};
+      if (vm.checkDroppable(node, parentNode)) {
+        var data = {structure: vm.structure.id};
 
-      if (parentNode.original._is_structure_unit) {
-        data.structure_unit = parentNode.id;
+        if (parentNode.original._is_structure_unit && !node.original._is_structure_unit) {
+          data.structure_unit = parentNode.id;
+        } else if (parentNode.original._index === 'archive') {
+          data.parent = null;
+        } else {
+          data.parent = parentNode.id;
+        }
+
+        let promise;
+        $rootScope.skipErrorNotification = true;
+        if (node.original._is_structure_unit) {
+          promise = Search.updateStructureUnit(node.original, data, true);
+        } else {
+          promise = Search.updateNode(node.original, data, true);
+        }
+
+        promise
+          .then(() => {
+            vm.loadRecordAndTree(vm.structure.id);
+          })
+          .catch(() => {
+            vm.loadRecordAndTree(vm.structure.id);
+            Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
+          });
       } else {
-        data.parent = parentNode.id;
+        vm.loadRecordAndTree(vm.structure.id);
+        Notifications.add($translate.instant('ACCESS.COULD_NOT_BE_MOVED'), 'error');
       }
+    };
 
-      Search.updateNode(node.original, data, true)
-        .then(function(response) {
-          vm.loadRecordAndTree();
-        })
-        .catch(function(response) {
-          Notifications.add('Could not be moved', 'error');
-        });
+    vm.checkDroppable = (src, dst) => {
+      let droppable = true;
+      if (src.original._is_structure_unit) {
+        if (!dst.original._is_structure_unit && dst.original._index !== 'archive') {
+          droppable = false;
+        }
+        if (dst.original._is_structure_unit && !dst.original.is_tag_leaf_node) {
+          droppable = false;
+        }
+      } else {
+        if (dst.original._is_structure_unit && !dst.original.is_unit_leaf_node) {
+          droppable = false;
+        }
+      }
+      return droppable;
     };
 
     vm.setType = function() {
@@ -900,11 +933,13 @@ export default class SearchDetailCtrl {
 
     vm.getStructureById = function(structures, id) {
       let structure = null;
-      structures.forEach(function(x) {
-        if (x.id === id) {
-          structure = x;
-        }
-      });
+      if (structures && structures.length > 0) {
+        structures.forEach(function(x) {
+          if (x.id === id) {
+            structure = x;
+          }
+        });
+      }
       return structure;
     };
 
@@ -1430,8 +1465,8 @@ export default class SearchDetailCtrl {
         resolve: {
           data: {
             node: node,
-            isStructureTemplate: vm.getStructureById(vm.archiveStructures, vm.structure).is_template,
-            structure: vm.structure,
+            isStructureTemplate: vm.structure.is_template,
+            structure: vm.structure.id,
           },
         },
       });
@@ -1458,8 +1493,8 @@ export default class SearchDetailCtrl {
           data: {
             relation: relation,
             node: node,
-            structure: vm.structure,
-            isStructureTemplate: vm.getStructureById(vm.archiveStructures, vm.structure).is_template,
+            structure: vm.structure.id,
+            isStructureTemplate: vm.structure.is_template,
           },
         },
       });
@@ -1486,7 +1521,7 @@ export default class SearchDetailCtrl {
           data: {
             relation: relation,
             node: node,
-            structure: vm.structure,
+            structure: vm.structure.id,
           },
         },
       });

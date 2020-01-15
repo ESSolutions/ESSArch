@@ -38,6 +38,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       COMPONENT: 'Komponent',
       CONTENTS: 'Innehåll',
       CONTENT_TYPE: 'Content type',
+      COULD_NOT_BE_MOVED: 'Kunde inte flyttas',
       CPF: 'Typ av auktoritetspost',
       CREATE_ARCHIVE_CREATOR: 'Skapa arkivbildare',
       CREATE_DELIVERY: 'Skapa leverans',
