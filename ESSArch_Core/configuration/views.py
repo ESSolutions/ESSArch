@@ -41,12 +41,14 @@ from redis.exceptions import RedisError
 from rest_framework import filters, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.configuration.filters import EventTypeFilter
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     Site,
@@ -54,6 +56,7 @@ from ESSArch_Core.configuration.models import (
 )
 from ESSArch_Core.configuration.serializers import (
     EventTypeSerializer,
+    FeatureSerializer,
     ParameterSerializer,
     PathSerializer,
     SiteSerializer,
@@ -200,6 +203,12 @@ class EventTypeViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('eventDetail',)
+
+
+class FeatureViewSet(ReadOnlyModelViewSet):
+    queryset = Feature.objects.all()
+    serializer_class = FeatureSerializer
+    permission_classes = ()
 
 
 class ParameterViewSet(viewsets.ModelViewSet):

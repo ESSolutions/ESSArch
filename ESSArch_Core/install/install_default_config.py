@@ -21,7 +21,7 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-
+import click
 import django
 
 django.setup()
@@ -37,7 +37,7 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
-from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
+from ESSArch_Core.configuration.models import EventType, Feature, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
 from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
 
 User = get_user_model()
@@ -46,6 +46,8 @@ User = get_user_model()
 def installDefaultConfiguration():
     print("Installing event types...")
     installDefaultEventTypes()
+
+    installDefaultFeatures()
 
     print("Installing parameters...")
     installDefaultParameters()
@@ -78,6 +80,34 @@ def installDefaultConfiguration():
     installSearchIndices()
 
     return 0
+
+
+def installDefaultFeatures():
+    click.echo('Installing default features:')
+
+    features = [
+        {
+            'name': 'receive',
+            'enabled': True,
+        },
+        {
+            'name': 'transfer',
+            'enabled': False,
+        },
+    ]
+
+    for feature in features:
+        click.secho('- {}... '.format(feature['name']), nl=False)
+        f, _ = Feature.objects.get_or_create(
+            name=feature['name'],
+            defaults={
+                'enabled': feature['enabled'],
+                'description': feature.get('description', ''),
+            }
+        )
+        click.secho('enabled' if f.enabled else 'disabled', fg='green' if f.enabled else 'red')
+
+    return
 
 
 def installDefaultEventTypes():

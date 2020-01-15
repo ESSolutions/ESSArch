@@ -26,6 +26,7 @@ from ESSArch_Core.auth.views import (
 )
 from ESSArch_Core.configuration.views import (
     EventTypeViewSet,
+    FeatureViewSet,
     ParameterViewSet,
     PathViewSet,
     SiteView,
@@ -294,6 +295,7 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'conversion-rules', ConversionRuleViewSet)
+router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
