@@ -57,6 +57,7 @@ from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
+from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
@@ -2410,6 +2411,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         )
         return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
 
+    @feature_enabled_or_404('transfer')
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
