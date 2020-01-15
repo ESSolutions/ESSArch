@@ -2236,6 +2236,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @transaction.atomic
     @permission_required_or_403(['ip.receive'])
+    @feature_enabled_or_404('receive')
     @action(detail=True, methods=['post'], url_path='receive')
     def receive(self, request, pk=None):
         logger = logging.getLogger('essarch.ingest')
@@ -2411,9 +2412,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         )
         return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
 
-    @feature_enabled_or_404('transfer')
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
+    @feature_enabled_or_404('transfer')
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
     def transfer(self, request, pk=None):
         logger = logging.getLogger('essarch.ingest')
