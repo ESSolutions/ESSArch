@@ -1,3 +1,10 @@
+# [3.1.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.1)
+
+## Fixed
+
+- Rules for moving structure unit instances (#850, #852, #863)
+- Assigned roles section on user admin page (#868)
+
 # [3.1.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.0)
 
 ## Added
