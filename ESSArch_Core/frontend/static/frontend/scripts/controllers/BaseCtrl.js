@@ -22,6 +22,8 @@
     Email - essarch@essolutions.se
 */
 
+import {isEnabled} from './../features/utils';
+
 export default class BaseCtrl {
   constructor(
     vm,
@@ -78,6 +80,7 @@ export default class BaseCtrl {
 
     $scope.$translate = $translate;
 
+    $scope.isEnabled = isEnabled;
     $scope.ContentTabs = ContentTabs;
     // Can be overwritten in controllers to change title
     vm.listViewTitle = $translate.instant('INFORMATION_PACKAGES');
@@ -197,7 +200,11 @@ export default class BaseCtrl {
               if (vm.specificTabs.length > 0) {
                 vm.activeTab = vm.specificTabs[0];
               } else {
-                vm.activeTab = 'tasks';
+                if ($state.current.name === 'home.ingest.reception') {
+                  vm.activeTab = 'events';
+                } else {
+                  vm.activeTab = 'tasks';
+                }
               }
             });
           }

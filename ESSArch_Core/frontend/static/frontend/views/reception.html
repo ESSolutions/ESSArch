@@ -8,7 +8,7 @@
     >
       <uib-tab
         index="'receive'"
-        ng-if="checkPermission('ip.receive') && (ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('receive'))"
+        ng-if="isEnabled($root.features, 'receive') && checkPermission('ip.receive') && (ip.state == 'At reception' || vm.specificTabs.includes('receive'))"
         heading="{{'RECEIVE' | translate}}"
       >
         <div ng-if="vm.activeTab === 'receive'">
@@ -108,7 +108,7 @@
       </uib-tab>
       <uib-tab
         index="'transfer'"
-        ng-if="checkPermission('ip.transfer_sip') && (ip.state == 'At reception' || ip.state == 'Prepared' || vm.specificTabs.includes('transfer'))"
+        ng-if="isEnabled($root.features, 'transfer') && checkPermission('ip.transfer_sip') && (ip.state == 'At reception' || vm.specificTabs.includes('transfer'))"
         heading="{{'TRANSFER_SIP' | translate}}"
       >
         <div ng-if="vm.activeTab === 'transfer'">
