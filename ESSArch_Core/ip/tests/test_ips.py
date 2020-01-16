@@ -79,7 +79,7 @@ from ESSArch_Core.storage.models import (
     StorageTarget,
 )
 from ESSArch_Core.testing.runner import TaskRunner
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 def create_mets_spec(outer: bool, sa: SubmissionAgreement):
@@ -503,7 +503,6 @@ def create_premis_spec(sa: SubmissionAgreement):
             }
         ]
     }
-
 
 
 class AccessTestCase(TestCase):
@@ -1856,7 +1855,6 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_202_ACCEPTED)
 
         mock_task.assert_called_once()
-
 
     def test_change_organization(self):
         self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
