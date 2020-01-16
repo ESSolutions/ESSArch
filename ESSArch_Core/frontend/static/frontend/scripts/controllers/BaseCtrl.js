@@ -731,10 +731,14 @@ export default class BaseCtrl {
           },
         },
       });
-      modalInstance.result.then(() => {
-        $scope.getListViewData();
-        $scope.ips = [];
-      });
+      modalInstance.result
+        .then(() => {
+          $scope.getListViewData();
+          $scope.ips = [];
+        })
+        .catch(() => {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
     };
 
     vm.accessModal = function(ip, request) {
