@@ -6,78 +6,176 @@ export default class SaEditorCtrl {
     vm.saProfiles = [];
     vm.createNewSa = false;
     vm.saLoading = false;
+    vm.profileOptions = {};
+    vm.policyOptions = [];
     vm.$onInit = function() {
       SA.query({pager: 'none'}).$promise.then(function(resource) {
         vm.saProfiles = resource;
       });
+
+      // Fill the profile fields with available profile options
+      $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function(response) {
+        vm.saFields = response.data.map(function(field) {
+          if (field.key.startsWith('profile_') && !field.templateOptions.useTemplate) {
+            field = getProfileSelectField(angular.copy(field));
+          }
+          if (field.key === 'policy' && !field.templateOptions.useTemplate) {
+            field = policyField;
+          }
+          return field;
+        });
+        for (let i = 0; i < vm.saFields.length; i++) {
+          if (!vm.saFields[i].templateOptions.disabled) {
+            vm.saFields[i].templateOptions.focus = true;
+            break;
+          }
+        }
+      });
     };
+
+    let policyField = {
+      type: 'uiselect',
+      key: 'policy',
+      templateOptions: {
+        options: function() {
+          return vm.policyOptions;
+        },
+        valueProp: 'id',
+        labelProp: 'policy_id',
+        label: $translate.instant('STORAGE_POLICY'),
+        appendToBody: true,
+        refresh: (search, open, value) => {
+          if (open || (!open && value)) {
+            if (angular.isUndefined(search) || search === null || search === '') {
+              search = '';
+            }
+            return vm.getPolicy(search).then(() => {
+              this.options = vm.policyOptions;
+              return vm.policyOptions;
+            });
+          }
+        },
+      },
+    };
+
+    vm.getPolicy = search => {
+      return $http({
+        url: appConfig.djangoUrl + 'storage-policies/',
+        mathod: 'GET',
+        params: {pager: 'none', search: search},
+      }).then(function(response) {
+        vm.policyOptions = response.data;
+        return vm.policyOptions;
+      });
+    };
+
+    let getProfileSelectField = field => {
+      const type = field.key.replace('profile_', '');
+      if (angular.isUndefined(vm.profileOptions[type])) {
+        vm.profileOptions[type] = [];
+      }
+      return {
+        type: 'uiselect',
+        key: field.key,
+        templateOptions: {
+          options: function() {
+            return vm.profileOptions[type];
+          },
+          valueProp: 'id',
+          labelProp: 'name',
+          placeholder: field.templateOptions.placeholder ? field.templateOptions.placeholder : '',
+          label: field.templateOptions.label,
+          clearEnabled: true,
+          required: field.templateOptions.required ? field.templateOptions.required : false,
+          appendToBody: true,
+          refresh: (search, open, value) => {
+            if (open || (!open && value)) {
+              if (angular.isUndefined(search) || search === null || search === '') {
+                search = '';
+              }
+              return vm.getProfilesByType(type, search).then(() => {
+                this.options = vm.profileOptions[type];
+                return vm.profileOptions[type];
+              });
+            }
+          },
+        },
+      };
+    };
+
+    vm.getProfilesByType = (type, search) => {
+      return $http({
+        url: appConfig.djangoUrl + 'profiles/',
+        mathod: 'GET',
+        params: {pager: 'none', search: search, type},
+      }).then(function(response) {
+        vm.profileOptions[type] = response.data;
+        return vm.profileOptions[type];
+      });
+    };
+
     vm.newSa = function(use_template) {
       vm.saLoading = true;
-      vm.getProfiles().then(function() {
-        vm.enableFields();
-        vm.saModel = null;
-        if (use_template && !angular.isUndefined(use_template)) {
-          const sa = angular.copy(vm.saProfile);
-          vm.saProfile = null;
-          delete sa.id;
-          delete sa.url;
-          sa.published = false;
-          sa.name = '';
-          $timeout(function() {
-            vm.saModel = sa;
-            vm.saProfiles.push(vm.saModel);
-            vm.saProfile = vm.saModel;
-            vm.saLoading = false;
-          });
-        } else {
-          vm.saProfile = null;
-          $timeout(function() {
-            vm.saModel = {};
-            vm.saProfiles.push(vm.saModel);
-            vm.saProfile = vm.saModel;
-            vm.saLoading = false;
-          });
-        }
-        vm.createNewSa = true;
-        $scope.edit = true;
-      });
+      vm.enableFields();
+      vm.saModel = null;
+      if (use_template && !angular.isUndefined(use_template)) {
+        const sa = angular.copy(vm.saProfile);
+        vm.saProfile = null;
+        delete sa.id;
+        delete sa.url;
+        sa.published = false;
+        sa.name = '';
+        $timeout(function() {
+          vm.saModel = sa;
+          vm.saProfiles.push(vm.saModel);
+          vm.saProfile = vm.saModel;
+          vm.saLoading = false;
+        });
+      } else {
+        vm.saProfile = null;
+        $timeout(function() {
+          vm.saModel = {};
+          vm.saProfiles.push(vm.saModel);
+          vm.saProfile = vm.saModel;
+          vm.saLoading = false;
+        });
+      }
+      vm.createNewSa = true;
+      $scope.edit = true;
     };
 
     vm.chooseSa = function(sa) {
       vm.saLoading = true;
-      vm.getProfiles()
-        .then(function(resource) {
-          vm.saProfile = sa;
-          vm.saModel = null;
-          if (sa.published) {
-            vm.disableFields();
-          } else {
-            vm.enableFields();
-          }
-          $timeout(function() {
-            vm.saModel = sa;
-          });
-          vm.createNewSa = false;
-          $scope.edit = true;
-          vm.saLoading = false;
-        })
-        .catch(function(response) {
-          vm.saProfile = null;
-          vm.saModel = null;
-          $scope.edit = false;
-          vm.saLoading = false;
-        });
+      vm.saProfile = sa;
+      vm.saModel = null;
+      if (sa.published) {
+        vm.disableFields();
+      } else {
+        vm.enableFields();
+      }
+      $timeout(function() {
+        vm.saModel = sa;
+      });
+      vm.createNewSa = false;
+      $scope.edit = true;
+      vm.saLoading = false;
     };
 
     vm.disableFields = function() {
       vm.saFields.forEach(function(field) {
         field.templateOptions.disabled = true;
+        if (field.templateOptions.clearEnabled) {
+          field.templateOptions.clearEnabled = false;
+        }
       });
     };
 
     vm.enableFields = function() {
       vm.saFields.forEach(function(field) {
         field.templateOptions.disabled = false;
+        if (field.templateOptions.clearEnabled === false) {
+          field.templateOptions.clearEnabled = true;
+        }
       });
     };
     vm.createProfileModel = function(sa) {
@@ -86,21 +184,6 @@ export default class SaEditorCtrl {
           vm.profileModel[key] = sa[key];
         }
       }
-    };
-    vm.getProfiles = function() {
-      return Profile.query().$promise.then(function(resource) {
-        resource.forEach(function(profile) {
-          if (vm.profiles[profile.profile_type]) {
-            vm.profiles[profile.profile_type].forEach(function(item, idx, array) {
-              if (item.id == profile.id) {
-                array.splice(idx, 1);
-              }
-            });
-            vm.profiles[profile.profile_type].push(profile);
-          }
-        });
-        return resource;
-      });
     };
 
     vm.saveSa = function() {
@@ -162,7 +245,6 @@ export default class SaEditorCtrl {
             }
           });
           vm.chooseSa(vm.saProfile);
-          vm.getProfiles();
           $scope.edit = false;
           Notifications.add($translate.instant('SA_PUBLISHED', vm.saProfile), 'success', 5000);
         });
@@ -188,23 +270,5 @@ export default class SaEditorCtrl {
     };
     vm.saModel = {};
     vm.saFields = [];
-
-    // Fill the profile fields with available profile options
-    $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function(response) {
-      vm.saFields = response.data.map(function(field) {
-        if (field.key.startsWith('profile_')) {
-          const profile_type = field.key.replace('profile_', '');
-          field.templateOptions.options = vm.profiles[profile_type];
-        }
-
-        return field;
-      });
-      for (let i = 0; i < vm.saFields.length; i++) {
-        if (!vm.saFields[i].templateOptions.disabled) {
-          vm.saFields[i].templateOptions.focus = true;
-          break;
-        }
-      }
-    });
   }
 }
