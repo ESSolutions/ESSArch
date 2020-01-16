@@ -1308,10 +1308,20 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         with transaction.atomic():
             ip = self.get_object()
 
+            if ip.package_type != InformationPackage.AIP:
+                raise exceptions.ParseError('IP must be an AIP')
             if ip.archived:
                 raise exceptions.ParseError('IP already preserved')
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
+
+            reception_dir = Path.objects.get(entity='ingest_reception').value
+            ingest_dir = ip.policy.ingest_path.value
+            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+
+            ip.state = "Preserving"
+            ip.appraisal_date = request.data.get('appraisal_date', None)
 
             for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
                 try:
@@ -1330,28 +1340,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 end_date=ip.end_date,
             )
             ip.generation = 0
-            ip.state = "Preserving"
-            ip.appraisal_date = request.data.get('appraisal_date', None)
             ip.save()
-
-            reception_dir = Path.objects.get(entity='ingest_reception').value
-            ingest_dir = ip.policy.ingest_path.value
-
-            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
 
             generate_premis = ip.profile_locked('preservation_metadata')
             has_representations = find_destination(
                 "representations", ip.get_structure(), ip.object_path,
             )[1] is not None
-
-            sip_dst_path, sip_dst_name = find_destination('sip', ip.get_profile('aip').structure, ip.object_path)
-            if sip_dst_path is None:
-                sip_dst_path, sip_dst_name = find_destination(
-                    'content',
-                    ip.get_profile('aip').structure,
-                    ip.object_path,
-                )
 
             workflow = [
                 {

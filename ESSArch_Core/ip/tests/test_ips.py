@@ -49,6 +49,7 @@ from rest_framework.test import APIClient, APITestCase
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     StoragePolicy,
@@ -79,6 +80,430 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+
+
+def create_mets_spec(outer: bool, sa: SubmissionAgreement):
+    return {
+        "-name": "mets",
+        "-namespace": "mets",
+        "-nsmap": {
+            "mets": "http://www.loc.gov/METS/",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+            "xlink": "http://www.w3.org/1999/xlink"
+        },
+        "-attr": [
+            {
+                "-name": "schemaLocation",
+                "-namespace": "xsi",
+                "#content": "http://www.loc.gov/METS/ "
+                            "http://xml.essarch.org/METS/version10/SubmitDescription.xsd"
+            },
+            {
+                "-name": "ID",
+                "#content": "ID{% uuid4 %}"
+            },
+            {
+                "-name": "OBJID",
+                "#content": "UUID:{{OBJID}}"
+            },
+            {
+                "-name": "TYPE",
+                "#content": "SIP"
+            },
+            {
+                "-name": "PROFILE",
+                "#content": "http://example.com"
+            }
+        ],
+        "-children": [
+            {
+                "-name": "metsHdr",
+                "-namespace": "mets",
+                "-attr": [
+                    {
+                        "-name": "CREATEDATE",
+                        "#content": "{% now 'c' %}"
+                    }
+                ],
+                "-children": [
+                    {
+                        "-name": "agent",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "ROLE",
+                                "#content": "CREATOR"
+                            },
+                            {
+                                "-name": "TYPE",
+                                "#content": "ORGANIZATION"
+                            }
+                        ],
+                        "-children": [
+                            {
+                                "-name": "name",
+                                "-namespace": "mets",
+                                "#content": "creator"
+                            }
+                        ]
+                    },
+                    {
+                        "-name": "agent",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "ROLE",
+                                "#content": "OTHER"
+                            },
+                            {
+                                "-name": "OTHERROLE",
+                                "#content": "SUBMITTER"
+                            },
+                            {
+                                "-name": "TYPE",
+                                "#content": "ORGANIZATION"
+                            }
+                        ],
+                        "-children": [
+                            {
+                                "-name": "name",
+                                "-namespace": "mets",
+                                "#content": "submitter_organization"
+                            }
+                        ]
+                    },
+                    {
+                        "-name": "agent",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "ROLE",
+                                "#content": "OTHER"
+                            },
+                            {
+                                "-name": "OTHERROLE",
+                                "#content": "SUBMITTER"
+                            },
+                            {
+                                "-name": "TYPE",
+                                "#content": "INDIVIDUAL"
+                            }
+                        ],
+                        "-children": [
+                            {
+                                "-name": "name",
+                                "-namespace": "mets",
+                                "#content": "submitter_individual"
+                            }
+                        ]
+                    },
+                    {
+                        "-name": "altRecordID",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "TYPE",
+                                "#content": "SUBMISSIONAGREEMENT"
+                            }
+                        ],
+                        "#content": str(sa.pk)
+                    },
+                    {
+                        "-name": "altRecordID",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "TYPE",
+                                "#content": "STARTDATE"
+                            }
+                        ],
+                        "#content": "2020-01-01 00:00:00+00:00"
+                    },
+                    {
+                        "-name": "altRecordID",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "TYPE",
+                                "#content": "ENDDATE"
+                            }
+                        ],
+                        "#content": "2020-12-31 00:00:00+00:00"
+                    },
+                ]
+            },
+            {
+                "-name": "fileSec",
+                "-namespace": "mets",
+                "-attr": [
+                    {
+                        "-name": "ID",
+                        "#content": "ID{{UUID}}"
+                    }
+                ],
+                "-children": [
+                    {
+                        "-name": "fileGrp",
+                        "-namespace": "mets",
+                        "-children": [
+                            {
+                                "-name": "file",
+                                "-namespace": "mets",
+                                "-containsFiles": True,
+                                "-filters": {"href": r".+\.tar$"} if outer else {},
+                                "-attr": [
+                                    {
+                                        "-name": "ID",
+                                        "#content": "ID{{FID}}"
+                                    },
+                                    {
+                                        "-name": "MIMETYPE",
+                                        "#content": "{{FMimetype}}"
+                                    },
+                                    {
+                                        "-name": "SIZE",
+                                        "#content": "{{FSize}}"
+                                    },
+                                    {
+                                        "-name": "USE",
+                                        "#content": "{{FUse}}"
+                                    },
+                                    {
+                                        "-name": "CREATED",
+                                        "#content": "{{FCreated}}"
+                                    },
+                                    {
+                                        "-name": "CHECKSUM",
+                                        "#content": "{{FChecksum}}"
+                                    },
+                                    {
+                                        "-name": "CHECKSUMTYPE",
+                                        "#content": "{{FChecksumType}}"
+                                    }
+                                ],
+                                "-children": [
+                                    {
+                                        "-name": "FLocat",
+                                        "-namespace": "mets",
+                                        "-attr": [
+                                            {
+                                                "-name": "LOCTYPE",
+                                                "#content": "URL"
+                                            },
+                                            {
+                                                "-name": "href",
+                                                "-namespace": "xlink",
+                                                "#content": "file:///{{href}}"
+                                            },
+                                            {
+                                                "-name": "type",
+                                                "-namespace": "xlink",
+                                                "#content": "simple"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "-name": "structMap",
+                "-namespace": "mets",
+                "-children": [
+                    {
+                        "-name": "div",
+                        "-namespace": "mets",
+                        "-attr": [
+                            {
+                                "-name": "LABEL",
+                                "#content": "Package"
+                            }
+                        ],
+                        "-children": [
+                            {
+                                "-name": "div",
+                                "-namespace": "mets",
+                                "-attr": [
+                                    {
+                                        "-name": "LABEL",
+                                        "#content": "Datafiles"
+                                    }
+                                ],
+                                "-children": [
+                                    {
+                                        "-name": "fptr",
+                                        "-namespace": "mets",
+                                        "-containsFiles": True,
+                                        "-attr": [
+                                            {
+                                                "-name": "FILEID",
+                                                "#content": "ID{{FID}}"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+
+def create_premis_spec(sa: SubmissionAgreement):
+    return {
+        "-name": "premis",
+        "-namespace": "premis",
+        "-nsmap": {
+            "premis": "http://www.loc.gov/premis/v3",
+            "xsi": "http://www.w3.org/2001/XMLSchema-instance"
+        },
+        "-attr": [
+            {
+                "-name": "version",
+                "#content": "3.0"
+            },
+            {
+                "-name": "schemaLocation",
+                "-namespace": "xsi",
+                "#content": "http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
+            }
+        ],
+        "-children": [
+            {
+                "-name": "object",
+                "-namespace": "premis",
+                "-containsFiles": True,
+                "-attr": [
+                    {
+                        "-name": "type",
+                        "-namespace": "xsi",
+                        "#content": "premis:file"
+                    }
+                ],
+                "-children": [
+                    {
+                        "-name": "objectIdentifier",
+                        "-namespace": "premis",
+                        "-children": [
+                            {
+                                "-name": "objectIdentifierType",
+                                "-namespace": "premis",
+                                "#content": "ESS"
+                            },
+                            {
+                                "-name": "objectIdentifierValue",
+                                "-namespace": "premis",
+                                "#content": "{{OBJID}}/{{href}}"
+                            }
+                        ]
+                    },
+                    {
+                        "-name": "objectCharacteristics",
+                        "-namespace": "premis",
+                        "-children": [
+                            {
+                                "-name": "compositionLevel",
+                                "-namespace": "premis",
+                                "#content": [{"var": "composition_level", "default": 0}]
+                            },
+                            {
+                                "-name": "fixity",
+                                "-namespace": "premis",
+                                "-children": [
+                                    {
+                                        "-name": "messageDigestAlgorithm",
+                                        "-namespace": "premis",
+                                        "#content": [{"var": "FChecksumType"}]
+                                    },
+                                    {
+                                        "-name": "messageDigest",
+                                        "-namespace": "premis",
+                                        "#content": [{"var": "FChecksum"}]
+                                    },
+                                    {
+                                        "-name": "messageDigestOriginator",
+                                        "-namespace": "premis",
+                                        "#content": [{"var": "FChecksumLib"}]
+                                    }
+                                ]
+                            },
+                            {
+                                "-name": "size",
+                                "-namespace": "premis",
+                                "#content": [{"var": "FSize"}]
+                            },
+                            {
+                                "-name": "format",
+                                "-namespace": "premis",
+                                "-children": [
+                                    {
+                                        "-name": "formatDesignation",
+                                        "-namespace": "premis",
+                                        "-children": [
+                                            {
+                                                "-name": "formatName",
+                                                "-namespace": "premis",
+                                                "#content": [{"var": "FFormatName"}]
+                                            },
+                                            {
+                                                "-name": "formatVersion",
+                                                "-namespace": "premis",
+                                                "#content": [{"var": "FFormatVersion"}]
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        "-name": "formatRegistry",
+                                        "-namespace": "premis",
+                                        "-requiredParameters": ["FFormatRegistryKey"],
+                                        "-children": [
+                                            {
+                                                "-name": "formatRegistryName",
+                                                "-namespace": "premis",
+                                                "#content": [{"text": "PRONOM"}]
+                                            },
+                                            {
+                                                "-name": "formatRegistryKey",
+                                                "-namespace": "premis",
+                                                "#content": [{"var": "FFormatRegistryKey"}]
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "-name": "storage",
+                        "-namespace": "premis",
+                        "-children": [
+                            {
+                                "-name": "contentLocation",
+                                "-namespace": "premis",
+                                "-children": [
+                                    {
+                                        "-name": "contentLocationType",
+                                        "-namespace": "premis",
+                                        "#content": "200"
+                                    },
+                                    {
+                                        "-name": "contentLocationValue",
+                                        "-namespace": "premis",
+                                        "#content": [{"var": "_OBJID"}]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
 
 
 class AccessTestCase(TestCase):
@@ -1432,45 +1857,6 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_task.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_preserve_aip(self, mock_step):
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        cache = StorageMethod.objects.create()
-        ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        sa = SubmissionAgreement.objects.create(policy=policy)
-        self.ip = InformationPackage.objects.create(
-            package_type=InformationPackage.AIP, aic=aic, submission_agreement=sa,
-        )
-        self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
-        self.url = self.url + 'preserve/'
-
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
-
-        self.client.post(self.url)
-        mock_step.assert_called_once()
-
-        self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_preserve_dip(self, mock_step):
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        cache = StorageMethod.objects.create()
-        ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
-        sa = SubmissionAgreement.objects.create(policy=policy)
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP, submission_agreement=sa)
-        self.url = reverse('informationpackage-preserve', args=(self.ip.pk,))
-
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
-
-        self.client.post(self.url)
-        mock_step.assert_called_once()
-
-        self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
 
     def test_change_organization(self):
         self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
@@ -1525,9 +1911,128 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.get(self.url)
 
 
+class InformationPackageViewSetPreserveTestCase(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.org_group_type = GroupType.objects.create(label='organization')
+
+    def setUp(self):
+        self.user = User.objects.create(username="admin", password='admin')
+        self.member = self.user.essauth_member
+        self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
+        self.group.add_member(self.member)
+        self.user.user_profile.current_organization = self.group
+        self.user.user_profile.save()
+        self.client.force_authenticate(user=self.user)
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        Parameter.objects.create(entity='agent_identifier_value', value='ESS')
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+        Parameter.objects.create(entity='medium_location', value='Media')
+
+        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
+
+        os.makedirs(os.path.join(receipts.value, 'xml'))
+
+        self.cache = StorageMethod.objects.create()
+        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest)
+
+        self.cache_target = StorageTarget.objects.create(name='cache', target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.cache,
+            storage_target=self.cache_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
+    def test_preserve_aip(self, mock_index):
+        storage_method = StorageMethod.objects.create(containers=True)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(self.cache, storage_method)
+
+        sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
+            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
+        )
+        sa.profile_aip = Profile.objects.create(
+            profile_type='aip', specification=create_mets_spec(False, sa),
+            structure=[
+                {
+                    'type': 'file',
+                    'name': 'premis.xml',
+                    'use': 'preservation_description_file',
+                },
+                {
+                    'type': 'dir',
+                    'name': 'schemas',
+                    'use': 'xsd_files',
+                },
+            ]
+        )
+        sa.profile_aic_description = Profile.objects.create(
+            profile_type='aic_description',
+            specification=create_mets_spec(True, sa),
+        )
+        sa.profile_aip_description = Profile.objects.create(
+            profile_type='aip_description',
+            specification=create_mets_spec(True, sa),
+        )
+        sa.profile_preservation_metadata = Profile.objects.create(
+            profile_type='preservation_metadata',
+            specification=create_premis_spec(sa),
+        )
+        sa.save()
+
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, ip, custom_permissions=perms)
+
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_index.assert_called_once()
+
+        ip.refresh_from_db()
+        target_dir = os.listdir(storage_target.target)
+        self.assertIn('{}.tar'.format(ip.pk), target_dir)
+        self.assertIn('{}.xml'.format(ip.pk), target_dir)
+        self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
+
+    @TaskRunner()
+    def test_preserve_dip(self):
+        ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
 class InformationPackageReceptionViewSetTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='receive', enabled=True)
+        Feature.objects.create(name='transfer', enabled=True)
         cls.cache = StorageMethod.objects.create()
 
         org_group_type = GroupType.objects.create(label='organization')
@@ -1618,279 +2123,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         path = self.get_xml_path(objid)
         open(path, 'w').close()
 
-        spec = {
-            "-name": "mets",
-            "-namespace": "mets",
-            "-nsmap": {
-                "mets": "http://www.loc.gov/METS/",
-                "xsi": "http://www.w3.org/2001/XMLSchema-instance",
-                "xlink": "http://www.w3.org/1999/xlink"
-            },
-            "-attr": [
-                {
-                    "-name": "schemaLocation",
-                    "-namespace": "xsi",
-                    "#content": [
-                        {
-                            "text": "http://www.loc.gov/METS/ "
-                            "http://xml.essarch.org/METS/version10/SubmitDescription.xsd"
-                        }
-                    ]
-                },
-                {
-                    "-name": "ID",
-                    "#content": "ID{% uuid4 %}"
-                },
-                {
-                    "-name": "OBJID",
-                    "#content": "UUID:{{OBJID}}"
-                },
-                {
-                    "-name": "TYPE",
-                    "#content": "SIP"
-                },
-                {
-                    "-name": "PROFILE",
-                    "#content": "http://example.com"
-                }
-            ],
-            "-children": [
-                {
-                    "-name": "metsHdr",
-                    "-namespace": "mets",
-                    "-attr": [
-                        {
-                            "-name": "CREATEDATE",
-                            "#content": "{% now 'c' %}"
-                        }
-                    ],
-                    "-children": [
-                        {
-                            "-name": "agent",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "ROLE",
-                                    "#content": "CREATOR"
-                                },
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "ORGANIZATION"
-                                }
-                            ],
-                            "-children": [
-                                {
-                                    "-name": "name",
-                                    "-namespace": "mets",
-                                    "#content": "creator"
-                                }
-                            ]
-                        },
-                        {
-                            "-name": "agent",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "ROLE",
-                                    "#content": "OTHER"
-                                },
-                                {
-                                    "-name": "OTHERROLE",
-                                    "#content": "SUBMITTER"
-                                },
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "ORGANIZATION"
-                                }
-                            ],
-                            "-children": [
-                                {
-                                    "-name": "name",
-                                    "-namespace": "mets",
-                                    "#content": "submitter_organization"
-                                }
-                            ]
-                        },
-                        {
-                            "-name": "agent",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "ROLE",
-                                    "#content": "OTHER"
-                                },
-                                {
-                                    "-name": "OTHERROLE",
-                                    "#content": "SUBMITTER"
-                                },
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "INDIVIDUAL"
-                                }
-                            ],
-                            "-children": [
-                                {
-                                    "-name": "name",
-                                    "-namespace": "mets",
-                                    "#content": "submitter_individual"
-                                }
-                            ]
-                        },
-                        {
-                            "-name": "altRecordID",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "SUBMISSIONAGREEMENT"
-                                }
-                            ],
-                            "#content": str(sa.pk)
-                        },
-                        {
-                            "-name": "altRecordID",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "STARTDATE"
-                                }
-                            ],
-                            "#content": "2020-01-01 00:00:00+00:00"
-                        },
-                        {
-                            "-name": "altRecordID",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "TYPE",
-                                    "#content": "ENDDATE"
-                                }
-                            ],
-                            "#content": "2020-12-31 00:00:00+00:00"
-                        },
-                    ]
-                },
-                {
-                    "-name": "fileSec",
-                    "-namespace": "mets",
-                    "-attr": [
-                        {
-                            "-name": "ID",
-                            "#content": "ID{{UUID}}"
-                        }
-                    ],
-                    "-children": [
-                        {
-                            "-name": "fileGrp",
-                            "-namespace": "mets",
-                            "-children": [
-                                {
-                                    "-name": "file",
-                                    "-namespace": "mets",
-                                    "-containsFiles": True,
-                                    "-filters": {"href": r".+\.tar$"},
-                                    "-attr": [
-                                        {
-                                            "-name": "ID",
-                                            "#content": "ID{{FID}}"
-                                        },
-                                        {
-                                            "-name": "MIMETYPE",
-                                            "#content": "{{FMimetype}}"
-                                        },
-                                        {
-                                            "-name": "SIZE",
-                                            "#content": "{{FSize}}"
-                                        },
-                                        {
-                                            "-name": "USE",
-                                            "#content": "{{FUse}}"
-                                        },
-                                        {
-                                            "-name": "CREATED",
-                                            "#content": "{{FCreated}}"
-                                        },
-                                        {
-                                            "-name": "CHECKSUM",
-                                            "#content": "{{FChecksum}}"
-                                        },
-                                        {
-                                            "-name": "CHECKSUMTYPE",
-                                            "#content": "{{FChecksumType}}"
-                                        }
-                                    ],
-                                    "-children": [
-                                        {
-                                            "-name": "FLocat",
-                                            "-namespace": "mets",
-                                            "-attr": [
-                                                {
-                                                    "-name": "LOCTYPE",
-                                                    "#content": "URL"
-                                                },
-                                                {
-                                                    "-name": "href",
-                                                    "-namespace": "xlink",
-                                                    "#content": "file:///{{href}}"
-                                                },
-                                                {
-                                                    "-name": "type",
-                                                    "-namespace": "xlink",
-                                                    "#content": "simple"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "-name": "structMap",
-                    "-namespace": "mets",
-                    "-children": [
-                        {
-                            "-name": "div",
-                            "-namespace": "mets",
-                            "-attr": [
-                                {
-                                    "-name": "LABEL",
-                                    "#content": "Package"
-                                }
-                            ],
-                            "-children": [
-                                {
-                                    "-name": "div",
-                                    "-namespace": "mets",
-                                    "-attr": [
-                                        {
-                                            "-name": "LABEL",
-                                            "#content": "Datafiles"
-                                        }
-                                    ],
-                                    "-children": [
-                                        {
-                                            "-name": "fptr",
-                                            "-namespace": "mets",
-                                            "-containsFiles": True,
-                                            "-attr": [
-                                                {
-                                                    "-name": "FILEID",
-                                                    "#content": "ID{{FID}}"
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
-        }
-
+        spec = create_mets_spec(True, sa)
         XMLGenerator().generate(filesToCreate={path: {'spec': spec, 'data': {'OBJID': objid}}}, folderToParse=package)
         return path
 
