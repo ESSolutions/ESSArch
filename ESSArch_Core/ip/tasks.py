@@ -74,9 +74,6 @@ class SubmitSIP(DBTask):
         session = None
 
         if remote:
-            if update_path:
-                raise ValueError('Cannot update path when submitting to remote host')
-
             dst, remote_user, remote_pass = remote.split(',')
             dst = urljoin(dst, 'api/ip-reception/upload/')
 
@@ -96,7 +93,7 @@ class SubmitSIP(DBTask):
             dst_xml = dst
         copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
 
-        if update_path:
+        if update_path and not remote:
             ip.object_path = dst
             ip.package_mets_path = dst_xml
             ip.save()
