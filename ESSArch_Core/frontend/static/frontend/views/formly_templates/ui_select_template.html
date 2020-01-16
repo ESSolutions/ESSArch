@@ -72,7 +72,12 @@
   <!-- Clear button -->
 
   <span ng-if="to.clearEnabled" class="input-group-btn">
-    <button type="button" ng-click="model[options.key] = null" class="btn btn-sm btn-default">
+    <button
+      ng-disabled="to.disabled"
+      type="button"
+      ng-click="model[options.key] = null"
+      class="btn btn-sm btn-default"
+    >
       <span class="fas fa-trash-alt"></span>
     </button>
   </span>
