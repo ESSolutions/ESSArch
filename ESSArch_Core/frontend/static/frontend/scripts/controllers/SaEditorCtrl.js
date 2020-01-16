@@ -41,7 +41,7 @@ export default class SaEditorCtrl {
           return vm.policyOptions;
         },
         valueProp: 'id',
-        labelProp: 'policy_id',
+        labelProp: 'policy_name',
         label: $translate.instant('STORAGE_POLICY'),
         appendToBody: true,
         refresh: (search, open, value) => {
