@@ -36,7 +36,6 @@ from os import walk
 from time import sleep
 from urllib.parse import urljoin
 
-import jsonfield
 import requests
 from celery import states as celery_states
 from django.conf import settings
@@ -77,6 +76,7 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import (
@@ -1014,7 +1014,7 @@ class InformationPackage(models.Model):
                 force_download=force_download,
                 name=path
             )
-        except (IOError, OSError) as e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
 
@@ -1281,6 +1281,48 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+        if not self.archived:
+            ingest_workarea = Path.objects.get(entity='ingest_workarea').value
+            container = os.path.isfile(self.object_path)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+
+            workflow = [
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
+                    "label": "Create workarea",
+                    "args": [str(self.pk), str(user.pk), Workarea.INGEST, True]
+                },
+                {
+                    "name": "ESSArch_Core.tasks.ExtractTAR",
+                    "label": "Extract container to workarea",
+                    "if": container and extracted,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CopyFile",
+                    "label": "Copy information package to workarea",
+                    "if": container and not extracted,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CopyDir",
+                    "label": "Copy information package to workarea",
+                    "if": not container,
+                    "args": [
+                        self.object_path,
+                        ingest_workarea_user,
+                    ],
+                },
+            ]
+            workflow = {"step": True, "name": "Access IP", "children": workflow}
+            return create_workflow([workflow], self, name='Access Information Package')
+
         if tar:
             try:
                 storage_object = self.storage.readable().secure_storage().fastest()[0]
@@ -2045,7 +2087,7 @@ class Workarea(models.Model):
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
-    successfully_validated = jsonfield.JSONField(default=None, null=True)
+    successfully_validated = JSONField(default=None, null=True)
 
     @property
     def path(self):

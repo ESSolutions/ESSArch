@@ -83,7 +83,10 @@ export default class MapStructureEditorCtrl {
         templateOptions: {
           type: 'text',
           label: $translate.instant('TYPE'),
-          options: [{name: 'folder', value: 'folder'}, {name: 'file', value: 'file'}],
+          options: [
+            {name: 'folder', value: 'folder'},
+            {name: 'file', value: 'file'},
+          ],
           required: true,
         },
         type: 'select',

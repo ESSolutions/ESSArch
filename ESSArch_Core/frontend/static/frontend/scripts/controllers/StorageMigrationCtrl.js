@@ -225,7 +225,10 @@ export default class StorageMigrationCtrl {
           },
         },
       });
-      modalInstance.result.then(function(data) {}, function() {});
+      modalInstance.result.then(
+        function(data) {},
+        function() {}
+      );
     };
   }
 }

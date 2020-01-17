@@ -4,6 +4,7 @@ import os
 import traceback
 from subprocess import PIPE, Popen
 
+import click
 from django.utils import timezone
 from lxml import etree
 
@@ -93,3 +94,17 @@ class MediaconchValidator(BaseValidator):
             val_obj.save(update_fields=['time_done', 'passed', 'message'])
 
         return message
+
+    @staticmethod
+    @click.command()
+    @click.option('--policy', metavar='INPUT', type=click.Path(exists=True), default=None)
+    @click.argument('path', metavar='INPUT', type=click.Path(exists=True))
+    def cli(path, policy):
+        validator = MediaconchValidator(context=policy)
+        try:
+            validator.validate(path)
+            click.echo('success!')
+        except ValidationError as e:
+            click.echo(e, err=True)
+            for error in e.errors:
+                click.echo(error, err=True)

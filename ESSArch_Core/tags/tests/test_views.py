@@ -506,6 +506,89 @@ class UnpublishStructureTests(TestCase):
         self.assertFalse(self.structure.published)
 
 
+class ListStructureUnitTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('structureunit-list')
+        cls.user = User.objects.create(username='user', is_superuser=True)
+
+        cls.structure_type = StructureType.objects.create(name='test')
+        cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
+
+    def setUp(self):
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_leaf_unit(self, mock_doc):
+        structure = create_structure(self.structure_type)
+
+        a = create_structure_unit(self.unit_type, structure, 'a')
+        a1 = create_structure_unit(self.unit_type, structure, 'a1')
+        a1.parent = a
+        a1.save()
+
+        b = create_structure_unit(self.unit_type, structure, 'b')
+        b1 = create_structure_unit(self.unit_type, structure, 'b1')
+        b2 = create_structure_unit(self.unit_type, structure, 'b2')
+        b1.parent = b
+        b1.save()
+        b2.parent = b
+        b2.save()
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=b1)
+
+        response = self.client.get(self.url)
+        data = response.data
+
+        def find_unit(ref_code):
+            return next(u for u in data if u["reference_code"] == ref_code)
+
+        with self.subTest('a'):
+            unit = find_unit('a')
+            self.assertFalse(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('a1'):
+            unit = find_unit('a1')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertTrue(unit['is_leaf_node'])
+
+        with self.subTest('b'):
+            unit = find_unit('b')
+            self.assertFalse(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('b1'):
+            unit = find_unit('b1')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertFalse(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('b2'):
+            unit = find_unit('b2')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertTrue(unit['is_leaf_node'])
+
+        # delete TagVersion, keep structure
+        tv.delete()
+
+        response = self.client.get(self.url, {'ordering': 'name'})
+        data = response.data
+
+        with self.subTest('b1'):
+            self.assertTrue(data[3]['is_unit_leaf_node'])
+            self.assertTrue(data[3]['is_tag_leaf_node'])
+            self.assertTrue(data[3]['is_leaf_node'])
+
+
 class CreateStructureUnitTests(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -1008,6 +1091,53 @@ class UpdateStructureUnitInstanceTests(TestCase):
                 'parent': parent.pk,
             }
         )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_move_to_structure_unit_with_tag(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+        parent = create_structure_unit(self.structure_unit_type, instance, "A")
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=parent.structure, structure_unit=parent)
+
+        response = self.client.patch(
+            url,
+            data={
+                'parent': parent.pk,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_move_to_root(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(url, data={'parent': None})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
@@ -1694,6 +1824,7 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        archive_tag_version.refresh_from_db()
 
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_delete_archive_with_permission(self, mock_signal):
@@ -1710,6 +1841,12 @@ class DeleteTagTests(TestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+        with self.assertRaises(TagVersion.DoesNotExist):
+            archive_tag_version.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            archive_tag.refresh_from_db()
+
     def test_delete_component_without_permission(self):
         tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
@@ -1719,6 +1856,7 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        tag_version.refresh_from_db()
 
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_delete_component_with_permission(self, mock_signal):
@@ -1726,14 +1864,36 @@ class DeleteTagTests(TestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
-        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        url = reverse('search-detail', args=(tag_version.pk,))
+        with self.subTest('single version'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            with self.assertRaises(Tag.DoesNotExist):
+                tag.refresh_from_db()
+
+        with self.subTest('multiple versions'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+            tag_version2 = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            tag_version2.refresh_from_db()
+            tag.refresh_from_db()
 
 
 class CreateDeliveryTests(TestCase):

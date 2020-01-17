@@ -422,7 +422,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.information_package', {
-          url: '/information_package/:id',
+          url: '/information_package/:id?{structure}',
           templateUrl: '/static/frontend/views/search_ip_detail.html',
           controller: 'SearchIpCtrl as vm',
           resolve: {
@@ -436,7 +436,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.component', {
-          url: '/component/:id',
+          url: '/component/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -450,7 +450,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.structure_unit', {
-          url: '/structure-unit/:id?{archive}',
+          url: '/structure-unit/:id?{structure}&{archive}',
           templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -464,7 +464,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.directory', {
-          url: '/directory/:id',
+          url: '/directory/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -478,7 +478,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.document', {
-          url: '/document/:id',
+          url: '/document/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -492,7 +492,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.archive', {
-          url: '/archive/:id',
+          url: '/archive/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -814,19 +814,6 @@ angular
           data: {
             permissions: {
               only: nestedPermissions(resolve('home.administration.profileManager.saEditor', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.administration.profileManager.profileMaker', {
-          url: '/profile-maker',
-          template: '<profile-maker></profile-maker>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.administration.profileManager.profileMaker', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },

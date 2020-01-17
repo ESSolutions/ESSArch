@@ -1,0 +1,443 @@
+{
+    "ETP": {
+        "on_error": [
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Create XML receipt",
+                "args": [
+                    "xml",
+                    "receipts/xml.json",
+                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                    "error",
+                    "Failed to create {{OBJID}}",
+                    "Creation of {{OBJID}} failed"
+                ],
+                "hidden": true
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Send email receipt",
+                "args": [
+                    "email",
+                    "receipts/email.txt",
+                    null,
+                    "error",
+                    "Failed to create {{OBJID}}",
+                    "Creation of {{OBJID}} failed"
+                ],
+                "hidden": true
+            }
+        ],
+        "tasks": [
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to receiving",
+                "args": [
+                    "Receiving"
+                ]
+            },
+            {
+                "name": "preingest.tasks.ReceiveSIP",
+                "label": "Receive SIP"
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                "label": "Create Physical Model"
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.Transform",
+                "label": "Update directory structure",
+                "args": ["content"]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to received",
+                "args": [
+                    "Received"
+                ]
+            },
+            {
+                "step": true,
+                "name": "Create Log File",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                        "label": "Generate events xml file"
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.AppendEvents",
+                        "label": "Add events to xml file"
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                        "label": "Add premis IP object to xml file"
+                    }
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to creating",
+                "args": [
+                    "Creating"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                "label": "Generate premis"
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                "label": "Generate content-mets"
+            },
+            {
+                "step": true,
+                "name": "Validation",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate content-mets",
+                        "params": {
+                            "xml_filename": "{{_CONTENT_METS_PATH}}"
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate premis",
+                        "params": {
+                            "xml_filename": "{{_PREMIS_PATH}}"
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "label": "Diff-check against content-mets",
+                        "args": [
+                            "{{_OBJPATH}}",
+                            "{{_CONTENT_METS_PATH}}"
+                        ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareXMLFiles",
+                        "label": "Compare premis and content-mets",
+                        "args": [
+                            "{{_PREMIS_PATH}}",
+                            "{{_CONTENT_METS_PATH}}"
+                        ],
+                        "params": {
+                            "recursive": false
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                        "label": "Compare representation premis and mets"
+                    }
+                ]
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateContainer",
+                "label": "Create container"
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
+                "label": "Generate package-mets"
+            },
+            {
+                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                "label": "Validate package-mets",
+                "params": {
+                    "xml_filename": "{{_PACKAGE_METS_PATH}}"
+                }
+            },
+            {
+                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                "label": "Diff-check against package-mets",
+                "args": [
+                    "{{_OBJPATH}}",
+                    "{{_PACKAGE_METS_PATH}}"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to created",
+                "args": [
+                    "Created"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to submitting",
+                "args": [
+                    "Submitting"
+                ]
+            },
+            {
+                "name": "preingest.tasks.SubmitSIP",
+                "label": "Submit SIP"
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to submitted",
+                "args": [
+                    "Submitted"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeletePollingSource",
+                "label": "Delete from reception",
+                "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+            }
+        ]
+    },
+    "ETA": {
+        "tasks": [
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to receiving",
+                "args": [
+                    "Receiving"
+                ]
+            },
+            {
+                "name": "preingest.tasks.ReceiveSIP",
+                "label": "Receive SIP"
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.ParseEvents",
+                "label": "Parse events"
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                "label": "Update IP size and file count"
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to received",
+                "args": [
+                    "Received"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to transferring",
+                "args": [
+                    "Transferring"
+                ]
+            },
+            {
+                "step": true,
+                "name": "Create Log File",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                        "label": "Generate events xml file"
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.AppendEvents",
+                        "label": "Add events to xml file"
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                        "label": "Add premis IP object to xml file"
+                    }
+                ]
+            },
+            {
+                "name": "preingest.tasks.TransferSIP",
+                "label": "Transfer SIP"
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to transferred",
+                "args": [
+                    "Transferred"
+                ]
+            },
+            {
+                "name": "ESSArch_Core.tasks.DeletePollingSource",
+                "label": "Delete from reception",
+                "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+            }
+        ]
+    },
+    "EPP": {
+        "on_error": [
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Create XML receipt",
+                "args": [
+                    "xml",
+                    "receipts/xml.json",
+                    "/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+                    "error",
+                    "Failed to preserve {{OBJID}}",
+                    "Preservation of {{OBJID}} failed"
+                ],
+                "hidden": true
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                "label": "Send email receipt",
+                "args": [
+                    "email",
+                    "receipts/email.txt",
+                    null,
+                    "error",
+                    "Failed to preserve {{OBJID}}",
+                    "Preservation of {{OBJID}} failed"
+                ],
+                "hidden": true
+            }
+        ],
+        "tasks": [
+            {
+                "step": true,
+                "name": "Receive SIP",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to receiving",
+                        "args": [
+                            "Receiving"
+                        ]
+                    },
+                    {
+                        "step": true,
+                        "name": "Validation",
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate package-mets",
+                                "params": {
+                                    "xml_filename": "{{_PACKAGE_METS_PATH}}"
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                                "label": "Diff-check against package-mets",
+                                "args": [
+                                    "{{_OBJPATH}}",
+                                    "{{_PACKAGE_METS_PATH}}"
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        "step": true,
+                        "name": "Generate AIP",
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.ip.tasks.ParseSubmitDescription",
+                                "label": "Parse submit description"
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.ParseEvents",
+                                "label": "Parse events"
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                                "label": "Create Physical Model",
+                                "params": {
+                                    "root": "{{POLICY_INGEST_PATH}}/{{_OBJID}}"
+                                }
+                            },
+                            {
+                                "name": "workflow.tasks.ReceiveSIP",
+                                "label": "Receive SIP",
+                                "params": {
+                                    "allow_unknown_files": true
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                                "label": "Generate premis"
+                            },
+                            {
+                                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                                "label": "Generate content-mets"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeletePollingSource",
+                        "label": "Delete from reception",
+                        "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+                    },
+                    {
+                        "step": true,
+                        "name": "Validate AIP",
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate content-mets",
+                                "params": {
+                                    "xml_filename": "{{_CONTENT_METS_PATH}}"
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate premis",
+                                "params": {
+                                    "xml_filename": "{{_PREMIS_PATH}}"
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                                "label": "Diff-check against content-mets",
+                                "args": [
+                                    "{{_OBJPATH}}",
+                                    "{{_CONTENT_METS_PATH}}"
+                                ]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.CompareXMLFiles",
+                                "label": "Compare premis and content-mets",
+                                "args": [
+                                    "{{_PREMIS_PATH}}",
+                                    "{{_CONTENT_METS_PATH}}"
+                                ],
+                                "params": {
+                                    "recursive": false
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                                "label": "Compare representation premis and mets"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                        "label": "Update IP size and file count"
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to received",
+                        "args": [
+                            "Received"
+                        ]
+                    }
+                ]
+            },
+            {
+                "step": true,
+                "name": "Preserve AIP",
+                "children": [
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to preserving",
+                        "args": [
+                            "Preserving"
+                        ]
+                    },
+                    {
+                        "name": "workflow.tasks.CacheAIP",
+                        "label": "Cache AIP"
+                    },
+                    {
+                        "name": "workflow.tasks.StoreAIP",
+                        "label": "Store AIP"
+                    }
+                ]
+            }
+        ]
+    }
+}

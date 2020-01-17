@@ -28,7 +28,7 @@ import os
 import tarfile
 import zipfile
 from os import walk
-from pathlib import PurePosixPath
+from pathlib import PurePath
 
 import requests
 from django.conf import settings
@@ -490,7 +490,7 @@ class CompareRepresentationXMLFiles(DBTask):
             rep_mets_path = p.path
             rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
             rep_path = os.path.relpath(rep_mets_path, representations_dir)
-            rep_path = PurePosixPath(rep_path).parts[0]
+            rep_path = PurePath(rep_path).parts[0]
 
             rep_premis_path = get_premis_ref(etree.parse(rep_mets_path)).path
             rep_premis_path = os.path.join(representations_dir, rep_path, rep_premis_path)

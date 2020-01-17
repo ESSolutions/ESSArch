@@ -4,7 +4,7 @@ import elasticsearch
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from rest_framework import serializers
@@ -339,25 +339,36 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True, read_only=True)
     notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
+    is_tag_leaf_node = serializers.SerializerMethodField()
     is_unit_leaf_node = serializers.SerializerMethodField()
     related_structure_units = StructureUnitRelationSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
 
-    def get_is_unit_leaf_node(self, obj):
+    @staticmethod
+    def get_is_unit_leaf_node(obj):
         return obj.is_leaf_node()
 
+    @staticmethod
+    def get_is_tag_leaf_node(obj):
+        # TODO: Make this a recursive check and add a separate field
+        # indicating if this unit have any direct tag children
+
+        archive_descendants = obj.structure.tagstructure_set.annotate(
+            versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+        ).filter(structure_unit=obj, versions_exists=True)
+        return not archive_descendants.exists()
+
     def get_is_leaf_node(self, obj):
-        archive_descendants = obj.structure.tagstructure_set.filter(structure_unit=obj)
-        return obj.is_leaf_node() and not archive_descendants.exists()
+        return self.get_is_unit_leaf_node(obj) and self.get_is_tag_leaf_node(obj)
 
     class Meta:
         model = StructureUnit
         fields = (
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
-            'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units', 'structure',
+            'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
+            'identifiers', 'notes', 'related_structure_units',
         )
 
 
@@ -427,6 +438,18 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                     raise serializers.ValidationError(
                         _('Units in instances of type {} cannot be moved').format(structure_type)
                     )
+
+                parent = copied['parent']
+
+                if parent is not None:
+                    has_tags = parent.structure.tagstructure_set.annotate(
+                        versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+                    ).filter(structure_unit=parent, versions_exists=True)
+
+                    if has_tags:
+                        raise serializers.ValidationError(
+                            _('Units cannot be placed in a unit with tags').format(structure_type)
+                        )
 
                 copied.pop('parent', None)
 

@@ -23,27 +23,28 @@
 """
 
 
-import jsonfield
 from django.db import models
+
+from ESSArch_Core.fields import JSONField
 
 
 class extensionPackage(models.Model):
     id = models.AutoField(primary_key=True)
-    allElements = jsonfield.JSONField(null=True)
-    existingElements = jsonfield.JSONField(null=True)
-    allAttributes = jsonfield.JSONField(null=True)
+    allElements = JSONField(null=True)
+    existingElements = JSONField(null=True)
+    allAttributes = JSONField(null=True)
 
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
-    nsmap = jsonfield.JSONField(default={})
+    nsmap = JSONField(default={})
 
 
 class templatePackage(models.Model):
-    existingElements = jsonfield.JSONField(null=True)
-    # treeData = jsonfield.JSONField(null=True)
-    allElements = jsonfield.JSONField(null=True)
-    structure = jsonfield.JSONField(default=[])
+    existingElements = JSONField(null=True)
+    # treeData = JSONField(null=True)
+    allElements = JSONField(null=True)
+    structure = JSONField(default=[])
     # isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length=255, primary_key=True)
     root_element = models.CharField(max_length=55, default='')
@@ -52,7 +53,7 @@ class templatePackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
-    nsmap = jsonfield.JSONField(default={})
+    nsmap = JSONField(default={})
     # generated = models.BooleanField(default=False)
     # creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
