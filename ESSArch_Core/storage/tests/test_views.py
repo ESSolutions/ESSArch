@@ -219,7 +219,7 @@ class StorageMediumDeactivatableTests(TestCase):
 class StorageMediumMigratableTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.user = User.objects.create(username='user')
+        cls.user = User.objects.create(is_superuser=True)
 
     def setUp(self):
         self.client = APIClient()
@@ -364,13 +364,12 @@ class StorageMediumMigratableTests(TestCase):
         default_rel = self.add_storage_method_rel(DISK, 'default', STORAGE_TARGET_STATUS_MIGRATE)
         default_medium = self.add_storage_medium(default_rel.storage_target, 20, 'default')
 
-        more_target = StorageTarget.objects.create(name='more_target')
-        more_rel = StorageMethodTargetRelation.objects.create(
+        new_target = StorageTarget.objects.create(name='new_target')
+        new_rel = StorageMethodTargetRelation.objects.create(
             storage_method=default_rel.storage_method,
-            storage_target=more_target,
+            storage_target=new_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
-        more_medium = self.add_storage_medium(more_rel.storage_target, 20, 'more')
 
         # long term
         long_term_rel = self.add_storage_method_rel(DISK, 'default_long_term', STORAGE_TARGET_STATUS_ENABLED)
@@ -378,19 +377,26 @@ class StorageMediumMigratableTests(TestCase):
 
         self.policy.storage_methods.add(
             default_rel.storage_method,
-            more_rel.storage_method,
+            new_rel.storage_method,
 
             long_term_rel.storage_method,
         )
 
         self.add_storage_obj(ip_0933, default_medium, DISK, '')
-        self.add_storage_obj(ip_0933, more_medium, DISK, '')
-
         self.add_storage_obj(ip_0933, long_term_medium, DISK, '')
+
         self.add_storage_obj(ip_1520, long_term_medium, DISK, '')
 
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(default_medium.pk))
+
+        response = self.client.get(reverse('informationpackage-list'), data={
+            'medium': str(default_medium.pk),
+            'migratable': True,
+            'view_type': 'flat',
+        })
         self.assertEqual(len(response.data), 1)
 
 
@@ -606,12 +612,15 @@ class StorageMigrationTests(StorageMigrationTestsBase):
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_migrate(self, mock_task):
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        self.policy.storage_methods.add(old.storage_method)
         old_medium = self.add_storage_medium(old.storage_target, 20)
         self.add_storage_obj(self.ip, old_medium, DISK, '')
 
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
-
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+        StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
 
         data = {
             'information_packages': [str(self.ip.pk)],
@@ -623,61 +632,59 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         mock_task.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
-    def test_storage_methods(self, mock_task):
+    def test_method_rel_states(self, mock_task):
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
         old_medium = self.add_storage_medium(old.storage_target, 20)
         self.add_storage_obj(self.ip, old_medium, DISK, '')
 
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        new = StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
 
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+        self.policy.storage_methods.add(old.storage_method)
 
         data = {
             'information_packages': [str(self.ip.pk)],
             'policy': str(self.policy.pk),
             'temp_path': 'temp',
-            'storage_methods': [str(new.storage_method.pk)]
         }
 
-        with self.subTest('enabled status'):
-            response = self.client.post(self.url, data=data)
-            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            mock_task.assert_called_once()
-
-        expected_msg = f'Invalid pk "{new.storage_method.pk}" - object does not exist.'
-
-        with self.subTest('disabled status'):
-            mock_task.reset_mock()
-            new.status = STORAGE_TARGET_STATUS_DISABLED
-            new.save()
+        with self.subTest('old enabled, new enabled'):
             response = self.client.post(self.url, data=data)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            msg = response.data['storage_methods'][0]
-            self.assertEqual(msg, expected_msg)
-
             mock_task.assert_not_called()
 
-        with self.subTest('migrate status'):
-            mock_task.reset_mock()
+        with self.subTest('old migrate, new migrate'):
+            old.status = STORAGE_TARGET_STATUS_MIGRATE
+            old.save()
             new.status = STORAGE_TARGET_STATUS_MIGRATE
             new.save()
             response = self.client.post(self.url, data=data)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            msg = response.data['storage_methods'][0]
-            self.assertEqual(msg, expected_msg)
-
             mock_task.assert_not_called()
 
-        with self.subTest('read-only status'):
-            mock_task.reset_mock()
+        with self.subTest('old migrate, new read-only'):
             new.status = STORAGE_TARGET_STATUS_READ_ONLY
             new.save()
             response = self.client.post(self.url, data=data)
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-            msg = response.data['storage_methods'][0]
-            self.assertEqual(msg, expected_msg)
-
             mock_task.assert_not_called()
+
+        with self.subTest('old migrate, new disabled'):
+            new.status = STORAGE_TARGET_STATUS_DISABLED
+            new.save()
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            mock_task.assert_not_called()
+
+        with self.subTest('old migrate, new enabled'):
+            new.status = STORAGE_TARGET_STATUS_ENABLED
+            new.save()
+            response = self.client.post(self.url, data=data)
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            mock_task.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_ip_with_no_storage(self, mock_task):
@@ -702,62 +709,35 @@ class StorageMigrationTests(StorageMigrationTestsBase):
     )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessTask.run')
     def test_migration_task_order(self, mock_task_run, mock_task):
-        old = self.add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        old = self.add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = self.add_storage_medium(old.storage_target, 20)
 
-        tape_ips = [
+        StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        self.policy.storage_methods.add(old.storage_method)
+
+        ips = [
             InformationPackage.objects.create(archived=True, policy=self.policy)
             for _ in range(6)
         ]
 
         tape_location_values = ['1', '4', '5', '3', '10', '2']
-        for idx, ip in enumerate(tape_ips):
+        for idx, ip in enumerate(ips):
             self.add_storage_obj(ip, old_medium, TAPE, tape_location_values[idx])
-
-        disk_ips = [
-            InformationPackage.objects.create(archived=True, policy=self.policy)
-            for _ in range(6)
-        ]
-
-        disk_location_values = ['foo/bar', '0', '/data/test', '/data/test/aic', '1', 'baz']
-        for idx, ip in enumerate(disk_ips):
-            self.add_storage_obj(ip, old_medium, DISK, disk_location_values[idx])
-
-        ips = tape_ips + disk_ips
-
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
 
         data = {
             'information_packages': [str(ip.pk) for ip in ips],
             'policy': str(self.policy.pk),
             'temp_path': 'temp',
-            'storage_methods': [str(new.storage_method.pk)]
         }
 
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        class MockValidator(object):
-            def __init__(self, validator):
-                # validator is a function that takes a single argument and returns a bool.
-                self.validator = validator
-
-            def __eq__(self, other):
-                return bool(self.validator(other))
-
         mock_task.assert_has_calls([
-            mock.call(
-                name='ESSArch_Core.storage.tasks.StorageMigration',
-                label=mock.ANY,
-                status__in=mock.ANY,
-                information_package=MockValidator(lambda x: ip in disk_ips),
-                defaults={
-                    'args': mock.ANY,
-                    'responsible': mock.ANY,
-                    'eager': False,
-                }
-            ) for _ in range(6)] + [
             mock.call(
                 name='ESSArch_Core.storage.tasks.StorageMigration',
                 label=mock.ANY,
@@ -768,15 +748,8 @@ class StorageMigrationTests(StorageMigrationTestsBase):
                     'responsible': mock.ANY,
                     'eager': False,
                 }
-            ) for ip in [
-                tape_ips[0],
-                tape_ips[5],
-                tape_ips[3],
-                tape_ips[1],
-                tape_ips[2],
-                tape_ips[4],
-            ]],
-        )
+            ) for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]
+        ])
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_queue_duplicate_migrations(self, mock_task):
@@ -784,9 +757,13 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         old_medium = self.add_storage_medium(old.storage_target, 20)
         self.add_storage_obj(self.ip, old_medium, DISK, '')
 
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
 
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+        self.policy.storage_methods.add(old.storage_method)
 
         data = {
             'information_packages': [str(self.ip.pk)],
@@ -828,9 +805,13 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
         old_medium = self.add_storage_medium(old.storage_target, 20)
         self.add_storage_obj(self.ip, old_medium, DISK, '')
 
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        StorageMethodTargetRelation.objects.create(
+            storage_method=old.storage_method,
+            storage_target=StorageTarget.objects.create(name='new_target'),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
 
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+        self.policy.storage_methods.add(old.storage_method)
         data = {
             'information_packages': [str(self.ip.pk)],
             'policy': str(self.policy.pk),
@@ -884,54 +865,6 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 2)
 
-    def test_preview_with_specified_storage_method(self):
-        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
-        old_medium = self.add_storage_medium(old.storage_target, 20)
-        self.add_storage_obj(self.ip, old_medium, DISK, '')
-
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
-
-        with self.subTest('old storage method'):
-            data = {
-                'information_packages': [str(self.ip.pk)],
-                'storage_methods': [str(old.storage_method.pk)],
-                'policy': str(self.policy.pk),
-            }
-            res = self.client.get(self.url, data=data)
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data), 0)
-
-        with self.subTest('old storage method with new target'):
-            old.status = STORAGE_TARGET_STATUS_MIGRATE
-            old.save()
-
-            target = StorageTarget.objects.create(name='new target, old method')
-            StorageMethodTargetRelation.objects.create(
-                storage_method=old.storage_method,
-                storage_target=target,
-                status=STORAGE_TARGET_STATUS_ENABLED,
-            )
-
-            data = {
-                'information_packages': [str(self.ip.pk)],
-                'storage_methods': [str(old.storage_method.pk)],
-                'policy': str(self.policy.pk),
-            }
-            res = self.client.get(self.url, data=data)
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data), 1)
-
-        with self.subTest('new storage method'):
-            data = {
-                'information_packages': [str(self.ip.pk)],
-                'storage_methods': [str(new.storage_method.pk)],
-                'policy': str(self.policy.pk),
-            }
-            res = self.client.get(self.url, data=data)
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data), 1)
-
     def test_preview_with_non_migratable_ip(self):
         ip = InformationPackage.objects.create()
         data = {
@@ -944,12 +877,16 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
 
 class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
     def test_preview_with_migratable_ip(self):
-        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = self.add_storage_medium(old.storage_target, 20)
         self.add_storage_obj(self.ip, old_medium, DISK, '')
 
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+        new = StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        self.policy.storage_methods.add(old.storage_method)
 
         data = {
             'policy': str(self.policy.pk),
@@ -960,56 +897,14 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
         self.assertEqual(len(res.data), 1)
         self.assertEqual(res.data[0]['id'], str(new.storage_target.pk))
 
-        old.status = STORAGE_TARGET_STATUS_MIGRATE
-        old.save()
-
-        target = StorageTarget.objects.create(name='new target, old method')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=old.storage_method,
-            storage_target=target,
-            status=STORAGE_TARGET_STATUS_ENABLED,
-        )
-
+        # new relation with new method and new target should not affect the response
+        new_method_target = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(new_method_target.storage_method)
+        url = reverse('storage-migrations-preview-detail', args=(str(self.ip.pk),))
         res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data), 2)
-
-    def test_preview_with_specified_storage_method(self):
-        url = reverse('storage-migrations-preview-detail', args=(str(self.ip.pk),))
-
-        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
-        old_medium = self.add_storage_medium(old.storage_target, 20)
-        self.add_storage_obj(self.ip, old_medium, DISK, '')
-
-        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
-        self.policy.storage_methods.add(old.storage_method, new.storage_method)
-
-        with self.subTest('old storage method with new target'):
-            target = StorageTarget.objects.create(name='new target, old method')
-            StorageMethodTargetRelation.objects.create(
-                storage_method=old.storage_method,
-                storage_target=target,
-                status=STORAGE_TARGET_STATUS_ENABLED,
-            )
-
-            data = {
-                'storage_methods': [str(old.storage_method.pk)],
-                'policy': str(self.policy.pk),
-            }
-            res = self.client.get(url, data=data)
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data), 1)
-            self.assertEqual(res.data[0]['id'], str(target.pk))
-
-        with self.subTest('new storage method'):
-            data = {
-                'storage_methods': [str(new.storage_method.pk)],
-                'policy': str(self.policy.pk),
-            }
-            res = self.client.get(url, data=data)
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data), 1)
-            self.assertEqual(res.data[0]['id'], str(new.storage_target.pk))
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], str(new.storage_target.pk))
 
     def test_preview_with_non_migratable_ip(self):
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)

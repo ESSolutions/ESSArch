@@ -369,23 +369,12 @@ class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
         return InformationPackage.objects.migratable().filter(policy=policy)
 
 
-class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
-    def get_queryset(self):
-        policy = self.context['policy']
-        return StorageMethod.objects.filter_has_target_with_status(
-            STORAGE_TARGET_STATUS_ENABLED, True,
-        ).filter(storage_policies=policy)
-
-
 class StorageMigrationCreateSerializer(serializers.Serializer):
     information_packages = InformationPackagePolicyField(
         write_only=True, many=True,
     )
     policy = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=StoragePolicy.objects.all(),
-    )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
     )
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 
@@ -405,17 +394,9 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
             ).select_related('ip').fastest()
 
             for storage_object in storage_objects:
-                storage_methods = validated_data.get(
-                    'storage_methods',
-                    StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+                storage_methods = validated_data['policy'].storage_methods.filter(
+                    pk__in=storage_object.ip.get_migratable_storage_methods()
                 )
-
-                if isinstance(storage_methods, list):
-                    storage_methods = StorageMethod.objects.filter(
-                        pk__in=[s.pk for s in storage_methods]
-                    )
-
-                storage_methods = storage_methods.filter(pk__in=storage_object.ip.get_migratable_storage_methods())
 
                 for storage_method in storage_methods:
                     t, created = ProcessTask.objects.get_or_create(
@@ -453,20 +434,10 @@ class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
     policy = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=StoragePolicy.objects.all(),
     )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
 
     def create(self, validated_data):
         information_packages = validated_data['information_packages']
-        storage_methods = validated_data.get(
-            'storage_methods',
-            StorageMethod.objects.filter(storage_policies=validated_data['policy'])
-        )
-        if isinstance(storage_methods, list):
-            storage_methods = StorageMethod.objects.filter(
-                pk__in=[s.pk for s in storage_methods]
-            )
+        storage_methods = validated_data['policy'].storage_methods.all()
         information_packages = InformationPackage.objects.filter(pk__in=[ip.pk for ip in information_packages])
         information_packages = information_packages.migratable(storage_methods=storage_methods)
         return StorageMigrationPreviewSerializer(instance=information_packages, many=True).data
@@ -476,25 +447,12 @@ class StorageMigrationPreviewDetailWriteSerializer(serializers.Serializer):
     policy = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=StoragePolicy.objects.all(),
     )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
 
     def create(self, validated_data):
         ip = validated_data['information_package']
-        storage_methods = validated_data.get(
-            'storage_methods',
-            StorageMethod.objects.filter(storage_policies=validated_data['policy'])
+        storage_methods = validated_data['policy'].storage_methods.filter(
+            pk__in=ip.get_migratable_storage_methods()
         )
-        if isinstance(storage_methods, list):
-            if len(storage_methods) == 0:
-                storage_methods = StorageMethod.objects.filter(storage_policies=validated_data['policy'])
-            else:
-                storage_methods = StorageMethod.objects.filter(
-                    pk__in=[s.pk for s in storage_methods]
-                )
-
-        storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
 
         targets = StorageTarget.objects.filter(
             storage_method_target_relations__storage_method__in=storage_methods,
