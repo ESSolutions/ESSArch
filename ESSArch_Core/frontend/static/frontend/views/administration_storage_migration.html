@@ -166,7 +166,7 @@
                 fields="vm.fields"
                 update="getListViewData()"
               ></advanced-filters>
-              <div ng-if="!('home.ingest.reception' | isState)" class="global-search">
+              <div class="global-search">
                 <input
                   id="search-input"
                   st-search=""
@@ -179,7 +179,6 @@
                 />
               </div>
               <button
-                ng-if="!('home.ingest.reception' | isState)"
                 type="button"
                 ng-click="getListViewData()"
                 class="btn btn-primary btn-small"
@@ -190,13 +189,6 @@
               >
                 {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
               </button>
-              <select
-                ng-if="checkPermission('ip.see_all_in_workspaces') && auth.current_organization && (('home.ingest.workarea' | isState) || ('home.access.workarea' | isState))"
-                class="form-control organization-member-select"
-                ng-model="vm.organizationMember.current"
-                ng-options="x as x.username for x in vm.organizationMember.options track by x.id"
-                ng-change="getListViewData()"
-              ></select>
               <div class="refresh-icon">
                 <span
                   ng-click="getListViewData()"
