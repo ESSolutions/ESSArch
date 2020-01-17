@@ -321,6 +321,7 @@ export default class StorageMigrationCtrl {
         } else {
         }
         if (vm.selectedMediums.length === 0) {
+          vm.displayedIps = [];
           $scope.ip = null;
           $scope.ips = [];
         } else {
@@ -328,7 +329,6 @@ export default class StorageMigrationCtrl {
         }
       } else {
         vm.selectedMediums.push(medium);
-        $scope.getListViewData();
       }
     };
 
