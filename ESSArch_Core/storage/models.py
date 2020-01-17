@@ -671,11 +671,17 @@ class StorageObjectQueryset(models.QuerySet):
             When(content_location_type=TAPE, then=Value(2)),
             output_field=IntegerField(),
         )
+        content_location_value_int = Case(
+            When(content_location_type=TAPE, then=Cast('content_location_value', models.IntegerField())),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
         return self.annotate(
             container_order=container,
             remote=remote,
-            storage_type=storage_type
-        ).order_by('remote', 'container_order', 'storage_type')
+            storage_type=storage_type,
+            content_location_value_int=content_location_value_int,
+        ).order_by('remote', 'container_order', 'storage_type', 'content_location_value_int')
 
 
 class StorageObject(models.Model):

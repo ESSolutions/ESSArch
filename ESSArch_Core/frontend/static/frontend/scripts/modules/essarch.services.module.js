@@ -48,7 +48,7 @@ export default angular
   .factory('AgentName', ['$filter', agentName])
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
-  .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', filters])
+  .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', 'Notifications', filters])
   .factory('StoragePolicy', ['$resource', 'appConfig', storagePolicy])
   .factory('ContentTabs', contentTabs)
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
