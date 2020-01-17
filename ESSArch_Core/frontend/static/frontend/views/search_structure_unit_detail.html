@@ -38,7 +38,7 @@
         </div>
         <div
           class="action-button"
-          ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+          ng-if="vm.structure.type.editable_instance_relations"
           permission
           permission-only="'tags.change_structureunit_instance'"
         >
@@ -71,14 +71,14 @@
               </th>
               <th
                 class="shrink"
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                ng-if="vm.structure.type.editable_instance_relations"
                 permission
                 permission-only="'tags.change_structureunit_instance'"
               >
                 {{'EDIT' | translate}}
               </th>
               <th
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                ng-if="vm.structure.type.editable_instance_relations"
                 class="white-space-nowrap shrink"
                 permission
                 permission-only="'tags.change_structureunit_instance'"
@@ -113,7 +113,7 @@
                 {{x.end_date | date:"yyyy-MM-dd"}}
               </td>
               <td
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                ng-if="vm.structure.type.editable_instance_relations"
                 class="text-center shrink"
                 permission
                 permission-only="'tags.change_structureunit_instance'"
@@ -127,7 +127,7 @@
                 ></button>
               </td>
               <td
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                ng-if="vm.structure.type.editable_instance_relations"
                 class="text-center shrink"
                 permission
                 permission-only="'tags.change_structureunit_instance'"
@@ -146,17 +146,14 @@
               class="empty-table-indicator"
             >
               <td
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations"
+                ng-if="vm.structure.type.editable_instance_relations"
                 permission
                 permission-only="'tags.change_structureunit_instance'"
                 colspan="8"
               >
                 {{'NO_RESULTS_FOUND' | translate}}
               </td>
-              <td
-                ng-if="vm.getStructureById(vm.archiveStructures, vm.structure).type.editable_instance_relations === false"
-                colspan="6"
-              >
+              <td ng-if="vm.structure.type.editable_instance_relations === false" colspan="6">
                 {{'NO_RESULTS_FOUND' | translate}}
               </td>
             </tr>

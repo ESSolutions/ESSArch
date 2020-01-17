@@ -1199,6 +1199,45 @@ def installProfileDIP(sa):
         'submission_method': 'Electronically',
         'submission_schedule': 'Once',
         'submission_data_inventory': 'According to submit description',
+        'structure': [
+            {
+                'type': 'file',
+                'name': 'mets.xml',
+                'use': 'mets_file',
+            },
+            {
+                'type': 'folder',
+                'name': 'content',
+                'use': 'content',
+            },
+            {
+                'type': 'folder',
+                'name': 'administrative_metadata',
+                'use': 'metadata',
+                'children': [
+                    {
+                        'type': 'file',
+                        'use': 'xsd_files',
+                        'name': 'xsd_files'
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'premis.xml',
+                        'use': 'preservation_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'ead.xml',
+                        'use': 'archival_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'eac.xml',
+                        'use': 'authoritive_information_file',
+                    },
+                ]
+            },
+        ],
         'template': [
             {
                 "key": "mets_type",
