@@ -198,6 +198,79 @@ class StorageMethodQueryset(models.QuerySet):
         ).filter(**{annotation_key: value})
         return self.filter(pk__in=qs)
 
+    def _has_non_recovered_storage_object(self):
+        # TODO: Replace RawSQL when upgrading to Django 3.0
+
+        def mssql_wrapper(sql):
+            if connection.vendor == 'microsoft':
+                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
+            return sql
+
+        return RawSQL(
+            mssql_wrapper("""
+                EXISTS(
+                    SELECT 1 FROM storage_storageobject W1
+                    INNER JOIN ip_informationpackage IP ON (
+                        IP.id=W1.ip_id
+                    )
+                    INNER JOIN (
+                        SELECT U2.id, U5.id AS medium_id FROM storage_storagemethod U2
+                        INNER JOIN storage_storagemethodtargetrelation U3 ON (
+                            U3.storage_method_id=U2.id
+                        )
+                        INNER JOIN storage_storagetarget U4 ON (
+                            U4.id=U3.storage_target_id
+                        )
+                        INNER JOIN storage_storagemedium U5 ON (
+                            U5.storage_target_id=U4.id
+                        )
+                    ) old_method ON (old_method.medium_id=W1.storage_medium_id)
+                    LEFT JOIN (
+                        SELECT A0.id, A0.ip_id, A3.storage_method_id AS method_id FROM storage_storageobject A0
+                        INNER JOIN storage_storagemedium A1 ON (
+                            A1.id = A0.storage_medium_id
+                        )
+                        INNER JOIN storage_storagetarget A2 ON (
+                            A2.id = A1.storage_target_id
+                        )
+                        INNER JOIN storage_storagemethodtargetrelation A3 ON (
+                            A3.storage_target_id = A2.id AND
+                            A3.status = %s
+                        )
+                    ) new_object ON (new_object.ip_id = W1.ip_id AND new_object.method_id = storage_storagemethod.id)
+                    WHERE new_object.id IS NULL
+                )"""),
+            (
+                STORAGE_TARGET_STATUS_ENABLED,
+            )
+        )
+
+    def recoverable(self):
+        return StorageMethod.objects.filter(
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+        ).annotate(
+            missing_storage_object=self._has_non_recovered_storage_object()
+        ).filter(missing_storage_object=True)
+
+
+    def recoverable2(self):
+        return StorageMethod.objects.filter(
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+        ).annotate(
+            missing_storage_object=Exists(
+                StorageObject.objects.filter(
+                    ip__policy__in=OuterRef('storage_policies'),
+                ).filter(
+                    storage_medium__storage_target__methods=OuterRef('storage_policies'),
+                ).exclude(
+                    storage_medium__storage_target__methods=OuterRef('pk'),
+                )
+            )
+        ).filter(missing_storage_object=True)
+
+    def non_recoverable(self):
+        return self.exclude(pk__in=self.recoverable())
+
     def fastest(self):
         container = Case(
             When(containers=False, then=Value(1)),
@@ -403,7 +476,8 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(status__in=[20], location_status=50)
 
     def _has_non_migrated_storage_object(self, include_inactive_ips=False):
-        # TODO: Replace RawSQL when Django 3.0 is released
+        # TODO: Replace RawSQL when upgrading to Django 3.0
+
         def mssql_wrapper(sql):
             if connection.vendor == 'microsoft':
                 return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
@@ -462,7 +536,7 @@ class StorageMediumQueryset(models.QuerySet):
         )
         return self.filter(pk__in=qs)
 
-    def _migratable(self):
+    def migratable(self):
         return StorageMedium.objects.exclude(status=0).filter(
             storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
         ).annotate(
@@ -484,11 +558,8 @@ class StorageMediumQueryset(models.QuerySet):
             has_enabled_target=True,
         )
 
-    def migratable(self):
-        return self.filter(pk__in=self._migratable())
-
     def non_migratable(self):
-        return self.exclude(pk__in=self._migratable())
+        return self.exclude(pk__in=self.migratable())
 
     def fastest(self):
         container = Case(

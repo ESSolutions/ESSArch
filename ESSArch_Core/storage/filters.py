@@ -94,6 +94,7 @@ class StorageMethodFilter(filters.FilterSet):
     )
     has_enabled_target = filters.BooleanFilter(method='filter_has_enabled_target')
     has_migrate_target = filters.BooleanFilter(method='filter_has_migrate_target')
+    recoverable = filters.BooleanFilter(label='recoverable', method='filter_recoverable')
 
     def filter_has_enabled_target(self, queryset, name, value):
         status = STORAGE_TARGET_STATUS_ENABLED
@@ -102,6 +103,12 @@ class StorageMethodFilter(filters.FilterSet):
     def filter_has_migrate_target(self, queryset, name, value):
         status = STORAGE_TARGET_STATUS_MIGRATE
         return queryset.filter_has_target_with_status(status, value)
+
+    def filter_recoverable(self, queryset, name, value):
+        if value:
+            return queryset.recoverable()
+        else:
+            return queryset.non_recoverable()
 
     class Meta:
         model = StorageMethod
