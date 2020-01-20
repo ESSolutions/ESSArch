@@ -40,6 +40,14 @@ def get_requirements(env):
         return [x.strip() for x in fp.read().split('\n') if not x.startswith('#')]
 
 
+def get_optional(name):
+    for req in get_requirements('optional'):
+        if req.startswith(name):
+            return req
+
+    raise ValueError('Could not find optional requirement: "{}"'.format(name))
+
+
 if __name__ == '__main__':
     cmdclass = versioneer.get_cmdclass()
     setup(
@@ -78,15 +86,15 @@ if __name__ == '__main__':
         extras_require={
             "docs": get_requirements('docs'),
             "tests": get_requirements('tests'),
-            "ldap": ["django-auth-ldap==2.0.0"],
-            "saml2": ["djangosaml2==0.17.2"],
-            "libreoffice_file_conversion": ["unoconv==0.8.2"],
-            "ms_office_file_conversion": ["comtypes==1.1.7;platform_system=='Windows'"],
-            "iis": ["wfastcgi==3.0.0"],
-            "mssql": ["django-mssql-backend==2.5.0"],
-            "mysql": ["mysqlclient==1.4.4"],
-            "postgres": ["psycopg2==2.8.3"],
-            "logstash": ["python-logstash-async==1.5.1"],
+            "ldap": [get_optional("django-auth-ldap")],
+            "saml2": [get_optional("djangosaml2")],
+            "libreoffice_file_conversion": [get_optional("unoconv")],
+            "ms_office_file_conversion": [get_optional("comtypes")],
+            "iis": [get_optional("wfastcgi")],
+            "mssql": [get_optional("django-mssql-backend")],
+            "mysql": [get_optional("mysqlclient")],
+            "postgres": [get_optional("psycopg2")],
+            "logstash": [get_optional("python-logstash-async")],
         },
         packages=find_packages(),
         include_package_data=True,
