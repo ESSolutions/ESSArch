@@ -9,7 +9,6 @@ from countries_plus.models import Country
 from django.core.cache import cache
 from django.db import transaction
 from django.utils import dateparse, timezone
-from languages_plus.models import Language
 from lxml import etree
 
 from ESSArch_Core.agents.documents import AgentDocument
@@ -30,6 +29,7 @@ from ESSArch_Core.agents.models import (
     RefCode,
     Topography,
 )
+from ESSArch_Core.i18n.models import Language
 from ESSArch_Core.search.importers.base import BaseImporter
 from ESSArch_Core.tags.documents import (
     Archive,

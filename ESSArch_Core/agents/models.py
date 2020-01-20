@@ -6,8 +6,8 @@ from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from languages_plus.models import Language
 
+from ESSArch_Core.i18n.models import Language
 from ESSArch_Core.managers import OrganizationManager
 
 

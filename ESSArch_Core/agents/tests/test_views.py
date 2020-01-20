@@ -5,7 +5,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient
 
@@ -28,6 +27,7 @@ from ESSArch_Core.agents.models import (
     SourcesOfAuthority,
 )
 from ESSArch_Core.auth.models import Group, GroupType
+from ESSArch_Core.i18n.models import Language
 
 User = get_user_model()
 

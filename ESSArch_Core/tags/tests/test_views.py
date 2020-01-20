@@ -6,7 +6,6 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
@@ -20,6 +19,7 @@ from ESSArch_Core.agents.models import (
 )
 from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import EventType
+from ESSArch_Core.i18n.models import Language
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,

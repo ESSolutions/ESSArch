@@ -12,7 +12,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ('countries_plus', '0005_auto_20160224_1804'),
         ('WorkflowEngine', '0073_processstep_context'),
-        ('languages_plus', '0004_auto_20171214_0004'),
         ('tags', '0015_auto_20181217_1154'),
     ]
 
@@ -28,7 +27,7 @@ class Migration(migrations.Migration):
                 ('revise_date', models.DateTimeField(null=True, verbose_name='revise date')),
                 ('start_date', models.DateField(null=True, verbose_name='start date')),
                 ('end_date', models.DateField(null=True, verbose_name='end date')),
-                ('language', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='languages_plus.Language', verbose_name='language')),
+                ('language', models.CharField(max_length=2)),
             ],
         ),
         migrations.CreateModel(

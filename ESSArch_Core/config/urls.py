@@ -15,7 +15,6 @@ from ESSArch_Core.agents.views import (
     AuthorityTypeViewSet,
     RefCodeViewSet,
 )
-from ESSArch_Core.api.views import LanguageViewSet
 from ESSArch_Core.auth.views import (
     GroupViewSet,
     MeView,
@@ -33,6 +32,7 @@ from ESSArch_Core.configuration.views import (
     SysInfoView,
 )
 from ESSArch_Core.fixity.views import ValidationFilesViewSet, ValidationViewSet
+from ESSArch_Core.i18n.views import LanguageViewSet
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
     EventIPViewSet,
