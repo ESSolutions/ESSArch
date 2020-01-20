@@ -252,22 +252,6 @@ class StorageMethodQueryset(models.QuerySet):
             missing_storage_object=self._has_non_recovered_storage_object()
         ).filter(missing_storage_object=True)
 
-
-    def recoverable2(self):
-        return StorageMethod.objects.filter(
-            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
-        ).annotate(
-            missing_storage_object=Exists(
-                StorageObject.objects.filter(
-                    ip__policy__in=OuterRef('storage_policies'),
-                ).filter(
-                    storage_medium__storage_target__methods=OuterRef('storage_policies'),
-                ).exclude(
-                    storage_medium__storage_target__methods=OuterRef('pk'),
-                )
-            )
-        ).filter(missing_storage_object=True)
-
     def non_recoverable(self):
         return self.exclude(pk__in=self.recoverable())
 
