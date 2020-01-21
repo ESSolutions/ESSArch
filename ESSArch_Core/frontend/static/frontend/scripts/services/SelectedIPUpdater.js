@@ -25,10 +25,7 @@ const selectedIpUpdater = () => {
         }
       } else if (selectedIp !== null) {
         newIps.forEach(function(ip) {
-          if (
-            !angular.equals(ip, selectedIp) &&
-            (ip.id === selectedIp.id || ip.object_identifier_value === selectedIp.object_identifier_value)
-          ) {
+          if (!angular.equals(ip, selectedIp) && ip.id === selectedIp.id) {
             updateSingleIp(selectedIp, ip);
           }
         });

@@ -38,9 +38,12 @@ class XMLSchemaValidatorTests(TestCase):
             if e.errno != 17:
                 raise
 
-    def create_schema_file(self, path):
-        content = """<?xml version="1.0" encoding="UTF-8"?>
-        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    @staticmethod
+    def create_schema():
+        return """<?xml version="1.0" encoding="UTF-8"?>
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:tns="test/namespace" targetNamespace="test/namespace"
+                    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xs:complexType name="itemtype">
               <xs:sequence>
                 <xs:element name="title" type="xs:string"/>
@@ -48,20 +51,22 @@ class XMLSchemaValidatorTests(TestCase):
               </xs:sequence>
             </xs:complexType>
 
-            <xs:element name="item" type="itemtype"/>
+            <xs:element name="item" type="tns:itemtype"/>
         </xs:schema>
         """
+
+    def create_schema_file(self, path):
         path = os.path.join(self.datadir, path)
 
         with open(path, 'w') as f:
-            f.write(content)
+            f.write(self.create_schema())
 
         return path
 
     def create_schema_file_with_import(self, path):
         content = """<?xml version="1.0" encoding="UTF-8"?>
         <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
-            <xs:import namespace="http://www.loc.gov/METS/"
+            <xs:import namespace="test/namespace"
                        schemaLocation="https://www.loc.gov/standards/mets/mets.xsd"/>
         </xs:schema>
         """
@@ -74,10 +79,10 @@ class XMLSchemaValidatorTests(TestCase):
 
     def create_xml(self, xml_file_name):
         xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
-        <item>
+        <tns:item xmlns:tns="test/namespace">
             <title>good</title>
             <price>12.3</price>
-        </item>
+        </tns:item>
         """
 
         xml_file_path = os.path.join(self.datadir, xml_file_name)
@@ -89,10 +94,10 @@ class XMLSchemaValidatorTests(TestCase):
 
     def create_bad_xml(self, xml_file_name):
         xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
-        <item>
+        <tns:item xmlns:tns="test/namespace">
             <title>bad</title>
             <price>foo</price>
-        </item>
+        </tns:item>
         """
 
         xml_file_path = os.path.join(self.datadir, xml_file_name)
@@ -129,50 +134,33 @@ class XMLSchemaValidatorTests(TestCase):
         expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
         self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
 
-    def test_validate_with_imported_schema(self):
+    def mock_download_schema(dirname, logger, schema, verify=None):
+        path = os.path.join(dirname, 'foo.xsd')
+        with open(path, 'w') as f:
+            f.write(XMLSchemaValidatorTests.create_schema())
+        return path
+
+    @mock.patch('ESSArch_Core.ip.utils.download_schema', side_effect=mock_download_schema)
+    def test_validate_with_imported_schema(self, mock_download):
         schema_file_name = "schema.xsd"
         schema_file_path = self.create_schema_file_with_import(schema_file_name)
-        xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
-        <mets:mets xmlns:mets="http://www.loc.gov/METS/"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:xlink="http://www.w3.org/1999/xlink">
-            <mets:metsHdr/>
-            <mets:structMap>
-                <mets:div/>
-            </mets:structMap>
-        </mets:mets>
-        """
-
-        xml_file_path = os.path.join(self.datadir, 'test.xml')
-        with open(xml_file_path, 'w') as f:
-            f.write(xml_file_content)
+        xml_file_path = self.create_xml("xml_file.xml")
 
         validator = XMLSchemaValidator(
             context=schema_file_path,
             options={'rootdir': self.datadir},
         )
         validator.validate(xml_file_path)
+        mock_download.assert_called_once()
 
-        bad_xml_file_content = """<?xml version="1.0" encoding="UTF-8"?>
-        <mets:mets xmlns:mets="http://www.loc.gov/METS/"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:xlink="http://www.w3.org/1999/xlink">
-            <mets:metsHdr>
-                this is incorrect
-            </mets:metsHdr>
-            <mets:structMap>
-                <mets:div/>
-            </mets:structMap>
-        </mets:mets>
-        """
-
-        with open(xml_file_path, 'w') as f:
-            f.write(bad_xml_file_content)
-
+        mock_download.reset_mock()
+        bad_xml_file_path = self.create_bad_xml("xml_file.xml")
         with self.assertRaises(ValidationError):
-            validator.validate(xml_file_path)
+            validator.validate(bad_xml_file_path)
 
-        expected_error_message = "Character content other than whitespace"
+        mock_download.assert_called_once()
+
+        expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
         self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
 
         # ensure that the schema has only been modified in memory and not the file
