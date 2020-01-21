@@ -926,6 +926,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
         res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
+
 class RobotTests(APITestCase):
     def setUp(self):
         user = User.objects.create(is_superuser=True)
