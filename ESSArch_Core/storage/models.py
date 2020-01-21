@@ -362,7 +362,8 @@ class StorageTarget(models.Model):
                                                   block_size=self.default_block_size, format=self.default_format,
                                                   agent=agent, tape_slot=slot)
         elif storage_type == DISK:
-            medium = StorageMedium.objects.create(medium_id=self.name, storage_target=self, status=20,
+            name = 'DISK_{}'.format(self.name)
+            medium = StorageMedium.objects.create(medium_id=name, storage_target=self, status=20,
                                                   location=medium_location, location_status=50,
                                                   block_size=self.default_block_size, format=self.default_format,
                                                   agent=agent)
