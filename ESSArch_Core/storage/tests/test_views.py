@@ -574,12 +574,20 @@ class StorageMethodListTests(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
 
+            response = self.client.get(self.url, data={'recoverable': False})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+
         with self.subTest('single storage method'):
             old_rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
             policy.storage_methods.add(old_rel.storage_method)
             response = self.client.get(self.url, data={'recoverable': True})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
+
+            response = self.client.get(self.url, data={'recoverable': False})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 2)
 
         with self.subTest('no IP in old method'):
             new_rel = add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
@@ -588,6 +596,10 @@ class StorageMethodListTests(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
 
+            response = self.client.get(self.url, data={'recoverable': False})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 3)
+
         with self.subTest('recoverable'):
             ip = InformationPackage.objects.create(
                 package_type=InformationPackage.AIP,
@@ -595,17 +607,16 @@ class StorageMethodListTests(APITestCase):
                 policy=policy,
             )
             storage_medium = add_storage_medium(old_rel.storage_target, 20, 'old')
-            storage_object = add_storage_obj(ip, storage_medium, DISK, '')
-
-
-            print('old method:', str(old_rel.storage_method.pk))
-            print('new method:', str(new_rel.storage_method.pk))
+            add_storage_obj(ip, storage_medium, DISK, '')
 
             response = self.client.get(self.url, data={'recoverable': True})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 1)
-            print('response method:', str(response.data[0]['id']))
             self.assertEqual(response.data[0]['id'], str(new_rel.storage_method.pk))
+
+            response = self.client.get(self.url, data={'recoverable': False})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 2)
 
 
 class StorageMigrationTestsBase(TestCase):
@@ -943,6 +954,7 @@ class StorageMigrationPreviewDetailTests(StorageMigrationTestsBase):
         url = reverse('storage-migrations-preview-detail', args=(str(ip.pk),))
         res = self.client.get(url, data=data)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
 
 class RobotTests(APITestCase):
     def setUp(self):
