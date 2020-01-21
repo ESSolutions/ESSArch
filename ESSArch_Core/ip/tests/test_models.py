@@ -908,6 +908,16 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
 
+    def test_unrelated_migrate_and_enabled_method_rels(self):
+        migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
+        self.add_storage_obj(self.ip, migrate_medium, DISK, '')
+
+        enabled_rel = self.add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
+
+        self.policy.storage_methods.add(migrate_rel.storage_method, enabled_rel.storage_method)
+        self.assertFalse(self.ip.get_migratable_storage_methods().exists())
+
     def test_migrate_and_enabled_method_rels(self):
         migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
         migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
