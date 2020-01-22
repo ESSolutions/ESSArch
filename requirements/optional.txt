@@ -6,4 +6,4 @@ wfastcgi==3.0.0
 django-mssql-backend==2.5.0
 mysqlclient==1.4.4
 psycopg2==2.8.3
-python-logstash-async==1.5.1
+python-logstash-async==1.6.2
