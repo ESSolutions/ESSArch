@@ -72,7 +72,7 @@ class StorageTargetCreateStorageMediumTests(TestCase):
         self.assertEqual(medium.location, 'dummy_medium_location')
         self.assertEqual(medium.agent, 'dummy_agent_id')
         self.assertIsNone(medium.tape_slot)
-        self.assertEqual(medium.medium_id, storage_target_name)
+        self.assertEqual(medium.medium_id, 'DISK_{}'.format(storage_target_name))
 
     def test_when_no_storage_medium_exists_should_create_new_StorageMedium_for_TAPE(self):
         robot = Robot.objects.create(device='slot_robot_device')
