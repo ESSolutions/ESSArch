@@ -18,6 +18,7 @@ from django.db.models import (
     F,
     IntegerField,
     OuterRef,
+    Q,
     Subquery,
     Value,
     When,
@@ -402,7 +403,7 @@ class StorageMediumQueryset(models.QuerySet):
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
 
-    def _has_non_migrated_storage_object(self, include_inactive_ips=False):
+    def _has_non_migrated_storage_object_in_method(self, include_inactive_ips=False):
         # TODO: Replace RawSQL when Django 3.0 is released
         def mssql_wrapper(sql):
             if connection.vendor == 'microsoft':
@@ -452,21 +453,92 @@ class StorageMediumQueryset(models.QuerySet):
             )
         )
 
+    def _missing_storage_object_in_other_method_in_policy(self):
+        """
+        Returns mediums containing storage objects that are missing from an
+        enabled StorageTarget related to another StorageMethod within the same policy
+        """
+
+        # TODO: Replace RawSQL when Django 3.0 is released
+        def mssql_wrapper(sql):
+            if connection.vendor == 'microsoft':
+                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
+            return sql
+
+        return RawSQL(
+            mssql_wrapper("""
+                EXISTS(
+                    SELECT 1 FROM storage_storageobject W1
+                    INNER JOIN ip_informationpackage IP ON (
+                        IP.id=W1.ip_id
+                    )
+                    INNER JOIN (
+                        SELECT U2.id, U5.id AS medium_id FROM storage_storagemethod U2
+                        INNER JOIN storage_storagemethodtargetrelation U3 ON (
+                            U3.storage_method_id=U2.id AND
+                            U3.status IN (%s, %s, %s)
+                        )
+                        INNER JOIN storage_storagetarget U4 ON (
+                            U4.id=U3.storage_target_id
+                        )
+                        INNER JOIN storage_storagemedium U5 ON (
+                            U5.storage_target_id=U4.id
+                        )
+                    ) old_method ON (old_method.medium_id=W1.storage_medium_id)
+                    WHERE
+                        EXISTS (
+                            SELECT 1 FROM configuration_storagepolicy_storage_methods SP_SM
+                            WHERE SP_SM.storagepolicy_id=IP.policy_id AND SP_SM.storagemethod_id=old_method.id
+                        )
+                        AND EXISTS (
+                            SELECT
+                                storagemethod_id AS new_storage_method
+                            FROM
+                                configuration_storagepolicy_storage_methods SP_SM
+                            WHERE
+                                    SP_SM.storagepolicy_id=IP.policy_id
+                                AND SP_SM.storagemethod_id!=old_method.id
+                                AND NOT EXISTS (
+                                    SELECT 1 FROM storage_storageobject new_object
+                                    LEFT JOIN storage_storagemedium B1 ON (
+                                        B1.id = new_object.storage_medium_id
+                                    )
+                                    LEFT JOIN storage_storagetarget B2 ON (
+                                        B2.id = B1.storage_target_id
+                                    )
+                                    LEFT JOIN storage_storagemethodtargetrelation B3 ON (
+                                        B3.storage_target_id = B2.id
+                                    )
+                                    WHERE
+                                            new_object.ip_id = W1.ip_id
+                                        AND B3.storage_method_id != old_method.id
+                                )
+                        )
+                        AND W1.storage_medium_id = storage_storagemedium.id
+                )"""),
+            (
+                STORAGE_TARGET_STATUS_MIGRATE,
+                STORAGE_TARGET_STATUS_ENABLED,
+                STORAGE_TARGET_STATUS_READ_ONLY,
+            )
+        )
+
     def deactivatable(self, include_inactive_ips=False):
         qs = self.exclude(status=0).filter(
             storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
         ).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object(include_inactive_ips)
+            has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(include_inactive_ips)
         ).filter(
             has_non_migrated_storage_object=False,
         )
         return self.filter(pk__in=qs)
 
-    def _migratable(self):
+    def migratable(self):
         return StorageMedium.objects.exclude(status=0).filter(
-            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
+            #storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
         ).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object(False),
+            has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(False),
+            missing_storage_object_in_other_method_in_policy=self._missing_storage_object_in_other_method_in_policy(),
             migrate_method_rel=Subquery(
                 StorageMethodTargetRelation.objects.filter(
                     storage_target=OuterRef('storage_target'),
@@ -480,15 +552,19 @@ class StorageMediumQueryset(models.QuerySet):
                 )
             )
         ).filter(
-            has_non_migrated_storage_object=True,
-            has_enabled_target=True,
+            Q(
+                Q(
+                    has_non_migrated_storage_object=True,
+                    has_enabled_target=True,
+                ) |
+                Q(
+                    missing_storage_object_in_other_method_in_policy=True
+                )
+            )
         )
 
-    def migratable(self):
-        return self.filter(pk__in=self._migratable())
-
     def non_migratable(self):
-        return self.exclude(pk__in=self._migratable())
+        return self.exclude(pk__in=self.migratable())
 
     def fastest(self):
         container = Case(

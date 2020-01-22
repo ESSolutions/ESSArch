@@ -279,7 +279,7 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
-    def test_migrated_ip(self):
+    def test_single_storage_method(self):
         ip = InformationPackage.objects.create(archived=True, policy=self.policy)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
@@ -295,7 +295,7 @@ class StorageMediumMigratableTests(TestCase):
         )
         new_storage_medium = self.add_storage_medium(new_storage_target, 20, '2')
 
-        # New medium exists but it is disabled
+        # New target exists but it is disabled
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -304,11 +304,11 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
-        # Enable new medium
+        # Enable new target
         new_rel.status = STORAGE_TARGET_STATUS_ENABLED
         new_rel.save()
 
-        # New enabled medium exists but no objects are migrated yet
+        # New enabled target exists but no objects are migrated yet
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
@@ -351,6 +351,65 @@ class StorageMediumMigratableTests(TestCase):
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
+
+    def test_multiple_storage_methods(self):
+        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old_medium = self.add_storage_medium(old.storage_target, 20, '1')
+        self.add_storage_obj(ip, old_medium, DISK, '')
+
+        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(old.storage_method, new.storage_method)
+
+        for rstatus in (STORAGE_TARGET_STATUS_MIGRATE, STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY):
+            old.status = rstatus
+            old.save()
+
+            with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+                response = self.client.get(self.url, data={'migratable': True})
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(len(response.data), 1)
+                self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+
+        old.status = STORAGE_TARGET_STATUS_DISABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(self.url, data={'migratable': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 0)
+
+    def test_multiple_storage_policies(self):
+        other_policy = StoragePolicy.objects.create(
+            policy_id='other',
+            cache_storage=self.policy.cache_storage,
+            ingest_path=self.policy.ingest_path,
+        )
+        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+
+        old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old_medium = self.add_storage_medium(old.storage_target, 20, '1')
+        self.add_storage_obj(ip, old_medium, DISK, '')
+        self.policy.storage_methods.add(old.storage_method)
+
+        new = self.add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
+        other_policy.storage_methods.add(new.storage_method)
+
+        for rstatus in (STORAGE_TARGET_STATUS_MIGRATE, STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY):
+            old.status = rstatus
+            old.save()
+
+            with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+                response = self.client.get(self.url, data={'migratable': True})
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(len(response.data), 0)
+
+        old.status = STORAGE_TARGET_STATUS_DISABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(self.url, data={'migratable': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 0)
 
     def test_multiple_ips(self):
         ip_0933 = InformationPackage.objects.create(
