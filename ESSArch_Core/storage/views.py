@@ -601,7 +601,11 @@ class StorageMigrationPreviewDetailView(views.APIView):
         data = serializer.validated_data
 
         policy = data['policy']
-        storage_methods = policy.storage_methods.all()
+        storage_methods = data.get('storage_methods', policy.storage_methods.all())
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
 
         qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(policy=policy)
         ip = get_object_or_404(qs, pk=pk)
