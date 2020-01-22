@@ -523,7 +523,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).exclude(package_type=InformationPackage.AIC)
             qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
 
-            qs = qs.select_related('responsible').prefetch_related(
+            qs = qs.select_related('responsible', 'policy__cache_storage', 'policy__ingest_path').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
