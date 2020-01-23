@@ -241,10 +241,35 @@ class InformationPackageQuerySet(models.QuerySet):
             storage_policies=OuterRef('policy'),
         )
 
+        method_with_enabled_target_without_ip = storage_methods.annotate(
+            enabled_target_without_ip=RawSQL(mssql_wrapper("""
+                       EXISTS(
+                           SELECT 1 FROM storage_storagemethodtargetrelation AS U2
+                           WHERE (
+                               U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT (EXISTS(
+                                   SELECT 1 FROM storage_storageobject U3
+                                   INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
+                                   INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
+                                   WHERE U3.ip_id = ip_informationpackage.id
+                                   AND U5.id = U2.storage_target_id
+                              ))
+                          )
+                       )"""), (STORAGE_TARGET_STATUS_ENABLED,)
+            ),
+        ).filter(
+            enabled=True,
+            enabled_target_without_ip=True,
+            storage_policies=OuterRef('policy')
+        )
+
         return self.annotate(
             method_with_old_migrate_and_new_enabled_exists=Exists(method_with_old_migrate_and_new_enabled),
+            method_with_enabled_target_without_ip_exists=Exists(method_with_enabled_target_without_ip),
         ).filter(
-            method_with_old_migrate_and_new_enabled_exists=True,
+            Q(
+                Q(method_with_enabled_target_without_ip_exists=True) |
+                Q(method_with_old_migrate_and_new_enabled_exists=True)
+            ),
             archived=True,
         ).exclude(storage=None)
 
@@ -416,11 +441,7 @@ class InformationPackage(models.Model):
             return StorageMethod.objects.none()
 
         return self.policy.storage_methods.annotate(
-            has_migratable_object=Exists(StorageObject.objects.filter(
-                ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
-                storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
-            )),
-            has_enabled_object=Exists(StorageObject.objects.filter(
+            has_object=Exists(StorageObject.objects.filter(
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
             )),
@@ -428,7 +449,7 @@ class InformationPackage(models.Model):
                 status=STORAGE_TARGET_STATUS_ENABLED,
                 storage_method=OuterRef('pk'),
             ))
-        ).filter(enabled=True, has_migratable_object=True, has_enabled_object=False, has_enabled_rel=True)
+        ).filter(enabled=True, has_object=False, has_enabled_rel=True)
 
     def is_first_generation(self):
         if self.aic is None:

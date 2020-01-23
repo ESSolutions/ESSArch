@@ -10,7 +10,7 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import connection, models, transaction
 from django.db.models import (
     Case,
@@ -27,6 +27,7 @@ from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 from picklefield.fields import PickledObjectField
 from requests import RequestException
 from tenacity import (
@@ -277,6 +278,15 @@ class StorageMethodTargetRelation(models.Model):
         verbose_name = 'Storage Method/Target Relation'
         ordering = ['name']
         unique_together = ('storage_method', 'storage_target')
+
+    def save(self, *args, **kwargs):
+        if self.status == STORAGE_TARGET_STATUS_ENABLED:
+            if StorageMethodTargetRelation.objects.filter(
+                storage_method=self.storage_method,
+                status=STORAGE_TARGET_STATUS_ENABLED,
+            ).exists():
+                raise ValidationError(_('Only 1 target can be enabled for a storage method at a time'),)
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         if len(self.name):
@@ -534,9 +544,7 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(pk__in=qs)
 
     def migratable(self):
-        return StorageMedium.objects.exclude(status=0).filter(
-            #storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
-        ).annotate(
+        return StorageMedium.objects.exclude(status=0).annotate(
             has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(False),
             missing_storage_object_in_other_method_in_policy=self._missing_storage_object_in_other_method_in_policy(),
             migrate_method_rel=Subquery(

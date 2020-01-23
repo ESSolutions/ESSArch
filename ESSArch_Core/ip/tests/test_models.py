@@ -908,14 +908,20 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
 
-    def test_unrelated_migrate_and_enabled_method_rels(self):
+    def test_methods_in_different_policies(self):
         migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
         migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
         self.add_storage_obj(self.ip, migrate_medium, DISK, '')
+        self.policy.storage_methods.add(migrate_rel.storage_method)
 
         enabled_rel = self.add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
+        other_policy = StoragePolicy.objects.create(
+            policy_id='other',
+            cache_storage=self.policy.cache_storage,
+            ingest_path=self.policy.ingest_path,
+        )
+        other_policy.storage_methods.add(enabled_rel.storage_method)
 
-        self.policy.storage_methods.add(migrate_rel.storage_method, enabled_rel.storage_method)
         self.assertFalse(self.ip.get_migratable_storage_methods().exists())
 
     def test_migrate_and_enabled_method_rels(self):
@@ -950,7 +956,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         self.policy.storage_methods.add(new_storage_method)
 
         method_exists = self.ip.get_migratable_storage_methods().exists()
-        self.assertFalse(method_exists)
+        self.assertTrue(method_exists)
 
     def test_new_storage_target(self):
         rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
@@ -1004,107 +1010,3 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
 
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
-
-
-class InformationPackageManagerTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.storage_method = StorageMethod.objects.create()
-        cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        cls.storage_medium = StorageMedium.objects.create(
-            storage_target=cls.storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
-        cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
-            ingest_path=Path.objects.create(entity='test', value='foo')
-        )
-        cls.policy.storage_methods.add(cls.storage_method)
-
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
-
-    def test_get_migratable_no_change(self):
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-    def test_get_migratable_new_storage_method(self):
-        new_storage_method = StorageMethod.objects.create()
-        new_storage_target = StorageTarget.objects.create(name='new')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=new_storage_method,
-            storage_target=new_storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-
-        self.policy.storage_methods.add(new_storage_method)
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-    def test_get_migratable_new_storage_target(self):
-        # set the existing target as migratable
-        StorageMethodTargetRelation.objects.update(
-            status=STORAGE_TARGET_STATUS_MIGRATE
-        )
-
-        # the IP is not migratable until there is a new
-        # enabled target available
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-        # add a new enabled target
-
-        new_storage_target = StorageTarget.objects.create(name='new')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=self.storage_method,
-            storage_target=new_storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
-        # its not relevant for this IP until the method contains it
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-        # add IP to old method
-
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-
-        # the IP is now migratable to the new enabled target
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertTrue(ip_exists)
-
-        # add object to new target
-
-        storage_medium = StorageMedium.objects.create(
-            medium_id='foo',
-            storage_target=new_storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=storage_medium,
-            content_location_type=DISK,
-        )
-
-        # the IP is no longer migratable
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
