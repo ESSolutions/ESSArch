@@ -30,11 +30,12 @@ class LazyDict(Mapping):
         self._raw_dict = dict(*args, **kw)
 
     def __getitem__(self, key):
-        if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
-            return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
+        if isinstance(key, str):
+            if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
+                return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
 
-        if key.startswith('PATH_') or key.startswith('_PATH_'):
-            return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
+            if key.startswith('PATH_') or key.startswith('_PATH_'):
+                return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
 
         val = self._raw_dict.__getitem__(key)
         if isinstance(val, tuple) and callable(val[0]):
