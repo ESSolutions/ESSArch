@@ -544,7 +544,7 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(pk__in=qs)
 
     def migratable(self):
-        return StorageMedium.objects.exclude(status=0).annotate(
+        return self.exclude(status=0).annotate(
             has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(False),
             missing_storage_object_in_other_method_in_policy=self._missing_storage_object_in_other_method_in_policy(),
             target=F('storage_target'),  # required by MSSQL
