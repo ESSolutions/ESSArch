@@ -23,7 +23,6 @@ from django.db.models import (
     Value,
     When,
 )
-from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
@@ -43,6 +42,7 @@ from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
+from ESSArch_Core.util import RawSQLWithoutGroupBy
 
 logger = logging.getLogger('essarch.storage.models')
 
@@ -422,7 +422,7 @@ class StorageMediumQueryset(models.QuerySet):
 
         ip_active_cast = 'CAST(IP.active AS signed)' if connection.vendor == 'mysql' else 'CAST(IP.active AS int)'
 
-        return RawSQL(
+        return RawSQLWithoutGroupBy(
             mssql_wrapper("""
                 EXISTS(
                     SELECT 1 FROM storage_storageobject W1
@@ -475,7 +475,7 @@ class StorageMediumQueryset(models.QuerySet):
                 return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
             return sql
 
-        return RawSQL(
+        return RawSQLWithoutGroupBy(
             mssql_wrapper("""
                 EXISTS(
                     SELECT 1 FROM storage_storageobject W1
@@ -547,9 +547,10 @@ class StorageMediumQueryset(models.QuerySet):
         return StorageMedium.objects.exclude(status=0).annotate(
             has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(False),
             missing_storage_object_in_other_method_in_policy=self._missing_storage_object_in_other_method_in_policy(),
+            target=F('storage_target'),  # required by MSSQL
             migrate_method_rel=Subquery(
                 StorageMethodTargetRelation.objects.filter(
-                    storage_target=OuterRef('storage_target'),
+                    storage_target=OuterRef('target'),
                     status=STORAGE_TARGET_STATUS_MIGRATE,
                 ).values('storage_method')[:1]
             ),

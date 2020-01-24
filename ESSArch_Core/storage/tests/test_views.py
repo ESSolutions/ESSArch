@@ -413,12 +413,12 @@ class StorageMediumMigratableTests(TestCase):
             self.assertEqual(len(response.data), 0)
 
     def test_multiple_ips(self):
-        ip_0933 = InformationPackage.objects.create(
+        ip1 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             archived=True,
             policy=self.policy,
         )
-        ip_1520 = InformationPackage.objects.create(
+        ip2 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             archived=True,
             policy=self.policy,
@@ -445,10 +445,10 @@ class StorageMediumMigratableTests(TestCase):
             long_term_rel.storage_method,
         )
 
-        self.add_storage_obj(ip_0933, default_medium, DISK, '')
-        self.add_storage_obj(ip_0933, long_term_medium, DISK, '')
+        self.add_storage_obj(ip1, default_medium, DISK, '')
+        self.add_storage_obj(ip1, long_term_medium, DISK, '')
 
-        self.add_storage_obj(ip_1520, long_term_medium, DISK, '')
+        self.add_storage_obj(ip2, long_term_medium, DISK, '')
 
         response = self.client.get(self.url, data={'migratable': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -465,7 +465,7 @@ class StorageMediumMigratableTests(TestCase):
             'view_type': 'flat',
         })
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['id'], str(ip_0933.pk))
+        self.assertEqual(response.data[0]['id'], str(ip1.pk))
 
         response = self.client.get(ip_list_url, data={
             'medium': str(long_term_medium.pk),
@@ -475,7 +475,7 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(len(response.data), 2)
         self.assertCountEqual(
             [response.data[0]['id'], response.data[1]['id']],
-            [str(ip_0933.pk), str(ip_1520.pk)],
+            [str(ip1.pk), str(ip2.pk)],
         )
 
 
