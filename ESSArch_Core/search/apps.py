@@ -8,4 +8,4 @@ class SearchConfig(AppConfig):
     verbose_name = 'Search'
 
     def ready(self):
-        connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
+        pass
