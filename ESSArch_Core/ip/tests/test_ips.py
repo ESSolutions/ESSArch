@@ -28,6 +28,7 @@ import glob
 import io
 import os
 import shutil
+import tarfile
 import tempfile
 import uuid
 import zipfile
@@ -2058,14 +2059,7 @@ class IdentifyIP(TestCase):
         EventType.objects.create(eventType=50600, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.bd, "datafiles")
-
-        try:
-            os.mkdir(self.datadir)
-        except BaseException:
-            pass
-
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
         mimetypes_file = Path.objects.create(
@@ -2088,7 +2082,8 @@ class IdentifyIP(TestCase):
 
         self.objid = 'unidentified_ip'
         fpath = os.path.join(self.path, '%s.tar' % self.objid)
-        open(fpath, 'a').close()
+        with tarfile.open(fpath, 'w') as tar:
+            tar.add(__file__, arcname='content/test.txt')
 
     def test_identify_ip(self):
         data = {
