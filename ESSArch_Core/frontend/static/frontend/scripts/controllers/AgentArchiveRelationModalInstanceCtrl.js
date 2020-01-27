@@ -1,5 +1,16 @@
 export default class AgentArchiveRelationModalInstanceCtrl {
-  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $filter, $rootScope) {
+  constructor(
+    $uibModalInstance,
+    appConfig,
+    data,
+    $http,
+    EditMode,
+    $scope,
+    $translate,
+    $filter,
+    $rootScope,
+    ArchiveName
+  ) {
     const $ctrl = this;
     $ctrl.relationTemplate = {
       description: '',
@@ -38,19 +49,8 @@ export default class AgentArchiveRelationModalInstanceCtrl {
         url: appConfig.djangoUrl + 'tags/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, index: 'archive', search: search},
-      }).then(function(response) {
-        $ctrl.options.archives = response.data.map(function(x) {
-          x.current_version.name_with_dates =
-            x.current_version.name +
-            (x.current_version.start_date !== null || x.current_version.end_date != null
-              ? ' (' +
-                (x.current_version.start_date !== null ? $filter('date')(x.current_version.start_date, 'yyyy') : '') +
-                ' - ' +
-                (x.current_version.end_date !== null ? $filter('date')(x.current_version.end_date, 'yyyy') : '') +
-                ')'
-              : '');
-          return x.current_version;
-        });
+      }).then(response => {
+        $ctrl.options.archives = ArchiveName.parseArchiveNames(response.data);
         return $ctrl.options.archives;
       });
     };

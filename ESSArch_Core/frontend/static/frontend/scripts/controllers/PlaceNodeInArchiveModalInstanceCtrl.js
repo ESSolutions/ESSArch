@@ -1,5 +1,5 @@
 export default class PlaceNodeInArchiveModalInstanceCtrl {
-  constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, StructureName) {
+  constructor($uibModalInstance, $scope, $translate, $http, appConfig, data, EditMode, StructureName, ArchiveName) {
     const $ctrl = this;
     $ctrl.archiveFields = [];
     $ctrl.structureFields = [];
@@ -20,18 +20,7 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
         mathod: 'GET',
         params: {page: 1, page_size: 10, index: 'archive', search: search},
       }).then(function(response) {
-        $ctrl.options.archive = response.data.map(function(x) {
-          x.current_version.name_with_dates =
-            x.current_version.name +
-            (x.current_version.start_date !== null || x.current_version.end_date != null
-              ? ' (' +
-                (x.current_version.start_date !== null ? $filter('date')(x.current_version.start_date, 'yyyy') : '') +
-                ' - ' +
-                (x.current_version.end_date !== null ? $filter('date')(x.current_version.end_date, 'yyyy') : '') +
-                ')'
-              : '');
-          return x.current_version;
-        });
+        $ctrl.options.archive = ArchiveName.parseArchiveNames(response.data);
         return $ctrl.options.archive;
       });
     };
