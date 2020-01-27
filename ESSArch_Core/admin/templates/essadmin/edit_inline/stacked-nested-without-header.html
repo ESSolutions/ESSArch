@@ -1,4 +1,4 @@
-{% load i18n admin_static %}
+{% load i18n static %}
 <div id="{{ inline_admin_formset.formset.prefix }}-group">
 {% with recursive_formset=inline_admin_formset stacked_template='admin/edit_inline/stacked-nested.html' tabular_template='admin/edit_inline/tabular-nested.html'%}
 {{ recursive_formset.formset.management_form }}
