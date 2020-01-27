@@ -197,7 +197,6 @@ export default angular
     'EditMode',
     '$scope',
     '$translate',
-    '$filter',
     '$rootScope',
     'ArchiveName',
     AgentArchiveRelationModalInstanceCtrl,

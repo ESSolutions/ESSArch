@@ -1,16 +1,5 @@
 export default class AgentArchiveRelationModalInstanceCtrl {
-  constructor(
-    $uibModalInstance,
-    appConfig,
-    data,
-    $http,
-    EditMode,
-    $scope,
-    $translate,
-    $filter,
-    $rootScope,
-    ArchiveName
-  ) {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, ArchiveName) {
     const $ctrl = this;
     $ctrl.relationTemplate = {
       description: '',
