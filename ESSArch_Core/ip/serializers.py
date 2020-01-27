@@ -3,14 +3,12 @@ import os
 import re
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer
@@ -135,15 +133,18 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     organization = serializers.SerializerMethodField()
     new_version_in_progress = serializers.SerializerMethodField()
     submission_agreement_data = serializers.SerializerMethodField()
-    submission_agreement_data_versions = serializers.SerializerMethodField()
+    submission_agreement_data_versions = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(read_only=True)
+    )
+    step_state = serializers.CharField(read_only=True)
+    status = serializers.IntegerField(read_only=True)
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
-            return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+            return GroupSerializer(obj.org[0].group).data
+        except AttributeError:
+            return GroupSerializer(obj.generic_groups.first().group).data
+        except IndexError:
             return None
 
     def get_agents(self, obj):
@@ -224,12 +225,6 @@ class InformationPackageSerializer(serializers.ModelSerializer):
                 data['data'][field['key']] = extra_data[field['key']]
 
         return data
-
-    def get_submission_agreement_data_versions(self, obj):
-        return SubmissionAgreementIPData.objects.filter(
-            information_package=obj,
-            submission_agreement=obj.submission_agreement,
-        ).order_by('created').values_list('pk', flat=True)
 
     def validate(self, data):
         if 'submission_agreement_data' in data:

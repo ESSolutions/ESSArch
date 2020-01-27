@@ -523,9 +523,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).exclude(package_type=InformationPackage.AIC)
             qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
 
+            profile_ips = ProfileIP.objects.select_related(
+                'profile', 'ip', 'data',
+            ).prefetch_related('data_versions')
             qs = qs.select_related('responsible', 'policy__cache_storage', 'policy__ingest_path').prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
+                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
+                Prefetch('profileip_set', queryset=profile_ips, )
             )
             qs = self.annotate_generations(self.apply_filters(qs))
 
@@ -548,12 +552,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             qs = self.apply_filters(qs)
             qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
                              last_generation=self.last_generation_case(lower_higher))
-            qs = qs.select_related('responsible')
-            self.queryset = qs.prefetch_related(
+            qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            self.queryset = self.queryset.distinct()
+            self.queryset = qs.distinct()
             return self.queryset
 
         return self.queryset
@@ -2279,6 +2282,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
 
         ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], request.user)
+        ip.status = 100
+        ip.step_state = celery_states.SUCCESS
+        ip.submission_agreement_data_versions = []
         data = InformationPackageDetailSerializer(ip, context={'request': request}).data
 
         logger.info('Prepared information package %s' % str(ip.pk), extra={'user': request.user.pk})
@@ -2853,12 +2859,12 @@ class WorkareaViewSet(InformationPackageViewSet):
             qs = self.apply_filters(qs)
             qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
                              last_generation=self.last_generation_case(lower_higher))
-            qs = qs.select_related('responsible')
-            self.queryset = qs.prefetch_related(
+            qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', to_attr='prefetched_workareas')
             )
-            self.queryset = self.queryset.distinct()
+
+            self.queryset = qs.distinct()
             return self.queryset
 
         return self.queryset

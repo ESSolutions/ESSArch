@@ -24,7 +24,6 @@
 
 import errno
 import logging
-import math
 import os
 import shutil
 import tarfile
@@ -39,21 +38,24 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import connection, models, transaction
 from django.db.models import (
+    Avg,
     CharField,
     Count,
     Exists,
     F,
+    IntegerField,
     Max,
     Min,
     OuterRef,
+    Prefetch,
     Q,
-    Sum,
 )
-from django.db.models.expressions import RawSQL
+from django.db.models.expressions import Case, RawSQL, Subquery, Value, When
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
@@ -72,7 +74,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member
+from ESSArch_Core.auth.models import Group, GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -82,8 +84,8 @@ from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
-    ProfileSA,
     SubmissionAgreement as SA,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
@@ -108,6 +110,7 @@ from ESSArch_Core.util import (
     open_file,
     timestamp_to_datetime,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.ip')
@@ -178,7 +181,78 @@ class AgentNote(models.Model):
 
 
 class InformationPackageQuerySet(models.QuerySet):
-    def migratable(self):
+    def annotate_states(self):
+        def create_when(nested, celery_state):
+            step_state_lookup = 'information_package__aic' if nested else 'information_package'
+            return When(Exists(
+                ProcessTask.objects.filter(
+                    status=celery_state, **{step_state_lookup: OuterRef('pk')}
+                ).values('pk')
+            ), then=Value(celery_state))
+
+        step_state = Case(
+            When(package_type=InformationPackage.AIC, then=Case(
+                create_when(True, celery_states.FAILURE),
+                create_when(True, celery_states.STARTED),
+                create_when(True, celery_states.REVOKED),
+                create_when(True, celery_states.PENDING),
+                default=Value(celery_states.SUCCESS),
+                output_field=CharField(),
+            )),
+            default=Case(
+                create_when(False, celery_states.FAILURE),
+                create_when(False, celery_states.STARTED),
+                create_when(False, celery_states.REVOKED),
+                create_when(False, celery_states.PENDING),
+                default=Value(celery_states.SUCCESS),
+                output_field=CharField(),
+            ),
+            output_field=CharField(),
+        )
+
+        ip_tasks = ProcessTask.objects.filter(
+            Q(
+                Q(information_package=OuterRef('pk')) |
+                Q(processstep__in=ProcessStep.objects.filter(rootpath__information_package=OuterRef(OuterRef('pk'))))
+            ),
+            undo_type=False, retried__isnull=True, undone__isnull=True,
+            steps_on_errors=None,
+        )
+
+        return self.annotate(
+            step_state=step_state,
+            task_progress=Subquery(ip_tasks.annotate(sp=Avg('progress')).values('sp')[:1]),
+            status=Case(
+                When(state='Prepared', then=Value(100)),
+                When(
+                    state='Preparing', then=Case(
+                        When(submission_agreement_locked=False, then=Value(33)),
+                        default=Value(66),
+                        output_field=IntegerField(),
+                    )
+                ),
+                When(task_progress__gt=0, then=F('task_progress')),
+                default=Value(100),
+                output_field=IntegerField(),
+            ),
+        # TODO move to separate method (?)
+        ).prefetch_related(
+            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org')
+        # TODO move to separate method (?)
+        ).prefetch_related(
+            Prefetch(
+                'submissionagreementipdata_set',
+                queryset=SubmissionAgreementIPData.objects.filter(
+                    pk__in=Subquery(SubmissionAgreementIPData.objects.filter(
+                        information_package=OuterRef('pk'),
+                        submission_agreement=OuterRef('submission_agreement'),
+                    ).values('pk'))
+                ),
+                to_attr='submission_agreement_data_versions',
+            )
+        )
+
+    def migratable(self, storage_methods=None):
         # TODO: This is really, really ugly but is required until Django 3.0 is released
         #
         # See:
@@ -273,7 +347,7 @@ class InformationPackageQuerySet(models.QuerySet):
 
 class InformationPackageManager(OrganizationManager):
     def get_queryset(self):
-        return InformationPackageQuerySet(self.model, using=self._db)
+        return InformationPackageQuerySet(self.model, using=self._db).annotate_states()
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
@@ -403,6 +477,8 @@ class InformationPackage(models.Model):
     )
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
+
+    generic_groups = GenericRelation(GroupGenericObjects)
 
     objects = InformationPackageManager()
 
@@ -800,115 +876,6 @@ class InformationPackage(models.Model):
                 return self.aic.information_packages.exclude(pk=self.pk)
 
         return InformationPackage.objects.none()
-
-    @property
-    def step_state(self):
-        """
-        Gets the state of the IP based on its tasks
-
-        Args:
-
-        Returns:
-            Can be one of the following:
-            SUCCESS, STARTED, FAILURE, PENDING
-
-            Which is decided by five scenarios:
-
-            * If there are tasks and they are all pending,
-              then PENDING.
-            * If a task has started, then STARTED.
-            * If a task has failed, then FAILURE.
-            * If all tasks have succeeded, then SUCCESS.
-
-            If the IP is an AIC, then the same algorithm is
-            applied on the related IPs instead
-        """
-
-        if self.package_type == InformationPackage.AIC:
-            ips = self.related_ips()
-            state = celery_states.SUCCESS
-
-            for ip in ips:
-                ip_step_state = ip.step_state
-
-                if ip_step_state == celery_states.STARTED or ip_step_state == celery_states.REVOKED:
-                    state = ip_step_state
-                if (ip_step_state == celery_states.PENDING and
-                        state not in [celery_states.STARTED, celery_states.REVOKED]):
-                    state = ip_step_state
-                if ip_step_state == celery_states.FAILURE:
-                    return ip_step_state
-
-            return state
-
-        tasks = self.processtask_set.filter(Q(hidden=False) | Q(hidden__isnull=True))
-        state = celery_states.SUCCESS
-        for task in tasks:
-            task_status = task.status
-
-            if task_status == celery_states.STARTED or task_status == celery_states.REVOKED:
-                state = task_status
-            if (task_status == celery_states.PENDING and
-                    state not in [celery_states.STARTED, celery_states.REVOKED]):
-                state = task_status
-            if task_status == celery_states.FAILURE:
-                return task_status
-
-        return state
-
-    def status(self):
-        if self.state == "Prepared":
-            return 100
-        elif self.state == "Preparing":
-            if not self.submission_agreement_locked:
-                return 33
-
-            progress = 66
-
-            try:
-                sa_profiles = ProfileSA.objects.filter(
-                    submission_agreement=self.submission_agreement
-                )
-
-                ip_profiles_locked = ProfileIP.objects.filter(
-                    ip=self, LockedBy__isnull=False,
-                    profile__profile_type__in=sa_profiles.values(
-                        "profile__profile_type"
-                    )
-                )
-
-                progress += math.ceil(ip_profiles_locked.count() * ((100 - progress) / sa_profiles.count()))
-
-            except ZeroDivisionError:
-                pass
-
-            return progress
-
-        step_progress = None
-        task_progress = None
-
-        steps = self.steps.filter(Q(parent_step__isnull=True) | Q(parent_step__information_package__isnull=True))
-        if steps.exists():
-            step_progress = sum([s.progress for s in steps])
-
-        tasks = self.processtask_set.filter(
-            Q(
-                Q(processstep__isnull=True) |
-                Q(processstep__information_package__isnull=True)
-            ),
-            steps_on_errors=None,
-            processtask=None,
-        )
-        if tasks.exists():
-            task_progress = tasks.aggregate(Sum('progress'))['progress__sum']
-
-        if tasks.exists() or steps.exists():
-            progress = task_progress or 0
-            progress += step_progress or 0
-
-            return progress / (steps.count() + tasks.count())
-
-        return 100
 
     def list_files(self, path=''):
         fullpath = os.path.join(self.object_path, path).rstrip('/')

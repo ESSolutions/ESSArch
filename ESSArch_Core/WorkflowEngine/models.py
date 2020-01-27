@@ -40,6 +40,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from mptt.models import MPTTModel, TreeForeignKey
 from picklefield.fields import PickledObjectField
+from relativity.mptt import MPTTDescendants, MPTTSubtree
 from requests import RequestException
 from tenacity import (
     before_sleep_log,
@@ -155,6 +156,12 @@ class ProcessStep(MPTTModel, Process):
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
     context = JSONField(default={}, null=True)
+    descendants = MPTTDescendants()
+    subtree = MPTTSubtree()
+
+    lft = models.PositiveIntegerField(db_index=True, editable=False)
+    rght = models.PositiveIntegerField(db_index=True, editable=False)
+    level = models.PositiveIntegerField(db_index=True, editable=False)
 
     def get_pos(self):
         return self.parent_step_pos
@@ -579,6 +586,10 @@ class ProcessStep(MPTTModel, Process):
         db_table = 'ProcessStep'
         ordering = ('parent_step_pos', 'time_created')
         get_latest_by = "time_created"
+        index_together = (
+            ('tree_id', 'lft', 'rght'),
+            ('tree_id', 'lft'),
+        )
 
     class MPTTMeta:
         parent_attr = 'parent_step'
@@ -600,7 +611,7 @@ class ProcessTask(Process):
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
-        choices=TASK_STATE_CHOICES
+        choices=TASK_STATE_CHOICES, db_index=True,
     )
     responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
@@ -619,15 +630,15 @@ class ProcessTask(Process):
         null=True, blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
-    progress = models.IntegerField(default=0)
+    progress = models.IntegerField(default=0, db_index=True)
     undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
-    undo_type = models.BooleanField(editable=False, default=False)
+    undo_type = models.BooleanField(editable=False, default=False, db_index=True)
     retried = models.OneToOneField(
         'self',
         on_delete=models.SET_NULL,
         related_name='retried_task',
         null=True,
-        blank=True
+        blank=True,
     )
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
@@ -870,6 +881,9 @@ class ProcessTask(Process):
         ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
+        index_together = (
+            ('undo_type', 'undone', 'retried', 'processstep', 'information_package'),
+        )
 
         permissions = (
             ('can_run', 'Can run tasks'),
