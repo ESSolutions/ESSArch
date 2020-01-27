@@ -2,7 +2,7 @@
   "private": true,
   "dependencies": {
     "@babel/core": "^7.6.4",
-    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-env": "^7.8.3",
     "@babel/register": "^7.6.2",
     "@flowjs/ng-flow": "~2.7.8",
     "@fortawesome/fontawesome-free": "~5.12.0",
