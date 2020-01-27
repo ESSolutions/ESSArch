@@ -197,8 +197,8 @@ export default angular
     'EditMode',
     '$scope',
     '$translate',
-    '$filter',
     '$rootScope',
+    'ArchiveName',
     AgentArchiveRelationModalInstanceCtrl,
   ])
   .controller('AgentIdentifierModalInstanceCtrl', [
@@ -713,6 +713,7 @@ export default angular
     'data',
     'EditMode',
     'StructureName',
+    'ArchiveName',
     PlaceNodeInArchiveModalInstanceCtrl,
   ])
   .controller('ProfileManagerCtrl', ['$state', '$scope', ProfileManagerCtrl])
@@ -933,6 +934,7 @@ export default angular
     '$rootScope',
     'StructureName',
     '$timeout',
+    'ArchiveName',
     StructureUnitRelationModalInstanceCtrl,
   ])
   .controller('StructureVersionModalInstanceCtrl', [
