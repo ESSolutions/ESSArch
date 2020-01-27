@@ -358,7 +358,7 @@ class ListFilesTest(TestCase):
         generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
 
 
-class GenerateFileResponseTests(TestCase):
+class GenerateFileResponseTests(SimpleTestCase):
 
     def get_headers_from_response(self, response):
         if isinstance(response, FileResponse):
@@ -394,7 +394,7 @@ class GenerateFileResponseTests(TestCase):
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
-    def test_when_utf8_and_no_filename_then_return_without_content_dispo(self, get_charset, get_filename):
+    def test_when_utf8_and_no_filename(self, get_charset, get_filename):
         content_type = 'text/plain'
 
         resp = generate_file_response(open(__file__, 'rb'), content_type)
@@ -407,6 +407,7 @@ class GenerateFileResponseTests(TestCase):
                 'Expires': '0',
                 'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Disposition': 'inline; filename="{}"'.format(os.path.basename(__file__)),
             }
         )
 
@@ -436,7 +437,7 @@ class GenerateFileResponseTests(TestCase):
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
-    def test_win1252_and_no_filename_then_return_without_content_dispo(self, mock_get_charset, mock_get_filename):
+    def test_win1252_and_no_filename(self, mock_get_charset, mock_get_filename):
         content_type = 'text/plain'
 
         resp = generate_file_response(open(__file__, 'rb'), content_type)
@@ -449,6 +450,7 @@ class GenerateFileResponseTests(TestCase):
                 'Expires': '0',
                 'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=windows-1252',
+                'Content-Disposition': 'inline; filename="{}"'.format(os.path.basename(__file__)),
             }
         )
 
