@@ -48,6 +48,14 @@ const loginCtrl = (
             $state.go('home.info');
           }
           $http
+            .get(appConfig.djangoUrl + 'features/')
+            .then(response => {
+              $rootScope.features = response.data;
+            })
+            .catch(() => {
+              $rootScope.features = [];
+            });
+          $http
             .get(appConfig.djangoUrl + 'site/')
             .then(function(response) {
               $rootScope.site = response.data;
