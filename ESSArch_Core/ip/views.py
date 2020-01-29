@@ -19,6 +19,8 @@ from django.db.models import (
     BooleanField,
     Case,
     Exists,
+    F,
+    IntegerField,
     Max,
     Min,
     OuterRef,
@@ -1077,6 +1079,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def first_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
+            When(package_type=InformationPackage.AIC, then=Value(True)),
             When(generation=Subquery(lower_higher.values('min_gen')[:1]),
                  then=Value(True)),
             default=Value(False),
@@ -1087,6 +1090,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def last_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
+            When(package_type=InformationPackage.AIC, then=Value(True)),
             When(generation=Subquery(lower_higher.values('max_gen')[:1]),
                  then=Value(True)),
             default=Value(False),
@@ -2819,16 +2823,12 @@ class WorkareaViewSet(InformationPackageViewSet):
 
             simple = self.apply_filters(filtered)
 
-            inner = self.annotate_generations(simple)
-            inner = self.annotate_filtered_first_generation(inner, workareas, user, see_all)
-            inner = self.get_related(inner, workareas)
+            simple = self.annotate_generations(simple)
+            simple = self.annotate_filtered_first_generation(simple, workareas, user, see_all)
+            simple = self.get_related(simple, workareas)
 
-            outer = self.annotate_generations(simple)
-            outer = self.annotate_filtered_first_generation(outer, workareas, user, see_all)
-            outer = self.get_related(outer, workareas)
-
-            inner = inner.filter(filtered_first_generation=False)
-            outer = outer.filter(filtered_first_generation=True).prefetch_related(
+            inner = simple.filter(filtered_first_generation=False)
+            outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
             ).distinct()
 

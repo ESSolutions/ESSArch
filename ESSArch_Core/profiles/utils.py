@@ -31,11 +31,14 @@ class LazyDict(Mapping):
 
     def __getitem__(self, key):
         if isinstance(key, str):
-            if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
-                return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
+            try:
+                if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
+                    return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
 
-            if key.startswith('PATH_') or key.startswith('_PATH_'):
-                return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
+                if key.startswith('PATH_') or key.startswith('_PATH_'):
+                    return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
+            except (Parameter.DoesNotExist, Path.DoesNotExist):
+                return None
 
         val = self._raw_dict.__getitem__(key)
         if isinstance(val, tuple) and callable(val[0]):

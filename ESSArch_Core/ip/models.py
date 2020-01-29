@@ -211,17 +211,13 @@ class InformationPackageQuerySet(models.QuerySet):
         )
 
         ip_tasks = ProcessTask.objects.filter(
-            Q(
-                Q(information_package=OuterRef('pk')) |
-                Q(processstep__in=ProcessStep.objects.filter(rootpath__information_package=OuterRef(OuterRef('pk'))))
-            ),
+            information_package=OuterRef('pk'),
             undo_type=False, retried__isnull=True, undone__isnull=True,
             steps_on_errors=None,
-        )
+        ).order_by()
 
         return self.annotate(
             step_state=step_state,
-            task_progress=Subquery(ip_tasks.annotate(sp=Avg('progress')).values('sp')[:1]),
             status=Case(
                 When(state='Prepared', then=Value(100)),
                 When(
@@ -231,7 +227,7 @@ class InformationPackageQuerySet(models.QuerySet):
                         output_field=IntegerField(),
                     )
                 ),
-                When(task_progress__gt=0, then=F('task_progress')),
+                When(Exists(ip_tasks), then=Subquery(ip_tasks.annotate(sp=Avg('progress')).values('sp')[:1])),
                 default=Value(100),
                 output_field=IntegerField(),
             ),
@@ -432,7 +428,7 @@ class InformationPackage(models.Model):
 
     delivery_type = models.CharField(max_length=255, blank=True)
     information_class = models.IntegerField(null=True, choices=INFORMATION_CLASS_CHOICES)
-    generation = models.IntegerField(null=True)
+    generation = models.IntegerField(null=True, db_index=True)
 
     cached = models.BooleanField(_('cached'), default=False)
     archived = models.BooleanField(_('archived'), default=False)
@@ -1846,6 +1842,11 @@ class InformationPackage(models.Model):
         ordering = ["generation", "-create_date"]
         verbose_name = _('information package')
         verbose_name_plural = _('information packages')
+        index_together = (
+            ('state', 'generation', 'aic'),
+            ('aic', 'generation'),
+            ('generation', 'create_date'),
+        )
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
@@ -2067,6 +2068,7 @@ class Workarea(models.Model):
     class Meta:
         ordering = ["ip"]
         unique_together = ('user', 'ip', 'type')
+        index_together = ('ip', 'read_only')
         permissions = (
             ('move_from_ingest_workarea', 'Can move IP from ingest workarea'),
             ('move_from_access_workarea', 'Can move IP from access workarea'),

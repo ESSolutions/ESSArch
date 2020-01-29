@@ -587,7 +587,7 @@ class ProcessStep(MPTTModel, Process):
         ordering = ('parent_step_pos', 'time_created')
         get_latest_by = "time_created"
         index_together = (
-            ('tree_id', 'lft', 'rght'),
+            ('tree_id', 'lft', 'rght', 'information_package'),
             ('tree_id', 'lft'),
         )
 
@@ -882,6 +882,7 @@ class ProcessTask(Process):
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
         index_together = (
+            ('status', 'information_package'),
             ('undo_type', 'undone', 'retried', 'processstep', 'information_package'),
         )
 
