@@ -244,7 +244,6 @@
                 ></a>
                 <thead>
                   <tr>
-                    <th class="clickable" class="column-label"></th>
                     <th
                       class="clickable"
                       class="column-label"
@@ -266,43 +265,21 @@
                 </thead>
                 <tbody>
                   <tr
-                    ng-repeat-start="row in vm.displayedIps"
+                    ng-repeat="row in vm.displayedIps"
                     ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
                     class="table-item selectable"
-                    ng-click="row.package_type !== 1 ? ipTableClick(row, $event) : expandAic(row)"
+                    ng-click="ipTableClick(row, $event)"
                     context-menu="menuOptions('row', row)"
                   >
-                    <td class="clickable" ng-click="expandAic(row)">
-                      <i class="fas fa-plus" ng-if="row.collapsed && row.information_packages.length > 0"></i
-                      ><i class="fas fa-minus" ng-if="!row.collapsed && row.information_packages.length > 0"></i>
-                    </td>
                     <td ng-repeat="col in listViewColumns">
                       <div ng-include src="col.template"></div>
                     </td>
                   </tr>
-                  <tr
-                    ng-if="!row.collapsed"
-                    ng-repeat="subrow in row.information_packages"
-                    ng-repeat-end
-                    class="table-item selectable"
-                    ng-class="{'selected': ip.object_identifier_value == subrow.object_identifier_value || selectedAmongOthers(subrow.id)}"
-                    style="background-color:rgba(50,120,255,.1);"
-                    ng-click="ipTableClick(subrow, $event)"
-                    context-menu="menuOptions('subrow', subrow)"
-                  >
-                    <td context-menu="menuOptions('subrow', subrow)"></td>
-                    <td
-                      ng-repeat="col in listViewColumns"
-                      ng-if="!((('home.access.createDip' | isState) && col.label == 'filebrowser'))"
-                    >
-                      <div ng-include src="col.template"></div>
-                    </td>
-                  </tr>
                   <tr ng-if="!vm.displayedIps.length && !ipLoading" class="empty-table-indicator">
-                    <td colspan="{{listViewColumns.length+1}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+                    <td colspan="{{listViewColumns.length}}">{{'NO_RESULTS_FOUND' | translate}}</td>
                   </tr>
                   <tr ng-if="!vm.displayedIps.length && ipLoading" class="empty-table-indicator">
-                    <td class="loading-column" colspan="{{listViewColumns.length+1}}">{{'LOADING' | translate}}</td>
+                    <td class="loading-column" colspan="{{listViewColumns.length}}">{{'LOADING' | translate}}</td>
                   </tr>
                 </tbody>
               </table>
@@ -326,15 +303,6 @@
               <h4>
                 {{'MIGRATION_TASKS' | translate}}
               </h4>
-              <a
-                target="_blank"
-                class="help-button"
-                uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
-                tooltip-position="top auto"
-                href="/docs/{{$translate.use()}}/user_guide/{{vm.getStateDocPage()}}"
-              >
-                <i class="far fa-question-circle"></i>
-              </a>
             </div>
           </div>
           <div class="search-prepare-wrapper">
