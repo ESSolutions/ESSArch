@@ -146,7 +146,21 @@
                   {{'INFORMATION_PACKAGES' | translate}}
                 </h4>
               </div>
-              <div class="action-button"></div>
+              <div ng-if="vm.displayedIps.length > 50" class="action-button">
+                <button
+                  permission
+                  permission-only="'storage.storage_migration'"
+                  ng-disabled="ips.length === 0 && ip === null"
+                  type="button"
+                  ng-click="vm.migrationModal(ips)"
+                  class="btn btn-primary"
+                  uib-tooltip="{{'STARTMIGRATION' | translate}}"
+                  tooltip-placement="auto left"
+                  tooltip-append-to-body="true"
+                >
+                  {{'STARTMIGRATION' | translate}}
+                </button>
+              </div>
             </div>
             <div class="search-prepare-wrapper">
               <select
