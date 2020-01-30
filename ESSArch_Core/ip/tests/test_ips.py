@@ -695,7 +695,10 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 0)
 
     def test_aic_view_type_with_ordering_and_filter(self):
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2010, 1, 1)),
+        )
         aip14 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic, generation=4, state='foo',
@@ -712,7 +715,10 @@ class InformationPackageViewSetTestCase(TestCase):
             package_type=InformationPackage.AIP,
             aic=aic, generation=1, state='foo',
         )
-        aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic2 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2000, 1, 1)),
+        )
         aip2 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic2, generation=0, state='foo',
@@ -731,19 +737,19 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'create_date', 'state': 'foo'})
-        self.assertEqual(len(res.data), 2)
-        self.assertEqual(res.data[0]['id'], str(aic.pk))
-        self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip11.pk))
-        self.assertEqual(res.data[0]['information_packages'][1]['id'], str(aip12.pk))
-        self.assertEqual(res.data[0]['information_packages'][2]['id'], str(aip13.pk))
-        self.assertEqual(res.data[0]['information_packages'][3]['id'], str(aip14.pk))
-        self.assertEqual(res.data[1]['id'], str(aic2.pk))
-
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-create_date', 'state': 'foo'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'start_date', 'state': 'foo'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic2.pk))
         self.assertEqual(res.data[1]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['information_packages'][0]['id'], str(aip11.pk))
+        self.assertEqual(res.data[1]['information_packages'][1]['id'], str(aip12.pk))
+        self.assertEqual(res.data[1]['information_packages'][2]['id'], str(aip13.pk))
+        self.assertEqual(res.data[1]['information_packages'][3]['id'], str(aip14.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data[0]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['id'], str(aic2.pk))
 
     def test_ip_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
