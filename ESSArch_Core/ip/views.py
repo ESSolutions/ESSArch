@@ -496,22 +496,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             simple = self.apply_filters(filtered)
 
-            inner = self.annotate_generations(simple)
-            inner = self.annotate_filtered_first_generation(inner, user)
-            inner = self.get_related(inner, workareas)
-
-            outer = self.annotate_generations(simple)
-            outer = self.annotate_filtered_first_generation(outer, user)
-            outer = self.get_related(outer, workareas)
+            simple = self.annotate_generations(simple)
+            simple = self.annotate_filtered_first_generation(simple, user)
+            simple = self.get_related(simple, workareas)
+            simple = simple.select_related('responsible', 'policy__cache_storage', 'policy__ingest_path')
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',
             ).prefetch_related('data_versions')
 
-            inner = inner.filter(filtered_first_generation=False).prefetch_related(
+            inner = simple.filter(filtered_first_generation=False).prefetch_related(
                 Prefetch('profileip_set', queryset=profile_ips,)
             )
-            outer = outer.filter(filtered_first_generation=True).prefetch_related(
+            outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
             ).distinct()
 
