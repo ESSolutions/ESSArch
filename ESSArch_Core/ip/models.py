@@ -227,7 +227,7 @@ class InformationPackageQuerySet(models.QuerySet):
                         output_field=IntegerField(),
                     )
                 ),
-                When(Exists(ip_tasks), then=Subquery(ip_tasks.annotate(sp=Avg('progress')).values('sp')[:1])),
+                When(Exists(ip_tasks), then=Subquery(ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1])),
                 default=Value(100),
                 output_field=IntegerField(),
             ),
