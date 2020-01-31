@@ -185,26 +185,10 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
     )
 
-    if connection.vendor == 'microsoft':
-        qs = qs.annotate(
-            cleaned_id=Cast('pk', CharField()),
-        ).filter(Q(
-            Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
-            Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
-            Q(cleaned_id__in=user_ids.values('cleaned_pk'))
-        ))
-    else:
-        qs = qs.annotate(
-            cleaned_id=Cast('pk', CharField()),
-        ).filter(Q(
-            Q(Exists(
-                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
-            )) |
-            Q(Exists(
-                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
-            )) |
-            Q(Exists(
-                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
-            ))
-        ))
-    return qs | ids_with_no_auth
+    return qs.annotate(
+        cleaned_id=Cast('pk', CharField()),
+    ).filter(Q(
+        Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
+        Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
+        Q(cleaned_id__in=user_ids.values('cleaned_pk'))
+    )) | ids_with_no_auth
