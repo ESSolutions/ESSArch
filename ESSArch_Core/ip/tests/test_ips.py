@@ -44,7 +44,7 @@ from groups_manager.models import GroupType
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
@@ -85,7 +85,7 @@ from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
-class AccessTestCase(TestCase):
+class AccessTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
         Path.objects.create(entity="access_workarea", value="")
@@ -109,7 +109,7 @@ class AccessTestCase(TestCase):
             block_size=1024, format=103
         )
 
-        self.ip = InformationPackage.objects.create()
+        self.ip = InformationPackage.objects.create(generation=0)
         self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         self.ip.policy = StoragePolicy.objects.create(
             cache_storage=cache,
@@ -121,14 +121,11 @@ class AccessTestCase(TestCase):
             content_location_type=DISK,
         )
 
-        self.user = User.objects.create(username="admin")
+        self.user = User.objects.create_superuser(username="superuser")
         self.member = self.user.essauth_member
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
 
-        self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.url = reverse('informationpackage-access', args=[self.ip.pk])
 
@@ -151,7 +148,7 @@ class AccessTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip(self, mock_step):
+    def test_received_ip_read_only(self, mock_step):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
@@ -159,10 +156,26 @@ class AccessTestCase(TestCase):
         mock_step.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip(self, mock_step):
+    def test_received_ip_new_generation(self, mock_step):
+        self.ip.state = 'Received'
+        self.ip.save()
+        res = self.client.post(self.url, {'tar': True, 'new': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_step.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_archived_ip_read_only(self, mock_step):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_step.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_archived_ip_new_generation(self, mock_step):
+        self.ip.archived = True
+        self.ip.save()
+        res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
@@ -682,7 +695,10 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 0)
 
     def test_aic_view_type_with_ordering_and_filter(self):
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2010, 1, 1)),
+        )
         aip14 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic, generation=4, state='foo',
@@ -699,7 +715,10 @@ class InformationPackageViewSetTestCase(TestCase):
             package_type=InformationPackage.AIP,
             aic=aic, generation=1, state='foo',
         )
-        aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic2 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2000, 1, 1)),
+        )
         aip2 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic2, generation=0, state='foo',
@@ -718,19 +737,19 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'create_date', 'state': 'foo'})
-        self.assertEqual(len(res.data), 2)
-        self.assertEqual(res.data[0]['id'], str(aic.pk))
-        self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip11.pk))
-        self.assertEqual(res.data[0]['information_packages'][1]['id'], str(aip12.pk))
-        self.assertEqual(res.data[0]['information_packages'][2]['id'], str(aip13.pk))
-        self.assertEqual(res.data[0]['information_packages'][3]['id'], str(aip14.pk))
-        self.assertEqual(res.data[1]['id'], str(aic2.pk))
-
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-create_date', 'state': 'foo'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'start_date', 'state': 'foo'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic2.pk))
         self.assertEqual(res.data[1]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['information_packages'][0]['id'], str(aip11.pk))
+        self.assertEqual(res.data[1]['information_packages'][1]['id'], str(aip12.pk))
+        self.assertEqual(res.data[1]['information_packages'][2]['id'], str(aip13.pk))
+        self.assertEqual(res.data[1]['information_packages'][3]['id'], str(aip14.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data[0]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['id'], str(aic2.pk))
 
     def test_ip_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)

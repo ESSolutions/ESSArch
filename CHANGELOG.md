@@ -1,3 +1,9 @@
+# [3.1.2](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.2)
+
+## Fixed
+
+- Empty archive dropdown list (#904)
+
 # [3.1.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.1)
 
 ## Fixed
