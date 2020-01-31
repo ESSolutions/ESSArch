@@ -2,16 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.db.models import (
-    CharField,
-    Exists,
-    F,
-    Min,
-    OuterRef,
-    Q,
-    UUIDField,
-    Value,
-)
+from django.db.models import CharField, F, Min, Q, UUIDField, Value
 from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission

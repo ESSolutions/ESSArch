@@ -1385,17 +1385,32 @@ class InformationPackageViewSetTestCase(TestCase):
     def test_flat_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         start_date = make_aware(datetime(2000, 1, 1))
-        aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0, state='foo', start_date=start_date)
+        aip = InformationPackage.objects.create(
+            aic=aic, package_type=InformationPackage.AIP,
+            generation=0, state='foo', start_date=start_date,
+        )
 
         start_date = make_aware(datetime(2010, 1, 1))
-        sip = InformationPackage.objects.create(package_type=InformationPackage.SIP, state='foo', start_date=start_date)
+        sip = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='foo',
+            start_date=start_date,
+        )
         start_date = make_aware(datetime(2040, 1, 1))
-        sip2 = InformationPackage.objects.create(package_type=InformationPackage.SIP, state='bar', start_date=start_date)
+        sip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='bar',
+            start_date=start_date,
+        )
 
         start_date = make_aware(datetime(2005, 1, 1))
-        dip = InformationPackage.objects.create(package_type=InformationPackage.DIP, state='foo', start_date=start_date)
+        dip = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='foo',
+            start_date=start_date,
+        )
         start_date = make_aware(datetime(2030, 1, 1))
-        dip2 = InformationPackage.objects.create(package_type=InformationPackage.DIP, state='bar', start_date=start_date)
+        dip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='bar',
+            start_date=start_date,
+        )
 
         perms = {'group': ['view_informationpackage']}
         self.member.assign_object(self.group, aip, custom_permissions=perms)
@@ -1419,7 +1434,6 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(dip2.pk))
         self.assertEqual(res.data[1]['id'], str(sip2.pk))
-
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):

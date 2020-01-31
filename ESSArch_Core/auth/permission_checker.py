@@ -1,6 +1,5 @@
 from itertools import chain
 
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.db.models import Prefetch
 from django.utils.encoding import force_str
@@ -8,13 +7,8 @@ from guardian.core import (
     ObjectPermissionChecker as GuardianObjectPermissionChecker,
     _get_pks_model_and_ctype,
 )
-from guardian.utils import get_group_obj_perms_model, get_user_obj_perms_model
 
-from ESSArch_Core.auth.models import (
-    GroupGenericObjects,
-    GroupMember,
-    GroupMemberRole,
-)
+from ESSArch_Core.auth.models import GroupGenericObjects, GroupMember
 from ESSArch_Core.auth.util import get_user_groups
 
 
@@ -34,9 +28,7 @@ class ObjectPermissionChecker(GuardianObjectPermissionChecker):
 
         if self.user and self.user.is_superuser:
             perms = list(chain(
-                *Permission.objects
-                    .filter(content_type=ctype)
-                    .values_list("codename")))
+                *Permission.objects.filter(content_type=ctype).values_list("codename")))
 
             for pk in pks:
                 key = (ctype.id, force_str(pk))

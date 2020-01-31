@@ -75,7 +75,7 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.auth.models import Group, GroupGenericObjects, Member
+from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -111,7 +111,7 @@ from ESSArch_Core.util import (
     open_file,
     timestamp_to_datetime,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
@@ -231,7 +231,12 @@ class InformationPackageQuerySet(models.QuerySet):
                         output_field=IntegerField(),
                     )
                 ),
-                When(Exists(ip_tasks), then=Subquery(ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1])),
+                When(
+                    Exists(ip_tasks),
+                    then=Subquery(
+                        ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1]
+                    )
+                ),
                 default=Value(100),
                 output_field=IntegerField(),
             ),
