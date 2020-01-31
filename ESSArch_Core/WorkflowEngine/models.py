@@ -159,10 +159,6 @@ class ProcessStep(MPTTModel, Process):
     descendants = MPTTDescendants()
     subtree = MPTTSubtree()
 
-    lft = models.PositiveIntegerField(db_index=True, editable=False)
-    rght = models.PositiveIntegerField(db_index=True, editable=False)
-    level = models.PositiveIntegerField(db_index=True, editable=False)
-
     def get_pos(self):
         return self.parent_step_pos
 
@@ -586,10 +582,6 @@ class ProcessStep(MPTTModel, Process):
         db_table = 'ProcessStep'
         ordering = ('parent_step_pos', 'time_created')
         get_latest_by = "time_created"
-        index_together = (
-            ('tree_id', 'lft', 'rght', 'information_package'),
-            ('tree_id', 'lft'),
-        )
 
     class MPTTMeta:
         parent_attr = 'parent_step'
@@ -611,7 +603,7 @@ class ProcessTask(Process):
     label = models.CharField(max_length=255, blank=True)
     status = models.CharField(
         _('state'), max_length=50, default=celery_states.PENDING,
-        choices=TASK_STATE_CHOICES, db_index=True,
+        choices=TASK_STATE_CHOICES,
     )
     responsible = models.ForeignKey(
         'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
@@ -630,9 +622,9 @@ class ProcessTask(Process):
         null=True, blank=True
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
-    progress = models.IntegerField(default=0, db_index=True)
+    progress = models.IntegerField(default=0)
     undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
-    undo_type = models.BooleanField(editable=False, default=False, db_index=True)
+    undo_type = models.BooleanField(editable=False, default=False)
     retried = models.OneToOneField(
         'self',
         on_delete=models.SET_NULL,
@@ -882,7 +874,6 @@ class ProcessTask(Process):
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
         index_together = (
-            ('status', 'information_package'),
             ('undo_type', 'undone', 'retried', 'processstep', 'information_package'),
         )
 
