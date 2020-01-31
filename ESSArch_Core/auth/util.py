@@ -119,7 +119,9 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         # Because of UUIDs we have to first save the IDs in
         # memory and then query against that list, see
         # https://stackoverflow.com/questions/50526873/
-        # Fixed in Django 3 (hopefully)
+        #
+        # Fixed in Django 3.1 (hopefully)
+        # https://github.com/django/django/pull/10643
 
         orgs = []
 
@@ -194,18 +196,15 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
     else:
         qs = qs.annotate(
             cleaned_id=Cast('pk', CharField()),
-            role_exists=Exists(
-                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
-            grp_exists=Exists(
-                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
-            user_exists=Exists(
-                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
         ).filter(Q(
-            Q(role_exists=True) |
-            Q(grp_exists=True) |
-            Q(user_exists=True)
+            Q(Exists(
+                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
+            )) |
+            Q(Exists(
+                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
+            )) |
+            Q(Exists(
+                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'), content_type=ctype)
+            ))
         ))
     return qs | ids_with_no_auth

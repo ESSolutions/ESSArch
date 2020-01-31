@@ -19,8 +19,6 @@ from django.db.models import (
     BooleanField,
     Case,
     Exists,
-    F,
-    IntegerField,
     Max,
     Min,
     OuterRef,
@@ -37,7 +35,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
 from elasticsearch_dsl import Index, Q as ElasticQ, Search
 from groups_manager.utils import get_permission_name
-from guardian.core import ObjectPermissionChecker
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from rest_framework import (
@@ -56,6 +53,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
+from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
@@ -2862,7 +2860,6 @@ class WorkareaViewSet(InformationPackageViewSet):
             )
 
             self.queryset = qs.distinct()
-            return self.queryset
 
         return self.queryset
 

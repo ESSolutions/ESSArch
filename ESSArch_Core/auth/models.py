@@ -39,6 +39,7 @@ from groups_manager.models import (
 )
 from mptt.models import TreeForeignKey
 from picklefield.fields import PickledObjectField
+from relativity.mptt import MPTTDescendants
 
 from ESSArch_Core.fields import JSONField
 
@@ -184,6 +185,8 @@ class Group(GroupMixin):
                             related_name='sub_%(app_label)s_%(class)s_set', verbose_name=_('parent'))
     external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
     properties = JSONField(_('properties'), default={}, blank=True)
+
+    descendants = MPTTDescendants()
 
     @property
     def member_model(self):

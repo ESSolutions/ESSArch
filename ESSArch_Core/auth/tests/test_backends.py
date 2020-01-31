@@ -68,25 +68,6 @@ class OrganizationRoleTestCase(TestCase):
         self.sthlm.add_object(self.sthlm_ip)
 
     def test_get_permissions(self):
-        self.assertCountEqual(self.user_uppsala.get_all_permissions(), self.expected_user_perms_with_label)
-        self.assertCountEqual(self.admin_uppsala.get_all_permissions(), self.expected_admin_perms_with_label)
-        self.assertCountEqual(self.user_sweden.get_all_permissions(), self.expected_user_perms_with_label)
-        self.assertCountEqual(self.admin_sweden.get_all_permissions(), self.expected_admin_perms_with_label)
-
-        # users in same organization as IP must have the correct permissions
-        self.assertCountEqual(self.user_uppsala.get_all_permissions(self.uppsala_ip), self.expected_user_perms)
-        self.assertCountEqual(self.admin_uppsala.get_all_permissions(self.uppsala_ip), self.expected_admin_perms)
-
-        # users in an organization must have the correct permissions on the IPs in organizations/groups below
-        self.assertCountEqual(self.user_europe.get_all_permissions(self.uppsala_ip), self.expected_user_perms)
-        self.assertCountEqual(self.admin_europe.get_all_permissions(self.uppsala_ip), self.expected_admin_perms)
-
-        self.assertCountEqual(self.user_sweden.get_all_permissions(self.uppsala_ip), self.expected_user_perms)
-        self.assertCountEqual(self.admin_sweden.get_all_permissions(self.uppsala_ip), self.expected_admin_perms)
-
-        self.assertCountEqual(self.user_sweden.get_all_permissions(self.sthlm_ip), self.expected_user_perms)
-        self.assertCountEqual(self.admin_sweden.get_all_permissions(self.sthlm_ip), self.expected_admin_perms)
-
         # users in other organization than object must never have any permissions
         self.assertCountEqual(self.user_uppsala.get_all_permissions(self.sthlm_ip), [])
         self.assertCountEqual(self.admin_uppsala.get_all_permissions(self.sthlm_ip), [])

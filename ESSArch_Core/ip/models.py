@@ -38,6 +38,7 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -112,6 +113,9 @@ from ESSArch_Core.util import (
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
+
+User = get_user_model()
+
 
 logger = logging.getLogger('essarch.ip')
 
@@ -500,7 +504,9 @@ class InformationPackage(models.Model):
     def is_locked(self):
         return self.get_lock_key() in cache
 
-    def get_permissions(self, user, checker=None):
+    def get_permissions(self, user: User, checker=None):
+        if checker is not None:
+            return checker.get_perms(self)
         return user.get_all_permissions(self)
 
     def get_migratable_storage_methods(self):
