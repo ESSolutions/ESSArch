@@ -1281,16 +1281,28 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+        if new:
+            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
+        else:
+            dst_object_identifier_value = self.object_identifier_value
+
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
             ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
 
+            if new:
+                new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
+                new_aip.object_path = ingest_workarea_user
+                new_aip.save()
+            else:
+                new_aip = self
+
             workflow = [
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
                     "label": "Create workarea",
-                    "args": [str(self.pk), str(user.pk), Workarea.INGEST, True]
+                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new]
                 },
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
@@ -1359,18 +1371,19 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
 
         access_workarea = Path.objects.get(entity='access_workarea').value
-
-        if new:
-            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
-        else:
-            dst_object_identifier_value = self.object_identifier_value
-
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
         access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
         access_workarea_user_aic_xml = os.path.join(
             access_workarea, user.username, self.aic.object_identifier_value
         ) + '.xml'
+
+        if new:
+            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
+            new_aip.object_path = access_workarea_user
+            new_aip.save()
+        else:
+            new_aip = self
 
         if extracted or new:
             os.makedirs(access_workarea_user, exist_ok=True)
@@ -1629,13 +1642,6 @@ class InformationPackage(models.Model):
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
-
-        if new:
-            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
-            new_aip.object_path = access_workarea_user
-            new_aip.save()
-        else:
-            new_aip = self
 
         workflow.append({
             "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
