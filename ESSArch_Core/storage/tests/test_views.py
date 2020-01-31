@@ -380,6 +380,16 @@ class StorageMediumMigratableTests(TestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
 
+        # add object to new method
+        old.status = STORAGE_TARGET_STATUS_MIGRATE
+        old.save()
+        new_medium = self.add_storage_medium(new.storage_target, 20, '2')
+        self.add_storage_obj(ip, new_medium, DISK, '')
+
+        response = self.client.get(self.url, data={'migratable': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 0)
+
     def test_multiple_storage_policies(self):
         other_policy = StoragePolicy.objects.create(
             policy_id='other',
