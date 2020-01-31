@@ -415,54 +415,25 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(status__in=[20], location_status=50)
 
     def _has_non_migrated_storage_object_in_method(self, include_inactive_ips=False):
-        # TODO: Replace RawSQL when Django 3.0 is released
-        def mssql_wrapper(sql):
-            if connection.vendor == 'microsoft':
-                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
-            return sql
-
-        ip_active_cast = 'CAST(IP.active AS signed)' if connection.vendor == 'mysql' else 'CAST(IP.active AS int)'
-
-        return RawSQLWithoutGroupBy(
-            mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storageobject W1
-                    INNER JOIN ip_informationpackage IP ON (
-                        IP.id=W1.ip_id
-                    )
-                    INNER JOIN (
-                        SELECT U2.id, U5.id AS medium_id FROM storage_storagemethod U2
-                        INNER JOIN storage_storagemethodtargetrelation U3 ON (
-                            U3.storage_method_id=U2.id AND
-                            U3.status = %s
-                        )
-                        INNER JOIN storage_storagetarget U4 ON (
-                            U4.id=U3.storage_target_id
-                        )
-                        INNER JOIN storage_storagemedium U5 ON (
-                            U5.storage_target_id=U4.id
-                        )
-                    ) old_method ON (old_method.medium_id=W1.storage_medium_id)
-                    LEFT JOIN (
-                        SELECT A0.id, A0.ip_id, A3.storage_method_id AS method_id FROM storage_storageobject A0
-                        INNER JOIN storage_storagemedium A1 ON (
-                            A1.id = A0.storage_medium_id
-                        )
-                        INNER JOIN storage_storagetarget A2 ON (
-                            A2.id = A1.storage_target_id
-                        )
-                        INNER JOIN storage_storagemethodtargetrelation A3 ON (
-                            A3.storage_target_id = A2.id AND
-                            A3.status = %s
-                        )
-                    ) new_object ON (new_object.ip_id = W1.ip_id AND old_method.id = new_object.method_id)
-                    WHERE W1.storage_medium_id = storage_storagemedium.id AND new_object.id IS NULL {}
-                )""".format('' if include_inactive_ips else "AND {} = 1".format(ip_active_cast))),
-            (
-                STORAGE_TARGET_STATUS_MIGRATE,
-                STORAGE_TARGET_STATUS_ENABLED,
-            )
+        qs = StorageObject.objects.annotate(
+            migrate_method=Subquery(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_target=OuterRef('storage_medium__storage_target'),
+                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                ).values('storage_method')[:1]
+            ),
+        ).filter(
+            ~Exists(StorageObject.objects.filter(
+                ip=OuterRef('ip'),
+                storage_medium__storage_target__storage_method_target_relations__storage_method=OuterRef('migrate_method'),
+                storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            )),
+            storage_medium=OuterRef('pk')
         )
+        if not include_inactive_ips:
+            qs = qs.filter(ip__active=True)
+
+        return Exists(qs)
 
     def _missing_storage_object_in_other_method_in_policy(self):
         """
@@ -536,41 +507,32 @@ class StorageMediumQueryset(models.QuerySet):
 
     def deactivatable(self, include_inactive_ips=False):
         qs = self.exclude(status=0).filter(
-            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
-        ).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(include_inactive_ips)
-        ).filter(
-            has_non_migrated_storage_object=False,
+            ~self._has_non_migrated_storage_object_in_method(include_inactive_ips),
+            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
         )
         return self.filter(pk__in=qs)
 
     def migratable(self):
         return self.exclude(status=0).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object_in_method(False),
             missing_storage_object_in_other_method_in_policy=self._missing_storage_object_in_other_method_in_policy(),
-            target=F('storage_target'),  # required by MSSQL
-            migrate_method_rel=Subquery(
-                StorageMethodTargetRelation.objects.filter(
-                    storage_target=OuterRef('target'),
-                    status=STORAGE_TARGET_STATUS_MIGRATE,
-                ).values('storage_method')[:1]
-            ),
-            has_enabled_target=Exists(
-                StorageMethodTargetRelation.objects.filter(
-                    storage_method=OuterRef('migrate_method_rel'),
-                    status=STORAGE_TARGET_STATUS_ENABLED,
-                )
-            )
         ).filter(
-            Q(
                 Q(
-                    has_non_migrated_storage_object=True,
-                    has_enabled_target=True,
+                    Exists(
+                        StorageMethodTargetRelation.objects.filter(
+                            storage_method=Subquery(
+                                StorageMethodTargetRelation.objects.filter(
+                                    storage_target=OuterRef(OuterRef('storage_target')),
+                                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                                ).values('storage_method')[:1]
+                            ),
+                            status=STORAGE_TARGET_STATUS_ENABLED,
+                        )
+                    ),
+                    self._has_non_migrated_storage_object_in_method(False),
                 ) |
                 Q(
                     missing_storage_object_in_other_method_in_policy=True
                 )
-            )
         )
 
     def non_migratable(self):
