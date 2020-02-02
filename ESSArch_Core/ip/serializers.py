@@ -247,7 +247,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
                     data = SubmissionAgreementIPData.objects.filter(
                         submission_agreement=sa,
                         information_package=instance,
-                    ).latest(field_name='created')
+                    ).latest('created')
                 except SubmissionAgreementIPData.DoesNotExist:
                     data = None
 

@@ -28,7 +28,6 @@ import tempfile
 
 from celery import states as celery_states
 from django.conf import settings
-from django.db import connection
 from django.test import TestCase, TransactionTestCase, override_settings
 from django_redis import get_redis_connection
 
@@ -651,8 +650,6 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
         Path.objects.create(entity='temp', value='temp')
-
-        self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
     def test_empty_step(self):
         step = ProcessStep.objects.create()
