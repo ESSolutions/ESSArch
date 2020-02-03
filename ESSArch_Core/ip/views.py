@@ -59,6 +59,7 @@ from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
@@ -113,6 +114,7 @@ from ESSArch_Core.ip.utils import parse_submit_description_from_ip
 from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.util import (
     creation_date,
@@ -1338,6 +1340,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             has_representations = find_destination(
                 "representations", ip.get_structure(), ip.object_path,
             )[1] is not None
+
+            # remove existing premis and mets paths:
+            mets_path = ip.get_content_mets_file_path()
+            try:
+                os.remove(mets_path)
+            except FileNotFoundError:
+                pass
+
+            if generate_premis:
+                premis_profile_data = ip.get_profile_data('preservation_metadata')
+                data = fill_specification_data(premis_profile_data, ip=ip)
+                premis_path = parseContent(ip.get_premis_file_path(), data)
+                try:
+                    os.remove(premis_path)
+                except FileNotFoundError:
+                    pass
 
             workflow = [
                 {
