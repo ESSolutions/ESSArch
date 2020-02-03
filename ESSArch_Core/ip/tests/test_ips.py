@@ -2019,9 +2019,11 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         )
         sa.save()
 
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         ip = InformationPackage.objects.create(
             package_type=InformationPackage.AIP, submission_agreement=sa,
             object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
         )
         with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
             f.write('bar')
