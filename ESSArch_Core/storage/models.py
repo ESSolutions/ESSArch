@@ -421,14 +421,15 @@ class StorageMediumQueryset(models.QuerySet):
                     status=STORAGE_TARGET_STATUS_MIGRATE,
                 ).values('storage_method')[:1]
             ),
-        ).filter(
-            ~Exists(StorageObject.objects.filter(
+            has_enabled_target_with_object_in_migrate_method=Exists(StorageObject.objects.filter(
                 ip=OuterRef('ip'),
                 storage_medium__storage_target__storage_method_target_relations__storage_method=OuterRef(
                     'migrate_method'
                 ),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
             )),
+        ).filter(
+            has_enabled_target_with_object_in_migrate_method=False,
             storage_medium=OuterRef('pk')
         )
         if not include_inactive_ips:
