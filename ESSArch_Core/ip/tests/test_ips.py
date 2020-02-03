@@ -96,7 +96,7 @@ def create_mets_spec(outer: bool, sa: SubmissionAgreement):
                 "-name": "schemaLocation",
                 "-namespace": "xsi",
                 "#content": "http://www.loc.gov/METS/ "
-                            "http://xml.essarch.org/METS/version10/SubmitDescription.xsd"
+                            "http://example.com/mets.xsd"
             },
             {
                 "-name": "ID",
@@ -369,7 +369,8 @@ def create_premis_spec(sa: SubmissionAgreement):
             {
                 "-name": "schemaLocation",
                 "-namespace": "xsi",
-                "#content": "http://www.loc.gov/premis/v3 http://www.loc.gov/standards/premis/premis.xsd"
+                "#content": "http://www.loc.gov/premis/v3 "
+                            "http://example.com/premis.xsd"
             }
         ],
         "-children": [
@@ -534,7 +535,10 @@ class AccessTestCase(APITestCase):
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
         sa = SubmissionAgreement.objects.create(policy=policy)
-        self.ip = InformationPackage.objects.create(submission_agreement=sa)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, generation=0,
+            submission_agreement=sa,
+        )
         self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
 
         StorageObject.objects.create(
@@ -581,6 +585,7 @@ class AccessTestCase(APITestCase):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
+        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
@@ -1970,8 +1975,9 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         )
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
-    def test_preserve_aip(self, mock_index):
+    def test_preserve_aip(self, mock_index, mock_validate_schema):
         storage_method = StorageMethod.objects.create(containers=True)
         storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
         StorageMethodTargetRelation.objects.create(
@@ -2293,7 +2299,8 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @TaskRunner()
-    def test_receive_existing_sip(self):
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_existing_sip(self, mock_validate_schema):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
 
@@ -2312,6 +2319,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
 
         aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
         with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
@@ -2350,7 +2358,8 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @TaskRunner()
-    def test_receive_ip_matching_parsed_and_provided_sa(self):
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_ip_matching_parsed_and_provided_sa(self, mock_validate_schema):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
 
@@ -2361,9 +2370,11 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url, data={'submission_agreement': str(self.sa.pk)})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
 
     @TaskRunner()
-    def test_receive_ip(self):
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_ip(self, mock_validate_schema):
         self.user.user_permissions.add(self.receive_perm)
         self.add_user_to_group()
 
@@ -2374,6 +2385,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
 
         aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
         with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
