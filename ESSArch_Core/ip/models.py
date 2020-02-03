@@ -241,34 +241,25 @@ class InformationPackageQuerySet(models.QuerySet):
             storage_policies=OuterRef('policy'),
         )
 
-        method_with_enabled_target_without_ip = storage_methods.annotate(
-            enabled_target_without_ip=RawSQL(mssql_wrapper("""
-                       EXISTS(
-                           SELECT 1 FROM storage_storagemethodtargetrelation AS U2
-                           WHERE (
-                               U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT (EXISTS(
-                                   SELECT 1 FROM storage_storageobject U3
-                                   INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
-                                   INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
-                                   WHERE U3.ip_id = ip_informationpackage.id
-                                   AND U5.id = U2.storage_target_id
-                              ))
-                          )
-                       )"""), (STORAGE_TARGET_STATUS_ENABLED,)
+        method_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
+            has_storage_obj=Exists(
+                StorageObject.objects.filter(
+                    storage_medium__storage_target=OuterRef('storage_target'),
+                    ip=OuterRef(OuterRef('pk'))
+                )
             ),
         ).filter(
-            enabled=True,
-            enabled_target_without_ip=True,
-            storage_policies=OuterRef('policy')
+            has_storage_obj=False,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('policy'),
         )
 
-        return self.annotate(
-            method_with_old_migrate_and_new_enabled_exists=Exists(method_with_old_migrate_and_new_enabled),
-            method_with_enabled_target_without_ip_exists=Exists(method_with_enabled_target_without_ip),
-        ).filter(
+        return self.filter(
             Q(
-                Q(method_with_enabled_target_without_ip_exists=True) |
-                Q(method_with_old_migrate_and_new_enabled_exists=True)
+                Q(Exists(method_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_with_enabled_target_without_ip))
             ),
             archived=True,
         ).exclude(storage=None)
