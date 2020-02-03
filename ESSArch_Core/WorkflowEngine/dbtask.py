@@ -100,7 +100,7 @@ class DBTask(Task):
         self.extra_data = {}
         if self.ip:
             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
-            self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement))
+            self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
