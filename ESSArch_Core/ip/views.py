@@ -2317,6 +2317,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.sip_objid = pk
         ip.sip_path = pk
         ip.package_type = InformationPackage.AIP
+        ip.generation = 0
         ip.state = 'Receiving'
         ip.object_path = normalize_path(container)
         ip.package_mets_path = normalize_path(xmlfile)
