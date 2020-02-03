@@ -585,7 +585,6 @@ class AccessTestCase(APITestCase):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
-        print(res.data)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
