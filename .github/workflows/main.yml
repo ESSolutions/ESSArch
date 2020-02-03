@@ -213,7 +213,7 @@ jobs:
             health_cmd: true
           - db: mysql
             database_url: 'mysql://root:password@127.0.0.1:13306/essarch?isolation_level=read committed'
-            image: mysql
+            image: 'mysql:8.0.12'
             port: 3306
             health_cmd: mysqladmin ping --user=root -ppassword
           - db: postgres

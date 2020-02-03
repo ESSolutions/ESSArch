@@ -38,7 +38,13 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
 from ESSArch_Core.configuration.models import EventType, Feature, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
-from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
+from ESSArch_Core.storage.models import (  # noqa isort:skip
+    DISK,
+    StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+)
 
 User = get_user_model()
 
@@ -492,12 +498,28 @@ def installDefaultStoragePolicies():
     )
 
     if created_cache_method:
-        cache_target = StorageTarget.objects.create(
+        cache_target, created_cache_target = StorageTarget.objects.get_or_create(
             name='Default Cache Storage Target 1',
-            status=True,
-            type=DISK,
-            target='/ESSArch/data/store/cache',
+            defaults={
+                'status': True,
+                'type': DISK,
+                'target': '/ESSArch/data/store/cache',
+            }
         )
+
+        if created_cache_target:
+            StorageMedium.objects.get_or_create(
+                medium_id='Default Cache Disk 1',
+                defaults={
+                    'storage_target': cache_target,
+                    'status': 20,
+                    'location': Parameter.objects.get(entity='medium_location').value,
+                    'location_status': 50,
+                    'block_size': cache_target.default_block_size,
+                    'format': cache_target.default_format,
+                    'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+                }
+            )
 
         StorageMethodTargetRelation.objects.create(
             name='Default Cache Storage Method Target Relation 1',
@@ -552,7 +574,7 @@ def installDefaultStorageMethods():
 
 
 def installDefaultStorageTargets():
-    StorageTarget.objects.get_or_create(
+    target, created = StorageTarget.objects.get_or_create(
         name='Default Storage Target 1',
         defaults={
             'status': True,
@@ -561,7 +583,21 @@ def installDefaultStorageTargets():
         }
     )
 
-    StorageTarget.objects.get_or_create(
+    if created:
+        StorageMedium.objects.get_or_create(
+            medium_id='Default Storage Disk 1',
+            defaults={
+                'storage_target': target,
+                'status': 20,
+                'location': Parameter.objects.get(entity='medium_location').value,
+                'location_status': 50,
+                'block_size': target.default_block_size,
+                'format': target.default_format,
+                'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+            }
+        )
+
+    target, created = StorageTarget.objects.get_or_create(
         name='Default Long-term Storage Target 1',
         defaults={
             'status': True,
@@ -569,6 +605,20 @@ def installDefaultStorageTargets():
             'target': '/ESSArch/data/store/longterm_disk1',
         }
     )
+
+    if created:
+        StorageMedium.objects.get_or_create(
+            medium_id='Default Long-term Storage Disk 1',
+            defaults={
+                'storage_target': target,
+                'status': 20,
+                'location': Parameter.objects.get(entity='medium_location').value,
+                'location_status': 50,
+                'block_size': target.default_block_size,
+                'format': target.default_format,
+                'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+            }
+        )
 
     return 0
 
