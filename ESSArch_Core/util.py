@@ -44,7 +44,6 @@ import chardet
 from django.conf import settings
 from django.core.cache import cache
 from django.core.validators import RegexValidator
-from django.db.models.expressions import RawSQL
 from django.http.response import FileResponse
 from django.utils.timezone import get_current_timezone
 from lxml import etree
@@ -801,8 +800,3 @@ def open_file(path='', *args, container=None, container_prefix='', **kwargs):
             raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(container, path))
 
     return open(os.path.join(container, path), *args, **kwargs)
-
-
-class RawSQLWithoutGroupBy(RawSQL):
-    def get_group_by_cols(self):
-        return []
