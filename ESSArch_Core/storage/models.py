@@ -11,7 +11,7 @@ import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import connection, models, transaction
+from django.db import models, transaction
 from django.db.models import (
     Case,
     Exists,
@@ -424,7 +424,9 @@ class StorageMediumQueryset(models.QuerySet):
         ).filter(
             ~Exists(StorageObject.objects.filter(
                 ip=OuterRef('ip'),
-                storage_medium__storage_target__storage_method_target_relations__storage_method=OuterRef('migrate_method'),
+                storage_medium__storage_target__storage_method_target_relations__storage_method=OuterRef(
+                    'migrate_method'
+                ),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
             )),
             storage_medium=OuterRef('pk')

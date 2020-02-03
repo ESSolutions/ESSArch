@@ -41,7 +41,7 @@ from celery import states as celery_states
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db import connection, models, transaction
+from django.db import models, transaction
 from django.db.models import (
     CharField,
     Count,
@@ -53,7 +53,6 @@ from django.db.models import (
     Q,
     Sum,
 )
-from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
@@ -180,68 +179,30 @@ class AgentNote(models.Model):
 
 class InformationPackageQuerySet(models.QuerySet):
     def migratable(self, storage_methods=None):
-        # TODO: This is really, really ugly but is required until Django 3.0 is released
-        #
-        # See:
-        #  * https://github.com/django/django/pull/8119
-        #  * https://github.com/django/django/pull/11062
-        #  * https://github.com/django/django/pull/11677
-        #  * https://code.djangoproject.com/ticket/30739
-
         # TODO: Exclude those that already has a task that has not succeeded (?)
-
-        def mssql_wrapper(sql):
-            if connection.vendor == 'microsoft':
-                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
-            return sql
-
         storage_methods = storage_methods or StorageMethod.objects.all()
 
-        method_with_old_migrate_and_new_enabled = storage_methods.annotate(
-            status_migrate_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_MIGRATE,)
-            ),
-            status_enabled_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
-            status_enabled_without_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id)
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
+        def filter_objects(status):
+            return StorageObject.objects.filter(
+                storage_medium__storage_target__storage_method_target_relations__status=status,
+                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
+                ip=OuterRef(OuterRef('pk'))
+            )
+
+        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.annotate(
+            has_migrate_target_with_obj=Exists(filter_objects(STORAGE_TARGET_STATUS_MIGRATE)),
+            has_enabled_target_without_obj=~Exists(filter_objects(STORAGE_TARGET_STATUS_ENABLED)),
+            has_enabled_target_with_obj=F('has_enabled_target_without_obj'),
         ).filter(
-            enabled=True,
-            status_migrate_with_ip=True,
-            status_enabled_without_ip=True,
-            status_enabled_with_ip=False,
-            storage_policies=OuterRef('policy'),
+            has_migrate_target_with_obj=True,
+            has_enabled_target_without_obj=True,
+            has_enabled_target_with_obj=False,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('policy'),
         )
 
-        method_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
+        method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
             has_storage_obj=Exists(
                 StorageObject.objects.filter(
                     storage_medium__storage_target=OuterRef('storage_target'),
@@ -258,8 +219,8 @@ class InformationPackageQuerySet(models.QuerySet):
 
         return self.filter(
             Q(
-                Q(Exists(method_with_old_migrate_and_new_enabled)) |
-                Q(Exists(method_with_enabled_target_without_ip))
+                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_target_rel_with_enabled_target_without_ip))
             ),
             archived=True,
         ).exclude(storage=None)
