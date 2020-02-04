@@ -90,7 +90,7 @@
     "stylelint-scss": "^3.11.1",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
-    "ua-parser-js": "^0.7.20",
+    "ua-parser-js": "^0.7.21",
     "ui-select": "~0.19.6",
     "uri-util": "^1.1.0",
     "url-loader": "^3.0.0",
