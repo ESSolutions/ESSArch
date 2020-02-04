@@ -199,7 +199,7 @@ class InformationPackageQuerySet(models.QuerySet):
             has_enabled_target_with_obj=False,
             storage_method__in=storage_methods,
             storage_method__enabled=True,
-            storage_method__storage_policies=OuterRef('policy'),
+            storage_method__storage_policies=OuterRef('submission_agreement_policy'),
         )
 
         method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
@@ -214,7 +214,7 @@ class InformationPackageQuerySet(models.QuerySet):
             status=STORAGE_TARGET_STATUS_ENABLED,
             storage_method__in=storage_methods,
             storage_method__enabled=True,
-            storage_method__storage_policies=OuterRef('policy'),
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
         return self.filter(
@@ -326,12 +326,6 @@ class InformationPackage(models.Model):
         related_name='information_packages', null=True
     )
 
-    policy = models.ForeignKey(
-        'configuration.StoragePolicy',
-        on_delete=models.PROTECT,
-        related_name='information_packages',
-        null=True,
-    )
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
     sip_objid = models.CharField(max_length=255)
@@ -376,6 +370,13 @@ class InformationPackage(models.Model):
     @classmethod
     def clear_locks(cls):
         return cache.delete_pattern(IP_LOCK_PREFIX + '*')
+
+    @property
+    def policy(self):
+        try:
+            return self.submission_agreement.policy
+        except AttributeError:
+            return None
 
     def get_lock_key(self):
         return '{}{}'.format(IP_LOCK_PREFIX, str(self.pk))

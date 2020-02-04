@@ -33,6 +33,7 @@ from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     Site,
@@ -88,6 +89,13 @@ class EventTypeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(EventType, EventTypeAdmin)
+
+
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'enabled')
+    list_editable = ('enabled',)
+
+    search_fields = ('name', 'description')
 
 
 class StoragePolicyAdminForm(forms.ModelForm):
@@ -157,5 +165,6 @@ class StoragePolicyAdmin(NestedModelAdmin):
 
 
 admin.site.unregister(DjangoSite)
+admin.site.register(Feature, FeatureAdmin)
 admin.site.register(Site)
 admin.site.register(StoragePolicy, StoragePolicyAdmin)

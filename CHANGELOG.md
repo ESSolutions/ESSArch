@@ -1,3 +1,15 @@
+# Unreleased
+
+## Added
+
+- Feature flag for receiving SIP
+- Ability to transfer SIP from reception to another ESSArch instance
+
+## Changed
+
+- AIP creation to be done at preservation step
+- Relation between IPs and storage policies to be defined in submission agreement
+
 # [3.1.2](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.2)
 
 ## Fixed

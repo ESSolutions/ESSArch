@@ -52,7 +52,7 @@ export default angular
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
   .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', 'Notifications', filters])
   .factory('StoragePolicy', ['$resource', 'appConfig', storagePolicy])
-  .factory('ContentTabs', contentTabs)
+  .factory('ContentTabs', ['$rootScope', contentTabs])
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
   .factory('Conversion', ['$http', 'appConfig', conversion])
   .factory('EditMode', [EditMode])

@@ -28,6 +28,7 @@ from rest_framework import serializers
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     Site,
@@ -44,6 +45,12 @@ class EventTypeSerializer(DynamicModelSerializer):
     class Meta:
         model = EventType
         fields = ('eventType', 'eventDetail',)
+
+
+class FeatureSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feature
+        fields = ('name', 'description', 'enabled',)
 
 
 class ParameterSerializer(DynamicModelSerializer):

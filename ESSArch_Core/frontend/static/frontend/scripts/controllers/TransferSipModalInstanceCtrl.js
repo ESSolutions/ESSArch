@@ -1,20 +1,15 @@
-export default class ReceiveModalInstanceCtrl {
-  constructor($uibModalInstance, $scope, data, $translate, $http, appConfig, $q, EditMode, IPReception) {
+export default class TransferSipModalInstanceCtrl {
+  constructor(data, $uibModalInstance, EditMode, IPReception, $q, $http, appConfig, $scope, $translate) {
     const $ctrl = this;
     $scope.angular = angular;
-    $scope.saAlert = null;
-    $scope.alerts = {
-      receiveError: {type: 'danger', msg: $translate.instant('CANNOT_RECEIVE_ERROR')},
-    };
-
-    $ctrl.receiving = false;
+    $ctrl.data = data;
+    $ctrl.transferring = false;
 
     $ctrl.$onInit = () => {
       $ctrl.ips = data.ips;
       $ctrl.checkInitialSas($ctrl.ips);
       EditMode.enable();
     };
-
     $ctrl.options = {
       sas: [],
     };
@@ -70,7 +65,6 @@ export default class ReceiveModalInstanceCtrl {
     };
 
     $ctrl.unidentifiedIpSas = {};
-
     $ctrl.getSas = function(search) {
       return $http({
         url: appConfig.djangoUrl + 'submission-agreements/',
@@ -123,44 +117,42 @@ export default class ReceiveModalInstanceCtrl {
       return allHasSa;
     };
 
-    $ctrl.receive = ips => {
-      $ctrl.receiving = true;
+    // Transfer IP
+    $ctrl.transfer = ips => {
+      $ctrl.transferring = true;
       const promises = [];
-      ips.forEach(ip => {
-        ip.receiving = true;
+      $ctrl.data.ips.forEach(function(ip) {
+        ip.transferring = true;
         let data = {id: ip.id};
         if ($ctrl.unidentifiedIpSas[ip.id]) {
           data.submission_agreement = $ctrl.unidentifiedIpSas[ip.id].submission_agreement;
         }
         promises.push(
-          IPReception.receive(data)
-            .$promise.then(response => {
-              ip.receiving = false;
-              ip.received = true;
+          IPReception.transfer(data)
+            .$promise.then(function(response) {
+              ip.transferring = false;
+              ip.transferred = true;
               return response;
             })
-            .catch(response => {
-              ip.receiving = false;
-              ip.received = false;
-              if (response.data) {
-                ip.error = response.data.detail;
-              }
+            .catch(function(response) {
+              ip.transferring = false;
+              ip.transferred = false;
               return $q.reject(response);
             })
         );
-        $q.all(promises)
-          .then(responses => {
-            $ctrl.receiving = false;
-            EditMode.disable();
-            $uibModalInstance.close();
-          })
-          .catch(e => {
-            $ctrl.receiving = false;
-          });
       });
+      $q.all(promises)
+        .then(() => {
+          $ctrl.transferring = false;
+          EditMode.disable();
+          $uibModalInstance.close();
+        })
+        .catch(() => {
+          $ctrl.transferring = false;
+        });
     };
 
-    $ctrl.cancel = () => {
+    $ctrl.cancel = function() {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };

@@ -9,6 +9,7 @@ from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_DISABLED,
@@ -52,7 +53,8 @@ class StorageMediumDeactivatableTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -106,7 +108,7 @@ class StorageMediumDeactivatableTests(TestCase):
         # Add new IP to old medium
         new_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy
+            submission_agreement=self.sa,
         )
         StorageObject.objects.create(
             ip=new_ip, storage_medium=self.storage_medium,
@@ -133,7 +135,7 @@ class StorageMediumDeactivatableTests(TestCase):
         # Add new inactive IP to old medium
         inactive_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy, active=False
+            submission_agreement=self.sa, active=False
         )
         StorageObject.objects.create(
             ip=inactive_ip, storage_medium=self.storage_medium,
@@ -235,6 +237,7 @@ class StorageMediumMigratableTests(TestCase):
             cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
+        self.sa = SubmissionAgreement.objects.create(policy=self.policy)
 
     def add_storage_method_rel(self, storage_type, target_name, status):
         storage_method = StorageMethod.objects.create(
@@ -264,7 +267,7 @@ class StorageMediumMigratableTests(TestCase):
         )
 
     def test_no_change(self):
-        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
         old_medium = self.add_storage_medium(old.storage_target, 20, '1')
@@ -281,7 +284,7 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
     def test_single_storage_method(self):
-        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = self.add_storage_medium(old.storage_target, 20, '1')
@@ -329,7 +332,7 @@ class StorageMediumMigratableTests(TestCase):
         # Add new IP to old medium
         new_ip = InformationPackage.objects.create(
             archived=True,
-            policy=self.policy
+            submission_agreement=self.sa,
         )
         StorageObject.objects.create(
             ip=new_ip, storage_medium=old_medium,
@@ -354,7 +357,7 @@ class StorageMediumMigratableTests(TestCase):
         self.assertEqual(response.data, [])
 
     def test_multiple_storage_methods(self):
-        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = self.add_storage_medium(old.storage_target, 20, '1')
@@ -396,7 +399,7 @@ class StorageMediumMigratableTests(TestCase):
             cache_storage=self.policy.cache_storage,
             ingest_path=self.policy.ingest_path,
         )
-        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = self.add_storage_medium(old.storage_target, 20, '1')
@@ -426,12 +429,12 @@ class StorageMediumMigratableTests(TestCase):
         ip1 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             archived=True,
-            policy=self.policy,
+            submission_agreement=self.sa,
         )
         ip2 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             archived=True,
-            policy=self.policy,
+            submission_agreement=self.sa,
         )
 
         # default
@@ -516,7 +519,8 @@ class StorageMediumDeactivateTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
         cls.user = User.objects.create(username='user')
 
     def setUp(self):
@@ -657,8 +661,8 @@ class StorageMigrationTestsBase(TestCase):
             cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
-
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
 
     def setUp(self):
         self.client = APIClient()
@@ -774,6 +778,10 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.policy.storage_methods.add(old.storage_method, new.storage_method)
 
         ip = InformationPackage.objects.create(policy=self.policy)
+
+    def test_bad_ip(self, mock_task):
+        ip = InformationPackage.objects.create(submission_agreement=self.sa)
+
         data = {
             'information_packages': [str(ip.pk)],
             'policy': str(self.policy.pk),

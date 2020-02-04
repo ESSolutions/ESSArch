@@ -264,3 +264,17 @@ class DefaultValue(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255, blank=True)
+
+
+class Feature(models.Model):
+    name = models.CharField(_('name'), max_length=100, blank=False)
+    description = models.TextField(_('description'), blank=True)
+    enabled = models.BooleanField(_('enabled'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('feature')
+        verbose_name_plural = _('features')
