@@ -22,3 +22,9 @@ body.modal-open {
 .modal-title {
   width: 100%; //Fixes overflow in ie10
 }
+
+.preserve-modal {
+  .request-type {
+    width: 100% !important;
+  }
+}

@@ -1,4 +1,6 @@
-const contentTabs = () => {
+import {existsAndEnabled} from './../features/utils';
+
+const contentTabs = $rootScope => {
   const disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
   const specialTabs = {
     'home.producer.prepareIp': {
@@ -12,9 +14,6 @@ const contentTabs = () => {
     },
     'home.producer.submitSip': {
       submit_sip: ['Created'],
-    },
-    'home.reception': {
-      receive: ['At reception', 'Prepared'],
     },
     'home.workarea.validation': {
       validation: ['Received'],
@@ -50,7 +49,8 @@ const contentTabs = () => {
       approval: ['Received'],
     },
     'home.ingest.reception': {
-      receive: ['At reception', 'Prepared'],
+      receive: ['At reception'],
+      transfer: ['At reception'],
     },
     'home.administration.storageMigration': {
       migrate: ['Preserved'],
@@ -76,7 +76,7 @@ const contentTabs = () => {
             visible = false;
           }
           angular.forEach(specialTabs[page], function(value, key) {
-            if (value.includes(ip.state)) {
+            if (value.includes(ip.state) && existsAndEnabled($rootScope.features, key)) {
               if (!list.includes(key)) {
                 list.push(key);
               }

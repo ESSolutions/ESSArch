@@ -41,6 +41,10 @@ const ipReception = ($resource, appConfig) => {
         method: 'POST',
         params: {action: 'prepare', id: '@id'},
       },
+      transfer: {
+        method: 'POST',
+        params: {action: 'transfer', id: '@id'},
+      },
     }
   );
 };

@@ -78,6 +78,7 @@ import essarchDirectivesModule from './modules/essarch.directives.module';
 
 import '../styles/styles.scss';
 import {IFormlyConfig, IValidationMessages} from 'AngularFormly';
+import {Feature} from './features/types';
 
 export const resolve = (path: string, obj: object) => {
   return path.split('.').reduce(function(prev, curr) {
@@ -1009,6 +1010,15 @@ angular
           // Also enable router to listen to url changes
           $urlService.listen();
           $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
+
+          $http
+            .get<Feature[]>(appConfig.djangoUrl + 'features/')
+            .then(response => {
+              $rootScope.features = response.data;
+            })
+            .catch(() => {
+              $rootScope.features = [];
+            });
           $http
             .get(appConfig.djangoUrl + 'site/')
             .then(function(response) {

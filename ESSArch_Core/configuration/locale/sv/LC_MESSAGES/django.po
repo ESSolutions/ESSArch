@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-19 11:30+0100\n"
+"POT-Creation-Date: 2020-01-15 11:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,54 +18,70 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: admin.py:110
+msgid "Cache must be a local disk without containers"
+msgstr ""
+
 #: apps.py:7
 msgid "Configuration"
 msgstr "Konfiguration"
 
-#: models.py:59 models.py:90
+#: models.py:64 models.py:95
 msgid "entity"
 msgstr "entitet"
 
-#: models.py:60 models.py:91
+#: models.py:65 models.py:96
 msgid "value"
 msgstr "värde"
 
-#: models.py:66
+#: models.py:71
 msgid "parameter"
 msgstr "parameter"
 
-#: models.py:67
+#: models.py:72
 msgid "parameters"
 msgstr "parametrar"
 
-#: models.py:100
+#: models.py:105
 msgid "path"
 msgstr "sökväg"
 
-#: models.py:101
+#: models.py:106
 msgid "paths"
 msgstr "sökvägar"
 
-#: models.py:141
-msgid "agent type"
+#: models.py:118
+msgid "Information package"
 msgstr ""
 
-#: models.py:142
-msgid "agent detail"
+#: models.py:119
+msgid "Delivery"
 msgstr ""
 
-#: models.py:146
-msgid "agent"
-msgstr "agent"
+#: models.py:241
+msgid "storage policy"
+msgstr "lagringspolicy"
 
-#: models.py:147
-msgid "agents"
-msgstr "agenter"
+#: models.py:242
+msgid "storage policies"
+msgstr "lagringspolicyer"
 
-#: models.py:238
-msgid "archive policy"
-msgstr "arkivpolicy"
+#: models.py:270
+msgid "name"
+msgstr ""
 
-#: models.py:239
-msgid "archive policies"
-msgstr "arkivpolicyer"
+#: models.py:271
+msgid "description"
+msgstr ""
+
+#: models.py:272
+msgid "enabled"
+msgstr "aktiverad"
+
+#: models.py:279
+msgid "feature"
+msgstr "funktion"
+
+#: models.py:280
+msgid "features"
+msgstr "funktioner"

@@ -95,6 +95,7 @@ import StructureVersionModalInstanceCtrl from '../controllers/StructureVersionMo
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import TransferCtrl from '../controllers/TransferCtrl';
+import TransferSipModalInstanceCtrl from '../controllers/TransferSipModalInstanceCtrl';
 import TemplateModalInstanceCtrl from '../controllers/TemplateModalInstanceCtrl';
 import TransferModalInstanceCtrl from '../controllers/TransferModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -787,12 +788,11 @@ export default angular
     '$scope',
     'data',
     '$translate',
-    '$uibModal',
-    '$log',
     '$http',
     'appConfig',
     '$q',
     'EditMode',
+    'IPReception',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [
@@ -1158,12 +1158,32 @@ export default angular
     'SelectedIPUpdater',
     WorkareaCtrl,
   ])
-  .controller('PreserveModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', PreserveModalInstanceCtrl])
+  .controller('PreserveModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'Requests',
+    '$q',
+    '$controller',
+    '$scope',
+    PreserveModalInstanceCtrl,
+  ])
   .controller('TemplateModalInstanceCtrl', [
     'ProfileMakerTemplate',
     '$uibModalInstance',
     'data',
     TemplateModalInstanceCtrl,
+  ])
+  .controller('TransferSipModalInstanceCtrl', [
+    'data',
+    '$uibModalInstance',
+    'EditMode',
+    'IPReception',
+    '$q',
+    '$http',
+    'appConfig',
+    '$scope',
+    '$translate',
+    TransferSipModalInstanceCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .controller('VersionModalInstanceCtrl', [

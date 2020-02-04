@@ -24,16 +24,22 @@
 
 from django.test import TestCase
 
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.profiles.models import (
     Profile,
     ProfileSA,
     SubmissionAgreement,
 )
+from ESSArch_Core.storage.models import StorageMethod
 
 
 class SubmissionAgreementTestCase(TestCase):
     def test_copy(self):
-        sa = SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy)
         profile = Profile.objects.create()
         ProfileSA.objects.create(submission_agreement=sa, profile=profile)
 
@@ -44,5 +50,6 @@ class SubmissionAgreementTestCase(TestCase):
 
         self.assertNotEqual(new.pk, sa.pk)
         self.assertEqual(new.name, name)
+        self.assertEqual(new.policy, policy)
         self.assertEqual(new.archivist_organization, data['archivist_organization'])
         self.assertTrue(ProfileSA.objects.filter(submission_agreement=new, profile=profile).exists())
