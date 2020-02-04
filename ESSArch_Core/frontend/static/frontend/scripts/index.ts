@@ -79,6 +79,7 @@ import essarchDirectivesModule from './modules/essarch.directives.module';
 import '../styles/styles.scss';
 import {IFormlyConfig, IValidationMessages} from 'AngularFormly';
 import {Feature} from './features/types';
+import {isEnabled} from './features/utils';
 
 export const resolve = (path: string, obj: object) => {
   return path.split('.').reduce(function(prev, curr) {
@@ -123,6 +124,21 @@ const resolveAuthenticated = [
     return djangoAuth.authenticationStatus();
   },
 ];
+
+const hasActiveFeature = feature => {
+  return [
+    '$rootScope',
+    '$q',
+    '$state',
+    ($rootScope, $q, $state) => {
+      if ($rootScope.features && isEnabled($rootScope.features, feature)) {
+        return $q.resolve();
+      } else {
+        return $state.go('home.info');
+      }
+    },
+  ];
+};
 
 angular
   .module('essarch', [
@@ -397,6 +413,7 @@ angular
           templateUrl: '/static/frontend/views/archival_descriptions.html',
           resolve: {
             authenticated: resolveAuthenticated,
+            hasActiveFeature: hasActiveFeature('archival descriptions'),
           },
           data: {
             permissions: {

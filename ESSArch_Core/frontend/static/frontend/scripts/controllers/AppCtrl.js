@@ -1,9 +1,12 @@
+import {isEnabled} from './../features/utils';
+
 export default class AppCtrl {
   /*@ngInject*/
   constructor($rootScope, $scope, $uibModal, $log, PermPermissionStore, $translate) {
     const vm = this;
     const questionMark = 187;
     let questionMarkModalOpen = false;
+    $scope.isEnabled = isEnabled;
     vm.questionMarkListener = function(e) {
       if (e.shiftKey) {
         $('#list-view *').attr('UNSELECTABLE', 'on');
