@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models import ProtectedError, Q
+from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
@@ -13,6 +14,7 @@ from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.api.filters import OrderingFilterWithNulls, SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
+from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.views import InformationPackageViewSet
 from ESSArch_Core.tags.filters import (
     StructureFilter,
@@ -75,6 +77,7 @@ from ESSArch_Core.tags.serializers import (
 from ESSArch_Core.util import mptt_to_dict
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = AgentTagLink.objects.filter(
         tag__elastic_index='archive'
@@ -104,6 +107,7 @@ class ArchiveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class MetricTypeViewSet(viewsets.ModelViewSet):
     queryset = MetricType.objects.all()
     serializer_class = MetricTypeSerializer
@@ -113,6 +117,7 @@ class MetricTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class LocationLevelTypeViewSet(viewsets.ModelViewSet):
     queryset = LocationLevelType.objects.all()
     serializer_class = LocationLevelTypeSerializer
@@ -122,6 +127,7 @@ class LocationLevelTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class LocationFunctionTypeViewSet(viewsets.ModelViewSet):
     queryset = LocationFunctionType.objects.all()
     serializer_class = LocationFunctionTypeSerializer
@@ -131,6 +137,7 @@ class LocationFunctionTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class LocationViewSet(viewsets.ModelViewSet):
     queryset = Location.objects.none()
     serializer_class = LocationSerializer
@@ -166,6 +173,7 @@ class LocationViewSet(viewsets.ModelViewSet):
             return resp
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class NodeNoteTypeViewSet(viewsets.ModelViewSet):
     queryset = NodeNoteType.objects.all()
     serializer_class = NodeNoteTypeSerializer
@@ -176,6 +184,7 @@ class NodeNoteTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class NodeIdentifierTypeViewSet(viewsets.ModelViewSet):
     queryset = NodeIdentifierType.objects.all()
     serializer_class = NodeIdentifierTypeSerializer
@@ -185,6 +194,7 @@ class NodeIdentifierTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = TagVersion.objects.all()
     serializer_class = TagVersionNestedSerializer
@@ -194,6 +204,7 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StructureTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureType.objects.all()
     serializer_class = StructureTypeSerializer
@@ -203,6 +214,7 @@ class StructureTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Structure.objects.select_related('type').prefetch_related('units')
     serializer_class = StructureSerializer
@@ -283,6 +295,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(dicts)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     queryset = StructureUnitType.objects.all()
     serializer_class = StructureUnitTypeSerializer
@@ -293,6 +306,7 @@ class StructureUnitTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = ('structure_type',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class NodeRelationTypeViewSet(viewsets.ModelViewSet):
     queryset = NodeRelationType.objects.all()
     serializer_class = NodeRelationTypeSerializer
@@ -302,6 +316,7 @@ class NodeRelationTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = StructureUnit.objects.none()
     serializer_class = StructureUnitSerializer
@@ -396,6 +411,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response(serializer(children, many=True, context=context).data)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class TagVersionTypeViewSet(viewsets.ModelViewSet):
     queryset = TagVersionType.objects.all()
     serializer_class = TagVersionTypeSerializer
@@ -403,6 +419,7 @@ class TagVersionTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = ('archive_type',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Tag.objects.none()
     serializer_class = TagSerializer
@@ -426,6 +443,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return qs.distinct()
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Delivery.objects.none()
     serializer_class = DeliverySerializer
@@ -452,12 +470,14 @@ class DeliveryViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return self.serializer_class
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class DeliveryTypeViewSet(viewsets.ModelViewSet):
     queryset = DeliveryType.objects.all()
     serializer_class = DeliveryTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = Transfer.objects.none()
     serializer_class = TransferSerializer
@@ -525,6 +545,7 @@ class TransferViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return Response()
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSet):
     def filter_queryset_by_parents_lookups(self, queryset):
         parents_query_dict = self.get_parents_query_dict()
@@ -537,6 +558,7 @@ class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSe
         ).distinct()
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StoredSearchViewSet(viewsets.ModelViewSet):
     queryset = Search.objects.all()
     serializer_class = StoredSearchSerializer

@@ -28,6 +28,7 @@ from ESSArch_Core.agents.models import (
     SourcesOfAuthority,
 )
 from ESSArch_Core.auth.models import Group, GroupType
+from ESSArch_Core.configuration.models import Feature
 
 User = get_user_model()
 
@@ -43,6 +44,7 @@ class ListAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.user = User.objects.create(username='user')
@@ -105,6 +107,7 @@ class CreateAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
@@ -333,6 +336,7 @@ class UpdateAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.main_agent_type = MainAgentType.objects.create()
@@ -633,6 +637,7 @@ class DeleteAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.main_agent_type = MainAgentType.objects.create()
