@@ -999,6 +999,7 @@ angular
     'permissionConfig',
     'appConfig',
     '$transitions',
+    '$q',
     function(
       djangoAuth,
       $rootScope,
@@ -1011,7 +1012,8 @@ angular
       $urlService: UrlService,
       permissionConfig,
       appConfig,
-      $transitions: TransitionService
+      $transitions: TransitionService,
+      $q
     ) {
       formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
       formlyValidationMessages.addStringMessage('required', 'This field is required');
@@ -1022,28 +1024,38 @@ angular
         .then(function(response) {
           $rootScope.auth = response.data;
           myService.getPermissions(response.data.permissions);
-          // kick-off router and start the application rendering
-          $urlService.sync();
-          // Also enable router to listen to url changes
-          $urlService.listen();
           $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
-
-          $http
-            .get<Feature[]>(appConfig.djangoUrl + 'features/')
-            .then(response => {
-              $rootScope.features = response.data;
-            })
-            .catch(() => {
-              $rootScope.features = [];
-            });
-          $http
-            .get(appConfig.djangoUrl + 'site/')
-            .then(function(response) {
-              $rootScope.site = response.data;
-            })
-            .catch(function() {
-              $rootScope.site = null;
-            });
+          let promises = [];
+          promises.push(
+            $http
+              .get<Feature[]>(appConfig.djangoUrl + 'features/')
+              .then(response => {
+                $rootScope.features = response.data;
+                return response.data;
+              })
+              .catch(response => {
+                $rootScope.features = [];
+                return response;
+              })
+          );
+          promises.push(
+            $http
+              .get(appConfig.djangoUrl + 'site/')
+              .then(function(response) {
+                $rootScope.site = response.data;
+                return response.data;
+              })
+              .catch(function(response) {
+                $rootScope.site = null;
+                return response;
+              })
+          );
+          $q.all(promises).then(() => {
+            // kick-off router and start the application rendering
+            $urlService.sync();
+            // Also enable router to listen to url changes
+            $urlService.listen();
+          });
           $transitions.onStart({}, function($transition) {
             const to = $transition.to();
             if (to.name === 'login') {
