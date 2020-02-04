@@ -235,7 +235,7 @@ jobs:
         options: >-
           --health-cmd="curl --silent --fail localhost:9200/_cluster/health || exit 1"
           --health-interval 2s
-          --health-timeout 10s
+          --health-timeout 120s
           --health-retries 10
 
       redis:
