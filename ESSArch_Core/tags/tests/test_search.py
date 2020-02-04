@@ -6,17 +6,16 @@ from countries_plus.models import Country
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import TestCase, override_settings
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
-from elasticsearch.helpers.test import ElasticsearchTestCase
 from elasticsearch_dsl.connections import (
     connections,
     get_connection as get_es_connection,
 )
 from languages_plus.models import Language
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APITestCase
 
 from ESSArch_Core.agents.models import (
     Agent,
@@ -27,7 +26,7 @@ from ESSArch_Core.agents.models import (
     RefCode,
 )
 from ESSArch_Core.search import alias_migration
-from ESSArch_Core.tags.documents import Archive, Component, File
+from ESSArch_Core.tags.documents import Archive, Component
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
@@ -179,7 +178,6 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
-
 
     def test_filter_on_archive_agent(self):
         agent = self.create_agent()

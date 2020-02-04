@@ -44,6 +44,7 @@ def initialize():
 
     connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
 
+
 def load_config_template(path):
     with open(path) as f:
         return f.read()
