@@ -5,6 +5,7 @@ from rest_framework import exceptions
 
 from ESSArch_Core.api.filters import ListFilter, MultipleCharFilter
 from ESSArch_Core.auth.util import users_in_organization
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.storage.models import StorageMedium
 
@@ -50,6 +51,11 @@ class InformationPackageFilter(filters.FilterSet):
     medium = filters.ModelChoiceFilter(
         label='Storage Medium', queryset=StorageMedium.objects.all(),
         field_name='storage__storage_medium',
+        distinct=True
+    )
+    policy = filters.ModelChoiceFilter(
+        label='Storage Policy', queryset=StoragePolicy.objects.all(),
+        field_name='submission_agreement__policy',
         distinct=True
     )
 
