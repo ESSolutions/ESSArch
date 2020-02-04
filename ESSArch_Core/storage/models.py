@@ -10,22 +10,23 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
-from django.db import connection, models, transaction
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import models, transaction
 from django.db.models import (
     Case,
     Exists,
     F,
     IntegerField,
     OuterRef,
+    Q,
     Subquery,
     Value,
     When,
 )
-from django.db.models.expressions import RawSQL
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 from picklefield.fields import PickledObjectField
 from requests import RequestException
 from tenacity import (
@@ -277,6 +278,15 @@ class StorageMethodTargetRelation(models.Model):
         ordering = ['name']
         unique_together = ('storage_method', 'storage_target')
 
+    def save(self, *args, **kwargs):
+        if self.status == STORAGE_TARGET_STATUS_ENABLED:
+            if StorageMethodTargetRelation.objects.filter(
+                storage_method=self.storage_method,
+                status=STORAGE_TARGET_STATUS_ENABLED,
+            ).exists():
+                raise ValidationError(_('Only 1 target can be enabled for a storage method at a time'),)
+        return super().save(*args, **kwargs)
+
     def __str__(self):
         if len(self.name):
             return self.name
@@ -403,93 +413,100 @@ class StorageMediumQueryset(models.QuerySet):
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
 
-    def _has_non_migrated_storage_object(self, include_inactive_ips=False):
-        # TODO: Replace RawSQL when Django 3.0 is released
-        def mssql_wrapper(sql):
-            if connection.vendor == 'microsoft':
-                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
-            return sql
+    def _has_non_migrated_storage_object_in_method(self, include_inactive_ips=False):
+        qs = StorageObject.objects.annotate(
+            migrate_method=Subquery(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_target=OuterRef('storage_medium__storage_target'),
+                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                ).values('storage_method')[:1]
+            ),
+            has_enabled_target_with_object_in_migrate_method=Exists(StorageObject.objects.filter(
+                ip=OuterRef('ip'),
+                storage_medium__storage_target__storage_method_target_relations__storage_method=OuterRef(
+                    'migrate_method'
+                ),
+                storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            )),
+        ).filter(
+            has_enabled_target_with_object_in_migrate_method=False,
+            storage_medium=OuterRef('pk')
+        )
+        if not include_inactive_ips:
+            qs = qs.filter(ip__active=True)
 
-        ip_active_cast = 'CAST(IP.active AS signed)' if connection.vendor == 'mysql' else 'CAST(IP.active AS int)'
+        return Exists(qs)
 
-        return RawSQL(
-            mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storageobject W1
-                    INNER JOIN ip_informationpackage IP ON (
-                        IP.id=W1.ip_id
+    def _missing_storage_object_in_other_method_in_policy(self):
+        """
+        Returns storage objects that are missing from an
+        enabled StorageTarget related to another StorageMethod within the same policy
+        """
+
+        return Exists(
+            StorageObject.objects.annotate(
+                migrate_method=Subquery(
+                    StorageMethodTargetRelation.objects.filter(
+                        storage_target=OuterRef('storage_medium__storage_target'),
+                        status__in=[
+                            STORAGE_TARGET_STATUS_MIGRATE,
+                            STORAGE_TARGET_STATUS_ENABLED,
+                            STORAGE_TARGET_STATUS_READ_ONLY,
+                        ]
+                    ).values('storage_method')[:1]
+                ),
+            ).filter(
+                Exists(
+                    StorageMethodTargetRelation.objects.annotate(
+                        # TODO: Move annotation to filter when the following PR is merged in to stable release:
+                        # https://github.com/django/django/pull/12067
+                        new_object_exists=Exists(
+                            StorageObject.objects.filter(
+                                ip=OuterRef(OuterRef('ip')),
+                                storage_medium__storage_target__methods=OuterRef('storage_method'),
+                            )
+                        ),
+                    ).filter(
+                        ~Q(storage_method__pk=OuterRef('migrate_method')),
+                        new_object_exists=False,
+                        storage_method__storage_policies=OuterRef('ip__submission_agreement__policy'),
+                        status=STORAGE_TARGET_STATUS_ENABLED,
                     )
-                    INNER JOIN (
-                        SELECT U2.id, U5.id AS medium_id FROM storage_storagemethod U2
-                        INNER JOIN storage_storagemethodtargetrelation U3 ON (
-                            U3.storage_method_id=U2.id AND
-                            U3.status = %s
-                        )
-                        INNER JOIN storage_storagetarget U4 ON (
-                            U4.id=U3.storage_target_id
-                        )
-                        INNER JOIN storage_storagemedium U5 ON (
-                            U5.storage_target_id=U4.id
-                        )
-                    ) old_method ON (old_method.medium_id=W1.storage_medium_id)
-                    LEFT JOIN (
-                        SELECT A0.id, A0.ip_id, A3.storage_method_id AS method_id FROM storage_storageobject A0
-                        INNER JOIN storage_storagemedium A1 ON (
-                            A1.id = A0.storage_medium_id
-                        )
-                        INNER JOIN storage_storagetarget A2 ON (
-                            A2.id = A1.storage_target_id
-                        )
-                        INNER JOIN storage_storagemethodtargetrelation A3 ON (
-                            A3.storage_target_id = A2.id AND
-                            A3.status = %s
-                        )
-                    ) new_object ON (new_object.ip_id = W1.ip_id AND old_method.id = new_object.method_id)
-                    WHERE W1.storage_medium_id = storage_storagemedium.id AND new_object.id IS NULL {}
-                )""".format('' if include_inactive_ips else "AND {} = 1".format(ip_active_cast))),
-            (
-                STORAGE_TARGET_STATUS_MIGRATE,
-                STORAGE_TARGET_STATUS_ENABLED,
+                ),
+                storage_medium=OuterRef('pk'),
             )
         )
 
     def deactivatable(self, include_inactive_ips=False):
         qs = self.exclude(status=0).filter(
-            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE
-        ).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object(include_inactive_ips)
-        ).filter(
-            has_non_migrated_storage_object=False,
+            ~self._has_non_migrated_storage_object_in_method(include_inactive_ips),
+            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
         )
         return self.filter(pk__in=qs)
 
-    def _migratable(self):
-        return StorageMedium.objects.exclude(status=0).filter(
-            storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE,
-        ).annotate(
-            has_non_migrated_storage_object=self._has_non_migrated_storage_object(False),
-            migrate_method_rel=Subquery(
-                StorageMethodTargetRelation.objects.filter(
-                    storage_target=OuterRef('storage_target'),
-                    status=STORAGE_TARGET_STATUS_MIGRATE,
-                ).values('storage_method')[:1]
-            ),
-            has_enabled_target=Exists(
-                StorageMethodTargetRelation.objects.filter(
-                    storage_method=OuterRef('migrate_method_rel'),
-                    status=STORAGE_TARGET_STATUS_ENABLED,
-                )
+    def migratable(self):
+        return self.exclude(status=0).filter(
+            Q(
+                Exists(
+                    StorageMethodTargetRelation.objects.filter(
+                        storage_method=Subquery(
+                            StorageMethodTargetRelation.objects.filter(
+                                storage_target=OuterRef(OuterRef('storage_target')),
+                                status=STORAGE_TARGET_STATUS_MIGRATE,
+                            ).values('storage_method')[:1]
+                        ),
+                        status=STORAGE_TARGET_STATUS_ENABLED,
+                    )
+                ),
+                self._has_non_migrated_storage_object_in_method(False),
+            ) |
+            Q(
+                self._missing_storage_object_in_other_method_in_policy()
             )
-        ).filter(
-            has_non_migrated_storage_object=True,
-            has_enabled_target=True,
         )
 
-    def migratable(self):
-        return self.filter(pk__in=self._migratable())
-
     def non_migratable(self):
-        return self.exclude(pk__in=self._migratable())
+        return self.exclude(pk__in=self.migratable())
 
     def fastest(self):
         container = Case(
@@ -672,11 +689,17 @@ class StorageObjectQueryset(models.QuerySet):
             When(content_location_type=TAPE, then=Value(2)),
             output_field=IntegerField(),
         )
+        content_location_value_int = Case(
+            When(content_location_type=TAPE, then=Cast('content_location_value', models.IntegerField())),
+            default=Value(0),
+            output_field=IntegerField(),
+        )
         return self.annotate(
             container_order=container,
             remote=remote,
-            storage_type=storage_type
-        ).order_by('remote', 'container_order', 'storage_type')
+            storage_type=storage_type,
+            content_location_value_int=content_location_value_int,
+        ).order_by('remote', 'container_order', 'storage_type', 'content_location_value_int')
 
 
 class StorageObject(models.Model):

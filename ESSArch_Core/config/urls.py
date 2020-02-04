@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import path
 
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
@@ -73,6 +74,8 @@ from ESSArch_Core.storage.views import (
     StorageMediumViewSet,
     StorageMethodTargetRelationViewSet,
     StorageMethodViewSet,
+    StorageMigrationPreviewDetailView,
+    StorageMigrationPreviewView,
     StorageMigrationViewSet,
     StorageObjectViewSet,
     StorageTargetViewSet,
@@ -232,12 +235,6 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
-    r'storage-migration-targets',
-    StorageTargetViewSet,
-    basename='ip-storage-migration-targets',
-    parents_query_lookups=['ip']
-)
-router.register(r'information-packages', InformationPackageViewSet).register(
     r'validations',
     ValidationViewSet,
     basename='ip-validations',
@@ -380,6 +377,16 @@ urlpatterns = [
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),
+    url(
+        r'^api/storage-migrations-preview/$',
+        StorageMigrationPreviewView.as_view(),
+        name='storage-migrations-preview',
+    ),
+    path(
+        'api/storage-migrations-preview/<uuid:pk>/',
+        StorageMigrationPreviewDetailView.as_view(),
+        name='storage-migrations-preview-detail',
+    ),
     url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
     url(r'^api/me/$', MeView.as_view(), name='me'),
     url(r'^api/', include(router.urls)),

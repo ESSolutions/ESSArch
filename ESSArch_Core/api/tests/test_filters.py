@@ -33,6 +33,7 @@ class CharSuffixRangeFilterTests(TestCase):
         InformationPackage.objects.create(label="AA0A10")
         InformationPackage.objects.create(label="AA00BB")
         InformationPackage.objects.create(label="foo")
+        InformationPackage.objects.create(label="fooAA0010")
 
     def test_filtering(self):
         results = self.F(data={'label_min': 'AA0010', 'label_max': 'AA0050'})
@@ -45,8 +46,30 @@ class CharSuffixRangeFilterTests(TestCase):
         results = self.F(data={'label_min': 'AA0020', 'label_max': 'AA0020'})
         self.assertEqual(len(results.qs), 1)
 
+        results = self.F(data={'label_min': 'AA0010'})
+        self.assertTrue(results.is_valid())
+        self.assertEqual(len(results.qs), 5)
+
+        results = self.F(data={'label_min': 'AA0030'})
+        self.assertTrue(results.is_valid())
+        self.assertEqual(len(results.qs), 3)
+
+        results = self.F(data={'label_max': 'AA0050'})
+        self.assertTrue(results.is_valid())
+        self.assertEqual(len(results.qs), 5)
+
+        results = self.F(data={'label_max': 'AA0030'})
+        self.assertTrue(results.is_valid())
+        self.assertEqual(len(results.qs), 3)
+
     def test_invalid_format(self):
         results = self.F(data={'label_min': 'AA', 'label_max': 'AA'})
+        self.assertFalse(results.is_valid())
+
+        results = self.F(data={'label_min': 'AA', 'label_max': 'A0'})
+        self.assertFalse(results.is_valid())
+
+        results = self.F(data={'label_min': 'A0', 'label_max': 'AA'})
         self.assertFalse(results.is_valid())
 
     def test_different_lengths(self):

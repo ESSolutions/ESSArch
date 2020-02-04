@@ -32,6 +32,16 @@ class LazyDict(Mapping):
         self._raw_dict = dict(*args, **kw)
 
     def __getitem__(self, key):
+        if isinstance(key, str):
+            try:
+                if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
+                    return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
+
+                if key.startswith('PATH_') or key.startswith('_PATH_'):
+                    return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
+            except (Parameter.DoesNotExist, Path.DoesNotExist):
+                return None
+
         val = self._raw_dict.__getitem__(key)
         if isinstance(val, tuple) and callable(val[0]):
             func, *args = val
@@ -49,7 +59,20 @@ class LazyDict(Mapping):
     def to_dict(self):
         d = {}
         for k, v in self._raw_dict.items():
-            d[k] = v
+            if isinstance(v, tuple) and callable(v[0]):
+                func, *args = v
+                d[k] = func(*args)
+            else:
+                d[k] = v
+
+        for p in Parameter.objects.iterator():
+            d['_PARAMETER_%s' % p.entity.upper()] = p.value
+            d['PARAMETER_%s' % p.entity.upper()] = p.value
+
+        for p in Path.objects.iterator():
+            d['_PATH_%s' % p.entity.upper()] = p.value
+            d['PATH_%s' % p.entity.upper()] = p.value
+
         return d
 
     def copy(self):
@@ -200,11 +223,5 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
 
         for (profile_type, key) in profile_ids:
             data[key] = (_get_profile_id_by_type, profile_type, ip)
-
-    for p in Parameter.objects.iterator():
-        data['_PARAMETER_%s' % p.entity.upper()] = p.value
-
-    for p in Path.objects.iterator():
-        data['_PATH_%s' % p.entity.upper()] = p.value
 
     return data

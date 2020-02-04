@@ -5,7 +5,9 @@ from rest_framework import exceptions
 
 from ESSArch_Core.api.filters import ListFilter, MultipleCharFilter
 from ESSArch_Core.auth.util import users_in_organization
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
+from ESSArch_Core.storage.models import StorageMedium
 
 User = get_user_model()
 
@@ -46,6 +48,16 @@ class InformationPackageFilter(filters.FilterSet):
     )
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
     workarea = filters.ChoiceFilter(label=_("Workarea"), field_name='workareas__type', choices=Workarea.TYPE_CHOICES)
+    medium = filters.ModelChoiceFilter(
+        label='Storage Medium', queryset=StorageMedium.objects.all(),
+        field_name='storage__storage_medium',
+        distinct=True
+    )
+    policy = filters.ModelChoiceFilter(
+        label='Storage Policy', queryset=StoragePolicy.objects.all(),
+        field_name='submission_agreement__policy',
+        distinct=True
+    )
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
@@ -59,7 +71,7 @@ class InformationPackageFilter(filters.FilterSet):
     class Meta:
         model = InformationPackage
         fields = ['archivist_organization', 'state', 'responsible', 'active', 'label',
-                  'create_date', 'entry_date', 'object_size', 'start_date', 'end_date',
+                  'create_date', 'entry_date', 'object_size', 'start_date', 'end_date', 'policy',
                   'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea']
 
 

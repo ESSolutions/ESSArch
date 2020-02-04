@@ -88,6 +88,7 @@ class EmailReceiptBackendTests(TestCase):
     def test_information_package(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
         ip = InformationPackage.objects.create()
+        Path.objects.create(entity='temp')
 
         self.backend.create(
             'receipts/email.txt',

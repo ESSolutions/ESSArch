@@ -34,11 +34,15 @@ class CharSuffixRangeField(RangeField):
         start = value.start
         stop = value.stop
 
-        if len(start) != len(stop):
-            raise ValidationError('min and max must be of same length')
+        if start and stop:
+            if len(start) != len(stop):
+                raise ValidationError('min and max must be of same length')
 
-        if not start[-1].isdigit() or not stop[-1].isdigit():
-            raise ValidationError('min and max must end with a number')
+        if start != '' and not start[-1].isdigit():
+            raise ValidationError('value must end with a number')
+
+        if stop != '' and not stop[-1].isdigit():
+            raise ValidationError('value must end with a number')
 
         start_suffix, start_suffix_pos = self._get_suffix(start)
         stop_suffix, stop_suffix_pos = self._get_suffix(stop)
@@ -46,8 +50,9 @@ class CharSuffixRangeField(RangeField):
         start_prefix = start[:start_suffix_pos]
         stop_prefix = stop[:stop_suffix_pos]
 
-        if start_suffix_pos != stop_suffix_pos or \
-           start_prefix != stop_prefix:
+        if (start and stop) and \
+            (start_suffix_pos != stop_suffix_pos or
+                start_prefix != stop_prefix):
 
             raise ValidationError('Format of min and max does not match')
 
