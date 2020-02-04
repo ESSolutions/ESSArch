@@ -5,7 +5,6 @@ https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f4ecf
 """
 from datetime import datetime
 
-from elasticsearch_dsl import IndexTemplate
 from elasticsearch_dsl.connections import get_connection
 
 
