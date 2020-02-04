@@ -1,19 +1,26 @@
+import {isEnabled} from './../features/utils';
+
 export default class DashboardStatsCtrl {
-  constructor(appConfig, $http, $uibModal, $log, $translate) {
+  constructor(appConfig, $http, $uibModal, $log, $translate, $rootScope) {
     const vm = this;
     vm.stats = null;
     vm.$onInit = function() {
       vm.statsLoading = true;
       vm.getStats()
         .then(function(stats) {
-          vm.getAgents(stats)
-            .then(statsWithAgents => {
-              vm.stats = statsWithAgents;
-              vm.statsLoading = false;
-            })
-            .catch(() => {
-              vm.statsLoading = false;
-            });
+          if (isEnabled($rootScope.features, 'archival descriptions')) {
+            vm.getAgents(stats)
+              .then(statsWithAgents => {
+                vm.stats = statsWithAgents;
+                vm.statsLoading = false;
+              })
+              .catch(() => {
+                vm.statsLoading = false;
+              });
+          } else {
+            vm.stats = stats;
+            vm.statsLoading = false;
+          }
         })
         .catch(() => {
           vm.statsLoading = false;
