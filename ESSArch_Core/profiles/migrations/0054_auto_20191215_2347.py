@@ -9,7 +9,11 @@ def copy_policies_from_ips(apps, schema_editor):
     SubmissionAgreement = apps.get_model("profiles", "SubmissionAgreement")
     db_alias = schema_editor.connection.alias
 
-    for ip in InformationPackage.objects.using(db_alias).filter(policy__isnull=False).select_related('submission_agreement'):
+    ips = InformationPackage.objects.using(db_alias).filter(
+        policy__isnull=False, submission_agreement__isnull=False
+    ).select_related('submission_agreement')
+
+    for ip in ips:
         ip.submission_agreement.policy = ip.policy
         ip.submission_agreement.save()
 
