@@ -65,9 +65,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     next_index = get_next_index(pattern)
 
     # create an index template
-    index_template = IndexTemplate(alias, pattern)
-    # add the DocType mappings
-    index_template.doc_type(doctype)
+    index_template = doctype._index.as_template(alias, pattern)
     # upload the template into elasticsearch
     # potentially overriding the one already there
     index_template.save()

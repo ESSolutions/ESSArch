@@ -7,6 +7,7 @@
 
 ## Changed
 
+- Bumped Elasticsearch requirement to 7.\*
 - AIP creation to be done at preservation step
 - Relation between IPs and storage policies to be defined in submission agreement
 

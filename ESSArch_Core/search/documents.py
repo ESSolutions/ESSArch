@@ -108,7 +108,7 @@ class DocumentBase(es.Document):
         db_ids = list(queryset.values_list('id', flat=True))
         s = cls.search()
         resp = s.execute()
-        total_index = resp.hits.total
+        total_index = resp.hits.total['value']
         removed = []
         for start in range(0, total_index, batch_size):
             end = start + batch_size
