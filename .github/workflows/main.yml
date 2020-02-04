@@ -228,6 +228,11 @@ jobs:
             health_cmd: true
 
     services:
+      elasticsearch:
+        image: elasticsearch:6
+        ports:
+          - 19200:9200
+
       redis:
         image: redis
         ports:

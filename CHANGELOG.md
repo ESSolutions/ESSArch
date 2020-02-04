@@ -10,6 +10,10 @@
 - AIP creation to be done at preservation step
 - Relation between IPs and storage policies to be defined in submission agreement
 
+## Fixed
+
+- Agent search filter
+
 # [3.1.2](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.2)
 
 ## Fixed

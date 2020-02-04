@@ -224,12 +224,32 @@ try:
 except ImportError:
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9204')
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
+
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
         'hosts': [
             {
                 'host': elasticsearch_url.hostname,
                 'port': elasticsearch_url.port,
+            },
+        ],
+        'timeout': 60,
+        'max_retries': 1,
+    }
+}
+
+try:
+    from local_essarch_settings import ELASTICSEARCH_TEST_URL
+except ImportError:
+    ELASTICSEARCH_TEST_URL = os.environ.get('ELASTICSEARCH_TEST_URL', 'http://localhost:19200')
+elasticsearch_test_url = urlparse(ELASTICSEARCH_TEST_URL)
+
+ELASTICSEARCH_TEST_CONNECTIONS = {
+    'default': {
+        'hosts': [
+            {
+                'host': elasticsearch_test_url.hostname,
+                'port': elasticsearch_test_url.port,
             },
         ],
         'timeout': 60,

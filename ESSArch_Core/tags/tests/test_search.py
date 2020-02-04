@@ -2,19 +2,30 @@ import time
 from pydoc import locate
 from unittest import SkipTest
 
+from countries_plus.models import Country
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from elasticsearch.helpers.test import ElasticsearchTestCase
 from elasticsearch_dsl.connections import (
     connections,
     get_connection as get_es_connection,
 )
+from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from ESSArch_Core.agents.models import (
+    Agent,
+    AgentTagLink,
+    AgentTagLinkRelationType,
+    AgentType,
+    MainAgentType,
+    RefCode,
+)
 from ESSArch_Core.search import alias_migration
 from ESSArch_Core.tags.documents import Archive, Component, File
 from ESSArch_Core.tags.models import (
@@ -44,20 +55,7 @@ def get_test_client(nowait=False):
         raise SkipTest("Elasticsearch failed to start.")
 
 
-@override_settings(
-    ELASTICSEARCH_CONNECTIONS={
-        'default': {
-            'hosts': [
-                {
-                    'host': 'localhost',
-                    'port': 19200,
-                },
-            ],
-            'timeout': 60,
-            'max_retries': 1,
-        }
-    }
-)
+@override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
 class ESSArchSearchBaseTestCase(APITestCase):
     @staticmethod
     def _get_client():
@@ -69,14 +67,10 @@ class ESSArchSearchBaseTestCase(APITestCase):
         connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
         cls.es_client = cls._get_client()
 
-        for _index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
-            doctype = locate(index_class)
-            alias_migration.setup_index(doctype)
-
     def setUp(self):
         for _index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
             doctype = locate(index_class)
-            alias_migration.migrate(doctype, move_data=False, delete_old_index=True)
+            alias_migration.setup_index(doctype)
 
     def tearDown(self):
         self.es_client.indices.delete(index="*", ignore=404)
@@ -84,8 +78,11 @@ class ESSArchSearchBaseTestCase(APITestCase):
 
 
 class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
+    fixtures = ['countries_data', 'languages_data']
+
     @classmethod
     def setUpTestData(cls):
+        cls.url = reverse('search-list')
         cls.user = User.objects.create(is_superuser=True)
         permission = Permission.objects.get(codename='search')
         cls.user.user_permissions.add(permission)
@@ -94,8 +91,23 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
 
     def setUp(self):
+        super().setUp()
         self.client.force_authenticate(user=self.user)
-        self.url = reverse('search-list')
+
+    @staticmethod
+    def create_agent():
+        return Agent.objects.create(
+            type=AgentType.objects.create(main_type=MainAgentType.objects.create()),
+            ref_code=RefCode.objects.create(
+                country=Country.objects.get(iso='SE'),
+                repository_code='repo',
+            ),
+            level_of_detail=0,
+            record_status=0,
+            script=0,
+            language=Language.objects.get(iso_639_1='sv'),
+            create_date=timezone.now(),
+        )
 
     def test_search_component(self):
         component_tag = Tag.objects.create()
@@ -111,7 +123,6 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertNotEqual(res.data['hits'], [])
 
-        return
         structure_type = StructureType.objects.create()
         structure_template = Structure.objects.create(type=structure_type, is_template=True)
 
@@ -130,6 +141,78 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         with self.subTest('with archive'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
-            print(res.data['hits'])
             self.assertEqual(len(res.data['hits']), 1)
             self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+    def test_filter_on_component_agent(self):
+        agent = self.create_agent()
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+
+        structure_type = StructureType.objects.create()
+        structure_template = Structure.objects.create(type=structure_type, is_template=True)
+
+        archive_tag = Tag.objects.create()
+        archive_tag_version = TagVersion.objects.create(
+            tag=archive_tag,
+            type=self.archive_type,
+            elastic_index="archive",
+        )
+        structure, archive_tag_structure = structure_template.create_template_instance(archive_tag)
+        Archive.from_obj(archive_tag_version).save(refresh='true')
+
+        TagStructure.objects.create(tag=component_tag, parent=archive_tag_structure, structure=structure)
+
+        AgentTagLink.objects.create(
+            agent=agent,
+            tag=component_tag_version,
+            type=AgentTagLinkRelationType.objects.create(),
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url, {'agents': str(agent.pk)})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+        self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+
+    def test_filter_on_archive_agent(self):
+        agent = self.create_agent()
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+
+        structure_type = StructureType.objects.create()
+        structure_template = Structure.objects.create(type=structure_type, is_template=True)
+
+        archive_tag = Tag.objects.create()
+        archive_tag_version = TagVersion.objects.create(
+            tag=archive_tag,
+            type=self.archive_type,
+            elastic_index="archive",
+        )
+        structure, archive_tag_structure = structure_template.create_template_instance(archive_tag)
+        Archive.from_obj(archive_tag_version).save(refresh='true')
+
+        TagStructure.objects.create(tag=component_tag, parent=archive_tag_structure, structure=structure)
+
+        AgentTagLink.objects.create(
+            agent=agent,
+            tag=archive_tag_version,
+            type=AgentTagLinkRelationType.objects.create(),
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url, {'agents': str(agent.pk)})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+        self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
