@@ -368,6 +368,7 @@ class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
         policy = self.context['policy']
         return InformationPackage.objects.migratable().filter(submission_agreement__policy=policy)
 
+
 class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         policy = self.context['policy']
