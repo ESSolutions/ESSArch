@@ -607,7 +607,9 @@ class StorageMigrationPreviewDetailView(views.APIView):
                 pk__in=[s.pk for s in storage_methods]
             )
 
-        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(policy=policy)
+        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(
+            submission_agreement__policy=policy,
+        )
         ip = get_object_or_404(qs, pk=pk)
 
         return Response(serializer.save(information_package=ip))

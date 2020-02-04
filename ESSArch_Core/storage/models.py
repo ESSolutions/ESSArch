@@ -469,7 +469,7 @@ class StorageMediumQueryset(models.QuerySet):
                     ).filter(
                         ~Q(storage_method__pk=OuterRef('migrate_method')),
                         new_object_exists=False,
-                        storage_method__storage_policies=OuterRef('ip__policy'),
+                        storage_method__storage_policies=OuterRef('ip__submission_agreement__policy'),
                         status=STORAGE_TARGET_STATUS_ENABLED,
                     )
                 ),

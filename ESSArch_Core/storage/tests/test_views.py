@@ -777,8 +777,17 @@ class StorageMigrationTests(StorageMigrationTestsBase):
 
         self.policy.storage_methods.add(old.storage_method, new.storage_method)
 
-        ip = InformationPackage.objects.create(policy=self.policy)
+        ip = InformationPackage.objects.create(submission_agreement=self.sa)
+        data = {
+            'information_packages': [str(ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': 'temp',
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_task.assert_not_called()
 
+    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_bad_ip(self, mock_task):
         ip = InformationPackage.objects.create(submission_agreement=self.sa)
 
@@ -808,7 +817,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.policy.storage_methods.add(old.storage_method)
 
         ips = [
-            InformationPackage.objects.create(archived=True, policy=self.policy)
+            InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
             for _ in range(6)
         ]
 
@@ -909,7 +918,7 @@ class StorageMigrationPreviewTests(StorageMigrationTestsBase):
         self.assertEqual(len(res.data), 1)
 
     def test_pagination(self):
-        ip = InformationPackage.objects.create(archived=True, policy=self.policy)
+        ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
         old = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         self.policy.storage_methods.add(old.storage_method)

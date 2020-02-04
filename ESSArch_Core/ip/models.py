@@ -199,7 +199,7 @@ class InformationPackageQuerySet(models.QuerySet):
             has_enabled_target_with_obj=False,
             storage_method__in=storage_methods,
             storage_method__enabled=True,
-            storage_method__storage_policies=OuterRef('submission_agreement_policy'),
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
         method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(

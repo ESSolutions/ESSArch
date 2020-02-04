@@ -366,7 +366,7 @@ class RobotQueueSerializer(serializers.ModelSerializer):
 class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
         policy = self.context['policy']
-        return InformationPackage.objects.migratable().filter(submission_agreement_policy=policy)
+        return InformationPackage.objects.migratable().filter(submission_agreement__policy=policy)
 
 class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):

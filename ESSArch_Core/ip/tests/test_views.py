@@ -13,6 +13,7 @@ from ESSArch_Core.auth.models import (
 )
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage, Workarea
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
@@ -197,7 +198,8 @@ class InformationPackageMigratableTests(TestCase):
         )
         cls.policy.storage_methods.add(cls.storage_method)
 
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
 
     def test_get_migratable_no_change(self):
         StorageObject.objects.create(
