@@ -33,7 +33,7 @@ def get_data():
     }
 
     if Feature.objects.filter(name='archival descriptions', enabled=True).exists():
-        data['tags'] = list(TagVersion.objects.all().values('type__name').annotate(total=Count('type')).order_by('type'))
+        data['tags'] = list(TagVersion.objects.values('type__name').annotate(total=Count('type')).order_by('type'))
 
     return data
 
