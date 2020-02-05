@@ -30,6 +30,7 @@ from django.db.models import (
 )
 from django.http import Http404
 from django.urls import reverse
+from django.utils.decorators import method_decorator
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
@@ -2243,7 +2244,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @transaction.atomic
     @permission_required_or_403(['ip.receive'])
-    @feature_enabled_or_404('receive')
+    @method_decorator(feature_enabled_or_404('receive'))
     @action(detail=True, methods=['post'], url_path='receive')
     def receive(self, request, pk=None):
         logger = logging.getLogger('essarch.ingest')
@@ -2429,7 +2430,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
-    @feature_enabled_or_404('transfer')
+    @method_decorator(feature_enabled_or_404('transfer'))
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
     def transfer(self, request, pk=None):
         logger = logging.getLogger('essarch.ingest')

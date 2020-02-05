@@ -93,6 +93,10 @@ def installDefaultFeatures():
 
     features = [
         {
+            'name': 'archival descriptions',
+            'enabled': True,
+        },
+        {
             'name': 'receive',
             'enabled': True,
         },
