@@ -1307,12 +1307,12 @@ angular-smart-table@~2.1.11:
   resolved "https://registry.yarnpkg.com/angular-smart-table/-/angular-smart-table-2.1.11.tgz#d0ca625f5bfb873bf3748ab861c82892e42ddfa2"
   integrity sha512-8ZSGygQqVBkpPDzb0382ujK1eOr8fnePXpzq+sUBkUsvRaEgMeY6VoFpWmg106472mD6oMNXIW9+VDQKllXa0w==
 
-angular-translate-loader-static-files@^2.18.1:
-  version "2.18.1"
-  resolved "https://registry.yarnpkg.com/angular-translate-loader-static-files/-/angular-translate-loader-static-files-2.18.1.tgz#ad0c3c883b18b089bdb8db02bbd366d903f857cc"
-  integrity sha512-5MuyzAROfc493kjLjKlLGLBzXiRmZIFbcWZGutDRxW5SRXSpwrH0u0hh0ENNnUyUQbe2vUspHNPIuZqlq8qIhw==
+angular-translate-loader-static-files@^2.18.2:
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/angular-translate-loader-static-files/-/angular-translate-loader-static-files-2.18.2.tgz#c179673e76524ab07bf26b8f3a725fa08a937cfb"
+  integrity sha512-fhQNn2e0LOOH3YY5fFeLIgSGHuF/QvoX5dqnF7eaacpEMCzBf6OkVp1SMwEhjGjDIuntJbLGCh5CM5dMpiZYUA==
   dependencies:
-    angular-translate "~2.18.1"
+    angular-translate "~2.18.2"
 
 angular-translate-storage-cookie@~2.18.1:
   version "2.18.1"
@@ -1322,12 +1322,12 @@ angular-translate-storage-cookie@~2.18.1:
     angular-cookies ">=1.2.26 <1.8"
     angular-translate "~2.18.1"
 
-angular-translate@^2.11.0, angular-translate@~2.18.1:
-  version "2.18.1"
-  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.1.tgz#b29ed0d2f9bac44075e7aad3284166c59e150791"
-  integrity sha512-Mw0kFBqsv5j8ItL9IhRZunIlVmIRW6iFsiTmRs9wGr2QTt8z4rehYlWyHos8qnXc/kyOYJiW50iH50CSNHGB9A==
+angular-translate@^2.11.0, angular-translate@~2.18.1, angular-translate@~2.18.2:
+  version "2.18.2"
+  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.2.tgz#2a26653d179f7043c0ffa66fdf65155d01c82e06"
+  integrity sha512-aAtNieh0fUv6yM6vKuWsdswT0BbOf6kvsu+QZ15Fp10rKEienMs3M8aPWyd9IVZ5pA1GaRJir6T8OvWGG4J+Fw==
   dependencies:
-    angular ">=1.2.26 <=1.7"
+    angular "^1.7.9"
 
 angular-tree-control@0.2.28:
   version "0.2.28"
@@ -1352,7 +1352,7 @@ angular-websocket@^2.0.1:
     angular "*"
     ws "^1.0.0"
 
-angular@*, "angular@>=1.2.26 <=1.7", angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.x, angular@~1.4, angular@~1.7:
+angular@*, angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.7.9, angular@^1.x, angular@~1.4, angular@~1.7:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.7.9.tgz#e52616e8701c17724c3c238cfe4f9446fd570bc4"
   integrity sha512-5se7ZpcOtu0MBFlzGv5dsM1quQDoDeUTwZrWjGtTNA7O88cD8TEk5IEKCTDa3uECV9XnvKREVUr7du1ACiWGFQ==
