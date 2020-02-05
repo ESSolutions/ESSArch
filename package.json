@@ -39,7 +39,7 @@
     "angular-resource": "~1.7",
     "angular-sanitize": "~1.7",
     "angular-smart-table": "~2.1.11",
-    "angular-translate": "~2.18.1",
+    "angular-translate": "~2.18.2",
     "angular-translate-loader-static-files": "^2.18.1",
     "angular-translate-storage-cookie": "~2.18.1",
     "angular-tree-control": "0.2.28",
