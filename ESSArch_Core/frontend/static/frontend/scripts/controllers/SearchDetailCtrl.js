@@ -629,9 +629,9 @@ export default class SearchDetailCtrl {
               if (node.original._is_structure_unit) {
                 const struct = vm.structure;
                 struct.structureType = angular.copy(struct.type);
-                vm.removeStructureUnitModal(node, struct);
+                vm.removeStructureUnitModal(node.original, struct);
               } else {
-                vm.removeNodeModal(node);
+                vm.removeNodeModal(node.original);
               }
             },
           };
@@ -1062,6 +1062,31 @@ export default class SearchDetailCtrl {
       $window.open(showFile, '_blank');
     };
 
+    vm.exportNodeModal = function(node) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/modals/export_node_modal.html',
+        controller: 'ExportNodeModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            node: node,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     vm.editField = function(key, value) {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -1299,6 +1324,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.removeNodeModal = function(node) {
+      let treeNode = vm.recordTreeInstance.jstree(true).get_node(node.id);
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1315,8 +1341,8 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.recordTreeInstance.jstree(true).delete_node(node.id);
-          vm.recordTreeInstance.jstree(true).select_node(node.parent);
+          vm.recordTreeInstance.jstree(true).delete_node(treeNode.id);
+          vm.recordTreeInstance.jstree(true).select_node(treeNode.parent);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1324,6 +1350,7 @@ export default class SearchDetailCtrl {
       );
     };
     vm.removeNodeFromStructureModal = function(node, structure) {
+      let treeNode = vm.recordTreeInstance.jstree(true).get_node(node.id);
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1341,8 +1368,8 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.recordTreeInstance.jstree(true).delete_node(node.id);
-          vm.recordTreeInstance.jstree(true).select_node(node.parent);
+          vm.recordTreeInstance.jstree(true).delete_node(treeNode.id);
+          vm.recordTreeInstance.jstree(true).select_node(treeNode.parent);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1403,8 +1430,14 @@ export default class SearchDetailCtrl {
         }
       );
     };
+    vm.removeStructureUnit = node => {
+      const struct = vm.structure;
+      struct.structureType = angular.copy(struct.type);
+      vm.removeStructureUnitModal(node, struct);
+    };
 
     vm.removeStructureUnitModal = function(node, structure) {
+      let treeNode = vm.recordTreeInstance.jstree(true).get_node(node.id);
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1415,15 +1448,15 @@ export default class SearchDetailCtrl {
         size: 'lg',
         resolve: {
           data: {
-            node: node.original,
+            node: node,
             structure: structure,
           },
         },
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.recordTreeInstance.jstree(true).delete_node(node.id);
-          vm.recordTreeInstance.jstree(true).select_node(node.parent);
+          vm.recordTreeInstance.jstree(true).delete_node(treeNode.id);
+          vm.recordTreeInstance.jstree(true).select_node(treeNode.parent);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -1431,6 +1464,11 @@ export default class SearchDetailCtrl {
       );
     };
 
+    vm.editStructureUnit = node => {
+      const struct = vm.structure;
+      struct.structureType = angular.copy(struct.type);
+      vm.editStructureUnitModal(node, struct);
+    };
     vm.editStructureUnitModal = function(node, structure) {
       const modalInstance = $uibModal.open({
         animation: true,

@@ -20,7 +20,25 @@
     </div>
     <hr class="small" />
     <div class="type-specific-results" ng-switch="vm.record._index">
-      <h3>{{vm.record.reference_code}} {{vm.record.name}}</h3>
+      <div class="d-flex align-items-center justify-content-between">
+        <h3>{{vm.record.reference_code}} {{vm.record.name}}</h3>
+        <div class="flex-row justify-content-end align-items-center position-relative">
+          <button
+            class="btn btn-default fas fa-edit"
+            ng-if="checkPermission('tags.change_structureunit_instance') && vm.structure.type.editable_instances"
+            tooltip-placement="auto-top"
+            uib-tooltip="{{'EDIT' | translate}}"
+            ng-click="vm.editStructureUnit(vm.record)"
+          ></button>
+          <button
+            class="btn btn-default fas fa-trash-alt"
+            tooltip-placement="auto-top"
+            ng-if="checkPermission('tags.delete_structureunit_instance') && vm.structure.type.editable_instances"
+            uib-tooltip="{{'REMOVE' | translate}}"
+            ng-click="vm.removeStructureUnit(vm.record)"
+          ></button>
+        </div>
+      </div>
       <p>{{vm.record.description}}</p>
       <div ng-if="vm.record.identifiers.length > 0" class="pb-base">
         <label>

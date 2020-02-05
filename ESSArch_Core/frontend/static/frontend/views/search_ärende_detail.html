@@ -1,9 +1,34 @@
 <div class="component-result">
-  <h3 title="Namn">
-    <strong title="Namn" ng-if="vm.record._source.name">
-      {{vm.record._source.name?vm.record._source.name : vm.record.name}}
-    </strong>
-  </h3>
+  <div class="d-flex align-items-center justify-content-between">
+    <h3 title="Namn">
+      <strong title="Namn" ng-if="vm.record._source.name">
+        {{vm.record._source.name?vm.record._source.name : vm.record.name}}
+      </strong>
+    </h3>
+    <div class="flex-row justify-content-end align-items-center position-relative">
+      <button
+        class="btn btn-default fas fa-print"
+        tooltip-placement="auto-top"
+        tooltip-append-to-body="false"
+        uib-tooltip="{{'EXPORT' | translate}}"
+        ng-click="vm.exportNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-edit"
+        ng-if="checkPermission('tags.change_tagversion')"
+        tooltip-placement="auto-top"
+        uib-tooltip="{{'EDIT' | translate}}"
+        ng-click="vm.editNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-trash-alt"
+        tooltip-placement="auto-top"
+        ng-if="checkPermission('tags.delete_tagversion')"
+        uib-tooltip="{{'REMOVE' | translate}}"
+        ng-click="vm.removeNodeModal(vm.record)"
+      ></button>
+    </div>
+  </div>
   <h4><span title="Informationsobjekt">{{vm.record._source.type}}</span></h4>
   <div ng-if="vm.record.description">
     <p class="result-description">

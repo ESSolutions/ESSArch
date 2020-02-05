@@ -84,6 +84,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Edit relation to structure unit',
       EDIT_TRANSFER: 'Edit transfer',
       END_YEAR: 'End year',
+      EXPORT_ARCHIVE: 'Export archive',
+      EXPORT_OPTION: 'Export option',
       FIELD_EXISTS: 'Field already exists!',
       FILE_EXTENSIONS: 'File format',
       GO_TO_SEARCH: 'Go to Search',
