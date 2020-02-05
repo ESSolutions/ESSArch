@@ -40,7 +40,7 @@
           <label>{{'COMMENT' | translate}}</label>
           <input class="form-control" ng-model="vm.request.purpose" />
         </div>
-        <div>
+        <div ng-if="isEnabled($root.features, 'archival descriptions')">
           <label>{{'ACCESS.ARCHIVE' | translate}}</label>
           <div class="input-group">
             <ui-select

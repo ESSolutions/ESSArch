@@ -16,6 +16,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
 from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
@@ -32,6 +33,7 @@ from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
@@ -240,6 +242,7 @@ def get_archive(id):
     return archive_data
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     index = ComponentSearch.index
     lookup_field = 'pk'

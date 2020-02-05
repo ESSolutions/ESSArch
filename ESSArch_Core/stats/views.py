@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from weasyprint import HTML
 
 from ESSArch_Core.auth.models import GroupMemberRole
+from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.tags.models import TagVersion
@@ -21,16 +22,20 @@ User = get_user_model()
 
 
 def get_data():
-    return {
+    data = {
         'appraisals': AppraisalJob.objects.filter(status=celery_states.SUCCESS).count(),
         'information_packages': InformationPackage.objects.count(),
         'ordered_information_packages': InformationPackage.objects.filter(orders__isnull=False).count(),
         'permissions': Permission.objects.count(),
         'roles': GroupMemberRole.objects.count(),
-        'tags': list(TagVersion.objects.all().values('type__name').annotate(total=Count('type')).order_by('type')),
         'total_object_size': InformationPackage.objects.aggregate(Sum('object_size'))['object_size__sum'] or 0,
         'users': User.objects.count(),
     }
+
+    if Feature.objects.filter(name='archival descriptions', enabled=True).exists():
+        data['tags'] = list(TagVersion.objects.values('type__name').annotate(total=Count('type')).order_by('type'))
+
+    return data
 
 
 @api_view()

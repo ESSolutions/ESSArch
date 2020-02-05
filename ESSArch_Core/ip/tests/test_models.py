@@ -243,8 +243,7 @@ class GetPathResponseTests(TestCase):
         path = tempfile.mkdtemp(dir=self.datadir)
 
         relpath = os.path.basename(path)
-        response = self.ip.get_path_response(relpath, self.request)
-        response.close()
+        self.ip.get_path_response(relpath, self.request)
         mock_list_files.assert_called_once_with(relpath)
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
