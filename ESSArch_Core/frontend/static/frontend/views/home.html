@@ -69,7 +69,7 @@
           class="nav-item sliding-middle-out"
           ng-class="{'chosen': $state.includes('home.archivalDescriptions')}"
           ui-sref="home.archivalDescriptions"
-          ng-if="checkPermissions('home.archivalDescriptions')"
+          ng-if="checkPermissions('home.archivalDescriptions') && isEnabled($root.features, 'archival descriptions')"
           >{{('ARCHIVAL_DESCRIPTIONS' | translate)}}</a
         >
         <a

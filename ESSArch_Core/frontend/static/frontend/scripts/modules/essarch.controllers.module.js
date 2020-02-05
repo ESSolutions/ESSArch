@@ -1183,6 +1183,7 @@ export default angular
     '$q',
     '$controller',
     '$scope',
+    '$rootScope',
     PreserveModalInstanceCtrl,
   ])
   .controller('TemplateModalInstanceCtrl', [

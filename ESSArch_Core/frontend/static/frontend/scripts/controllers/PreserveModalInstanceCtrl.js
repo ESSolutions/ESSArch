@@ -1,8 +1,10 @@
+import {isEnabled} from './../features/utils';
+
 export default class PreserveModalInstanceCtrl {
-  constructor($uibModalInstance, data, Requests, $q, $controller, $scope) {
+  constructor($uibModalInstance, data, Requests, $q, $controller, $scope, $rootScope) {
     const vm = this;
     $controller('TagsCtrl', {$scope: $scope, vm: vm});
-
+    $scope.isEnabled = isEnabled;
     vm.angular = angular;
     vm.data = data;
     vm.requestTypes = data.types;
@@ -13,9 +15,10 @@ export default class PreserveModalInstanceCtrl {
       if (!vm.data.ips) {
         vm.data.ips = [vm.data.ip];
       }
-      $scope.getArchives().then(function(result) {
-        vm.tags.archive.options = result;
-      });
+      if (isEnabled($rootScope.features, 'archival descriptions'))
+        $scope.getArchives().then(function(result) {
+          vm.tags.archive.options = result;
+        });
     };
 
     $scope.updateTags = function() {
