@@ -154,7 +154,11 @@ export default class SearchDetailCtrl {
         node.reference_code = node.reference_code || '';
       }
 
-      node.text = '<b>' + node.reference_code + '</b> ' + node.name;
+      if (node._index === 'archive') {
+        node.text = node.name + ' - <b>' + node.reference_code + '</b> ';
+      } else {
+        node.text = '<b>' + node.reference_code + '</b> ' + node.name;
+      }
       node.a_attr = {
         title: node.name,
       };
