@@ -40,6 +40,7 @@
         </div>
       </div>
       <p>{{vm.record.description}}</p>
+      <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
       <div ng-if="vm.record.identifiers.length > 0" class="pb-base">
         <label>
           {{'ACCESS.IDENTIFIERS' | translate}}
@@ -220,7 +221,6 @@
           ></div>
         </td>
       </div>
-      <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
     </div>
   </div>
 </div>

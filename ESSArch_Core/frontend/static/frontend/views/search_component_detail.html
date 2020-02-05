@@ -66,6 +66,10 @@
       </button>
     </div>
   </div>
+  <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
+    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+  </div>
   <result-field label="{{'TYPE' | translate}}" stronglabel="true" data="vm.record._source.type"></result-field>
   <div ng-if="vm.record.location">
     <b> {{'ACCESS.LOCATION' | translate}} </b>:&nbsp;
@@ -79,81 +83,6 @@
     </label>
     <div ng-repeat="x in vm.record.related_tags">
       <a ng-click="vm.goToNodePage(x.tag_version.id, false)">{{x.tag_version.name}}</a>
-    </div>
-  </div>
-  <div class="pb-base">
-    <div class="d-flex align-items-center justify-content-between">
-      <h4>
-        {{'ACCESS.IDENTIFIERS' | translate}}
-      </h4>
-      <div>
-        <button
-          class="btn btn-primary"
-          ng-click="vm.addIdentifierModal()"
-          permission
-          permission-only="'tags.change_tagversion'"
-        >
-          {{'ADD' | translate}}
-        </button>
-      </div>
-    </div>
-    <div class="table-x-overflow table-container">
-      <table class="table table-striped">
-        <thead>
-          <tr>
-            <th>
-              {{'TYPE' | translate}}
-            </th>
-            <th>
-              ID
-            </th>
-            <th permission permission-only="'tags.change_tagversion'" class="shrink">
-              {{'EDIT' | translate}}
-            </th>
-            <th permission permission-only="'tags.change_tagversion'" class="white-space-nowrap shrink">
-              {{'REMOVE' | translate}}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr ng-repeat="x in vm.record.identifiers">
-            <td>
-              {{x.type.name}}
-            </td>
-            <td>
-              {{x.identifier}}
-            </td>
-            <td permission permission-only="'tags.change_tagversion'" class="text-center shrink">
-              <button
-                class="btn btn-default btn-sm fas fa-edit"
-                ng-click="vm.editIdentifierModal(x)"
-                uib-tooltip="{{'EDIT' | translate}}"
-                tooltip-placement="auto top"
-                tooltip-append-to-body="true"
-              >
-                <i class=""></i>
-              </button>
-            </td>
-            <td permission permission-only="'tags.change_tagversion'" class="text-center shrink">
-              <button
-                class="btn btn-default btn-sm fas fa-trash-alt"
-                ng-click="vm.removeIdentifierModal(x)"
-                uib-tooltip="{{'REMOVE' | translate}}"
-                tooltip-placement="auto top"
-                tooltip-append-to-body="true"
-              ></button>
-            </td>
-          </tr>
-          <tr ng-if="vm.record.identifiers.length <= 0" class="empty-table-indicator">
-            <td permission permission-except="'tags.change_tagversion'" colspan="2">
-              {{'NO_RESULTS_FOUND' | translate}}
-            </td>
-            <td permission permission-only="'tags.change_tagversion'" colspan="4">
-              {{'NO_RESULTS_FOUND' | translate}}
-            </td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   </div>
   <div
@@ -240,6 +169,102 @@
     </div>
     <hr class="small mx-0" />
   </div>
+  <div
+    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
+  >
+    <strong>{{'ACCESS.ADMINISTRATIVE_DATES' | translate}}:</strong>
+    <result-field
+      label="{{'CREATE_DATE'| translate}}"
+      data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field label="{{'ACCESS.REVISE_DATE' |translate}}" data="vm.record.revise_date" type="date"></result-field>
+    <result-field
+      label="{{'ACCESS.IMPORT_DATE' | translate}}"
+      data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
+  </div>
+  <div class="pb-base">
+    <div class="d-flex align-items-center justify-content-between">
+      <h4>
+        {{'ACCESS.IDENTIFIERS' | translate}}
+      </h4>
+      <div>
+        <button
+          class="btn btn-primary"
+          ng-click="vm.addIdentifierModal()"
+          permission
+          permission-only="'tags.change_tagversion'"
+        >
+          {{'ADD' | translate}}
+        </button>
+      </div>
+    </div>
+    <div class="table-x-overflow table-container">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>
+              {{'TYPE' | translate}}
+            </th>
+            <th>
+              ID
+            </th>
+            <th permission permission-only="'tags.change_tagversion'" class="shrink">
+              {{'EDIT' | translate}}
+            </th>
+            <th permission permission-only="'tags.change_tagversion'" class="white-space-nowrap shrink">
+              {{'REMOVE' | translate}}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr ng-repeat="x in vm.record.identifiers">
+            <td>
+              {{x.type.name}}
+            </td>
+            <td>
+              {{x.identifier}}
+            </td>
+            <td permission permission-only="'tags.change_tagversion'" class="text-center shrink">
+              <button
+                class="btn btn-default btn-sm fas fa-edit"
+                ng-click="vm.editIdentifierModal(x)"
+                uib-tooltip="{{'EDIT' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+                <i class=""></i>
+              </button>
+            </td>
+            <td permission permission-only="'tags.change_tagversion'" class="text-center shrink">
+              <button
+                class="btn btn-default btn-sm fas fa-trash-alt"
+                ng-click="vm.removeIdentifierModal(x)"
+                uib-tooltip="{{'REMOVE' | translate}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              ></button>
+            </td>
+          </tr>
+          <tr ng-if="vm.record.identifiers.length <= 0" class="empty-table-indicator">
+            <td permission permission-except="'tags.change_tagversion'" colspan="2">
+              {{'NO_RESULTS_FOUND' | translate}}
+            </td>
+            <td permission permission-only="'tags.change_tagversion'" colspan="4">
+              {{'NO_RESULTS_FOUND' | translate}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
   <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
     <div class="title-action-button-row">
       <div class="title">
@@ -283,29 +308,6 @@
     </td>
   </div>
   <result-field stronglabel="true" label="{{'MEDIUM' | translate}}" data="vm.record.medium_type.name"></result-field>
-  <div
-    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
-  >
-    <strong>{{'DATES' | translate}}:</strong>
-    <result-field
-      label="{{'CREATE_DATE'| translate}}"
-      data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
-      type="date"
-    ></result-field>
-    <result-field label="{{'ACCESS.REVISE_DATE' |translate}}" data="vm.record.revise_date" type="date"></result-field>
-    <result-field
-      label="{{'ACCESS.IMPORT_DATE' | translate}}"
-      data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
-      type="date"
-    ></result-field>
-    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
-    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
-    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
-    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
-    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
-    <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
-    <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
-  </div>
   <div ng-if="vm.record.custom_fields && !angular.equals(vm.record.custom_fields, {})">
     <br />
     <b>{{'ACCESS.CUSTOM_FIELDS' | translate}}:</b>
