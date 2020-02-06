@@ -181,6 +181,7 @@ jobs:
         run: |
           start redis-server
           docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=MyPassword42' -p 1433:1433 -d christianacca/mssql-server-windows-express:1809
+          docker run -e="discovery.type=single-node" --health-cmd="curl http://localhost:9200/_cluster/health" --health-interval=10s --health-timeout=5s --health-retries=10 docker.elastic.co/elasticsearch/elasticsearch:6.5.4
           coverage run manage.py test
       - name: Report code coverage
         run: |
