@@ -6,7 +6,7 @@ from countries_plus.models import Country
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import override_settings
+from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
 from elasticsearch_dsl.connections import (
@@ -56,6 +56,7 @@ def get_test_client(nowait=False):
 
 
 @override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
+@tag('requires-elasticsearch')
 class ESSArchSearchBaseTestCase(APITestCase):
     @staticmethod
     def _get_client():
