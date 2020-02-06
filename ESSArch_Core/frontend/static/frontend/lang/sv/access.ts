@@ -85,7 +85,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Redigera relation till strukturenhet',
       EDIT_TRANSFER: 'Redigera leverans',
       END_YEAR: 'Slutår',
-      EXPORT_ARCHIVE: 'Exportera arkiv',
+      EXPORT_ARCHIVE: 'Utskriftsbar arkivförteckning',
       EXPORT_OPTION: 'Typ av export',
       FIELD_EXISTS: 'Fältet finns redan!',
       FILE_EXTENSIONS: 'Filformat',
