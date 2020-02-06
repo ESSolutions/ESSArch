@@ -356,7 +356,7 @@ class SubmissionAgreementIPData(models.Model):
         ordering = ['version']
 
     def clean(self):
-        data = getattr(self.data, 'data', {})
+        data = self.data or {}
         data = fill_specification_data(data.copy(), ip=self.information_package, sa=self.submission_agreement)
         validate_template(self.submission_agreement.template, data)
 
