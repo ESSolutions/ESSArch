@@ -17,6 +17,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_STRUCTURE_UNIT: 'Add structure unit',
       ADD_TO_STRUCTURE: 'Add to structure unit',
       ADDED_TO_TRANSFER: 'Added to transfer',
+      ADMINISTRATIVE_DATES: 'Administrative dates',
       ALT_NAME: 'Alternate name',
       ALT_NAMES: 'Names',
       ARCHIVE: 'Resource',

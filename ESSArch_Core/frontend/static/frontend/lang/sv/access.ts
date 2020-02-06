@@ -17,6 +17,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_STRUCTURE_UNIT: 'Lägg till strukturenhet',
       ADD_TO_STRUCTURE: 'Lägg till under strukturenhet',
       ADDED_TO_TRANSFER: 'Tillagd(a) i överföring',
+      ADMINISTRATIVE_DATES: 'Administrativa datum',
       ALT_NAME: 'Alternativt namn',
       ALT_NAMES: 'Namn',
       ARCHIVE: 'Arkiv',
