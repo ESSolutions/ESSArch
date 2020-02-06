@@ -59,6 +59,7 @@
       </button>
     </div>
   </div>
+  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
   <div class="pb-base">
     <div class="d-flex align-items-center justify-content-between">
       <h4>
@@ -375,7 +376,5 @@
     <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
     <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
     <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
-    <br />
   </div>
-  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
 </div>
