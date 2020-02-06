@@ -59,6 +59,10 @@
       </button>
     </div>
   </div>
+  <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
+    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+  </div>
   <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
   <div class="pb-base">
     <div class="d-flex align-items-center justify-content-between">
@@ -355,9 +359,9 @@
     </p>
   </div>
   <div
-    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
+    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
   >
-    <strong>{{'DATES' | translate}}:</strong>
+    <strong>{{'ACCESS.ADMINISTRATIVE_DATES' | translate}}:</strong>
     <result-field
       label="{{'CREATE_DATE'| translate}}"
       data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
@@ -374,7 +378,5 @@
     <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
     <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
     <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
-    <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
-    <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
   </div>
 </div>
