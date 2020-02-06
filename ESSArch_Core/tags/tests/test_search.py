@@ -25,6 +25,7 @@ from ESSArch_Core.agents.models import (
     MainAgentType,
     RefCode,
 )
+from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.search import alias_migration
 from ESSArch_Core.tags.documents import Archive, Component
 from ESSArch_Core.tags.models import (
@@ -82,6 +83,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.url = reverse('search-list')
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.user = User.objects.create(is_superuser=True)
         permission = Permission.objects.get(codename='search')
         cls.user.user_permissions.add(permission)
