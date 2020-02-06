@@ -1,8 +1,5 @@
-from unittest import mock
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
@@ -162,7 +159,19 @@ class LockSubmissionAgreementTests(TestCase):
     def test_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename='lock_sa'))
 
-        sa = SubmissionAgreement.objects.create(policy=self.policy)
+        sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
+            template=[
+                {
+                    "key": "foo",
+                    "type": "input",
+                    "templateOptions": {
+                        "type": "text",
+                        "required": True,
+                    },
+                }
+            ],
+        )
         ip = InformationPackage.objects.create(submission_agreement=sa)
         sa_ip_data = SubmissionAgreementIPData.objects.create(
             user=self.user,
@@ -179,11 +188,13 @@ class LockSubmissionAgreementTests(TestCase):
 
         ip.submission_agreement_locked = False
         ip.save()
+
+        sa_ip_data.data = {'bar': 'foo'}
+        sa_ip_data.save()
+
         with self.subTest('invalid data'):
-            with mock.patch('ESSArch_Core.profiles.views.SubmissionAgreementIPData.clean',
-                            side_effect=ValidationError('invalid data')):
-                res = self.client.post(self.get_url(sa), data={'ip': str(ip.pk)})
-                self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            res = self.client.post(self.get_url(sa), data={'ip': str(ip.pk)})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_as_responsible(self):
         sa = SubmissionAgreement.objects.create(policy=self.policy)
