@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 

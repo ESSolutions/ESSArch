@@ -13,7 +13,7 @@ from django.contrib.auth.models import Group as DjangoGroup
 from django.db import transaction
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from groups_manager.models import (
     Group as GroupManagerGroup,

@@ -13,7 +13,7 @@ from celery.states import (
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
