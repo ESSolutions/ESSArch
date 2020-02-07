@@ -494,7 +494,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             simple = self.annotate_generations(simple)
             simple = self.annotate_filtered_first_generation(simple, user)
             simple = self.get_related(simple, workareas)
-            simple = simple.select_related('responsible', 'policy__cache_storage', 'policy__ingest_path')
+            simple = simple.select_related(
+                'responsible',
+                'submission_agreement__policy__cache_storage',
+                'submission_agreement__policy__ingest_path',
+            )
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',
