@@ -27,11 +27,13 @@
         class="form-control"
         data-ng-model="model[options.key]"
         autocomplete="off"
+        ng-disabled="to.disabled"
       /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
     </div>
   </a>
   <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
     <datetimepicker
+      ng-disabled="to.disabled"
       data-ng-model="model[options.key]"
       ng-change="status[options.key] = false"
       ng-required="options.templateOptions.required"
