@@ -26,7 +26,7 @@ from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import ContentType, Permission
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_auth.serializers import LoginSerializer as rest_auth_LoginSerializer
 from rest_framework import exceptions, serializers
 

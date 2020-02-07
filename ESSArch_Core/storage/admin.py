@@ -24,7 +24,7 @@
 
 from django import forms
 from django.contrib import admin
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,

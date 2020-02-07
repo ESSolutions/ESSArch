@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import ProtectedError, Q
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
 from rest_framework import exceptions, filters, permissions, viewsets

@@ -26,7 +26,7 @@ from django.db.models import (
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from picklefield.fields import PickledObjectField
 from requests import RequestException
 from tenacity import (
