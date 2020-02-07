@@ -42,7 +42,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db import connection, models, transaction
+from django.db import models, transaction
 from django.db.models import (
     Avg,
     CharField,
@@ -56,7 +56,7 @@ from django.db.models import (
     Prefetch,
     Q,
 )
-from django.db.models.expressions import Case, RawSQL, Subquery, Value, When
+from django.db.models.expressions import Case, Subquery, Value, When
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
@@ -98,6 +98,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageMethod,
+    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
 )
@@ -258,95 +259,50 @@ class InformationPackageQuerySet(models.QuerySet):
         )
 
     def migratable(self, storage_methods=None):
-        # TODO: This is really, really ugly but is required until Django 3.0 is released
-        #
-        # See:
-        #  * https://github.com/django/django/pull/8119
-        #  * https://github.com/django/django/pull/11062
-        #  * https://github.com/django/django/pull/11677
-        #  * https://code.djangoproject.com/ticket/30739
-
         # TODO: Exclude those that already has a task that has not succeeded (?)
+        storage_methods = storage_methods or StorageMethod.objects.all()
 
-        def mssql_wrapper(sql):
-            if connection.vendor == 'microsoft':
-                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
-            return sql
+        def filter_objects(status):
+            return StorageObject.objects.filter(
+                storage_medium__storage_target__storage_method_target_relations__status=status,
+                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
+                ip=OuterRef(OuterRef('pk'))
+            )
 
-        method_with_old_migrate_and_new_enabled = StorageMethod.objects.annotate(
-            status_migrate_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_MIGRATE,)
-            ),
-            status_enabled_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
-            status_enabled_without_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id)
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
+        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.annotate(
+            has_migrate_target_with_obj=Exists(filter_objects(STORAGE_TARGET_STATUS_MIGRATE)),
+            has_enabled_target_without_obj=~Exists(filter_objects(STORAGE_TARGET_STATUS_ENABLED)),
+            has_enabled_target_with_obj=F('has_enabled_target_without_obj'),
         ).filter(
-            enabled=True,
-            status_migrate_with_ip=True,
-            status_enabled_without_ip=True,
-            status_enabled_with_ip=False,
-            storage_policies=OuterRef('policy'),
+            has_migrate_target_with_obj=True,
+            has_enabled_target_without_obj=True,
+            has_enabled_target_with_obj=False,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
-        method_with_enabled_target_without_ip = StorageMethod.objects.annotate(
-            enabled_target_without_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation AS U2
-                    WHERE (
-                        U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT (EXISTS(
-                            SELECT 1 FROM storage_storageobject U3
-                            INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
-                            INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
-                            WHERE U3.ip_id = ip_informationpackage.id
-                            AND U5.id = U2.storage_target_id
-                       ))
-                   )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
+        method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
+            has_storage_obj=Exists(
+                StorageObject.objects.filter(
+                    storage_medium__storage_target=OuterRef('storage_target'),
+                    ip=OuterRef(OuterRef('pk'))
+                )
             ),
         ).filter(
-            enabled=True,
-            enabled_target_without_ip=True,
-            storage_policies=OuterRef('policy')
+            has_storage_obj=False,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
-        return self.annotate(
-            method_with_old_migrate_and_new_enabled_exists=Exists(method_with_old_migrate_and_new_enabled),
-            method_with_enabled_target_without_ip_exists=Exists(method_with_enabled_target_without_ip),
-        ).filter(
+        return self.filter(
             Q(
-                Q(method_with_enabled_target_without_ip_exists=True) |
-                Q(method_with_old_migrate_and_new_enabled_exists=True)
+                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_target_rel_with_enabled_target_without_ip))
             ),
-            archived=True
+            archived=True,
         ).exclude(storage=None)
 
 
@@ -357,8 +313,8 @@ class InformationPackageManager(OrganizationManager):
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
-    def migratable(self):
-        return self.get_queryset().migratable()
+    def migratable(self, storage_methods=None):
+        return self.get_queryset().migratable(storage_methods=storage_methods)
 
 
 class InformationPackage(models.Model):
@@ -450,12 +406,6 @@ class InformationPackage(models.Model):
         related_name='information_packages', null=True
     )
 
-    policy = models.ForeignKey(
-        'configuration.StoragePolicy',
-        on_delete=models.PROTECT,
-        related_name='information_packages',
-        null=True,
-    )
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
     sip_objid = models.CharField(max_length=255)
@@ -503,6 +453,13 @@ class InformationPackage(models.Model):
     def clear_locks(cls):
         return cache.delete_pattern(IP_LOCK_PREFIX + '*')
 
+    @property
+    def policy(self):
+        try:
+            return self.submission_agreement.policy
+        except AttributeError:
+            return None
+
     def get_lock_key(self):
         return '{}{}'.format(IP_LOCK_PREFIX, str(self.pk))
 
@@ -520,12 +477,16 @@ class InformationPackage(models.Model):
         if not self.archived or not self.storage.exists():
             return StorageMethod.objects.none()
 
-        return self.policy.storage_methods.annotate(has_object=Exists(
-            StorageObject.objects.filter(
+        return self.policy.storage_methods.annotate(
+            has_object=Exists(StorageObject.objects.filter(
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            )),
+            has_enabled_rel=Exists(StorageMethodTargetRelation.objects.filter(
+                status=STORAGE_TARGET_STATUS_ENABLED,
+                storage_method=OuterRef('pk'),
             ))
-        ).filter(enabled=True).exclude(has_object=True)
+        ).filter(enabled=True, has_object=False, has_enabled_rel=True)
 
     def is_first_generation(self):
         if self.aic is None:
@@ -1255,16 +1216,28 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+        if new:
+            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
+        else:
+            dst_object_identifier_value = self.object_identifier_value
+
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
             ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
 
+            if new:
+                new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
+                new_aip.object_path = ingest_workarea_user
+                new_aip.save()
+            else:
+                new_aip = self
+
             workflow = [
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
                     "label": "Create workarea",
-                    "args": [str(self.pk), str(user.pk), Workarea.INGEST, True]
+                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new]
                 },
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
@@ -1333,18 +1306,19 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
 
         access_workarea = Path.objects.get(entity='access_workarea').value
-
-        if new:
-            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
-        else:
-            dst_object_identifier_value = self.object_identifier_value
-
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
         access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
         access_workarea_user_aic_xml = os.path.join(
             access_workarea, user.username, self.aic.object_identifier_value
         ) + '.xml'
+
+        if new:
+            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
+            new_aip.object_path = access_workarea_user
+            new_aip.save()
+        else:
+            new_aip = self
 
         if extracted or new:
             os.makedirs(access_workarea_user, exist_ok=True)
@@ -1603,13 +1577,6 @@ class InformationPackage(models.Model):
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
-
-        if new:
-            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
-            new_aip.object_path = access_workarea_user
-            new_aip.save()
-        else:
-            new_aip = self
 
         workflow.append({
             "name": "ESSArch_Core.ip.tasks.CreateWorkarea",

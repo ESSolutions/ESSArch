@@ -18,7 +18,7 @@
         },
         "ingest": {
           "reception": {
-            "_permissions": ["ip.receive"]
+            "_permissions": ["ip.receive", "ip.transfer_sip"]
           },
           "ipApproval": {
             "_permissions": [

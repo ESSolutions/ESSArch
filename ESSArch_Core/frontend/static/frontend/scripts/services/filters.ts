@@ -3,18 +3,24 @@ import {IFieldGroup, IFieldObject} from '../formly/types';
 
 interface rootscope extends ng.IRootScopeService {
   auth: any;
+  skipErrorNotification: boolean;
 }
 
 export default (
   $translate: ng.translate.ITranslateService,
   $rootScope: rootscope,
   $http: ng.IHttpService,
-  appConfig: any
+  appConfig: any,
+  Notifications: any
 ) => {
   let policies: any = [];
   let users: any = [];
   let eventTypes: any = [];
   let mediums: any = [];
+
+  let minMediumFilterValue = null;
+  let maxMediumFilterValue = null;
+  let mediumPolicyFilterValue = null;
 
   let getStoragePolicies = (search: string) => {
     return $http
@@ -43,12 +49,22 @@ export default (
       });
   };
 
-  let getMediums = (search: string) => {
+  let getMediums = (search: string, params?: any) => {
+    if (params.medium_id_range_min || params.medium_id_range_max) {
+      $rootScope.skipErrorNotification = true;
+    }
     return $http
-      .get(appConfig.djangoUrl + 'storage-mediums/', {params: {page: 1, page_size: 10, search}})
+      .get(appConfig.djangoUrl + 'storage-mediums/', {
+        params: angular.extend({page: 1, page_size: 10, ordering: 'medium_id', search}, params),
+      })
       .then(response => {
         mediums = response.data;
         return response.data;
+      })
+      .catch(response => {
+        if (response.data && response.data.medium_id_range) {
+          Notifications.add(response.data.medium_id_range, 'error');
+        }
       });
   };
 
@@ -209,6 +225,12 @@ export default (
       },
       addDefault: x => {
         policies.unshift(x);
+        mediumPolicyFilterValue = x.id;
+      },
+    },
+    expressionProperties: {
+      'templateOptions.onChange': function($modelValue) {
+        mediumPolicyFilterValue = $modelValue;
       },
     },
   };
@@ -230,7 +252,7 @@ export default (
               clearEnabled: true,
               appendToBody: true,
               refresh: function(search) {
-                return getMediums(search);
+                return getMediums(search, {policy: mediumPolicyFilterValue});
               },
             },
             hideExpression: ($viewValue, $modelValue, scope) => {
@@ -250,7 +272,15 @@ export default (
               clearEnabled: true,
               appendToBody: true,
               refresh: function(search) {
-                return getMediums(search);
+                return getMediums(search, {
+                  medium_id_range_max: minMediumFilterValue,
+                  policy: mediumPolicyFilterValue,
+                });
+              },
+            },
+            expressionProperties: {
+              'templateOptions.onChange': function($modelValue) {
+                maxMediumFilterValue = $modelValue;
               },
             },
             hideExpression: ($viewValue, $modelValue, scope) => {
@@ -270,7 +300,15 @@ export default (
               clearEnabled: true,
               appendToBody: true,
               refresh: function(search) {
-                return getMediums(search);
+                return getMediums(search, {
+                  medium_id_range_min: maxMediumFilterValue,
+                  policy: mediumPolicyFilterValue,
+                });
+              },
+            },
+            expressionProperties: {
+              'templateOptions.onChange': function($modelValue) {
+                minMediumFilterValue = $modelValue;
               },
             },
             hideExpression: ($viewValue, $modelValue, scope) => {

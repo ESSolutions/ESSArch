@@ -1,3 +1,4 @@
+import logging
 import os
 import tarfile
 import zipfile
@@ -8,6 +9,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.ip.utils import generate_aic_mets, generate_package_mets
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
@@ -92,4 +94,13 @@ class StorageMigration(DBTask):
             for s in src:
                 copy_file(s, dst, requests_session=requests_session)
 
-        return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+        obj_id = ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+
+        Notification.objects.create(
+            message="Migrated {} to {}".format(ip.object_identifier_value, storage_method.name),
+            level=logging.INFO,
+            user_id=self.responsible,
+            refresh=True,
+        )
+
+        return obj_id

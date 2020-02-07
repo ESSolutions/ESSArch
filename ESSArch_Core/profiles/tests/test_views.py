@@ -1,14 +1,11 @@
-from unittest import mock
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APIRequestFactory
 
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -19,6 +16,7 @@ from ESSArch_Core.profiles.serializers import (
     ProfileSerializer,
     SubmissionAgreementSerializer,
 )
+from ESSArch_Core.storage.models import StorageMethod
 
 User = get_user_model()
 
@@ -78,7 +76,11 @@ class GetAllSubmissionAgreementsTests(TestCase):
         self.user = User.objects.create(username='user')
         self.url = reverse('submissionagreement-list')
 
-        SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        SubmissionAgreement.objects.create(policy=policy)
 
     def test_unauthenticated(self):
         response = self.client.get(self.url)
@@ -117,7 +119,15 @@ class CreateSubmissionAgreementTests(TestCase):
         perm = Permission.objects.get(codename='add_submissionagreement')
         self.user.user_permissions.add(perm)
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.url, {'name': 'foo', 'label': 'Foo', 'type': 'sa', 'status': 'created'})
+
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+
+        response = self.client.post(self.url, {
+            'name': 'foo', 'label': 'Foo', 'type': 'sa', 'status': 'created', 'policy': policy.pk,
+        })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
@@ -125,6 +135,10 @@ class LockSubmissionAgreementTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         Path.objects.create(entity='temp', value='')
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
 
     def setUp(self):
         self.user = User.objects.create(username='user')
@@ -136,7 +150,7 @@ class LockSubmissionAgreementTests(TestCase):
         return reverse('submissionagreement-lock', args=(str(sa.pk),))
 
     def test_without_permission(self):
-        sa = SubmissionAgreement.objects.create()
+        sa = SubmissionAgreement.objects.create(policy=self.policy)
         ip = InformationPackage.objects.create(submission_agreement=sa)
 
         res = self.client.post(self.get_url(sa), data={'ip': str(ip.pk)})
@@ -145,7 +159,19 @@ class LockSubmissionAgreementTests(TestCase):
     def test_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename='lock_sa'))
 
-        sa = SubmissionAgreement.objects.create()
+        sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
+            template=[
+                {
+                    "key": "foo",
+                    "type": "input",
+                    "templateOptions": {
+                        "type": "text",
+                        "required": True,
+                    },
+                }
+            ],
+        )
         ip = InformationPackage.objects.create(submission_agreement=sa)
         sa_ip_data = SubmissionAgreementIPData.objects.create(
             user=self.user,
@@ -162,14 +188,16 @@ class LockSubmissionAgreementTests(TestCase):
 
         ip.submission_agreement_locked = False
         ip.save()
+
+        sa_ip_data.data = {'bar': 'foo'}
+        sa_ip_data.save()
+
         with self.subTest('invalid data'):
-            with mock.patch('ESSArch_Core.profiles.views.SubmissionAgreementIPData.clean',
-                            side_effect=ValidationError('invalid data')):
-                res = self.client.post(self.get_url(sa), data={'ip': str(ip.pk)})
-                self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+            res = self.client.post(self.get_url(sa), data={'ip': str(ip.pk)})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_as_responsible(self):
-        sa = SubmissionAgreement.objects.create()
+        sa = SubmissionAgreement.objects.create(policy=self.policy)
         ip = InformationPackage.objects.create(
             responsible=self.user,
             submission_agreement=sa,
@@ -183,8 +211,12 @@ class SubmissionAgreementIPDataViewSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         Path.objects.create(entity='temp', value='')
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
 
-        cls.sa = SubmissionAgreement.objects.create()
+        cls.sa = SubmissionAgreement.objects.create(policy=policy)
 
     def setUp(self):
         perms = Permission.objects.filter(codename__in=[

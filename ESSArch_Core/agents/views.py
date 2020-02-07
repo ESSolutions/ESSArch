@@ -1,4 +1,5 @@
 from django.db.models import F, Prefetch
+from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 
@@ -36,14 +37,17 @@ from ESSArch_Core.agents.serializers import (
 )
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.permissions import ActionPermissions
+from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentRelationTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentRelationType.objects.all()
     serializer_class = AgentRelationTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentTagLinkRelationTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentTagLinkRelationType.objects.all()
     serializer_class = AgentTagLinkRelationTypeSerializer
@@ -52,12 +56,14 @@ class AgentTagLinkRelationTypeViewSet(viewsets.ModelViewSet):
     filterset_fields = ('creator',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentType.objects.select_related('main_type')
     serializer_class = AgentTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentNameTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentNameType.objects.all()
     serializer_class = AgentNameTypeSerializer
@@ -68,6 +74,7 @@ class AgentNameTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentNoteTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentNoteType.objects.all()
     serializer_class = AgentNoteTypeSerializer
@@ -78,18 +85,21 @@ class AgentNoteTypeViewSet(viewsets.ModelViewSet):
     search_fields = ('name',)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentIdentifierTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentIdentifierType.objects.all()
     serializer_class = AgentIdentifierTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentPlaceTypeViewSet(viewsets.ModelViewSet):
     queryset = AgentPlaceType.objects.all()
     serializer_class = AgentPlaceTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.none()
     serializer_class = AgentSerializer
@@ -135,12 +145,14 @@ class AgentViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class AuthorityTypeViewSet(viewsets.ModelViewSet):
     queryset = AuthorityType.objects.all()
     serializer_class = AuthorityTypeSerializer
     permission_classes = (ActionPermissions,)
 
 
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class RefCodeViewSet(viewsets.ModelViewSet):
     queryset = RefCode.objects.all()
     serializer_class = RefCodeSerializer

@@ -88,6 +88,7 @@ import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl'
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
 import StorageMigrationModalInstanceCtrl from '../controllers/StorageMigrationModalInstanceCtrl';
+import StorageMigrationPreviewModalInstanceCtrl from '../controllers/StorageMigrationPreviewModalInstanceCtrl';
 import StructureModalInstanceCtrl from '../controllers/StructureModalInstanceCtrl';
 import StructureRuleModalCtrl from '../controllers/StructureRuleModalCtrl';
 import StructureUnitRelationModalInstanceCtrl from '../controllers/StructureUnitRelationModalInstanceCtrl';
@@ -95,6 +96,7 @@ import StructureVersionModalInstanceCtrl from '../controllers/StructureVersionMo
 import TagsCtrl from '../controllers/TagsCtrl';
 import TaskInfoModalInstanceCtrl from '../controllers/TaskInfoModalInstanceCtrl';
 import TransferCtrl from '../controllers/TransferCtrl';
+import TransferSipModalInstanceCtrl from '../controllers/TransferSipModalInstanceCtrl';
 import TemplateModalInstanceCtrl from '../controllers/TemplateModalInstanceCtrl';
 import TransferModalInstanceCtrl from '../controllers/TransferModalInstanceCtrl';
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
@@ -787,12 +789,11 @@ export default angular
     '$scope',
     'data',
     '$translate',
-    '$uibModal',
-    '$log',
     '$http',
     'appConfig',
     '$q',
     'EditMode',
+    'IPReception',
     ReceiveModalInstanceCtrl,
   ])
   .controller('ReceptionCtrl', [
@@ -1108,6 +1109,8 @@ export default angular
     '$controller',
     '$translate',
     '$uibModal',
+    'StorageMedium',
+    'Notifications',
     StorageMigrationCtrl,
   ])
   .controller('StorageMigrationModalInstanceCtrl', [
@@ -1117,7 +1120,22 @@ export default angular
     'appConfig',
     '$translate',
     '$log',
+    'EditMode',
+    '$scope',
+    '$uibModal',
+    'listViewService',
+    '$q',
     StorageMigrationModalInstanceCtrl,
+  ])
+  .controller('StorageMigrationPreviewModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$translate',
+    'listViewService',
+    '$scope',
+    StorageMigrationPreviewModalInstanceCtrl,
   ])
   .controller('StorageMaintenanceCtrl', [
     '$rootScope',
@@ -1158,12 +1176,33 @@ export default angular
     'SelectedIPUpdater',
     WorkareaCtrl,
   ])
-  .controller('PreserveModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', PreserveModalInstanceCtrl])
+  .controller('PreserveModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'Requests',
+    '$q',
+    '$controller',
+    '$scope',
+    '$rootScope',
+    PreserveModalInstanceCtrl,
+  ])
   .controller('TemplateModalInstanceCtrl', [
     'ProfileMakerTemplate',
     '$uibModalInstance',
     'data',
     TemplateModalInstanceCtrl,
+  ])
+  .controller('TransferSipModalInstanceCtrl', [
+    'data',
+    '$uibModalInstance',
+    'EditMode',
+    'IPReception',
+    '$q',
+    '$http',
+    'appConfig',
+    '$scope',
+    '$translate',
+    TransferSipModalInstanceCtrl,
   ])
   .controller('VersionCtrl', ['$scope', '$window', '$anchorScroll', '$location', '$translate', 'Sysinfo', VersionCtrl])
   .controller('VersionModalInstanceCtrl', [

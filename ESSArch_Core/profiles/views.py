@@ -26,7 +26,7 @@ from ESSArch_Core.essxml.ProfileMaker.views import (
     generateElement,
     removeChildren,
 )
-from ESSArch_Core.ip.models import Agent, InformationPackage
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.permissions import CanLockSA
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -52,7 +52,6 @@ from ESSArch_Core.profiles.serializers import (
     SubmissionAgreementIPDataSerializer,
     SubmissionAgreementSerializer,
 )
-from ESSArch_Core.profiles.utils import profile_types
 
 
 def get_sa_template():
@@ -163,9 +162,6 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
 
         return super().update(request, *args, **kwargs)
 
-    def get_profile_types(self):
-        return [x.lower().replace(' ', '_') for x in profile_types]
-
     @transaction.atomic
     @action(detail=True, methods=["post"])
     def lock(self, request, pk=None):
@@ -187,24 +183,11 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         if ip.submission_agreement != sa:
             raise exceptions.ParseError('This SA is not connected to the selected IP')
 
-        ip.submission_agreement_locked = True
+        try:
+            sa.lock_to_information_package(ip, request.user)
+        except ValidationError as e:
+            raise exceptions.ParseError(str(e))
 
-        if ip.submission_agreement_data is not None:
-            try:
-                ip.submission_agreement_data.clean()
-            except ValidationError as e:
-                raise exceptions.ParseError(str(e))
-
-        if sa.archivist_organization:
-            existing_agents_with_notes = Agent.objects.all().with_notes([])
-            ao_agent, _ = Agent.objects.get_or_create(
-                role='ARCHIVIST', type='ORGANIZATION',
-                name=sa.archivist_organization, pk__in=existing_agents_with_notes
-            )
-            ip.agents.add(ao_agent)
-        ip.save()
-
-        ip.create_profile_rels(self.get_profile_types(), request.user)
         return Response({'status': 'Locked submission agreement'})
 
 

@@ -31,7 +31,7 @@ import django_filters
 from django.db import connection
 from django.db.models import F, IntegerField, Q, UUIDField
 from django.db.models.constants import LOOKUP_SEP
-from django.db.models.functions import Cast, Substr
+from django.db.models.functions import Cast, Length, Substr
 from django_filters import rest_framework as filters
 from django_filters.constants import EMPTY_VALUES
 from rest_framework.compat import distinct
@@ -157,13 +157,27 @@ class CharSuffixRangeFilter(filters.RangeFilter):
         (start, start_suffix, start_suffix_pos) = value[0]
         (stop, stop_suffix, stop_suffix_pos) = value[1]
 
-        suffix_pos = start_suffix_pos
+        suffix_pos = start_suffix_pos if start else stop_suffix_pos
 
         prefix_regex = r'^([\D|0]*)[0-9]*$'
         start_prefix = re.match(prefix_regex, start).group(1)
         stop_prefix = re.match(prefix_regex, stop).group(1)
 
-        common_prefix = os.path.commonprefix([start_prefix, stop_prefix])
+        if start and stop:
+            common_prefix = os.path.commonprefix([start_prefix, stop_prefix])
+            suffix_filter = {
+                'suffix_number__range': (start_suffix, stop_suffix),
+            }
+        elif start:
+            common_prefix = start_prefix
+            suffix_filter = {
+                'suffix_number__gte': start_suffix,
+            }
+        else:
+            common_prefix = stop_prefix
+            suffix_filter = {
+                'suffix_number__lte': stop_suffix,
+            }
 
         if connection.vendor == 'microsoft':
             from sql_server.pyodbc.functions import TryCast
@@ -184,12 +198,18 @@ class CharSuffixRangeFilter(filters.RangeFilter):
             )
 
         return base.annotate(
+            full_length=Length(self.field_name),
             suffix_number=cast_func(
-                Substr(F(self.field_name), suffix_pos + 1, len(start_suffix)),
+                Substr(
+                    F(self.field_name),
+                    suffix_pos + 1,
+                    len(start_suffix) if start_suffix else len(stop_suffix)
+                ),
                 IntegerField(),
             )
         ).filter(
-            suffix_number__range=(start_suffix, stop_suffix),
+            full_length=len(start) if start else len(stop),
+            **suffix_filter,
         )
 
 

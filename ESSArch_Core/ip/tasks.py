@@ -36,7 +36,10 @@ from ESSArch_Core.ip.utils import (
     parse_submit_description_from_ip,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
+from ESSArch_Core.profiles.utils import (
+    fill_specification_data,
+    lowercase_profile_types,
+)
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
@@ -71,9 +74,6 @@ class SubmitSIP(DBTask):
         session = None
 
         if remote:
-            if update_path:
-                raise ValueError('Cannot update path when submitting to remote host')
-
             dst, remote_user, remote_pass = remote.split(',')
             dst = urljoin(dst, 'api/ip-reception/upload/')
 
@@ -93,7 +93,7 @@ class SubmitSIP(DBTask):
             dst_xml = dst
         copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
 
-        if update_path:
+        if update_path and not remote:
             ip.object_path = dst
             ip.package_mets_path = dst_xml
             ip.save()
@@ -119,6 +119,56 @@ class SubmitSIP(DBTask):
     def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Submitted %s" % ip.object_identifier_value
+
+
+class TransferIP(DBTask):
+    event_type = 20600
+
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        src = ip.object_path
+        srcdir, srcfile = os.path.split(src)
+
+        remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
+        session = None
+        if remote:
+            dst, remote_user, remote_pass = remote.split(',')
+
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (remote_user, remote_pass)
+
+        if not remote:
+            dst = Path.objects.get(entity="ingest_transfer").value
+
+        block_size = 8 * 1000000  # 8MB
+        copy_file(src, dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(50, total=100)
+
+        objid = ip.object_identifier_value
+        src = ip.get_events_file_path()
+        if os.path.isfile(src):
+            if not remote:
+                xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
+            else:
+                xml_dst = dst
+            copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(75, total=100)
+
+        src = os.path.join(srcdir, "%s.xml" % objid)
+        if remote:
+            xml_dst = dst
+        else:
+            xml_dst = os.path.join(dst, "%s.xml" % objid)
+
+        copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+        self.set_progress(100, total=100)
+        return dst
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        return "Transferred IP"
 
 
 class PrepareAIP(DBTask):
@@ -175,7 +225,7 @@ class PrepareAIP(DBTask):
                 # refresh date fields to convert them to datetime instances instead of
                 # strings to allow further datetime manipulation
                 ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-                ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], user)
+                ip.create_profile_rels(lowercase_profile_types, user)
         else:
             with transaction.atomic():
                 ip = existing_sip
@@ -478,7 +528,7 @@ class CreateWorkarea(DBTask):
         user = User.objects.get(pk=user)
         Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
         Notification.objects.create(
-            message="%s is now in workarea" % ip.object_identifier_value,
+            message="%s is now in workspace" % ip.object_identifier_value,
             level=logging.INFO, user=user, refresh=True
         )
 

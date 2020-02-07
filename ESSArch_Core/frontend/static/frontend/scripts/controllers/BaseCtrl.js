@@ -22,6 +22,8 @@
     Email - essarch@essolutions.se
 */
 
+import {isEnabled} from './../features/utils';
+
 export default class BaseCtrl {
   constructor(
     vm,
@@ -78,6 +80,7 @@ export default class BaseCtrl {
 
     $scope.$translate = $translate;
 
+    $scope.isEnabled = isEnabled;
     $scope.ContentTabs = ContentTabs;
     // Can be overwritten in controllers to change title
     vm.listViewTitle = $translate.instant('INFORMATION_PACKAGES');
@@ -197,7 +200,11 @@ export default class BaseCtrl {
               if (vm.specificTabs.length > 0) {
                 vm.activeTab = vm.specificTabs[0];
               } else {
-                vm.activeTab = 'tasks';
+                if ($state.current.name === 'home.ingest.reception') {
+                  vm.activeTab = 'events';
+                } else {
+                  vm.activeTab = 'tasks';
+                }
               }
             });
           }
@@ -680,7 +687,8 @@ export default class BaseCtrl {
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/preserve_modal.html',
         controller: 'PreserveModalInstanceCtrl',
-        controllerAs: '$ctrl',
+        controllerAs: 'vm',
+        size: 'lg',
         resolve: {
           data: function() {
             return {
@@ -703,6 +711,34 @@ export default class BaseCtrl {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
+    };
+
+    vm.transferModal = ips => {
+      if (ips.length === 0 && $scope.ip) {
+        ips = [$scope.ip];
+      }
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/transfer_sip_modal.html',
+        controller: 'TransferSipModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            ips,
+          },
+        },
+      });
+      modalInstance.result
+        .then(() => {
+          $scope.getListViewData();
+          $scope.ips = [];
+        })
+        .catch(() => {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
     };
 
     vm.accessModal = function(ip, request) {

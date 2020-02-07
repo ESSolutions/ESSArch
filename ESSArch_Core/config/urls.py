@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.urls import path
 
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
@@ -26,6 +27,7 @@ from ESSArch_Core.auth.views import (
 )
 from ESSArch_Core.configuration.views import (
     EventTypeViewSet,
+    FeatureViewSet,
     ParameterViewSet,
     PathViewSet,
     SiteView,
@@ -72,6 +74,8 @@ from ESSArch_Core.storage.views import (
     StorageMediumViewSet,
     StorageMethodTargetRelationViewSet,
     StorageMethodViewSet,
+    StorageMigrationPreviewDetailView,
+    StorageMigrationPreviewView,
     StorageMigrationViewSet,
     StorageObjectViewSet,
     StorageTargetViewSet,
@@ -231,12 +235,6 @@ router.register(r'information-packages', InformationPackageViewSet).register(
     parents_query_lookups=['ip']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
-    r'storage-migration-targets',
-    StorageTargetViewSet,
-    basename='ip-storage-migration-targets',
-    parents_query_lookups=['ip']
-)
-router.register(r'information-packages', InformationPackageViewSet).register(
     r'validations',
     ValidationViewSet,
     basename='ip-validations',
@@ -294,6 +292,7 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet)
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'conversion-rules', ConversionRuleViewSet)
+router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
 router.register(r'event-types', EventTypeViewSet)
@@ -378,6 +377,16 @@ urlpatterns = [
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),
+    url(
+        r'^api/storage-migrations-preview/$',
+        StorageMigrationPreviewView.as_view(),
+        name='storage-migrations-preview',
+    ),
+    path(
+        'api/storage-migrations-preview/<uuid:pk>/',
+        StorageMigrationPreviewDetailView.as_view(),
+        name='storage-migrations-preview-detail',
+    ),
     url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
     url(r'^api/me/$', MeView.as_view(), name='me'),
     url(r'^api/', include(router.urls)),

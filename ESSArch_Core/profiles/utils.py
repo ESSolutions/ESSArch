@@ -24,22 +24,14 @@ profile_types = [
     "Validation",
 ]
 
+lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
+
 
 class LazyDict(Mapping):
     def __init__(self, *args, **kw):
         self._raw_dict = dict(*args, **kw)
 
     def __getitem__(self, key):
-        if isinstance(key, str):
-            try:
-                if key.startswith('PARAMETER_') or key.startswith('_PARAMETER_'):
-                    return Parameter.objects.get(entity__iexact=key.split('PARAMETER_', 1)[1]).value
-
-                if key.startswith('PATH_') or key.startswith('_PATH_'):
-                    return Path.objects.get(entity__iexact=key.split('PATH_', 1)[1]).value
-            except (Parameter.DoesNotExist, Path.DoesNotExist):
-                return None
-
         val = self._raw_dict.__getitem__(key)
         if isinstance(val, tuple) and callable(val[0]):
             func, *args = val
@@ -57,13 +49,11 @@ class LazyDict(Mapping):
     def to_dict(self):
         d = {}
         for k, v in self._raw_dict.items():
-            d[k] = v
-
-        for p in Parameter.objects.iterator():
-            d['_PARAMETER_%s' % p.entity.upper()] = p.value
-
-        for p in Path.objects.iterator():
-            d['_PATH_%s' % p.entity.upper()] = p.value
+            if isinstance(v, tuple) and callable(v[0]):
+                func, *args = v
+                d[k] = func(*args)
+            else:
+                d[k] = v
 
         return d
 
@@ -209,7 +199,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_AGENTS'] = (_get_agents, ip,)
 
         profile_ids = zip(
-            [x.lower().replace(' ', '_') for x in profile_types],
+            lowercase_profile_types,
             ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types]
         )
 

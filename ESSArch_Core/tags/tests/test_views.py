@@ -19,7 +19,7 @@ from ESSArch_Core.agents.models import (
     RefCode,
 )
 from ESSArch_Core.auth.models import Group, GroupType
-from ESSArch_Core.configuration.models import EventType
+from ESSArch_Core.configuration.models import EventType, Feature
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -68,6 +68,8 @@ def create_structure_unit(structure_unit_type, structure, ref_code):
 class ListStructureTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.client = APIClient()
         cls.url = reverse('structure-list')
         cls.user = User.objects.create(username='user')
@@ -99,6 +101,10 @@ class ListStructureTests(APITestCase):
 
 
 class CreateStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
         self.url = reverse('structure-list')
@@ -217,6 +223,10 @@ class CreateStructureTests(TestCase):
 
 
 class UpdateStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -423,6 +433,10 @@ class UpdateStructureTests(TestCase):
 
 
 class PublishStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -473,6 +487,10 @@ class PublishStructureTests(TestCase):
 
 
 class UnpublishStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -509,6 +527,8 @@ class UnpublishStructureTests(TestCase):
 class ListStructureUnitTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.url = reverse('structureunit-list')
         cls.user = User.objects.create(username='user', is_superuser=True)
 
@@ -590,6 +610,10 @@ class ListStructureUnitTests(TestCase):
 
 
 class CreateStructureUnitTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -828,6 +852,10 @@ class CreateStructureUnitTests(TestCase):
 
 
 class UpdateStructureUnitTemplateTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -956,6 +984,10 @@ class UpdateStructureUnitTemplateTests(TestCase):
 
 
 class UpdateStructureUnitInstanceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -1144,6 +1176,8 @@ class UpdateStructureUnitInstanceTests(TestCase):
 class RelatedStructureUnitTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.client = APIClient()
 
         cls.user = User.objects.create(username='user')
@@ -1388,6 +1422,10 @@ class RelatedStructureUnitTests(APITestCase):
 
 
 class DeleteStructureUnitInstanceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -1445,6 +1483,10 @@ class DeleteStructureUnitInstanceTests(TestCase):
 
 class AgentArchiveRelationTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
 
     def setUp(self):
         self.client = APIClient()
@@ -1579,6 +1621,8 @@ class CreateArchiveTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         cls.url = reverse('search-list')
@@ -1629,6 +1673,8 @@ class CreateComponentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
         cls.url = reverse('search-list')
@@ -1679,6 +1725,8 @@ class ChangeTagTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
@@ -1802,6 +1850,8 @@ class DeleteTagTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
@@ -1899,6 +1949,8 @@ class DeleteTagTests(TestCase):
 class CreateDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
         cls.url = reverse('delivery-list')
@@ -1948,6 +2000,8 @@ class CreateDeliveryTests(TestCase):
 class ChangeDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2003,6 +2057,8 @@ class ChangeDeliveryTests(TestCase):
 class DeleteDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2048,6 +2104,8 @@ class DeleteDeliveryTests(TestCase):
 class CreateTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
         cls.url = reverse('transfer-list')
@@ -2107,6 +2165,8 @@ class CreateTransferTests(TestCase):
 class ChangeTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2173,6 +2233,8 @@ class ChangeTransferTests(TestCase):
 class DeleteTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2229,6 +2291,8 @@ class DeleteTransferTests(TestCase):
 class CreateLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2280,6 +2344,8 @@ class CreateLocationTests(TestCase):
 class ChangeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2337,6 +2403,8 @@ class ChangeLocationTests(TestCase):
 class DeleteLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2384,6 +2452,8 @@ class DeleteLocationTests(TestCase):
 class AddNodeToLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2442,6 +2512,8 @@ class AddNodeToLocationTests(TestCase):
 class ChangeNodeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2502,6 +2574,8 @@ class ChangeNodeLocationTests(TestCase):
 class DeleteNodeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')

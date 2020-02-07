@@ -26,12 +26,6 @@
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
-                <div ng-if="checkPermission('ip.preserve')">
-                  <label>
-                    <input type="radio" ng-model="vm.request.type" value="preserve" />
-                    {{'PRESERVE' | translate}}
-                  </label>
-                </div>
                 <div>
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="download_dip" />
@@ -49,20 +43,6 @@
                     </label>
                   </div>
                   <input class="form-control" ng-model="vm.request.purpose" />
-                  <div class="form-group">
-                    <label>
-                      {{'STORAGE_POLICY' | translate}}
-                    </label>
-                    <select
-                      type="select"
-                      required="true"
-                      class="form-control"
-                      ng-change="storagePolicyChange()"
-                      ng-model="vm.request.storagePolicy.value"
-                      ng-options="x as x.policy_name for x in vm.request.storagePolicy.options"
-                      required
-                    ></select>
-                  </div>
                 </div>
               </div>
             </form>
