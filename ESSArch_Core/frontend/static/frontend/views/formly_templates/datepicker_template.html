@@ -16,6 +16,8 @@
   <a class="dropdown-toggle" id="dropdown-{{options.key}}" role="button" uib-dropdown-toggle>
     <div class="input-group">
       <input
+        ng-focus="status[options.key] = true"
+        ng-click="status[options.key] = false"
         ng-change="to.onChange"
         set-touched="options.formControl"
         id="{{::id}}"
