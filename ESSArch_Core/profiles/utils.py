@@ -206,4 +206,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         for (profile_type, key) in profile_ids:
             data[key] = (_get_profile_id_by_type, profile_type, ip)
 
+    for p in Parameter.objects.iterator():
+        data['_PARAMETER_%s' % p.entity.upper()] = p.value
+
+    for p in Path.objects.iterator():
+        data['_PATH_%s' % p.entity.upper()] = p.value
+
     return data
