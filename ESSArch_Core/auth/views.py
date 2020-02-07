@@ -152,6 +152,8 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
+    permission_classes = (IsAuthenticated,)
+
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('seen',)
 
@@ -167,10 +169,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='set-all-seen')
     def set_all_seen(self, request):
         self.get_queryset().update(seen=True)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def delete(self, request, *args, **kwargs):
-        self.get_queryset().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
