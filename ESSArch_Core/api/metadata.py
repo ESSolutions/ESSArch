@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django_filters.utils import label_for_filter
 from rest_framework.metadata import SimpleMetadata
 
@@ -50,7 +50,7 @@ class CustomMetadata(SimpleMetadata):
                 attrs['choices'] = [
                     {
                         'value': choice_value,
-                        'display_name': force_text(choice_name, strings_only=True)
+                        'display_name': force_str(choice_name, strings_only=True)
                     }
                     for choice_value, choice_name in choices
                 ]
@@ -64,8 +64,8 @@ class CustomMetadata(SimpleMetadata):
 
                 attrs['choices'] = [
                     {
-                        'value': force_text(getattr(choice, to_field), strings_only=True),
-                        'display_name': force_text(choice, strings_only=True)
+                        'value': force_str(getattr(choice, to_field), strings_only=True),
+                        'display_name': force_str(choice, strings_only=True)
                     }
                     for choice in queryset
                 ]

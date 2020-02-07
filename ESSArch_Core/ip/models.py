@@ -60,7 +60,7 @@ from django.db.models.expressions import Case, Subquery, Value, When
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from lxml import etree
