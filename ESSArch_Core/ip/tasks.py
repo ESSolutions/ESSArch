@@ -528,7 +528,7 @@ class CreateWorkarea(DBTask):
         user = User.objects.get(pk=user)
         Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
         Notification.objects.create(
-            message="%s is now in workarea" % ip.object_identifier_value,
+            message="%s is now in workspace" % ip.object_identifier_value,
             level=logging.INFO, user=user, refresh=True
         )
 

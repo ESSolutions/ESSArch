@@ -203,7 +203,7 @@ class AccessAIP(DBTask):
                 ip=new_aip, user_id=self.responsible, type=Workarea.INGEST, read_only=not new
             )
             Notification.objects.create(
-                message="%s is now in workarea" % new_aip.object_identifier_value,
+                message="%s is now in workspace" % new_aip.object_identifier_value,
                 level=logging.INFO, user_id=self.responsible, refresh=True
             )
 
