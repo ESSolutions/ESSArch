@@ -1,4 +1,4 @@
-import tempfile
+import io
 
 from celery import states as celery_states
 from django.contrib.auth import get_user_model
@@ -61,7 +61,7 @@ def export(request):
             raise exceptions.ParseError('Unknown field: {}'.format(e))
 
     template = 'stats/export.html'.format()
-    f = tempfile.TemporaryFile()
+    f = io.BytesIO()
 
     ctype = 'application/pdf'
     render = render_to_string(template, {'data': data})

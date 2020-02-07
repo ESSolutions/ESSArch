@@ -27,7 +27,7 @@ from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
