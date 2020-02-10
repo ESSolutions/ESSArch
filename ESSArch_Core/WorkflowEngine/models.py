@@ -37,7 +37,7 @@ from django.core.cache import cache
 from django.db import models
 from django.db.models import Case, Count, Sum, When
 from django.urls import reverse
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from mptt.models import MPTTModel, TreeForeignKey
 from picklefield.fields import PickledObjectField
 from requests import RequestException
