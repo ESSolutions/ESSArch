@@ -38,6 +38,7 @@ import DeliveryModalInstanceCtrl from '../controllers/DeliveryModalInstanceCtrl'
 import DownloadDipModalInstanceCtrl from '../controllers/DownloadDipModalInstanceCtrl';
 import EditNodeModalInstanceCtrl from '../controllers/EditNodeModalInstanceCtrl';
 import EditStructureUnitModalInstanceCtrl from '../controllers/EditStructureUnitModalInstanceCtrl';
+import ExportNodeModalInstanceCtrl from '../controllers/ExportNodeModalInstanceCtrl';
 import ExportResultModalInstanceCtrl from '../controllers/ExportResultModalInstanceCtrl';
 import EventModalInstanceCtrl from '../controllers/EventModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
@@ -513,6 +514,17 @@ export default angular
     'Utils',
     '$rootScope',
     EventModalInstanceCtrl,
+  ])
+  .controller('ExportNodeModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    '$rootScope',
+    '$window',
+    '$sce',
+    ExportNodeModalInstanceCtrl,
   ])
   .controller('ExportResultModalInstanceCtrl', [
     '$uibModalInstance',
