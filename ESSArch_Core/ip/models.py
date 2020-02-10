@@ -186,6 +186,73 @@ class AgentNote(models.Model):
 
 
 class InformationPackageQuerySet(models.QuerySet):
+    def annotate_and_prefetch(self):
+        def create_when(nested, celery_state):
+            step_state_lookup = 'information_package__aic' if nested else 'information_package'
+            return When(Exists(
+                ProcessTask.objects.filter(
+                    status=celery_state, **{step_state_lookup: OuterRef('pk')}
+                ).values('pk')
+            ), then=Value(celery_state))
+
+        ip_tasks = ProcessTask.objects.filter(
+            information_package=OuterRef('pk'),
+            undo_type=False, retried__isnull=True, undone__isnull=True,
+            steps_on_errors=None,
+        ).order_by()
+
+        return self.annotate(
+            step_state=Case(
+                When(package_type=InformationPackage.AIC, then=Case(
+                    create_when(True, celery_states.FAILURE),
+                    create_when(True, celery_states.STARTED),
+                    create_when(True, celery_states.REVOKED),
+                    create_when(True, celery_states.PENDING),
+                    default=Value(celery_states.SUCCESS),
+                    output_field=CharField(),
+                )),
+                default=Case(
+                    create_when(False, celery_states.FAILURE),
+                    create_when(False, celery_states.STARTED),
+                    create_when(False, celery_states.REVOKED),
+                    create_when(False, celery_states.PENDING),
+                    default=Value(celery_states.SUCCESS),
+                    output_field=CharField(),
+                ),
+                output_field=CharField(),
+            ),
+            status=Case(
+                When(state='Prepared', then=Value(100)),
+                When(
+                    state='Preparing', then=Case(
+                        When(submission_agreement_locked=False, then=Value(33)),
+                        default=Value(66),
+                        output_field=IntegerField(),
+                    )
+                ),
+                When(
+                    Exists(ip_tasks),
+                    then=Subquery(
+                        ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1]
+                    )
+                ),
+                default=Value(100),
+                output_field=IntegerField(),
+            ),
+        ).prefetch_related(
+            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org'),
+            Prefetch(
+                'submissionagreementipdata_set',
+                queryset=SubmissionAgreementIPData.objects.filter(
+                    pk__in=Subquery(SubmissionAgreementIPData.objects.filter(
+                        information_package=OuterRef('pk'),
+                        submission_agreement=OuterRef('submission_agreement'),
+                    ).values('pk'))
+                ),
+                to_attr='submission_agreement_data_versions',
+            ),
+        )
+
     def migratable(self, storage_methods=None):
         # TODO: Exclude those that already has a task that has not succeeded (?)
         storage_methods = storage_methods or StorageMethod.objects.all()
@@ -235,73 +302,8 @@ class InformationPackageQuerySet(models.QuerySet):
 
 
 class InformationPackageManager(OrganizationManager):
-    @staticmethod
-    def _create_step_state_when(nested, celery_state):
-        step_state_lookup = 'information_package__aic' if nested else 'information_package'
-        return When(Exists(
-            ProcessTask.objects.filter(
-                status=celery_state, **{step_state_lookup: OuterRef('pk')}
-            ).values('pk')
-        ), then=Value(celery_state))
-
     def get_queryset(self):
-        ip_tasks = ProcessTask.objects.filter(
-            information_package=OuterRef('pk'),
-            undo_type=False, retried__isnull=True, undone__isnull=True,
-            steps_on_errors=None,
-        ).order_by()
-
-        return self.annotate(
-            step_state=Case(
-                When(package_type=InformationPackage.AIC, then=Case(
-                    self._create_step_state_when(True, celery_states.FAILURE),
-                    self._create_step_state_when(True, celery_states.STARTED),
-                    self._create_step_state_when(True, celery_states.REVOKED),
-                    self._create_step_state_when(True, celery_states.PENDING),
-                    default=Value(celery_states.SUCCESS),
-                    output_field=CharField(),
-                )),
-                default=Case(
-                    self._create_step_state_when(False, celery_states.FAILURE),
-                    self._create_step_state_when(False, celery_states.STARTED),
-                    self._create_step_state_when(False, celery_states.REVOKED),
-                    self._create_step_state_when(False, celery_states.PENDING),
-                    default=Value(celery_states.SUCCESS),
-                    output_field=CharField(),
-                ),
-                output_field=CharField(),
-            ),
-            status=Case(
-                When(state='Prepared', then=Value(100)),
-                When(
-                    state='Preparing', then=Case(
-                        When(submission_agreement_locked=False, then=Value(33)),
-                        default=Value(66),
-                        output_field=IntegerField(),
-                    )
-                ),
-                When(
-                    Exists(ip_tasks),
-                    then=Subquery(
-                        ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1]
-                    )
-                ),
-                default=Value(100),
-                output_field=IntegerField(),
-            ),
-        ).prefetch_related(
-            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org'),
-            Prefetch(
-                'submissionagreementipdata_set',
-                queryset=SubmissionAgreementIPData.objects.filter(
-                    pk__in=Subquery(SubmissionAgreementIPData.objects.filter(
-                        information_package=OuterRef('pk'),
-                        submission_agreement=OuterRef('submission_agreement'),
-                    ).values('pk'))
-                ),
-                to_attr='submission_agreement_data_versions',
-            ),
-        )
+        return InformationPackageQuerySet(self.model, using=self._db).annotate_and_prefetch()
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
