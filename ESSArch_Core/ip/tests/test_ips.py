@@ -36,6 +36,7 @@ from unittest import mock
 
 import requests
 from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -1825,6 +1826,59 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertEqual(len(res.data), 0)
 
+    def test_flat_view_type_with_ordering_and_filter(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        start_date = make_aware(datetime(2000, 1, 1))
+        aip = InformationPackage.objects.create(
+            aic=aic, package_type=InformationPackage.AIP,
+            generation=0, state='foo', start_date=start_date,
+        )
+
+        start_date = make_aware(datetime(2010, 1, 1))
+        sip = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='foo',
+            start_date=start_date,
+        )
+        start_date = make_aware(datetime(2040, 1, 1))
+        sip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='bar',
+            start_date=start_date,
+        )
+
+        start_date = make_aware(datetime(2005, 1, 1))
+        dip = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='foo',
+            start_date=start_date,
+        )
+        start_date = make_aware(datetime(2030, 1, 1))
+        dip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='bar',
+            start_date=start_date,
+        )
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, aip, custom_permissions=perms)
+        self.member.assign_object(self.group, sip, custom_permissions=perms)
+        self.member.assign_object(self.group, sip2, custom_permissions=perms)
+        self.member.assign_object(self.group, dip, custom_permissions=perms)
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': 'start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 3)
+        self.assertEqual(res.data[0]['id'], str(aip.pk))
+        self.assertEqual(res.data[1]['id'], str(dip.pk))
+        self.assertEqual(res.data[2]['id'], str(sip.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': '-start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 3)
+        self.assertEqual(res.data[0]['id'], str(sip.pk))
+        self.assertEqual(res.data[1]['id'], str(dip.pk))
+        self.assertEqual(res.data[2]['id'], str(aip.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': 'start_date', 'state': 'bar'})
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data[0]['id'], str(dip2.pk))
+        self.assertEqual(res.data[1]['id'], str(sip2.pk))
+
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
         cache = StorageMethod.objects.create()
@@ -1930,6 +1984,97 @@ class InformationPackageViewSetTestCase(TestCase):
         ip.save()
 
         self.client.get(self.url)
+
+
+class InformationPackageViewSetPermissionListTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.ctype = ContentType.objects.get_for_model(InformationPackage)
+
+    def setUp(self):
+        self.user = User.objects.create(username="admin")
+        self.member = self.user.essauth_member
+        self.org_group_type = GroupType.objects.create(codename='organization')
+
+        self.europe = Group.objects.create(name="europe", group_type=self.org_group_type)
+        self.sweden = Group.objects.create(name="sweden", group_type=self.org_group_type, parent=self.europe)
+        self.uppsala = Group.objects.create(name="uppsala", group_type=self.org_group_type, parent=self.sweden)
+        self.sthlm = Group.objects.create(name="stockholm", group_type=self.org_group_type, parent=self.sweden)
+
+        self.user_perms = [
+            Permission.objects.get_or_create(codename='view_informationpackage', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='add', content_type=self.ctype)[0],
+        ]
+
+        self.admin_perms = [
+            Permission.objects.get_or_create(codename='view_informationpackage', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='change', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='delete', content_type=self.ctype)[0]
+        ]
+        self.expected_user_perms = ['view_informationpackage', 'add']
+        self.expected_user_perms_with_label = ['ip.%s' % p for p in self.expected_user_perms]
+        self.expected_admin_perms = ['view_informationpackage', 'change', 'delete']
+        self.expected_admin_perms_with_label = ['ip.%s' % p for p in self.expected_admin_perms]
+
+        self.admin_role = GroupMemberRole.objects.create(codename='admin')
+        self.user_role = GroupMemberRole.objects.create(codename='user')
+        self.user_role.permissions.add(*self.user_perms)
+        self.admin_role.permissions.add(*self.admin_perms)
+
+        # create users
+        self.user_europe = User.objects.create(username='user_europe')
+        self.admin_europe = User.objects.create(username='admin_europe')
+
+        self.user_sweden = User.objects.create(username='user_sweden')
+        self.admin_sweden = User.objects.create(username='admin_sweden')
+
+        self.user_uppsala = User.objects.create(username='user_uppsala')
+        self.admin_uppsala = User.objects.create(username='admin_uppsala')
+
+        self.user_sthlm = User.objects.create(username='user_sthlm')
+        self.admin_sthlm = User.objects.create(username='admin_sthlm')
+
+        # add users to groups with roles
+        self.europe.add_member(self.user_europe.essauth_member, roles=[self.user_role])
+        self.europe.add_member(self.admin_europe.essauth_member, roles=[self.admin_role])
+
+        self.sweden.add_member(self.user_sweden.essauth_member, roles=[self.user_role])
+        self.sweden.add_member(self.admin_sweden.essauth_member, roles=[self.admin_role])
+
+        self.uppsala.add_member(self.user_uppsala.essauth_member, roles=[self.user_role])
+        self.uppsala.add_member(self.admin_uppsala.essauth_member, roles=[self.admin_role])
+
+        self.sthlm.add_member(self.user_sthlm.essauth_member, roles=[self.user_role])
+        self.sthlm.add_member(self.admin_sthlm.essauth_member, roles=[self.admin_role])
+
+        # create IPs in organizations
+        self.uppsala_ip = InformationPackage.objects.create(label='uppsala_ip')
+        self.uppsala.add_object(self.uppsala_ip)
+
+        self.sthlm_ip = InformationPackage.objects.create(label='sthlm_ip')
+        self.sthlm.add_object(self.sthlm_ip)
+
+    def get_permissions(self, ip, user):
+        self.client.force_authenticate(user=user)
+        url = reverse('informationpackage-detail', args=(str(ip.pk),))
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        return res.data['permissions']
+
+    def test_permissions_list(self):
+        # users in same organization as IP must have the correct permissions
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_uppsala), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_uppsala), self.expected_admin_perms)
+
+        # users in an organization must have the correct permissions on the IPs in organizations/groups below
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_europe), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_europe), self.expected_admin_perms)
+
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_sweden), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_sweden), self.expected_admin_perms)
+
+        self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.user_sweden), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.admin_sweden), self.expected_admin_perms)
 
 
 class InformationPackageViewSetPreserveTestCase(APITestCase):
