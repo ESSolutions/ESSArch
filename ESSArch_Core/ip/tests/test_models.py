@@ -8,7 +8,8 @@ from unittest import mock
 from celery import states as celery_state
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory
+from django.urls import reverse
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
@@ -286,53 +287,68 @@ class GetPathResponseContainerTests(TestCase):
         mock_list_files.assert_called_once_with(path)
 
 
-class StatusTest(TestCase):
+class StatusTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_superuser(username='user')
 
     def setUp(self):
+        self.client.force_authenticate(user=self.user)
         self.ip = InformationPackage.objects.create()
+
+    def get_status(self, ip):
+        res = self.client.get(reverse('informationpackage-detail', args=(str(ip.pk),)))
+        return res.data['status']
 
     def test_status_is_100_when_state_is_any_completed_state(self):
         completed_states = ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']
 
         for state in completed_states:
             self.ip.state = state
-            self.assertEqual(self.ip.status(), 100)
+            self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_is_33_when_state_is_preparing_and_submission_agreement_is_not_locked(self):
         self.ip.state = 'Preparing'
         self.ip.submission_agreement_locked = False
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 33)
+        self.assertEqual(self.get_status(self.ip), 33)
 
     def test_status_is_between_66_and_100_when_state_is_preparing_and_submission_agreement_is_locked(self):
         self.ip.state = 'Preparing'
         self.ip.submission_agreement_locked = True
+        self.ip.save()
 
-        status = self.ip.status()
+        status = self.get_status(self.ip)
         self.assertGreaterEqual(status, 66)
         self.assertLessEqual(status, 100)
 
-    def test_status_is_100_if_state_is_None(self):
-        self.ip.state = None
+    def test_status_is_100_if_state_is_empty(self):
+        self.ip.state = ''
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 100)
+        self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_is_100_if_state_is_an_unhandled_type(self):
         self.ip.state = uuid.uuid4()
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 100)
+        self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_from_steps_and_tasks(self):
         root_step = ProcessStep.objects.create(information_package=self.ip)
         child_step_a = ProcessStep.objects.create(parent_step=root_step)
-        ProcessTask.objects.create(processstep=child_step_a, progress=50)
+        ProcessTask.objects.create(processstep=child_step_a, information_package=self.ip, progress=50)
 
         child_step_b = ProcessStep.objects.create(parent_step=root_step)
-        ProcessTask.objects.create(processstep=child_step_b, progress=75)
+        ProcessTask.objects.create(processstep=child_step_b, information_package=self.ip, progress=75)
 
         ProcessTask.objects.create(information_package=self.ip, progress=25)
 
-        self.assertEqual(self.ip.status(), 43.75)
+        # unrelated task
+        ProcessTask.objects.create(progress=75)
+
+        self.assertEqual(self.get_status(self.ip), 50)
 
 
 class InformationPackageOpenFileTests(TestCase):
@@ -449,7 +465,13 @@ class InformationPackageOpenFileTests(TestCase):
         self.assertEqual(self.ip.open_file('mets.xml').read(), b'this is a mets')
 
 
-class InformationPackageStepStateTests(TestCase):
+class InformationPackageStepStateTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_superuser(username='user')
+
+    def setUp(self):
+        self.client.force_authenticate(user=self.user)
 
     def create_information_package(self, num, aic, package_type=InformationPackage.AIP):
         ip_set = set()
@@ -460,14 +482,14 @@ class InformationPackageStepStateTests(TestCase):
 
         return ip_set
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.related_ips')
-    def test_step_state_when_its_an_AIC_with_no_related_IPs_then_success(self, mocked_related_ips):
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        mocked_related_ips.return_value = set()
-        state = self.ip.step_state
+    def get_step_state(self, ip):
+        res = self.client.get(reverse('informationpackage-detail', args=(str(ip.pk),)))
+        return res.data['step_state']
 
+    def test_step_state_when_its_an_AIC_with_no_related_IPs_then_success(self):
+        ip = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        state = self.get_step_state(ip)
         self.assertEqual(state, celery_state.SUCCESS)
-        mocked_related_ips.assert_called_once()
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_then_success(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -475,7 +497,7 @@ class InformationPackageStepStateTests(TestCase):
         for ip in ip_set:
             ProcessTask.objects.create(information_package=ip, status=celery_state.SUCCESS)
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_started_then_started(self):
@@ -486,7 +508,7 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.STARTED)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_pending_then_pending(self):
@@ -497,7 +519,7 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.PENDING)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_failure_then_failure(self):
@@ -508,13 +530,13 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.FAILURE)
 
     def test_step_state_when_its_an_AIP_with_no_tasks_then_success(self):
         aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIP_with_all_success_tasks_then_success(self):
@@ -523,7 +545,7 @@ class InformationPackageStepStateTests(TestCase):
         for _ in range(3):
             ProcessTask.objects.create(information_package=aip, status=celery_state.SUCCESS)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIP_with_one_task_started_then_started(self):
@@ -533,7 +555,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.STARTED)
 
     def test_step_state_when_its_an_AIP_with_one_task_pending_then_pending(self):
@@ -543,7 +565,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.PENDING)
 
     def test_step_state_when_its_an_AIP_with_one_task_failure_then_failure(self):
@@ -553,7 +575,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.FAILURE)
 
 

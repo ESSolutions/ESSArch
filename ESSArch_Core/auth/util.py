@@ -2,16 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.db.models import (
-    CharField,
-    Exists,
-    F,
-    Min,
-    OuterRef,
-    Q,
-    UUIDField,
-    Value,
-)
+from django.db.models import CharField, F, Min, Q, UUIDField, Value
 from django.db.models.functions import Cast, Replace
 from django.shortcuts import _get_queryset
 from guardian.models import GroupObjectPermission, UserObjectPermission
@@ -119,7 +110,9 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         # Because of UUIDs we have to first save the IDs in
         # memory and then query against that list, see
         # https://stackoverflow.com/questions/50526873/
-        # Fixed in Django 3 (hopefully)
+        #
+        # Fixed in Django 3.1 (hopefully)
+        # https://github.com/django/django/pull/10643
 
         orgs = []
 
@@ -183,29 +176,10 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
         cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
     )
 
-    if connection.vendor == 'microsoft':
-        qs = qs.annotate(
-            cleaned_id=Cast('pk', CharField()),
-        ).filter(Q(
-            Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
-            Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
-            Q(cleaned_id__in=user_ids.values('cleaned_pk'))
-        ))
-    else:
-        qs = qs.annotate(
-            cleaned_id=Cast('pk', CharField()),
-            role_exists=Exists(
-                role_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
-            grp_exists=Exists(
-                group_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
-            user_exists=Exists(
-                user_ids.filter(cleaned_pk=OuterRef('cleaned_id'))
-            ),
-        ).filter(Q(
-            Q(role_exists=True) |
-            Q(grp_exists=True) |
-            Q(user_exists=True)
-        ))
-    return qs | ids_with_no_auth
+    return qs.annotate(
+        cleaned_id=Cast('pk', CharField()),
+    ).filter(Q(
+        Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
+        Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
+        Q(cleaned_id__in=user_ids.values('cleaned_pk'))
+    )) | ids_with_no_auth

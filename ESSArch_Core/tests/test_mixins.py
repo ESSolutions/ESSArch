@@ -17,9 +17,9 @@ class SimpleViewSet(viewsets.ModelViewSet, GetObjectForUpdateViewMixin):
     permission_classes = ()
     serializer_class = FooSerializer
 
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, *args, **kwargs):
         self.get_object_for_update()
-        return super().retrieve(request, pk)
+        return super().retrieve(request, *args, **kwargs)
 
 
 class ViewSetWithSelectRelated(SimpleViewSet):
