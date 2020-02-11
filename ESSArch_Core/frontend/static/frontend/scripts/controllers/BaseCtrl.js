@@ -191,7 +191,7 @@ export default class BaseCtrl {
     watchers.push(
       $scope.$watch(
         function() {
-          return $scope.ip;
+          return $scope.ip === null ? null : $scope.ip.id;
         },
         function(newVal) {
           if (newVal !== null) {
