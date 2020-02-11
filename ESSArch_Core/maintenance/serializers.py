@@ -42,7 +42,23 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
 
 
 class MaintenanceJobSerializer(serializers.ModelSerializer):
+    rule = serializers.SerializerMethodField()
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+
+    @staticmethod
+    def create_rule_serializer(_model):
+        class MaintenanceJobRuleSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = _model
+                fields = ('id', 'name',)
+
+        return MaintenanceJobRuleSerializer
+
+    def get_rule(self, obj):
+        if obj.rule is None:
+            return None
+
+        return self.create_rule_serializer(obj.rule._meta.model)(instance=obj.rule).data
 
     def create(self, validated_data):
         if 'user' not in validated_data:
@@ -56,6 +72,10 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
         )
 
 
+class MaintenanceJobWriteSerializer(MaintenanceJobSerializer):
+    pass
+
+
 class AppraisalRuleSerializer(MaintenanceRuleSerializer):
     class Meta(MaintenanceRuleSerializer.Meta):
         model = AppraisalRule
@@ -66,6 +86,13 @@ class AppraisalJobSerializer(MaintenanceJobSerializer):
         model = AppraisalJob
 
 
+class AppraisalJobWriteSerializer(MaintenanceJobWriteSerializer):
+    rule = serializers.PrimaryKeyRelatedField(queryset=AppraisalRule.objects.all())
+
+    class Meta(MaintenanceJobWriteSerializer.Meta):
+        model = AppraisalJob
+
+
 class ConversionRuleSerializer(MaintenanceRuleSerializer):
     class Meta(MaintenanceRuleSerializer.Meta):
         model = ConversionRule
@@ -73,4 +100,11 @@ class ConversionRuleSerializer(MaintenanceRuleSerializer):
 
 class ConversionJobSerializer(MaintenanceJobSerializer):
     class Meta(MaintenanceJobSerializer.Meta):
+        model = ConversionJob
+
+
+class ConversionJobWriteSerializer(MaintenanceJobWriteSerializer):
+    rule = serializers.PrimaryKeyRelatedField(queryset=ConversionRule.objects.all())
+
+    class Meta(MaintenanceJobWriteSerializer.Meta):
         model = ConversionJob
