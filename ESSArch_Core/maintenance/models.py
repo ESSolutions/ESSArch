@@ -264,7 +264,10 @@ class AppraisalJob(MaintenanceJob):
                             delete_file(ip, path, relfilepath)
 
                 # delete tags connected to IP
-                TagVersion.objects.filter(tag__information_package=ip).delete()
+                TagVersion.objects.filter(
+                    Q(Q(elastic_index='document') | Q(elastic_index='directory')),
+                    tag__information_package=ip,
+                ).delete()
 
                 # preserve new generation
                 preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
