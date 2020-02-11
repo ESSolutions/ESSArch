@@ -25,7 +25,9 @@
 import os
 
 import django
+from django.conf import settings
 from django.core.management.utils import get_random_secret_key
+from elasticsearch_dsl.connections import connections
 
 from ESSArch_Core.crypto import generate_key
 
@@ -39,6 +41,8 @@ def initialize():
     except BaseException as e:
         exit(e)
     from ESSArch_Core.config.celery import app  # noqa
+
+    connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
 
 
 def load_config_template(path):

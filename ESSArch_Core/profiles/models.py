@@ -27,7 +27,7 @@ from copy import copy
 
 from django.conf import settings
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.profiles.utils import (
@@ -356,7 +356,7 @@ class SubmissionAgreementIPData(models.Model):
         ordering = ['version']
 
     def clean(self):
-        data = getattr(self.data, 'data', {})
+        data = self.data or {}
         data = fill_specification_data(data.copy(), ip=self.information_package, sa=self.submission_agreement)
         validate_template(self.submission_agreement.template, data)
 

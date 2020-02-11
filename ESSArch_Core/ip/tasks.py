@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
@@ -528,7 +528,7 @@ class CreateWorkarea(DBTask):
         user = User.objects.get(pk=user)
         Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
         Notification.objects.create(
-            message="%s is now in workarea" % ip.object_identifier_value,
+            message="%s is now in workspace" % ip.object_identifier_value,
             level=logging.INFO, user=user, refresh=True
         )
 

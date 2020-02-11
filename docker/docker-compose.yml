@@ -159,6 +159,21 @@ services:
     networks:
       - essarch
 
+  elasticsearch-test:
+    build:
+      context: elasticsearch
+      args:
+        ELK_VERSION: 6.5.4
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - '19200:9200'
+      - '19300:9300'
+    environment:
+      ES_JAVA_OPTS: '-Xmx1g -Xms1g'
+    networks:
+      - essarch
+
 volumes:
   essarch_elasticsearch_data:
   essarch_mariadb_data:
