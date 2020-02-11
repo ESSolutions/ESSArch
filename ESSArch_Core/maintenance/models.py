@@ -18,6 +18,7 @@ from weasyprint import HTML
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.tags.models import TagVersion
 from ESSArch_Core.util import convert_file, find_destination, has_write_access
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
@@ -197,13 +198,22 @@ class AppraisalJob(MaintenanceJob):
                 appraisal_job_entries__job=self,
             )
 
+        def delete_file(old_ip, filepath, relpath):
+            entry = AppraisalJobEntry.objects.create(
+                job=self,
+                start_date=timezone.now(),
+                ip=old_ip,
+                document=relpath
+            )
+            os.remove(filepath)
+            entry.end_date = timezone.now()
+            entry.save()
+            return entry
+
         ips = get_information_packages()
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
         for ip in ips.iterator():
-            # inactivate old generations
-            InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
-
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
 
@@ -245,34 +255,25 @@ class AppraisalJob(MaintenanceJob):
                         if os.path.isdir(path):
                             for root, _dirs, files in walk(path):
                                 rel = os.path.relpath(root, dstdir)
-
                                 for f in files:
-                                    fpath = os.path.join(root, f)
-                                    job_entry = AppraisalJobEntry.objects.create(
-                                        job=self,
-                                        start_date=timezone.now(),
-                                        ip=ip,
-                                        document=os.path.join(rel, f)
-                                    )
-                                    os.remove(fpath)
-                                    job_entry.end_date = timezone.now()
-                                    job_entry.save()
+                                    relfilepath = os.path.join(rel, f)
+                                    delete_file(ip, os.path.join(root, f), relfilepath)
 
                         elif os.path.isfile(path):
-                            rel = os.path.relpath(path, dstdir)
+                            relfilepath = os.path.relpath(path, dstdir)
+                            delete_file(ip, path, relfilepath)
 
-                            job_entry = AppraisalJobEntry.objects.create(
-                                job=self,
-                                start_date=timezone.now(),
-                                ip=ip,
-                                document=rel,
-                            )
-                            os.remove(path)
-                            job_entry.end_date = timezone.now()
-                            job_entry.save()
+                # delete tags connected to IP
+                TagVersion.objects.filter(
+                    Q(Q(elastic_index='document') | Q(elastic_index='directory')),
+                    tag__information_package=ip,
+                ).delete()
 
                 # preserve new generation
                 preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
+
+                # inactivate old generations
+                InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
 
     def _run(self):
         if self.rule.type == ARCHIVAL_OBJECT:
