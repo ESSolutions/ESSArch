@@ -25,9 +25,11 @@ from ESSArch_Core.agents.models import (
     MainAgentType,
     RefCode,
 )
+from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import Feature
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.search import alias_migration
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import Archive, Component, File
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
@@ -85,7 +87,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
     def setUpTestData(cls):
         cls.url = reverse('search-list')
         Feature.objects.create(name='archival descriptions', enabled=True)
-        cls.user = User.objects.create(is_superuser=True)
+        cls.user = User.objects.create()
         permission = Permission.objects.get(codename='search')
         cls.user.user_permissions.add(permission)
 
@@ -123,7 +125,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         with self.subTest('without archive'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertNotEqual(res.data['hits'], [])
+            self.assertEqual(len(res.data['hits']), 1)
 
         structure_type = StructureType.objects.create()
         structure_template = Structure.objects.create(type=structure_type, is_template=True)
@@ -217,3 +219,68 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+
+class DocumentSearchTestCase(ESSArchSearchBaseTestCase):
+    fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('search-list')
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
+        org_group_type = GroupType.objects.create(codename='organization')
+        cls.group = Group.objects.create(group_type=org_group_type)
+        cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
+
+    def setUp(self):
+        super().setUp()
+
+        permission = Permission.objects.get(codename='search')
+        self.user = User.objects.create()
+        self.user.user_permissions.add(permission)
+        self.group.add_member(self.user.essauth_member)
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_search_document_in_ip_with_other_user_responsible_without_permission_to_see_it(self):
+        other_user = User.objects.create(username='other')
+        self.group.add_member(other_user.essauth_member)
+
+        ip = InformationPackage.objects.create(responsible=other_user)
+        self.group.add_object(ip)
+
+        document_tag = Tag.objects.create(information_package=ip)
+        document_tag_version = TagVersion.objects.create(
+            tag=document_tag,
+            type=self.component_type,
+            elastic_index="document",
+        )
+        File.from_obj(document_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 0)
+
+    def test_search_document_in_ip_with_other_user_responsible_with_permission_to_see_it(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='see_other_user_ip_files'))
+
+        other_user = User.objects.create(username='other')
+        self.group.add_member(other_user.essauth_member)
+
+        ip = InformationPackage.objects.create(responsible=other_user)
+        self.group.add_object(ip)
+
+        document_tag = Tag.objects.create(information_package=ip)
+        document_tag_version = TagVersion.objects.create(
+            tag=document_tag,
+            type=self.component_type,
+            elastic_index="document",
+        )
+        File.from_obj(document_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+        self.assertEqual(res.data['hits'][0]['_id'], str(document_tag_version.pk))
