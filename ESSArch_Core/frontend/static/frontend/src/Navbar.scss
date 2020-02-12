@@ -328,12 +328,6 @@
     width: 0px;
     background: transparent;
   }
-  .chosen:after,
-  .chosen:hover:after {
-    width: 100%;
-    height: 1px;
-    background: white;
-  }
   @include small-screen {
     flex-wrap: nowrap;
     overflow-x: auto;
@@ -354,6 +348,10 @@
       &:after {
         color: #b4caf8;
       }
+    }
+    &.chosen {
+      border-bottom: 1px solid white;
+      padding-bottom: 2px;
     }
   }
 }

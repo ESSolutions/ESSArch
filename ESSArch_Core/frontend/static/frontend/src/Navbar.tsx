@@ -1,9 +1,11 @@
 import React, {FunctionComponent} from 'react';
-import {Link, LinkProps} from 'react-router-dom';
+import {Link, LinkProps, NavLink} from 'react-router-dom';
 
 import './Navbar.scss';
 
-export const NavbarItem: FunctionComponent<LinkProps> = props => <Link className="nav-item" {...props}></Link>;
+export const NavbarItem: FunctionComponent<LinkProps> = props => {
+  return <NavLink className="nav-item" activeClassName="chosen" {...props}></NavLink>;
+};
 
 const Navbar: FunctionComponent = () => (
   <div className="header">

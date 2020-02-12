@@ -1,6 +1,6 @@
-import React, {useContext} from 'react';
+import React from 'react';
 import Loadable from 'react-loadable';
-import {Link, Redirect, Route, Switch} from 'react-router-dom';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubNavbar, NavbarItem} from './Navbar';
 import CollectContentPage from './CollectContentPage';
 import ApprovalPage from './ApprovalPage';
@@ -39,6 +39,8 @@ const Routes = () => {
         <Switch>
           <Route path="/producer/prepare" component={PrepareSIPPage} />
           <Route path="/producer/collect" component={CollectContentPage} />
+          <Route path="/producer/create-sip" render={() => <h3>Create SIP</h3>} />
+          <Route path="/producer/submit-sip" render={() => <h3>Submit SIP</h3>} />
           <Route path="/" render={() => <Redirect to={'/producer/prepare'} />} />
         </Switch>
       </Route>
