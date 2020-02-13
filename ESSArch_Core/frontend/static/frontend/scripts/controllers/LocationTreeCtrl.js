@@ -257,7 +257,7 @@ export default class LocationTreeCtrl {
     };
 
     vm.ready = function(jqobj, event) {
-      if (vm.selected !== null && !angular.isUndefined(vm.selected)) {
+      if (vm.treeConfig.version < 3 && vm.selected !== null && !angular.isUndefined(vm.selected)) {
         vm.setSelected(vm.selected).then(function() {
           vm.markTreeNode(vm.selected);
         });
@@ -291,7 +291,9 @@ export default class LocationTreeCtrl {
 
     vm.refreshSelected = function() {
       vm.getNode(vm.selected.id).then(function(node) {
-        vm.setSelected(node);
+        vm.setSelected(node).then(() => {
+          vm.markTreeNode(node);
+        });
       });
     };
 
