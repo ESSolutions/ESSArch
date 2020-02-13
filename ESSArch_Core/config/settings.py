@@ -252,7 +252,7 @@ ELASTICSEARCH_TEST_CONNECTIONS = {
                 'port': elasticsearch_test_url.port,
             },
         ],
-        'timeout': 60,
+        'timeout': 10,
         'max_retries': 1,
     }
 }
