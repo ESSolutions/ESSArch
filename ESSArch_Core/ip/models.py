@@ -102,6 +102,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
     find_destination,
     generate_file_response,
@@ -633,6 +634,9 @@ class InformationPackage(models.Model):
 
         full_path = os.path.join(ctsdir, ctsfile)
         return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
+
+    def get_doc(self):
+        return InformationPackageDocument.get(id=str(self.pk))
 
     def get_archive_tag(self):
         if self.tag is not None:
@@ -1615,6 +1619,8 @@ class InformationPackage(models.Model):
                 except ValueError:
                     # file has not been indexed, index it
                     index_path(self, src)
+
+        InformationPackageDocument.from_obj(self).save()
 
     def get_cached_storage_object(self):
         cache_method = self.policy.cache_storage
