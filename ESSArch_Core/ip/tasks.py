@@ -13,6 +13,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
+from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 
@@ -492,6 +493,8 @@ class MarkArchived(DBTask):
 
 
 class DeleteInformationPackage(DBTask):
+    logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
+
     def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()
 
@@ -508,6 +511,12 @@ class DeleteInformationPackage(DBTask):
             raise
 
         self.set_progress(99, 100)
+
+        try:
+            ip.get_doc().delete()
+        except NotFoundError:
+            if ip.archived:
+                self.logger.warning('Information package document not found: {}'.format(ip.pk))
 
         if from_db:
             with transaction.atomic():

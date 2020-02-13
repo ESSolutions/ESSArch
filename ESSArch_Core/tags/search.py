@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Prefetch
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -141,16 +141,37 @@ class ComponentSearch(FacetedSearch):
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
-            Q('bool', **{'must_not': {'exists': {'field': 'archive'}}}),
+            Q('bool', must_not=[
+                Q('nested', path='archive', ignore_unmapped=True, query=Q('bool', filter=Q('exists', field='archive')))
+            ]),
             Q('bool', **{'must_not': {'terms': {'_index': ['component-*', 'structure_unit-*']}}}),
         ]))
 
-        organization_ips = InformationPackage.objects.for_user(self.user, [])
-        organization_ips = [str(x) for x in list(organization_ips.values_list('pk', flat=True))]
+        # * get everything except documents connected to IPs available to the user
+        #
+        # * get documents connected to any IP available to the user if the user has the
+        #   permission to see files in other user's IPs. Otherwise, only get documents
+        #   from IPs that the user is responsible for
+
+        organization_ips = InformationPackage.objects.for_user(self.user, []).values_list('pk', flat=True)
+
+        if self.user.has_perm('ip.see_other_user_ip_files'):
+            document_ips = organization_ips
+        else:
+            document_ips = self.user.information_packages.values_list('pk', flat=True)
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
-            Q('terms', ip=organization_ips),
-            Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            Q('bool', must=[
+                Q('bool', minimum_should_match=1, should=[
+                    ~Q('exists', field='ip'),
+                    Q('terms', ip=list(organization_ips))
+                ]),
+                Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            ]),
+            Q('bool', must=[
+                Q('terms', _index=['document-*']),
+                Q('bool', minimum_should_match=1, should=[~Q('exists', field='ip'), Q('terms', ip=list(document_ips))])
+            ]),
         ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
@@ -308,6 +329,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             'tag__current_version', 'parent__tag__current_version'
         )
         tag_version = qs.select_related('tag').prefetch_related(Prefetch('tag__structures', prefetched_structures))
+
+        if not self.request.user.has_perm('ip.see_other_user_ip_files'):
+            tag_version = tag_version.exclude(
+                ~models.Q(tag__information_package__responsible=self.request.user),
+                elastic_index='document',
+            )
 
         obj = get_object_or_404(tag_version, pk=id)
         root = obj.get_root()
