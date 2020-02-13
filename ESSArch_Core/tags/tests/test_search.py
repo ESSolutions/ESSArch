@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
     connections,
     get_connection as get_es_connection,
@@ -46,7 +47,7 @@ def get_test_client(nowait=False):
     client = get_es_connection('default')
 
     # wait for yellow status
-    for _ in range(1 if nowait else 100):
+    for _ in range(1 if nowait else 5):
         try:
             client.cluster.health(wait_for_status="yellow")
             return client
@@ -54,7 +55,7 @@ def get_test_client(nowait=False):
             time.sleep(0.1)
     else:
         # timeout
-        raise SkipTest("Elasticsearch failed to start.")
+        raise SkipTest("Elasticsearch failed to start")
 
 
 @override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
@@ -66,9 +67,13 @@ class ESSArchSearchBaseTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
+        if cls._overridden_settings:
+            cls._cls_overridden_context = override_settings(**cls._overridden_settings)
+            cls._cls_overridden_context.enable()
+
         connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
         cls.es_client = cls._get_client()
+        super().setUpClass()
 
     def setUp(self):
         for _index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
