@@ -267,7 +267,7 @@ class DefaultValue(models.Model):
 
 
 class Feature(models.Model):
-    name = models.CharField(_('name'), max_length=100, blank=False)
+    name = models.CharField(_('name'), max_length=100, blank=False, unique=True)
     description = models.TextField(_('description'), blank=True)
     enabled = models.BooleanField(_('enabled'))
 
