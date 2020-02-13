@@ -37,7 +37,7 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceRule
         fields = (
-            'id', 'name', 'description', 'frequency', 'specification', 'user', 'public',
+            'id', 'name', 'description', 'specification', 'user', 'public',
         )
 
 

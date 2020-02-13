@@ -33,7 +33,6 @@ import zipfile
 from celery import states as celery_states
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
-from crontab import CronTab
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
@@ -367,34 +366,6 @@ class UnmountIdleDrives(DBTask):
                 )
 
 
-class ScheduleAppraisalJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-
-        # get rules without future jobs scheduled
-        rules = AppraisalRule.objects.filter(
-            information_packages__isnull=False, information_packages__active=True,
-            information_packages__appraisal_date__lte=now
-        ).exclude(jobs__start_date__gte=now).exclude(frequency__exact='')
-
-        for rule in rules.iterator():
-            cron_entry = CronTab(rule.frequency)
-
-            try:
-                latest_job = rule.jobs.latest()
-                delay = cron_entry.next(timezone.localtime(latest_job.start_date))
-                last = latest_job.start_date
-            except AppraisalJob.DoesNotExist:
-                # no job has been created yet
-                delay = cron_entry.next(timezone.localtime(now))
-                last = now
-
-            next_date = last + datetime.timedelta(seconds=delay)
-            AppraisalJob.objects.create(rule=rule, start_date=next_date)
-
-
 class PollAppraisalJobs(DBTask):
     track = False
 
@@ -404,33 +375,6 @@ class PollAppraisalJobs(DBTask):
 
         for job in jobs.iterator():
             job.run()
-
-
-class ScheduleConversionJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-
-        # get rules without future jobs scheduled
-        rules = ConversionRule.objects.filter(
-            information_packages__isnull=False, information_packages__active=True,
-        ).exclude(jobs__start_date__gte=now).exclude(frequency__exact='')
-
-        for rule in rules.iterator():
-            cron_entry = CronTab(rule.frequency)
-
-            try:
-                latest_job = rule.jobs.latest()
-                delay = cron_entry.next(timezone.localtime(latest_job.start_date))
-                last = latest_job.start_date
-            except ConversionJob.DoesNotExist:
-                # no job has been created yet
-                delay = cron_entry.next(timezone.localtime(now))
-                last = now
-
-            next_date = last + datetime.timedelta(seconds=delay)
-            ConversionJob.objects.create(rule=rule, start_date=next_date)
 
 
 class PollConversionJobs(DBTask):

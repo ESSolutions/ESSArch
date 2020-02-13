@@ -54,9 +54,6 @@ class MaintenanceRule(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # cron syntax, blank for manual only appraisal
-    frequency = models.CharField(max_length=255, blank=True, default='')
-
     # empty for all files in IP or all fields in tree node
     specification = JSONField(null=True, default=None)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
