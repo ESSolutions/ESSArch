@@ -1,7 +1,7 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_TEMPLATE' | translate}}</h3>
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.EDIT_APPRAISAL_TEMPLATE' | translate}}</h3>
 </div>
-<form name="$ctrl.createForm" ng-submit="$ctrl.create()">
+<form name="$ctrl.createForm" ng-submit="$ctrl.save($ctrl.data.appraisal)">
   <div class="modal-body" id="modal-body">
     <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
     <hr />
@@ -30,12 +30,12 @@
     <button
       class="btn btn-primary"
       type="submit"
-      ng-disabled="$ctrl.createForm.$invalid || $ctrl.addingTemplate"
+      ng-disabled="$ctrl.createForm.$invalid || $ctrl.saving"
       focused="true"
     >
-      {{'CREATE' | translate}} <i ng-if="$ctrl.addingTemplate" class="fas fa-spinner fa-spin"></i>
+      {{'SAVE' | translate}} <i ng-if="$ctrl.saving" class="fas fa-spinner fa-spin"></i>
     </button>
-    <button class="btn btn-default" ng-disabled="$ctrl.addingTemplate" type="button" ng-click="$ctrl.cancel()">
+    <button class="btn btn-default" ng-disabled="$ctrl.saving" type="button" ng-click="$ctrl.cancel()">
       {{'CANCEL' | translate}}
     </button>
   </div>

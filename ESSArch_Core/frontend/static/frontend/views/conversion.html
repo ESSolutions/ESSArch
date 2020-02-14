@@ -1,10 +1,10 @@
 <div class="content-wrapper">
   <div class="conversion-page">
-    <div class="table-container" st-table="vm.rules" st-pipe="vm.rulePipe">
+    <div class="table-container" st-table="vm.templates" st-pipe="vm.templatePipe">
       <div class="title-action-button-row">
         <div class="title">
           <h4>
-            {{'ARCHIVE_MAINTENANCE.CONVERSION_RULES' | translate}}
+            {{'ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATES' | translate}}
           </h4>
           <a
             target="_blank"
@@ -19,7 +19,7 @@
         <div class="action-button">
           <button
             type="button"
-            ng-click="vm.createRuleModal()"
+            ng-click="vm.createTemplateModal()"
             class="btn btn-primary"
             uib-tooltip="{{'ARCHIVE_MAINTENANCE.PREPARECONVERSIONDESC' | translate}}"
             tooltip-placement="auto left"
@@ -33,7 +33,7 @@
         <label for items-per-page></label>
         <select
           class="form-control items-per-page"
-          ng-model="vm.rulesPerPage"
+          ng-model="vm.templatesPerPage"
           ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
           uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
           tooltip-placement="auto top"
@@ -46,7 +46,7 @@
             class="form-control"
             ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
             type="text"
-            uib-tooltip="{{'GLOBALSEARCHDESC_RULE' | translate}}"
+            uib-tooltip="{{'GLOBALSEARCHDESC_TEMPLATE' | translate}}"
             tooltip-placement="auto top"
             tooltip-append-to-body="true"
           />
@@ -64,9 +64,9 @@
         </button>
         <div class="refresh-icon">
           <span
-            ng-click="vm.rulePipe(vm.ruleTableState)"
+            ng-click="vm.templatePipe(vm.templateTableState)"
             class="clickable angular-animate fas fa-sync-alt fa-lg"
-            ng-class="{'fa-sync-alt-animate': ruleLoading }"
+            ng-class="{'fa-sync-alt-animate': templateLoading }"
             uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
             tooltip-placement="auto left"
             tooltip-append-to-body="true"
@@ -83,22 +83,22 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="x in vm.rules">
-              <td class="clickable" ng-click="vm.ruleModal(x)">{{x.name}}</td>
-              <td class="clickable" ng-click="vm.ruleModal(x)">{{x.frequency}}</td>
+            <tr ng-repeat="x in vm.templates">
+              <td class="clickable" ng-click="vm.templateModal(x)">{{x.name}}</td>
+              <td class="clickable" ng-click="vm.templateModal(x)">{{x.frequency}}</td>
               <td>
                 <button
                   class="fas fa-trash-alt btn btn-default btn-sm"
-                  ng-click="vm.removeConversionRuleModal(x)"
+                  ng-click="vm.removeConversionTemplateModal(x)"
                   permission
-                  permission-only="'maintenance.delete_conversionrule'"
+                  permission-only="'maintenance.delete_conversiontemplate'"
                 ></button>
               </td>
             </tr>
-            <tr ng-if="!vm.rules.length && !ruleLoading" class="empty-table-indicator">
+            <tr ng-if="!vm.templates.length && !templateLoading" class="empty-table-indicator">
               <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
             </tr>
-            <tr ng-if="!vm.rules.length && ruleLoading" class="empty-table-indicator">
+            <tr ng-if="!vm.templates.length && templateLoading" class="empty-table-indicator">
               <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
             </tr>
           </tbody>
@@ -108,7 +108,7 @@
           style="float: right;"
           st-template="static/frontend/views/file_pagination.html"
           st-pagination=""
-          st-items-by-page="vm.rulesPerPage"
+          st-items-by-page="vm.templatesPerPage"
           st-displayed-pages="7"
         ></div>
       </div>
@@ -141,14 +141,14 @@
             <tr>
               <th>{{'ID' | translate}}</th>
               <th>{{'START' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="x in vm.ongoing">
               <td>{{x.id}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td>{{x.rule}}</td>
+              <td>{{x.template}}</td>
             </tr>
             <tr ng-if="!vm.ongoing.length && !ongoingLoading" class="empty-table-indicator">
               <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -196,7 +196,7 @@
             <tr>
               <th>{{'ID' | translate}}</th>
               <th>{{'START' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
               <th>{{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}</th>
             </tr>
           </thead>
@@ -204,7 +204,7 @@
             <tr ng-repeat="x in vm.next">
               <td>{{x.id}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td>{{x.rule}}</td>
+              <td>{{x.template}}</td>
               <td>
                 <button class="btn btn-success btn-small" ng-click="vm.previewModal(x)">
                   {{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}
@@ -259,7 +259,7 @@
               <th>{{'START' | translate}}</th>
               <th>{{'END' | translate}}</th>
               <th>{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.RULE' | translate}}</th>
+              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
             </tr>
           </thead>
           <tbody>
@@ -268,7 +268,7 @@
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td><a ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a></td>
-              <td>{{x.rule}}</td>
+              <td>{{x.template}}</td>
             </tr>
             <tr ng-if="!vm.finished.length && !finishedLoading" class="empty-table-indicator">
               <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>

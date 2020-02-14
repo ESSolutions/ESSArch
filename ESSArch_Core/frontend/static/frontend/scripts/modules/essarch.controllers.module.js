@@ -283,7 +283,6 @@ export default angular
   ])
   .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', '$translate', AppCtrl])
   .controller('AppraisalModalInstanceCtrl', [
-    'cronService',
     '$filter',
     '$translate',
     'IP',
@@ -292,6 +291,7 @@ export default angular
     '$http',
     'data',
     'Notifications',
+    'Utils',
     AppraisalModalInstanceCtrl,
   ])
   .controller('ArchiveMaintenanceCtrl', [ArchiveMaintenanceCtrl])

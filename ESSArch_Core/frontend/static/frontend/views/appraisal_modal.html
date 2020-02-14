@@ -1,5 +1,5 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.ADD_APPRAISAL_RULE_TO_IP' | translate}}</h3>
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.ADD_APPRAISAL_TEMPLATE_TO_IP' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
   <h4>{{'ARCHIVE_MAINTENANCE.ARCHIVE_OBJECTS' | translate}}</h4>
@@ -28,18 +28,18 @@
         </tr>
         <tr
           ng-if="ip.expanded"
-          ng-repeat="x in ip.rules track by $index"
+          ng-repeat="x in ip.templates track by $index"
           style="background-color:rgba(50,120,255,.1);"
         >
           <td colspan="2" style="padding-left: 15px;">{{x.name}}</td>
           <td>{{x.frequency}}</td>
           <td>
-            <button class="fas fa-trash-alt btn btn-default btn-sm" ng-click="$ctrl.removeRule(ip, x)"></button>
+            <button class="fas fa-trash-alt btn btn-default btn-sm" ng-click="$ctrl.removeTemplate(ip, x)"></button>
           </td>
         </tr>
         <tr ng-if="ip.expanded" ng-repeat-end>
-          <td colspan="4" ng-click="$ctrl.showRulesTable(ip)" class="clickable add-rule-row">
-            {{'ARCHIVE_MAINTENANCE.ADD_RULE' | translate}}
+          <td colspan="4" ng-click="$ctrl.showTemplatesTable(ip)" class="clickable add-template-row">
+            {{'ARCHIVE_MAINTENANCE.ADD_TEMPLATE' | translate}}
           </td>
         </tr>
         <tr ng-if="!$ctrl.data.ips.length" class="empty-table-indicator">
@@ -48,8 +48,8 @@
       </tbody>
     </table>
   </div>
-  <div ng-if="$ctrl.appraisalRules.length">
-    <h4>{{'ARCHIVE_MAINTENANCE.APPRAISAL_RULES' | translate}}</h4>
+  <div ng-if="$ctrl.appraisalTemplates.length">
+    <h4>{{'ARCHIVE_MAINTENANCE.APPRAISAL_TEMPLATES' | translate}}</h4>
     <div class="table-x-overflow table-container">
       <table class="table table-striped">
         <thead>
@@ -61,19 +61,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr ng-repeat="x in $ctrl.appraisalRules">
+          <tr ng-repeat="x in $ctrl.appraisalTemplates">
             <td>{{x.id}}</td>
             <td>{{x.name}}</td>
             <td>{{x.frequency}}</td>
             <td>
-              <button class="btn btn-success btn-small" ng-click="$ctrl.addRule($ctrl.ip, x)">
+              <button class="btn btn-success btn-small" ng-click="$ctrl.addTemplate($ctrl.ip, x)">
                 {{'ADD' | translate}}
               </button>
             </td>
           </tr>
         </tbody>
       </table>
-      <button class="btn btn-default close-rules-button" ng-click="$ctrl.closeRulesTable()">
+      <button class="btn btn-default close-templates-button" ng-click="$ctrl.closeTemplatesTable()">
         {{'CLOSE' | translate}}
       </button>
     </div>

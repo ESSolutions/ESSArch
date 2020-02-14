@@ -10,14 +10,14 @@ export default class ConversionModalInstanceCtrl {
     $ctrl.data = data;
     $ctrl.requestTypes = data.types;
     $ctrl.request = data.request;
-    $ctrl.conversionRules = [];
+    $ctrl.conversionTemplates = [];
     $ctrl.ip = null;
-    $ctrl.showRulesTable = function(ip) {
+    $ctrl.showTemplatesTable = function(ip) {
       $ctrl.ip = ip;
       return $http
-        .get(appConfig.djangoUrl + 'conversion-rules/', {params: {not_related_to_ip: ip.id}})
+        .get(appConfig.djangoUrl + 'conversion-templates/', {params: {not_related_to_ip: ip.id}})
         .then(function(response) {
-          $ctrl.conversionRules = response.data;
+          $ctrl.conversionTemplates = response.data;
         });
     };
 
@@ -26,8 +26,8 @@ export default class ConversionModalInstanceCtrl {
         ip.expanded = false;
       } else {
         ip.expanded = true;
-        IP.conversionRules({id: ip.id}).$promise.then(function(resource) {
-          ip.rules = resource;
+        IP.conversionTemplates({id: ip.id}).$promise.then(function(resource) {
+          ip.templates = resource;
         });
       }
     };
@@ -84,9 +84,9 @@ export default class ConversionModalInstanceCtrl {
       }
     };
 
-    function getRules() {
-      IP.conversionRules({id: ip.id}).$promise.then(function(resource) {
-        ip.rules = resource;
+    function getTemplates() {
+      IP.conversionTemplates({id: ip.id}).$promise.then(function(resource) {
+        ip.templates = resource;
       });
     }
     if (data.preview && data.job) {
@@ -94,22 +94,22 @@ export default class ConversionModalInstanceCtrl {
         $ctrl.jobPreview = response.data;
       });
     }
-    $ctrl.addRule = function(ip, rule) {
-      $ctrl.addingRule = true;
+    $ctrl.addTemplate = function(ip, template) {
+      $ctrl.addingTemplate = true;
       $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/add-conversion-rule/',
+        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/add-conversion-template/',
         method: 'POST',
         data: {
-          id: rule.id,
+          id: template.id,
         },
       })
         .then(function(response) {
-          $ctrl.addingRule = false;
-          ip.rules.push(rule);
-          $ctrl.showRulesTable(ip);
+          $ctrl.addingTemplate = false;
+          ip.templates.push(template);
+          $ctrl.showTemplatesTable(ip);
         })
         .catch(function(response) {
-          $ctrl.addingRule = false;
+          $ctrl.addingTemplate = false;
         });
     };
 
@@ -127,39 +127,39 @@ export default class ConversionModalInstanceCtrl {
       delete $ctrl.specifications[key];
     };
 
-    $ctrl.removeRule = function(ip, rule) {
-      $ctrl.removingRule = true;
+    $ctrl.removeTemplate = function(ip, template) {
+      $ctrl.removingTemplate = true;
       $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/remove-conversion-rule/',
+        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/remove-conversion-template/',
         method: 'POST',
         data: {
-          id: rule.id,
+          id: template.id,
         },
       })
         .then(function(response) {
-          ip.rules.forEach(function(x, index, array) {
-            if (x.id == rule.id) {
+          ip.templates.forEach(function(x, index, array) {
+            if (x.id == template.id) {
               array.splice(index, 1);
             }
           });
-          $ctrl.removingRule = false;
-          $ctrl.showRulesTable(ip);
+          $ctrl.removingTemplate = false;
+          $ctrl.showTemplatesTable(ip);
         })
         .catch(function(response) {
-          $ctrl.removingRule = false;
+          $ctrl.removingTemplate = false;
         });
     };
-    $ctrl.closeRulesTable = function() {
-      $ctrl.conversionRules = [];
+    $ctrl.closeTemplatesTable = function() {
+      $ctrl.conversionTemplates = [];
       $ctrl.ip = null;
     };
 
-    $ctrl.createJob = function(rule) {
+    $ctrl.createJob = function(template) {
       $ctrl.creatingJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/',
         method: 'POST',
-        data: {rule: rule.id},
+        data: {template: template.id},
       })
         .then(function(response) {
           $ctrl.creatingJob = false;
@@ -172,12 +172,12 @@ export default class ConversionModalInstanceCtrl {
     };
 
     $ctrl.runningJob = false;
-    $ctrl.createJobAndStart = function(rule) {
+    $ctrl.createJobAndStart = function(template) {
       $ctrl.runningJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/',
         method: 'POST',
-        data: {rule: rule.id},
+        data: {template: template.id},
       })
         .then(function(response) {
           $http({
@@ -208,53 +208,53 @@ export default class ConversionModalInstanceCtrl {
     $ctrl.removePath = function(path) {
       $ctrl.pathList.splice($ctrl.pathList.indexOf(path), 1);
     };
-    $ctrl.conversionRule = null;
+    $ctrl.conversionTemplate = null;
     $ctrl.create = function() {
-      $ctrl.addingRule = true;
+      $ctrl.addingTemplate = true;
       if (angular.equals($ctrl.specifications, {})) {
         $ctrl.showRequired = true;
-        $ctrl.addingRule = false;
+        $ctrl.addingTemplate = false;
         return;
       }
       $ctrl.data = {
         name: $ctrl.name,
-        frequency: $ctrl.manualRule ? '' : $ctrl.frequency,
+        frequency: $ctrl.manualTemplate ? '' : $ctrl.frequency,
         specification: $ctrl.specifications,
-        public: $ctrl.publicRule,
+        public: $ctrl.publicTemplate,
         description: $ctrl.description,
       };
       $http({
-        url: appConfig.djangoUrl + 'conversion-rules/',
+        url: appConfig.djangoUrl + 'conversion-templates/',
         method: 'POST',
         data: $ctrl.data,
       })
         .then(function(response) {
-          $ctrl.addingRule = false;
-          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.RULE_CREATED'), 'success');
+          $ctrl.addingTemplate = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_CREATED'), 'success');
           $uibModalInstance.close($ctrl.data);
         })
         .catch(function(response) {
-          $ctrl.addingRule = false;
+          $ctrl.addingTemplate = false;
         });
     };
 
     $ctrl.removeConversion = function() {
-      $ctrl.removingRule = true;
+      $ctrl.removingTemplate = true;
       const conversion = data.conversion;
       $http({
-        url: appConfig.djangoUrl + 'conversion-rules/' + conversion.id,
+        url: appConfig.djangoUrl + 'conversion-templates/' + conversion.id,
         method: 'DELETE',
       })
         .then(function(response) {
-          $ctrl.removingRule = false;
+          $ctrl.removingTemplate = false;
           Notifications.add(
-            $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_RULE_REMOVED', {name: conversion.name}),
+            $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATE_REMOVED', {name: conversion.name}),
             'success'
           );
           $uibModalInstance.close();
         })
         .catch(function(response) {
-          $ctrl.removingRule = false;
+          $ctrl.removingTemplate = false;
         });
     };
 
@@ -266,9 +266,9 @@ export default class ConversionModalInstanceCtrl {
     };
     $ctrl.submitConversion = function(conversion) {
       Notifications.add(
-        $translate.instant('ARCHIVE_MAINTENANCE.NODE_ADDED_TO_CONVERSION_RULE', {
+        $translate.instant('ARCHIVE_MAINTENANCE.NODE_ADDED_TO_CONVERSION_TEMPLATE', {
           node: $ctrl.data.record.name,
-          rule: conversion.name,
+          template: conversion.name,
         }),
         'success'
       );

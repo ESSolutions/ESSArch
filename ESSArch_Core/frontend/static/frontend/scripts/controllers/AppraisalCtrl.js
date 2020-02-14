@@ -15,11 +15,11 @@ export default class AppraisalCtrl {
     listViewService
   ) {
     const vm = this;
-    vm.rulesPerPage = 10;
+    vm.templatesPerPage = 10;
     vm.ongoingPerPage = 10;
     vm.nextPerPage = 10;
     vm.finishedPerPage = 10;
-    $scope.ruleLoading = false;
+    $scope.templateLoading = false;
     $scope.ongoingLoading = false;
     $scope.nextLoading = false;
     $scope.finishedLoading = false;
@@ -31,25 +31,25 @@ export default class AppraisalCtrl {
       $interval.cancel(appraisalInterval);
     });
     var appraisalInterval = $interval(function() {
-      vm.rulePipe(vm.ruleTableState);
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     }, appConfig.ipInterval);
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
-      vm.rulePipe(vm.ruleTableState);
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     });
 
     /**
-     * Smart table pipe function for appraisal rules
+     * Smart table pipe function for appraisal templates
      * @param {*} tableState
      */
-    vm.rulePipe = function(tableState) {
-      $scope.ruleLoading = true;
+    vm.templatePipe = function(tableState) {
+      $scope.templateLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
         if (tableState.search.predicateObject) {
@@ -60,20 +60,20 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
-        Appraisal.getRules(paginationParams, sortString, search).then(function(response) {
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.templatesPerPage);
+        Appraisal.getTemplates(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
-          vm.ruleTableState = tableState;
-          vm.ruleFilters.forEach(function(x) {
-            response.data.forEach(function(rule) {
-              if (x == rule.id) {
-                rule.usedAsFilter = true;
+          vm.templateTableState = tableState;
+          vm.templateFilters.forEach(function(x) {
+            response.data.forEach(function(template) {
+              if (x == template.id) {
+                template.usedAsFilter = true;
               }
             });
           });
-          vm.rules = response.data;
-          $scope.ruleLoading = false;
+          vm.templates = response.data;
+          $scope.templateLoading = false;
         });
       }
     };
@@ -160,7 +160,7 @@ export default class AppraisalCtrl {
     };
 
     /**
-     * Run appraisal rule now
+     * Run appraisal template now
      * @param {Object} appraisal
      */
     vm.runJob = function(job) {
@@ -173,23 +173,23 @@ export default class AppraisalCtrl {
     };
 
     /*
-     * Array containing chosen(checked) appraisal rules to use
+     * Array containing chosen(checked) appraisal templates to use
      * as filter for the other appraisal tables
      */
-    vm.ruleFilters = [];
+    vm.templateFilters = [];
 
     /**
-     * Add chosen appraisal rule to list of filters or remove it.
-     * Connected to apprailsal rule table checkbox
-     * @param {Object} rule
+     * Add chosen appraisal template to list of filters or remove it.
+     * Connected to apprailsal template table checkbox
+     * @param {Object} template
      */
-    vm.useAsFilter = function(rule) {
-      if (!vm.ruleFilters.includes(rule.id)) {
-        rule.used_as_filter = true;
-        vm.ruleFilters.push(rule.id);
+    vm.useAsFilter = function(template) {
+      if (!vm.templateFilters.includes(template.id)) {
+        template.used_as_filter = true;
+        vm.templateFilters.push(template.id);
       } else {
-        vm.ruleFilters.splice(vm.ruleFilters.indexOf(rule.id), 1);
-        rule.used_as_filter = false;
+        vm.templateFilters.splice(vm.templateFilters.indexOf(template.id), 1);
+        template.used_as_filter = false;
       }
     };
     /**
@@ -205,9 +205,9 @@ export default class AppraisalCtrl {
      *  Clear search input
      */
     $scope.clearSearch = function() {
-      delete vm.ruleTableState.search.predicateObject;
+      delete vm.templateTableState.search.predicateObject;
       $('#search-input')[0].value = '';
-      vm.rulePipe();
+      vm.templatePipe();
     };
     /**
      * MODALS
@@ -231,7 +231,7 @@ export default class AppraisalCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           vm.runJob(job);
-          vm.rulePipe(vm.ruleTableState);
+          vm.templatePipe(vm.templateTableState);
           vm.nextPipe(vm.nextTableState);
           vm.ongoingPipe(vm.ongoingTableState);
           vm.finishedPipe(vm.finishedTableState);
@@ -242,7 +242,7 @@ export default class AppraisalCtrl {
       );
     };
 
-    vm.createRuleModal = function() {
+    vm.createTemplateModal = function() {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -256,7 +256,7 @@ export default class AppraisalCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+          vm.templatePipe(vm.templateTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -264,17 +264,17 @@ export default class AppraisalCtrl {
       );
     };
 
-    vm.ruleModal = function(rule) {
+    vm.templateModal = function(template) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_rule_modal.html',
+        templateUrl: 'static/frontend/views/appraisal_template_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
           data: {
-            rule: rule,
+            template: template,
           },
         },
       });
@@ -354,12 +354,12 @@ export default class AppraisalCtrl {
         }
       );
     };
-    vm.removeAppraisalRuleModal = function(appraisal) {
+    vm.editAppraisalTemplateModal = function(appraisal) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/remove_appraisal_rule_modal.html',
+        templateUrl: 'static/frontend/views/edit_appraisal_template_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
@@ -370,7 +370,30 @@ export default class AppraisalCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+          vm.templatePipe(vm.templateTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.removeAppraisalTemplateModal = function(appraisal) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_appraisal_template_modal.html',
+        controller: 'AppraisalModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            appraisal: appraisal,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
