@@ -54,7 +54,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceJob
         fields = (
-            'id', 'rule', 'status', 'start_date', 'end_date', 'user',
+            'id', 'template', 'status', 'start_date', 'end_date', 'user',
         )
 
 

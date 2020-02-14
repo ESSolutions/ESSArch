@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-19 14:48+0100\n"
+"POT-Creation-Date: 2020-02-14 17:24+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,12 +23,12 @@ msgid "Appraisal Report"
 msgstr "Gallringsrapport"
 
 #: templates/maintenance/appraisal_report.html:64
-msgid "Appraisal Rule"
-msgstr "Gallringsregel"
+msgid "Appraisal Template"
+msgstr "Gallringsmall"
 
 #: templates/maintenance/appraisal_report.html:66
-msgid "Appraisal Rule Creator"
-msgstr "Skapare av gallringsregel"
+msgid "Appraisal Template Creator"
+msgstr "Skapare av gallringsmall"
 
 #: templates/maintenance/appraisal_report.html:69
 msgid "Appraisal Job"
@@ -62,8 +62,8 @@ msgid "Conversion Report"
 msgstr "Konverteringsrapport"
 
 #: templates/maintenance/conversion_report.html:64
-msgid "Conversion Rule"
-msgstr "Konverteringsregel"
+msgid "Conversion Template"
+msgstr "Konverteringsmall"
 
 #: templates/maintenance/conversion_report.html:66
 msgid "Conversion Job"
