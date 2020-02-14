@@ -6,8 +6,9 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
     AppraisalRule,
@@ -67,6 +68,43 @@ class ConversionJobViewSetPreviewTests(TestCase):
         self.client.get(self.url, {'name': 'foo'})
 
         mock_get_job_preview_files.assert_called_once()
+
+
+class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.client.force_authenticate(user=self.user)
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.url = reverse('appraisal-job-information-packages-list', args=(self.appraisal_job.pk,))
+
+    def test_list(self):
+        ip = InformationPackage.objects.create()
+        self.appraisal_job.information_packages.add(ip)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['id'], str(ip.pk))
+
+    def test_add(self):
+        ip1 = InformationPackage.objects.create()
+        ip2 = InformationPackage.objects.create()
+
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1, ip2])
+
+    def test_delete(self):
+        ip1 = InformationPackage.objects.create()
+        ip2 = InformationPackage.objects.create()
+        self.appraisal_job.information_packages.add(ip1, ip2)
+
+        response = self.client.delete(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip2])
+
+        # verify that both IP still exists
+        ip1.refresh_from_db()
+        ip2.refresh_from_db()
 
 
 class AppraisalJobViewSetPreviewTests(TestCase):

@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+from ESSArch_Core.api.serializers import UserFilteredPrimaryKeyRelatedField
 from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
     AppraisalRule,
@@ -54,6 +56,22 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'rule', 'status', 'start_date', 'end_date', 'user',
         )
+
+
+class AppraisalJobInformationPackageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InformationPackage
+        fields = ('id',)
+
+
+class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer):
+    information_packages = serializers.ListField(
+        child=UserFilteredPrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
+    )
+
+    class Meta:
+        model = InformationPackage
+        fields = ('information_packages',)
 
 
 class AppraisalRuleSerializer(MaintenanceRuleSerializer):

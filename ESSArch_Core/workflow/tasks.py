@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-import datetime
 import logging
 import os
 import shutil
@@ -48,12 +47,7 @@ from ESSArch_Core.ip.models import (
     InformationPackage,
     Workarea,
 )
-from ESSArch_Core.maintenance.models import (
-    AppraisalJob,
-    AppraisalRule,
-    ConversionJob,
-    ConversionRule,
-)
+from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
     TapeMountedAndLockedByOtherError,

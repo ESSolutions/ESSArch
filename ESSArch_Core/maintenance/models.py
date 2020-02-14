@@ -16,10 +16,14 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.tags.models import TagVersion
-from ESSArch_Core.util import convert_file, find_destination, has_write_access
+from ESSArch_Core.util import (
+    convert_file,
+    find_destination,
+    has_write_access,
+    in_directory,
+)
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.maintenance')
@@ -54,8 +58,9 @@ class MaintenanceRule(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # empty for all files in IP or all fields in tree node
-    specification = JSONField(null=True, default=None)
+    # empty for all files in IP
+    package_file_pattern = models.CharField(max_length=255)
+
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     public = models.BooleanField(default=True)
 
@@ -68,6 +73,8 @@ class MaintenanceJob(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     rule = models.ForeignKey('maintenance.MaintenanceRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='maintenenace_jobs')
+    package_file_pattern = models.CharField(max_length=255)
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -77,6 +84,10 @@ class MaintenanceJob(models.Model):
         abstract = True
         get_latest_by = 'start_date'
         ordering = ('-start_date',)
+
+    def validate_package_file_pattern(self):
+        if not in_directory('dir', os.path.join('dir', self.package_file_pattern)):
+            raise ValueError()
 
     def _get_report_directory(self):
         entity = '%s_reports' % self.MAINTENANCE_TYPE
@@ -172,6 +183,7 @@ class AppraisalRule(MaintenanceRule):
 
 class AppraisalJob(MaintenanceJob):
     rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
 
     MAINTENANCE_TYPE = 'appraisal'
 
@@ -318,6 +330,7 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
 
 class ConversionJob(MaintenanceJob):
     rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_jobs')
 
     MAINTENANCE_TYPE = 'conversion'
 

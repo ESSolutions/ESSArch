@@ -47,6 +47,7 @@ from ESSArch_Core.ip.views import (
     WorkareaViewSet,
 )
 from ESSArch_Core.maintenance.views import (
+    AppraisalJobInformationPackageViewSet,
     AppraisalJobViewSet,
     AppraisalRuleViewSet,
     ConversionJobViewSet,
@@ -289,6 +290,15 @@ router.register(r'tasks', ProcessTaskViewSet).register(
 
 router.register(r'organizations', OrganizationViewSet, basename='organizations')
 router.register(r'appraisal-jobs', AppraisalJobViewSet)
+
+router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
+    r'information-packages',
+    AppraisalJobInformationPackageViewSet,
+    basename='appraisal-job-information-packages',
+    parents_query_lookups=['appraisal_jobs'],
+)
+
+
 router.register(r'appraisal-rules', AppraisalRuleViewSet)
 router.register(r'conversion-jobs', ConversionJobViewSet)
 router.register(r'conversion-rules', ConversionRuleViewSet)

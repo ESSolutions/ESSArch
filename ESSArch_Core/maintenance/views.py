@@ -2,7 +2,7 @@ import os
 
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -11,6 +11,7 @@ from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.filters import (
     AppraisalJobFilter,
     AppraisalRuleFilter,
@@ -26,6 +27,8 @@ from ESSArch_Core.maintenance.models import (
     ConversionRule,
 )
 from ESSArch_Core.maintenance.serializers import (
+    AppraisalJobInformationPackageSerializer,
+    AppraisalJobInformationPackageWriteSerializer,
     AppraisalJobSerializer,
     AppraisalRuleSerializer,
     ConversionJobSerializer,
@@ -99,6 +102,40 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
         job = self.get_object()
         found_files = job.rule.get_job_preview_files()
         return Response(found_files)
+
+
+class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
+                                            mixins.CreateModelMixin,
+                                            mixins.ListModelMixin,
+                                            viewsets.GenericViewSet):
+
+    queryset = InformationPackage.objects.all()
+    serializer_class = AppraisalJobInformationPackageSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
+        job.information_packages.add(*data['information_packages'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def delete(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
+        job.information_packages.remove(*data['information_packages'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'DELETE']:
+            return AppraisalJobInformationPackageWriteSerializer
+
+        return self.serializer_class
 
 
 class ConversionRuleViewSet(MaintenanceRuleViewSet):
