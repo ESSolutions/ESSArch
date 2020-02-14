@@ -254,6 +254,35 @@ class GetObjectsForUserTests(TestCase):
         self.assertTrue(get_objects_for_user(self.user, qs, []).exists())
         self.assertTrue(get_objects_for_user(self.user, qs, ['view_informationpackage']).exists())
 
+    def test_multiple_organizations(self):
+        ip1 = InformationPackage.objects.create()
+        ip2 = InformationPackage.objects.create()
+        perm = Permission.objects.get(codename='view_informationpackage')
+
+        role = GroupMemberRole.objects.create(codename='ip_viewer')
+        role.permissions.add(perm)
+
+        group1 = Group.objects.create(name='group1', group_type=self.org_group_type)
+        group1.add_member(self.member, roles=[role])
+        group1.add_object(ip1)
+
+        group2 = Group.objects.create(name='group2', group_type=self.org_group_type)
+        group2.add_member(self.member, roles=[role])
+        group2.add_object(ip2)
+
+        qs = InformationPackage.objects.all()
+        self.assertFalse(get_objects_for_user(self.user, qs, ['non_existing_perm']).exists())
+        self.assertEqual(get_objects_for_user(self.user, qs, []).count(), 1)
+        self.assertEqual(get_objects_for_user(self.user, qs, ['view_informationpackage']).count(), 1)
+
+        # change organization
+        self.user.user_profile.current_organization = group2
+        self.user.user_profile.save()
+
+        self.assertFalse(get_objects_for_user(self.user, qs, ['non_existing_perm']).exists())
+        self.assertEqual(get_objects_for_user(self.user, qs, []).count(), 1)
+        self.assertEqual(get_objects_for_user(self.user, qs, ['view_informationpackage']).count(), 1)
+
     def test_all_objects_available_for_superuser(self):
         ip = InformationPackage.objects.create()
         self.user.is_superuser = True

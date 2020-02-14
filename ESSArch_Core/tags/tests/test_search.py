@@ -96,6 +96,14 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         permission = Permission.objects.get(codename='search')
         cls.user.user_permissions.add(permission)
 
+        org_group_type = GroupType.objects.create(codename='organization')
+
+        cls.group1 = Group.objects.create(name='group1', group_type=org_group_type)
+        cls.group1.add_member(cls.user.essauth_member)
+
+        cls.group2 = Group.objects.create(name='group2', group_type=org_group_type)
+        cls.group2.add_member(cls.user.essauth_member)
+
         cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
         cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
 
@@ -141,6 +149,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             type=self.archive_type,
             elastic_index="archive",
         )
+        self.group1.add_object(archive_tag_version)
         structure, archive_tag_structure = structure_template.create_template_instance(archive_tag)
         Archive.from_obj(archive_tag_version).save(refresh='true')
 
@@ -152,6 +161,14 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
             self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        with self.subTest('with archive, non-active organization'):
+            self.user.user_profile.current_organization = self.group2
+            self.user.user_profile.save()
+
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
 
     def test_filter_on_component_agent(self):
         agent = self.create_agent()

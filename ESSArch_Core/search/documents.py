@@ -105,7 +105,7 @@ class DocumentBase(es.Document):
         Index meta id and db instance pk needs to be same.
         """
 
-        db_ids = list(queryset.values_list('id', flat=True))
+        db_ids = list(str(obj_id) for obj_id in queryset.values_list('id', flat=True))
         s = cls.search()
         resp = s.execute()
         total_index = resp.hits.total
@@ -114,7 +114,9 @@ class DocumentBase(es.Document):
             end = start + batch_size
             items = resp.hits[start:end]
             for item in items:
-                if item.meta.id not in db_ids:
+                if str(item.meta.id) not in db_ids:
                     removed.append(item.meta.id)
         for remove_id in removed:
             cls.get(id=remove_id).delete()
+
+        time.sleep(0.5)
