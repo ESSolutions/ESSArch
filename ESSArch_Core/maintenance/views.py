@@ -100,7 +100,7 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        found_files = job.rule.get_job_preview_files()
+        found_files = job.template.get_job_preview_files()
         return Response(found_files)
 
 
@@ -152,5 +152,5 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['get'])
     def preview(self, request, pk=None):
         job = self.get_object()
-        found_files = job.rule.get_job_preview_files()
+        found_files = job.template.get_job_preview_files()
         return Response(found_files)

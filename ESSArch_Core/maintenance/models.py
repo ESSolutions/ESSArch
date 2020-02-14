@@ -159,7 +159,6 @@ class MaintenanceJobEntry(models.Model):
 
 class AppraisalTemplate(MaintenanceTemplate):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
-    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
 
     def get_job_preview_files(self):
         ips = self.information_packages.filter(
@@ -316,8 +315,6 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 
 
 class ConversionTemplate(MaintenanceTemplate):
-    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
-
     def get_job_preview_files(self):
         ips = self.information_packages.all()
         found_files = []
