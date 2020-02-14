@@ -111,8 +111,8 @@ class AppraisalJobViewSetPreviewTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create(username='user')
-        self.apprisal_job = AppraisalJob.objects.create()
-        self.url = reverse('appraisaljob-preview', args=(self.apprisal_job.pk,))
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.url = reverse('appraisaljob-preview', args=(self.appraisal_job.pk,))
 
     def test_unauthenticated(self):
         response = self.client.get(self.url, {'name': 'foo'})
@@ -136,8 +136,8 @@ class AppraisalJobViewSetRunTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create(username='user')
-        self.apprisal_job = AppraisalJob.objects.create()
-        self.url = reverse('appraisaljob-run', args=(self.apprisal_job.pk,))
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.url = reverse('appraisaljob-run', args=(self.appraisal_job.pk,))
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
@@ -196,8 +196,8 @@ class AppraisalJobViewSetReportTests(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create(username='user')
-        self.apprisal_job = AppraisalJob.objects.create()
-        self.url = reverse('appraisaljob-report', args=(self.apprisal_job.pk,))
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.url = reverse('appraisaljob-report', args=(self.appraisal_job.pk,))
 
     def test_unauthenticated(self):
         response = self.client.get(self.url, {'name': 'foo'})
@@ -214,6 +214,6 @@ class AppraisalJobViewSetReportTests(TestCase):
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_report_pdf_path.assert_called_once_with(str(self.apprisal_job.pk))
+        mock_get_report_pdf_path.assert_called_once_with(str(self.appraisal_job.pk))
         mock_open.assert_called_once_with("report_path.pdf", 'rb')
         mock_generate_file_response.assert_called_once_with("dummy_stream", 'application/pdf')
