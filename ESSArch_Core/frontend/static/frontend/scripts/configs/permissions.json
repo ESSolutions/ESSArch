@@ -73,7 +73,7 @@
         },
         "archiveMaintenance": {
           "appraisal": {
-            "_permissions": ["maintenance.maintenance.add_appraisaltemplate"]
+            "_permissions": ["maintenance.add_appraisaltemplate"]
           },
           "conversion": {
             "_permissions": ["maintenance.add_conversiontemplate"]
