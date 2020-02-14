@@ -1,4 +1,5 @@
 import React, {FunctionComponent, useState} from 'react';
+import InformationPackageTable from './InformationPackageTable';
 
 const PrepareSIPPage: FunctionComponent = () => {
   let [state, setState] = useState<string>('');
@@ -7,8 +8,9 @@ const PrepareSIPPage: FunctionComponent = () => {
     <div className="nav-dynamic-wrapper">
       <div className="info-wrapper">
         <h2>Prepare SIP</h2>
-        <input onChange={e => setState(e.target.value)} />
-        <div>Data: {state}</div>
+        <div className="content-wrapper">
+          <InformationPackageTable />
+        </div>
       </div>
     </div>
   );
