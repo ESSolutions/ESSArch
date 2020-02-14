@@ -49,9 +49,9 @@ from ESSArch_Core.ip.views import (
 from ESSArch_Core.maintenance.views import (
     AppraisalJobInformationPackageViewSet,
     AppraisalJobViewSet,
-    AppraisalRuleViewSet,
+    AppraisalTemplateViewSet,
     ConversionJobViewSet,
-    ConversionRuleViewSet,
+    ConversionTemplateViewSet,
 )
 from ESSArch_Core.profiles.views import (
     InformationPackageProfileIPViewSet,
@@ -206,15 +206,15 @@ router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
 router.register(r'information-packages', InformationPackageViewSet, basename='informationpackage')
 router.register(r'information-packages', InformationPackageViewSet).register(
-    r'appraisal-rules',
-    AppraisalRuleViewSet,
-    basename='ip-appraisal-rules',
+    r'appraisal-templates',
+    AppraisalTemplateViewSet,
+    basename='ip-appraisal-templates',
     parents_query_lookups=['information_packages']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
-    r'conversion-rules',
-    ConversionRuleViewSet,
-    basename='ip-conversion-rules',
+    r'conversion-templates',
+    ConversionTemplateViewSet,
+    basename='ip-conversion-templates',
     parents_query_lookups=['information_packages']
 )
 router.register(r'information-packages', InformationPackageViewSet).register(
@@ -289,7 +289,6 @@ router.register(r'tasks', ProcessTaskViewSet).register(
 
 
 router.register(r'organizations', OrganizationViewSet, basename='organizations')
-router.register(r'appraisal-jobs', AppraisalJobViewSet)
 
 router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
     r'information-packages',
@@ -299,9 +298,10 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
 )
 
 
-router.register(r'appraisal-rules', AppraisalRuleViewSet)
+router.register(r'appraisal-templates', AppraisalTemplateViewSet)
+
 router.register(r'conversion-jobs', ConversionJobViewSet)
-router.register(r'conversion-rules', ConversionRuleViewSet)
+router.register(r'conversion-templates', ConversionTemplateViewSet)
 router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)

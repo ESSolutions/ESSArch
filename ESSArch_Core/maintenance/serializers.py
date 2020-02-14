@@ -5,23 +5,23 @@ from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
-    AppraisalRule,
+    AppraisalTemplate,
     ConversionJob,
-    ConversionRule,
+    ConversionTemplate,
     MaintenanceJob,
-    MaintenanceRule,
+    MaintenanceTemplate,
 )
 
 
-class MaintenanceRuleSerializer(serializers.ModelSerializer):
+class MaintenanceTemplateSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     public = serializers.BooleanField(default=True)
-    specification = serializers.JSONField(allow_null=True, default=None)
+    package_file_pattern = serializers.JSONField(allow_null=True, default=None)
 
     def validate(self, data):
         user = self.context['request'].user
         if user.user_profile.current_organization is None and not data['public']:
-            raise serializers.ValidationError("You must be in an organization to create non-public rules")
+            raise serializers.ValidationError("You must be in an organization to create non-public templates")
 
         return data
 
@@ -37,9 +37,9 @@ class MaintenanceRuleSerializer(serializers.ModelSerializer):
         return instance
 
     class Meta:
-        model = MaintenanceRule
+        model = MaintenanceTemplate
         fields = (
-            'id', 'name', 'description', 'specification', 'user', 'public',
+            'id', 'name', 'description', 'package_file_pattern', 'user', 'public',
         )
 
 
@@ -74,9 +74,9 @@ class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer)
         fields = ('information_packages',)
 
 
-class AppraisalRuleSerializer(MaintenanceRuleSerializer):
-    class Meta(MaintenanceRuleSerializer.Meta):
-        model = AppraisalRule
+class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
+    class Meta(MaintenanceTemplateSerializer.Meta):
+        model = AppraisalTemplate
 
 
 class AppraisalJobSerializer(MaintenanceJobSerializer):
@@ -84,9 +84,9 @@ class AppraisalJobSerializer(MaintenanceJobSerializer):
         model = AppraisalJob
 
 
-class ConversionRuleSerializer(MaintenanceRuleSerializer):
-    class Meta(MaintenanceRuleSerializer.Meta):
-        model = ConversionRule
+class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
+    class Meta(MaintenanceTemplateSerializer.Meta):
+        model = ConversionTemplate
 
 
 class ConversionJobSerializer(MaintenanceJobSerializer):

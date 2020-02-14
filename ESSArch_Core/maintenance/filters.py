@@ -2,13 +2,13 @@ from django_filters import rest_framework as filters
 
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
-    AppraisalRule,
+    AppraisalTemplate,
     ConversionJob,
-    ConversionRule,
+    ConversionTemplate,
 )
 
 
-class MaintenanceRuleFilter(filters.FilterSet):
+class MaintenanceTemplateFilter(filters.FilterSet):
     related_to_ip = filters.CharFilter(method='filter_related_to_ip')
     not_related_to_ip = filters.CharFilter(method='filter_not_related_to_ip')
 
@@ -29,9 +29,9 @@ class MaintenanceJobFilter(filters.FilterSet):
         fields = ['start_date', 'end_date', 'status']
 
 
-class AppraisalRuleFilter(MaintenanceRuleFilter):
-    class Meta(MaintenanceRuleFilter.Meta):
-        model = AppraisalRule
+class AppraisalTemplateFilter(MaintenanceTemplateFilter):
+    class Meta(MaintenanceTemplateFilter.Meta):
+        model = AppraisalTemplate
 
 
 class AppraisalJobFilter(MaintenanceJobFilter):
@@ -39,9 +39,9 @@ class AppraisalJobFilter(MaintenanceJobFilter):
         model = AppraisalJob
 
 
-class ConversionRuleFilter(MaintenanceRuleFilter):
-    class Meta(MaintenanceRuleFilter.Meta):
-        model = ConversionRule
+class ConversionTemplateFilter(MaintenanceTemplateFilter):
+    class Meta(MaintenanceTemplateFilter.Meta):
+        model = ConversionTemplate
 
 
 class ConversionJobFilter(MaintenanceJobFilter):

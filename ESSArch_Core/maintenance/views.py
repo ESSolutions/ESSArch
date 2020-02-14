@@ -14,35 +14,35 @@ from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.filters import (
     AppraisalJobFilter,
-    AppraisalRuleFilter,
+    AppraisalTemplateFilter,
     ConversionJobFilter,
-    ConversionRuleFilter,
+    ConversionTemplateFilter,
     MaintenanceJobFilter,
-    MaintenanceRuleFilter,
+    MaintenanceTemplateFilter,
 )
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
-    AppraisalRule,
+    AppraisalTemplate,
     ConversionJob,
-    ConversionRule,
+    ConversionTemplate,
 )
 from ESSArch_Core.maintenance.serializers import (
     AppraisalJobInformationPackageSerializer,
     AppraisalJobInformationPackageWriteSerializer,
     AppraisalJobSerializer,
-    AppraisalRuleSerializer,
+    AppraisalTemplateSerializer,
     ConversionJobSerializer,
-    ConversionRuleSerializer,
+    ConversionTemplateSerializer,
     MaintenanceJobSerializer,
-    MaintenanceRuleSerializer,
+    MaintenanceTemplateSerializer,
 )
 from ESSArch_Core.util import generate_file_response
 
 
-class MaintenanceRuleViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class MaintenanceTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (ActionPermissions,)
-    serializer_class = MaintenanceRuleSerializer
-    filterset_class = MaintenanceRuleFilter
+    serializer_class = MaintenanceTemplateSerializer
+    filterset_class = MaintenanceTemplateFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
@@ -81,10 +81,10 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return path
 
 
-class AppraisalRuleViewSet(MaintenanceRuleViewSet):
-    queryset = AppraisalRule.objects.all()
-    serializer_class = AppraisalRuleSerializer
-    filterset_class = AppraisalRuleFilter
+class AppraisalTemplateViewSet(MaintenanceTemplateViewSet):
+    queryset = AppraisalTemplate.objects.all()
+    serializer_class = AppraisalTemplateSerializer
+    filterset_class = AppraisalTemplateFilter
 
 
 class AppraisalJobViewSet(MaintenanceJobViewSet):
@@ -138,10 +138,10 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
         return self.serializer_class
 
 
-class ConversionRuleViewSet(MaintenanceRuleViewSet):
-    queryset = ConversionRule.objects.all()
-    serializer_class = ConversionRuleSerializer
-    filterset_class = ConversionRuleFilter
+class ConversionTemplateViewSet(MaintenanceTemplateViewSet):
+    queryset = ConversionTemplate.objects.all()
+    serializer_class = ConversionTemplateSerializer
+    filterset_class = ConversionTemplateFilter
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):

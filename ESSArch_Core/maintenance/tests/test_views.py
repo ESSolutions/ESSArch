@@ -11,9 +11,9 @@ from rest_framework.test import APIClient, APITestCase
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
-    AppraisalRule,
+    AppraisalTemplate,
     ConversionJob,
-    ConversionRule,
+    ConversionTemplate,
 )
 
 User = get_user_model()
@@ -61,7 +61,7 @@ class ConversionJobViewSetPreviewTests(TestCase):
     @mock.patch('ESSArch_Core.maintenance.models.ConversionRule.get_job_preview_files')
     def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
         mock_get_object.return_value = ConversionJob()
-        mock_get_object.return_value.rule = ConversionRule()
+        mock_get_object.return_value.rule = ConversionTemplate()
         mock_get_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
@@ -122,7 +122,7 @@ class AppraisalJobViewSetPreviewTests(TestCase):
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalRule.get_job_preview_files')
     def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
         mock_get_object.return_value = AppraisalJob()
-        mock_get_object.return_value.rule = AppraisalRule()
+        mock_get_object.return_value.rule = AppraisalTemplate()
         mock_get_job_preview_files.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 

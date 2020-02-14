@@ -16,6 +16,7 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.tags.models import TagVersion
 from ESSArch_Core.util import (
@@ -53,13 +54,13 @@ def find_all_files(datadir, ip, pattern):
     return found_files
 
 
-class MaintenanceRule(models.Model):
+class MaintenanceTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
     # empty for all files in IP
-    package_file_pattern = models.CharField(max_length=255)
+    package_file_pattern = JSONField(null=True, default=None)
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     public = models.BooleanField(default=True)
@@ -72,9 +73,12 @@ class MaintenanceJob(models.Model):
     STATUS_CHOICES = sorted(zip(celery_states.ALL_STATES, celery_states.ALL_STATES), key=itemgetter(0))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    rule = models.ForeignKey('maintenance.MaintenanceRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    template = models.ForeignKey(
+        'maintenance.MaintenanceTemplate', on_delete=models.SET_NULL,
+        null=True, related_name='jobs',
+    )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='maintenenace_jobs')
-    package_file_pattern = models.CharField(max_length=255)
+    package_file_pattern = JSONField(null=True, default=None)
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -103,7 +107,7 @@ class MaintenanceJob(models.Model):
         dstdir = self._get_report_directory()
         dst = os.path.join(dstdir, '%s.pdf' % self.pk)
 
-        render = render_to_string(template, {'job': self, 'rule': self.rule})
+        render = render_to_string(template, {'job': self, 'rule': self.template})
         HTML(string=render).write_pdf(dst)
 
     def _mark_as_complete(self):
@@ -153,7 +157,7 @@ class MaintenanceJobEntry(models.Model):
         abstract = True
 
 
-class AppraisalRule(MaintenanceRule):
+class AppraisalTemplate(MaintenanceTemplate):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_rules')
 
@@ -182,7 +186,10 @@ class AppraisalRule(MaintenanceRule):
 
 
 class AppraisalJob(MaintenanceJob):
-    rule = models.ForeignKey('maintenance.AppraisalRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    template = models.ForeignKey(
+        'maintenance.AppraisalTemplate', on_delete=models.SET_NULL,
+        null=True, related_name='jobs',
+    )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
 
     MAINTENANCE_TYPE = 'appraisal'
@@ -197,7 +204,7 @@ class AppraisalJob(MaintenanceJob):
 
     def _run_archive_object(self):
         def get_information_packages():
-            return self.rule.information_packages.filter(
+            return self.templateinformation_packages.filter(
                 Q(
                     Q(appraisal_date__lte=timezone.now()) |
                     Q(appraisal_date__isnull=True)
@@ -226,7 +233,7 @@ class AppraisalJob(MaintenanceJob):
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
 
-            if not self.rule.specification:
+            if not self.templatespecification:
                 # register all files
                 for root, _dirs, files in walk(srcdir):
                     rel = os.path.relpath(root, srcdir)
@@ -259,7 +266,7 @@ class AppraisalJob(MaintenanceJob):
                 shutil.copytree(srcdir, dstdir)
 
                 # delete files specified in rule
-                for pattern in self.rule.specification:
+                for pattern in self.templatespecification:
                     for path in iglob(dstdir + '/' + pattern):
                         if os.path.isdir(path):
                             for root, _dirs, files in walk(path):
@@ -285,7 +292,7 @@ class AppraisalJob(MaintenanceJob):
                 InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
 
     def _run(self):
-        if self.rule.type == ARCHIVAL_OBJECT:
+        if self.templatetype == ARCHIVAL_OBJECT:
             return self._run_archive_object()
 
         return self._run_metadata()
@@ -308,7 +315,7 @@ class AppraisalJobEntry(MaintenanceJobEntry):
     component_field = models.CharField(max_length=255, blank=True)
 
 
-class ConversionRule(MaintenanceRule):
+class ConversionTemplate(MaintenanceTemplate):
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_rules')
 
     def get_job_preview_files(self):
@@ -329,14 +336,17 @@ def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path
 
 
 class ConversionJob(MaintenanceJob):
-    rule = models.ForeignKey('maintenance.ConversionRule', on_delete=models.SET_NULL, null=True, related_name='jobs')
+    template = models.ForeignKey(
+        'maintenance.ConversionTemplate', on_delete=models.SET_NULL,
+        null=True, related_name='jobs',
+    )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_jobs')
 
     MAINTENANCE_TYPE = 'conversion'
 
     def _run(self):
         def get_information_packages():
-            return self.rule.information_packages.filter(
+            return self.templateinformation_packages.filter(
                 active=True,
             ).exclude(
                 conversion_job_entries__job=self,
@@ -366,7 +376,7 @@ class ConversionJob(MaintenanceJob):
             shutil.copytree(srcdir, dstdir)
 
             # convert files specified in rule
-            for pattern, spec in self.rule.specification.items():
+            for pattern, spec in self.templatespecification.items():
                 target = spec['target']
                 tool = spec['tool']
 

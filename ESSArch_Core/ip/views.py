@@ -112,7 +112,10 @@ from ESSArch_Core.ip.serializers import (
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
-from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
+from ESSArch_Core.maintenance.models import (
+    AppraisalTemplate,
+    ConversionTemplate,
+)
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -1933,8 +1936,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('Missing id parameter')
 
         try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
+            rule = AppraisalTemplate.objects.get(pk=rule_id)
+        except AppraisalTemplate.DoesNotExist:
             raise exceptions.ParseError('No rule with id "%s"' % rule_id)
 
         rule.information_packages.add(ip)
@@ -1950,8 +1953,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('Missing id parameter')
 
         try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
+            rule = AppraisalTemplate.objects.get(pk=rule_id)
+        except AppraisalTemplate.DoesNotExist:
             raise exceptions.ParseError('No rule with id "%s"' % rule_id)
 
         rule.information_packages.remove(ip)
@@ -1970,8 +1973,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('Missing id parameter')
 
         try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
+            rule = ConversionTemplate.objects.get(pk=rule_id)
+        except ConversionTemplate.DoesNotExist:
             raise exceptions.ParseError('No rule with id "%s"' % rule_id)
 
         rule.information_packages.add(ip)
@@ -1987,8 +1990,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('Missing id parameter')
 
         try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
+            rule = ConversionTemplate.objects.get(pk=rule_id)
+        except ConversionTemplate.DoesNotExist:
             raise exceptions.ParseError('No rule with id "%s"' % rule_id)
 
         rule.information_packages.remove(ip)

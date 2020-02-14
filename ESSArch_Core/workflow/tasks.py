@@ -365,7 +365,7 @@ class PollAppraisalJobs(DBTask):
 
     def run(self):
         now = timezone.now()
-        jobs = AppraisalJob.objects.select_related('rule').filter(status=celery_states.PENDING, start_date__lte=now)
+        jobs = AppraisalJob.objects.select_related('template').filter(status=celery_states.PENDING, start_date__lte=now)
 
         for job in jobs.iterator():
             job.run()
@@ -376,7 +376,7 @@ class PollConversionJobs(DBTask):
 
     def run(self):
         now = timezone.now()
-        jobs = ConversionJob.objects.select_related('rule').filter(status=celery_states.PENDING, start_date__lte=now)
+        jobs = ConversionJob.objects.select_related('template').filter(status=celery_states.PENDING, start_date__lte=now)
 
         for job in jobs.iterator():
             job.run()
