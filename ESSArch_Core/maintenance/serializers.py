@@ -20,14 +20,19 @@ class MaintenanceTemplateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         user = self.context['request'].user
-        if user.user_profile.current_organization is None and not data['public']:
+
+        if self.instance is not None:
+            public = data.get('public', self.instance.public)
+        else:
+            public = data['public']
+
+        if user.user_profile.current_organization is None and not public:
             raise serializers.ValidationError("You must be in an organization to create non-public templates")
 
         return data
 
     def create(self, validated_data):
-        if 'user' not in validated_data:
-            validated_data['user'] = self.context['request'].user
+        validated_data['user'] = self.context['request'].user
 
         instance = super().create(validated_data)
         if not instance.public:
@@ -47,8 +52,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
 
     def create(self, validated_data):
-        if 'user' not in validated_data:
-            validated_data['user'] = self.context['request'].user
+        validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
 
     class Meta:
