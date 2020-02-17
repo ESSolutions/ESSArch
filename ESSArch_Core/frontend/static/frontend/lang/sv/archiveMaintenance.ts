@@ -5,6 +5,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_APPRAISAL_TEMPLATE_TO_IP: 'Lägg till/ta bort gallringsmallar till IPn',
       ADD_CONVERSION_TEMPLATE_TO_IP: 'Lägg till/ta bort konverteringsmallar till IPn',
       ADD_TEMPLATE: 'Lägg till mall',
+      APPRAISAL_JOB: 'Gallringsjobb',
       APPRAISAL_PREVIEW: 'Gallring förhandsgranskning',
       APPRAISAL_TEMPLATE: 'Gallringsmall',
       APPRAISAL_TEMPLATES: 'Gallringsmallar',

@@ -5,6 +5,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_APPRAISAL_TEMPLATE_TO_IP: 'Add/remove appraisal templates to IPs',
       ADD_CONVERSION_TEMPLATE_TO_IP: 'Add/remove converison templates to IPs',
       ADD_TEMPLATE: 'Add template',
+      APPRAISAL_JOB: 'Appraisal job',
       APPRAISAL_PREVIEW: 'Appraisal preview',
       APPRAISAL_TEMPLATE: 'Appraisal template',
       APPRAISAL_TEMPLATES: 'Appraisal templates',

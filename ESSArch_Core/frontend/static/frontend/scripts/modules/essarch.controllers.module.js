@@ -31,6 +31,7 @@ import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
 import ConversionModalInstanceCtrl from '../controllers/ConversionModalInstanceCtrl';
 import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
+import CreateAppraisalJobModalInstanceCtrl from '../controllers/CreateAppraisalJobModalInstanceCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
@@ -403,6 +404,18 @@ export default angular
     ConversionModalInstanceCtrl,
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
+  .controller('CreateAppraisalJobModalInstanceCtrl', [
+    '$filter',
+    '$translate',
+    'IP',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'Utils',
+    CreateAppraisalJobModalInstanceCtrl,
+  ])
   .controller('CreateDipCtrl', [
     'IP',
     'StoragePolicy',

@@ -269,12 +269,13 @@ export default class AppraisalCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_template_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/create_appraisal_job_modal.html',
+        controller: 'CreateAppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
-            template: template,
+            template,
           },
         },
       });

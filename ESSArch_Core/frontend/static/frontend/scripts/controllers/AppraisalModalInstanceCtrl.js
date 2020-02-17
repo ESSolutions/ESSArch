@@ -112,49 +112,6 @@ export default class AppraisalModalInstanceCtrl {
       $ctrl.ip = null;
     };
 
-    $ctrl.createJob = function(template) {
-      $ctrl.creatingJob = true;
-      $http({
-        url: appConfig.djangoUrl + 'appraisal-jobs/',
-        method: 'POST',
-        data: {template: template.id},
-      })
-        .then(function(response) {
-          $ctrl.creatingJob = false;
-          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_CREATED'), 'success');
-          $uibModalInstance.close($ctrl.data);
-        })
-        .catch(function(response) {
-          $ctrl.creatingJob = false;
-        });
-    };
-    $ctrl.runningJob = false;
-    $ctrl.createJobAndStart = function(template) {
-      $ctrl.runningJob = true;
-      $http({
-        url: appConfig.djangoUrl + 'appraisal-jobs/',
-        method: 'POST',
-        data: {template: template.id},
-      })
-        .then(function(response) {
-          $http({
-            url: appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/run/',
-            method: 'POST',
-          })
-            .then(function(response) {
-              $ctrl.runningJob = false;
-              Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
-              $uibModalInstance.close($ctrl.data);
-            })
-            .catch(function(response) {
-              $ctrl.runningJob = false;
-            });
-        })
-        .catch(function(response) {
-          $ctrl.runningJob = false;
-        });
-    };
-
     $ctrl.path = '';
     $ctrl.addPath = function(path) {
       if (path.length > 0) {
