@@ -2,5 +2,5 @@ from rest_framework.fields import CurrentUserDefault
 
 
 class CurrentUsernameDefault(CurrentUserDefault):
-    def __call__(self):
-        return self.user.username
+    def __call__(self, serializer_field):
+        return serializer_field.context['request'].user.username
