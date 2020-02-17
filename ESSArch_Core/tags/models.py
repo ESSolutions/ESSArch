@@ -688,6 +688,7 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+    flagged_for_appraisal = models.BooleanField(default=False)
 
     objects = OrganizationManager()
 

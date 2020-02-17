@@ -62,6 +62,7 @@ class VersionedDocType(DocumentBase):
     ip = Keyword()
     agents = Keyword()
     task_id = Keyword()
+    flagged_for_appraisal = Boolean()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -213,6 +214,7 @@ class Component(VersionedDocType):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            flagged_for_appraisal=obj.tag.flagged_for_appraisal,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -263,6 +265,7 @@ class Archive(VersionedDocType):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            flagged_for_appraisal=obj.tag.flagged_for_appraisal,
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             type=obj.type.name,
@@ -359,6 +362,7 @@ class File(Component):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            flagged_for_appraisal=obj.tag.flagged_for_appraisal,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -409,6 +413,7 @@ class Directory(Component):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            flagged_for_appraisal=obj.tag.flagged_for_appraisal,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,

@@ -76,6 +76,7 @@ class ComponentSearch(FacetedSearch):
         'start_date': {},
         'end_date': {},
         'type': {'many': True},
+        'flagged_for_appraisal': {},
     }
 
     def __init__(self, *args, **kwargs):
@@ -263,11 +264,16 @@ def get_archive(id):
     return archive_data
 
 
+class ComponentSearchSerializer(serializers.Serializer):
+    flagged_for_appraisal = serializers.BooleanField(required=False, allow_null=True, default=None)
+
+
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     index = ComponentSearch.index
     lookup_field = 'pk'
     lookup_url_kwarg = None
+    serializer_class = ComponentSearchSerializer
 
     def __init__(self, *args, **kwargs):
         self.client = get_connection()
@@ -282,6 +288,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     def get_view_name(self):
         return 'Search {}'.format(getattr(self, 'suffix', None))
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
 
     def get_object(self, index=None):
         """
@@ -417,6 +430,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         filter_values = copy.copy(params)
         for f in ('page', 'page_size', 'ordering'):
             filter_values.pop(f, None)
+
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        filter_values.update(serializer.validated_data)
 
         sort = self.get_sorting(request)
         s = ComponentSearch(query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user)

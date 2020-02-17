@@ -225,6 +225,36 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
 
+    def test_filter_flagged_for_appraisal(self):
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        doc = Component.from_obj(component_tag_version)
+        doc.save(refresh='true')
+
+        res = self.client.get(self.url, data={'flagged_for_appraisal': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 0)
+
+        component_tag.flagged_for_appraisal = True
+        component_tag.save()
+        doc.from_obj(component_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url, data={'flagged_for_appraisal': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+
+        res = self.client.get(self.url, data={'flagged_for_appraisal': False})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 0)
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+
 
 class DocumentSearchTestCase(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
