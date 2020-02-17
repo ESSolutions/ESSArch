@@ -50,6 +50,7 @@ class MaintenanceTemplateSerializer(serializers.ModelSerializer):
 
 class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
+    label = serializers.CharField(required=False)
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
@@ -58,7 +59,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceJob
         fields = (
-            'id', 'template', 'status', 'start_date', 'end_date', 'user',
+            'id', 'label', 'template', 'status', 'start_date', 'end_date', 'user',
         )
 
 

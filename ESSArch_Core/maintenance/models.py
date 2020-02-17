@@ -73,12 +73,12 @@ class MaintenanceJob(models.Model):
     STATUS_CHOICES = sorted(zip(celery_states.ALL_STATES, celery_states.ALL_STATES), key=itemgetter(0))
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    label = models.CharField(max_length=255)
     template = models.ForeignKey(
         'maintenance.MaintenanceTemplate', on_delete=models.SET_NULL,
         null=True, related_name='jobs',
     )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='maintenenace_jobs')
-    package_file_pattern = JSONField(null=True, default=None)
     status = models.CharField(choices=STATUS_CHOICES, max_length=50, default=celery_states.PENDING)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
@@ -160,7 +160,23 @@ class MaintenanceJobEntry(models.Model):
 class AppraisalTemplate(MaintenanceTemplate):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
 
-    def get_job_preview_files(self):
+
+class AppraisalJob(MaintenanceJob):
+    template = models.ForeignKey(
+        'maintenance.AppraisalTemplate', on_delete=models.SET_NULL,
+        null=True, related_name='jobs',
+    )
+    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
+    package_file_pattern = JSONField(null=True, default=None)
+
+    MAINTENANCE_TYPE = 'appraisal'
+
+    class Meta(MaintenanceJob.Meta):
+        permissions = (
+            ('run_appraisaljob', 'Can run appraisal job'),
+        )
+
+    def preview(self):
         ips = self.information_packages.filter(
             Q(
                 Q(appraisal_date__lte=timezone.now()) |
@@ -172,8 +188,8 @@ class AppraisalTemplate(MaintenanceTemplate):
         for ip in ips:
             storage_target = ip.policy.cache_storage.enabled_target.target
             datadir = os.path.join(storage_target, ip.object_identifier_value)
-            if self.specification:
-                for pattern in self.specification:
+            if self.package_file_pattern:
+                for pattern in self.package_file_pattern:
                     found_files.extend(find_all_files(datadir, ip, pattern))
             else:
                 for root, _dirs, files in walk(datadir):
@@ -183,27 +199,12 @@ class AppraisalTemplate(MaintenanceTemplate):
                         found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
         return found_files
 
-
-class AppraisalJob(MaintenanceJob):
-    template = models.ForeignKey(
-        'maintenance.AppraisalTemplate', on_delete=models.SET_NULL,
-        null=True, related_name='jobs',
-    )
-    information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
-
-    MAINTENANCE_TYPE = 'appraisal'
-
-    class Meta(MaintenanceJob.Meta):
-        permissions = (
-            ('run_appraisaljob', 'Can run appraisal job'),
-        )
-
     def _run_metadata(self):
         pass
 
     def _run_archive_object(self):
         def get_information_packages():
-            return self.templateinformation_packages.filter(
+            return self.information_packages.filter(
                 Q(
                     Q(appraisal_date__lte=timezone.now()) |
                     Q(appraisal_date__isnull=True)
@@ -232,7 +233,7 @@ class AppraisalJob(MaintenanceJob):
             policy = ip.policy
             srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
 
-            if not self.templatespecification:
+            if not self.package_file_pattern:
                 # register all files
                 for root, _dirs, files in walk(srcdir):
                     rel = os.path.relpath(root, srcdir)
@@ -265,7 +266,7 @@ class AppraisalJob(MaintenanceJob):
                 shutil.copytree(srcdir, dstdir)
 
                 # delete files specified in rule
-                for pattern in self.templatespecification:
+                for pattern in self.package_file_pattern:
                     for path in iglob(dstdir + '/' + pattern):
                         if os.path.isdir(path):
                             for root, _dirs, files in walk(path):
@@ -291,7 +292,7 @@ class AppraisalJob(MaintenanceJob):
                 InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
 
     def _run(self):
-        if self.templatetype == ARCHIVAL_OBJECT:
+        if self.template.type == ARCHIVAL_OBJECT:
             return self._run_archive_object()
 
         return self._run_metadata()
@@ -315,15 +316,7 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 
 
 class ConversionTemplate(MaintenanceTemplate):
-    def get_job_preview_files(self):
-        ips = self.information_packages.all()
-        found_files = []
-        for ip in ips:
-            storage_target = ip.policy.cache_storage.enabled_target.target
-            datadir = os.path.join(storage_target, ip.object_identifier_value)
-            for pattern, _spec in self.specification.items():
-                found_files.extend(find_all_files(datadir, ip, pattern))
-        return found_files
+    pass
 
 
 def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy):
@@ -338,12 +331,23 @@ class ConversionJob(MaintenanceJob):
         null=True, related_name='jobs',
     )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_jobs')
+    specification = JSONField(null=True, default=None)
 
     MAINTENANCE_TYPE = 'conversion'
 
+    def preview(self):
+        ips = self.information_packages.all()
+        found_files = []
+        for ip in ips:
+            storage_target = ip.policy.cache_storage.enabled_target.target
+            datadir = os.path.join(storage_target, ip.object_identifier_value)
+            for pattern, _spec in self.specification.items():
+                found_files.extend(find_all_files(datadir, ip, pattern))
+        return found_files
+
     def _run(self):
         def get_information_packages():
-            return self.templateinformation_packages.filter(
+            return self.information_packages.filter(
                 active=True,
             ).exclude(
                 conversion_job_entries__job=self,
@@ -373,7 +377,7 @@ class ConversionJob(MaintenanceJob):
             shutil.copytree(srcdir, dstdir)
 
             # convert files specified in rule
-            for pattern, spec in self.templatespecification.items():
+            for pattern, spec in self.specification.items():
                 target = spec['target']
                 tool = spec['tool']
 

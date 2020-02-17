@@ -62,6 +62,12 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filterset_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
+    @action(detail=True, methods=['get'])
+    def preview(self, request, pk=None):
+        job = self.get_object()
+        found_files = job.preview()
+        return Response(found_files)
+
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         job = self.get_object()
@@ -96,12 +102,6 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         return super().run(request, pk)
-
-    @action(detail=True, methods=['get'])
-    def preview(self, request, pk=None):
-        job = self.get_object()
-        found_files = job.template.get_job_preview_files()
-        return Response(found_files)
 
 
 class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
@@ -148,9 +148,3 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     queryset = ConversionJob.objects.all()
     serializer_class = ConversionJobSerializer
     filterset_class = ConversionJobFilter
-
-    @action(detail=True, methods=['get'])
-    def preview(self, request, pk=None):
-        job = self.get_object()
-        found_files = job.template.get_job_preview_files()
-        return Response(found_files)

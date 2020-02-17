@@ -35,10 +35,11 @@ from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import Structure, TagStructure, TagVersion
+from ESSArch_Core.tags.models import Structure, Tag, TagStructure, TagVersion
 from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
     ArchiveWriteSerializer,
@@ -412,12 +413,24 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         params = {key: value[0] for (key, value) in dict(request.query_params).items()}
         query = params.pop('q', '')
         export = params.pop('export', None)
+        add_to_appraisal = params.pop('add_to_appraisal', None)
         params.pop('pager', None)
 
         logger.info(f"User '{request.user}' queried for '{query}'")
 
+        if export is not None and add_to_appraisal is not None:
+            raise exceptions.ParseError('Cannot both export results and add to appraisal')
+
         if export is not None and export not in EXPORT_FORMATS:
             raise exceptions.ParseError('Invalid export format "{}"'.format(export))
+
+        if add_to_appraisal is not None:
+            try:
+                appraisal_job = AppraisalJob.objects.get(pk=add_to_appraisal)
+            except AppraisalJob.DoesNotExist:
+                raise exceptions.ParseError('Appraisal job with id "{}" does not exist'.format(add_to_appraisal))
+        else:
+            appraisal_job = None
 
         filters = {
             'extension': params.pop('extension', None),
@@ -483,6 +496,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         if export is not None:
             return self.generate_report(results_dict['hits']['hits'], export, request.user)
+
+        if appraisal_job is not None:
+            ids = [hit['_id'] for hit in results_dict['hits']['hits']]
+            tags = Tag.objects.filter(versions__in=ids)
+            appraisal_job.tags.add(*tags)
+            return Response()
 
         return Response(r, headers={'Count': results.hits.total})
 

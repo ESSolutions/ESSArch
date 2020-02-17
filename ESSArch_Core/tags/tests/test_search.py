@@ -29,6 +29,7 @@ from ESSArch_Core.agents.models import (
 from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.search import alias_migration
 from ESSArch_Core.tags.documents import Archive, Component, File
 from ESSArch_Core.tags.models import (
@@ -254,6 +255,39 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         res = self.client.get(self.url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
+
+    def test_add_results_to_appraisal(self):
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            name='foo',
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        component_tag2 = Tag.objects.create()
+        component_tag_version2 = TagVersion.objects.create(
+            name='bar',
+            tag=component_tag2,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        Component.from_obj(component_tag_version2).save(refresh='true')
+
+        appraisal_job = AppraisalJob.objects.create()
+        res = self.client.get(self.url, data={
+            'q': 'foo',
+            'add_to_appraisal': appraisal_job.pk
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(appraisal_job.tags.all(), [component_tag])
+
+        res = self.client.get(self.url, data={
+            'add_to_appraisal': appraisal_job.pk
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(appraisal_job.tags.all(), [component_tag, component_tag2])
 
 
 class DocumentSearchTestCase(ESSArchSearchBaseTestCase):

@@ -162,16 +162,16 @@ class AppraisalJobViewSetPreviewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @mock.patch('ESSArch_Core.maintenance.views.AppraisalJobViewSet.get_object')
-    @mock.patch('ESSArch_Core.maintenance.models.AppraisalTemplate.get_job_preview_files')
-    def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.preview')
+    def test_authenticated(self, mock_preview, mock_get_object):
         mock_get_object.return_value = AppraisalJob()
         mock_get_object.return_value.template = AppraisalTemplate()
-        mock_get_job_preview_files.return_value = ["file1", "file2"]
+        mock_preview.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_job_preview_files.assert_called_once()
+        mock_preview.assert_called_once()
 
 
 class AppraisalJobViewSetRunTests(TestCase):
@@ -273,13 +273,13 @@ class ConversionJobViewSetPreviewTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @mock.patch('ESSArch_Core.maintenance.views.ConversionJobViewSet.get_object')
-    @mock.patch('ESSArch_Core.maintenance.models.ConversionTemplate.get_job_preview_files')
-    def test_authenticated(self, mock_get_job_preview_files, mock_get_object):
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.preview')
+    def test_authenticated(self, mock_preview, mock_get_object):
         mock_get_object.return_value = ConversionJob()
         mock_get_object.return_value.template = ConversionTemplate()
-        mock_get_job_preview_files.return_value = ["file1", "file2"]
+        mock_preview.return_value = ["file1", "file2"]
         self.client.force_authenticate(user=self.user)
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_job_preview_files.assert_called_once()
+        mock_preview.assert_called_once()
