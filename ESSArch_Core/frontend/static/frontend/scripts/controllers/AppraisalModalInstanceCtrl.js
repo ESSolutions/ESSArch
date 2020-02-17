@@ -10,7 +10,7 @@ export default class AppraisalModalInstanceCtrl {
     $ctrl.publicTemplate = true;
     $ctrl.manualTemplate = false;
     $ctrl.ip = null;
-    $ctrl.model = {specification: []};
+    $ctrl.model = {package_file_pattern: []};
     $ctrl.$onInit = () => {
       if (data.appraisal) {
         $ctrl.model = angular.copy(data.appraisal);
@@ -156,20 +156,19 @@ export default class AppraisalModalInstanceCtrl {
     };
 
     $ctrl.path = '';
-    $ctrl.pathList = [];
     $ctrl.addPath = function(path) {
       if (path.length > 0) {
-        $ctrl.model.specification.push(path);
+        $ctrl.model.package_file_pattern.push(path);
       }
       $ctrl.path = '';
     };
     $ctrl.removePath = function(path) {
-      $ctrl.pathList.splice($ctrl.pathList.indexOf(path), 1);
+      $ctrl.model.package_file_pattern.splice($ctrl.model.package_file_pattern.indexOf(path), 1);
     };
     $ctrl.appraisalTemplate = null;
     $ctrl.create = function() {
       $ctrl.addingTemplate = true;
-      if ($ctrl.pathList.length == 0) {
+      if ($ctrl.model.package_file_pattern.length == 0) {
         $ctrl.showRequired = true;
         $ctrl.addingTemplate = false;
         return;
@@ -196,7 +195,7 @@ export default class AppraisalModalInstanceCtrl {
 
     $ctrl.save = function(template) {
       $ctrl.saving = true;
-      if ($ctrl.pathList.length == 0) {
+      if ($ctrl.model.package_file_pattern.length == 0) {
         $ctrl.showRequired = true;
         $ctrl.saving = false;
         return;

@@ -15,10 +15,10 @@
       </button>
     </div>
     <div class="path-row">
-      <div ng-repeat="path in $ctrl.model.specification track by $index" class="path-item">
+      <div ng-repeat="path in $ctrl.model.package_file_pattern track by $index" class="path-item">
         {{path}}&nbsp;<i ng-click="$ctrl.removePath(path)" class="fas fa-times clickable"></i>
       </div>
-      <div ng-if="$ctrl.model.specification.length == 0">
+      <div ng-if="$ctrl.model.package_file_pattern.length == 0">
         <span ng-if="!$ctrl.showRequired">{{'ARCHIVE_MAINTENANCE.NO_PATHS_CHOSEN' | translate}}</span>
         <span ng-if="$ctrl.showRequired" style="color: red;"
           >{{'ARCHIVE_MAINTENANCE.CHOOSE_AT_LEAST_ONE_PATH' | translate}} *</span
