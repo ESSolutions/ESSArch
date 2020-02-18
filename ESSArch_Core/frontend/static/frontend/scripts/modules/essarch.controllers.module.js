@@ -405,15 +405,15 @@ export default angular
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
   .controller('CreateAppraisalJobModalInstanceCtrl', [
-    '$filter',
     '$translate',
-    'IP',
     '$uibModalInstance',
     'appConfig',
     '$http',
     'data',
     'Notifications',
-    'Utils',
+    'listViewService',
+    '$scope',
+    'EditMode',
     CreateAppraisalJobModalInstanceCtrl,
   ])
   .controller('CreateDipCtrl', [
