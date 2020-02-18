@@ -71,7 +71,7 @@ class AppraisalJobInformationPackageSerializer(serializers.ModelSerializer):
 
 class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer):
     information_packages = serializers.ListField(
-        child=UserFilteredPrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
+        child=UserFilteredPrimaryKeyRelatedField(queryset=InformationPackage.objects.filter(archived=True))
     )
 
     class Meta:
