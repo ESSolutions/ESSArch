@@ -18,6 +18,7 @@ from weasyprint import HTML
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.storage.models import StorageObject
 from ESSArch_Core.tags.models import TagVersion
 from ESSArch_Core.util import (
     convert_file,
@@ -48,7 +49,7 @@ def find_all_files(datadir, ip, pattern):
                 for f in files:
                     found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
 
-        elif os.path.isfile(path):
+        else:
             rel = os.path.relpath(path, datadir)
             found_files.append({'ip': ip.object_identifier_value, 'document': rel})
     return found_files
@@ -193,17 +194,21 @@ class AppraisalJob(MaintenanceJob):
         )
         found_files = []
         for ip in ips:
-            storage_target = ip.policy.cache_storage.enabled_target.target
-            datadir = os.path.join(storage_target, ip.object_identifier_value)
+            storage_obj = ip.storage.fastest().first()
+            if storage_obj is None:
+                raise StorageObject.DoesNotExist(
+                    'No storage object available for {}'.format(ip.object_identifier_value),
+                )
             if self.package_file_pattern:
                 for pattern in self.package_file_pattern:
-                    found_files.extend(find_all_files(datadir, ip, pattern))
+                    found_files.extend(
+                        [{'ip': ip.object_identifier_value, 'document': f} for f in storage_obj.list_files(pattern)]
+                    )
             else:
-                for root, _dirs, files in walk(datadir):
-                    rel = os.path.relpath(root, datadir)
+                found_files.extend(
+                    [{'ip': ip.object_identifier_value, 'document': f} for f in storage_obj.list_files()]
+                )
 
-                    for f in files:
-                        found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
         return found_files
 
     def _run_metadata(self):

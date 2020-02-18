@@ -1,3 +1,6 @@
+import os
+import shutil
+import tempfile
 from unittest import mock
 
 from django.contrib.auth import get_user_model
@@ -15,6 +18,12 @@ from ESSArch_Core.maintenance.models import (
     AppraisalTemplate,
     ConversionJob,
     ConversionTemplate,
+)
+from ESSArch_Core.storage.models import (
+    DISK,
+    StorageMedium,
+    StorageObject,
+    StorageTarget,
 )
 from ESSArch_Core.testing.runner import TaskRunner
 
@@ -156,28 +165,104 @@ class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
         ip2.refresh_from_db()
 
 
-class AppraisalJobViewSetPreviewTests(TestCase):
+class AppraisalJobViewSetPreviewTests(APITestCase):
     def setUp(self):
-        self.client = APIClient()
         self.user = User.objects.create(username='user')
         self.appraisal_job = AppraisalJob.objects.create()
         self.url = reverse('appraisaljob-preview', args=(self.appraisal_job.pk,))
 
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
     def test_unauthenticated(self):
-        response = self.client.get(self.url, {'name': 'foo'})
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @mock.patch('ESSArch_Core.maintenance.views.AppraisalJobViewSet.get_object')
-    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.preview')
-    def test_authenticated(self, mock_preview, mock_get_object):
-        mock_get_object.return_value = AppraisalJob()
-        mock_get_object.return_value.template = AppraisalTemplate()
-        mock_preview.return_value = ["file1", "file2"]
+    def test_authenticated(self):
         self.client.force_authenticate(user=self.user)
 
-        self.client.get(self.url, {'name': 'foo'})
+        ip = InformationPackage.objects.create()
+        self.appraisal_job.information_packages.add(ip)
+        storage_target = StorageTarget.objects.create()
+        storage_medium = StorageMedium.objects.create(
+            storage_target=storage_target,
+            status=20, location_status=50, block_size=1024, format=103,
+        )
 
-        mock_preview.assert_called_once()
+        obj = StorageObject.objects.create(
+            ip=ip, storage_medium=storage_medium,
+            content_location_value=tempfile.mkdtemp(dir=self.datadir),
+            content_location_type=DISK,
+        )
+
+        test_dir = tempfile.mkdtemp(dir=obj.content_location_value)
+        foo = os.path.join(test_dir, 'foo.txt')
+        bar = os.path.join(test_dir, 'bar.txt')
+        baz = os.path.join(test_dir, 'baz.pdf')
+        open(foo, 'a').close()
+        open(bar, 'a').close()
+        open(baz, 'a').close()
+
+        foo = os.path.relpath(foo, obj.content_location_value)
+        bar = os.path.relpath(bar, obj.content_location_value)
+        baz = os.path.relpath(baz, obj.content_location_value)
+
+        with self.subTest('no pattern'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(
+                res.data,
+                [
+                    {'ip': ip.object_identifier_value, 'document': foo},
+                    {'ip': ip.object_identifier_value, 'document': bar},
+                    {'ip': ip.object_identifier_value, 'document': baz},
+                ]
+            )
+
+        pattern = '*'
+        with self.subTest(pattern):
+            self.appraisal_job.package_file_pattern = [pattern]
+            self.appraisal_job.save()
+
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(
+                res.data,
+                [
+                    {'ip': ip.object_identifier_value, 'document': foo},
+                    {'ip': ip.object_identifier_value, 'document': bar},
+                    {'ip': ip.object_identifier_value, 'document': baz},
+                ]
+            )
+
+        pattern = '**/*.txt'
+        with self.subTest(pattern):
+            self.appraisal_job.package_file_pattern = [pattern]
+            self.appraisal_job.save()
+
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(
+                res.data,
+                [
+                    {'ip': ip.object_identifier_value, 'document': foo},
+                    {'ip': ip.object_identifier_value, 'document': bar},
+                ]
+            )
+
+        pattern = '**/baz.*'
+        with self.subTest(pattern):
+            self.appraisal_job.package_file_pattern = [pattern]
+            self.appraisal_job.save()
+
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(
+                res.data,
+                [
+                    {'ip': ip.object_identifier_value, 'document': baz},
+                ]
+            )
 
 
 class AppraisalJobViewSetRunTests(TestCase):

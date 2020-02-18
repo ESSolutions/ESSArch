@@ -889,6 +889,10 @@ class StorageObject(models.Model):
             else:
                 storage_backend.read(self, dst)
 
+    def list_files(self, pattern=None):
+        backend = self.get_storage_backend()
+        return backend.list_files(self, pattern=pattern)
+
     def delete_files(self):
         backend = self.get_storage_backend()
         backend.delete(self)

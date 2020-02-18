@@ -3,6 +3,9 @@ import logging
 import os
 import shutil
 import tarfile
+from os import walk
+
+from glob2 import iglob
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
@@ -73,6 +76,29 @@ class DiskStorageBackend(BaseStorageBackend):
             ip=ip, storage_medium=storage_medium,
             container=container,
         )
+
+    def list_files(self, storage_object, pattern):
+        if storage_object.container:
+            raise NotImplementedError
+
+        datadir = storage_object.content_location_value
+
+        if pattern is None:
+            for root, _dirs, files in walk(datadir):
+                rel = os.path.relpath(root, datadir)
+                for f in files:
+                    yield os.path.join(rel, f)
+        else:
+            for path in iglob(datadir + '/' + pattern):
+                if os.path.isdir(path):
+                    for root, _dirs, files in walk(path):
+                        rel = os.path.relpath(root, datadir)
+
+                        for f in files:
+                            yield os.path.join(rel, f)
+
+                else:
+                    yield os.path.relpath(path, datadir)
 
     def delete(self, storage_object):
         path = storage_object.content_location_value

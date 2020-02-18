@@ -139,9 +139,6 @@ class TapeStorageBackend(BaseStorageBackend):
             container=container
         )
 
-    def delete(self, storage_object):
-        pass
-
     @classmethod
     def post_mark_as_full(cls, storage_medium):
         """Called after a medium has been successfully marked as full"""
