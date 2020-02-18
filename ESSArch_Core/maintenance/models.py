@@ -83,6 +83,9 @@ class MaintenanceJob(models.Model):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='maintenance_jobs',
+    )
 
     class Meta:
         abstract = True
@@ -126,8 +129,9 @@ class MaintenanceJob(models.Model):
 
     def run(self):
         try:
+            self.start_date = timezone.now()
             self.status = celery_states.STARTED
-            self.save(update_fields=['status'])
+            self.save(update_fields=['status', 'start_date'])
 
             report_dir = self._get_report_directory()
 
@@ -167,6 +171,9 @@ class AppraisalJob(MaintenanceJob):
         null=True, related_name='jobs',
     )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='appraisal_jobs',
+    )
     package_file_pattern = JSONField(null=True, default=None)
 
     MAINTENANCE_TYPE = 'appraisal'
@@ -331,6 +338,9 @@ class ConversionJob(MaintenanceJob):
         null=True, related_name='jobs',
     )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='conversion_jobs')
+    task = models.ForeignKey(
+        'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='conversion_jobs',
+    )
     specification = JSONField(null=True, default=None)
 
     MAINTENANCE_TYPE = 'conversion'

@@ -37,6 +37,7 @@ from ESSArch_Core.maintenance.serializers import (
     MaintenanceTemplateSerializer,
 )
 from ESSArch_Core.util import generate_file_response
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class MaintenanceTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -71,9 +72,7 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         job = self.get_object()
-        job.start_date = timezone.now()
-        job.save()
-        job.run()
+        job.task.run()
         return Response(status=status.HTTP_202_ACCEPTED)
 
     @action(detail=True, methods=['get'])
@@ -101,6 +100,15 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @permission_required_or_403(['maintenance.run_appraisaljob'])
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
+        job = self.get_object()
+        if job.task is None:
+            job.task = ProcessTask.objects.create(
+                name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',
+                args=[str(job.pk)],
+                eager=False,
+            )
+            job.save(update_fields=['task'])
+
         return super().run(request, pk)
 
 
@@ -148,3 +156,16 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     queryset = ConversionJob.objects.all()
     serializer_class = ConversionJobSerializer
     filterset_class = ConversionJobFilter
+
+    @action(detail=True, methods=['post'])
+    def run(self, request, pk=None):
+        job = self.get_object()
+        if job.task is None:
+            job.task = ProcessTask.objects.create(
+                name='ESSArch_Core.maintenance.tasks.RunConversionJob',
+                args=[str(job.pk)],
+                eager=False,
+            )
+            job.save(update_fields=['task'])
+
+        return super().run(request, pk)

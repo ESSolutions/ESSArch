@@ -365,9 +365,18 @@ class PollAppraisalJobs(DBTask):
 
     def run(self):
         now = timezone.now()
-        jobs = AppraisalJob.objects.select_related('template').filter(status=celery_states.PENDING, start_date__lte=now)
+        jobs = AppraisalJob.objects.select_related('template').filter(
+            status=celery_states.PENDING, start_date__lte=now,
+        )
 
         for job in jobs.iterator():
+            if job.task is None:
+                job.task = ProcessTask.objects.create(
+                    name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',
+                    args=[str(job.pk)],
+                    eager=False,
+                )
+                job.save(update_fields=['task'])
             job.run()
 
 
@@ -376,7 +385,16 @@ class PollConversionJobs(DBTask):
 
     def run(self):
         now = timezone.now()
-        jobs = ConversionJob.objects.select_related('template').filter(status=celery_states.PENDING, start_date__lte=now)
+        jobs = ConversionJob.objects.select_related('template').filter(
+            status=celery_states.PENDING, start_date__lte=now,
+        )
 
         for job in jobs.iterator():
+            if job.task is None:
+                job.task = ProcessTask.objects.create(
+                    name='ESSArch_Core.maintenance.tasks.RunConversionJob',
+                    args=[str(job.pk)],
+                    eager=False,
+                )
+                job.save(update_fields=['task'])
             job.run()

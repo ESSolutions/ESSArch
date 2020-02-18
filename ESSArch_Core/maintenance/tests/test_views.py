@@ -16,6 +16,7 @@ from ESSArch_Core.maintenance.models import (
     ConversionJob,
     ConversionTemplate,
 )
+from ESSArch_Core.testing.runner import TaskRunner
 
 User = get_user_model()
 
@@ -195,6 +196,7 @@ class AppraisalJobViewSetRunTests(TestCase):
         response = self.client.post(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @TaskRunner()
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
     def test_authenticated_with_add_and_run_permissions(self, mock_appraisal_job_run):
         mock_appraisal_job_run.return_value = mock.ANY
@@ -210,6 +212,7 @@ class AppraisalJobViewSetRunTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         mock_appraisal_job_run.assert_called_once()
 
+    @TaskRunner()
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
     def test_authenticated_with_only_add_permission(self, mock_appraisal_job_run):
         mock_appraisal_job_run.return_value = mock.ANY
@@ -224,6 +227,7 @@ class AppraisalJobViewSetRunTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         mock_appraisal_job_run.assert_not_called()
 
+    @TaskRunner()
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
     def test_authenticated_with_only_run_permission(self, mock_appraisal_job_run):
         mock_appraisal_job_run.return_value = mock.ANY
