@@ -1,5 +1,7 @@
 import os
 
+from celery import states as celery_states
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
@@ -10,6 +12,7 @@ from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.exceptions import Locked
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.filters import (
     AppraisalJobFilter,
@@ -83,6 +86,12 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         path = self.get_object()._get_report_directory()
         path = os.path.join(path, pk + '.pdf')
         return path
+
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+        if obj.status == celery_states.STARTED:
+            raise Locked
+        return super().destroy(request, *args, **kwargs)
 
 
 class AppraisalTemplateViewSet(MaintenanceTemplateViewSet):

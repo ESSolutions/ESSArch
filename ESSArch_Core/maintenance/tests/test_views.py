@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from unittest import mock
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase
@@ -100,27 +101,64 @@ class ChangeAppraisalTemplateTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class CreateAppraisalJobTests(APITestCase):
+class AppraisalJobViewSetTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
-        self.url = reverse('appraisaljob-list')
-
-    def test_unauthenticated(self):
-        response = self.client.post(self.url, {'name': 'foo'})
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_authenticated(self):
-        self.client.force_authenticate(user=self.user)
-        response = self.client.post(self.url, {'name': 'foo'})
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_authenticated_with_permission(self):
-        perm = Permission.objects.get(codename='add_appraisaljob')
-        self.user.user_permissions.add(perm)
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.post(self.url, {'name': 'foo'})
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+    def test_list(self):
+        appraisal_job = AppraisalJob.objects.create()
+        res = self.client.get(reverse('appraisaljob-list'))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], str(appraisal_job.pk))
+
+    def test_create_without_permission(self):
+        res = self.client.post(reverse('appraisaljob-list'))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='add_appraisaljob'))
+        res = self.client.post(reverse('appraisaljob-list'))
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_change_without_permission(self):
+        appraisal_job = AppraisalJob.objects.create()
+        res = self.client.patch(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_change_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='change_appraisaljob'))
+
+        with self.subTest('status: {}'.format(celery_states.STARTED)):
+            appraisal_job = AppraisalJob.objects.create(status=celery_states.STARTED)
+            res = self.client.patch(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+            self.assertEqual(res.status_code, status.HTTP_423_LOCKED)
+
+        for state in celery_states.READY_STATES | {celery_states.PENDING}:
+            with self.subTest('status: {}'.format(state)):
+                appraisal_job = AppraisalJob.objects.create(status=state)
+                res = self.client.patch(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_delete_without_permission(self):
+        appraisal_job = AppraisalJob.objects.create()
+        res = self.client.delete(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='delete_appraisaljob'))
+
+        with self.subTest('status: {}'.format(celery_states.STARTED)):
+            appraisal_job = AppraisalJob.objects.create(status=celery_states.STARTED)
+            res = self.client.delete(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+            self.assertEqual(res.status_code, status.HTTP_423_LOCKED)
+
+        for state in celery_states.READY_STATES | {celery_states.PENDING}:
+            with self.subTest('status: {}'.format(state)):
+                appraisal_job = AppraisalJob.objects.create(status=state)
+                res = self.client.delete(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
+                self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
 
 class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
@@ -353,6 +391,66 @@ class AppraisalJobViewSetReportTests(TestCase):
         mock_get_report_pdf_path.assert_called_once_with(str(self.appraisal_job.pk))
         mock_open.assert_called_once_with("report_path.pdf", 'rb')
         mock_generate_file_response.assert_called_once_with("dummy_stream", 'application/pdf')
+
+
+class ConversionJobViewSetTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.client.force_authenticate(user=self.user)
+
+    def test_list(self):
+        conversion_job = ConversionJob.objects.create()
+        res = self.client.get(reverse('conversionjob-list'))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['id'], str(conversion_job.pk))
+
+    def test_create_without_permission(self):
+        res = self.client.post(reverse('conversionjob-list'))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='add_conversionjob'))
+        res = self.client.post(reverse('conversionjob-list'))
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_change_without_permission(self):
+        conversion_job = ConversionJob.objects.create()
+        res = self.client.patch(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_change_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='change_conversionjob'))
+
+        with self.subTest('status: {}'.format(celery_states.STARTED)):
+            conversion_job = ConversionJob.objects.create(status=celery_states.STARTED)
+            res = self.client.patch(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+            self.assertEqual(res.status_code, status.HTTP_423_LOCKED)
+
+        for state in celery_states.READY_STATES | {celery_states.PENDING}:
+            with self.subTest('status: {}'.format(state)):
+                conversion_job = ConversionJob.objects.create(status=state)
+                res = self.client.patch(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_delete_without_permission(self):
+        conversion_job = ConversionJob.objects.create()
+        res = self.client.delete(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_delete_with_permission(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='delete_conversionjob'))
+
+        with self.subTest('status: {}'.format(celery_states.STARTED)):
+            conversion_job = ConversionJob.objects.create(status=celery_states.STARTED)
+            res = self.client.delete(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+            self.assertEqual(res.status_code, status.HTTP_423_LOCKED)
+
+        for state in celery_states.READY_STATES | {celery_states.PENDING}:
+            with self.subTest('status: {}'.format(state)):
+                conversion_job = ConversionJob.objects.create(status=state)
+                res = self.client.delete(reverse('conversionjob-detail', args=(conversion_job.pk,)))
+                self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
 
 
 class ConversionJobViewSetPreviewTests(TestCase):

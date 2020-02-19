@@ -13,6 +13,7 @@ from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 
 from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -878,6 +879,16 @@ class TagVersionType(models.Model):
         verbose_name_plural = _('node types')
 
 
+class TagVersionQuerySet(models.QuerySet):
+    def for_user(self, user, perms=None):
+        return get_objects_for_user(user, self, perms)
+
+
+class TagVersionManager(OrganizationManager):
+    def get_queryset(self):
+        return TagVersionQuerySet(self.model, using=self._db)
+
+
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
@@ -1097,7 +1108,7 @@ class TagVersion(models.Model):
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
 
-    objects = OrganizationManager()
+    objects = TagVersionManager()
 
     class Meta:
         get_latest_by = 'create_date'

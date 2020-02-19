@@ -126,7 +126,7 @@ class ComponentSearch(FacetedSearch):
         components and `_id` on archives.
         """
 
-        organization_archives = TagVersion.objects.for_user(self.user, []).filter(elastic_index='archive')
+        organization_archives = TagVersion.objects.filter(elastic_index='archive').for_user(self.user, [])
         organization_archives = [str(x) for x in list(organization_archives.values_list('pk', flat=True))]
 
         s = super().search()

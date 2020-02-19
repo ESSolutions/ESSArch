@@ -510,13 +510,16 @@ def create_premis_spec(sa: SubmissionAgreement):
 class AccessTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
-        Path.objects.create(entity='temp', value="")
-
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
+
+        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir))
+
         cache = StorageMethod.objects.create()
         cache_target = StorageTarget.objects.create(name='cache target')
 
@@ -935,13 +938,16 @@ class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
 class WorkareaFilesViewTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="access")
-        Path.objects.create(entity="ingest_workarea", value="ingest")
-
         cls.url = reverse('workarea-files-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
+
+        self.access = Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+        self.ingest = Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+
         self.user = User.objects.create(username="admin", password='admin')
         self.member = self.user.essauth_member
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
@@ -971,7 +977,7 @@ class WorkareaFilesViewTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
         path = 'does/exist'
-        fullpath = os.path.join('access', self.user.username, path)
+        fullpath = os.path.join(self.access, self.user.username, path)
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
@@ -996,7 +1002,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src.txt'
         dst = 'dst.txt'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -1024,7 +1030,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -1050,7 +1056,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -3525,7 +3531,7 @@ class test_set_uploaded(TestCase):
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.state, 'Uploading')
 
-    @TaskRunner()
+    @TaskRunner(propagate=False)
     def test_set_uploaded_with_permission(self):
         InformationPackage.objects.filter(pk=self.ip.pk).update(
             responsible=self.user

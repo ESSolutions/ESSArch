@@ -15,9 +15,13 @@ class QuietTestRunner(DiscoverRunner):
 
 
 @contextmanager
-def TaskRunner():
+def TaskRunner(propagate=True):
     settings.CELERY_TASK_ALWAYS_EAGER = True
     current_app.conf.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = propagate
+    current_app.conf.CELERY_TASK_EAGER_PROPAGATES = propagate
     yield
     current_app.conf.CELERY_TASK_ALWAYS_EAGER = False
     settings.CELERY_TASK_ALWAYS_EAGER = False
+    settings.CELERY_TASK_EAGER_PROPAGATES = False
+    current_app.conf.CELERY_TASK_EAGER_PROPAGATES = False

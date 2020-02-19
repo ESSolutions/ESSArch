@@ -713,7 +713,7 @@ class AgentArchiveLinkSerializer(serializers.ModelSerializer):
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=model.objects.all(),
-                fields=('tag', 'agent'),
+                fields=('archive', 'agent'),
                 message=_('Archive already added')
             )
         ]

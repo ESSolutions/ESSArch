@@ -1,7 +1,9 @@
+from celery import states as celery_states
 from rest_framework import serializers
 
 from ESSArch_Core.api.serializers import UserFilteredPrimaryKeyRelatedField
 from ESSArch_Core.auth.serializers import UserSerializer
+from ESSArch_Core.exceptions import Locked
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
@@ -55,6 +57,11 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if instance.status == celery_states.STARTED:
+            raise Locked
+        return super().update(instance, validated_data)
 
     class Meta:
         model = MaintenanceJob
