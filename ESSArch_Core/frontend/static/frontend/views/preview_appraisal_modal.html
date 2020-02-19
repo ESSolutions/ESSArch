@@ -24,13 +24,15 @@
             {{x.ip}}
           </td>
         </tr>
+        <tr ng-if="!$ctrl.jobPreview.length">
+          <td colspan="2" class="text-center">
+            {{'ARCHIVE_MAINTENANCE.NO_FILES_TO_REMOVE' | translate}}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()" focused="true">
-    {{'ARCHIVE_MAINTENANCE.RUN' | translate}}
-  </button>
   <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
 </div>

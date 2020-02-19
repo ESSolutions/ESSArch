@@ -88,9 +88,9 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="x in vm.templates">
-              <td class="clickable" ng-click="vm.templateModal(x)">{{x.name}}</td>
-              <td class="clickable" ng-click="vm.templateModal(x)">{{x.frequency}}</td>
+            <tr ng-repeat="x in vm.templates" ng-click="vm.templateModal(x)">
+              <td class="clickable">{{x.name}}</td>
+              <td class="clickable">{{x.frequency}}</td>
               <td class="text-center shrink">
                 <button
                   class="btn btn-default fas fa-edit btn-sm"
@@ -103,7 +103,7 @@
               <td class="text-center shrink">
                 <button
                   class="fas fa-trash-alt btn btn-default btn-sm"
-                  ng-click="vm.removeAppraisalTemplateModal(x)"
+                  ng-click="vm.removeAppraisalTemplateModal(x); $event.stopPropagation();"
                   permission
                   permission-only="'maintenance.delete_appraisaltemplate'"
                 ></button>
@@ -154,15 +154,15 @@
           <thead>
             <tr>
               <th>{{'ID' | translate}}</th>
+              <th>{{'LABEL' | translate}}</th>
               <th>{{'START' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="x in vm.ongoing">
               <td>{{x.id}}</td>
+              <td>{{x.label}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td>{{x.template}}</td>
             </tr>
             <tr ng-if="!vm.ongoing.length && !ongoingLoading" class="empty-table-indicator">
               <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -209,27 +209,48 @@
           <thead>
             <tr>
               <th>{{'ID' | translate}}</th>
+              <th>{{'LABEL' | translate}}</th>
               <th>{{'START' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}</th>
+              <th class="shrink">{{'ARCHIVE_MAINTENANCE.RUN' | translate}}</th>
+              <th class="shrink">
+                {{'EDIT' | translate}}
+              </th>
+              <th permission permission-only="'maintenance.delete_appraisaljob'" class="white-space-nowrap shrink">
+                {{'REMOVE' | translate}}
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="x in vm.next">
               <td>{{x.id}}</td>
+              <td>{{x.label}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td>{{x.template}}</td>
-              <td>
-                <button class="btn btn-success btn-small" ng-click="vm.previewModal(x)">
-                  {{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}}
+              <td class="text-center shrink">
+                <button class="btn btn-primary btn-sm" ng-click="vm.runJobModal(x); $event.stopPropagation();">
+                  {{'ARCHIVE_MAINTENANCE.RUN' | translate}}
                 </button>
+              </td>
+              <td class="text-center shrink">
+                <button
+                  class="btn btn-default fas fa-edit btn-sm"
+                  ng-click="vm.editJob(x); $event.stopPropagation();"
+                  uib-tooltip="{{'EDIT' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                ></button>
+              </td>
+              <td permission permission-only="'maintenance.delete_appraisaljob'" class="text-center shrink">
+                <button
+                  class="fas fa-trash-alt btn btn-default btn-sm"
+                  ng-click="vm.removeJob(x); $event.stopPropagation();"
+                ></button>
               </td>
             </tr>
             <tr ng-if="!vm.next.length && !nextLoading" class="empty-table-indicator">
-              <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+              <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
             </tr>
             <tr ng-if="!vm.next.length && nextLoading" class="empty-table-indicator">
-              <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+              <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
             </tr>
           </tbody>
         </table>
@@ -271,24 +292,33 @@
             <tr>
               <th>{{'ID' | translate}}</th>
               <th>{{'START' | translate}}</th>
+              <th>{{'LABEL' | translate}}</th>
               <th>{{'END' | translate}}</th>
               <th>{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.TEMPLATE' | translate}}</th>
+              <th permission permission-only="'maintenance.delete_appraisaljob'" class="white-space-nowrap shrink">
+                {{'REMOVE' | translate}}
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="x in vm.finished">
               <td>{{x.id}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td>{{x.label}}</td>
               <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td><a ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a></td>
-              <td>{{x.template}}</td>
+              <td permission permission-only="'maintenance.delete_appraisaljob'" class="text-center shrink">
+                <button
+                  class="fas fa-trash-alt btn btn-default btn-sm"
+                  ng-click="vm.removeJob(x); $event.stopPropagation();"
+                ></button>
+              </td>
             </tr>
             <tr ng-if="!vm.finished.length && !finishedLoading" class="empty-table-indicator">
-              <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
+              <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
             </tr>
             <tr ng-if="!vm.finished.length && finishedLoading" class="empty-table-indicator">
-              <td class="loading-column" colspan="5">{{'LOADING' | translate}}</td>
+              <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
             </tr>
           </tbody>
         </table>

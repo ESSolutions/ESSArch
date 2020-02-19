@@ -31,7 +31,7 @@ import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
 import ConversionModalInstanceCtrl from '../controllers/ConversionModalInstanceCtrl';
 import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
-import CreateAppraisalJobModalInstanceCtrl from '../controllers/CreateAppraisalJobModalInstanceCtrl';
+import AppraisalJobModalInstanceCtrl from '../controllers/AppraisalJobModalInstanceCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
@@ -404,7 +404,7 @@ export default angular
     ConversionModalInstanceCtrl,
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
-  .controller('CreateAppraisalJobModalInstanceCtrl', [
+  .controller('AppraisalJobModalInstanceCtrl', [
     '$translate',
     '$uibModalInstance',
     'appConfig',
@@ -414,7 +414,9 @@ export default angular
     'listViewService',
     '$scope',
     'EditMode',
-    CreateAppraisalJobModalInstanceCtrl,
+    '$uibModal',
+    '$log',
+    AppraisalJobModalInstanceCtrl,
   ])
   .controller('CreateDipCtrl', [
     'IP',

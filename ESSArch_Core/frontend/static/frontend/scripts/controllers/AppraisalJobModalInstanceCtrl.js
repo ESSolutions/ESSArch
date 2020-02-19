@@ -1,4 +1,4 @@
-export default class CreateAppraisalJobModalInstanceCtrl {
+export default class AppraisalJobModalInstanceCtrl {
   constructor(
     $translate,
     $uibModalInstance,
@@ -8,21 +8,35 @@ export default class CreateAppraisalJobModalInstanceCtrl {
     Notifications,
     listViewService,
     $scope,
-    EditMode
+    EditMode,
+    $uibModal,
+    $log
   ) {
     const $ctrl = this;
-    // Set later to use local time for next job
     $ctrl.angular = angular;
     $ctrl.data = data;
     $ctrl.model = {};
     $ctrl.ips = [];
 
+    $ctrl.initModalLoad = false;
     $ctrl.$onInit = () => {
-      EditMode.enable();
-      if (data.job) {
-        $ctrl.model = angular.copy(data.job);
+      if (!data.remove) {
+        EditMode.enable();
+
+        if (data.job) {
+          $ctrl.initModalLoad = true;
+          $http
+            .get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/information-packages/')
+            .then(response => {
+              $ctrl.model = angular.copy(data.job);
+              $ctrl.ips = response.data;
+              $ctrl.initModalLoad = false;
+            });
+        }
+        if (data.template && !$ctrl.model.template) {
+          $ctrl.model.template = data.template.id;
+        }
       }
-      $ctrl.model.template = data.template.id;
     };
 
     $ctrl.fields = [
@@ -57,6 +71,45 @@ export default class CreateAppraisalJobModalInstanceCtrl {
         ],
       },
     ];
+
+    $ctrl.path = '';
+    $ctrl.addPath = function(path) {
+      if (path.length > 0) {
+        $ctrl.model.package_file_pattern.push(path);
+      }
+      $ctrl.path = '';
+    };
+
+    $ctrl.removePath = function(path) {
+      $ctrl.model.package_file_pattern.splice($ctrl.model.package_file_pattern.indexOf(path), 1);
+    };
+
+    $ctrl.save = () => {
+      $ctrl.creatingJob = true;
+      $http({
+        url: appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.id + '/',
+        method: 'PATCH',
+        data: $ctrl.model,
+      })
+        .then(response => {
+          return $http
+            .post(appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/information-packages/', {
+              information_packages: $ctrl.ips.map(x => x.id),
+            })
+            .then(response => {
+              return response;
+            });
+        })
+        .then(() => {
+          $ctrl.creatingJob = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_CREATED'), 'success');
+          EditMode.disable();
+          $uibModalInstance.close($ctrl.data);
+        })
+        .catch(() => {
+          $ctrl.creatingJob = false;
+        });
+    };
 
     $ctrl.createJob = () => {
       $ctrl.creatingJob = true;
@@ -227,9 +280,57 @@ export default class CreateAppraisalJobModalInstanceCtrl {
           });
       }
     };
+
+    $ctrl.remove = () => {
+      $ctrl.removingJob = true;
+      $http
+        .delete(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/')
+        .then(() => {
+          $ctrl.removingJob = false;
+          EditMode.disable();
+          $uibModalInstance.close();
+        })
+        .catch(() => {
+          $ctrl.removingJob = false;
+        });
+    };
+
+    $ctrl.runJob = function(job) {
+      $http({
+        url: appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/run/',
+        method: 'POST',
+      }).then(() => {
+        Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
+        $uibModalInstance.close();
+      });
+    };
+
+    $ctrl.previewModal = function(job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/preview_appraisal_modal.html',
+        controller: 'AppraisalModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            preview: true,
+            job,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {},
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     $scope.$on('modal.closing', function(event, reason, closed) {
       if (
-        (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
+        (data.allow_close === null || angular.isUndefined(data.remove) || data.remove !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
         const message = $translate.instant('UNSAVED_DATA_WARNING');

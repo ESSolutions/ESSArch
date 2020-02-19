@@ -159,19 +159,6 @@ export default class AppraisalCtrl {
       }
     };
 
-    /**
-     * Run appraisal template now
-     * @param {Object} appraisal
-     */
-    vm.runJob = function(job) {
-      $http({
-        url: appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/run/',
-        method: 'POST',
-      }).then(function(response) {
-        Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
-      });
-    };
-
     /*
      * Array containing chosen(checked) appraisal templates to use
      * as filter for the other appraisal tables
@@ -213,24 +200,22 @@ export default class AppraisalCtrl {
      * MODALS
      */
 
-    vm.previewModal = function(job) {
+    vm.runJobModal = function(job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/preview_appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/run_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
           data: {
-            preview: true,
-            job: job,
+            job,
           },
         },
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.runJob(job);
           vm.templatePipe(vm.templateTableState);
           vm.nextPipe(vm.nextTableState);
           vm.ongoingPipe(vm.ongoingTableState);
@@ -270,7 +255,7 @@ export default class AppraisalCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/create_appraisal_job_modal.html',
-        controller: 'CreateAppraisalJobModalInstanceCtrl',
+        controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
@@ -280,7 +265,35 @@ export default class AppraisalCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
+        function(data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+          vm.ongoingPipe(vm.ongoingTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.editJob = function(job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/edit_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            job,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+        },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
         }
@@ -395,6 +408,30 @@ export default class AppraisalCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           vm.templatePipe(vm.templateTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.removeJob = function(job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            job,
+            remove: true,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
