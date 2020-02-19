@@ -87,6 +87,7 @@ class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
 class AppraisalJobSerializer(MaintenanceJobSerializer):
     class Meta(MaintenanceJobSerializer.Meta):
         model = AppraisalJob
+        fields = MaintenanceJobSerializer.Meta.fields + ('package_file_pattern',)
 
 
 class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
@@ -97,3 +98,4 @@ class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
 class ConversionJobSerializer(MaintenanceJobSerializer):
     class Meta(MaintenanceJobSerializer.Meta):
         model = ConversionJob
+        fields = MaintenanceJobSerializer.Meta.fields + ('specification',)
