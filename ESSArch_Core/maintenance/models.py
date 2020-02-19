@@ -211,10 +211,7 @@ class AppraisalJob(MaintenanceJob):
 
         return found_files
 
-    def _run_metadata(self):
-        pass
-
-    def _run_archive_object(self):
+    def _run(self):
         def get_information_packages():
             return self.information_packages.filter(
                 Q(
@@ -237,6 +234,19 @@ class AppraisalJob(MaintenanceJob):
             entry.end_date = timezone.now()
             entry.save()
             return entry
+
+        entries = []
+        for t in self.tags.all():
+            entries.append(
+                AppraisalJobEntry(
+                    job=self,
+                    start_date=timezone.now(),
+                    end_date=timezone.now(),
+                    component=t.versions.latest().name,
+                )
+            )
+        AppraisalJobEntry.objects.bulk_create(entries)
+        self.tags.all().delete()
 
         ips = get_information_packages()
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
@@ -302,12 +312,6 @@ class AppraisalJob(MaintenanceJob):
 
                 # inactivate old generations
                 InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
-
-    def _run(self):
-        if self.template.type == ARCHIVAL_OBJECT:
-            return self._run_archive_object()
-
-        return self._run_metadata()
 
 
 class AppraisalJobEntry(MaintenanceJobEntry):

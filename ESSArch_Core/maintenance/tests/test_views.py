@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupType
+from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
@@ -26,6 +27,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
 from ESSArch_Core.testing.runner import TaskRunner
 
 User = get_user_model()
@@ -303,12 +305,15 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
             )
 
 
-class AppraisalJobViewSetRunTests(TestCase):
+class AppraisalJobViewSetRunTests(APITestCase):
     def setUp(self):
-        self.client = APIClient()
         self.user = User.objects.create(username='user')
         self.appraisal_job = AppraisalJob.objects.create()
         self.url = reverse('appraisaljob-run', args=(self.appraisal_job.pk,))
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+        Path.objects.create(entity='appraisal_reports', value=tempfile.mkdtemp(dir=self.datadir))
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
@@ -320,20 +325,23 @@ class AppraisalJobViewSetRunTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @TaskRunner()
-    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
-    def test_authenticated_with_add_and_run_permissions(self, mock_appraisal_job_run):
-        mock_appraisal_job_run.return_value = mock.ANY
+    def test_authenticated_with_add_and_run_permissions(self):
         perm_list = [
             'add_appraisaljob',
             'run_appraisaljob',
         ]
+
+        tag = Tag.objects.create()
+        tag_version_type = TagVersionType.objects.create()
+        TagVersion.objects.create(tag=tag, type=tag_version_type, elastic_index='component')
+        self.appraisal_job.tags.add(tag)
 
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        mock_appraisal_job_run.assert_called_once()
+        self.assertFalse(Tag.objects.exists())
 
     @TaskRunner()
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
