@@ -3531,7 +3531,7 @@ class test_set_uploaded(TestCase):
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.state, 'Uploading')
 
-    @TaskRunner()
+    @TaskRunner(propagate=False)
     def test_set_uploaded_with_permission(self):
         InformationPackage.objects.filter(pk=self.ip.pk).update(
             responsible=self.user

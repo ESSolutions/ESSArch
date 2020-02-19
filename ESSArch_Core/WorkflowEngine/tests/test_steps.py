@@ -41,7 +41,6 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 class test_status(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         self.step = ProcessStep.objects.create()
 
@@ -206,6 +205,7 @@ class test_status(TestCase):
         with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
+    @TaskRunner(False)
     def test_cached_status_resume_step(self):
         fname = os.path.join(self.test_dir, "foo.txt")
 
@@ -393,7 +393,6 @@ class test_status(TestCase):
 class test_progress(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         self.step = ProcessStep.objects.create()
 
