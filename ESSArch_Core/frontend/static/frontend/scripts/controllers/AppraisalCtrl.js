@@ -30,6 +30,13 @@ export default class AppraisalCtrl {
     $transitions.onSuccess({}, function($transition) {
       $interval.cancel(appraisalInterval);
     });
+
+    $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
+      vm.nextPipe(vm.nextTableState);
+      vm.ongoingPipe(vm.ongoingTableState);
+      vm.finishedPipe(vm.finishedTableState);
+    });
+
     var appraisalInterval = $interval(function() {
       vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
