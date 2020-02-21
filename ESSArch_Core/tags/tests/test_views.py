@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest import mock
 
 from countries_plus.models import Country
@@ -1765,6 +1766,30 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2010, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2020, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2030, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': None,
+            'end_date': None,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
     def test_change_archive_delete_structure(self, mock_save):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
@@ -1842,6 +1867,30 @@ class ChangeTagTests(TestCase):
         url = reverse('search-detail', args=(tag_version.pk,))
 
         response = self.client.patch(url, {'name': 'new name'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2010, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2020, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2030, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': None,
+            'end_date': None,
+        })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
