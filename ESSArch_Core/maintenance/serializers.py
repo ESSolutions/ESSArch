@@ -13,6 +13,7 @@ from ESSArch_Core.maintenance.models import (
     MaintenanceJob,
     MaintenanceTemplate,
 )
+from ESSArch_Core.tags.models import Tag
 
 
 class MaintenanceTemplateSerializer(serializers.ModelSerializer):
@@ -74,7 +75,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
 class AppraisalJobInformationPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
-        fields = ('id',)
+        fields = ('id', 'object_identifier_value', 'label', 'generation')
 
 
 class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer):
@@ -85,6 +86,17 @@ class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer)
     class Meta:
         model = InformationPackage
         fields = ('information_packages',)
+
+
+class AppraisalJobTagSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.current_version.name
+
+    class Meta:
+        model = Tag
+        fields = ('id', 'name')
 
 
 class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):

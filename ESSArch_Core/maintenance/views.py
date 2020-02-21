@@ -31,12 +31,14 @@ from ESSArch_Core.maintenance.serializers import (
     AppraisalJobInformationPackageSerializer,
     AppraisalJobInformationPackageWriteSerializer,
     AppraisalJobSerializer,
+    AppraisalJobTagSerializer,
     AppraisalTemplateSerializer,
     ConversionJobSerializer,
     ConversionTemplateSerializer,
     MaintenanceJobSerializer,
     MaintenanceTemplateSerializer,
 )
+from ESSArch_Core.tags.models import Tag
 from ESSArch_Core.util import generate_file_response
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -151,6 +153,15 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
             return AppraisalJobInformationPackageWriteSerializer
 
         return self.serializer_class
+
+
+class AppraisalJobTagViewSet(NestedViewSetMixin,
+                             mixins.ListModelMixin,
+                             viewsets.GenericViewSet):
+
+    queryset = Tag.objects.select_related('current_version').all()
+    serializer_class = AppraisalJobTagSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 class ConversionTemplateViewSet(MaintenanceTemplateViewSet):
