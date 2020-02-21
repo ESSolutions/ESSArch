@@ -1,17 +1,17 @@
-# -*- coding: utf-8 -*-
 import os
 import shutil
 import tempfile
 from unittest import mock
 
-from django.test import SimpleTestCase
+from django.test import TestCase
 
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import DISK
 
 
-class DiskStorageBackendTests(SimpleTestCase):
+class DiskStorageBackendTests(TestCase):
 
     def setUp(self):
         self.root_dir = tempfile.mkdtemp()
@@ -110,16 +110,17 @@ class DiskStorageBackendTests(SimpleTestCase):
             storage_medium=mock_st_medium,
         )
 
-    @mock.patch("ESSArch_Core.ip.models.InformationPackage")
     @mock.patch("ESSArch_Core.storage.backends.disk.copy", return_value='some/objid')
     @mock.patch("ESSArch_Core.storage.models.StorageObject.objects.create")
     @mock.patch("ESSArch_Core.storage.models.StorageMethod")
     @mock.patch("ESSArch_Core.storage.models.StorageMedium")
-    def test_write_src_with_multi_files_not_container(self, mock_st_medium, mock_st_method, mock_st_obj, mock_copy, ip):
+    def test_write_src_with_multi_files_not_container(self, mock_st_medium, mock_st_method, mock_st_obj, mock_copy):
         disk_storage_backend = DiskStorageBackend()
         mock_st_medium.storage_target.target = self.datadir
         mock_st_method.containers = False
-        ip.object_identifier_value = "objid"
+        ip = InformationPackage.objects.create(
+            object_identifier_value='objid',
+        )
         src_list = ["some_src", "some_src2", "some_src3"]
 
         disk_storage_backend.write(
