@@ -130,7 +130,14 @@ class AppraisalJobViewSetTests(APITestCase):
 
     def test_create_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename='add_appraisaljob'))
-        res = self.client.post(reverse('appraisaljob-list'))
+
+        res = self.client.post(reverse('appraisaljob-list'), data={'package_file_pattern': ['logs/*']})
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        res = self.client.post(reverse('appraisaljob-list'), data={'package_file_pattern': []})
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+        res = self.client.post(reverse('appraisaljob-list'), data={'package_file_pattern': None})
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_change_without_permission(self):

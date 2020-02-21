@@ -93,6 +93,8 @@ class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
 
 
 class AppraisalJobSerializer(MaintenanceJobSerializer):
+    package_file_pattern = serializers.JSONField(allow_null=True, default=None)
+
     class Meta(MaintenanceJobSerializer.Meta):
         model = AppraisalJob
         fields = MaintenanceJobSerializer.Meta.fields + ('package_file_pattern',)
