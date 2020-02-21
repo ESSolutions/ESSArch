@@ -19,6 +19,7 @@ from django.utils import timezone
 from glob2 import iglob
 from weasyprint import HTML
 
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
@@ -109,10 +110,28 @@ class MaintenanceJob(models.Model):
         render = render_to_string(template, {'job': self, 'rule': self.template})
         HTML(string=render).write_pdf(dst)
 
+    def create_notification(self, status):
+        if status == celery_states.SUCCESS:
+            msg = f'Completed maintenance job "{self.label or str(self.pk)}"'
+            level = logging.INFO
+        else:
+            msg = f'Maintenance job "{self.label or str(self.pk)}" failed'
+            level = logging.ERROR
+
+        return Notification.objects.create(
+            message=msg,
+            level=level,
+            user=self.user,
+            refresh=True,
+        )
+
     def _mark_as_complete(self):
         self.status = celery_states.SUCCESS
         self.end_date = timezone.now()
         self.save(update_fields=['status', 'end_date'])
+
+        if self.user is not None:
+            self.create_notification(self.status)
 
         try:
             self._generate_report()
@@ -142,6 +161,7 @@ class MaintenanceJob(models.Model):
             self.status = celery_states.FAILURE
             self.end_date = timezone.now()
             self.save(update_fields=['status', 'end_date'])
+            self.create_notification(self.status)
             raise
 
         self._mark_as_complete()
@@ -205,6 +225,21 @@ class AppraisalJob(MaintenanceJob):
                 )
 
         return found_files
+
+    def create_notification(self, status):
+        if status == celery_states.SUCCESS:
+            msg = f'Completed appraisal job "{self.label or str(self.pk)}"'
+            level = logging.INFO
+        else:
+            msg = f'Appraisal job "{self.label or str(self.pk)}" failed'
+            level = logging.ERROR
+
+        return Notification.objects.create(
+            message=msg,
+            level=level,
+            user=self.user,
+            refresh=True,
+        )
 
     @transaction.atomic
     def _run(self):
@@ -373,6 +408,21 @@ class ConversionJob(MaintenanceJob):
             for pattern, _spec in self.specification.items():
                 found_files.extend(find_all_files(datadir, ip, pattern))
         return found_files
+
+    def create_notification(self, status):
+        if status == celery_states.SUCCESS:
+            msg = f'Completed conversion job "{self.label or str(self.pk)}"'
+            level = logging.INFO
+        else:
+            msg = f'Conversion job "{self.label or str(self.pk)}" failed'
+            level = logging.ERROR
+
+        return Notification.objects.create(
+            message=msg,
+            level=level,
+            user=self.user,
+            refresh=True,
+        )
 
     def _run(self):
         def get_information_packages():

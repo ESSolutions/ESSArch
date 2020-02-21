@@ -372,7 +372,7 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
 class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
-        self.appraisal_job = AppraisalJob.objects.create()
+        self.appraisal_job = AppraisalJob.objects.create(user=self.user)
         self.url = reverse('appraisaljob-run', args=(self.appraisal_job.pk,))
 
         self.datadir = tempfile.mkdtemp()

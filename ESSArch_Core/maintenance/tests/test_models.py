@@ -6,6 +6,7 @@ from stat import S_IWRITE
 from unittest import mock
 
 from celery import states as celery_states
+from django.contrib.auth import get_user_model
 from django.template import TemplateDoesNotExist
 from django.test import TestCase
 from django.utils import timezone
@@ -18,6 +19,8 @@ from ESSArch_Core.maintenance.models import (
     find_all_files,
 )
 from ESSArch_Core.util import normalize_path, win_to_posix
+
+User = get_user_model()
 
 
 class MaintenanceJobGetReportDirectoryTests(TestCase):
@@ -145,11 +148,13 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
 class MaintenanceJobRunTests(TestCase):
 
     def setUp(self):
+        self.user = User.objects.create(username='user')
+
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        self.appraisal_job = AppraisalJob.objects.create()
-        self.conversion_job = ConversionJob.objects.create()
+        self.appraisal_job = AppraisalJob.objects.create(user=self.user)
+        self.conversion_job = ConversionJob.objects.create(user=self.user)
 
         self.appraisal_path = os.path.join(self.datadir, 'appraisal_path')
         self.conversion_path = os.path.join(self.datadir, 'conversion_path')
