@@ -244,7 +244,6 @@ class StorageMediumMigratableTests(TestCase):
         )
         self.sa = SubmissionAgreement.objects.create(policy=self.policy)
 
-
     def test_no_change(self):
         ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
 
