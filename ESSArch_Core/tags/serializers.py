@@ -910,8 +910,8 @@ class ComponentWriteSerializer(serializers.Serializer):
         required=False,
         queryset=StructureUnit.objects.filter(structure__is_template=False),
     )
-    start_date = serializers.DateTimeField(required=False)
-    end_date = serializers.DateTimeField(required=False)
+    start_date = serializers.DateTimeField(required=False, allow_null=True)
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
@@ -1078,9 +1078,9 @@ class ComponentWriteSerializer(serializers.Serializer):
         if data.get('information_package') is not None and not data['type'].information_package_type:
             raise serializers.ValidationError('information package can only be set on information package nodes')
 
-        if data.get('start_date') and data.get('end_date') and \
-           data.get('start_date') > data.get('end_date'):
-
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        end_date = data.get('end_date', getattr(self.instance, 'end_date', None))
+        if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(_("end date must occur after start date"))
 
         return data
@@ -1097,8 +1097,8 @@ class ArchiveWriteSerializer(serializers.Serializer):
     description = serializers.CharField(required=False)
     reference_code = serializers.CharField(required=False, allow_blank=True)
     use_uuid_as_refcode = serializers.BooleanField(default=False)
-    start_date = serializers.DateTimeField(required=False)
-    end_date = serializers.DateTimeField(required=False)
+    start_date = serializers.DateTimeField(required=False, allow_null=True)
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
@@ -1212,9 +1212,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
         return structures
 
     def validate(self, data):
-        if data.get('start_date') and data.get('end_date') and \
-           data.get('start_date') > data.get('end_date'):
-
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        end_date = data.get('end_date', getattr(self.instance, 'end_date', None))
+        if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(_("end date must occur after start date"))
 
         if not self.instance and not data.get('reference_code') and not data.get('use_uuid_as_refcode'):
