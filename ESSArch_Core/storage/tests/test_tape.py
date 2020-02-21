@@ -6,7 +6,7 @@ import tempfile
 from subprocess import PIPE
 from unittest import mock
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 from django.utils import timezone
 
 from ESSArch_Core.storage.exceptions import (
@@ -34,7 +34,7 @@ from ESSArch_Core.storage.tape import (
 )
 
 
-class TapeTests(TestCase):
+class TapeTests(SimpleTestCase):
 
     @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.stop')
     @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.sleep')
@@ -358,7 +358,7 @@ class TapeTests(TestCase):
         self.assertEqual(get_tape_op_and_count(52, 52), (1, 'bsfm'))
 
 
-class TapeLabelTest(TestCase):
+class TapeLabelTest(SimpleTestCase):
 
     def setUp(self):
         self.bd = tempfile.mkdtemp()

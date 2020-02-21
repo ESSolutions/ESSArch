@@ -2195,6 +2195,21 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         self.assertIn('{}.xml'.format(ip.pk), target_dir)
         self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
 
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=storage_target,
+                content_location_value=f'{ip.object_identifier_value}.tar',
+                container=True,
+            ).exists()
+        )
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=self.cache_target,
+                content_location_value=ip.object_identifier_value,
+                container=False,
+            ).exists()
+        )
+
     @TaskRunner()
     def test_preserve_dip(self):
         ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)

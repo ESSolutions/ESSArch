@@ -4,13 +4,14 @@ import shutil
 import tempfile
 from unittest import mock
 
-from django.test import TestCase
+from django.test import SimpleTestCase
 
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
+from ESSArch_Core.storage.models import DISK
 
 
-class DiskStorageBackendTests(TestCase):
+class DiskStorageBackendTests(SimpleTestCase):
 
     def setUp(self):
         self.root_dir = tempfile.mkdtemp()
@@ -54,7 +55,7 @@ class DiskStorageBackendTests(TestCase):
                 storage_medium=mock_storage_medium
             )
 
-    @mock.patch("ESSArch_Core.storage.backends.disk.copy")
+    @mock.patch("ESSArch_Core.storage.backends.disk.copy", return_value='foo/bar.tar')
     @mock.patch("ESSArch_Core.storage.models.StorageObject.objects.create")
     @mock.patch("ESSArch_Core.storage.models.StorageMethod")
     @mock.patch("ESSArch_Core.storage.models.StorageMedium")
@@ -71,9 +72,15 @@ class DiskStorageBackendTests(TestCase):
         )
 
         mock_copy.assert_called_once()
-        mock_st_obj.assert_called_once()
+        mock_st_obj.assert_called_once_with(
+            container=True,
+            content_location_type=DISK,
+            content_location_value='bar.tar',
+            ip=mock.ANY,
+            storage_medium=mock_st_medium,
+        )
 
-    @mock.patch("ESSArch_Core.storage.backends.disk.copy")
+    @mock.patch("ESSArch_Core.storage.backends.disk.copy", return_value='foo/bar.tar')
     @mock.patch("ESSArch_Core.storage.models.StorageObject.objects.create")
     @mock.patch("ESSArch_Core.storage.models.StorageMethod")
     @mock.patch("ESSArch_Core.storage.models.StorageMedium")
@@ -95,33 +102,45 @@ class DiskStorageBackendTests(TestCase):
 
         self.assertEqual(mock_copy.call_count, 3)
         mock_copy.assert_has_calls(expected_copy_calls)
-        mock_st_obj.assert_called_once()
+        mock_st_obj.assert_called_once_with(
+            container=True,
+            content_location_type=DISK,
+            content_location_value='bar.tar',
+            ip=mock.ANY,
+            storage_medium=mock_st_medium,
+        )
 
     @mock.patch("ESSArch_Core.ip.models.InformationPackage")
-    @mock.patch("ESSArch_Core.storage.backends.disk.copy")
+    @mock.patch("ESSArch_Core.storage.backends.disk.copy", return_value='some/objid')
     @mock.patch("ESSArch_Core.storage.models.StorageObject.objects.create")
     @mock.patch("ESSArch_Core.storage.models.StorageMethod")
     @mock.patch("ESSArch_Core.storage.models.StorageMedium")
-    def test_write_src_with_multi_files_not_container(self, st_medium, mock_st_method, mock_st_obj, mock_copy, ip):
+    def test_write_src_with_multi_files_not_container(self, mock_st_medium, mock_st_method, mock_st_obj, mock_copy, ip):
         disk_storage_backend = DiskStorageBackend()
-        st_medium.storage_target.target = self.datadir
+        mock_st_medium.storage_target.target = self.datadir
         mock_st_method.containers = False
-        ip.object_identifier_value = "some/object/path"
+        ip.object_identifier_value = "objid"
         src_list = ["some_src", "some_src2", "some_src3"]
 
         disk_storage_backend.write(
             src=src_list,
             ip=ip,
             container=mock_st_method.containers,
-            storage_medium=st_medium
+            storage_medium=mock_st_medium
         )
 
-        expected_dest = os.path.join(self.datadir, "some/object/path")
+        expected_dest = os.path.join(self.datadir, "objid")
         expected_copy_calls = [mock.call(src, expected_dest, block_size=DEFAULT_BLOCK_SIZE) for src in src_list]
 
         self.assertEqual(mock_copy.call_count, 3)
         mock_copy.assert_has_calls(expected_copy_calls)
-        mock_st_obj.assert_called_once()
+        mock_st_obj.assert_called_once_with(
+            container=False,
+            content_location_type=DISK,
+            content_location_value='objid',
+            ip=mock.ANY,
+            storage_medium=mock_st_medium,
+        )
 
     @mock.patch("ESSArch_Core.storage.models.StorageObject")
     @mock.patch("ESSArch_Core.storage.backends.disk.copy")
@@ -223,6 +242,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend = DiskStorageBackend()
         mock_storage_obj.container = False
         mock_storage_obj.content_location_value = self.datadir
+        mock_storage_obj.get_full_path.return_value = self.datadir
 
         self.assertTrue(os.path.exists(self.datadir))
 
@@ -243,6 +263,8 @@ class DiskStorageBackendTests(TestCase):
         mock_storage_obj.container = True
         mock_storage_obj.ip.aic.pk = aic_pk
         mock_storage_obj.content_location_value = tar_path
+        mock_storage_obj.content_location_value = tar_path
+        mock_storage_obj.get_full_path.return_value = tar_path
 
         self.assertTrue(os.path.exists(xml_file))
         self.assertTrue(os.path.exists(aic_xml))

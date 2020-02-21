@@ -28,7 +28,7 @@ class DiskStorageBackend(BaseStorageBackend):
         return os.path.join(dst, root)
 
     def open(self, storage_object, file, *args, **kwargs):
-        path = os.path.join(storage_object.content_location_value, file)
+        path = os.path.join(storage_object.get_full_path(), file)
         return open(path, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
@@ -70,6 +70,8 @@ class DiskStorageBackend(BaseStorageBackend):
             if idx == 0:
                 content_location_value = new
 
+        _, content_location_value = os.path.split(content_location_value)
+
         return StorageObject.objects.create(
             content_location_value=content_location_value,
             content_location_type=DISK,
@@ -101,7 +103,7 @@ class DiskStorageBackend(BaseStorageBackend):
                     yield os.path.relpath(path, datadir)
 
     def delete(self, storage_object):
-        path = storage_object.content_location_value
+        path = storage_object.get_full_path()
         if not storage_object.container:
             try:
                 shutil.rmtree(path)
