@@ -161,6 +161,9 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.has_perm("%s.%s" % ('auth', 'delete_user'))
 
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_user'))
+
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')
 
