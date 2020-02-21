@@ -12,7 +12,7 @@ from celery import states as celery_states
 from celery.result import allow_join_result
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -91,10 +91,6 @@ class MaintenanceJob(models.Model):
         abstract = True
         get_latest_by = 'start_date'
         ordering = ('-start_date',)
-
-    def validate_package_file_pattern(self):
-        if not in_directory('dir', os.path.join('dir', self.package_file_pattern)):
-            raise ValueError()
 
     def _get_report_directory(self):
         entity = '%s_reports' % self.MAINTENANCE_TYPE
@@ -210,6 +206,7 @@ class AppraisalJob(MaintenanceJob):
 
         return found_files
 
+    @transaction.atomic
     def _run(self):
         def get_information_packages():
             return self.information_packages.filter(
@@ -300,6 +297,9 @@ class AppraisalJob(MaintenanceJob):
                 # delete files specified in rule
                 for pattern in cast(List[str], self.package_file_pattern):
                     for path in iglob(new_ip_tmpdir + '/' + pattern):
+                        if not in_directory(path, new_ip_tmpdir):
+                            raise ValueError('Invalid file-pattern accessing files outside of package')
+
                         if os.path.isdir(path):
                             for root, _dirs, files in walk(path):
                                 for f in files:

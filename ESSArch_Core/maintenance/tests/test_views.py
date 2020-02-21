@@ -458,6 +458,31 @@ class AppraisalJobViewSetRunTests(APITestCase):
 
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    def test_delete_packages_with_invalid_file_pattern(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.information_packages.add(self.ip)
+        self.appraisal_job.package_file_pattern = ['../**/bar.*', 'logs']
+        self.appraisal_job.save()
+
+        with self.assertRaises(ValueError):
+            self.client.post(self.url)
+
+        self.assertFalse(AppraisalJobEntry.objects.exists())
+        self.ip.refresh_from_db()
+
+        self.assertTrue(os.path.exists(self.storage_path))
+        self.assertFalse(
+            InformationPackage.objects.filter(
+                package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+                active=True,
+            ).exists()
+        )
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
     def test_delete_packages_with_file_pattern(self):
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
