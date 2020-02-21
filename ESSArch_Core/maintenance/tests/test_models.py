@@ -91,6 +91,7 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
 
     def setUp(self):
         self.now = timezone.now()
+        self.user = User.objects.create(username='user')
 
     @mock.patch('ESSArch_Core.maintenance.models.timezone.now')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._generate_report')
@@ -121,19 +122,16 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
     def test_mark_as_complete_when_report_generation_raised_exception(self, mock_generate_report, mock_timezone_now):
         mock_generate_report.side_effect = Exception()
         mock_timezone_now.return_value = self.now
-        appraisal_job = AppraisalJob.objects.create()
-        conversion_job = ConversionJob.objects.create()
+        appraisal_job = AppraisalJob.objects.create(user=self.user)
+        conversion_job = ConversionJob.objects.create(user=self.user)
 
         self.assertEqual(appraisal_job.status, celery_states.PENDING)
         self.assertIsNone(appraisal_job.end_date)
         self.assertEqual(conversion_job.status, celery_states.PENDING)
         self.assertIsNone(conversion_job.end_date)
 
-        with self.assertRaises(Exception):
-            appraisal_job._mark_as_complete()
-
-        with self.assertRaises(Exception):
-            conversion_job._mark_as_complete()
+        appraisal_job._mark_as_complete()
+        conversion_job._mark_as_complete()
 
         appraisal_job.refresh_from_db()
         conversion_job.refresh_from_db()

@@ -126,18 +126,24 @@ class MaintenanceJob(models.Model):
         )
 
     def _mark_as_complete(self):
-        self.status = celery_states.SUCCESS
-        self.end_date = timezone.now()
-        self.save(update_fields=['status', 'end_date'])
-
-        if self.user is not None:
-            self.create_notification(self.status)
-
         try:
             self._generate_report()
         except Exception:
-            logger.exception('Failed to generate report')
-            raise
+            msg = 'Failed to generate report'
+            Notification.objects.create(
+                message=msg,
+                level=logging.WARN,
+                user=self.user,
+                refresh=False,
+            )
+            logger.exception(msg)
+        finally:
+            self.status = celery_states.SUCCESS
+            self.end_date = timezone.now()
+            self.save(update_fields=['status', 'end_date'])
+
+            if self.user is not None:
+                self.create_notification(self.status)
 
     def _run(self):
         raise NotImplementedError
