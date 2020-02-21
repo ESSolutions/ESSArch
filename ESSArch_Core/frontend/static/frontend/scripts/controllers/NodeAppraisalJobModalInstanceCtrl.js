@@ -81,6 +81,23 @@ export default class NodeAppraisalJobModalInstanceCtrl {
       }
     };
 
+    $ctrl.removeNode = node => {
+      $ctrl.removing = true;
+      $http({
+        method: 'DELETE',
+        url: appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/tags/',
+        headers: {'Content-type': 'application/json'},
+        data: {tags: [node.id]},
+      })
+        .then(() => {
+          $ctrl.removing = false;
+          $uibModalInstance.close();
+        })
+        .catch(() => {
+          $ctrl.removing = false;
+        });
+    };
+
     $ctrl.cancel = function() {
       $uibModalInstance.dismiss('cancel');
     };

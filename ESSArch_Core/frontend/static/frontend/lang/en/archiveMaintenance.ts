@@ -61,6 +61,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       PREPAREAPPRAISALDESC: 'Create new appraisal template',
       PREPARECONVERSIONDESC: 'Create new conversion template',
       PREVIEW: 'Preview',
+      REMOVE_NODE_FROM_APPRAISAL_JOB: 'Remove node from appraisal job',
       REPORT: 'Report',
       RUN_APPRAISAL_JOB: 'Run appraisal job',
       SELECT_INFORMATION_PACKAGES: 'Select information packages',

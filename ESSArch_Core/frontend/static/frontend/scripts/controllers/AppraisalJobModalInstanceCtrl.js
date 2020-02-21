@@ -357,15 +357,30 @@ export default class AppraisalJobModalInstanceCtrl {
       });
     };
 
-    $ctrl.removeNode = node => {
-      $http
-        .delete(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/tags/', {params: {tags: [node.id]}})
-        .then(() => {
+    $ctrl.removeNodeModal = function(node) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_node_from_appraisal_job_modal.html',
+        controller: 'NodeAppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            job: data.job,
+            remove: true,
+            node,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
           $ctrl.tagsPipe($ctrl.tagsTableState);
-        })
-        .catch(() => {
-          $ctrl.tagsPipe($ctrl.tagsTableState);
-        });
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
     };
 
     $ctrl.previewModal = function(job) {
@@ -384,7 +399,7 @@ export default class AppraisalJobModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
+        function(data) {},
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
         }

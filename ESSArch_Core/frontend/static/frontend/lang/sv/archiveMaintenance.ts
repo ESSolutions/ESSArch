@@ -61,6 +61,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       PREPAREAPPRAISALDESC: 'Skapa ny gallringsmall',
       PREPARECONVERSIONDESC: 'Skapa ny konverteringsmall',
       PREVIEW: 'Förhandsgranska',
+      REMOVE_NODE_FROM_APPRAISAL_JOB: 'Ta bort nod från gallringsjobb',
       REPORT: 'Rapport',
       RUN_APPRAISAL_JOB: 'Kör gallringsjobb',
       SELECT_INFORMATION_PACKAGES: 'Välj informationspaket',
