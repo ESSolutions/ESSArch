@@ -306,7 +306,10 @@
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>{{x.label}}</td>
               <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td><a ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a></td>
+              <td>
+                <a ng-if="x.has_report" ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a>
+                <p ng-if="!x.has_report">{{'ARCHIVE_MAINTENANCE.NO_REPORT_AVAILABLE' | translate}}</p>
+              </td>
               <td permission permission-only="'maintenance.delete_appraisaljob'" class="text-center shrink">
                 <button
                   class="fas fa-trash-alt btn btn-default btn-sm"

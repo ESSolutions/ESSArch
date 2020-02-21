@@ -51,6 +51,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       MANUAL_APPRAISAL: 'Manual appraisal',
       NEXT: 'Next',
       NO_FILES_TO_REMOVE: 'There are no files to remove',
+      NO_REPORT_AVAILABLE: 'No report available',
       NODE_ADDED_TO_APPRAISAL_TEMPLATE: '{{node}} has been added to appraisal template: {{template}}',
       NODE_ADDED_TO_CONVERSION_TEMPLATE: '{{node}} has been added to conversion template: {{template}}',
       NO_PATHS_CHOSEN: 'No paths chosen',
