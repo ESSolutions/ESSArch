@@ -1,3 +1,5 @@
+import os
+
 from celery import states as celery_states
 from rest_framework import serializers
 
@@ -54,6 +56,7 @@ class MaintenanceTemplateSerializer(serializers.ModelSerializer):
 class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     label = serializers.CharField(required=False, allow_blank=True, default="")
+    has_report = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
@@ -64,10 +67,13 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
             raise Locked
         return super().update(instance, validated_data)
 
+    def get_has_report(self, obj):
+        return os.path.isfile(obj.get_report_pdf_path())
+
     class Meta:
         model = MaintenanceJob
         fields = (
-            'id', 'label', 'template', 'status', 'start_date', 'end_date', 'user',
+            'id', 'label', 'template', 'status', 'start_date', 'end_date', 'user', 'has_report',
         )
         read_only_fields = ('end_date',)
 

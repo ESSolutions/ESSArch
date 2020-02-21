@@ -101,11 +101,14 @@ class MaintenanceJob(models.Model):
         except Path.DoesNotExist:
             raise Path.DoesNotExist('Path %s is not configured' % entity)
 
+    def get_report_pdf_path(self):
+        path = self._get_report_directory()
+        return os.path.join(path, str(self.pk) + '.pdf')
+
     def _generate_report(self):
         logger.info(f"User '{self.user}' generating report with of type '{self.MAINTENANCE_TYPE}'")
         template = 'maintenance/%s_report.html' % self.MAINTENANCE_TYPE
-        dstdir = self._get_report_directory()
-        dst = os.path.join(dstdir, '%s.pdf' % self.pk)
+        dst = self.get_report_pdf_path()
 
         render = render_to_string(template, {'job': self, 'rule': self.template})
         HTML(string=render).write_pdf(dst)

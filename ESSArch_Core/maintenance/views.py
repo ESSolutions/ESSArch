@@ -1,5 +1,3 @@
-import os
-
 from celery import states as celery_states
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, mixins, permissions, status, viewsets
@@ -80,13 +78,8 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
-        path = self.get_report_pdf_path(pk)
+        path = self.get_object().get_report_pdf_path()
         return generate_file_response(open(path, 'rb'), 'application/pdf')
-
-    def get_report_pdf_path(self, pk):
-        path = self.get_object()._get_report_directory()
-        path = os.path.join(path, pk + '.pdf')
-        return path
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()

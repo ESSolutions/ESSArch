@@ -118,6 +118,10 @@ class AppraisalJobViewSetTests(APITestCase):
         self.user = User.objects.create(username='user')
         self.client.force_authenticate(user=self.user)
 
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+        Path.objects.create(entity='appraisal_reports', value=tempfile.mkdtemp(dir=self.datadir))
+
     def test_list(self):
         appraisal_job = AppraisalJob.objects.create()
         res = self.client.get(reverse('appraisaljob-list'))
@@ -658,7 +662,7 @@ class AppraisalJobViewSetReportTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @mock.patch('ESSArch_Core.maintenance.views.open')
-    @mock.patch('ESSArch_Core.maintenance.views.MaintenanceJobViewSet.get_report_pdf_path')
+    @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob.get_report_pdf_path')
     @mock.patch('ESSArch_Core.maintenance.views.generate_file_response')
     def test_authenticated(self, mock_generate_file_response, mock_get_report_pdf_path, mock_open):
         mock_generate_file_response.return_value = Response(status=status.HTTP_200_OK)
@@ -677,6 +681,10 @@ class ConversionJobViewSetTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
         self.client.force_authenticate(user=self.user)
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+        Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
 
     def test_list(self):
         conversion_job = ConversionJob.objects.create()
