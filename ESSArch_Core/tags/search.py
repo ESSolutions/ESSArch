@@ -80,7 +80,7 @@ class ComponentSearch(FacetedSearch):
         'flagged_for_appraisal': {},
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, exclude_indices=None, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date = self.query_params_filter.pop('start_date', None)
         self.end_date = self.query_params_filter.pop('end_date', None)
@@ -90,6 +90,9 @@ class ComponentSearch(FacetedSearch):
         self.filter_values = {
             'indices': self.query_params_filter.pop('indices', [])
         }
+
+        if exclude_indices is not None:
+            self.index = [i for i in self.index if i not in exclude_indices]
 
         def validate_date(d):
             try:
@@ -449,7 +452,15 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         filter_values.update(serializer.validated_data)
 
         sort = self.get_sorting(request)
-        s = ComponentSearch(query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user)
+        exclude_indices = None
+
+        if appraisal_job is not None:
+            exclude_indices = ['structure_unit']
+
+        s = ComponentSearch(
+            query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user,
+            exclude_indices=exclude_indices,
+        )
 
         if self.paginator is not None:
             # Paginate in search engine

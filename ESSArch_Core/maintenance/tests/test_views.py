@@ -37,6 +37,7 @@ from ESSArch_Core.storage.tests.helpers import (
     add_storage_obj,
 )
 from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
+from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 from ESSArch_Core.testing.runner import TaskRunner
 
 User = get_user_model()
@@ -321,7 +322,7 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
             )
 
 
-class AppraisalJobViewSetRunTests(APITestCase):
+class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
         self.appraisal_job = AppraisalJob.objects.create()

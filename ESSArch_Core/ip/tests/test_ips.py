@@ -79,6 +79,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -2083,7 +2084,7 @@ class InformationPackageViewSetPermissionListTests(APITestCase):
         self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.admin_sweden), self.expected_admin_perms)
 
 
-class InformationPackageViewSetPreserveTestCase(APITestCase):
+class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')

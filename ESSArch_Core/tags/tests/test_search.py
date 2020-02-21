@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from elasticsearch.client import IngestClient
 from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
     connections,
@@ -31,10 +32,17 @@ from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.search import alias_migration
-from ESSArch_Core.tags.documents import Archive, Component, File
+from ESSArch_Core.tags.documents import (
+    Archive,
+    Component,
+    File,
+    StructureUnitDocument,
+)
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
+    StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
     TagVersion,
@@ -74,6 +82,22 @@ class ESSArchSearchBaseTestCase(APITestCase):
 
         connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
         cls.es_client = cls._get_client()
+
+        IngestClient(cls.es_client).put_pipeline(id='ingest_attachment', body={
+            'description': "Extract attachment information",
+            'processors': [
+                {
+                    "attachment": {
+                        "field": "data",
+                        "indexed_chars": "-1"
+                    },
+                    "remove": {
+                        "field": "data"
+                    }
+                }
+            ]
+        })
+
         super().setUpClass()
 
     def setUp(self):
@@ -291,6 +315,14 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             elastic_index="component",
         )
         Component.from_obj(component_tag_version2).save(refresh='true')
+
+        # test that we don't try to add structure units matched by query to job
+        structure = Structure.objects.create(type=StructureType.objects.create(), is_template=False)
+        structure_unit = StructureUnit.objects.create(
+            name='foo',
+            structure=structure, type=StructureUnitType.objects.create(structure_type=structure.type),
+        )
+        StructureUnitDocument.from_obj(structure_unit).save(refresh='true')
 
         appraisal_job = AppraisalJob.objects.create()
         res = self.client.get(self.url, data={
