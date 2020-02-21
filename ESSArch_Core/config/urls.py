@@ -48,6 +48,7 @@ from ESSArch_Core.ip.views import (
 )
 from ESSArch_Core.maintenance.views import (
     AppraisalJobInformationPackageViewSet,
+    AppraisalJobTagViewSet,
     AppraisalJobViewSet,
     AppraisalTemplateViewSet,
     ConversionJobViewSet,
@@ -295,6 +296,11 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
     AppraisalJobInformationPackageViewSet,
     basename='appraisal-job-information-packages',
     parents_query_lookups=['appraisal_jobs'],
+)
+    r'tags',
+    AppraisalJobTagViewSet,
+    basename='appraisal-job-tags',
+    parents_query_lookups=['appraisal_job'],
 )
 
 
