@@ -134,6 +134,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       NEW_VERSION: 'New version',
       NEW_VERSION_CREATED: 'New version created',
       NODE: 'Node',
+      NODES: 'Nodes',
       NODE_ADDED: 'Node added!',
       NODE_EDITED: 'Node edited!',
       NODE_REMOVED: 'Node removed!',

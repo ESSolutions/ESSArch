@@ -108,13 +108,13 @@ export default class AccessIpCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        controller: 'IpAppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
           data: function() {
             return {
-              ips: ips,
+              ips,
             };
           },
         },

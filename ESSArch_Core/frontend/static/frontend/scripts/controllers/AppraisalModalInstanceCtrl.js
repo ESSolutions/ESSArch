@@ -15,6 +15,11 @@ export default class AppraisalModalInstanceCtrl {
       if (data.appraisal) {
         $ctrl.model = angular.copy(data.appraisal);
       }
+      if (data.preview && data.job) {
+        $http.get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/preview/').then(function(response) {
+          $ctrl.jobPreview = response.data;
+        });
+      }
     };
 
     $ctrl.fields = [
@@ -43,75 +48,6 @@ export default class AppraisalModalInstanceCtrl {
       },
     ];
 
-    $ctrl.showTemplatesTable = function(ip) {
-      $ctrl.ip = ip;
-      return $http
-        .get(appConfig.djangoUrl + 'appraisal-templates/', {params: {not_related_to_ip: ip.id}})
-        .then(function(response) {
-          $ctrl.appraisalTemplates = response.data;
-        });
-    };
-    if (data.preview && data.job) {
-      $http.get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/preview/').then(function(response) {
-        $ctrl.jobPreview = response.data;
-      });
-    }
-    $ctrl.expandIp = function(ip) {
-      if (ip.expanded) {
-        ip.expanded = false;
-      } else {
-        ip.expanded = true;
-        IP.appraisalTemplates({id: ip.id}).$promise.then(function(resource) {
-          ip.templates = resource;
-        });
-      }
-    };
-
-    $ctrl.addTemplate = function(ip, template) {
-      $ctrl.addingTemplate = true;
-      $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/add-appraisal-template/',
-        method: 'POST',
-        data: {
-          id: template.id,
-        },
-      })
-        .then(function(response) {
-          $ctrl.addingTemplate = false;
-          ip.templates.push(template);
-          $ctrl.showTemplatesTable(ip);
-        })
-        .catch(function(response) {
-          $ctrl.addingTemplate = false;
-        });
-    };
-    $ctrl.removeTemplate = function(ip, template) {
-      $ctrl.removingTemplate = true;
-      $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/remove-appraisal-template/',
-        method: 'POST',
-        data: {
-          id: template.id,
-        },
-      })
-        .then(function(response) {
-          $ctrl.removingTemplate = false;
-          ip.templates.forEach(function(x, index, array) {
-            if (x.id == template.id) {
-              array.splice(index, 1);
-            }
-          });
-          $ctrl.showTemplatesTable(ip);
-        })
-        .catch(function(response) {
-          $ctrl.removingTemplate = false;
-        });
-    };
-    $ctrl.closeTemplatesTable = function() {
-      $ctrl.appraisalTemplates = [];
-      $ctrl.ip = null;
-    };
-
     $ctrl.path = '';
     $ctrl.addPath = function(path) {
       if (path.length > 0) {
@@ -125,16 +61,13 @@ export default class AppraisalModalInstanceCtrl {
     $ctrl.appraisalTemplate = null;
     $ctrl.create = function() {
       $ctrl.addingTemplate = true;
-      if ($ctrl.model.package_file_pattern.length == 0) {
-        $ctrl.showRequired = true;
-        $ctrl.addingTemplate = false;
-        return;
-      }
       if ($ctrl.createForm.$invalid) {
         $ctrl.createForm.$setSubmitted();
         return;
       }
-
+      if ($ctrl.fullIpAppraisal) {
+        $ctrl.model.package_file_pattern = [];
+      }
       $http({
         url: appConfig.djangoUrl + 'appraisal-templates/',
         method: 'POST',
@@ -152,10 +85,8 @@ export default class AppraisalModalInstanceCtrl {
 
     $ctrl.save = function(template) {
       $ctrl.saving = true;
-      if ($ctrl.model.package_file_pattern.length == 0) {
-        $ctrl.showRequired = true;
-        $ctrl.saving = false;
-        return;
+      if ($ctrl.fullIpAppraisal) {
+        $ctrl.model.package_file_pattern = [];
       }
       if ($ctrl.createForm.$invalid) {
         $ctrl.createForm.$setSubmitted();

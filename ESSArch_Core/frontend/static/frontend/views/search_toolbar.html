@@ -30,6 +30,14 @@
   <button class="btn btn-default export-result-button" ng-click="vm.exportResultModal()">
     {{'EXPORT_RESULT' | translate}}
   </button>
+  <button
+    class="btn btn-default export-result-button"
+    ng-click="vm.addToAppraisalModal()"
+    permission
+    permission-only="'maintenance.change_appraisaljob'"
+  >
+    {{'ARCHIVE_MAINTENANCE.ADD_TO_APPRAISAL_JOB' | translate}}
+  </button>
 </div>
 <div
   class="search-pagination"

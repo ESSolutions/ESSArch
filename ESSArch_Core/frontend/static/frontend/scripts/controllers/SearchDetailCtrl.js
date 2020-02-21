@@ -778,6 +778,17 @@ export default class SearchDetailCtrl {
       return disabled;
     };
 
+    vm.appraisalButtonDisabled = function() {
+      const checked = vm.getChecked();
+      let disabled = true;
+      checked.forEach(function(x) {
+        if (!angular.isUndefined(x) && x._is_structure_unit !== true && x.placeholder !== true && x.type !== 'agent') {
+          disabled = false;
+        }
+      });
+      return disabled;
+    };
+
     vm.deliveryButtonDisabled = function() {
       const checked = vm.getChecked();
       let disabled = true;
@@ -1916,6 +1927,38 @@ export default class SearchDetailCtrl {
           data: function() {
             return {
               node,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $state.reload();
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.AddNodesToAppraisalJobModal = function(nodes) {
+      if (!angular.isArray(nodes)) {
+        nodes = [angular.copy(nodes)];
+      }
+      nodes = nodes.filter(x => !x._is_structure_unit && x.type !== 'agent');
+      console.log(nodes);
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/add_nodes_to_appraisal_job_modal.html',
+        controller: 'NodeAppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: function() {
+            return {
+              nodes,
             };
           },
         },

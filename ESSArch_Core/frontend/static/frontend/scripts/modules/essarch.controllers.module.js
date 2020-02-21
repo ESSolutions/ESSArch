@@ -45,6 +45,7 @@ import EventModalInstanceCtrl from '../controllers/EventModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IngestWorkareaCtrl from '../controllers/IngestWorkareaCtrl';
+import IpAppraisalJobModalInstanceCtrl from '../controllers/IpAppraisalJobModalInstanceCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
 import IpInformationModalInstanceCtrl from '../controllers/IpInformationModalInstanceCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
@@ -55,6 +56,7 @@ import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MoveToApprovalModalInstanceCtrl from '../controllers/MoveToApprovalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
+import NodeAppraisalJobModalInstanceCtrl from '../controllers/NodeAppraisalJobModalInstanceCtrl';
 import NodeIdentifierModalInstanceCtrl from '../controllers/NodeIdentifierModalInstanceCtrl';
 import NodeOrganizationModalInstanceCtrl from '../controllers/NodeOrganizationModalInstanceCtrl';
 import NodeTransferModalInstanceCtrl from '../controllers/NodeTransferModalInstanceCtrl';
@@ -551,6 +553,15 @@ export default angular
   .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', '$transitions', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
   .controller('IngestWorkareaCtrl', ['$scope', '$controller', IngestWorkareaCtrl])
+  .controller('IpAppraisalJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    IpAppraisalJobModalInstanceCtrl,
+  ])
   .controller('IpApprovalCtrl', [
     '$scope',
     '$controller',
@@ -613,6 +624,15 @@ export default angular
     'Requests',
     '$q',
     MoveToApprovalModalInstanceCtrl,
+  ])
+  .controller('NodeAppraisalJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    NodeAppraisalJobModalInstanceCtrl,
   ])
   .controller('NodeDeliveryModalInstanceCtrl', [
     'appConfig',
