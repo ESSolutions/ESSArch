@@ -68,6 +68,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'label', 'template', 'status', 'start_date', 'end_date', 'user',
         )
+        read_only_fields = ('end_date',)
 
 
 class AppraisalJobInformationPackageSerializer(serializers.ModelSerializer):
