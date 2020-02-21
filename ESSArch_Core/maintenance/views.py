@@ -30,6 +30,7 @@ from ESSArch_Core.maintenance.serializers import (
     AppraisalJobInformationPackageWriteSerializer,
     AppraisalJobSerializer,
     AppraisalJobTagSerializer,
+    AppraisalJobTagWriteSerializer,
     AppraisalTemplateSerializer,
     ConversionJobSerializer,
     ConversionTemplateSerializer,
@@ -165,6 +166,20 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
     queryset = Tag.objects.select_related('current_version').all()
     serializer_class = AppraisalJobTagSerializer
     permission_classes = (permissions.IsAuthenticated,)
+
+    def delete(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_job'])
+        job.tags.remove(*data['tags'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get_serializer_class(self):
+        if self.request.method in ['DELETE']:
+            return AppraisalJobTagWriteSerializer
+
+        return self.serializer_class
 
 
 class ConversionTemplateViewSet(MaintenanceTemplateViewSet):

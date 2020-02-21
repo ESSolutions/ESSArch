@@ -98,11 +98,24 @@ class AppraisalJobTagSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
 
     def get_name(self, obj):
+        if obj.current_version is None:
+            return str(obj.pk)
+
         return obj.current_version.name
 
     class Meta:
         model = Tag
         fields = ('id', 'name')
+
+
+class AppraisalJobTagWriteSerializer(serializers.ModelSerializer):
+    tags = serializers.ListField(
+        child=UserFilteredPrimaryKeyRelatedField(queryset=Tag.objects.all())
+    )
+
+    class Meta:
+        model = Tag
+        fields = ('tags',)
 
 
 class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):

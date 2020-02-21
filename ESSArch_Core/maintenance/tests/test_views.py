@@ -273,6 +273,35 @@ class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
         ip2.refresh_from_db()
 
 
+class AppraisalJobViewSetTagListViewTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.client.force_authenticate(user=self.user)
+        self.appraisal_job = AppraisalJob.objects.create()
+        self.url = reverse('appraisal-job-tags-list', args=(self.appraisal_job.pk,))
+
+    def test_list(self):
+        tag = Tag.objects.create()
+        self.appraisal_job.tags.add(tag)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['id'], str(tag.pk))
+
+    def test_delete(self):
+        tag1 = Tag.objects.create()
+        tag2 = Tag.objects.create()
+        self.appraisal_job.tags.add(tag1, tag2)
+
+        response = self.client.delete(self.url, data={'tags': [tag1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag2])
+
+        # verify that both tags still exists
+        tag1.refresh_from_db()
+        tag2.refresh_from_db()
+
+
 class AppraisalJobViewSetPreviewTests(APITestCase):
     def setUp(self):
         self.user = User.objects.create(username='user')
@@ -672,7 +701,7 @@ class AppraisalJobViewSetReportTests(TestCase):
 
         self.client.get(self.url, {'name': 'foo'})
 
-        mock_get_report_pdf_path.assert_called_once_with(str(self.appraisal_job.pk))
+        mock_get_report_pdf_path.assert_called_once_with()
         mock_open.assert_called_once_with("report_path.pdf", 'rb')
         mock_generate_file_response.assert_called_once_with("dummy_stream", 'application/pdf')
 
