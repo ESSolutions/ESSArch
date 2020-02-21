@@ -195,17 +195,64 @@ class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['id'], str(ip.pk))
 
-    def test_add(self):
+    def test_set(self):
+        """
+        When using POST we want to set the list of IPs added to the job
+        to be exactly what we get as input
+        """
+
         ip1 = InformationPackage.objects.create(archived=True)
         ip2 = InformationPackage.objects.create(archived=False)
 
         response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1])
+
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1])
+
         ip2.archived = True
         ip2.save()
         response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1, ip2])
+
+        response = self.client.post(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip2])
+
+    def test_add(self):
+        """
+        When using PATCH we want to update list of IPs added to the job
+        by adding what we get as input to the existing list
+        """
+
+        ip1 = InformationPackage.objects.create(archived=True)
+        ip2 = InformationPackage.objects.create(archived=False)
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1])
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1])
+
+        ip2.archived = True
+        ip2.save()
+        response = self.client.patch(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1, ip2])
+
+        response = self.client.patch(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertCountEqual(self.appraisal_job.information_packages.all(), [ip1, ip2])
 
     def test_delete(self):

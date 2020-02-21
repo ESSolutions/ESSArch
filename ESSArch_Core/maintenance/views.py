@@ -135,10 +135,20 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
         job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
-        job.information_packages.add(*data['information_packages'])
+        job.information_packages.set(data['information_packages'])
 
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
+        job.information_packages.add(*data['information_packages'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
     def delete(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -149,7 +159,7 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
-        if self.request.method in ['POST', 'DELETE']:
+        if self.request.method in ['POST', 'PATCH', 'DELETE']:
             return AppraisalJobInformationPackageWriteSerializer
 
         return self.serializer_class
