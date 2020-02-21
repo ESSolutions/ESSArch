@@ -166,6 +166,8 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
     queryset = Tag.objects.select_related('current_version').all()
     serializer_class = AppraisalJobTagSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    filter_backends = (filters.OrderingFilter,)
+    ordering = ('current_version__reference_code',)
 
     def delete(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
