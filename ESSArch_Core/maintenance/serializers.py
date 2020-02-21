@@ -53,7 +53,7 @@ class MaintenanceTemplateSerializer(serializers.ModelSerializer):
 
 class MaintenanceJobSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
-    label = serializers.CharField(required=False)
+    label = serializers.CharField(required=False, allow_blank=True, default="")
 
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
