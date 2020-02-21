@@ -6,26 +6,35 @@ from unittest import mock
 from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupType
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
+    AppraisalJobEntry,
     AppraisalTemplate,
     ConversionJob,
     ConversionTemplate,
 )
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
+    STORAGE_TARGET_STATUS_ENABLED,
     StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
+)
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_obj,
 )
 from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
 from ESSArch_Core.testing.runner import TaskRunner
@@ -314,6 +323,61 @@ class AppraisalJobViewSetRunTests(APITestCase):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
         Path.objects.create(entity='appraisal_reports', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
+
+        Parameter.objects.create(entity='agent_identifier_value', value='ESS')
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+        Parameter.objects.create(entity='medium_location', value='Media')
+
+        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
+        os.makedirs(os.path.join(receipts.value, 'xml'))
+
+        cache_storage_method = StorageMethod.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache_storage_method,
+            storage_target=StorageTarget.objects.create(
+                name='cache', target=tempfile.mkdtemp(dir=self.datadir),
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage_method,
+            ingest_path=ingest,
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+
+        self.storage_method = StorageMethod.objects.create()
+        policy.storage_methods.add(self.storage_method)
+        target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        medium = add_storage_medium(target, 20, '1')
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=1, archived=True,
+            responsible=self.user,
+            submission_agreement=sa, submission_agreement_locked=True,
+        )
+        storage_obj = add_storage_obj(self.ip, medium, DISK, self.ip.object_identifier_value, create_dir=True)
+        self.storage_path = storage_obj.get_full_path()
+        foo = os.path.join(storage_obj.get_full_path(), 'foo')
+        os.makedirs(foo)
+        logs = os.path.join(storage_obj.get_full_path(), 'logs')
+        os.makedirs(logs)
+        storage_obj.open('foo.pdf', 'a').close()
+        storage_obj.open('foo/bar.pdf', 'a').close()
+        storage_obj.open('logs/1.log', 'a').close()
+        storage_obj.open('logs/2.log', 'a').close()
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
@@ -325,31 +389,10 @@ class AppraisalJobViewSetRunTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @TaskRunner()
-    def test_authenticated_with_add_and_run_permissions(self):
-        perm_list = [
-            'add_appraisaljob',
-            'run_appraisaljob',
-        ]
-
-        tag = Tag.objects.create()
-        tag_version_type = TagVersionType.objects.create()
-        TagVersion.objects.create(tag=tag, type=tag_version_type, elastic_index='component')
-        self.appraisal_job.tags.add(tag)
-
-        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
-        self.client.force_authenticate(user=self.user)
-
-        response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        self.assertFalse(Tag.objects.exists())
-
-    @TaskRunner()
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
     def test_authenticated_with_only_add_permission(self, mock_appraisal_job_run):
         mock_appraisal_job_run.return_value = mock.ANY
-        perm_list = [
-            'add_appraisaljob',
-        ]
+        perm_list = ['add_appraisaljob']
 
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
@@ -359,19 +402,168 @@ class AppraisalJobViewSetRunTests(APITestCase):
         mock_appraisal_job_run.assert_not_called()
 
     @TaskRunner()
-    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
-    def test_authenticated_with_only_run_permission(self, mock_appraisal_job_run):
-        mock_appraisal_job_run.return_value = mock.ANY
-        perm_list = [
-            'run_appraisaljob',
-        ]
-
+    def test_delete_tags(self):
+        perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
 
+        tag = Tag.objects.create()
+        tag_version_type = TagVersionType.objects.create()
+        TagVersion.objects.create(tag=tag, type=tag_version_type, elastic_index='component')
+        self.appraisal_job.tags.add(tag)
+
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        mock_appraisal_job_run.assert_called_once()
+        self.assertFalse(Tag.objects.exists())
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    def test_delete_packages_no_file_pattern(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.information_packages.add(self.ip)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo/bar.pdf',
+            ).exists()
+        )
+        with self.assertRaises(InformationPackage.DoesNotExist):
+            self.ip.refresh_from_db()
+
+        self.assertFalse(os.path.exists(self.storage_path))
+
+        self.assertFalse(
+            InformationPackage.objects.filter(
+                package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+                active=True,
+            ).exists()
+        )
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    def test_delete_packages_with_file_pattern(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.information_packages.add(self.ip)
+        self.appraisal_job.package_file_pattern = ['**/bar.*', 'logs']
+        self.appraisal_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertFalse(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo/bar.pdf',
+            ).exists()
+        )
+        with self.assertRaises(InformationPackage.DoesNotExist):
+            self.ip.refresh_from_db()
+
+        self.assertFalse(os.path.exists(self.storage_path))
+
+        new_ip = InformationPackage.objects.get(
+            package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+            active=True,
+        )
+        new_storage = new_ip.storage.filter(
+            storage_medium__storage_target__methods=self.storage_method
+        ).get()
+        new_path = new_storage.get_full_path()
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
+        self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=False)
+    def test_inactivate_packages_no_file_pattern(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.information_packages.add(self.ip)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=self.ip, document='foo.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=self.ip, document='foo/bar.pdf',
+            ).exists()
+        )
+
+        self.ip.refresh_from_db()
+        self.assertFalse(self.ip.active)
+        self.assertTrue(os.path.exists(self.storage_path))
+
+        self.assertFalse(
+            InformationPackage.objects.filter(
+                package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+                active=True,
+            ).exists()
+        )
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=False)
+    def test_inactivate_packages_with_file_pattern(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.information_packages.add(self.ip)
+        self.appraisal_job.package_file_pattern = ['**/bar.*', 'logs']
+        self.appraisal_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertFalse(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=self.ip, document='foo.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=self.ip, document='foo/bar.pdf',
+            ).exists()
+        )
+
+        self.ip.refresh_from_db()
+        self.assertFalse(self.ip.active)
+
+        self.assertTrue(os.path.exists(self.storage_path))
+
+        new_ip = InformationPackage.objects.get(
+            package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+            active=True,
+        )
+        new_storage = new_ip.storage.filter(
+            storage_medium__storage_target__methods=self.storage_method
+        ).get()
+        new_path = new_storage.get_full_path()
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
+        self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
 
 
 class AppraisalJobViewSetReportTests(TestCase):

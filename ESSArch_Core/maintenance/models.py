@@ -5,8 +5,12 @@ import shutil
 import uuid
 from operator import itemgetter
 from os import walk
+from pathlib import PurePath
+from typing import List, Optional, cast
 
 from celery import states as celery_states
+from celery.result import allow_join_result
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.db.models import Q
@@ -18,14 +22,9 @@ from weasyprint import HTML
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.storage.exceptions import NoReadableStorage
 from ESSArch_Core.storage.models import StorageObject
-from ESSArch_Core.tags.models import TagVersion
-from ESSArch_Core.util import (
-    convert_file,
-    find_destination,
-    has_write_access,
-    in_directory,
-)
+from ESSArch_Core.util import convert_file, has_write_access, in_directory
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.maintenance')
@@ -251,67 +250,78 @@ class AppraisalJob(MaintenanceJob):
         ips = get_information_packages()
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
+        delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
+        tmpdir = Path.objects.cached('entity', 'temp', 'value')
+
         for ip in ips.iterator():
-            policy = ip.policy
-            srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
+            storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise NoReadableStorage
+
+            ip_tmpdir = os.path.join(tmpdir, ip.object_identifier_value)
+            os.makedirs(ip_tmpdir, exist_ok=True)
+            storage_obj.read(ip_tmpdir, None, extract=True)
 
             if not self.package_file_pattern:
                 # register all files
-                for root, _dirs, files in walk(srcdir):
-                    rel = os.path.relpath(root, srcdir)
-
+                job_entry_start_date = timezone.now()
+                job_entry_end_date = timezone.now()
+                job_entries = []
+                for root, _dirs, files in walk(ip_tmpdir):
                     for f in files:
-                        job_entry = AppraisalJobEntry.objects.create(
-                            job=self,
-                            start_date=timezone.now(),
-                            ip=ip,
-                            document=os.path.join(rel, f)
+                        rel = PurePath(os.path.join(root, f)).relative_to(ip_tmpdir).as_posix()
+                        job_entries.append(
+                            AppraisalJobEntry(
+                                job=self,
+                                start_date=job_entry_start_date,
+                                end_date=job_entry_end_date,
+                                ip=ip,
+                                document=rel,
+                            )
                         )
-                        job_entry.end_date = timezone.now()
-                        job_entry.save()
+
+                AppraisalJobEntry.objects.bulk_create(job_entries)
+
+                if delete_packages:
+                    for storage_obj in ip.storage.all():
+                        storage_obj.delete_files()
+                    ip.delete()
+                else:
+                    # inactivate old generations
+                    InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+
             else:
                 new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
-
-                tmpdir = Path.objects.cached('entity', 'temp', 'value')
-                dstdir = os.path.join(tmpdir, new_ip.object_identifier_value)
-
-                new_ip.object_path = dstdir
+                new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
+                storage_obj.read(new_ip_tmpdir, None, extract=True)
+                new_ip.object_path = new_ip_tmpdir
                 new_ip.save()
 
-                aip_profile = new_ip.get_profile_rel('aip').profile
-                aip_profile_data = new_ip.get_profile_data('aip')
-
-                mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
-                mets_path = os.path.join(srcdir, mets_dir, mets_name)
-
-                # copy files to new generation
-                shutil.copytree(srcdir, dstdir)
-
                 # delete files specified in rule
-                for pattern in self.package_file_pattern:
-                    for path in iglob(dstdir + '/' + pattern):
+                for pattern in cast(List[str], self.package_file_pattern):
+                    for path in iglob(new_ip_tmpdir + '/' + pattern):
                         if os.path.isdir(path):
                             for root, _dirs, files in walk(path):
-                                rel = os.path.relpath(root, dstdir)
                                 for f in files:
-                                    relfilepath = os.path.join(rel, f)
-                                    delete_file(ip, os.path.join(root, f), relfilepath)
+                                    rel = PurePath(os.path.join(root, f)).relative_to(new_ip_tmpdir).as_posix()
+                                    delete_file(ip, os.path.join(root, f), rel)
 
-                        elif os.path.isfile(path):
-                            relfilepath = os.path.relpath(path, dstdir)
-                            delete_file(ip, path, relfilepath)
+                            shutil.rmtree(path)
 
-                # delete tags connected to IP
-                TagVersion.objects.filter(
-                    Q(Q(elastic_index='document') | Q(elastic_index='directory')),
-                    tag__information_package=ip,
-                ).delete()
+                        else:
+                            rel = PurePath(path).relative_to(new_ip_tmpdir).as_posix()
+                            delete_file(ip, path, rel)
 
-                # preserve new generation
-                preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
+                if delete_packages:
+                    for storage_obj in ip.storage.all():
+                        storage_obj.delete_files()
+                    ip.delete()
+                else:
+                    # inactivate old generations
+                    InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
 
-                # inactivate old generations
-                InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+                with allow_join_result():
+                    preserve_new_generation(new_ip)
 
 
 class AppraisalJobEntry(MaintenanceJobEntry):
@@ -335,7 +345,7 @@ class ConversionTemplate(MaintenanceTemplate):
     pass
 
 
-def preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy):
+def preserve_new_generation(new_ip):
     workflow = new_ip.create_preservation_workflow()
     workflow = create_workflow(workflow, new_ip, name='Preserve Information Package', eager=True)
     workflow.run()
@@ -386,12 +396,6 @@ class ConversionJob(MaintenanceJob):
             new_ip.object_path = dstdir
             new_ip.save()
 
-            aip_profile = new_ip.get_profile_rel('aip').profile
-            aip_profile_data = new_ip.get_profile_data('aip')
-
-            mets_dir, mets_name = find_destination("mets_file", aip_profile.structure)
-            mets_path = os.path.join(srcdir, mets_dir, mets_name)
-
             # copy files to new generation
             shutil.copytree(srcdir, dstdir)
 
@@ -441,7 +445,7 @@ class ConversionJob(MaintenanceJob):
                         job_entry.save()
 
             # preserve new generation
-            preserve_new_generation(aip_profile, aip_profile_data, dstdir, ip, mets_path, new_ip, policy)
+            preserve_new_generation(new_ip)
 
 
 class ConversionJobEntry(MaintenanceJobEntry):

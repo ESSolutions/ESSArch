@@ -804,7 +804,7 @@ class StorageObject(models.Model):
         extracted = self.extract()
         return extracted.open(path, *args, **kwargs)
 
-    def read(self, dst, task):
+    def read(self, dst, task, extract=False):
         ip = self.ip
         is_cached_storage_object = self.is_cache_for_ip(ip)
 
@@ -874,7 +874,7 @@ class StorageObject(models.Model):
                 temp_aic_mets_path = ip.get_temp_container_aic_xml_path()
                 dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
 
-                storage_backend.read(self, temp_dir)
+                storage_backend.read(self, temp_dir, extract=extract)
 
                 if is_cached_storage_object or not self.container:
                     with tarfile.open(temp_container_path, 'w') as new_tar:
@@ -887,7 +887,7 @@ class StorageObject(models.Model):
                     copy_file(temp_aic_mets_path, dst, requests_session=session)
 
             else:
-                storage_backend.read(self, dst)
+                storage_backend.read(self, dst, extract=extract)
 
     def list_files(self, pattern=None):
         backend = self.get_storage_backend()

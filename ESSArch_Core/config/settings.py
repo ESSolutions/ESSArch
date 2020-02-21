@@ -413,6 +413,7 @@ except ImportError:
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.ip.tasks",
+    "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.storage.tasks",
     "ESSArch_Core.tasks",
