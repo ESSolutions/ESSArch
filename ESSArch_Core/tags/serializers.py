@@ -697,7 +697,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         fields = (
             '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
-            'is_leaf_node', '_source', 'masked_fields',
+            'is_leaf_node', '_source', 'masked_fields', 'tag',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
         )
