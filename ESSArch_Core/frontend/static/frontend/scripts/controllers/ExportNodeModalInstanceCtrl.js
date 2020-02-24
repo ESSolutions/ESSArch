@@ -10,6 +10,7 @@ export default class ExportNodeModalInstanceCtrl {
       if (node._index === 'archive') {
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.CREATE_LABELS'), value: 'labels'});
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_ARCHIVE'), value: 'archive'});
+        $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_EAD3'), value: 'ead2002'});
       }
       return $ctrl.exportOptions;
     };
@@ -78,6 +79,12 @@ export default class ExportNodeModalInstanceCtrl {
       $uibModalInstance.close();
     };
 
+     let exportEAD2002 = node => {
+      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/ead2002/');
+      $window.open(showFile, '_blank');
+      $uibModalInstance.close();
+    };
+
     $ctrl.export = option => {
       if (option) {
         if (option === 'email') {
@@ -86,6 +93,8 @@ export default class ExportNodeModalInstanceCtrl {
           exportLabels(data.node);
         } else if (option === 'archive') {
           exportArchive(data.node);
+        }else if (option === 'ead2002') {
+          exportEAD2002(data.node);
         }
       }
     };

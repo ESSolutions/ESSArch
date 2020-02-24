@@ -29,7 +29,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 from weasyprint import HTML
 
-from ESSArch_Core.agents.models import AgentTagLink
+from ESSArch_Core.agents.models import AgentTagLink, AgentName, AgentNameType
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -528,10 +528,30 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         name = 'archive_{}.pdf'.format(pk)
         return generate_file_response(f, content_type=ctype, name=name)
 
+    @action(detail=True, url_path='ead2002')
+    def ead2002_export(self, request, pk=None):
+        archive = TagVersion.objects.get(pk=pk)
+        agents = AgentTagLink.objects.filter(tag_id=pk).prefetch_related().all()
+        authority_type = AgentNameType.objects.get(authority=True)
+        for agent in agents:
+            agent_name = AgentName.objects.get(agent=agent.agent.id, type=authority_type)
+
+        series = archive.get_active_structure().structure.units.all()
+
+
+        template = render_to_string('tags/ead3.xml', {'archive': archive, 'series': series, 'agents': agents, 'agent_name': agent_name})
+        f = tempfile.TemporaryFile()
+
+        ctype = 'application/xml'
+        f.write(template.encode('utf-8'))
+        f.seek(0)
+
+        name = 'EAD2002_{}.xml'.format(pk)
+        return generate_file_response(f, content_type=ctype, name=name)
+
     @action(detail=True, url_path='label')
     def label_report(self, request, pk=None):
         archive = TagVersion.objects.get(pk=pk)
-
         agents = AgentTagLink.objects.filter(tag_id=pk).all()
         series = archive.get_active_structure().structure.units.prefetch_related(
             Prefetch(

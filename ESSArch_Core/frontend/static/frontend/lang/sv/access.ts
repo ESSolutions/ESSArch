@@ -86,6 +86,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_TRANSFER: 'Redigera leverans',
       END_YEAR: 'Slutår',
       EXPORT_ARCHIVE: 'Utskriftsbar arkivförteckning',
+      EXPORT_EAD3: 'EAD3',
       EXPORT_OPTION: 'Typ av export',
       FIELD_EXISTS: 'Fältet finns redan!',
       FILE_EXTENSIONS: 'Filformat',

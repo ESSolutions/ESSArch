@@ -86,6 +86,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_TRANSFER: 'Edit transfer',
       END_YEAR: 'End year',
       EXPORT_ARCHIVE: 'Printable finding aid',
+      EXPORT_EAD3: 'EAD3',
       EXPORT_OPTION: 'Export option',
       FIELD_EXISTS: 'Field already exists!',
       FILE_EXTENSIONS: 'File format',
