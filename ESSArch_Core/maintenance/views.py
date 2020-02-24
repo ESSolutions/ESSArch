@@ -160,6 +160,7 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
 
 
 class AppraisalJobTagViewSet(NestedViewSetMixin,
+                             mixins.CreateModelMixin,
                              mixins.ListModelMixin,
                              viewsets.GenericViewSet):
 
@@ -169,16 +170,36 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
     filter_backends = (filters.OrderingFilter,)
     ordering = ('current_version__reference_code',)
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
+        job.tags.set(data['tags'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
+        job.tags.add(*data['tags'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
     def delete(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_job'])
+        job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
         job.tags.remove(*data['tags'])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get_serializer_class(self):
-        if self.request.method in ['DELETE']:
+        if self.request.method in ['POST', 'PATCH', 'DELETE']:
             return AppraisalJobTagWriteSerializer
 
         return self.serializer_class

@@ -196,6 +196,7 @@ class AppraisalJob(MaintenanceJob):
         null=True, related_name='jobs',
     )
     information_packages = models.ManyToManyField('ip.InformationPackage', related_name='appraisal_jobs')
+    tags = models.ManyToManyField('tags.Tag', related_name='appraisal_jobs')
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='appraisal_jobs',
     )

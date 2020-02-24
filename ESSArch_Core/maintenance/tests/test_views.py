@@ -288,6 +288,48 @@ class AppraisalJobViewSetTagListViewTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]['id'], str(tag.pk))
 
+    def test_set(self):
+        """
+        When using POST we want to set the list of tags added to the job
+        to be exactly what we get as input
+        """
+
+        tag1 = Tag.objects.create()
+        tag2 = Tag.objects.create()
+
+        response = self.client.post(self.url, data={'tags': [tag1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag1])
+
+        response = self.client.post(self.url, data={'tags': [tag2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag2])
+
+        response = self.client.post(self.url, data={'tags': [tag1.pk, tag2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag1, tag2])
+
+        response = self.client.post(self.url, data={'tags': [tag2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag2])
+
+    def test_add(self):
+        """
+        When using PATCH we want to update list of tags added to the job
+        by adding what we get as input to the existing list
+        """
+
+        tag1 = Tag.objects.create()
+        tag2 = Tag.objects.create()
+
+        response = self.client.patch(self.url, data={'tags': [tag1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag1])
+
+        response = self.client.patch(self.url, data={'tags': [tag2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.appraisal_job.tags.all(), [tag1, tag2])
+
     def test_delete(self):
         tag1 = Tag.objects.create()
         tag2 = Tag.objects.create()

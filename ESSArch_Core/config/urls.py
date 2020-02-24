@@ -301,7 +301,7 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
     r'tags',
     AppraisalJobTagViewSet,
     basename='appraisal-job-tags',
-    parents_query_lookups=['appraisal_job'],
+    parents_query_lookups=['appraisal_jobs'],
 )
 
 
