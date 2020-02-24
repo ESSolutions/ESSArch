@@ -15,7 +15,7 @@ from ESSArch_Core.maintenance.models import (
     MaintenanceJob,
     MaintenanceTemplate,
 )
-from ESSArch_Core.tags.models import Tag, TagStructure
+from ESSArch_Core.tags.models import Tag
 
 
 class MaintenanceTemplateSerializer(serializers.ModelSerializer):

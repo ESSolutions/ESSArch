@@ -1,5 +1,5 @@
 from celery import states as celery_states
-from django.db.models import CharField, OuterRef, Prefetch, Subquery
+from django.db.models import CharField, OuterRef, Subquery
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     exceptions,
@@ -45,7 +45,7 @@ from ESSArch_Core.maintenance.serializers import (
     MaintenanceJobSerializer,
     MaintenanceTemplateSerializer,
 )
-from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
+from ESSArch_Core.tags.models import Tag, TagVersion
 from ESSArch_Core.util import generate_file_response
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 

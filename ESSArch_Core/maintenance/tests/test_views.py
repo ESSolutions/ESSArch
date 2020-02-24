@@ -305,7 +305,7 @@ class AppraisalJobViewSetTagListViewTests(APITestCase):
         self.appraisal_job.tags.add(archive_tag)
 
         tag_version_type = TagVersionType.objects.create(archive_type=False, name='component')
-        for i in range(100):
+        for _ in range(100):
             tag = Tag.objects.create()
             TagVersion.objects.create(
                 tag=tag, elastic_index='component',
@@ -325,7 +325,6 @@ class AppraisalJobViewSetTagListViewTests(APITestCase):
 
             self.assertEqual(response.data[1]['name'], 'test_tag')
             self.assertEqual(response.data[1]['archive'], 'foo_archive')
-
 
         # test tags without versions or structures
         tag = Tag.objects.create()
