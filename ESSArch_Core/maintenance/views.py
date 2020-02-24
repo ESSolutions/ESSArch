@@ -1,4 +1,5 @@
 from celery import states as celery_states
+from django.db.models import CharField, OuterRef, Prefetch, Subquery
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     exceptions,
@@ -44,7 +45,7 @@ from ESSArch_Core.maintenance.serializers import (
     MaintenanceJobSerializer,
     MaintenanceTemplateSerializer,
 )
-from ESSArch_Core.tags.models import Tag
+from ESSArch_Core.tags.models import Tag, TagStructure, TagVersion
 from ESSArch_Core.util import generate_file_response
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -178,7 +179,11 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
                              mixins.ListModelMixin,
                              viewsets.GenericViewSet):
 
-    queryset = Tag.objects.select_related('current_version').prefetch_related('structures__rootpath').all()
+    queryset = Tag.objects.select_related('current_version').annotate(
+        archive=Subquery(TagVersion.objects.filter(
+            current_version_tags__structures__subtree__tag=OuterRef('pk')
+        ).values('name')[:1], output_field=CharField())
+    ).all()
     serializer_class = AppraisalJobTagSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.OrderingFilter,)

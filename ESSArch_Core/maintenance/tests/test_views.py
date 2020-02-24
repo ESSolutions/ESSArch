@@ -36,7 +36,14 @@ from ESSArch_Core.storage.tests.helpers import (
     add_storage_medium,
     add_storage_obj,
 )
-from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
+from ESSArch_Core.tags.models import (
+    Structure,
+    StructureType,
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 from ESSArch_Core.testing.runner import TaskRunner
 
@@ -280,13 +287,52 @@ class AppraisalJobViewSetTagListViewTests(APITestCase):
         self.appraisal_job = AppraisalJob.objects.create()
         self.url = reverse('appraisal-job-tags-list', args=(self.appraisal_job.pk,))
 
-    def test_list(self):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
+    def test_list(self, ma, mc):
+        structure = Structure.objects.create(
+            is_template=False,
+            type=StructureType.objects.create()
+        )
+
+        archive_tag = Tag.objects.create()
+        TagVersion.objects.create(
+            tag=archive_tag, elastic_index='archive',
+            type=TagVersionType.objects.create(archive_type=True, name='archive'),
+            reference_code='a', name='foo_archive',
+        )
+        archive_tag_structure = TagStructure.objects.create(tag=archive_tag, structure=structure)
+        self.appraisal_job.tags.add(archive_tag)
+
+        tag_version_type = TagVersionType.objects.create(archive_type=False, name='component')
+        for i in range(100):
+            tag = Tag.objects.create()
+            TagVersion.objects.create(
+                tag=tag, elastic_index='component',
+                type=tag_version_type, reference_code='b',
+                name='test_tag',
+            )
+            TagStructure.objects.create(tag=tag, parent=archive_tag_structure, structure=structure)
+            self.appraisal_job.tags.add(tag)
+
+        with self.assertNumQueries(2):
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+            self.assertEqual(response.data[0]['id'], str(archive_tag.pk))
+            self.assertEqual(response.data[0]['name'], 'foo_archive')
+            self.assertEqual(response.data[0]['archive'], 'foo_archive')
+
+            self.assertEqual(response.data[1]['name'], 'test_tag')
+            self.assertEqual(response.data[1]['archive'], 'foo_archive')
+
+
+        # test tags without versions or structures
         tag = Tag.objects.create()
-        self.appraisal_job.tags.add(tag)
+        self.appraisal_job.tags.set([tag])
 
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['id'], str(tag.pk))
 
     def test_set(self):
         """
