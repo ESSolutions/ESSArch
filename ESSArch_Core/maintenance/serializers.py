@@ -95,17 +95,15 @@ class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer)
 
 
 class AppraisalJobTagSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()
+    name = serializers.CharField(source='current_version.name')
+    archive = serializers.SerializerMethodField()
 
-    def get_name(self, obj):
-        if obj.current_version is None:
-            return str(obj.pk)
-
-        return obj.current_version.name
+    def get_archive(self, obj: Tag):
+        return obj.get_active_structure().rootpath.first().tag.current_version.name
 
     class Meta:
         model = Tag
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'archive')
 
 
 class AppraisalJobTagWriteSerializer(serializers.ModelSerializer):

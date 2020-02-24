@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
+from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -1124,6 +1125,7 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+    subtree = MPTTSubtree()
 
     def copy_to_new_structure(self, new_structure, new_unit=None):
         new_parent_tag = None

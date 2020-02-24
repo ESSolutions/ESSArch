@@ -178,7 +178,7 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
                              mixins.ListModelMixin,
                              viewsets.GenericViewSet):
 
-    queryset = Tag.objects.select_related('current_version').all()
+    queryset = Tag.objects.select_related('current_version').prefetch_related('structures__rootpath').all()
     serializer_class = AppraisalJobTagSerializer
     permission_classes = (permissions.IsAuthenticated,)
     filter_backends = (filters.OrderingFilter,)
