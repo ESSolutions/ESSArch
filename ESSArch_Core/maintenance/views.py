@@ -1,6 +1,13 @@
 from celery import states as celery_states
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import (
+    exceptions,
+    filters,
+    mixins,
+    permissions,
+    status,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -103,7 +110,14 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
     @permission_required_or_403(['maintenance.run_appraisaljob'])
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
-        job = self.get_object()
+        job: AppraisalJob = self.get_object()
+
+        if job.status in [celery_states.STARTED]:
+            raise exceptions.ParseError('Job is already running')
+
+        if job.status in [celery_states.SUCCESS]:
+            raise exceptions.ParseError('Job has already completed')
+
         if job.task is None:
             job.task = ProcessTask.objects.create(
                 name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',

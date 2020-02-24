@@ -532,6 +532,36 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         mock_appraisal_job_run.assert_not_called()
 
     @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
+    def test_prevent_running_already_running_job(self, mock_appraisal_job_run):
+        mock_appraisal_job_run.return_value = mock.ANY
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.status = celery_states.STARTED
+        self.appraisal_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_appraisal_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
+    def test_prevent_running_completed_job(self, mock_appraisal_job_run):
+        mock_appraisal_job_run.return_value = mock.ANY
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.status = celery_states.SUCCESS
+        self.appraisal_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_appraisal_job_run.assert_not_called()
+
+    @TaskRunner()
     def test_delete_tags(self):
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
@@ -578,6 +608,8 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
                 active=True,
             ).exists()
         )
+        self.appraisal_job.refresh_from_db()
+        self.assertEqual(self.appraisal_job.status, celery_states.SUCCESS)
 
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
