@@ -15,7 +15,7 @@ from ESSArch_Core.maintenance.models import (
     MaintenanceJob,
     MaintenanceTemplate,
 )
-from ESSArch_Core.tags.models import Tag
+from ESSArch_Core.tags.models import Tag, TagStructure
 
 
 class MaintenanceTemplateSerializer(serializers.ModelSerializer):
@@ -95,11 +95,22 @@ class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer)
 
 
 class AppraisalJobTagSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(source='current_version.name')
+    name = serializers.SerializerMethodField()
     archive = serializers.SerializerMethodField()
 
+    def get_name(self, obj):
+        if obj.current_version is None:
+            return str(obj.pk)
+
+        return obj.current_version.name
+
     def get_archive(self, obj: Tag):
-        return obj.get_active_structure().rootpath.first().tag.current_version.name
+        try:
+            structure = obj.get_active_structure()
+        except TagStructure.DoesNotExist:
+            return None
+
+        return structure.rootpath.first().tag.current_version.name
 
     class Meta:
         model = Tag
