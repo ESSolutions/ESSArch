@@ -349,7 +349,7 @@ jobs:
 
       - name: Install
         run: |
-          docker exec -it elasticsearch elasticsearch-plugin install --batch ingest-attachment
+          docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
 
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
