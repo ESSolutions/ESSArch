@@ -68,8 +68,8 @@ export default class NodeAppraisalJobModalInstanceCtrl {
           });
       } else {
         $http
-          .post(appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/tags/', {
-            tags: data.nodes.map(x => x.id),
+          .patch(appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/tags/', {
+            tags: data.nodes.map(x => x.tag),
           })
           .then(() => {
             $ctrl.adding = false;
