@@ -30,6 +30,9 @@ export default class AppraisalJobModalInstanceCtrl {
             .get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/information-packages/')
             .then(response => {
               $ctrl.model = angular.copy(data.job);
+              if ($ctrl.model.package_file_pattern && $ctrl.model.package_file_pattern.length > 0) {
+                $ctrl.fullIpAppraisal = false;
+              }
               $ctrl.ips = response.data;
               $ctrl.initModalLoad = false;
             });
