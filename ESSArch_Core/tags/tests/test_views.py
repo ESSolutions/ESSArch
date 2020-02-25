@@ -27,6 +27,8 @@ from ESSArch_Core.tags.models import (
     Location,
     LocationFunctionType,
     LocationLevelType,
+    NodeIdentifierType,
+    NodeNoteType,
     NodeRelationType,
     Structure,
     StructureRelation,
@@ -46,6 +48,7 @@ from ESSArch_Core.tags.serializers import (
     PUBLISHED_STRUCTURE_CHANGE_ERROR,
     STRUCTURE_INSTANCE_RELATION_ERROR,
 )
+from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 
 User = get_user_model()
 
@@ -1617,7 +1620,7 @@ class AgentArchiveRelationTests(TestCase):
         self.assertEqual(AgentTagLink.objects.count(), 0)
 
 
-class CreateArchiveTests(TestCase):
+class CreateArchiveTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
@@ -1629,8 +1632,6 @@ class CreateArchiveTests(TestCase):
         cls.url = reverse('search-list')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1649,27 +1650,57 @@ class CreateArchiveTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.search.TagVersionNestedSerializer')
-    @mock.patch('ESSArch_Core.tags.search.ArchiveWriteSerializer')
-    def test_with_permission(self, mock_write_serializer, mock_tag_serializer):
+    def test_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="create_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        mock_tag_serializer().data = {}
+        archive_creator = Agent.objects.create(
+            type=AgentType.objects.create(main_type=MainAgentType.objects.create()),
+            ref_code=RefCode.objects.create(
+                country=Country.objects.get(iso='SE'),
+                repository_code='repo',
+            ),
+            level_of_detail=Agent.MINIMAL,
+            script=Agent.LATIN,
+            language=Language.objects.get(iso_639_1='sv'),
+            record_status=Agent.DRAFT,
+            create_date=timezone.now(),
+        )
+        structure = Structure.objects.create(is_template=True, published=True, type=StructureType.objects.create())
 
-        response = self.client.post(
+        tag_version_type = TagVersionType.objects.create(archive_type=True)
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        res = self.client.post(
             self.url,
             data={
                 'index': 'archive',
+                'name': 'Volume 1',
+                'type': str(tag_version_type.pk),
+                'archive_creator': str(archive_creator.pk),
+                'structures': [str(structure.pk)],
+                'reference_code': 'A1',
+                'location': None,
+                'notes': [
+                    {
+                        'text': 'test note',
+                        'type': str(note_type.pk),
+                    }
+                ],
+                'identifiers': [
+                    {
+                        'identifier': 'test identifier',
+                        'type': str(identifier_type.pk),
+                    }
+                ],
             }
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_write_serializer.assert_called_once()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
 
-class CreateComponentTests(TestCase):
+class CreateComponentTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
@@ -1681,8 +1712,6 @@ class CreateComponentTests(TestCase):
         cls.url = reverse('search-list')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1701,27 +1730,59 @@ class CreateComponentTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.search.TagVersionNestedSerializer')
-    @mock.patch('ESSArch_Core.tags.search.ComponentWriteSerializer')
-    def test_with_permission(self, mock_write_serializer, mock_tag_serializer):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
+    def test_with_permission(self, mock_archive_save, mock_component_save):
         self.user.user_permissions.add(Permission.objects.get(codename="add_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        mock_tag_serializer().data = {}
+        structure = Structure.objects.create(is_template=False, type=StructureType.objects.create())
+        structure_unit = StructureUnit.objects.create(
+            type=StructureUnitType.objects.create(structure_type=structure.type),
+            structure=structure,
+        )
 
-        response = self.client.post(
+        archive_tag = Tag.objects.create()
+        TagVersion.objects.create(
+            tag=archive_tag, type=TagVersionType.objects.create(name='archive', archive_type=True),
+            elastic_index='archive',
+        )
+        TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tag_version_type = TagVersionType.objects.create(archive_type=False)
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        res = self.client.post(
             self.url,
             data={
                 'index': 'component',
+                'name': 'Volume 1',
+                'type': str(tag_version_type.pk),
+                'structure_unit': str(structure_unit.pk),
+                'reference_code': 'A1',
+                'location': None,
+                'notes': [
+                    {
+                        'text': 'test note',
+                        'type': str(note_type.pk),
+                    }
+                ],
+                'identifiers': [
+                    {
+                        'identifier': 'test identifier',
+                        'type': str(identifier_type.pk),
+                    }
+                ],
             }
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_write_serializer.assert_called_once()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        mock_component_save.assert_called_once()
+        mock_archive_save.assert_not_called()
 
 
-class ChangeTagTests(TestCase):
+class ChangeTagTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
@@ -1731,8 +1792,6 @@ class ChangeTagTests(TestCase):
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1751,8 +1810,7 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
-    def test_change_archive_with_permission(self, mock_save):
+    def test_change_archive_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1790,8 +1848,25 @@ class ChangeTagTests(TestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
-    def test_change_archive_delete_structure(self, mock_save):
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        response = self.client.patch(url, {
+            'notes': [
+                {
+                    'text': 'test note',
+                    'type': str(note_type.pk),
+                }
+            ],
+            'identifiers': [
+                {
+                    'identifier': 'test identifier',
+                    'type': str(identifier_type.pk),
+                }
+            ],
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_change_archive_delete_structure(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1854,8 +1929,7 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
-    def test_change_component_with_permission(self, mock_save):
+    def test_change_component_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1890,6 +1964,24 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {
             'start_date': None,
             'end_date': None,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        response = self.client.patch(url, {
+            'notes': [
+                {
+                    'text': 'test note',
+                    'type': str(note_type.pk),
+                }
+            ],
+            'identifiers': [
+                {
+                    'identifier': 'test identifier',
+                    'type': str(identifier_type.pk),
+                }
+            ],
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
