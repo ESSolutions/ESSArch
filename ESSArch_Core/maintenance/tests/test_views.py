@@ -20,7 +20,6 @@ from ESSArch_Core.maintenance.models import (
     AppraisalJobEntry,
     AppraisalTemplate,
     ConversionJob,
-    ConversionTemplate,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (

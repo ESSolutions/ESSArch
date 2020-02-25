@@ -105,12 +105,15 @@ class MaintenanceJob(models.Model):
         path = self._get_report_directory()
         return os.path.join(path, str(self.pk) + '.pdf')
 
+    def get_report_context(self):
+        return {'job': self, 'rule': self.template}
+
     def _generate_report(self):
         logger.info(f"User '{self.user}' generating report with of type '{self.MAINTENANCE_TYPE}'")
         template = 'maintenance/%s_report.html' % self.MAINTENANCE_TYPE
         dst = self.get_report_pdf_path()
 
-        render = render_to_string(template, {'job': self, 'rule': self.template})
+        render = render_to_string(template, self.get_report_context())
         HTML(string=render).write_pdf(dst)
 
     def create_notification(self, status):
@@ -220,6 +223,14 @@ class AppraisalJob(MaintenanceJob):
                 yield from storage_obj.list_files(pattern)
         else:
             yield from storage_obj.list_files()
+
+    def get_report_context(self):
+        return {
+            'job': self,
+            'rule': self.template,
+            'ip_entries': self.entries.filter(ip__isnull=False),
+            'tag_entries': self.entries.filter(ip__isnull=True),
+        }
 
     def create_notification(self, status):
         if status == celery_states.SUCCESS:
@@ -357,7 +368,6 @@ class AppraisalJob(MaintenanceJob):
 class AppraisalJobEntry(MaintenanceJobEntry):
     job = models.ForeignKey('maintenance.AppraisalJob', on_delete=models.CASCADE, related_name='entries')
 
-    # when type of rule is ARCHIVAL_OBJECT
     ip = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.SET_NULL,
@@ -366,7 +376,6 @@ class AppraisalJobEntry(MaintenanceJobEntry):
     )
     document = models.CharField(max_length=255, blank=True)
 
-    # when type of rule is METADATA
     component = models.CharField(max_length=255, blank=True)
     component_field = models.CharField(max_length=255, blank=True)
 
