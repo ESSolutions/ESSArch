@@ -72,6 +72,8 @@ import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
+import PreviewAppraisalJobModalInstanceCtrl from '../controllers/PreviewAppraisalJobModalInstanceCtrl';
+import PreviewIpAppraisalModalInstanceCtrl from '../controllers/PreviewIpAppraisalModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import PublishClassificationStructureCtrl from '../controllers/PublishClassificationStructureCtrl';
 import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
@@ -814,6 +816,27 @@ export default angular
     'ContentTabs',
     '$translate',
     PrepareSipCtrl,
+  ])
+  .controller('PreviewAppraisalJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    '$uibModal',
+    PreviewAppraisalJobModalInstanceCtrl,
+  ])
+  .controller('PreviewIpAppraisalModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    PreviewIpAppraisalModalInstanceCtrl,
   ])
   .controller('PublishClassificationStructureCtrl', [
     '$http',

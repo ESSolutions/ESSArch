@@ -401,11 +401,11 @@ export default class AppraisalJobModalInstanceCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/preview_appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        controller: 'PreviewAppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'md',
         resolve: {
           data: {
-            preview: true,
             job,
           },
         },

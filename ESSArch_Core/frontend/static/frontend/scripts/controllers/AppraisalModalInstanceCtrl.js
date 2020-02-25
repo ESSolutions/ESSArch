@@ -15,11 +15,6 @@ export default class AppraisalModalInstanceCtrl {
       if (data.appraisal) {
         $ctrl.model = angular.copy(data.appraisal);
       }
-      if (data.preview && data.job) {
-        $http.get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/preview/').then(function(response) {
-          $ctrl.jobPreview = response.data;
-        });
-      }
     };
 
     $ctrl.fields = [
