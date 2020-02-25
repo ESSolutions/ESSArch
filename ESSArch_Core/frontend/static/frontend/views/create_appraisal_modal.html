@@ -13,7 +13,8 @@
       ng-disabled="$ctrl.createForm.$invalid || $ctrl.addingTemplate"
       focused="true"
     >
-      {{'CREATE' | translate}} <i ng-if="$ctrl.addingTemplate" class="fas fa-spinner fa-spin"></i>
+      {{'ARCHIVE_MAINTENANCE.CREATE_TEMPLATE' | translate}}
+      <i ng-if="$ctrl.addingTemplate" class="fas fa-spinner fa-spin"></i>
     </button>
     <button class="btn btn-default" ng-disabled="$ctrl.addingTemplate" type="button" ng-click="$ctrl.cancel()">
       {{'CANCEL' | translate}}

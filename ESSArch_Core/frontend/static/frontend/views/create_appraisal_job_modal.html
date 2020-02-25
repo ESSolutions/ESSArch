@@ -1,6 +1,9 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">
+  <h3 ng-if="$ctrl.data.template" class="modal-title" id="modal-title">
     {{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_JOB_FROM_TEMPLATE' | translate: $ctrl.data.template}}
+  </h3>
+  <h3 ng-if="!$ctrl.data.template" class="modal-title" id="modal-title">
+    {{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_JOB' | translate}}
   </h3>
 </div>
 <div class="modal-body" id="modal-body">
@@ -8,9 +11,6 @@
     {{'LOADING' | translate}}
   </div>
   <div ng-if="!$ctrl.initModalLoad">
-    <h4>
-      {{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}
-    </h4>
     <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
     <div ng-include src="'static/frontend/views/package_file_pattern_selector.html'"></div>
     <div class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">

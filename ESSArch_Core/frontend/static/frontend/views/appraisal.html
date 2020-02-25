@@ -25,7 +25,7 @@
             tooltip-placement="auto left"
             tooltip-append-to-body="true"
           >
-            {{'CREATE' | translate}}
+            {{'ARCHIVE_MAINTENANCE.CREATE_TEMPLATE' | translate}}
           </button>
         </div>
       </div>
@@ -78,7 +78,6 @@
           <thead>
             <tr>
               <th>{{'NAME' | translate}}</th>
-              <th>{{'ARCHIVE_MAINTENANCE.FREQUENCY' | translate}}</th>
               <th class="shrink">
                 {{'EDIT' | translate}}
               </th>
@@ -88,9 +87,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="x in vm.templates" ng-click="vm.templateModal(x)">
+            <tr ng-repeat="x in vm.templates" ng-click="vm.createJobModal(x)">
               <td class="clickable">{{x.name}}</td>
-              <td class="clickable">{{x.frequency}}</td>
               <td class="text-center shrink">
                 <button
                   class="btn btn-default fas fa-edit btn-sm"
@@ -110,10 +108,10 @@
               </td>
             </tr>
             <tr ng-if="!vm.templates.length && !templateLoading" class="empty-table-indicator">
-              <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+              <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
             </tr>
             <tr ng-if="!vm.templates.length && templateLoading" class="empty-table-indicator">
-              <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+              <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
             </tr>
           </tbody>
         </table>
@@ -126,6 +124,15 @@
           st-displayed-pages="7"
         ></div>
       </div>
+    </div>
+    <hr />
+    <div class="w-100 d-flex justify-content-between align-items-center">
+      <h4>
+        {{'ARCHIVE_MAINTENANCE.APPRAISAL_JOBS' | translate}}
+      </h4>
+      <button class="btn btn-primary" ng-click="vm.createJobModal()">
+        {{'ARCHIVE_MAINTENANCE.CREATE_APPRAISAL_JOB' | translate}}
+      </button>
     </div>
     <h4>{{"ARCHIVE_MAINTENANCE.NEXT" | translate}}</h4>
     <div class="table-container" st-table="vm.next" st-pipe="vm.nextPipe">

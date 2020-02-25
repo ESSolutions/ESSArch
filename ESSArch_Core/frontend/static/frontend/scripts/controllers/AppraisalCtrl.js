@@ -256,7 +256,7 @@ export default class AppraisalCtrl {
       );
     };
 
-    vm.templateModal = function(template) {
+    vm.createJobModal = function(template) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',

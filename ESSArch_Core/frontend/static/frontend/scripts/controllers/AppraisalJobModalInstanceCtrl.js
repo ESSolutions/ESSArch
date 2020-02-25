@@ -34,12 +34,18 @@ export default class AppraisalJobModalInstanceCtrl {
               $ctrl.initModalLoad = false;
             });
         } else {
-          $ctrl.model.package_file_pattern = angular.copy(data.template).package_file_pattern;
-          if (data.template.package_file_pattern && data.template.package_file_pattern.length)
-            $ctrl.fullIpAppraisal = false;
-        }
-        if (data.template && !$ctrl.model.template) {
-          $ctrl.model.template = data.template.id;
+          if (data.template) {
+            $ctrl.model.package_file_pattern = angular.copy(data.template).package_file_pattern;
+            if (data.template.package_file_pattern && data.template.package_file_pattern.length) {
+              $ctrl.fullIpAppraisal = false;
+            }
+            if (data.template && !$ctrl.model.template) {
+              $ctrl.model.template = data.template.id;
+            }
+          } else {
+            $ctrl.model.template = null;
+            $ctrl.model.package_file_pattern = [];
+          }
         }
       }
     };
