@@ -107,7 +107,7 @@ export default class AppraisalJobModalInstanceCtrl {
         })
         .then(() => {
           $ctrl.creatingJob = false;
-          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_CREATED'), 'success');
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_SAVED'), 'success');
           EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })

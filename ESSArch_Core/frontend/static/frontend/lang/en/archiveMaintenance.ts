@@ -50,6 +50,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       INVALID_FREQUENCY: 'Invalid frequency',
       JOB_CREATED: 'Job created',
       JOB_RUNNING: 'Job running',
+      JOB_SAVED: 'Job saved',
       MANUAL_APPRAISAL: 'Manual appraisal',
       NEXT: 'Next',
       NO_FILES_TO_REMOVE: 'There are no files to remove',

@@ -50,6 +50,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       INVALID_FREQUENCY: 'Ogiltig frekvens',
       JOB_CREATED: 'Jobb skapat',
       JOB_RUNNING: 'Jobb körs',
+      JOB_SAVED: 'Jobb sparat',
       MANUAL_APPRAISAL: 'Manuell gallring',
       NEXT: 'Nästa',
       NO_FILES_TO_REMOVE: 'Det finns inga filer att ta bort',
