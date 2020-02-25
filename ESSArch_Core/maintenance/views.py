@@ -73,12 +73,6 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filterset_class = MaintenanceJobFilter
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
 
-    @action(detail=True, methods=['get'])
-    def preview(self, request, pk=None):
-        job = self.get_object()
-        found_files = job.preview()
-        return Response(found_files)
-
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
         job = self.get_object()
@@ -166,6 +160,14 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
         job = AppraisalJob.objects.get(pk=self.get_parents_query_dict()['appraisal_jobs'])
         job.information_packages.remove(*data['information_packages'])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'])
+    def preview(self, request, pk=None, parent_lookup_appraisal_jobs=None):
+        job = AppraisalJob.objects.get(pk=parent_lookup_appraisal_jobs)
+        found_files = job.preview(self.get_object())
+
+        paginated_data = self.paginate_queryset(list(found_files))
+        return self.get_paginated_response(paginated_data)
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH', 'DELETE']:

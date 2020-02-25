@@ -209,32 +209,17 @@ class AppraisalJob(MaintenanceJob):
             ('run_appraisaljob', 'Can run appraisal job'),
         )
 
-    def preview(self):
-        ips = self.information_packages.filter(
-            Q(
-                Q(appraisal_date__lte=timezone.now()) |
-                Q(appraisal_date__isnull=True)
-            ),
-            active=True,
-        )
-        found_files = []
-        for ip in ips:
-            storage_obj = ip.storage.fastest().first()
-            if storage_obj is None:
-                raise StorageObject.DoesNotExist(
-                    'No storage object available for {}'.format(ip.object_identifier_value),
-                )
-            if self.package_file_pattern:
-                for pattern in self.package_file_pattern:
-                    found_files.extend(
-                        [{'ip': ip.object_identifier_value, 'document': f} for f in storage_obj.list_files(pattern)]
-                    )
-            else:
-                found_files.extend(
-                    [{'ip': ip.object_identifier_value, 'document': f} for f in storage_obj.list_files()]
-                )
-
-        return found_files
+    def preview(self, ip: InformationPackage):
+        storage_obj = ip.storage.fastest().first()
+        if storage_obj is None:
+            raise StorageObject.DoesNotExist(
+                'No storage object available for {}'.format(ip.object_identifier_value),
+            )
+        if self.package_file_pattern:
+            for pattern in self.package_file_pattern:
+                yield from storage_obj.list_files(pattern)
+        else:
+            yield from storage_obj.list_files()
 
     def create_notification(self, status):
         if status == celery_states.SUCCESS:
