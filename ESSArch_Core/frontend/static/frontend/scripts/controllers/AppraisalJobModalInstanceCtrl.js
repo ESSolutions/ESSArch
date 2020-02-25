@@ -90,6 +90,9 @@ export default class AppraisalJobModalInstanceCtrl {
     };
 
     $ctrl.save = () => {
+      if ($ctrl.fullIpAppraisal) {
+        $ctrl.model.package_file_pattern = [];
+      }
       $ctrl.creatingJob = true;
       $http({
         url: appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.id + '/',
