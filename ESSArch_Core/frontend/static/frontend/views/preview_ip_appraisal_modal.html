@@ -22,29 +22,6 @@
         tooltip-placement="auto top"
         tooltip-append-to-body="true"
       ></select>
-      <div class="global-search">
-        <input
-          id="search-input"
-          st-search=""
-          class="form-control"
-          ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
-          type="text"
-          uib-tooltip="{{'GLOBALSEARCHDESC_IP' | translate}}"
-          tooltip-placement="auto top"
-          tooltip-append-to-body="true"
-        />
-      </div>
-      <button
-        type="button"
-        ng-click="$ctrl.filePipe($ctrl.tableState)"
-        class="btn btn-primary btn-small"
-        style="margin-left: 5px;"
-        uib-tooltip="{{'SEARCH' | translate}}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-      >
-        {{'SEARCH' | translate}}&nbsp;<i class="fas fa-search"></i>
-      </button>
       <div class="refresh-icon">
         <span
           ng-click="$ctrl.filePipe($ctrl.tableState)"

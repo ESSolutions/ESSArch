@@ -53,6 +53,54 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
       }
     };
 
+    $ctrl.tagsPipe = function(tableState) {
+      $ctrl.tagsLoading = true;
+      if (angular.isUndefined($ctrl.tags) || $ctrl.tags.length == 0) {
+        $scope.initLoad = true;
+      }
+      if (!angular.isUndefined(tableState)) {
+        $ctrl.tagsTableState = tableState;
+        var search = '';
+        if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        }
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.itemsPerPage);
+
+        let sortString = sorting.predicate;
+        if (sorting.reverse) {
+          sortString = '-' + sortString;
+        }
+
+        $ctrl
+          .getTags(data.job, {
+            page: paginationParams.pageNumber,
+            page_size: paginationParams.number,
+            pager: paginationParams.pager,
+            ordering: sortString,
+            search: search,
+          })
+          .then(function(response) {
+            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
+            $scope.initLoad = false;
+            $ctrl.tagsLoading = false;
+            response.data.forEach(function(x) {
+              if (angular.isUndefined(x.id) && x._id) {
+                x.id = x._id;
+              }
+            });
+            $ctrl.tags = response.data;
+          });
+      }
+    };
+
+    $ctrl.getTags = function(job, params) {
+      return $http
+        .get(appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/tags/', {params: params})
+        .then(function(response) {
+          return response;
+        });
+    };
     $ctrl.ok = function() {
       $uibModalInstance.close();
     };
