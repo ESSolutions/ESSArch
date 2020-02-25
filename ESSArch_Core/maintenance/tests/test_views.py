@@ -46,6 +46,7 @@ from ESSArch_Core.tags.models import (
 )
 from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 from ESSArch_Core.testing.runner import TaskRunner
+from ESSArch_Core.util import normalize_path
 
 User = get_user_model()
 
@@ -407,7 +408,7 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
 
         ip = InformationPackage.objects.create()
         self.appraisal_job.information_packages.add(ip)
-        storage_target = StorageTarget.objects.create()
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
         storage_medium = StorageMedium.objects.create(
             storage_target=storage_target,
             status=20, location_status=50, block_size=1024, format=103,
@@ -415,11 +416,11 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
 
         obj = StorageObject.objects.create(
             ip=ip, storage_medium=storage_medium,
-            content_location_value=tempfile.mkdtemp(dir=self.datadir),
+            content_location_value=os.path.basename(tempfile.mkdtemp(dir=storage_target.target)),
             content_location_type=DISK,
         )
 
-        test_dir = tempfile.mkdtemp(dir=obj.content_location_value)
+        test_dir = tempfile.mkdtemp(dir=obj.get_full_path())
         foo = os.path.join(test_dir, 'foo.txt')
         bar = os.path.join(test_dir, 'bar.txt')
         baz = os.path.join(test_dir, 'baz.pdf')
@@ -427,9 +428,9 @@ class AppraisalJobViewSetPreviewTests(APITestCase):
         open(bar, 'a').close()
         open(baz, 'a').close()
 
-        foo = os.path.relpath(foo, obj.content_location_value)
-        bar = os.path.relpath(bar, obj.content_location_value)
-        baz = os.path.relpath(baz, obj.content_location_value)
+        foo = normalize_path(os.path.relpath(foo, obj.get_full_path()))
+        bar = normalize_path(os.path.relpath(bar, obj.get_full_path()))
+        baz = normalize_path(os.path.relpath(baz, obj.get_full_path()))
 
         with self.subTest('no pattern'):
             res = self.client.get(self.url)

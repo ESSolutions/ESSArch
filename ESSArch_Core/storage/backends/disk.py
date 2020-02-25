@@ -10,6 +10,7 @@ from glob2 import iglob
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
+from ESSArch_Core.util import normalize_path
 
 logger = logging.getLogger('essarch.storage.backends.disk')
 
@@ -83,13 +84,13 @@ class DiskStorageBackend(BaseStorageBackend):
         if storage_object.container:
             raise NotImplementedError
 
-        datadir = storage_object.content_location_value
+        datadir = storage_object.get_full_path()
 
         if pattern is None:
             for root, _dirs, files in walk(datadir):
                 rel = os.path.relpath(root, datadir)
                 for f in files:
-                    yield os.path.join(rel, f)
+                    yield normalize_path(os.path.join(rel, f))
         else:
             for path in iglob(datadir + '/' + pattern):
                 if os.path.isdir(path):
@@ -97,10 +98,10 @@ class DiskStorageBackend(BaseStorageBackend):
                         rel = os.path.relpath(root, datadir)
 
                         for f in files:
-                            yield os.path.join(rel, f)
+                            yield normalize_path(os.path.join(rel, f))
 
                 else:
-                    yield os.path.relpath(path, datadir)
+                    yield normalize_path(os.path.relpath(path, datadir))
 
     def delete(self, storage_object):
         path = storage_object.get_full_path()
