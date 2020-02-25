@@ -439,6 +439,7 @@ export default class AppraisalCtrl {
       modalInstance.result.then(
         function(data, $ctrl) {
           vm.nextPipe(vm.nextTableState);
+          vm.finishedPipe(vm.finishedTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
