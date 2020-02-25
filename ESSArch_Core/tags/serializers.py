@@ -662,6 +662,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
+    flagged_for_appraisal = serializers.BooleanField(source='tag.flagged_for_appraisal')
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
@@ -697,7 +698,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         fields = (
             '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
-            'is_leaf_node', '_source', 'masked_fields', 'tag',
+            'is_leaf_node', '_source', 'masked_fields', 'tag', 'flagged_for_appraisal',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
         )
@@ -915,6 +916,7 @@ class ComponentWriteSerializer(serializers.Serializer):
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
+    flagged_for_appraisal = serializers.BooleanField(required=False)
 
     @staticmethod
     def create_notes(tag_version, notes_data):
@@ -938,9 +940,13 @@ class ComponentWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             information_package = validated_data.pop('information_package', None)
+            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
             index = validated_data.pop('index')
 
-            tag = Tag.objects.create(information_package=information_package)
+            tag = Tag.objects.create(
+                information_package=information_package,
+                flagged_for_appraisal=flagged_for_appraisal,
+            )
             tag_structure = TagStructure(tag=tag)
 
             if structure_unit is not None:
@@ -995,13 +1001,14 @@ class ComponentWriteSerializer(serializers.Serializer):
 
         return tag
 
-    def update(self, instance, validated_data):
+    def update(self, instance: TagVersion, validated_data):
         structure_unit = validated_data.pop('structure_unit', None)
         parent = validated_data.pop('parent', None)
         structure = validated_data.pop('structure', None)
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
         information_package = validated_data.pop('information_package', None)
+        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
         validated_data.pop('index', None)
 
         if identifiers_data is not None:
@@ -1032,6 +1039,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             })
 
         instance.tag.information_package = information_package
+        instance.tag.flagged_for_appraisal = flagged_for_appraisal
         instance.tag.save()
         TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
         instance.refresh_from_db()
@@ -1102,6 +1110,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
+    flagged_for_appraisal = serializers.BooleanField(required=False)
 
     @staticmethod
     def create_notes(tag_version, notes_data):
@@ -1124,12 +1133,13 @@ class ArchiveWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             use_uuid_as_refcode = validated_data.pop('use_uuid_as_refcode', False)
+            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
             tag_version_id = uuid.uuid4()
 
             if use_uuid_as_refcode:
                 validated_data['reference_code'] = str(tag_version_id)
 
-            tag = Tag.objects.create()
+            tag = Tag.objects.create(flagged_for_appraisal=flagged_for_appraisal)
             tag_version = TagVersion.objects.create(
                 pk=tag_version_id, tag=tag, elastic_index='archive',
                 **validated_data,
@@ -1158,10 +1168,11 @@ class ArchiveWriteSerializer(serializers.Serializer):
 
         return tag
 
-    def update(self, instance, validated_data):
+    def update(self, instance: TagVersion, validated_data):
         structures = validated_data.pop('structures', [])
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
+        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
 
         if identifiers_data is not None:
             NodeIdentifier.objects.filter(tag_version=instance).delete()
@@ -1180,6 +1191,8 @@ class ArchiveWriteSerializer(serializers.Serializer):
                     for instance_unit in structure_instance.units.all():
                         StructureUnitDocument.from_obj(instance_unit).save()
 
+            instance.tag.flagged_for_appraisal = flagged_for_appraisal
+            instance.tag.save()
             TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
             instance.refresh_from_db()
 
