@@ -940,7 +940,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             information_package = validated_data.pop('information_package', None)
-            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
+            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', False)
             index = validated_data.pop('index')
 
             tag = Tag.objects.create(
@@ -1007,8 +1007,8 @@ class ComponentWriteSerializer(serializers.Serializer):
         structure = validated_data.pop('structure', None)
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
-        information_package = validated_data.pop('information_package', None)
-        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
+        information_package = validated_data.pop('information_package', instance.tag.information_package)
+        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', instance.tag.flagged_for_appraisal)
         validated_data.pop('index', None)
 
         if identifiers_data is not None:
@@ -1133,7 +1133,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             use_uuid_as_refcode = validated_data.pop('use_uuid_as_refcode', False)
-            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
+            flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', False)
             tag_version_id = uuid.uuid4()
 
             if use_uuid_as_refcode:
@@ -1172,7 +1172,7 @@ class ArchiveWriteSerializer(serializers.Serializer):
         structures = validated_data.pop('structures', [])
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
-        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', None)
+        flagged_for_appraisal = validated_data.pop('flagged_for_appraisal', instance.tag.flagged_for_appraisal)
 
         if identifiers_data is not None:
             NodeIdentifier.objects.filter(tag_version=instance).delete()
