@@ -11,6 +11,11 @@ export default class ExportNodeModalInstanceCtrl {
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.CREATE_LABELS'), value: 'labels'});
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_ARCHIVE'), value: 'archive'});
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_EAD3'), value: 'ead2002'});
+        $ctrl.exportOptions.push({name: 'EAD 2002', value: 'ead_2002'});
+        $ctrl.exportOptions.push({name: 'EAD 3', value: 'ead_3'});
+        $ctrl.exportOptions.push({name: 'EAD FGS VBA', value: 'ead_fgs_vba'});
+        $ctrl.exportOptions.push({name: 'EAD FGS AA', value: 'ead_fgs_aa'});
+        $ctrl.exportOptions.push({name: 'EAD NAD', value: 'ead_nad'});
       }
       return $ctrl.exportOptions;
     };
@@ -79,8 +84,16 @@ export default class ExportNodeModalInstanceCtrl {
       $uibModalInstance.close();
     };
 
-     let exportEAD2002 = node => {
+    let exportEAD2002 = node => {
       const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/ead2002/');
+      $window.open(showFile, '_blank');
+      $uibModalInstance.close();
+    };
+
+    let exportEAD = (node, format) => {
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node._id + '/export-EAD/?format=' + format
+      );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
@@ -93,8 +106,18 @@ export default class ExportNodeModalInstanceCtrl {
           exportLabels(data.node);
         } else if (option === 'archive') {
           exportArchive(data.node);
-        }else if (option === 'ead2002') {
+        } else if (option === 'ead2002') {
           exportEAD2002(data.node);
+        } else if (option === 'ead_2002') {
+          exportEAD(data.node, 'ead_2002');
+        } else if (option === 'ead_3') {
+          exportEAD(data.node, 'ead_3');
+        } else if (option === 'ead_fgs_vba') {
+          exportEAD(data.node, 'ead_fgs_vba');
+        } else if (option === 'ead_fgs_aa') {
+          exportEAD(data.node, 'ead_fgs_aa');
+        } else if (option === 'ead_nad') {
+          exportEAD(data.node, 'ead_nad');
         }
       }
     };
