@@ -61,11 +61,6 @@
     <body>
         <div class="title">
             <h1>{% trans "Appraisal Report" %}</h1>
-            <b>{% trans "Appraisal Template" %}: </b>{{template.name}}
-            {% if template.user %}
-            <b>{% trans "Appraisal Template Creator" %}: </b>{{template.user.username}}
-            {% endif %}
-            <br/>
             <b>{% trans "Appraisal Job" %}: </b>{{job.pk}}
             {% if job.user %}
             <b>{% trans "Appraisal Job Creator" %}: </b>{{job.user.username}}
