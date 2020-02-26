@@ -20,6 +20,7 @@ from ESSArch_Core.maintenance.models import (
     AppraisalJobEntry,
     AppraisalTemplate,
     ConversionJob,
+    ConversionJobEntry,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
@@ -657,7 +658,7 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         self.client.force_authenticate(user=self.user)
 
         self.appraisal_job.information_packages.add(self.ip)
-        self.appraisal_job.package_file_pattern = ['**/bar.*', 'logs']
+        self.appraisal_job.package_file_pattern = ['*/**/*.pdf', 'logs']
         self.appraisal_job.save()
 
         response = self.client.post(self.url)
@@ -731,7 +732,7 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         self.client.force_authenticate(user=self.user)
 
         self.appraisal_job.information_packages.add(self.ip)
-        self.appraisal_job.package_file_pattern = ['**/bar.*', 'logs']
+        self.appraisal_job.package_file_pattern = ['*/**/*.pdf', 'logs']
         self.appraisal_job.save()
 
         response = self.client.post(self.url)
@@ -855,3 +856,208 @@ class ConversionJobViewSetTests(APITestCase):
                 conversion_job = ConversionJob.objects.create(status=state)
                 res = self.client.delete(reverse('conversionjob-detail', args=(conversion_job.pk,)))
                 self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class ConversionJobViewSetRunTests(ESSArchSearchBaseTestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.conversion_job = ConversionJob.objects.create(user=self.user)
+        self.url = reverse('conversionjob-run', args=(self.conversion_job.pk,))
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+        Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
+
+        Parameter.objects.create(entity='agent_identifier_value', value='ESS')
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+        Parameter.objects.create(entity='medium_location', value='Media')
+
+        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
+        os.makedirs(os.path.join(receipts.value, 'xml'))
+
+        cache_storage_method = StorageMethod.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache_storage_method,
+            storage_target=StorageTarget.objects.create(
+                name='cache', target=tempfile.mkdtemp(dir=self.datadir),
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage_method,
+            ingest_path=ingest,
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+
+        self.storage_method = StorageMethod.objects.create()
+        policy.storage_methods.add(self.storage_method)
+        target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        medium = add_storage_medium(target, 20, '1')
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            aic=aic, generation=1, archived=True,
+            responsible=self.user,
+            submission_agreement=sa, submission_agreement_locked=True,
+        )
+        storage_obj = add_storage_obj(self.ip, medium, DISK, self.ip.object_identifier_value, create_dir=True)
+        self.storage_path = storage_obj.get_full_path()
+        foo = os.path.join(storage_obj.get_full_path(), 'foo')
+        os.makedirs(foo)
+        logs = os.path.join(storage_obj.get_full_path(), 'logs')
+        os.makedirs(logs)
+        storage_obj.open('foo.docx', 'a').close()
+        storage_obj.open('foo/bar.docx', 'a').close()
+        storage_obj.open('logs/1.log', 'a').close()
+        storage_obj.open('logs/2.log', 'a').close()
+
+        # add non-package files
+        open(os.path.join(self.datadir, 'test.docx'), 'a').close()
+        open(os.path.join(self.datadir, 'example.mkv'), 'a').close()
+
+    def test_unauthenticated(self):
+        response = self.client.post(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.run')
+    def test_authenticated_with_only_add_permission(self, mock_conversion_job_run):
+        mock_conversion_job_run.return_value = mock.ANY
+        perm_list = ['add_conversionjob']
+
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        mock_conversion_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.run')
+    def test_prevent_running_already_running_job(self, mock_conversion_job_run):
+        mock_conversion_job_run.return_value = mock.ANY
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.status = celery_states.STARTED
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_conversion_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.run')
+    def test_prevent_running_completed_job(self, mock_conversion_job_run):
+        mock_conversion_job_run.return_value = mock.ANY
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.status = celery_states.SUCCESS
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_conversion_job_run.assert_not_called()
+
+    @TaskRunner()
+    def test_convert_packages_with_invalid_specification(self):
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.information_packages.add(self.ip)
+        self.conversion_job.specification = {
+            '../../*.docx': {'target': 'pdf', 'tool': 'libreoffice'},
+        }
+        self.conversion_job.save()
+
+        with self.assertRaises(ValueError):
+            self.client.post(self.url)
+
+        self.assertFalse(ConversionJobEntry.objects.exists())
+        self.ip.refresh_from_db()
+
+        self.assertTrue(os.path.exists(self.storage_path))
+        self.assertFalse(
+            InformationPackage.objects.filter(
+                package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+                active=True,
+            ).exists()
+        )
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.convert_file')
+    def test_convert_packages_with_valid_specification(self, mock_convert):
+        def convert_side_effect(path, new_format):
+            dst = os.path.splitext(path)[0] + '.' + new_format
+            shutil.copyfile(path, dst)
+
+        class AnyStringEndsWith(str):
+            def __eq__(a: str, b: str, *args, **kwargs):
+                return b.endswith(a)
+
+        mock_convert.side_effect = convert_side_effect
+
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.information_packages.add(self.ip)
+        self.conversion_job.specification = {
+            '*/**/*.docx': {'target': 'pdf', 'tool': 'libreoffice'},
+        }
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        mock_convert.assert_called_once_with(AnyStringEndsWith(os.path.join('foo', 'bar.docx')), 'pdf')
+
+        self.assertFalse(
+            ConversionJobEntry.objects.filter(
+                job=self.conversion_job, ip=self.ip,
+                old_document='foo.docx',
+            ).exists()
+        )
+        self.assertTrue(
+            ConversionJobEntry.objects.filter(
+                job=self.conversion_job, ip=self.ip,
+                old_document='foo/bar.docx', new_document='foo/bar.pdf',
+            ).exists()
+        )
+
+        self.ip.refresh_from_db()
+        self.assertTrue(os.path.exists(self.storage_path))
+
+        new_ip = InformationPackage.objects.get(
+            package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+            active=True,
+        )
+        new_storage = new_ip.storage.filter(
+            storage_medium__storage_target__methods=self.storage_method
+        ).get()
+        new_path = new_storage.get_full_path()
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.docx')))
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.docx')))
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))

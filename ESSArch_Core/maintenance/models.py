@@ -13,7 +13,6 @@ from celery.result import allow_join_result
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models, transaction
-from django.db.models import Q
 from django.template.loader import render_to_string
 from django.utils import timezone
 from glob2 import iglob
@@ -117,19 +116,7 @@ class MaintenanceJob(models.Model):
         HTML(string=render).write_pdf(dst)
 
     def create_notification(self, status):
-        if status == celery_states.SUCCESS:
-            msg = f'Completed maintenance job "{self.label or str(self.pk)}"'
-            level = logging.INFO
-        else:
-            msg = f'Maintenance job "{self.label or str(self.pk)}" failed'
-            level = logging.ERROR
-
-        return Notification.objects.create(
-            message=msg,
-            level=level,
-            user=self.user,
-            refresh=True,
-        )
+        raise NotImplementedError
 
     def _mark_as_complete(self):
         try:
@@ -392,6 +379,11 @@ class ConversionJob(MaintenanceJob):
 
     MAINTENANCE_TYPE = 'conversion'
 
+    class Meta(MaintenanceJob.Meta):
+        permissions = (
+            ('run_conversionjob', 'Can run conversion job'),
+        )
+
     def preview(self):
         ips = self.information_packages.all()
         found_files = []
@@ -417,78 +409,60 @@ class ConversionJob(MaintenanceJob):
             refresh=True,
         )
 
+    def convert(self, ip, path, relpath, target, tool):
+        entry = ConversionJobEntry.objects.create(
+            job=self,
+            start_date=timezone.now(),
+            ip=ip,
+            old_document=relpath,
+            new_document=os.path.splitext(relpath)[0] + '.' + target,
+            tool=tool,
+        )
+        convert_file(path, target)
+        os.remove(path)
+
+        entry.end_date = timezone.now()
+        entry.save()
+        return entry
+
+    @transaction.atomic
     def _run(self):
-        def get_information_packages():
-            return self.information_packages.filter(
-                active=True,
-            ).exclude(
-                conversion_job_entries__job=self,
-            )
+        ips = self.information_packages
+        tmpdir = Path.objects.get(entity='temp').value
 
-        ips = get_information_packages()
+        for ip in ips.iterator():
+            storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise NoReadableStorage
 
-        for ip in ips.order_by('-cached').iterator():  # convert cached IPs first
-            policy = ip.policy
-
-            srcdir = os.path.join(policy.cache_storage.enabled_target.target, ip.object_identifier_value)
             new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
-
-            tmpdir = Path.objects.cached('entity', 'temp', 'value')
-            dstdir = os.path.join(tmpdir, new_ip.object_identifier_value)
-
-            new_ip.object_path = dstdir
+            new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
+            storage_obj.read(new_ip_tmpdir, None, extract=True)
+            new_ip.object_path = new_ip_tmpdir
             new_ip.save()
-
-            # copy files to new generation
-            shutil.copytree(srcdir, dstdir)
 
             # convert files specified in rule
             for pattern, spec in self.specification.items():
                 target = spec['target']
                 tool = spec['tool']
 
-                for path in iglob(dstdir + '/' + pattern):
+                for path in iglob(new_ip_tmpdir + '/' + pattern):
+                    if not in_directory(path, new_ip_tmpdir):
+                        raise ValueError('Invalid file-pattern accessing files outside of package')
+
                     if os.path.isdir(path):
                         for root, _dirs, files in walk(path):
-                            rel = os.path.relpath(root, dstdir)
-
                             for f in files:
                                 fpath = os.path.join(root, f)
-                                job_entry = ConversionJobEntry.objects.create(
-                                    job=self,
-                                    start_date=timezone.now(),
-                                    ip=ip,
-                                    old_document=os.path.join(rel, f)
-                                )
-                                convert_file(fpath, target)
+                                rel = PurePath(fpath).relative_to(new_ip_tmpdir).as_posix()
+                                self.convert(ip, fpath, rel, target, tool)
 
-                                os.remove(fpath)
+                    else:
+                        rel = PurePath(path).relative_to(new_ip_tmpdir).as_posix()
+                        self.convert(ip, path, rel, target, tool)
 
-                                job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
-                                job_entry.end_date = timezone.now()
-                                job_entry.tool = tool
-                                job_entry.save()
-
-                    elif os.path.isfile(path):
-                        rel = os.path.relpath(path, dstdir)
-
-                        job_entry = ConversionJobEntry.objects.create(
-                            job=self,
-                            start_date=timezone.now(),
-                            ip=ip,
-                            old_document=rel,
-                        )
-                        convert_file(path, target)
-
-                        os.remove(path)
-
-                        job_entry.new_document = os.path.splitext(job_entry.old_document)[0] + '.' + target
-                        job_entry.end_date = timezone.now()
-                        job_entry.tool = tool
-                        job_entry.save()
-
-            # preserve new generation
-            preserve_new_generation(new_ip)
+            with allow_join_result():
+                preserve_new_generation(new_ip)
 
 
 class ConversionJobEntry(MaintenanceJobEntry):

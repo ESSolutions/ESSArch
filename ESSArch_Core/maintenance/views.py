@@ -237,9 +237,17 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
     serializer_class = ConversionJobSerializer
     filterset_class = ConversionJobFilter
 
+    @permission_required_or_403(['maintenance.run_conversionjob'])
     @action(detail=True, methods=['post'])
     def run(self, request, pk=None):
-        job = self.get_object()
+        job: ConversionJob = self.get_object()
+
+        if job.status in [celery_states.STARTED]:
+            raise exceptions.ParseError('Job is already running')
+
+        if job.status in [celery_states.SUCCESS]:
+            raise exceptions.ParseError('Job has already completed')
+
         if job.task is None:
             job.task = ProcessTask.objects.create(
                 name='ESSArch_Core.maintenance.tasks.RunConversionJob',
