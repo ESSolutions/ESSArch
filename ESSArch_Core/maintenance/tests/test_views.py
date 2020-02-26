@@ -518,6 +518,10 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         storage_obj.open('logs/1.log', 'a').close()
         storage_obj.open('logs/2.log', 'a').close()
 
+        # add non-package files
+        open(os.path.join(self.datadir, 'test.pdf'), 'a').close()
+        open(os.path.join(self.datadir, 'example.log'), 'a').close()
+
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -628,7 +632,7 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         self.client.force_authenticate(user=self.user)
 
         self.appraisal_job.information_packages.add(self.ip)
-        self.appraisal_job.package_file_pattern = ['../**/bar.*', 'logs']
+        self.appraisal_job.package_file_pattern = ['../../*.pdf', 'logs']
         self.appraisal_job.save()
 
         with self.assertRaises(ValueError):

@@ -278,18 +278,18 @@ class AppraisalJob(MaintenanceJob):
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
         delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
-        tmpdir = Path.objects.cached('entity', 'temp', 'value')
+        tmpdir = Path.objects.get(entity='temp').value
 
         for ip in ips.iterator():
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage
 
-            ip_tmpdir = os.path.join(tmpdir, ip.object_identifier_value)
-            os.makedirs(ip_tmpdir, exist_ok=True)
-            storage_obj.read(ip_tmpdir, None, extract=True)
-
             if not self.package_file_pattern:
+                ip_tmpdir = os.path.join(tmpdir, ip.object_identifier_value)
+                os.makedirs(ip_tmpdir, exist_ok=True)
+                storage_obj.read(ip_tmpdir, None, extract=True)
+
                 # register all files
                 job_entry_start_date = timezone.now()
                 job_entry_end_date = timezone.now()
