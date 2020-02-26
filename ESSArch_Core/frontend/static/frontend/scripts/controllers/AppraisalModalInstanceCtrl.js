@@ -8,7 +8,6 @@ export default class AppraisalModalInstanceCtrl {
     $ctrl.request = data.request;
     $ctrl.appraisalTemplates = [];
     $ctrl.publicTemplate = true;
-    $ctrl.manualTemplate = false;
     $ctrl.ip = null;
     $ctrl.model = {package_file_pattern: []};
     $ctrl.$onInit = () => {
@@ -40,6 +39,7 @@ export default class AppraisalModalInstanceCtrl {
         templateOptions: {
           label: $translate.instant('PUBLIC'),
         },
+        defaultValue: true,
       },
     ];
 
