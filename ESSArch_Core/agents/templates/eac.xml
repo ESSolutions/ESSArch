@@ -1,0 +1,185 @@
+{% spaceless %}
+<?xml version="1.0" encoding="UTF-8"?>
+    {% load essarch_meta %}
+    {% load i18n %}
+    {% load tz %}
+<eac-cpf xmlns="urn:isbn:1-931666-33-4" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="urn:isbn:1-931666-33-4 http://eac.staatsbibliothek-berlin.de/schema/cpf.xsd">
+    <control>
+        <recordId>UUID{{agent.id}}</recordId>
+        <maintenanceStatus>{% if agent.revise_date %}revised{% else %}new{% endif %}</maintenanceStatus>
+        <maintenanceAgency>
+            <agencyCode>{{ agent.ref_code }}</agencyCode>
+            <agencyName/>
+        </maintenanceAgency>
+        <languageDeclaration>
+            <language languageCode="{{ agent.language.iso_639_2T }}">{{ agent.language.name_en }}</language>
+            <script scriptCode="Latn">Latin</script>
+        </languageDeclaration>
+        <maintenanceHistory>
+            <maintenanceEvent>
+                <eventType>created</eventType>
+                <eventDateTime>{{ agent.create_date|date:'Y-m-dTH:i' }}</eventDateTime>
+                <agentType>human</agentType>
+                <agent/>
+            </maintenanceEvent>
+            <maintenanceEvent>
+                <eventType>revised</eventType>
+                <eventDateTime>{{ agent.revise_date|date:'Y-m-dTH:i' }}</eventDateTime>
+                <agentType>human</agentType>
+                <agent/>
+            </maintenanceEvent>
+        </maintenanceHistory>
+    </control>
+    <cpfDescription>
+        <identity>
+            <entityType>{{ agent.type.cpf }}</entityType>
+            {% for name in agent.names.all %}
+            <nameEntry>
+                <part localType="{{ name.type }}">{{ name.main }}</part>
+                <useDates>
+                    <date/>
+                </useDates>
+                {% if name.type.authority %}
+                <authorizedForm>local</authorizedForm>
+                {% else %}
+                <alternativeForm>local</alternativeForm>
+                {% endif %}
+            </nameEntry>
+            {% endfor %}
+        </identity>
+        <description>
+            {% if agent.mandates.all|length > 0 %}
+            <mandates>
+                {% for mandate in agent.mandates.all %}
+                <mandate>
+                    <term>{{ mandate.type }}</term>
+                    <dateRange>
+                        <fromDate>{{ mandate.start_date|date:'Y-m-d' }}</fromDate>
+                        <toDate>{{ mandate.end_date|date:'Y-m-d' }}</toDate>
+                    </dateRange>
+                    <citation>{{ mandate.name }}</citation>
+                    <descriptiveNote>
+                        <p>{{ mandate.description }}</p>
+                    </descriptiveNote>
+                </mandate>
+                {% endfor %}
+            </mandates>
+            {% endif %}
+            <places>
+                {% if places|length > 0 %}
+                {% for place in places %}
+                <place>
+                    <placeRole>{{place.type}}</placeRole>
+                    <placeEntry>{{place.topography.name}}</placeEntry>
+                    {% if place.start_date or place.end_date %}
+                       <dateRange>
+                           {% if place.start_date %}
+                        <fromDate>{{ place.start_date|date:'Y-m-d' }}</fromDate>
+                           {% endif %}
+                           {% if place.end_date %}
+                        <toDate>{{ place.end_date|date:'Y-m-d' }}</toDate>
+                           {% endif %}
+                    </dateRange>
+                    {% endif %}
+                    <descriptiveNote><p>{{ place.description }}</p></descriptiveNote>
+                </place>
+                {% endfor %}
+                {% endif %}
+
+            </places>
+            {% for note in agent.notes.all %}
+            {% if note.type.history %}
+            <biogHist>
+                <p>{{ note.text }}</p>
+                {% if note.href %}
+                <p>{{ note.href }}</p>
+                {% endif %}
+            </biogHist>
+            {% endif %}
+            {% endfor %}
+        </description>
+        <relations>
+            {% for agentRelation in agent.agent_relations_b.all %}
+            {% if agentRelation.type|lower|stringformat:"s" in 'underordnad, subordinate, controlled, owned by' %}
+            <cpfRelation cpfRelationType="hierarchical-child"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+            {% elif agentRelation.type|lower|stringformat:"s" in 'överordnad, superior, controlling, owner of' %}
+            <cpfRelation cpfRelationType="hierarchical-parent"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+            {% elif agentRelation.type|lower|stringformat:"s" in 'föregångare till, predecessor' %}
+            <cpfRelation cpfRelationType="temporal-earlier"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+            {% elif agentRelation.type|lower|stringformat:"s" in 'efterföljare till, successor' %}
+            <cpfRelation cpfRelationType="temporal-later"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+            {% elif agentRelation.type|lower|stringformat:"s" in 'provider, client, whole, part, membership, partner'
+            %}
+            <cpfRelation cpfRelationType="associative"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+            {% elif agentRelation.type|lower|stringformat:"s" in 'parent, child, spouse' %}
+            <cpfRelation cpfRelationType="family"
+                         xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id}}">
+            {% else %}
+            <cpfRelation xlink:href="/archival-descriptions/archive-creators/{{ agentRelation.agent_a.id }}"
+                         xlink:type="simple" xml:id="UUID{{ agentRelation.agent_a.id }}">
+                {% endif %}
+                   {% for authName in agentRelation.agent_a.names.all %}
+                {% if authName.type.authority %}
+                <relationEntry>{{ authName.main }} {% if authName.part %}, {{ authName.part }} {% endif %}
+                </relationEntry>
+                {% endif %}
+                {% endfor %}
+                {% if agentRelation.start_date or agentRelation.end_date %}
+                <dateRange>
+					{% if agentRelation.start_date %}<fromDate>{{ agentRelation.start_date|date:'Y-m-d' }}</fromDate> {% endif %}
+					{% if agentRelation.end_date %}<toDate>{{ agentRelation.end_date|date:'Y-m-d' }}</toDate> {% endif %}
+				</dateRange>
+                {% endif %}
+
+                    {% if agentRelation.description %}
+                <descriptiveNote>
+					<p>{{ agentRelation.description }}</p>
+				</descriptiveNote>
+                {% endif %}
+
+            </cpfRelation>
+            {% endfor %}
+            {% for r in agent.tags.all %}
+            {% for resource in r.tag.current_version.agent_links.all %}
+            {% if resource.type|lower|stringformat:"s" in 'arkivbildare, creator' %}
+            <resourceRelation resourceRelationType="creatorOf"
+                              xlink:href="/archival-descriptions/search/archive/{{ resource.id }}"
+                              xlink:type="simple" xml:id="ID{{ resource.id }}">
+
+                {% else %}
+                 <resourceRelation resourceRelationType="other"
+                              xlink:href="/archival-descriptions/search/archive/{{ resource.id }}"
+                              xlink:type="simple" xml:id="ID{{ resource.id }}">
+            {% endif %}
+                <relationEntry>{{ resource.tag.name }}</relationEntry>
+                         {% if resource.start_date or resource.end_date %}
+                <dateRange>
+					{% if resource.start_date %}<fromDate>{{ resource.start_date|date:'Y-m-d' }}</fromDate> {% endif %}
+					{% if resource.end_date %}<toDate>{{ resource.end_date|date:'Y-m-d' }}</toDate> {% endif %}
+				</dateRange>
+                {% endif %}
+                            {% if resource.description %}
+                <descriptiveNote>
+					<p>{{ resource.description }}</p>
+				</descriptiveNote>
+                {% endif %}
+            </resourceRelation>
+            {% endfor %}
+            {% endfor %}
+        </relations>
+    </cpfDescription>
+</eac-cpf>
+{% endspaceless %}

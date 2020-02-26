@@ -1,8 +1,13 @@
+import tempfile
+
 from django.db.models import F, Prefetch
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from django.template.loader import render_to_string
 
+from ESSArch_Core.util import generate_file_response
 from ESSArch_Core.agents.filters import AgentFilter, AgentOrderingFilter
 from ESSArch_Core.agents.models import (
     Agent,
@@ -137,6 +142,22 @@ class AgentViewSet(viewsets.ModelViewSet):
                 AgentRelation.objects.prefetch_related('agent_b').order_by(F('start_date').desc(nulls_first=True))
             ),
         )
+
+    @action(detail=True, url_path='eac')
+    def eac_export(self, request, pk=None):
+       agent = Agent.objects.get(pk=pk)
+       places = AgentPlace.objects.filter(agent=agent).all()
+       print(agent)
+       template = render_to_string('eac.xml',
+                                   {'agent': agent, 'places':places})
+
+       f = tempfile.TemporaryFile()
+       ctype = 'application/xml'
+       f.write(template.encode('utf-8'))
+       f.seek(0)
+
+       name = 'EAC_{}.xml'.format(pk)
+       return generate_file_response(f, content_type=ctype, name=name)
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:

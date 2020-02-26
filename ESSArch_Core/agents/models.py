@@ -331,7 +331,7 @@ class AgentPlace(models.Model):
 
 class AgentType(models.Model):
 
-    CORPORATE_BODY = 'corporatebody'
+    CORPORATE_BODY = 'corporateBody'
     PERSON = 'person'
     FAMILY = 'family'
     CPF_CHOICES = (
