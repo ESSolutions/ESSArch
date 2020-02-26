@@ -77,13 +77,16 @@ class ComponentSearch(FacetedSearch):
         'start_date': {},
         'end_date': {},
         'type': {'many': True},
-        'flagged_for_appraisal': {},
+        'appraisal_date_before': {},
+        'appraisal_date_after': {},
     }
 
     def __init__(self, *args, exclude_indices=None, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date = self.query_params_filter.pop('start_date', None)
         self.end_date = self.query_params_filter.pop('end_date', None)
+        self.appraisal_date_before = self.query_params_filter.pop('appraisal_date_before', None)
+        self.appraisal_date_after = self.query_params_filter.pop('appraisal_date_after', None)
         self.archives = self.query_params_filter.pop('archives', None)
         self.personal_identification_number = self.query_params_filter.pop('personal_identification_number', None)
         self.user = kwargs.pop('user')
@@ -188,6 +191,12 @@ class ComponentSearch(FacetedSearch):
         if self.end_date not in EMPTY_VALUES:
             s = s.filter('range', start_date={'lte': self.end_date})
 
+        if self.appraisal_date_after not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after})
+
+        if self.appraisal_date_before not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'lte': self.appraisal_date_before})
+
         if self.archives is not None:
             s = s.filter(Q('bool', minimum_should_match=1, should=[
                 Q('nested', path='archive', ignore_unmapped=True, query=Q(
@@ -269,7 +278,16 @@ def get_archive(id):
 
 
 class ComponentSearchSerializer(serializers.Serializer):
-    flagged_for_appraisal = serializers.BooleanField(required=False, allow_null=True, default=None)
+    appraisal_date_before = serializers.DateField(required=False, allow_null=True, default=None)
+    appraisal_date_after = serializers.DateField(required=False, allow_null=True, default=None)
+
+    def validate(self, data):
+        if (data['appraisal_date_after'] and data['appraisal_date_before'] and
+                data['appraisal_date_after'] > data['appraisal_date_before']):
+
+            raise serializers.ValidationError("appraisal_date_after must occur before appraisal_date_before")
+
+        return data
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')

@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from pydoc import locate
 from unittest import SkipTest
 
@@ -9,6 +10,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from elasticsearch.client import IngestClient
 from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
@@ -267,8 +269,8 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
 
-    def test_filter_flagged_for_appraisal(self):
-        component_tag = Tag.objects.create()
+    def test_filter_appraisal_date(self):
+        component_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=26)))
         component_tag_version = TagVersion.objects.create(
             tag=component_tag,
             type=self.component_type,
@@ -277,25 +279,48 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         doc = Component.from_obj(component_tag_version)
         doc.save(refresh='true')
 
-        res = self.client.get(self.url, data={'flagged_for_appraisal': True})
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data['hits']), 0)
+        with self.subTest('2020-02-26 before 2020-12-31'):
+            res = self.client.get(self.url, data={'appraisal_date_before': '2020-12-31'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
 
-        component_tag.flagged_for_appraisal = True
-        component_tag.save()
-        doc.from_obj(component_tag_version).save(refresh='true')
+        with self.subTest('2020-02-26 after 2020-01-01'):
+            res = self.client.get(self.url, data={'appraisal_date_after': '2020-01-01'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
 
-        res = self.client.get(self.url, data={'flagged_for_appraisal': True})
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data['hits']), 1)
+        with self.subTest('2020-02-26 not before 2020-01-01'):
+            res = self.client.get(self.url, data={'appraisal_date_before': '2020-01-01'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
 
-        res = self.client.get(self.url, data={'flagged_for_appraisal': False})
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data['hits']), 0)
+        with self.subTest('2020-02-26 not after 2020-12-31'):
+            res = self.client.get(self.url, data={'appraisal_date_after': '2020-12-31'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
 
-        res = self.client.get(self.url)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(res.data['hits']), 1)
+        with self.subTest('2020-02-26 between 2020-01-01 and 2020-12-31'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-01-01',
+                'appraisal_date_before': '2020-12-31',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+
+        with self.subTest('2020-02-26 not between 2020-12-01 and 2020-12-31'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-12-01',
+                'appraisal_date_before': '2020-12-31',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
+
+        with self.subTest('invalid range 2020-12-31 - 2020-01-01'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-12-31',
+                'appraisal_date_before': '2020-01-01',
+            })
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_add_results_to_appraisal(self):
         component_tag = Tag.objects.create()
