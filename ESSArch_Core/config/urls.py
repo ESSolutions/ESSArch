@@ -51,6 +51,7 @@ from ESSArch_Core.maintenance.views import (
     AppraisalJobTagViewSet,
     AppraisalJobViewSet,
     AppraisalTemplateViewSet,
+    ConversionJobInformationPackageViewSet,
     ConversionJobViewSet,
     ConversionTemplateViewSet,
 )
@@ -307,7 +308,12 @@ router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
 
 router.register(r'appraisal-templates', AppraisalTemplateViewSet)
 
-router.register(r'conversion-jobs', ConversionJobViewSet)
+router.register(r'conversion-jobs', ConversionJobViewSet).register(
+    r'information-packages',
+    ConversionJobInformationPackageViewSet,
+    basename='conversion-job-information-packages',
+    parents_query_lookups=['conversion_jobs'],
+)
 router.register(r'conversion-templates', ConversionTemplateViewSet)
 router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)

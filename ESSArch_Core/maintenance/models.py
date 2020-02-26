@@ -200,11 +200,10 @@ class AppraisalJob(MaintenanceJob):
         )
 
     def preview(self, ip: InformationPackage):
-        storage_obj = ip.storage.fastest().first()
+        storage_obj = ip.storage.readable().fastest().first()
         if storage_obj is None:
-            raise StorageObject.DoesNotExist(
-                'No storage object available for {}'.format(ip.object_identifier_value),
-            )
+            raise NoReadableStorage
+
         if self.package_file_pattern:
             for pattern in self.package_file_pattern:
                 yield from storage_obj.list_files(pattern)
@@ -384,15 +383,13 @@ class ConversionJob(MaintenanceJob):
             ('run_conversionjob', 'Can run conversion job'),
         )
 
-    def preview(self):
-        ips = self.information_packages.all()
-        found_files = []
-        for ip in ips:
-            storage_target = ip.policy.cache_storage.enabled_target.target
-            datadir = os.path.join(storage_target, ip.object_identifier_value)
-            for pattern, _spec in self.specification.items():
-                found_files.extend(find_all_files(datadir, ip, pattern))
-        return found_files
+    def preview(self, ip: InformationPackage):
+        storage_obj = ip.storage.readable().fastest().first()
+        if storage_obj is None:
+            raise NoReadableStorage
+
+        for pattern, _ in self.specification.items():
+            yield from storage_obj.list_files(pattern)
 
     def create_notification(self, status):
         if status == celery_states.SUCCESS:

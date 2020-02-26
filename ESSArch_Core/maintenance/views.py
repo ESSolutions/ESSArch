@@ -34,14 +34,14 @@ from ESSArch_Core.maintenance.models import (
     ConversionTemplate,
 )
 from ESSArch_Core.maintenance.serializers import (
-    AppraisalJobInformationPackageSerializer,
-    AppraisalJobInformationPackageWriteSerializer,
     AppraisalJobSerializer,
     AppraisalJobTagSerializer,
     AppraisalJobTagWriteSerializer,
     AppraisalTemplateSerializer,
     ConversionJobSerializer,
     ConversionTemplateSerializer,
+    MaintenanceJobInformationPackageSerializer,
+    MaintenanceJobInformationPackageWriteSerializer,
     MaintenanceJobSerializer,
     MaintenanceTemplateSerializer,
 )
@@ -130,7 +130,7 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
                                             viewsets.GenericViewSet):
 
     queryset = InformationPackage.objects.all()
-    serializer_class = AppraisalJobInformationPackageSerializer
+    serializer_class = MaintenanceJobInformationPackageSerializer
     permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
@@ -171,7 +171,7 @@ class AppraisalJobInformationPackageViewSet(NestedViewSetMixin,
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PATCH', 'DELETE']:
-            return AppraisalJobInformationPackageWriteSerializer
+            return MaintenanceJobInformationPackageWriteSerializer
 
         return self.serializer_class
 
@@ -257,3 +257,55 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
             job.save(update_fields=['task'])
 
         return super().run(request, pk)
+
+
+class ConversionJobInformationPackageViewSet(NestedViewSetMixin,
+                                             mixins.CreateModelMixin,
+                                             mixins.ListModelMixin,
+                                             viewsets.GenericViewSet):
+
+    queryset = InformationPackage.objects.all()
+    serializer_class = MaintenanceJobInformationPackageSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = ConversionJob.objects.get(pk=self.get_parents_query_dict()['conversion_jobs'])
+        job.information_packages.set(data['information_packages'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def patch(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = ConversionJob.objects.get(pk=self.get_parents_query_dict()['conversion_jobs'])
+        job.information_packages.add(*data['information_packages'])
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def delete(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        job = ConversionJob.objects.get(pk=self.get_parents_query_dict()['conversion_jobs'])
+        job.information_packages.remove(*data['information_packages'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'])
+    def preview(self, request, pk=None, parent_lookup_conversion_jobs=None):
+        job = ConversionJob.objects.get(pk=parent_lookup_conversion_jobs)
+        found_files = job.preview(self.get_object())
+
+        paginated_data = self.paginate_queryset(list(found_files))
+        return self.get_paginated_response(paginated_data)
+
+    def get_serializer_class(self):
+        if self.request.method in ['POST', 'PATCH', 'DELETE']:
+            return MaintenanceJobInformationPackageWriteSerializer
+
+        return self.serializer_class

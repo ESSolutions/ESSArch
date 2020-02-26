@@ -26,10 +26,8 @@ from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
-    StorageMedium,
     StorageMethod,
     StorageMethodTargetRelation,
-    StorageObject,
     StorageTarget,
 )
 from ESSArch_Core.storage.tests.helpers import (
@@ -284,21 +282,36 @@ class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
         datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, datadir)
 
-        ip = InformationPackage.objects.create()
+        cache_storage_method = StorageMethod.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache_storage_method,
+            storage_target=StorageTarget.objects.create(
+                name='cache', target=tempfile.mkdtemp(dir=datadir),
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=datadir))
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage_method,
+            ingest_path=ingest,
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+
+        self.storage_method = StorageMethod.objects.create()
+        policy.storage_methods.add(self.storage_method)
+        target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        medium = add_storage_medium(target, 20, '1')
+
+        ip = InformationPackage.objects.create(submission_agreement=sa, submission_agreement_locked=True,)
+        obj = add_storage_obj(ip, medium, DISK, ip.object_identifier_value, create_dir=True)
+
         self.appraisal_job.information_packages.add(ip)
         url = reverse('appraisal-job-information-packages-preview', args=(self.appraisal_job.pk, ip.pk))
-
-        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=datadir))
-        storage_medium = StorageMedium.objects.create(
-            storage_target=storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
-        obj = StorageObject.objects.create(
-            ip=ip, storage_medium=storage_medium,
-            content_location_value=os.path.basename(tempfile.mkdtemp(dir=storage_target.target)),
-            content_location_type=DISK,
-        )
 
         test_dir = tempfile.mkdtemp(dir=obj.get_full_path())
         foo = os.path.join(test_dir, 'foo.txt')
@@ -856,6 +869,169 @@ class ConversionJobViewSetTests(APITestCase):
                 conversion_job = ConversionJob.objects.create(status=state)
                 res = self.client.delete(reverse('conversionjob-detail', args=(conversion_job.pk,)))
                 self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class ConversionJobViewSetInformationPackageListViewTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.client.force_authenticate(user=self.user)
+        self.conversion_job = ConversionJob.objects.create()
+        self.url = reverse('conversion-job-information-packages-list', args=(self.conversion_job.pk,))
+
+    def test_list(self):
+        ip = InformationPackage.objects.create()
+        self.conversion_job.information_packages.add(ip)
+
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]['id'], str(ip.pk))
+
+    def test_set(self):
+        """
+        When using POST we want to set the list of IPs added to the job
+        to be exactly what we get as input
+        """
+
+        ip1 = InformationPackage.objects.create(archived=True)
+        ip2 = InformationPackage.objects.create(archived=False)
+
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1])
+
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1])
+
+        ip2.archived = True
+        ip2.save()
+        response = self.client.post(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1, ip2])
+
+        response = self.client.post(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip2])
+
+    def test_add(self):
+        """
+        When using PATCH we want to update list of IPs added to the job
+        by adding what we get as input to the existing list
+        """
+
+        ip1 = InformationPackage.objects.create(archived=True)
+        ip2 = InformationPackage.objects.create(archived=False)
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1])
+
+        response = self.client.patch(self.url, data={'information_packages': [ip1.pk, ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1])
+
+        ip2.archived = True
+        ip2.save()
+        response = self.client.patch(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1, ip2])
+
+        response = self.client.patch(self.url, data={'information_packages': [ip2.pk]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip1, ip2])
+
+    def test_delete(self):
+        ip1 = InformationPackage.objects.create(archived=True)
+        ip2 = InformationPackage.objects.create(archived=True)
+        self.conversion_job.information_packages.add(ip1, ip2)
+
+        response = self.client.delete(self.url, data={'information_packages': [ip1.pk]})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertCountEqual(self.conversion_job.information_packages.all(), [ip2])
+
+        # verify that both IP still exists
+        ip1.refresh_from_db()
+        ip2.refresh_from_db()
+
+    def test_preview(self):
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
+
+        cache_storage_method = StorageMethod.objects.create()
+        StorageMethodTargetRelation.objects.create(
+            storage_method=cache_storage_method,
+            storage_target=StorageTarget.objects.create(
+                name='cache', target=tempfile.mkdtemp(dir=datadir),
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=datadir))
+        policy = StoragePolicy.objects.create(
+            cache_storage=cache_storage_method,
+            ingest_path=ingest,
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+
+        self.storage_method = StorageMethod.objects.create()
+        policy.storage_methods.add(self.storage_method)
+        target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.storage_method,
+            storage_target=target,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        medium = add_storage_medium(target, 20, '1')
+
+        ip = InformationPackage.objects.create(submission_agreement=sa, submission_agreement_locked=True,)
+        obj = add_storage_obj(ip, medium, DISK, ip.object_identifier_value, create_dir=True)
+
+        self.conversion_job.information_packages.add(ip)
+        url = reverse('conversion-job-information-packages-preview', args=(self.conversion_job.pk, ip.pk))
+
+        test_dir = tempfile.mkdtemp(dir=obj.get_full_path())
+        foo = os.path.join(test_dir, 'foo.txt')
+        bar = os.path.join(test_dir, 'bar.txt')
+        baz = os.path.join(test_dir, 'baz.pdf')
+        open(foo, 'a').close()
+        open(bar, 'a').close()
+        open(baz, 'a').close()
+
+        foo = normalize_path(os.path.relpath(foo, obj.get_full_path()))
+        bar = normalize_path(os.path.relpath(bar, obj.get_full_path()))
+        baz = normalize_path(os.path.relpath(baz, obj.get_full_path()))
+
+        pattern = '*'
+        with self.subTest(pattern):
+            self.conversion_job.specification = {pattern: {}}
+            self.conversion_job.save()
+
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(res.data, [foo, bar, baz])
+
+        pattern = '**/*.txt'
+        with self.subTest(pattern):
+            self.conversion_job.specification = {pattern: {}}
+            self.conversion_job.save()
+
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(res.data, [foo, bar])
+
+        pattern = '**/baz.*'
+        with self.subTest(pattern):
+            self.conversion_job.specification = {pattern: {}}
+            self.conversion_job.save()
+
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(res.data, [baz])
 
 
 class ConversionJobViewSetRunTests(ESSArchSearchBaseTestCase):

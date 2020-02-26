@@ -78,13 +78,13 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
         read_only_fields = ('end_date',)
 
 
-class AppraisalJobInformationPackageSerializer(serializers.ModelSerializer):
+class MaintenanceJobInformationPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
         fields = ('id', 'object_identifier_value', 'label', 'generation')
 
 
-class AppraisalJobInformationPackageWriteSerializer(serializers.ModelSerializer):
+class MaintenanceJobInformationPackageWriteSerializer(serializers.ModelSerializer):
     information_packages = serializers.ListField(
         child=UserFilteredPrimaryKeyRelatedField(queryset=InformationPackage.objects.filter(archived=True))
     )
