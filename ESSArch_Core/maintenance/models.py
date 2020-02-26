@@ -249,17 +249,6 @@ class AppraisalJob(MaintenanceJob):
 
     @transaction.atomic
     def _run(self):
-        def get_information_packages():
-            return self.information_packages.filter(
-                Q(
-                    Q(appraisal_date__lte=timezone.now()) |
-                    Q(appraisal_date__isnull=True)
-                ),
-                active=True,
-            ).exclude(
-                appraisal_job_entries__job=self,
-            )
-
         def delete_file(old_ip, filepath, relpath):
             entry = AppraisalJobEntry.objects.create(
                 job=self,
@@ -285,7 +274,7 @@ class AppraisalJob(MaintenanceJob):
         AppraisalJobEntry.objects.bulk_create(entries)
         self.tags.all().delete()
 
-        ips = get_information_packages()
+        ips = self.information_packages
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
         delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
