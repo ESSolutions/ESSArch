@@ -373,6 +373,11 @@
       data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
       type="date"
     ></result-field>
+    <result-field
+      label="{{'ACCESS.APPRAISAL_DATE' | translate}}"
+      data="vm.record.appraisal_date ? vm.record.appraisal_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
     <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
     <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
     <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>

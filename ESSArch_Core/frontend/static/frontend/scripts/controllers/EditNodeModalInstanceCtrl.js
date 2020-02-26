@@ -199,6 +199,14 @@ export default class EditNodeModalInstanceCtrl {
             },
           ],
         },
+        {
+          type: 'datepicker',
+          key: 'appraisal_date',
+          templateOptions: {
+            label: $translate.instant('ACCESS.APPRAISAL_DATE'),
+            appendToBody: false,
+          },
+        },
       ];
       $ctrl.customFields = [];
       angular.forEach($ctrl.node.custom_fields, function(value, key) {

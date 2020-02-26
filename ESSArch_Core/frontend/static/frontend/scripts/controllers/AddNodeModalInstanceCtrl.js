@@ -149,6 +149,14 @@ export default class AddNodeModalInstanceCtrl {
           ],
         },
         {
+          type: 'datepicker',
+          key: 'appraisal_date',
+          templateOptions: {
+            label: $translate.instant('ACCESS.APPRAISAL_DATE'),
+            appendToBody: false,
+          },
+        },
+        {
           type: 'uiselect',
           key: 'information_package',
           hideExpression: () => {
