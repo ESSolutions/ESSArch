@@ -7,6 +7,7 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -1815,7 +1816,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        archive_tag = Tag.objects.create(appraisal_date='2020-02-27')
+        archive_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=27)))
         archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
 
@@ -1935,7 +1936,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create(appraisal_date='2020-02-27')
+        tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=27)))
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
         tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
