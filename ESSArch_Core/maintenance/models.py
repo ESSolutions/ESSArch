@@ -20,12 +20,15 @@ from weasyprint import HTML
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import EventType, Path
+from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.ip.models import EventIP, InformationPackage
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.exceptions import NoReadableStorage
 from ESSArch_Core.storage.models import StorageObject
 from ESSArch_Core.util import (
     convert_file,
+    find_destination,
     has_write_access,
     in_directory,
     normalize_path,
@@ -384,6 +387,7 @@ class AppraisalJob(MaintenanceJob):
                 else:
                     # inactivate old generations
                     InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+                    ip.tags.filter(current_version__elastic_index='document').delete()
 
         document_tag_ips = InformationPackage.objects.exclude(appraisal_jobs=self).filter(
             tags__appraisal_jobs=self,
@@ -416,6 +420,7 @@ class AppraisalJob(MaintenanceJob):
             else:
                 # inactivate old generations
                 InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+                ip.tags.filter(current_version__elastic_index='document').delete()
 
         self.tags.all().delete()
 
@@ -440,7 +445,111 @@ class ConversionTemplate(MaintenanceTemplate):
 
 
 def preserve_new_generation(new_ip):
-    workflow = new_ip.create_preservation_workflow()
+    generate_premis = new_ip.profile_locked('preservation_metadata')
+    has_representations = find_destination(
+        "representations", new_ip.get_structure(), new_ip.object_path,
+    )[1] is not None
+
+    # remove existing premis and mets paths:
+    mets_path = new_ip.get_content_mets_file_path()
+    try:
+        os.remove(mets_path)
+    except FileNotFoundError:
+        pass
+
+    if generate_premis:
+        premis_profile_data = new_ip.get_profile_data('preservation_metadata')
+        data = fill_specification_data(premis_profile_data, ip=new_ip)
+        premis_path = parseContent(new_ip.get_premis_file_path(), data)
+        try:
+            os.remove(premis_path)
+        except FileNotFoundError:
+            pass
+
+    workflow = [
+        {
+            "step": True,
+            "name": "Generate AIP",
+            "children": [
+                {
+                    "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                    "label": "Download Schemas",
+                },
+                {
+                    "step": True,
+                    "name": "Create Log File",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                            "label": "Generate events xml file",
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.AppendEvents",
+                            "label": "Add events to xml file",
+                        },
+                        {
+                            "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                            "label": "Add premis IP object to xml file",
+                        },
+
+                    ]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.GeneratePremis",
+                    "if": generate_premis,
+                    "label": "Generate premis",
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                    "label": "Generate content-mets",
+                },
+            ]
+        },
+        {
+            "step": True,
+            "name": "Validate AIP",
+            "children": [
+                {
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "label": "Validate content-mets",
+                    "params": {
+                        "xml_filename": "{{_CONTENT_METS_PATH}}",
+                    }
+                },
+                {
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "if": generate_premis,
+                    "label": "Validate premis",
+                    "params": {
+                        "xml_filename": "{{_PREMIS_PATH}}",
+                    }
+                },
+                {
+                    "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                    "label": "Diff-check against content-mets",
+                    "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CompareXMLFiles",
+                    "if": generate_premis,
+                    "label": "Compare premis and content-mets",
+                    "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                    "params": {'recursive': False},
+                },
+                {
+                    "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                    "if": has_representations and generate_premis,
+                    "label": "Compare representation premis and mets",
+                }
+            ]
+        },
+        {
+            "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+            "label": "Update IP size and file count",
+        },
+    ]
+
+    workflow += new_ip.create_preservation_workflow()
     workflow = create_workflow(workflow, new_ip, name='Preserve Information Package', eager=True)
     workflow.run()
 
