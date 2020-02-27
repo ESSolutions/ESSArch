@@ -663,6 +663,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         source='tag.information_package', read_only=True,
     )
     appraisal_date = serializers.DateTimeField(source='tag.appraisal_date')
+    appraisal_job = serializers.SerializerMethodField()
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(structure=self.context.get('structure'))
@@ -693,6 +694,17 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
                 custom_fields.pop(field)
         return custom_fields
 
+    def get_appraisal_job(self, obj: TagVersion):
+        job = obj.tag.appraisal_jobs.first()
+
+        if job is None:
+            return None
+
+        return {
+            'id': str(job.pk),
+            'label': str(job.label),
+        }
+
     class Meta:
         model = TagVersion
         fields = (
@@ -701,6 +713,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
+            'appraisal_job',
         )
 
 
