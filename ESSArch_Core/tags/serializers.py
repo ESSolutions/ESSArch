@@ -901,7 +901,7 @@ class NodeWriteSerializer(serializers.Serializer):
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
-    appraisal_date = serializers.DateTimeField(required=False)
+    appraisal_date = serializers.DateTimeField(required=False, allow_null=True)
 
     @staticmethod
     def create_notes(tag_version: TagVersion, notes_data):

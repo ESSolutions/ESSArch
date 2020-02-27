@@ -1815,7 +1815,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        archive_tag = Tag.objects.create()
+        archive_tag = Tag.objects.create(appraisal_date='2020-02-27')
         archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
 
@@ -1851,6 +1851,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         note_type = NodeNoteType.objects.create()
         identifier_type = NodeIdentifierType.objects.create()
         response = self.client.patch(url, {
+            'appraisal_date': None,
             'notes': [
                 {
                     'text': 'test note',
@@ -1934,7 +1935,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create()
+        tag = Tag.objects.create(appraisal_date='2020-02-27')
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
         tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
@@ -1970,6 +1971,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         note_type = NodeNoteType.objects.create()
         identifier_type = NodeIdentifierType.objects.create()
         response = self.client.patch(url, {
+            'appraisal_date': None,
             'notes': [
                 {
                     'text': 'test note',
