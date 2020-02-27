@@ -298,8 +298,8 @@
           <thead>
             <tr>
               <th>{{'ID' | translate}}</th>
-              <th>{{'START' | translate}}</th>
               <th>{{'LABEL' | translate}}</th>
+              <th>{{'START' | translate}}</th>
               <th>{{'END' | translate}}</th>
               <th>{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</th>
               <th permission permission-only="'maintenance.delete_appraisaljob'" class="white-space-nowrap shrink">
@@ -310,8 +310,8 @@
           <tbody>
             <tr ng-repeat="x in vm.finished">
               <td>{{x.id}}</td>
-              <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>{{x.label}}</td>
+              <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>
                 <a ng-if="x.has_report" ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a>
