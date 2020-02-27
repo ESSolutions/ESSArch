@@ -13,8 +13,13 @@ from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupType
-from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.configuration.models import (
+    EventType,
+    Parameter,
+    Path,
+    StoragePolicy,
+)
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
     AppraisalJobEntry,
@@ -475,8 +480,13 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
 
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.event_type = EventType.objects.create(eventType=50710, category=EventType.CATEGORY_INFORMATION_PACKAGE)
+
         Path.objects.create(entity='appraisal_reports', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
 
         Parameter.objects.create(entity='agent_identifier_value', value='ESS')
         Parameter.objects.create(entity='event_identifier_type', value='ESS')
@@ -484,8 +494,6 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
         Parameter.objects.create(entity='medium_location', value='Media')
 
-        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
         ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
         receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
         os.makedirs(os.path.join(receipts.value, 'xml'))
@@ -737,6 +745,13 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
             ).exists()
         )
 
+        self.assertTrue(
+            EventIP.objects.filter(
+                eventType=self.event_type,
+                linkingObjectIdentifierValue=self.ip.object_identifier_value,
+            ).exists()
+        )
+
     @TaskRunner()
     @override_settings(DELETE_PACKAGES_ON_APPRAISAL=False)
     def test_inactivate_packages_with_file_pattern(self):
@@ -778,6 +793,96 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
         self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
+
+        self.assertTrue(
+            EventIP.objects.filter(
+                eventType=self.event_type,
+                linkingObjectIdentifierValue=new_ip.object_identifier_value,
+            ).exists()
+        )
+
+    @TaskRunner()
+    @override_settings(DELETE_PACKAGES_ON_APPRAISAL=True)
+    def test_delete_packages_files_using_document_tags(self):
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        tag_version_type = TagVersionType.objects.create(archive_type=False)
+
+        component_tag = Tag.objects.create(information_package=self.ip)
+        TagVersion.objects.create(tag=component_tag, type=tag_version_type, elastic_index='component')
+
+        component_tag_to_keep = Tag.objects.create(information_package=self.ip)
+        TagVersion.objects.create(tag=component_tag_to_keep, type=tag_version_type, elastic_index='component')
+
+        document_tag = Tag.objects.create(information_package=self.ip)
+        TagVersion.objects.create(
+            tag=document_tag, type=tag_version_type, elastic_index='document',
+            custom_fields={'href': 'foo', 'filename': 'bar.pdf'}
+        )
+
+        document_tag_to_keep = Tag.objects.create(information_package=self.ip)
+        TagVersion.objects.create(
+            tag=document_tag_to_keep, type=tag_version_type, elastic_index='document',
+            custom_fields={'href': '', 'filename': 'foo.pdf'}
+        )
+
+        self.appraisal_job.tags.add(component_tag, document_tag)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertFalse(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo/bar.pdf',
+            ).exists()
+        )
+
+        with self.assertRaises(InformationPackage.DoesNotExist):
+            self.ip.refresh_from_db()
+
+        self.assertFalse(os.path.exists(self.storage_path))
+
+        new_ip = InformationPackage.objects.get(
+            package_type=InformationPackage.AIP, aic=self.ip.aic, generation=2,
+            active=True,
+        )
+        new_storage = new_ip.storage.filter(
+            storage_medium__storage_target__methods=self.storage_method
+        ).get()
+        new_path = new_storage.get_full_path()
+
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo/bar.pdf')))
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
+        self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))
+
+        with self.assertRaises(Tag.DoesNotExist):
+            component_tag.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            document_tag.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            document_tag_to_keep.refresh_from_db()
+
+        component_tag_to_keep.refresh_from_db()
+        self.assertEqual(component_tag_to_keep.information_package, new_ip)
+
+        new_document_tags = TagVersion.objects.filter(
+            tag__information_package=new_ip,
+            elastic_index='document',
+        ).values_list('custom_fields', flat=True)
+        self.assertCountEqual(
+            [normalize_path(os.path.join(x['href'], x['filename'])) for x in new_document_tags],
+            ['foo.pdf', 'logs/1.log', 'logs/2.log'],
+        )
 
 
 class AppraisalJobViewSetReportTests(TestCase):

@@ -19,12 +19,17 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import EventType, Path
 from ESSArch_Core.fields import JSONField
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.storage.exceptions import NoReadableStorage
 from ESSArch_Core.storage.models import StorageObject
-from ESSArch_Core.util import convert_file, has_write_access, in_directory
+from ESSArch_Core.util import (
+    convert_file,
+    has_write_access,
+    in_directory,
+    normalize_path,
+)
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 logger = logging.getLogger('essarch.maintenance')
@@ -233,32 +238,61 @@ class AppraisalJob(MaintenanceJob):
             refresh=True,
         )
 
+    def delete_file(self, old_ip, filepath, relpath, new_ip):
+        filepath, relpath = normalize_path(filepath), normalize_path(relpath)
+        entry = AppraisalJobEntry.objects.create(
+            job=self,
+            start_date=timezone.now(),
+            ip=old_ip,
+            document=relpath
+        )
+        os.remove(filepath)
+        entry.end_date = timezone.now()
+        entry.save()
+
+        EventIP.objects.create(
+            eventType=self.delete_event_type,
+            eventOutcome=1,
+            eventOutcomeDetailNote='Deleted {}'.format(relpath),
+            linkingObjectIdentifierValue=new_ip.object_identifier_value,
+        )
+        return entry
+
+    def delete_document_tags(self, ip, new_ip, new_ip_tmpdir):
+        ip_tag_documents = self.tags.select_related('current_version').filter(
+            information_package=ip, current_version__elastic_index='document',
+        )
+
+        for t in ip_tag_documents:
+            tag_relpath = os.path.join(
+                t.current_version.custom_fields['href'],
+                t.current_version.custom_fields['filename'],
+            )
+            tag_filepath = os.path.join(new_ip_tmpdir, tag_relpath)
+
+            try:
+                self.delete_file(ip, tag_filepath, tag_relpath, new_ip)
+            except FileNotFoundError:
+                pass
+
+            t.delete()
+
     @transaction.atomic
     def _run(self):
-        def delete_file(old_ip, filepath, relpath):
-            entry = AppraisalJobEntry.objects.create(
-                job=self,
-                start_date=timezone.now(),
-                ip=old_ip,
-                document=relpath
-            )
-            os.remove(filepath)
-            entry.end_date = timezone.now()
-            entry.save()
-            return entry
-
+        self.delete_event_type = EventType.objects.get(eventType=50710)
         entries = []
-        for t in self.tags.all():
+
+        for t in self.tags.select_related('current_version').exclude(current_version__elastic_index='document').all():
             entries.append(
                 AppraisalJobEntry(
                     job=self,
                     start_date=timezone.now(),
                     end_date=timezone.now(),
-                    component=t.versions.latest().name,
+                    component=t.current_version,
                 )
             )
+
         AppraisalJobEntry.objects.bulk_create(entries)
-        self.tags.all().delete()
 
         ips = self.information_packages
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
@@ -292,6 +326,12 @@ class AppraisalJob(MaintenanceJob):
                                 document=rel,
                             )
                         )
+                        EventIP.objects.create(
+                            eventType=self.delete_event_type,
+                            eventOutcome=1,
+                            eventOutcomeDetailNote='Deleted {}'.format(rel),
+                            linkingObjectIdentifierValue=ip.object_identifier_value,
+                        )
 
                 AppraisalJobEntry.objects.bulk_create(job_entries)
 
@@ -320,13 +360,22 @@ class AppraisalJob(MaintenanceJob):
                             for root, _dirs, files in walk(path):
                                 for f in files:
                                     rel = PurePath(os.path.join(root, f)).relative_to(new_ip_tmpdir).as_posix()
-                                    delete_file(ip, os.path.join(root, f), rel)
+                                    self.delete_file(ip, os.path.join(root, f), rel, new_ip)
 
                             shutil.rmtree(path)
 
                         else:
                             rel = PurePath(path).relative_to(new_ip_tmpdir).as_posix()
-                            delete_file(ip, path, rel)
+                            self.delete_file(ip, path, rel, new_ip)
+
+                self.delete_document_tags(ip, new_ip, new_ip_tmpdir)
+
+                with allow_join_result():
+                    preserve_new_generation(new_ip)
+
+                ip.tags.exclude(
+                    current_version__elastic_index='document',
+                ).update(information_package=new_ip)
 
                 if delete_packages:
                     for storage_obj in ip.storage.all():
@@ -336,8 +385,39 @@ class AppraisalJob(MaintenanceJob):
                     # inactivate old generations
                     InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
 
-                with allow_join_result():
-                    preserve_new_generation(new_ip)
+        document_tag_ips = InformationPackage.objects.exclude(appraisal_jobs=self).filter(
+            tags__appraisal_jobs=self,
+            tags__current_version__elastic_index='document',
+        )
+        for ip in document_tag_ips.iterator():
+            storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
+            if storage_obj is None:
+                raise NoReadableStorage
+
+            new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
+            new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
+            storage_obj.read(new_ip_tmpdir, None, extract=True)
+            new_ip.object_path = new_ip_tmpdir
+            new_ip.save()
+
+            self.delete_document_tags(ip, new_ip, new_ip_tmpdir)
+
+            with allow_join_result():
+                preserve_new_generation(new_ip)
+
+            ip.tags.exclude(
+                current_version__elastic_index='document',
+            ).update(information_package=new_ip)
+
+            if delete_packages:
+                for storage_obj in ip.storage.all():
+                    storage_obj.delete_files()
+                ip.delete()
+            else:
+                # inactivate old generations
+                InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+
+        self.tags.all().delete()
 
 
 class AppraisalJobEntry(MaintenanceJobEntry):
