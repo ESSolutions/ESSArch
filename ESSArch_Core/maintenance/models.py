@@ -252,7 +252,7 @@ class AppraisalJob(MaintenanceJob):
 
         EventIP.objects.create(
             eventType=self.delete_event_type,
-            eventOutcome=1,
+            eventOutcome=EventIP.SUCCESS,
             eventOutcomeDetailNote='Deleted {}'.format(relpath),
             linkingObjectIdentifierValue=new_ip.object_identifier_value,
         )
@@ -328,7 +328,7 @@ class AppraisalJob(MaintenanceJob):
                         )
                         EventIP.objects.create(
                             eventType=self.delete_event_type,
-                            eventOutcome=1,
+                            eventOutcome=EventIP.SUCCESS,
                             eventOutcomeDetailNote='Deleted {}'.format(rel),
                             linkingObjectIdentifierValue=ip.object_identifier_value,
                         )

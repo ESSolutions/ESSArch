@@ -749,6 +749,7 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
             EventIP.objects.filter(
                 eventType=self.event_type,
                 linkingObjectIdentifierValue=self.ip.object_identifier_value,
+                eventOutcome=EventIP.SUCCESS,
             ).exists()
         )
 
@@ -798,6 +799,7 @@ class AppraisalJobViewSetRunTests(ESSArchSearchBaseTestCase):
             EventIP.objects.filter(
                 eventType=self.event_type,
                 linkingObjectIdentifierValue=new_ip.object_identifier_value,
+                eventOutcome=EventIP.SUCCESS,
             ).exists()
         )
 
