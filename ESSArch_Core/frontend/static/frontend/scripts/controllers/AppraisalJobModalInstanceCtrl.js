@@ -22,7 +22,9 @@ export default class AppraisalJobModalInstanceCtrl {
     $ctrl.initModalLoad = false;
     $ctrl.$onInit = () => {
       if (!data.remove) {
-        EditMode.enable();
+        if (!data.allow_close) {
+          EditMode.enable();
+        }
 
         if (data.job) {
           $ctrl.initModalLoad = true;
@@ -420,7 +422,7 @@ export default class AppraisalJobModalInstanceCtrl {
 
     $scope.$on('modal.closing', function(event, reason, closed) {
       if (
-        (data.allow_close === null || angular.isUndefined(data.remove) || data.remove !== true) &&
+        (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
       ) {
         const message = $translate.instant('UNSAVED_DATA_WARNING');

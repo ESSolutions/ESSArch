@@ -218,6 +218,7 @@ export default class AppraisalCtrl {
         resolve: {
           data: {
             job,
+            allow_close: true,
           },
         },
       });
