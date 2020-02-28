@@ -113,6 +113,9 @@ class AppraisalJobViewSet(MaintenanceJobViewSet):
         if job.status in [celery_states.SUCCESS]:
             raise exceptions.ParseError('Job has already completed')
 
+        if job.start_date is not None:
+            raise exceptions.ParseError('Cannot run job with scheduled start date')
+
         if job.task is None:
             job.task = ProcessTask.objects.create(
                 name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',
@@ -247,6 +250,9 @@ class ConversionJobViewSet(MaintenanceJobViewSet):
 
         if job.status in [celery_states.SUCCESS]:
             raise exceptions.ParseError('Job has already completed')
+
+        if job.start_date is not None:
+            raise exceptions.ParseError('Cannot run job with scheduled start date')
 
         if job.task is None:
             job.task = ProcessTask.objects.create(

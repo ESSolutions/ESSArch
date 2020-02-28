@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.test import APIClient, APITestCase
@@ -628,15 +629,29 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         mock_appraisal_job_run.assert_not_called()
 
     @TaskRunner()
-    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
-    def test_prevent_running_completed_job(self, mock_appraisal_job_run, m_validate):
+    def test_prevent_running_completed_job(self, mock_appraisal_job_run):
         mock_appraisal_job_run.return_value = mock.ANY
         perm_list = ['run_appraisaljob']
         self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
         self.client.force_authenticate(user=self.user)
 
         self.appraisal_job.status = celery_states.SUCCESS
+        self.appraisal_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_appraisal_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.AppraisalJob.run')
+    def test_prevent_running_job_with_start_date(self, mock_appraisal_job_run):
+        mock_appraisal_job_run.return_value = mock.ANY
+        perm_list = ['run_appraisaljob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.appraisal_job.start_date = timezone.now()
         self.appraisal_job.save()
 
         response = self.client.post(self.url)
@@ -1264,6 +1279,21 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.client.force_authenticate(user=self.user)
 
         self.conversion_job.status = celery_states.SUCCESS
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_conversion_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.run')
+    def test_prevent_running_job_with_start_date(self, mock_conversion_job_run):
+        mock_conversion_job_run.return_value = mock.ANY
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.start_date = timezone.now()
         self.conversion_job.save()
 
         response = self.client.post(self.url)
