@@ -30,6 +30,7 @@ import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
 import ConversionModalInstanceCtrl from '../controllers/ConversionModalInstanceCtrl';
+import ConversionJobModalInstanceCtrl from '../controllers/ConversionJobModalInstanceCtrl';
 import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
 import AppraisalJobModalInstanceCtrl from '../controllers/AppraisalJobModalInstanceCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
@@ -46,6 +47,7 @@ import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IngestWorkareaCtrl from '../controllers/IngestWorkareaCtrl';
 import IpAppraisalJobModalInstanceCtrl from '../controllers/IpAppraisalJobModalInstanceCtrl';
+import IpConversionJobModalInstanceCtrl from '../controllers/IpConversionJobModalInstanceCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
 import IpInformationModalInstanceCtrl from '../controllers/IpInformationModalInstanceCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
@@ -73,7 +75,9 @@ import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtr
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
 import PreviewAppraisalJobModalInstanceCtrl from '../controllers/PreviewAppraisalJobModalInstanceCtrl';
+import PreviewConversionJobModalInstanceCtrl from '../controllers/PreviewConversionJobModalInstanceCtrl';
 import PreviewIpAppraisalModalInstanceCtrl from '../controllers/PreviewIpAppraisalModalInstanceCtrl';
+import PreviewIpConversionModalInstanceCtrl from '../controllers/PreviewIpConversionModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import PublishClassificationStructureCtrl from '../controllers/PublishClassificationStructureCtrl';
 import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
@@ -396,8 +400,6 @@ export default angular
     ConversionCtrl,
   ])
   .controller('ConversionModalInstanceCtrl', [
-    'cronService',
-    '$filter',
     '$translate',
     'IP',
     '$uibModalInstance',
@@ -405,7 +407,23 @@ export default angular
     '$http',
     'data',
     'Notifications',
+    '$scope',
+    'EditMode',
     ConversionModalInstanceCtrl,
+  ])
+  .controller('ConversionJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'listViewService',
+    '$scope',
+    'EditMode',
+    '$uibModal',
+    '$log',
+    ConversionJobModalInstanceCtrl,
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
   .controller('AppraisalJobModalInstanceCtrl', [
@@ -571,6 +589,15 @@ export default angular
     '$translate',
     'ContextMenuBase',
     IpApprovalCtrl,
+  ])
+  .controller('IpConversionJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    IpConversionJobModalInstanceCtrl,
   ])
   .controller('IpInformationModalInstanceCtrl', [
     'IP',
@@ -828,6 +855,17 @@ export default angular
     '$uibModal',
     PreviewAppraisalJobModalInstanceCtrl,
   ])
+  .controller('PreviewConversionJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    '$uibModal',
+    PreviewConversionJobModalInstanceCtrl,
+  ])
   .controller('PreviewIpAppraisalModalInstanceCtrl', [
     '$translate',
     '$uibModalInstance',
@@ -837,6 +875,16 @@ export default angular
     '$scope',
     'listViewService',
     PreviewIpAppraisalModalInstanceCtrl,
+  ])
+  .controller('PreviewIpConversionModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    PreviewIpConversionModalInstanceCtrl,
   ])
   .controller('PublishClassificationStructureCtrl', [
     '$http',

@@ -45,18 +45,6 @@ export default class AccessIpCtrl {
     };
 
     const watchers = [];
-    watchers.push(
-      $scope.$watch(
-        function() {
-          return $scope.ip;
-        },
-        function(newVal, oldVal) {
-          if (newVal != null) {
-            $scope.ips = [];
-          }
-        }
-      )
-    );
 
     //Destroy watchers on state change
     $transitions.onSuccess({}, function($transition) {
@@ -107,7 +95,7 @@ export default class AccessIpCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
+        templateUrl: 'static/frontend/views/ip_appraisal_modal.html',
         controller: 'IpAppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
@@ -128,18 +116,21 @@ export default class AccessIpCtrl {
     };
 
     vm.openConversionModal = function(ips) {
+      if (ips.length == 0 && $scope.ip != null) {
+        ips.push($scope.ip);
+      }
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/ip_conversion_modal.html',
+        controller: 'IpConversionJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
           data: function() {
             return {
-              ips: ips,
+              ips,
             };
           },
         },

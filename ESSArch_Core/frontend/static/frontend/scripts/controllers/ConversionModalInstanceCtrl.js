@@ -1,17 +1,48 @@
-import 'later/later.js';
-import prettyCron from 'prettycron';
-
 export default class ConversionModalInstanceCtrl {
-  constructor(cronService, $filter, $translate, IP, $uibModalInstance, appConfig, $http, data, Notifications) {
+  constructor($translate, IP, $uibModalInstance, appConfig, $http, data, Notifications, $scope, EditMode) {
     const $ctrl = this;
-    // Set later to use local time for next job
-    later.date.localTime();
     $ctrl.angular = angular;
     $ctrl.data = data;
-    $ctrl.requestTypes = data.types;
-    $ctrl.request = data.request;
     $ctrl.conversionTemplates = [];
     $ctrl.ip = null;
+    $ctrl.model = {
+      package_file_pattern: {},
+    };
+    $ctrl.$onInit = () => {
+      if (!data.allow_close) {
+        EditMode.enable();
+      }
+      if (data.conversion) {
+        $ctrl.model = angular.copy(data.conversion);
+      }
+    };
+    $ctrl.fields = [
+      {
+        type: 'input',
+        key: 'name',
+        templateOptions: {
+          label: $translate.instant('NAME'),
+          required: true,
+        },
+      },
+      {
+        type: 'textarea',
+        key: 'description',
+        templateOptions: {
+          label: $translate.instant('DESCRIPTION'),
+          rows: 3,
+        },
+      },
+      {
+        type: 'checkbox',
+        key: 'public',
+        templateOptions: {
+          label: $translate.instant('PUBLIC'),
+        },
+        defaultValue: true,
+      },
+    ];
+
     $ctrl.showTemplatesTable = function(ip) {
       $ctrl.ip = ip;
       return $http
@@ -32,90 +63,14 @@ export default class ConversionModalInstanceCtrl {
       }
     };
 
-    $ctrl.cronConfig = {
-      allowMultiple: true,
-    };
-    $ctrl.frequency = '* * * * *';
-    $ctrl.myFrequency = null;
-
-    $ctrl.validCron = function(frequency) {
-      const months = [
-        {name: 'jan', days: 31},
-        {name: 'feb', days: 29},
-        {name: 'mar', days: 31},
-        {name: 'apr', days: 30},
-        {name: 'may', days: 31},
-        {name: 'jun', days: 30},
-        {name: 'jul', days: 31},
-        {name: 'aug', days: 31},
-        {name: 'sep', days: 30},
-        {name: 'okt', days: 31},
-        {name: 'nov', days: 30},
-        {name: 'dec', days: 31},
-      ];
-      const cron = cronService.fromCron(frequency, true);
-      if (cron.monthValues && cron.dayOfMonthValues) {
-        return !cron.monthValues
-          .map(function(month) {
-            return !cron.dayOfMonthValues
-              .map(function(day) {
-                return months[month - 1].days >= day;
-              })
-              .includes(false);
-          })
-          .includes(false);
-      } else {
-        return true;
-      }
-    };
-
-    $ctrl.prettyFrequency = function(frequency) {
-      if ($ctrl.validCron(frequency)) {
-        return prettyCron.toString(frequency);
-      } else {
-        return $translate.instant('ARCHIVE_MAINTENANCE.INVALID_FREQUENCY');
-      }
-    };
-    $ctrl.nextPretty = function(frequency) {
-      if ($ctrl.validCron(frequency)) {
-        return $filter('date')(prettyCron.getNextDate(frequency), 'yyyy-MM-dd HH:mm:ss');
-      } else {
-        return '...';
-      }
-    };
-
-    function getTemplates() {
-      IP.conversionTemplates({id: ip.id}).$promise.then(function(resource) {
-        ip.templates = resource;
-      });
-    }
     if (data.preview && data.job) {
       $http.get(appConfig.djangoUrl + 'conversion-jobs/' + data.job.id + '/preview/').then(function(response) {
         $ctrl.jobPreview = response.data;
       });
     }
-    $ctrl.addTemplate = function(ip, template) {
-      $ctrl.addingTemplate = true;
-      $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/add-conversion-template/',
-        method: 'POST',
-        data: {
-          id: template.id,
-        },
-      })
-        .then(function(response) {
-          $ctrl.addingTemplate = false;
-          ip.templates.push(template);
-          $ctrl.showTemplatesTable(ip);
-        })
-        .catch(function(response) {
-          $ctrl.addingTemplate = false;
-        });
-    };
 
-    $ctrl.specifications = {};
     $ctrl.addSpecification = function() {
-      $ctrl.specifications[$ctrl.path] = {
+      $ctrl.model.package_file_pattern[$ctrl.path] = {
         target: $ctrl.target,
         tool: $ctrl.tool,
       };
@@ -127,28 +82,6 @@ export default class ConversionModalInstanceCtrl {
       delete $ctrl.specifications[key];
     };
 
-    $ctrl.removeTemplate = function(ip, template) {
-      $ctrl.removingTemplate = true;
-      $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/remove-conversion-template/',
-        method: 'POST',
-        data: {
-          id: template.id,
-        },
-      })
-        .then(function(response) {
-          ip.templates.forEach(function(x, index, array) {
-            if (x.id == template.id) {
-              array.splice(index, 1);
-            }
-          });
-          $ctrl.removingTemplate = false;
-          $ctrl.showTemplatesTable(ip);
-        })
-        .catch(function(response) {
-          $ctrl.removingTemplate = false;
-        });
-    };
     $ctrl.closeTemplatesTable = function() {
       $ctrl.conversionTemplates = [];
       $ctrl.ip = null;
@@ -164,6 +97,7 @@ export default class ConversionModalInstanceCtrl {
         .then(function(response) {
           $ctrl.creatingJob = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_CREATED'), 'success');
+          EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })
         .catch(function(response) {
@@ -187,6 +121,7 @@ export default class ConversionModalInstanceCtrl {
             .then(function(response) {
               $ctrl.runningJob = false;
               Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
+              EditMode.disable();
               $uibModalInstance.close($ctrl.data);
             })
             .catch(function(response) {
@@ -211,26 +146,33 @@ export default class ConversionModalInstanceCtrl {
     $ctrl.conversionTemplate = null;
     $ctrl.create = function() {
       $ctrl.addingTemplate = true;
-      if (angular.equals($ctrl.specifications, {})) {
-        $ctrl.showRequired = true;
-        $ctrl.addingTemplate = false;
-        return;
-      }
-      $ctrl.data = {
-        name: $ctrl.name,
-        frequency: $ctrl.manualTemplate ? '' : $ctrl.frequency,
-        specification: $ctrl.specifications,
-        public: $ctrl.publicTemplate,
-        description: $ctrl.description,
-      };
       $http({
         url: appConfig.djangoUrl + 'conversion-templates/',
         method: 'POST',
-        data: $ctrl.data,
+        data: $ctrl.model,
       })
         .then(function(response) {
           $ctrl.addingTemplate = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_CREATED'), 'success');
+          EditMode.disable();
+          $uibModalInstance.close($ctrl.data);
+        })
+        .catch(function(response) {
+          $ctrl.addingTemplate = false;
+        });
+    };
+
+    $ctrl.save = function() {
+      $ctrl.addingTemplate = true;
+      $http({
+        url: appConfig.djangoUrl + 'conversion-templates/' + data.conversion.id + '/',
+        method: 'PATCH',
+        data: $ctrl.model,
+      })
+        .then(function(response) {
+          $ctrl.addingTemplate = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_SAVED'), 'success');
+          EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })
         .catch(function(response) {
@@ -251,6 +193,7 @@ export default class ConversionModalInstanceCtrl {
             $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATE_REMOVED', {name: conversion.name}),
             'success'
           );
+          EditMode.disable();
           $uibModalInstance.close();
         })
         .catch(function(response) {
@@ -259,9 +202,11 @@ export default class ConversionModalInstanceCtrl {
     };
 
     $ctrl.ok = function() {
+      EditMode.disable();
       $uibModalInstance.close();
     };
     $ctrl.cancel = function() {
+      EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
     $ctrl.submitConversion = function(conversion) {
@@ -274,5 +219,19 @@ export default class ConversionModalInstanceCtrl {
       );
       $uibModalInstance.close(conversion);
     };
+
+    $scope.$on('modal.closing', function(event, reason, closed) {
+      if (
+        (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
+        (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
+      ) {
+        const message = $translate.instant('UNSAVED_DATA_WARNING');
+        if (!confirm(message)) {
+          event.preventDefault();
+        } else {
+          EditMode.disable();
+        }
+      }
+    });
   }
 }
