@@ -235,6 +235,15 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
+        .then(response => {
+          return $http
+            .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
+              information_packages: $ctrl.ips.map(x => x.id),
+            })
+            .then(response => {
+              return response;
+            });
+        })
         .then(() => {
           $ctrl.creatingJob = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_CREATED'), 'success');
@@ -253,6 +262,15 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.model,
       })
+        .then(response => {
+          return $http
+            .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
+              information_packages: $ctrl.ips.map(x => x.id),
+            })
+            .then(response => {
+              return response;
+            });
+        })
         .then(() => {
           $ctrl.creatingJob = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_SAVED'), 'success');
@@ -272,6 +290,15 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
+        .then(response => {
+          return $http
+            .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
+              information_packages: $ctrl.ips.map(x => x.id),
+            })
+            .then(response => {
+              return response;
+            });
+        })
         .then(response => {
           $http({
             url: appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/run/',
@@ -303,29 +330,6 @@ export default class ConversionJobModalInstanceCtrl {
       $ctrl.pathList.splice($ctrl.pathList.indexOf(path), 1);
     };
     $ctrl.conversionTemplate = null;
-    $ctrl.create = function() {
-      $ctrl.addingTemplate = true;
-      if (angular.equals($ctrl.specifications, {})) {
-        $ctrl.showRequired = true;
-        $ctrl.addingTemplate = false;
-        return;
-      }
-
-      $http({
-        url: appConfig.djangoUrl + 'conversion-templates/',
-        method: 'POST',
-        data: $ctrl.model,
-      })
-        .then(function(response) {
-          $ctrl.addingTemplate = false;
-          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_CREATED'), 'success');
-          EditMode.disable();
-          $uibModalInstance.close($ctrl.data);
-        })
-        .catch(function(response) {
-          $ctrl.addingTemplate = false;
-        });
-    };
 
     $ctrl.remove = function() {
       $ctrl.removingJob = true;
