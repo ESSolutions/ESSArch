@@ -349,13 +349,14 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     def get_is_unit_leaf_node(obj):
         return obj.is_leaf_node()
 
-    @staticmethod
-    def get_is_tag_leaf_node(obj):
+    def get_is_tag_leaf_node(self, obj):
         # TODO: Make this a recursive check and add a separate field
         # indicating if this unit have any direct tag children
 
+        user = self.context['request'].user
+
         archive_descendants = obj.structure.tagstructure_set.annotate(
-            versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+            versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')).for_user(user))
         ).filter(structure_unit=obj, versions_exists=True)
         return not archive_descendants.exists()
 
@@ -762,8 +763,8 @@ class TagVersionSerializer(TagVersionNestedSerializer):
             return None
 
         archive = tag_structure.get_root().pk
-        context = {'archive_structure': archive}
-        return StructureUnitSerializer(unit, context=context).data
+        self.context.update({'archive_structure': archive})
+        return StructureUnitSerializer(unit, context=self.context).data
 
     def get_organization(self, obj):
         try:

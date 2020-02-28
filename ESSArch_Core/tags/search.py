@@ -7,6 +7,7 @@ import logging
 import math
 import os
 import tempfile
+from functools import reduce
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -173,8 +174,6 @@ class ComponentSearch(FacetedSearch):
                 Q('bool', minimum_should_match=1, should=[~Q('exists', field='ip'), Q('terms', ip=list(document_ips))])
             ]),
         ]))
-
-        from functools import reduce
 
         user_security_level_perms = list(filter(
             lambda x: x.startswith('tags.security_level_'),
@@ -597,7 +596,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(tag, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         serialized = TagVersionSerializerWithVersions(tag, context=context).data
 
         return Response(serialized)
@@ -680,7 +679,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             'tag__information_package', 'type',
         ).prefetch_related(
             'agent_links', 'identifiers', 'notes', 'tag_version_relations_a',
-        )
+        ).for_user(request.user)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)

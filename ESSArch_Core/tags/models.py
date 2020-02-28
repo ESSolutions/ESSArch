@@ -1,11 +1,12 @@
 import logging
 import uuid
+from functools import reduce
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, OuterRef, Subquery
+from django.db.models import F, OuterRef, Q, Subquery
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
@@ -880,12 +881,27 @@ class TagVersionType(models.Model):
 
 class TagVersionQuerySet(models.QuerySet):
     def for_user(self, user, perms=None):
-        return get_objects_for_user(user, self, perms)
+        qs = get_objects_for_user(user, self, perms)
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+            highest_level = reduce((lambda x, y: max(x, y)), user_security_levels)
+            return qs.filter(Q(Q(security_level__lte=highest_level) | Q(security_level__isnull=True)))
+        else:
+            return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
 
 
 class TagVersionManager(OrganizationManager):
     def get_queryset(self):
         return TagVersionQuerySet(self.model, using=self._db)
+
+    def for_user(self, user, perms):
+        return super().for_user(user, perms).for_user(user, perms)
 
 
 class TagVersion(models.Model):
@@ -1103,6 +1119,7 @@ class TagVersion(models.Model):
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_descendants).select_related('tag')
 
     def is_leaf_node(self, structure=None):
+        # TODO: filter on security levels
         return self.tag.is_leaf_node(structure)
 
     def __str__(self):
