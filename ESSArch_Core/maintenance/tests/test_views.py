@@ -180,6 +180,30 @@ class AppraisalJobViewSetTests(APITestCase):
                 res = self.client.patch(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
                 self.assertEqual(res.status_code, status.HTTP_200_OK)
 
+    def test_change_start_date(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='change_appraisaljob'))
+
+        appraisal_job = AppraisalJob.objects.create()
+        url = reverse('appraisaljob-detail', args=(appraisal_job.pk,))
+
+        with self.subTest('without permission'):
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+            res = self.client.patch(url, data={'start_date': None})
+            self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        with self.subTest('with permission'):
+            self.user.user_permissions.add(Permission.objects.get(codename='run_appraisaljob'))
+            self.user = User.objects.get(pk=self.user.pk)
+            self.client.force_authenticate(user=self.user)
+
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            res = self.client.patch(url, data={'start_date': None})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
     def test_delete_without_permission(self):
         appraisal_job = AppraisalJob.objects.create()
         res = self.client.delete(reverse('appraisaljob-detail', args=(appraisal_job.pk,)))
@@ -1028,6 +1052,30 @@ class ConversionJobViewSetTests(APITestCase):
                 conversion_job = ConversionJob.objects.create(status=state)
                 res = self.client.patch(reverse('conversionjob-detail', args=(conversion_job.pk,)))
                 self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_change_start_date(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='change_conversionjob'))
+
+        conversion_job = ConversionJob.objects.create()
+        url = reverse('conversionjob-detail', args=(conversion_job.pk,))
+
+        with self.subTest('without permission'):
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+            res = self.client.patch(url, data={'start_date': None})
+            self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+        with self.subTest('with permission'):
+            self.user.user_permissions.add(Permission.objects.get(codename='run_conversionjob'))
+            self.user = User.objects.get(pk=self.user.pk)
+            self.client.force_authenticate(user=self.user)
+
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+            res = self.client.patch(url, data={'start_date': None})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
 
     def test_delete_without_permission(self):
         conversion_job = ConversionJob.objects.create()

@@ -1,7 +1,7 @@
 import os
 
 from celery import states as celery_states
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from ESSArch_Core.api.serializers import UserFilteredPrimaryKeyRelatedField
 from ESSArch_Core.auth.serializers import UserSerializer
@@ -127,6 +127,13 @@ class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
 class AppraisalJobSerializer(MaintenanceJobSerializer):
     package_file_pattern = serializers.JSONField(allow_null=True, default=None)
 
+    def validate_start_date(self, value):
+        user = self.context['request'].user
+        if not user.has_perm('maintenance.run_appraisaljob'):
+            raise exceptions.PermissionDenied()
+
+        return value
+
     class Meta(MaintenanceJobSerializer.Meta):
         model = AppraisalJob
         fields = MaintenanceJobSerializer.Meta.fields + ('package_file_pattern',)
@@ -138,6 +145,13 @@ class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
 
 
 class ConversionJobSerializer(MaintenanceJobSerializer):
+    def validate_start_date(self, value):
+        user = self.context['request'].user
+        if not user.has_perm('maintenance.run_conversionjob'):
+            raise exceptions.PermissionDenied()
+
+        return value
+
     class Meta(MaintenanceJobSerializer.Meta):
         model = ConversionJob
         fields = MaintenanceJobSerializer.Meta.fields + ('specification',)
