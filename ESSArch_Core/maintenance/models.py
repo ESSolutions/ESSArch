@@ -82,6 +82,7 @@ class MaintenanceJob(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     label = models.CharField(max_length=255)
+    purpose = models.TextField(blank=False)
     template = models.ForeignKey(
         'maintenance.MaintenanceTemplate', on_delete=models.SET_NULL,
         null=True, related_name='jobs',

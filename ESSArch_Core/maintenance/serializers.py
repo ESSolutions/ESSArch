@@ -73,7 +73,7 @@ class MaintenanceJobSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceJob
         fields = (
-            'id', 'label', 'template', 'status', 'start_date', 'end_date', 'user', 'has_report',
+            'id', 'label', 'purpose', 'template', 'status', 'start_date', 'end_date', 'user', 'has_report',
         )
         read_only_fields = ('end_date',)
 
