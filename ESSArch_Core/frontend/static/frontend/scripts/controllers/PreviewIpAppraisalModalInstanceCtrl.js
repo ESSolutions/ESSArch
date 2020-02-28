@@ -1,7 +1,6 @@
 export default class PreviewIpAppraisalModalInstanceCtrl {
   constructor($translate, $uibModalInstance, appConfig, $http, data, $scope, listViewService) {
     const $ctrl = this;
-    // Set later to use local time for next job
     $ctrl.angular = angular;
     $ctrl.data = data;
     $ctrl.$onInit = () => {};

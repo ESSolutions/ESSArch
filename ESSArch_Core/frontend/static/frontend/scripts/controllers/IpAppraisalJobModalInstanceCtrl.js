@@ -1,5 +1,3 @@
-import httpInterceptor from '../configs/httpInterceptor';
-
 export default class IpAppraisalJobModalInstanceCtrl {
   constructor($uibModalInstance, $translate, data, $http, appConfig, Search) {
     const $ctrl = this;

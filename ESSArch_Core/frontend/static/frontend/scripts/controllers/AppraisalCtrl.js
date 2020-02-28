@@ -308,74 +308,6 @@ export default class AppraisalCtrl {
       );
     };
 
-    vm.ongoingModal = function(appraisal) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            appraisal: appraisal,
-            state: 'Ongoing',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-
-    vm.nextModal = function(appraisal) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            appraisal: appraisal,
-            state: 'Next',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-
-    vm.finishedModal = function(appraisal) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            appraisal: appraisal,
-            state: 'Finished',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
     vm.editAppraisalTemplateModal = function(appraisal) {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -433,7 +365,7 @@ export default class AppraisalCtrl {
         resolve: {
           data: {
             job,
-            remove: true,
+            allow_close: true,
           },
         },
       });
