@@ -64,6 +64,14 @@ export default class AppraisalJobModalInstanceCtrl {
         },
       },
       {
+        type: 'input',
+        key: 'purpose',
+        templateOptions: {
+          label: $translate.instant('PURPOSE'),
+          required: true,
+        },
+      },
+      {
         className: 'row m-0',
         fieldGroup: [
           {
