@@ -14,9 +14,9 @@
       <select
         tabindex="-1"
         id="items-per-page"
-        ng-change="updateIpsPerPage($ctrl.itemsPerPage)"
+        ng-change="updateIpsPerPage($ctrl.ipsPerPage)"
         class="form-control items-per-page"
-        ng-model="$ctrl.itemsPerPage"
+        ng-model="$ctrl.ipsPerPage"
         ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
         uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
         tooltip-placement="auto top"
@@ -88,7 +88,7 @@
         class="text-center"
         st-template="static/frontend/views/pagination.html"
         st-pagination=""
-        st-items-by-page="$ctrl.itemsPerPage"
+        st-items-by-page="$ctrl.ipsPerPage"
         st-displayed-pages="7"
       ></div>
     </div>
@@ -108,7 +108,7 @@
         id="items-per-page-ip"
         ng-change="$ctrl.tagsPipe($ctrl.tagsTableState)"
         class="form-control items-per-page"
-        ng-model="$ctrl.itemsPerPage"
+        ng-model="$ctrl.nodesPerPage"
         ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
         uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
         tooltip-placement="auto top"
@@ -171,7 +171,7 @@
         class="text-center"
         st-template="static/frontend/views/pagination.html"
         st-pagination=""
-        st-items-by-page="$ctrl.itemsPerPage"
+        st-items-by-page="$ctrl.nodesPerPage"
         st-displayed-pages="4"
       ></div>
     </td>

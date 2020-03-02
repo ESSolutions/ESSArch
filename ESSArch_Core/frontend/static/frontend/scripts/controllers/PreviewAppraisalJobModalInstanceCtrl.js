@@ -22,7 +22,7 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
           ordering = '-' + ordering;
         }
 
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.itemsPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.ipsPerPage);
         $http({
           method: 'GET',
           url: appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/information-packages/',
@@ -65,7 +65,7 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
           var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.itemsPerPage);
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $ctrl.nodesPerPage);
 
         let sortString = sorting.predicate;
         if (sorting.reverse) {
