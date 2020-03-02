@@ -438,6 +438,7 @@ export default angular
     'EditMode',
     '$uibModal',
     '$log',
+    'myService',
     AppraisalJobModalInstanceCtrl,
   ])
   .controller('CreateDipCtrl', [

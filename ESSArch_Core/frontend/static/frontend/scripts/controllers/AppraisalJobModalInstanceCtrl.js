@@ -10,7 +10,8 @@ export default class AppraisalJobModalInstanceCtrl {
     $scope,
     EditMode,
     $uibModal,
-    $log
+    $log,
+    myService
   ) {
     const $ctrl = this;
     $ctrl.angular = angular;
@@ -72,18 +73,15 @@ export default class AppraisalJobModalInstanceCtrl {
         },
       },
       {
-        className: 'row m-0',
-        fieldGroup: [
-          {
-            className: 'col-xs-12 col-sm-6 px-0 pr-md-base',
-            type: 'datepicker',
-            key: 'start_date',
-            templateOptions: {
-              label: $translate.instant('START_DATE'),
-              appendToBody: false,
-            },
-          },
-        ],
+        type: 'datepicker',
+        key: 'start_date',
+        templateOptions: {
+          label: $translate.instant('START_DATE'),
+          appendToBody: false,
+        },
+        hideExpression: ($viewValue, $modelValue, scope) => {
+          return !myService.checkPermission('maintenance.run_appraisaljob');
+        },
       },
     ];
 
