@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, OuterRef, Q, Subquery
+from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
@@ -731,11 +731,16 @@ class Tag(models.Model):
         except TagStructure.DoesNotExist:
             return Tag.objects.none()
 
-    def is_leaf_node(self, structure=None):
-        try:
-            return self.get_structures(structure).latest().is_leaf_node()
-        except TagStructure.DoesNotExist:
-            return True
+    def is_leaf_node(self, user, structure=None):
+        if user.has_perm('tags.security_level_5'):
+            try:
+                return self.get_structures(structure).latest().is_leaf_node()
+            except TagStructure.DoesNotExist:
+                return True
+
+        return not self.get_structures(structure).latest().get_descendants().filter(
+            Exists(TagVersion.objects.for_user(user, None).filter(tag=OuterRef('tag')))
+        ).exists()
 
     def __str__(self):
         try:
@@ -1118,9 +1123,8 @@ class TagVersion(models.Model):
         tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_descendants).select_related('tag')
 
-    def is_leaf_node(self, structure=None):
-        # TODO: filter on security levels
-        return self.tag.is_leaf_node(structure)
+    def is_leaf_node(self, user, structure=None):
+        return self.tag.is_leaf_node(user, structure)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)

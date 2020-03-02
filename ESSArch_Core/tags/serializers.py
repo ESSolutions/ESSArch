@@ -665,7 +665,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     )
 
     def get_is_leaf_node(self, obj):
-        return obj.is_leaf_node(structure=self.context.get('structure'))
+        return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
 
     def get_masked_fields(self, obj):
         cache_key = '{}_masked_fields'.format(obj.pk)

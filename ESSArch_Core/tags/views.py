@@ -377,7 +377,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             children = TagVersion.objects.none()
 
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         children = children.for_user(request.user)
 
         if self.paginator is not None:

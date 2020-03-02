@@ -674,7 +674,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         parent = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(parent, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         children = parent.get_children(structure).select_related(
             'tag__information_package', 'type',
         ).prefetch_related(
@@ -784,7 +784,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         serializer.is_valid(raise_exception=True)
         tag = serializer.save()
-        return Response(TagVersionNestedSerializer(instance=tag.current_version).data, status=status.HTTP_201_CREATED)
+        return Response(
+            TagVersionNestedSerializer(instance=tag.current_version, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def _update_tag_metadata(self, tag_version, data):
         if 'structure_unit' in data:

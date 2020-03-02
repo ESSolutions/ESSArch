@@ -528,19 +528,18 @@ class UnpublishStructureTests(TestCase):
         self.assertFalse(self.structure.published)
 
 
-class ListStructureUnitTests(TestCase):
+class ListStructureUnitTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
 
         cls.url = reverse('structureunit-list')
-        cls.user = User.objects.create(username='user', is_superuser=True)
 
         cls.structure_type = StructureType.objects.create(name='test')
         cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
 
     def setUp(self):
-        self.client = APIClient()
+        self.user = User.objects.create(username='user', is_superuser=True)
         self.client.force_authenticate(user=self.user)
 
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
@@ -611,6 +610,56 @@ class ListStructureUnitTests(TestCase):
             self.assertTrue(data[3]['is_unit_leaf_node'])
             self.assertTrue(data[3]['is_tag_leaf_node'])
             self.assertTrue(data[3]['is_leaf_node'])
+
+    def test_nodes(self):
+        structure = create_structure(self.structure_type)
+        unit = create_structure_unit(self.unit_type, structure, 'a')
+
+        archive_tag = Tag.objects.create()
+        archive_tv_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        TagVersion.objects.create(tag=archive_tag, type=archive_tv_type, elastic_index='archive')
+        archive_ts = TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=unit, parent=archive_ts)
+
+        url = reverse('structureunit-nodes', args=(str(unit.pk),))
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tv.pk))
+
+        self.user.is_superuser = False
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 3
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_2'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
 
 
 class CreateStructureUnitTests(TestCase):
@@ -1618,6 +1667,76 @@ class AgentArchiveRelationTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(AgentTagLink.objects.count(), 0)
+
+
+class ListTagsTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
+        cls.structure_type = StructureType.objects.create(name='test')
+        cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
+
+    def setUp(self):
+        self.user = User.objects.create(username='user', is_superuser=True)
+        self.client.force_authenticate(user=self.user)
+
+    def test_children(self):
+        structure = create_structure(self.structure_type)
+        unit = create_structure_unit(self.unit_type, structure, 'a')
+
+        archive_tag = Tag.objects.create()
+        archive_tv_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        TagVersion.objects.create(tag=archive_tag, type=archive_tv_type, elastic_index='archive')
+        archive_ts = TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tv_type = TagVersionType.objects.create(name='volume')
+        parent_tag = Tag.objects.create()
+        parent_tv = TagVersion.objects.create(tag=parent_tag, type=tv_type, elastic_index='component')
+        parent_ts = TagStructure.objects.create(
+            tag=parent_tag, structure=structure, structure_unit=unit, parent=archive_ts,
+        )
+
+        tag = Tag.objects.create()
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=unit, parent=parent_ts)
+
+        url = reverse('search-children', args=(str(parent_tv.pk),))
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tv.pk))
+
+        self.user.is_superuser = False
+        self.user.user_permissions.add(Permission.objects.get(codename='search'))
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 3
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_2'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
 
 
 class CreateArchiveTests(ESSArchSearchBaseTestCase):
