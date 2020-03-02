@@ -952,6 +952,7 @@ class ComponentWriteSerializer(NodeWriteSerializer):
     reference_code = serializers.CharField()
     information_package = serializers.PrimaryKeyRelatedField(
         default=None,
+        allow_null=True,
         queryset=InformationPackage.objects.filter(archived=True),
     )
     index = serializers.ChoiceField(choices=['component', 'document'])

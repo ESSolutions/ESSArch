@@ -9,7 +9,8 @@ export default class EditNodeModalInstanceCtrl {
     data,
     Notifications,
     EditMode,
-    $rootScope
+    $rootScope,
+    Utils
   ) {
     const $ctrl = this;
     $ctrl.node = data.node;
@@ -105,14 +106,8 @@ export default class EditNodeModalInstanceCtrl {
     };
 
     function getEditedFields(node) {
-      const edited = {};
       const oldModel = angular.copy(data.node);
-      oldModel.type = oldModel.type.pk;
-      angular.forEach(node, function(value, key) {
-        if (oldModel[key] !== value && typeof value !== 'object' && !angular.isArray(value)) {
-          edited[key] = value;
-        }
-      });
+      const edited = Utils.getDiff(oldModel, node, {map: {type: 'pk'}});
       if (!angular.isUndefined(node.custom_fields)) {
         edited.custom_fields = node.custom_fields;
       }

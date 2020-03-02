@@ -526,6 +526,7 @@ export default angular
     'Notifications',
     'EditMode',
     '$rootScope',
+    'Utils',
     EditNodeModalInstanceCtrl,
   ])
   .controller('EditStructureUnitModalInstanceCtrl', [
