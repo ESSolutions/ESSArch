@@ -611,7 +611,9 @@ class ListStructureUnitTests(APITestCase):
             self.assertTrue(data[3]['is_tag_leaf_node'])
             self.assertTrue(data[3]['is_leaf_node'])
 
-    def test_nodes(self):
+    @mock.patch('ESSArch_Core.tags.serializers.TagVersionNestedSerializer.get_masked_fields', return_value={})
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_nodes(self, mock_doc, mock_masked):
         structure = create_structure(self.structure_type)
         unit = create_structure_unit(self.unit_type, structure, 'a')
 
@@ -1681,7 +1683,9 @@ class ListTagsTests(APITestCase):
         self.user = User.objects.create(username='user', is_superuser=True)
         self.client.force_authenticate(user=self.user)
 
-    def test_children(self):
+    @mock.patch('ESSArch_Core.tags.serializers.TagVersionNestedSerializer.get_masked_fields', return_value={})
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_children(self, mock_doc, mock_masked):
         structure = create_structure(self.structure_type)
         unit = create_structure_unit(self.unit_type, structure, 'a')
 
