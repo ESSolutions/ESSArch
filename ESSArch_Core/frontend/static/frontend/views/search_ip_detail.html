@@ -5,6 +5,29 @@
         {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
+    <div class="flex-row justify-content-end align-items-center position-relative">
+      <button
+        class="btn btn-default fas fa-print"
+        tooltip-placement="auto-top"
+        tooltip-append-to-body="false"
+        uib-tooltip="{{'EXPORT' | translate}}"
+        ng-click="vm.exportNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-edit"
+        ng-if="checkPermission('tags.change_tagversion')"
+        tooltip-placement="auto-top"
+        uib-tooltip="{{'EDIT' | translate}}"
+        ng-click="vm.editNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-trash-alt"
+        tooltip-placement="auto-top"
+        ng-if="checkPermission('tags.delete_tagversion')"
+        uib-tooltip="{{'REMOVE' | translate}}"
+        ng-click="vm.removeNodeModal(vm.record)"
+      ></button>
+    </div>
   </div>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record.description">
