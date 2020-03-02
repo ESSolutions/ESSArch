@@ -404,6 +404,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         serializer = self.get_serializer_class()
         context = {
+            'request': request,
             'user': request.user,
             'structure': request.query_params.get('structure')
         }
