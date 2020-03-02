@@ -178,7 +178,11 @@
               <td>{{x.label}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td class="text-center shrink">
-                <button class="btn btn-primary btn-sm" ng-click="vm.runJobModal(x); $event.stopPropagation();">
+                <button
+                  ng-disabled="x.start_date != null"
+                  class="btn btn-primary btn-sm"
+                  ng-click="vm.runJobModal(x); $event.stopPropagation();"
+                >
                   {{'ARCHIVE_MAINTENANCE.RUN' | translate}}
                 </button>
               </td>
