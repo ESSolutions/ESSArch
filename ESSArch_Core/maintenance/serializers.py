@@ -145,6 +145,8 @@ class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
 
 
 class ConversionJobSerializer(MaintenanceJobSerializer):
+    specification = serializers.JSONField()
+
     def validate_start_date(self, value):
         user = self.context['request'].user
         if not user.has_perm('maintenance.run_conversionjob'):

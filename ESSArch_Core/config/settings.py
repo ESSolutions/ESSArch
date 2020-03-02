@@ -386,13 +386,6 @@ USE_L10N = True
 
 USE_TZ = True
 
-if DEBUG:
-    import warnings
-    warnings.filterwarnings(
-        'error', r"DateTimeField .* received a naive datetime",
-        RuntimeWarning, r'django\.db\.models\.fields',
-    )
-
 # Media files
 MEDIA_URL = 'api/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
