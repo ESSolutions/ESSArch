@@ -663,6 +663,12 @@ class ListStructureUnitTests(APITestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
 
+        tv.security_level = 1
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
 
 class CreateStructureUnitTests(TestCase):
     @classmethod
@@ -1741,6 +1747,12 @@ class ListTagsTests(APITestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 1
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
 
 
 class CreateArchiveTests(ESSArchSearchBaseTestCase):

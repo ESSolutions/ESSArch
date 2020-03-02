@@ -7,7 +7,6 @@ import logging
 import math
 import os
 import tempfile
-from functools import reduce
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -182,10 +181,8 @@ class ComponentSearch(FacetedSearch):
 
         if len(user_security_level_perms) > 0:
             user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
-
-            highest_level = reduce((lambda x, y: max(x, y)), user_security_levels)
             s = s.filter(Q('bool', minimum_should_match=1, should=[
-                Q('range', security_level={'lte': highest_level}),
+                Q('terms', security_level=user_security_levels),
                 Q('bool', must_not=Q('exists', field='security_level')),
                 Q('term', security_level=0),
             ]))

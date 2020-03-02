@@ -1,6 +1,5 @@
 import logging
 import uuid
-from functools import reduce
 
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
@@ -895,8 +894,7 @@ class TagVersionQuerySet(models.QuerySet):
 
         if len(user_security_level_perms) > 0:
             user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
-            highest_level = reduce((lambda x, y: max(x, y)), user_security_levels)
-            return qs.filter(Q(Q(security_level__lte=highest_level) | Q(security_level__isnull=True)))
+            return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
         else:
             return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
 
