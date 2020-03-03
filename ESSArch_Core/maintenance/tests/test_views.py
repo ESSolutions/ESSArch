@@ -20,6 +20,7 @@ from ESSArch_Core.configuration.models import (
     Path,
     StoragePolicy,
 )
+from ESSArch_Core.fixity.models import ConversionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
@@ -1273,10 +1274,14 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.url = reverse('conversionjob-run', args=(self.conversion_job.pk,))
 
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
+        ConversionTool.objects.create(
+            name='ffmpeg', enabled=True, type=ConversionTool.Type.DOCKER_IMAGE,
+            path='ffmpeg', cmd='-i {input} {input_dir}/{input_name}.{output}',
+        )
 
-        with self.storage_obj.open('foo.docx', 'w') as f:
+        with self.storage_obj.open('foo.mkv', 'w') as f:
             f.write('foo')
-        with self.storage_obj.open('foo/bar.docx', 'w') as f:
+        with self.storage_obj.open('foo/bar.mkv', 'w') as f:
             f.write('bar')
         with self.storage_obj.open('logs/1.txt', 'w') as f:
             f.write('1')
@@ -1362,7 +1367,7 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
         self.conversion_job.information_packages.add(self.ip)
         self.conversion_job.specification = {
-            '../../*.docx': {'target': 'pdf', 'tool': 'libreoffice'},
+            '../../*.mkv': {'tool': 'ffmpeg', 'options': {}},
         }
         self.conversion_job.save()
 
@@ -1381,12 +1386,13 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         )
 
     @TaskRunner()
-    @mock.patch('ESSArch_Core.maintenance.models.convert_file')
+    @mock.patch('docker.models.containers.ContainerCollection.run')
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     def test_convert_packages_with_valid_specification(self, m_validate, mock_convert):
-        def convert_side_effect(path, new_format):
-            dst = os.path.splitext(path)[0] + '.' + new_format
-            shutil.copyfile(path, dst)
+        def convert_side_effect(img, cmd, *args, volumes, **kwargs):
+            rootdir = list(volumes.keys())[0]
+            _, src, dst = cmd.split(' ')
+            shutil.copyfile(os.path.join(rootdir, src), os.path.join(rootdir, dst))
 
         class AnyStringEndsWith(str):
             def __eq__(a: str, b: str, *args, **kwargs):
@@ -1400,24 +1406,27 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
         self.conversion_job.information_packages.add(self.ip)
         self.conversion_job.specification = {
-            '*/**/*.docx': {'target': 'pdf', 'tool': 'libreoffice'},
+            '*/**/*.mkv': {'tool': 'ffmpeg', 'options': {'output': 'mp4'}},
         }
         self.conversion_job.save()
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
-        mock_convert.assert_called_once_with(AnyStringEndsWith(os.path.join('foo', 'bar.docx')), 'pdf')
+
+        mock_convert.assert_called_once_with(
+            'ffmpeg', '-i foo/bar.mkv foo/bar.mp4', remove=True, volumes=mock.ANY, working_dir=mock.ANY,
+        )
 
         self.assertFalse(
             ConversionJobEntry.objects.filter(
                 job=self.conversion_job, ip=self.ip,
-                old_document='foo.docx',
+                old_document='foo.mkv',
             ).exists()
         )
         self.assertTrue(
             ConversionJobEntry.objects.filter(
                 job=self.conversion_job, ip=self.ip,
-                old_document='foo/bar.docx', new_document='foo/bar.pdf',
+                old_document='foo/bar.mkv',
             ).exists()
         )
 
@@ -1432,8 +1441,8 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             storage_medium__storage_target__methods=self.storage_method
         ).get()
         new_path = new_storage.get_full_path()
-        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.docx')))
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.mkv')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
-        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.docx')))
-        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.mkv')))
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo', 'bar.mp4')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))

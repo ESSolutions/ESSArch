@@ -22,12 +22,12 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import EventType, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fields import JSONField
+from ESSArch_Core.fixity.models import ConversionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.exceptions import NoReadableStorage
 from ESSArch_Core.storage.models import StorageObject
 from ESSArch_Core.util import (
-    convert_file,
     find_destination,
     has_write_access,
     in_directory,
@@ -596,16 +596,15 @@ class ConversionJob(MaintenanceJob):
             refresh=True,
         )
 
-    def convert(self, ip, path, relpath, target, tool):
+    def convert(self, ip, path, rootpath, tool: ConversionTool, options):
         entry = ConversionJobEntry.objects.create(
             job=self,
             start_date=timezone.now(),
             ip=ip,
-            old_document=relpath,
-            new_document=os.path.splitext(relpath)[0] + '.' + target,
-            tool=tool,
+            old_document=PurePath(path).relative_to(rootpath).as_posix(),
+            tool=tool.name,
         )
-        convert_file(path, target)
+        tool.run(path, rootpath, options)
         os.remove(path)
 
         entry.end_date = timezone.now()
@@ -630,8 +629,8 @@ class ConversionJob(MaintenanceJob):
 
             # convert files specified in rule
             for pattern, spec in self.specification.items():
-                target = spec['target']
-                tool = spec['tool']
+                tool = ConversionTool.objects.get(name=spec['tool'])
+                options = spec['options']
 
                 for path in iglob(new_ip_tmpdir + '/' + pattern):
                     if not in_directory(path, new_ip_tmpdir):
@@ -641,12 +640,9 @@ class ConversionJob(MaintenanceJob):
                         for root, _dirs, files in walk(path):
                             for f in files:
                                 fpath = os.path.join(root, f)
-                                rel = PurePath(fpath).relative_to(new_ip_tmpdir).as_posix()
-                                self.convert(ip, fpath, rel, target, tool)
-
+                                self.convert(ip, fpath, new_ip_tmpdir, tool, options)
                     else:
-                        rel = PurePath(path).relative_to(new_ip_tmpdir).as_posix()
-                        self.convert(ip, path, rel, target, tool)
+                        self.convert(ip, path, new_ip_tmpdir, tool, options)
 
             with allow_join_result():
                 preserve_new_generation(new_ip)

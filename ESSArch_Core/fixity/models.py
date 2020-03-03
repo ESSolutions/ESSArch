@@ -1,4 +1,7 @@
+import os
 import uuid
+from pathlib import PurePath
+from subprocess import PIPE, Popen
 
 from django.contrib.auth import get_user_model
 from django.db import models
@@ -6,6 +9,68 @@ from django.db import models
 from ESSArch_Core.fields import JSONField
 
 User = get_user_model()
+
+
+class ExternalTool(models.Model):
+    class Type(models.TextChoices):
+        APPLICATION = 'APP'
+        PYTHON_MODULE = 'PY_MOD'
+        DOCKER_IMAGE = 'DOCKER_IMG'
+
+    type = models.CharField(max_length=20, choices=Type.choices)
+    name = models.CharField(max_length=255, unique=True)
+    path = models.TextField()
+    cmd = models.TextField()
+    enabled = models.BooleanField()
+    form = JSONField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        abstract = True
+
+
+class ConversionTool(ExternalTool):
+    def prepare_cmd(self, filepath, options):
+        kwargs = {
+            'input': filepath,
+            'input_basename': os.path.basename(filepath),
+            'input_dir': os.path.dirname(filepath),
+            'input_name': PurePath(filepath).stem,
+            'input_ext': ''.join(PurePath(filepath).suffixes)[1:],
+        }
+        kwargs.update(options)
+        return self.cmd.format(**kwargs)
+
+    def _run_application(self, filepath, rootdir, options):
+        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
+        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        out, err = p.communicate()
+        if p.returncode != 0:
+            raise BaseException(err)
+
+    def _run_docker(self, filepath, rootdir, options):
+        import docker
+        client = docker.from_env()
+        workdir = '/mnt/vol1'
+
+        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
+        client.containers.run(
+            self.path,
+            cmd,
+            volumes={os.path.abspath(rootdir): {'bind': workdir}},
+            working_dir=workdir,
+            remove=True,
+        )
+
+    def run(self, filepath, rootdir, options):
+        if self.type == ExternalTool.Type.APPLICATION:
+            self._run_application(filepath, rootdir, options)
+        elif self.type == ExternalTool.Type.PYTHON_MODULE:
+            raise NotImplementedError
+        elif self.type == ExternalTool.Type.DOCKER_IMAGE:
+            self._run_docker(filepath, rootdir, options)
 
 
 class Validation(models.Model):
