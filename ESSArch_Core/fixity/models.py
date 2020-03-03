@@ -5,6 +5,7 @@ from subprocess import PIPE, Popen
 
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.fields import JSONField
 
@@ -17,12 +18,12 @@ class ExternalTool(models.Model):
         PYTHON_MODULE = 'PY_MOD'
         DOCKER_IMAGE = 'DOCKER_IMG'
 
-    type = models.CharField(max_length=20, choices=Type.choices)
-    name = models.CharField(max_length=255, unique=True)
-    path = models.TextField()
-    cmd = models.TextField()
-    enabled = models.BooleanField()
-    form = JSONField(null=True, blank=True)
+    type = models.CharField(_('type'), max_length=20, choices=Type.choices)
+    name = models.CharField(_('name'), max_length=255, unique=True)
+    path = models.TextField(_('path'))
+    cmd = models.TextField(_('command'))
+    enabled = models.BooleanField(_('enabled'))
+    form = JSONField(_('form'), null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -32,6 +33,10 @@ class ExternalTool(models.Model):
 
 
 class ConversionTool(ExternalTool):
+    class Meta:
+        verbose_name = _('conversion tool')
+        verbose_name_plural = _('conversion tools')
+
     def prepare_cmd(self, filepath, options):
         kwargs = {
             'input': filepath,
