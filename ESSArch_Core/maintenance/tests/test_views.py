@@ -1037,7 +1037,7 @@ class ConversionJobViewSetTests(APITestCase):
 
     def test_create_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename='add_conversionjob'))
-        res = self.client.post(reverse('conversionjob-list'), data={'purpose': 'test'})
+        res = self.client.post(reverse('conversionjob-list'), data={'purpose': 'test', 'specification': {}})
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
     def test_change_without_permission(self):
