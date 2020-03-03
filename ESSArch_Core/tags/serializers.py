@@ -353,6 +353,9 @@ class StructureUnitSerializer(serializers.ModelSerializer):
         # TODO: Make this a recursive check and add a separate field
         # indicating if this unit have any direct tag children
 
+        if hasattr(obj, 'tag_leaf_node'):
+            return obj.tag_leaf_node
+
         user = self.context['request'].user
 
         archive_descendants = obj.structure.tagstructure_set.annotate(

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import ProtectedError, Q
+from django.db.models import Exists, OuterRef, ProtectedError, Q
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -289,7 +289,21 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def tree(self, request, pk=None):
         obj = self.get_object()
 
-        qs = StructureUnit.objects.filter(structure=obj)
+        qs = StructureUnit.objects.filter(structure=obj).select_related(
+            'type__structure_type',
+        ).prefetch_related(
+            'identifiers',
+            'notes',
+            'structure__tagstructure_set',
+            'structure_unit_relations_a',
+        ).annotate(
+            tag_leaf_node=~Exists(
+                TagVersion.objects.filter(
+                    tag__structures__structure=OuterRef('structure'),
+                    tag__structures__structure_unit=OuterRef('pk'),
+                ).for_user(request.user),
+            )
+        )
         root_nodes = cache_tree_children(qs)
         dicts = []
         context = self.get_serializer_context()
