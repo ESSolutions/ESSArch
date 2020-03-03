@@ -103,6 +103,18 @@ class ListStructureTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
+    def test_tree(self):
+        self.client.force_authenticate(user=self.user)
+        structure = create_structure(self.structure_type)
+        unit_type = StructureUnitType.objects.create(structure_type=self.structure_type)
+        u1 = create_structure_unit(unit_type, structure, 'a')
+        u2 = create_structure_unit(unit_type, structure, 'b')
+        u2.parent = u1
+        u2.save()
+
+        response = self.client.get(reverse('structure-tree', args=(structure.pk,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class CreateStructureTests(TestCase):
     @classmethod
