@@ -292,8 +292,9 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         qs = StructureUnit.objects.filter(structure=obj)
         root_nodes = cache_tree_children(qs)
         dicts = []
+        context = self.get_serializer_context()
         for n in root_nodes:
-            dicts.append(mptt_to_dict(n, StructureUnitSerializer))
+            dicts.append(mptt_to_dict(n, StructureUnitSerializer, context=context))
 
         return Response(dicts)
 
