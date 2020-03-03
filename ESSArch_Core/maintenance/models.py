@@ -67,9 +67,6 @@ class MaintenanceTemplate(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # empty for all files in IP
-    package_file_pattern = JSONField(null=True, default=None)
-
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     public = models.BooleanField(default=True)
 
@@ -187,6 +184,9 @@ class MaintenanceJobEntry(models.Model):
 
 class AppraisalTemplate(MaintenanceTemplate):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
+
+    # empty for all files in IP
+    package_file_pattern = JSONField(null=True, default=None)
 
 
 class AppraisalJob(MaintenanceJob):
@@ -442,7 +442,7 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 
 
 class ConversionTemplate(MaintenanceTemplate):
-    pass
+    specification = JSONField(null=True, default=None)
 
 
 def preserve_new_generation(new_ip):
