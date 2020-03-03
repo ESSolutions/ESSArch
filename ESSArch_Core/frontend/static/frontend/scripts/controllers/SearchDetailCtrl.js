@@ -1965,7 +1965,8 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data) {
-          $state.reload();
+          vm.recordTreeInstance.jstree(true).uncheck_all();
+          vm.loadRecordAndTree(vm.structure);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());

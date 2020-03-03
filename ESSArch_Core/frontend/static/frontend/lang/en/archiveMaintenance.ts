@@ -64,6 +64,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       NO_REPORT_AVAILABLE: 'No report available',
       NODE_ADDED_TO_APPRAISAL_TEMPLATE: '{{node}} has been added to appraisal template: {{template}}',
       NODE_ADDED_TO_CONVERSION_TEMPLATE: '{{node}} has been added to conversion template: {{template}}',
+      NODE_REMOVED_FROM_APPRAISAL_JOB: 'Node removed from appraisal job',
+      NODES_ADDED_TO_APPRAISAL_JOB: 'Nodes added to appraisal job',
       NO_PATHS_CHOSEN: 'No paths chosen',
       NO_SPECIFICATIONS_CHOSEN: 'No specifications chosen',
       ONGOING: 'Ongoing',

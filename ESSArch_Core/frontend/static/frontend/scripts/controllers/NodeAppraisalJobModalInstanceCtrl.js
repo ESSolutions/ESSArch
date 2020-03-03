@@ -1,5 +1,5 @@
 export default class NodeAppraisalJobModalInstanceCtrl {
-  constructor($uibModalInstance, $translate, data, $http, appConfig, Search) {
+  constructor($uibModalInstance, $translate, data, $http, appConfig, Search, Notifications) {
     const $ctrl = this;
     $ctrl.model = {};
     $ctrl.options = {
@@ -46,39 +46,48 @@ export default class NodeAppraisalJobModalInstanceCtrl {
       },
     ];
 
-    $ctrl.addToJob = function() {
+    $ctrl.addSearchToJob = function() {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
+      let promise;
+      $http
+        .get(appConfig.djangoUrl + 'search/', {
+          params: angular.extend({add_to_appraisal: $ctrl.model.job}, data.search.filters),
+        })
+        .then(() => {
+          $ctrl.adding = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.NODES_ADDED_TO_APPRAISAL_JOB'), 'success');
+          $uibModalInstance.close();
+        })
+        .catch(e => {
+          $ctrl.adding = false;
+        });
+    };
 
-      if (data.search && data.search.filters) {
-        $http
-          .get(appConfig.djangoUrl + 'search/', {
-            params: angular.extend({add_to_appraisal: $ctrl.model.job}, data.search.filters),
-          })
-          .then(() => {
-            $ctrl.adding = false;
-            $uibModalInstance.close();
-          })
-          .catch(e => {
-            console.log(e);
-            $ctrl.adding = false;
-          });
-      } else {
-        $http
-          .patch(appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/tags/', {
-            tags: data.nodes.map(x => x.tag),
-          })
-          .then(() => {
-            $ctrl.adding = false;
-            $uibModalInstance.close();
-          })
-          .catch(() => {
-            $ctrl.adding = false;
-          });
+    $ctrl.addNodesToJob = function() {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
       }
+      $ctrl.adding = true;
+      $http({
+        method: 'PATCH',
+        url: appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/tags/',
+        data: {
+          tags: data.nodes.map(x => x.tag),
+        },
+      })
+        .then(() => {
+          $ctrl.adding = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.NODES_ADDED_TO_APPRAISAL_JOB'), 'success');
+          $uibModalInstance.close();
+        })
+        .catch(e => {
+          $ctrl.adding = false;
+        });
     };
 
     $ctrl.removeNode = node => {
@@ -91,6 +100,7 @@ export default class NodeAppraisalJobModalInstanceCtrl {
       })
         .then(() => {
           $ctrl.removing = false;
+          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.NODE_REMOVED_FROM_APPRAISAL_JOB'), 'success');
           $uibModalInstance.close();
         })
         .catch(() => {

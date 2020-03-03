@@ -663,6 +663,7 @@ export default angular
     '$http',
     'appConfig',
     'Search',
+    'Notifications',
     NodeAppraisalJobModalInstanceCtrl,
   ])
   .controller('NodeDeliveryModalInstanceCtrl', [

@@ -66,6 +66,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       NO_REPORT_AVAILABLE: 'Ingen rapport tillgänglig',
       NODE_ADDED_TO_APPRAISAL_TEMPLATE: '{{node}} har lagts till i gallringsmall: {{TEMPLATE}}',
       NODE_ADDED_TO_CONVERSION_TEMPLATE: '{{node}} har lagts till i konverteringsmall: {{TEMPLATE}}',
+      NODE_REMOVED_FROM_APPRAISAL_JOB: 'Noden har tagits bort från gallringsjobb',
+      NODES_ADDED_TO_APPRAISAL_JOB: 'Noder tillagda i gallringsjobb',
       ONGOING: 'Pågående',
       PATHS: 'Sökvägar',
       PREPAREAPPRAISALDESC: 'Skapa ny gallringsmall',
