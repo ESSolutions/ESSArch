@@ -59,6 +59,13 @@
       </button>
     </div>
   </div>
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
   <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
     <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
     ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
