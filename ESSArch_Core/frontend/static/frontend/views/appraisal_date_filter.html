@@ -9,6 +9,9 @@
           type="text"
           data-date-time-input="YYYY-MM-DD"
           data-model-type="YYYY-MM-DD"
+          ng-keydown="vm.appraisalDateKeyDown('after', $event)"
+          ng-keyup="vm.appraisalDateKeyUp('after', $event)"
+          ng-enter="vm.searchSubmit(vm.searchString)"
           class="form-control"
           data-ng-model="vm.filterObject.appraisal_date_after"
           autocomplete="off"
@@ -18,7 +21,7 @@
     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
       <datetimepicker
         data-ng-model="vm.filterObject.appraisal_date_after"
-        ng-change="vm.appraisalFilterStatus['after'] = false"
+        ng-change="vm.appraisalFilterStatus['after'] = false;vm.searchSubmit(vm.searchString);"
         data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType:'YYYY-MM-DD'}"
       />
     </ul>
@@ -34,6 +37,9 @@
           data-date-time-input="YYYY-MM-DD"
           data-model-type="YYYY-MM-DD"
           class="form-control"
+          ng-keydown="vm.appraisalDateKeyDown('before', $event)"
+          ng-keyup="vm.appraisalDateKeyUp('before', $event)"
+          ng-enter="vm.searchSubmit(vm.searchString)"
           data-ng-model="vm.filterObject.appraisal_date_before"
           autocomplete="off"
         /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
@@ -42,7 +48,7 @@
     <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
       <datetimepicker
         data-ng-model="vm.filterObject.appraisal_date_before"
-        ng-change="vm.appraisalFilterStatus['before'] = false"
+        ng-change="vm.appraisalFilterStatus['before'] = false;vm.searchSubmit(vm.searchString);"
         data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType:'YYYY-MM-DD'}"
       />
     </ul>

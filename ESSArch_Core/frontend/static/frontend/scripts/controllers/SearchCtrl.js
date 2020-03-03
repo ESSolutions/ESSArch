@@ -101,6 +101,24 @@ export default class SearchCtrl {
       });
     };
 
+    vm.appraisalFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.appraisalDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.appraisalDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = true;
+      }
+    };
+
     $scope.checkPermission = function(permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
