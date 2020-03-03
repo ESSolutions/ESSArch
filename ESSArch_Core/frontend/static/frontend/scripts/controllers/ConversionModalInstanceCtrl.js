@@ -171,7 +171,6 @@ export default class ConversionModalInstanceCtrl {
       })
         .then(function(response) {
           $ctrl.addingTemplate = false;
-          Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_SAVED'), 'success');
           EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })
