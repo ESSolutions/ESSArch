@@ -21,7 +21,6 @@ from ESSArch_Core.tags.models import Tag
 class MaintenanceTemplateSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True, default=serializers.CurrentUserDefault())
     public = serializers.BooleanField(default=True)
-    package_file_pattern = serializers.JSONField(allow_null=True, default=None)
 
     def validate(self, data):
         user = self.context['request'].user
@@ -49,7 +48,7 @@ class MaintenanceTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaintenanceTemplate
         fields = (
-            'id', 'name', 'description', 'package_file_pattern', 'user', 'public',
+            'id', 'name', 'description', 'user', 'public',
         )
 
 
@@ -120,8 +119,11 @@ class AppraisalJobTagWriteSerializer(serializers.ModelSerializer):
 
 
 class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
+    package_file_pattern = serializers.JSONField(allow_null=True, default=None)
+
     class Meta(MaintenanceTemplateSerializer.Meta):
         model = AppraisalTemplate
+        fields = MaintenanceJobSerializer.Meta.fields + ('package_file_pattern',)
 
 
 class AppraisalJobSerializer(MaintenanceJobSerializer):
