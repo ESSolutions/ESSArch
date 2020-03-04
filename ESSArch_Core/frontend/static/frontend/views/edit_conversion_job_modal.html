@@ -9,7 +9,7 @@
   </div>
   <div ng-if="!$ctrl.initModalLoad">
     <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
-    <div ng-include src="'static/frontend/views/conversion_spec.html'"></div>
+    <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
     <hr />
     <div class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
       <div class="title-action-button-row">

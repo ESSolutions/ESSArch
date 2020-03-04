@@ -4,7 +4,7 @@
 <form name="$ctrl.form" ng-submit="$ctrl.create()">
   <div class="modal-body" id="modal-body">
     <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}" form="$ctrl.form"></formly-form>
-    <div ng-include src="'static/frontend/views/conversion_spec.html'"></div>
+    <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
   </div>
   <div class="modal-footer">
     <button

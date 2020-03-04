@@ -423,6 +423,7 @@ export default angular
     'EditMode',
     '$uibModal',
     '$log',
+    'myService',
     ConversionJobModalInstanceCtrl,
   ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])

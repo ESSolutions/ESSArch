@@ -3,23 +3,23 @@
     {{'ARCHIVE_MAINTENANCE.SPECIFICATION' | translate}}
   </h4>
   <div class="w-100">
-    <formly-form model="$ctrl.newSpec" fields="$ctrl.baseSpecFields" options="{}"></formly-form>
+    <formly-form model="vm.newSpec" fields="vm.baseSpecFields" options="{}"></formly-form>
   </div>
-  <div ng-if="$ctrl.toolDataForm" class="w-100">
-    <formly-form model="$ctrl.toolData" fields="$ctrl.toolDataForm"></formly-form>
+  <div ng-if="vm.toolDataForm" class="w-100">
+    <formly-form model="vm.toolData" fields="vm.toolDataForm"></formly-form>
   </div>
   <div>
     <button
       type="button"
       class="btn btn-primary"
-      ng-disabled="!$ctrl.newSpec.path || !$ctrl.newSpec.tool"
-      ng-click="$ctrl.addSpecification()"
+      ng-disabled="!vm.newSpec.path || !vm.newSpec.tool"
+      ng-click="vm.addSpecification()"
     >
       {{'ADD' | translate}}
     </button>
   </div>
   <hr class="small" />
   <pre class="w-100">
-    {{$ctrl.model.specification | json}}
+    {{vm.specification | json}}
   </pre>
 </div>

@@ -10,7 +10,8 @@ export default class ConversionJobModalInstanceCtrl {
     $scope,
     EditMode,
     $uibModal,
-    $log
+    $log,
+    myService
   ) {
     const $ctrl = this;
     $ctrl.angular = angular;
@@ -19,11 +20,7 @@ export default class ConversionJobModalInstanceCtrl {
     $ctrl.model = {
       specification: {},
     };
-    $ctrl.newSpec = {tool: null, path: null};
-    $ctrl.tool = null;
-    $ctrl.tools = [];
-    $ctrl.toolData = {};
-    $ctrl.toolDataForm = [];
+
     $ctrl.$onInit = () => {
       if (!data.remove) {
         if (!data.allow_close) {
@@ -55,52 +52,6 @@ export default class ConversionJobModalInstanceCtrl {
       }
     };
 
-    $ctrl.baseSpecFields = [
-      {
-        type: 'input',
-        key: 'path',
-        templateOptions: {
-          label: $translate.instant('PATH'),
-        },
-      },
-      {
-        type: 'uiselect',
-        key: 'tool',
-        templateOptions: {
-          options: function() {
-            return $ctrl.tools;
-          },
-          valueProp: 'name',
-          labelProp: 'name',
-          onChange: newVal => {
-            $ctrl.toolDataForm = $ctrl.tools.filter(x => x.name === newVal)[0].form;
-          },
-          placeholder: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
-          label: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
-          appendToBody: false,
-          refresh: function(search) {
-            if (angular.isUndefined(search) || search === null || search === '') {
-              search = '';
-            }
-            return $ctrl.getTools(search).then(function() {
-              this.options = $ctrl.tools;
-              return $ctrl.tools;
-            });
-          },
-        },
-      },
-    ];
-
-    $ctrl.getTools = search => {
-      return $http.get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}}).then(response => {
-        response.data.map(x => {
-          return {name: x.name, fullItem: x};
-        });
-        $ctrl.tools = response.data;
-        return response.data;
-      });
-    };
-
     $ctrl.fields = [
       {
         type: 'input',
@@ -118,18 +69,15 @@ export default class ConversionJobModalInstanceCtrl {
         },
       },
       {
-        className: 'row m-0',
-        fieldGroup: [
-          {
-            className: 'col-xs-12 col-sm-6 px-0 pr-md-base',
-            type: 'datepicker',
-            key: 'start_date',
-            templateOptions: {
-              label: $translate.instant('START_DATE'),
-              appendToBody: false,
-            },
-          },
-        ],
+        type: 'datepicker',
+        key: 'start_date',
+        templateOptions: {
+          label: $translate.instant('START_DATE'),
+          appendToBody: false,
+        },
+        hideExpression: ($viewValue, $modelValue, scope) => {
+          return !myService.checkPermission('maintenance.run_conversionjob');
+        },
       },
     ];
 
@@ -236,55 +184,6 @@ export default class ConversionJobModalInstanceCtrl {
       $ctrl.ips = [];
     };
 
-    $ctrl.addSpecification = function() {
-      if ($ctrl.model.specification === null || $ctrl.model.specification === []) {
-        $ctrl.model.specification = {};
-      }
-      if ($ctrl.newSpec.path) {
-        $ctrl.model.specification[$ctrl.newSpec.path] = {
-          tool: angular.copy($ctrl.newSpec.tool),
-          options: angular.copy($ctrl.toolData),
-        };
-        $ctrl.newSpec = {
-          path: '',
-          tool: null,
-        };
-        $ctrl.toolData = {};
-        $ctrl.toolDataForm = [];
-      }
-    };
-
-    $ctrl.deleteSpecification = function(key) {
-      delete $ctrl.model.specification[key];
-    };
-
-    $ctrl.removeTemplate = function(ip, template) {
-      $ctrl.removingTemplate = true;
-      $http({
-        url: appConfig.djangoUrl + 'information-packages/' + ip.id + '/remove-conversion-template/',
-        method: 'POST',
-        data: {
-          id: template.id,
-        },
-      })
-        .then(function(response) {
-          ip.templates.forEach(function(x, index, array) {
-            if (x.id == template.id) {
-              array.splice(index, 1);
-            }
-          });
-          $ctrl.removingTemplate = false;
-          $ctrl.showTemplatesTable(ip);
-        })
-        .catch(function(response) {
-          $ctrl.removingTemplate = false;
-        });
-    };
-    $ctrl.closeTemplatesTable = function() {
-      $ctrl.conversionTemplates = [];
-      $ctrl.ip = null;
-    };
-
     $ctrl.runJob = function(job) {
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/' + job.id + '/run/',
@@ -386,18 +285,6 @@ export default class ConversionJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.path = '';
-    $ctrl.pathList = [];
-    $ctrl.addPath = function(path) {
-      if (path.length > 0) {
-        $ctrl.pathList.push(path);
-      }
-    };
-    $ctrl.removePath = function(path) {
-      $ctrl.pathList.splice($ctrl.pathList.indexOf(path), 1);
-    };
-    $ctrl.conversionTemplate = null;
-
     $ctrl.remove = function() {
       $ctrl.removingJob = true;
       $http({
@@ -422,6 +309,7 @@ export default class ConversionJobModalInstanceCtrl {
       EditMode.disable();
       $uibModalInstance.close();
     };
+
     $ctrl.cancel = function() {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
