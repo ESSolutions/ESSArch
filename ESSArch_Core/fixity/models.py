@@ -1,3 +1,4 @@
+import importlib
 import os
 import uuid
 from pathlib import PurePath
@@ -69,13 +70,22 @@ class ConversionTool(ExternalTool):
             remove=True,
         )
 
+    def _run_python_module(self, filepath, rootdir, options):
+        mod = importlib.import_module(self.path).split('')
+        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
+        args = cmd.split(',')
+
+        mod.convert(*args)
+
     def run(self, filepath, rootdir, options):
         if self.type == ExternalTool.Type.APPLICATION:
             self._run_application(filepath, rootdir, options)
-        elif self.type == ExternalTool.Type.PYTHON_MODULE:
-            raise NotImplementedError
         elif self.type == ExternalTool.Type.DOCKER_IMAGE:
             self._run_docker(filepath, rootdir, options)
+        elif self.type == ExternalTool.Type.PYTHON_MODULE:
+            self._run_python_module(filepath, rootdir, options)
+
+        raise ValueError('Unknown tool type')
 
 
 class Validation(models.Model):
