@@ -19,7 +19,29 @@
     </button>
   </div>
   <hr class="small" />
-  <pre class="w-100">
-    {{vm.specification | json}}
-  </pre>
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'ARCHIVE_MAINTENANCE.TOOL' | translate}}</th>
+          <th>{{'PATH' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="selectable"
+          ng-repeat="(key, value) in vm.specification"
+          ng-click="vm.specificationItemModal(key, value)"
+        >
+          <td>{{value.tool}}</td>
+          <td>{{key}}</td>
+        </tr>
+        <tr ng-if="angular.equals(vm.specification, {}) || vm.specification == null">
+          <td class="empty-table-indicator" colspan="2">
+            {{'ARCHIVE_MAINTENANCE.NO_SPECIFICATIONS_CHOSEN' | translate}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>

@@ -94,6 +94,7 @@ import StatsReportModalInstanceCtrl from '../controllers/StatsReportModalInstanc
 import SearchCtrl from '../controllers/SearchCtrl';
 import SearchDetailCtrl from '../controllers/SearchDetailCtrl';
 import SearchIpCtrl from '../controllers/SearchIpCtrl';
+import SpecificationItemModalInstanceCtrl from '../controllers/SpecificationItemModalInstanceCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
@@ -1015,6 +1016,13 @@ export default angular
     '$transitions',
     'StructureUnitRelation',
     SearchDetailCtrl,
+  ])
+  .controller('SpecificationItemModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'data',
+    '$scope',
+    SpecificationItemModalInstanceCtrl,
   ])
   .controller('SearchIpCtrl', [
     'appConfig',

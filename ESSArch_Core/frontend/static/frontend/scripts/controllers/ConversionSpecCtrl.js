@@ -1,6 +1,7 @@
 export default class ConversionSpecCtrl {
-  constructor($http, $translate, appConfig) {
+  constructor($scope, $http, $translate, appConfig, $uibModal, $log) {
     let vm = this;
+    $scope.angular = angular;
     vm.newSpec = {tool: null, path: null};
     vm.tool = null;
     vm.tools = [];
@@ -73,6 +74,35 @@ export default class ConversionSpecCtrl {
 
     vm.deleteSpecification = function(key) {
       delete vm.specification[key];
+    };
+
+    vm.specificationItemModal = (key, value) => {
+      let specItem = angular.extend(
+        {
+          path: key,
+        },
+        value
+      );
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/specification_item_modal.html',
+        controller: 'SpecificationItemModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: {
+            specItem,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {},
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
     };
   }
 }
