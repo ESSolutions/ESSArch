@@ -123,7 +123,7 @@ class AppraisalTemplateSerializer(MaintenanceTemplateSerializer):
 
     class Meta(MaintenanceTemplateSerializer.Meta):
         model = AppraisalTemplate
-        fields = MaintenanceJobSerializer.Meta.fields + ('package_file_pattern',)
+        fields = MaintenanceTemplateSerializer.Meta.fields + ('package_file_pattern',)
 
 
 class AppraisalJobSerializer(MaintenanceJobSerializer):
