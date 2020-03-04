@@ -79,11 +79,11 @@ class ConversionTool(ExternalTool):
 
     def run(self, filepath, rootdir, options):
         if self.type == ExternalTool.Type.APPLICATION:
-            self._run_application(filepath, rootdir, options)
+            return self._run_application(filepath, rootdir, options)
         elif self.type == ExternalTool.Type.DOCKER_IMAGE:
-            self._run_docker(filepath, rootdir, options)
+            return self._run_docker(filepath, rootdir, options)
         elif self.type == ExternalTool.Type.PYTHON_MODULE:
-            self._run_python_module(filepath, rootdir, options)
+            return self._run_python_module(filepath, rootdir, options)
 
         raise ValueError('Unknown tool type')
 
