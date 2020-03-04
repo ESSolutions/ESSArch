@@ -17,8 +17,13 @@ export default class ConversionJobModalInstanceCtrl {
     $ctrl.data = data;
     $ctrl.ips = [];
     $ctrl.model = {
-      package_file_pattern: {},
+      specification: {},
     };
+    $ctrl.newSpec = {tool: null, path: null};
+    $ctrl.tool = null;
+    $ctrl.tools = [];
+    $ctrl.toolData = {};
+    $ctrl.toolDataForm = [];
     $ctrl.$onInit = () => {
       if (!data.remove) {
         if (!data.allow_close) {
@@ -35,8 +40,8 @@ export default class ConversionJobModalInstanceCtrl {
             });
         } else {
           if (data.template) {
-            $ctrl.model.package_file_pattern = angular.copy(data.template).package_file_pattern;
-            if (data.template.package_file_pattern && !angular.equals(data.template.package_file_pattern, {})) {
+            $ctrl.model.specification = angular.copy(data.template).specification;
+            if (data.template.specification && !angular.equals(data.template.specification, {})) {
               $ctrl.fullIpAppraisal = false;
             }
             if (data.template && !$ctrl.model.template) {
@@ -44,10 +49,56 @@ export default class ConversionJobModalInstanceCtrl {
             }
           } else {
             $ctrl.model.template = null;
-            $ctrl.model.package_file_pattern = [];
+            $ctrl.model.specification = {};
           }
         }
       }
+    };
+
+    $ctrl.baseSpecFields = [
+      {
+        type: 'input',
+        key: 'path',
+        templateOptions: {
+          label: $translate.instant('PATH'),
+        },
+      },
+      {
+        type: 'uiselect',
+        key: 'tool',
+        templateOptions: {
+          options: function() {
+            return $ctrl.tools;
+          },
+          valueProp: 'name',
+          labelProp: 'name',
+          onChange: newVal => {
+            $ctrl.toolDataForm = $ctrl.tools.filter(x => x.name === newVal)[0].form;
+          },
+          placeholder: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
+          label: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
+          appendToBody: false,
+          refresh: function(search) {
+            if (angular.isUndefined(search) || search === null || search === '') {
+              search = '';
+            }
+            return $ctrl.getTools(search).then(function() {
+              this.options = $ctrl.tools;
+              return $ctrl.tools;
+            });
+          },
+        },
+      },
+    ];
+
+    $ctrl.getTools = search => {
+      return $http.get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}}).then(response => {
+        response.data.map(x => {
+          return {name: x.name, fullItem: x};
+        });
+        $ctrl.tools = response.data;
+        return response.data;
+      });
     };
 
     $ctrl.fields = [
@@ -185,18 +236,26 @@ export default class ConversionJobModalInstanceCtrl {
       $ctrl.ips = [];
     };
 
-    $ctrl.specifications = {};
     $ctrl.addSpecification = function() {
-      $ctrl.specifications[$ctrl.path] = {
-        target: $ctrl.target,
-        tool: $ctrl.tool,
-      };
-      $ctrl.path = '';
-      $ctrl.target = '';
+      if ($ctrl.model.specification === null || $ctrl.model.specification === []) {
+        $ctrl.model.specification = {};
+      }
+      if ($ctrl.newSpec.path) {
+        $ctrl.model.specification[$ctrl.newSpec.path] = {
+          tool: angular.copy($ctrl.newSpec.tool),
+          options: angular.copy($ctrl.toolData),
+        };
+        $ctrl.newSpec = {
+          path: '',
+          tool: null,
+        };
+        $ctrl.toolData = {};
+        $ctrl.toolDataForm = [];
+      }
     };
 
     $ctrl.deleteSpecification = function(key) {
-      delete $ctrl.specifications[key];
+      delete $ctrl.model.specification[key];
     };
 
     $ctrl.removeTemplate = function(ip, template) {

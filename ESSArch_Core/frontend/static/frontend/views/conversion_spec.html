@@ -1,71 +1,25 @@
 <div class="specification">
-  <label>
-    {{'PATH' | translate}}
-    <input class="form-control" ng-model="$ctrl.path" />
-  </label>
-  <label>
-    {{'TARGET' | translate}}
-    <input class="form-control" ng-model="$ctrl.target" />
-  </label>
+  <h4>
+    {{'ARCHIVE_MAINTENANCE.SPECIFICATION' | translate}}
+  </h4>
+  <div class="w-100">
+    <formly-form model="$ctrl.newSpec" fields="$ctrl.baseSpecFields" options="{}"></formly-form>
+  </div>
+  <div ng-if="$ctrl.toolDataForm" class="w-100">
+    <formly-form model="$ctrl.toolData" fields="$ctrl.toolDataForm"></formly-form>
+  </div>
   <div>
-    <label>
-      {{'ARCHIVE_MAINTENANCE.TOOL' | translate}}
-      <select
-        class="form-control"
-        ng-enter="$ctrl.addSpecification()"
-        ng-model="$ctrl.tool"
-        ng-init="$ctrl.tool = 'libreoffice'"
-        ng-options="x for x in ['libreoffice']"
-        >{{x}}</select
-      >
-    </label>
     <button
       type="button"
-      class="btn btn-success btn-sm"
-      ng-disabled="!$ctrl.path || !$ctrl.target || !$ctrl.tool"
+      class="btn btn-primary"
+      ng-disabled="!$ctrl.newSpec.path || !$ctrl.newSpec.tool"
       ng-click="$ctrl.addSpecification()"
     >
-      <i class="fas fa-plus"></i>
+      {{'ADD' | translate}}
     </button>
   </div>
-  <table class="table" style="margin-top: 20px;">
-    <thead>
-      <th>
-        {{'PATH' | translate}}
-      </th>
-      <th>
-        {{'TARGET' | translate}}
-      </th>
-      <th>
-        {{'ARCHIVE_MAINTENANCE.TOOL' | translate}}
-      </th>
-      <th>
-        {{'REMOVE' | translate}}
-      </th>
-    </thead>
-    <tbody>
-      <tr ng-repeat="(key, value) in $ctrl.model.package_file_pattern">
-        <td>
-          {{key}}
-        </td>
-        <td>
-          {{value.target}}
-        </td>
-        <td>
-          {{value.tool}}
-        </td>
-        <td>
-          <button class="fas fa-trash-alt btn btn-default btn-sm" ng-click="$ctrl.deleteSpecification(key)"></button>
-        </td>
-      </tr>
-      <tr ng-if="$ctrl.angular.equals($ctrl.specifications, {})" class="text-center">
-        <td colspan="4">
-          <span ng-if="!$ctrl.showRequired">{{'ARCHIVE_MAINTENANCE.NO_SPECIFICATIONS_CHOSEN' | translate}}</span>
-          <span ng-if="$ctrl.showRequired" style="color: red;"
-            >{{'ARCHIVE_MAINTENANCE.CHOOSE_AT_LEAST_ONE_SPECIFICATION' | translate}} *</span
-          >
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <hr class="small" />
+  <pre class="w-100">
+    {{$ctrl.model.specification | json}}
+  </pre>
 </div>
