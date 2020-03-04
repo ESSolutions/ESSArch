@@ -140,8 +140,11 @@ class AppraisalJobSerializer(MaintenanceJobSerializer):
 
 
 class ConversionTemplateSerializer(MaintenanceTemplateSerializer):
+    specification = serializers.JSONField()
+
     class Meta(MaintenanceTemplateSerializer.Meta):
         model = ConversionTemplate
+        fields = MaintenanceTemplateSerializer.Meta.fields + ('specification',)
 
 
 class ConversionJobSerializer(MaintenanceJobSerializer):
