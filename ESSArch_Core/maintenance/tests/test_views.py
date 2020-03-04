@@ -28,6 +28,7 @@ from ESSArch_Core.maintenance.models import (
     AppraisalTemplate,
     ConversionJob,
     ConversionJobEntry,
+    ConversionTemplate,
 )
 from ESSArch_Core.profiles.models import Profile, SubmissionAgreement
 from ESSArch_Core.storage.models import (
@@ -1014,6 +1015,76 @@ class AppraisalJobViewSetReportTests(TestCase):
         mock_get_report_pdf_path.assert_called_once_with()
         mock_open.assert_called_once_with("report_path.pdf", 'rb')
         mock_generate_file_response.assert_called_once_with("dummy_stream", 'application/pdf')
+
+
+class CreateConversionTemplateTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.url = reverse('conversiontemplate-list')
+
+    def test_unauthenticated(self):
+        response = self.client.post(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_authenticated_with_permission(self):
+        perm = Permission.objects.get(codename='add_conversiontemplate')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.post(self.url, {'name': 'foo', 'specification': {}})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        response = self.client.post(self.url, {'name': 'bar', 'specification': {}, 'public': False})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        org_group_type = GroupType.objects.create(codename='organization')
+        group = Group.objects.create(name='organization', group_type=org_group_type)
+        group.add_member(self.user.essauth_member)
+
+        response = self.client.post(self.url, {'name': 'bar', 'specification': {}, 'public': False})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class ChangeConversionTemplateTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.template = ConversionTemplate.objects.create()
+        self.url = reverse('conversiontemplate-detail', args=(self.template.pk,))
+
+    def test_unauthenticated(self):
+        response = self.client.patch(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_authenticated(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_authenticated_with_permission(self):
+        perm = Permission.objects.get(codename='change_conversiontemplate')
+        self.user.user_permissions.add(perm)
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(self.url, {'name': 'foo'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(self.url, {'public': False})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        org_group_type = GroupType.objects.create(codename='organization')
+        group = Group.objects.create(name='organization', group_type=org_group_type)
+        group.add_member(self.user.essauth_member)
+
+        response = self.client.patch(self.url, {'public': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class ConversionJobViewSetTests(APITestCase):
