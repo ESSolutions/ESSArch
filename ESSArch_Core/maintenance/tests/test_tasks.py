@@ -69,7 +69,6 @@ class PollConversionJobs(TestCase):
         self.addCleanup(shutil.rmtree, self.datadir)
         Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
-        EventType.objects.create(eventType=50710, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def create_task(self):
         return ProcessTask.objects.create(
