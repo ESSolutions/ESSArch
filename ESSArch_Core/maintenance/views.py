@@ -21,11 +21,8 @@ from ESSArch_Core.exceptions import Locked
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.filters import (
     AppraisalJobFilter,
-    AppraisalTemplateFilter,
     ConversionJobFilter,
-    ConversionTemplateFilter,
     MaintenanceJobFilter,
-    MaintenanceTemplateFilter,
 )
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
@@ -53,7 +50,6 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 class MaintenanceTemplateViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     permission_classes = (ActionPermissions,)
     serializer_class = MaintenanceTemplateSerializer
-    filterset_class = MaintenanceTemplateFilter
     filter_backends = (
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
@@ -94,7 +90,6 @@ class MaintenanceJobViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 class AppraisalTemplateViewSet(MaintenanceTemplateViewSet):
     queryset = AppraisalTemplate.objects.all()
     serializer_class = AppraisalTemplateSerializer
-    filterset_class = AppraisalTemplateFilter
 
 
 class AppraisalJobViewSet(MaintenanceJobViewSet):
@@ -232,7 +227,6 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
 class ConversionTemplateViewSet(MaintenanceTemplateViewSet):
     queryset = ConversionTemplate.objects.all()
     serializer_class = ConversionTemplateSerializer
-    filterset_class = ConversionTemplateFilter
 
 
 class ConversionJobViewSet(MaintenanceJobViewSet):
