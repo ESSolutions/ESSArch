@@ -29,7 +29,6 @@ import tarfile
 import tempfile
 import zipfile
 
-from celery import states as celery_states
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
 from django.contrib.auth import get_user_model
@@ -47,7 +46,10 @@ from ESSArch_Core.ip.models import (
     InformationPackage,
     Workarea,
 )
-from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob
+from ESSArch_Core.maintenance.tasks import (
+    PollAppraisalJobs as PollAppraisalJobsAlias,
+    PollConversionJobs as PollConversionJobsAlias,
+)
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
     TapeMountedAndLockedByOtherError,
@@ -360,41 +362,9 @@ class UnmountIdleDrives(DBTask):
                 )
 
 
-class PollAppraisalJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-        jobs = AppraisalJob.objects.select_related('template').filter(
-            status=celery_states.PENDING, start_date__lte=now,
-        )
-
-        for job in jobs.iterator():
-            if job.task is None:
-                job.task = ProcessTask.objects.create(
-                    name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',
-                    args=[str(job.pk)],
-                    eager=False,
-                )
-                job.save(update_fields=['task'])
-            job.run()
+class PollAppraisalJobs(PollAppraisalJobsAlias):
+    pass
 
 
-class PollConversionJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-        jobs = ConversionJob.objects.select_related('template').filter(
-            status=celery_states.PENDING, start_date__lte=now,
-        )
-
-        for job in jobs.iterator():
-            if job.task is None:
-                job.task = ProcessTask.objects.create(
-                    name='ESSArch_Core.maintenance.tasks.RunConversionJob',
-                    args=[str(job.pk)],
-                    eager=False,
-                )
-                job.save(update_fields=['task'])
-            job.run()
+class PollConversionJobs(PollConversionJobsAlias):
+    pass

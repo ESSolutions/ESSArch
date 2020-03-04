@@ -228,6 +228,9 @@ class AppraisalJob(MaintenanceJob):
         }
 
     def create_notification(self, status):
+        if self.user is None:
+            return
+
         if status == celery_states.SUCCESS:
             msg = f'Completed appraisal job "{self.label or str(self.pk)}"'
             level = logging.INFO
@@ -582,6 +585,9 @@ class ConversionJob(MaintenanceJob):
             yield from storage_obj.list_files(pattern)
 
     def create_notification(self, status):
+        if self.user is None:
+            return
+
         if status == celery_states.SUCCESS:
             msg = f'Completed conversion job "{self.label or str(self.pk)}"'
             level = logging.INFO

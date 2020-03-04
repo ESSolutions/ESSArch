@@ -439,11 +439,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': timedelta(minutes=10),
     },
     'PollAppraisalJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollAppraisalJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollAppraisalJobs',
         'schedule': timedelta(minutes=10),
     },
     'PollConversionJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollConversionJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
     },
 }
