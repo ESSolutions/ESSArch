@@ -731,13 +731,15 @@ class Tag(models.Model):
             return Tag.objects.none()
 
     def is_leaf_node(self, user, structure=None):
-        if user.has_perm('tags.security_level_5'):
-            try:
-                return self.get_structures(structure).latest().is_leaf_node()
-            except TagStructure.DoesNotExist:
-                return True
+        try:
+            tag_structure = self.get_structures(structure).latest()
+        except TagStructure.DoesNotExist:
+            return True
 
-        return not self.get_structures(structure).latest().get_descendants().filter(
+        if user.is_superuser:
+            return tag_structure.is_leaf_node()
+
+        return not tag_structure.get_descendants().filter(
             Exists(TagVersion.objects.for_user(user, None).filter(tag=OuterRef('tag')))
         ).exists()
 
