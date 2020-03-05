@@ -70,6 +70,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       NODE_ADDED_TO_CONVERSION_TEMPLATE: '{{node}} har lagts till i konverteringsmall: {{TEMPLATE}}',
       NODE_REMOVED_FROM_APPRAISAL_JOB: 'Noden har tagits bort från gallringsjobb',
       NODES_ADDED_TO_APPRAISAL_JOB: 'Noder tillagda i gallringsjobb',
+      ONE_SPECIFICATION_REQUIRED: 'En specifikation krävs för att köra eller schemalägga ett jobb',
       ONGOING: 'Pågående',
       PATHS: 'Sökvägar',
       PREPAREAPPRAISALDESC: 'Skapa ny gallringsmall',

@@ -13,7 +13,10 @@
   <div ng-if="!$ctrl.initModalLoad">
     <form name="$ctrl.form">
       <formly-form form="$ctrl.form" model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
-      <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
+      <conversion-spec
+        show-warning="$ctrl.specificationWarning"
+        specification="$ctrl.model.specification"
+      ></conversion-spec>
     </form>
     <hr />
     <div class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">

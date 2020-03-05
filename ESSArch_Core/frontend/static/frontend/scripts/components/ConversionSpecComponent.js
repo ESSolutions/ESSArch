@@ -6,5 +6,6 @@ export default {
   controllerAs: 'vm',
   bindings: {
     specification: '=',
+    showWarning: '<',
   },
 };

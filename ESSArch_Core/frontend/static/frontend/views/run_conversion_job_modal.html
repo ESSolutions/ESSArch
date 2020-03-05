@@ -20,12 +20,22 @@
       </tbody>
     </table>
   </div>
+  <div
+    uib-alert
+    class="alert-danger"
+    ng-if="angular.equals($ctrl.data.job.specification, {}) || $ctrl.data.job.specification == null"
+  >
+    {{'ARCHIVE_MAINTENANCE.ONE_SPECIFICATION_REQUIRED' | translate}}<br />
+    <a ng-click="$ctrl.editJob()">
+      {{'ARCHIVE_MAINTENANCE.EDIT_CONVERSION_JOB' | translate}}
+    </a>
+  </div>
 </div>
 <div class="modal-footer">
   <button
     class="btn btn-primary"
     type="button"
-    ng-disabled="$ctrl.running"
+    ng-disabled="$ctrl.running || angular.equals($ctrl.data.job.specification, {}) || $ctrl.data.job.specification == null"
     ng-click="$ctrl.previewModal($ctrl.data.job)"
   >
     {{'ARCHIVE_MAINTENANCE.PREVIEW' | translate}} <i ng-if="$ctrl.running" class="fas fa-spinner fa-spin"></i>
@@ -33,7 +43,7 @@
   <button
     class="btn btn-primary"
     type="button"
-    ng-disabled="$ctrl.running"
+    ng-disabled="$ctrl.running || angular.equals($ctrl.data.job.specification, {}) || $ctrl.data.job.specification == null"
     ng-click="$ctrl.runJob($ctrl.data.job)"
     focused="true"
   >

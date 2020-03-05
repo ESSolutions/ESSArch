@@ -70,6 +70,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       NODES_ADDED_TO_APPRAISAL_JOB: 'Nodes added to appraisal job',
       NO_PATHS_CHOSEN: 'No paths chosen',
       NO_SPECIFICATIONS_CHOSEN: 'No specifications chosen',
+      ONE_SPECIFICATION_REQUIRED: 'A specification is required to run or schedule a job',
       ONGOING: 'Ongoing',
       PATHS: 'Paths',
       PREPAREAPPRAISALDESC: 'Create new appraisal template',

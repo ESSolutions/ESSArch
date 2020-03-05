@@ -217,10 +217,14 @@ export default class {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.templatePipe(vm.templateTableState);
-          vm.nextPipe(vm.nextTableState);
-          vm.ongoingPipe(vm.ongoingTableState);
-          vm.finishedPipe(vm.finishedTableState);
+          if (data == 'edit_job') {
+            vm.editJob(job);
+          } else {
+            vm.templatePipe(vm.templateTableState);
+            vm.nextPipe(vm.nextTableState);
+            vm.ongoingPipe(vm.ongoingTableState);
+            vm.finishedPipe(vm.finishedTableState);
+          }
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());

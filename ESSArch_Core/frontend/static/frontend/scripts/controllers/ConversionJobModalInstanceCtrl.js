@@ -14,7 +14,7 @@ export default class ConversionJobModalInstanceCtrl {
     myService
   ) {
     const $ctrl = this;
-    $ctrl.angular = angular;
+    $scope.angular = angular;
     $ctrl.data = data;
     $ctrl.ips = [];
     $ctrl.model = {
@@ -185,6 +185,12 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.runJob = function(job) {
+      if ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {})) {
+        $ctrl.specificationWarning = true;
+        return;
+      } else {
+        $ctrl.specificationWarning = false;
+      }
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/' + job.id + '/run/',
         method: 'POST',
@@ -195,6 +201,15 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.createJob = function(template) {
+      if (
+        $ctrl.model.start_date !== null &&
+        ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {}))
+      ) {
+        $ctrl.specificationWarning = true;
+        return;
+      } else {
+        $ctrl.specificationWarning = false;
+      }
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -226,6 +241,15 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.save = function(template) {
+      if (
+        $ctrl.model.start_date !== null &&
+        ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {}))
+      ) {
+        $ctrl.specificationWarning = true;
+        return;
+      } else {
+        $ctrl.specificationWarning = false;
+      }
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -258,6 +282,12 @@ export default class ConversionJobModalInstanceCtrl {
 
     $ctrl.runningJob = false;
     $ctrl.createJobAndStart = function(template) {
+      if ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {})) {
+        $ctrl.specificationWarning = true;
+        return;
+      } else {
+        $ctrl.specificationWarning = false;
+      }
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -315,6 +345,11 @@ export default class ConversionJobModalInstanceCtrl {
         .catch(() => {
           $ctrl.removingJob = false;
         });
+    };
+
+    $ctrl.editJob = () => {
+      EditMode.disable();
+      $uibModalInstance.close('edit_job');
     };
 
     $ctrl.ok = function() {
