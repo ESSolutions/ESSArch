@@ -21,6 +21,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CHOOSE_AT_LEAST_ONE_PATH: 'Välj minst en sökväg',
       CHOOSE_AT_LEAST_ONE_SPECIFICATION: 'Välj minst en specifikation',
       CONVERSION_JOB: 'Konverteringsjobb',
+      CONVERSION_JOB_REMOVED: 'Konverteringsjobb har tagits bort',
       CONVERSION_JOBS: 'Konverteringsjobb',
       CONVERSION_PREVIEW: 'Konvertering förhandsgranskning',
       CONVERSION_TEMPLATE: 'Konverteringsmall',

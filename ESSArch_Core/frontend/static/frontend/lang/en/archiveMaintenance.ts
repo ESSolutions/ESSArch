@@ -21,6 +21,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CHOOSE_AT_LEAST_ONE_PATH: 'Choose at least one path',
       CHOOSE_AT_LEAST_ONE_SPECIFICATION: 'Choose at least one specification',
       CONVERSION_JOB: 'Conversion job',
+      CONVERSION_JOB_REMOVED: 'Conversion job removed',
       CONVERSION_JOBS: 'Conversion jobs',
       CONVERSION_PREVIEW: 'Conversion preview',
       CONVERSION_TEMPLATE: 'Conversion template',
