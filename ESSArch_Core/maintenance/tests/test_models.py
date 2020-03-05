@@ -329,10 +329,8 @@ class MaintenanceJobRunTests(TestCase):
 
 
 class FindAllFilesTests(TestCase):
-
     def setUp(self):
-        self.tmpdir = normalize_path(tempfile.mkdtemp())
-        self.datadir = os.path.join(self.tmpdir, "datadir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
         self.dir_names = [
             'a_dir', 'b_dir', 'c_dir',
