@@ -81,7 +81,7 @@ class Agent(models.Model):
     language = models.ForeignKey(Language, on_delete=models.PROTECT, null=False, verbose_name=_('language'))
     mandates = models.ManyToManyField('agents.SourcesOfAuthority', related_name='agents', verbose_name=_('mandates'))
 
-    create_date = models.DateTimeField(_('create date'), null=False)
+    create_date = models.DateTimeField(_('create date'), null=False, default=timezone.now)
     revise_date = models.DateTimeField(_('revise date'), null=True)
 
     start_date = models.DateField(_('start date'), null=True)
