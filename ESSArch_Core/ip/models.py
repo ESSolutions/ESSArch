@@ -2033,8 +2033,18 @@ class Workarea(models.Model):
 
     @property
     def path(self):
-        area_dir = Path.objects.cached('entity', self.get_type_display() + '_workarea', 'value')
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+
+    @property
+    def package_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value) + '.xml'
+
+    @property
+    def aic_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.aic.object_identifier_value) + '.xml'
 
     def get_path(self):
         return self.path
