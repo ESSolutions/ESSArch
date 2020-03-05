@@ -1134,7 +1134,7 @@ class ConversionJobViewSetTests(APITestCase):
     def test_change_start_date(self):
         self.user.user_permissions.add(Permission.objects.get(codename='change_conversionjob'))
 
-        conversion_job = ConversionJob.objects.create()
+        conversion_job = ConversionJob.objects.create(specification={'*.docx': {'tool': 'unoconv'}})
         url = reverse('conversionjob-detail', args=(conversion_job.pk,))
 
         with self.subTest('without permission'):
@@ -1154,6 +1154,23 @@ class ConversionJobViewSetTests(APITestCase):
 
             res = self.client.patch(url, data={'start_date': None})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        with self.subTest('without specification'):
+            res = self.client.patch(url, data={'start_date': timezone.now(), 'specification': None})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+            res = self.client.patch(url, data={'start_date': timezone.now(), 'specification': {}})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+            conversion_job.specification = None
+            conversion_job.save()
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+            conversion_job.specification = {}
+            conversion_job.save()
+            res = self.client.patch(url, data={'start_date': timezone.now()})
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_delete_without_permission(self):
         conversion_job = ConversionJob.objects.create()
@@ -1424,6 +1441,28 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.client.force_authenticate(user=self.user)
 
         self.conversion_job.start_date = timezone.now()
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_conversion_job_run.assert_not_called()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.maintenance.models.ConversionJob.run')
+    def test_prevent_running_job_with_empty_specification(self, mock_conversion_job_run):
+        mock_conversion_job_run.return_value = mock.ANY
+        perm_list = ['run_conversionjob']
+        self.user.user_permissions.add(*Permission.objects.filter(codename__in=perm_list))
+        self.client.force_authenticate(user=self.user)
+
+        self.conversion_job.specification = None
+        self.conversion_job.save()
+
+        response = self.client.post(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        mock_conversion_job_run.assert_not_called()
+
+        self.conversion_job.specification = {}
         self.conversion_job.save()
 
         response = self.client.post(self.url)

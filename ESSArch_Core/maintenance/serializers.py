@@ -159,6 +159,17 @@ class ConversionJobSerializer(MaintenanceJobSerializer):
 
         return value
 
+    def validate(self, data):
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+
+        if start_date is not None:
+            specification = data.get('specification', getattr(self.instance, 'specification', None))
+
+            if specification is None or specification == {}:
+                raise exceptions.ValidationError('Cannot schedule job without specification')
+
+        return data
+
     class Meta(MaintenanceJobSerializer.Meta):
         model = ConversionJob
         fields = MaintenanceJobSerializer.Meta.fields + ('specification',)
