@@ -195,6 +195,10 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.createJob = function(template) {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
       $ctrl.creatingJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/',
@@ -222,6 +226,10 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.save = function(template) {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
       $ctrl.creatingJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/' + data.job.id + '/',
@@ -250,6 +258,10 @@ export default class ConversionJobModalInstanceCtrl {
 
     $ctrl.runningJob = false;
     $ctrl.createJobAndStart = function(template) {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
       $ctrl.runningJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/',

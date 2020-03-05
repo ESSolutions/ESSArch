@@ -8,8 +8,10 @@
     {{'LOADING' | translate}}
   </div>
   <div ng-if="!$ctrl.initModalLoad">
-    <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
-    <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
+    <form name="$ctrl.form">
+      <formly-form form="$ctrl.form" model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
+      <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
+    </form>
     <hr />
     <div class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
       <div class="title-action-button-row">
@@ -134,7 +136,12 @@
   </div>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" ng-disabled="$ctrl.runningJob" ng-click="$ctrl.save()" ng-enter="$ctrl.save()">
+  <button
+    class="btn btn-primary"
+    ng-disabled="$ctrl.runningJob || $ctrl.form.$invalid"
+    ng-click="$ctrl.save()"
+    ng-enter="$ctrl.save()"
+  >
     {{'SAVE' | translate}}
     <i ng-if="$ctrl.runningJob" class="fas fa-spinner fa-spin"></i>
   </button>

@@ -11,8 +11,10 @@
     {{'LOADING' | translate}}
   </div>
   <div ng-if="!$ctrl.initModalLoad">
-    <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
-    <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
+    <form name="$ctrl.form">
+      <formly-form form="$ctrl.form" model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
+      <conversion-spec specification="$ctrl.model.specification"></conversion-spec>
+    </form>
     <hr />
     <div class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
       <div class="title-action-button-row">
@@ -137,13 +139,17 @@
   </div>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" ng-disabled="$ctrl.creatingJob" ng-click="$ctrl.createJob($ctrl.data.template)">
+  <button
+    class="btn btn-primary"
+    ng-disabled="$ctrl.creatingJob || $ctrl.form.$invalid"
+    ng-click="$ctrl.createJob($ctrl.data.template)"
+  >
     {{'ARCHIVE_MAINTENANCE.CREATE_CONVERSION_JOB' | translate}}
     <i ng-if="$ctrl.creatingJob" class="fas fa-spinner fa-spin"></i>
   </button>
   <button
     class="btn btn-primary"
-    ng-disabled="$ctrl.runningJob"
+    ng-disabled="$ctrl.runningJob || $ctrl.form.$invalid"
     ng-click="$ctrl.createJobAndStart($ctrl.data.template)"
   >
     {{'ARCHIVE_MAINTENANCE.CREATE_CONVERSION_JOB_AND_RUN' | translate}}
