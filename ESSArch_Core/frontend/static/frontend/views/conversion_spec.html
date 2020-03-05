@@ -25,6 +25,7 @@
         <tr>
           <th>{{'ARCHIVE_MAINTENANCE.TOOL' | translate}}</th>
           <th>{{'PATH' | translate}}</th>
+          <th class="shrink">{{'REMOVE' | translate}}</th>
         </tr>
       </thead>
       <tbody>
@@ -35,9 +36,18 @@
         >
           <td>{{value.tool}}</td>
           <td>{{key}}</td>
+          <td class="shrink">
+            <button
+              class="btn btn-default fas fa-trash-alt btn-sm"
+              ng-click="vm.removeSpecification(key); $event.stopPropagation();"
+              uib-tooltip="{{'REMOVE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></button>
+          </td>
         </tr>
         <tr ng-if="angular.equals(vm.specification, {}) || vm.specification == null">
-          <td class="empty-table-indicator" colspan="2">
+          <td class="empty-table-indicator" colspan="3">
             {{'ARCHIVE_MAINTENANCE.NO_SPECIFICATIONS_CHOSEN' | translate}}
           </td>
         </tr>

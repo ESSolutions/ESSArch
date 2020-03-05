@@ -72,7 +72,7 @@ export default class ConversionSpecCtrl {
       }
     };
 
-    vm.deleteSpecification = function(key) {
+    vm.removeSpecification = function(key) {
       delete vm.specification[key];
     };
 
