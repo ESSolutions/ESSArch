@@ -215,6 +215,7 @@ export default class AppraisalCtrl {
         templateUrl: 'static/frontend/views/run_appraisal_job_modal.html',
         controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
             job,
@@ -243,6 +244,7 @@ export default class AppraisalCtrl {
         templateUrl: 'static/frontend/views/create_appraisal_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {},
         },
@@ -316,6 +318,7 @@ export default class AppraisalCtrl {
         templateUrl: 'static/frontend/views/edit_appraisal_template_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
             appraisal: appraisal,
