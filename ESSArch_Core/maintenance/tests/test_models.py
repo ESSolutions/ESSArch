@@ -17,7 +17,7 @@ from ESSArch_Core.maintenance.models import (
     ConversionJob,
     find_all_files,
 )
-from ESSArch_Core.util import normalize_path, win_to_posix
+from ESSArch_Core.util import win_to_posix
 
 
 class MaintenanceJobGetReportDirectoryTests(TestCase):
