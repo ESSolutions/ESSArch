@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import ProtectedError, Q
+from django.db.models import Exists, OuterRef, ProtectedError, Q
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -203,6 +203,9 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     ordering_fields = ('name',)
     search_fields = ('name',)
 
+    def get_queryset(self):
+        return self.queryset.for_user(self.request.user, None)
+
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class StructureTypeViewSet(viewsets.ModelViewSet):
@@ -286,11 +289,26 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     def tree(self, request, pk=None):
         obj = self.get_object()
 
-        qs = StructureUnit.objects.filter(structure=obj)
+        qs = StructureUnit.objects.filter(structure=obj).select_related(
+            'type__structure_type',
+        ).prefetch_related(
+            'identifiers',
+            'notes',
+            'structure__tagstructure_set',
+            'structure_unit_relations_a',
+        ).annotate(
+            tag_leaf_node=~Exists(
+                TagVersion.objects.filter(
+                    tag__structures__structure=OuterRef('structure'),
+                    tag__structures__structure_unit=OuterRef('pk'),
+                ).for_user(request.user),
+            )
+        )
         root_nodes = cache_tree_children(qs)
         dicts = []
+        context = self.get_serializer_context()
         for n in root_nodes:
-            dicts.append(mptt_to_dict(n, StructureUnitSerializer))
+            dicts.append(mptt_to_dict(n, StructureUnitSerializer, context=context))
 
         return Response(dicts)
 
@@ -377,7 +395,8 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             children = TagVersion.objects.none()
 
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
+        children = children.for_user(request.user)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
@@ -400,6 +419,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         serializer = self.get_serializer_class()
         context = {
+            'request': request,
             'user': request.user,
             'structure': request.query_params.get('structure')
         }

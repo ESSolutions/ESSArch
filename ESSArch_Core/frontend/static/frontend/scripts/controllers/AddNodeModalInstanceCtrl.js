@@ -110,6 +110,17 @@ export default class AddNodeModalInstanceCtrl {
         },
         {
           templateOptions: {
+            label: $translate.instant('ACCESS.SECURITY_LEVEL'),
+            type: 'number',
+            required: false,
+            min: 1,
+            max: 5,
+          },
+          type: 'input',
+          key: 'security_level',
+        },
+        {
+          templateOptions: {
             label: $translate.instant('ACCESS.REFERENCE_CODE'),
             type: 'text',
             required: true,

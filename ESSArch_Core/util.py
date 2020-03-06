@@ -484,9 +484,9 @@ def nested_lookup(key, document):
                         yield result
 
 
-def mptt_to_dict(node, serializer):
-    result = serializer(instance=node).data
-    children = [mptt_to_dict(c, serializer) for c in node.get_children()]
+def mptt_to_dict(node, serializer, context=None):
+    result = serializer(instance=node, context=context).data
+    children = [mptt_to_dict(c, serializer, context=context) for c in node.get_children()]
     if children:
         result['children'] = children
     return result

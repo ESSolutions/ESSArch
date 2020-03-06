@@ -44,6 +44,9 @@
       </div>
     </div>
     <hr class="small" />
+    <div ng-if="vm.record.security_level">
+      {{'ACCESS.SECURITY_LEVEL' | translate}}: {{vm.record.security_level}}
+    </div>
     <div class="type-specific-results" ng-switch="vm.record._index">
       <div ng-switch-when="component">
         <div ng-switch="vm.record.type.name.toLowerCase()">
