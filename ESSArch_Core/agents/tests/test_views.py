@@ -391,6 +391,28 @@ class UpdateAgentTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+        agent.refresh_from_db()
+        self.assertIsNone(agent.revise_date)
+
+    def test_revise_date(self):
+        add_permission(self.user, 'change_agent')
+
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(url, data={'level_of_detail': Agent.PARTIAL})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        agent.refresh_from_db()
+        self.assertIsNotNone(agent.revise_date)
+
+        revise_date = agent.revise_date
+
+        response = self.client.patch(url, data={'level_of_detail': Agent.FULL})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agent.refresh_from_db()
+        self.assertNotEqual(agent.revise_date, revise_date)
+
     def test_update_names(self):
         add_permission(self.user, 'change_agent')
 

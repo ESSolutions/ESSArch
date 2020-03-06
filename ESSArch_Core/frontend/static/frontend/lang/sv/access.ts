@@ -189,6 +189,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SAVE_SEARCH: 'Spara sökning',
       SAVED_SEARCHES: 'Sparade sökningar',
       SCRIPT: 'Script',
+      SECURITY_LEVEL: 'Säkerhetsnivå',
       SEE_ALL: 'Se alla',
       SEE_MORE: 'Se mer',
       SELECT_LOCATION_FOR_NODE: 'Placera {{type.name}}: {{reference_code}} {{name}}',
