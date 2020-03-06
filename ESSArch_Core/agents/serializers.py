@@ -428,6 +428,7 @@ class AgentWriteSerializer(AgentSerializer):
             AgentRelation.objects.filter(Q(agent_a=instance) | Q(agent_b=instance)).delete()
             self.create_relations(instance, related_agents_data)
 
+        instance.revise_date = timezone.now()
         return super().update(instance, validated_data)
 
     def validate_names(self, value):
