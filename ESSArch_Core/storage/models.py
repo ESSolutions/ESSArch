@@ -14,7 +14,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import (
     Case,
-    CharField,
     Exists,
     F,
     IntegerField,

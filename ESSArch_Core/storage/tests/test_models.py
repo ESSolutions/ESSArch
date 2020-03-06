@@ -11,23 +11,14 @@ from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.storage.models import (
     CAS,
     DISK,
-    STORAGE_TARGET_STATUS_ENABLED,
     TAPE,
     Robot,
     StorageMedium,
-    StorageMethod,
-    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
     TapeSlot,
     get_storage_type_from_medium_type,
     medium_type_CHOICES,
-)
-from ESSArch_Core.tags.models import (
-    Structure,
-    StructureType,
-    StructureUnit,
-    StructureUnitType,
 )
 from ESSArch_Core.util import normalize_path
 
@@ -468,92 +459,3 @@ class StorageObjectDeleteFilesTests(TestCase):
         storage_object.delete_files()
 
         self.assertFalse(os.path.isfile(file_name))
-
-
-class StorageMediumNaturalSortingTest(TestCase):
-    """
-    TODO:
-    Replace with test against API
-    """
-
-    def test_sort(self):
-        storage_target = StorageTarget.objects.create()
-
-        medium_ids = [
-            'DEF',
-            'ABC',
-            'X 1',
-            'XY 1',
-            'XYZ 1',
-            'BA 1',
-            'BA 10',
-            'BA 100',
-            'BA 2',
-            'BA 1002',
-            'BA 1000',
-            'BA 1001',
-            'BA 003',
-            'QWE1',
-            'QWE10',
-            'QWE2',
-            'A B 1',
-            'A B 2',
-            'A B 10',
-        ]
-
-        for mid in medium_ids:
-            StorageMedium.objects.create(
-                medium_id=mid, storage_target=storage_target,
-                status=20, location_status=50, block_size=1024, format=103,
-            )
-
-        expected = [
-            'ABC',
-            'DEF',
-            'QWE1',
-            'QWE2',
-            'QWE10',
-            'A B 1',
-            'A B 2',
-            'A B 10',
-            'BA 1',
-            'BA 2',
-            'BA 003',
-            'BA 10',
-            'BA 100',
-            'BA 1000',
-            'BA 1001',
-            'BA 1002',
-            'X 1',
-            'XY 1',
-            'XYZ 1',
-        ]
-        actual = list(StorageMedium.objects.all().natural_sort().values_list('medium_id', flat=True))
-        self.assertEqual(expected, actual)
-
-    def test_sort2(self):
-        structure = Structure.objects.create(type=StructureType.objects.create(), is_template=False)
-        unit_type = StructureUnitType.objects.create(structure_type=structure.type)
-
-        ref_codes = [
-            'stu1',
-            'stu2',
-            'stu10',
-            'stu3',
-        ]
-
-        for ref in ref_codes:
-            StructureUnit.objects.create(
-                reference_code=ref,
-                type=unit_type,
-                structure=structure,
-            )
-
-        expected = [
-            'stu1',
-            'stu2',
-            'stu3',
-            'stu10',
-        ]
-        actual = list(StructureUnit.objects.all().natural_sort().values_list('reference_code', flat=True))
-        self.assertEqual(expected, actual)

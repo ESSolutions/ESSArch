@@ -554,6 +554,64 @@ class ListStructureUnitTests(APITestCase):
         self.user = User.objects.create(username='user', is_superuser=True)
         self.client.force_authenticate(user=self.user)
 
+    def test_sort_reference_code(self):
+        structure = create_structure(self.structure_type)
+
+        ref_codes = [
+            'BA 100',
+            'ABC',
+            'X 1',
+            'BA 1001',
+            'XY 1',
+            'XYZ 1',
+            'BA 1',
+            'BA 10',
+            'BA 2',
+            'BA 1002',
+            'BA 1000',
+            'BA 003',
+            'QWE1',
+            'QWE10',
+            'QWE2',
+            'A B 2',
+            'A B 10',
+            'DEF',
+            'A B 1',
+        ]
+
+        for ref_code in ref_codes:
+            StructureUnit.objects.create(
+                reference_code=ref_code, type=self.unit_type,
+                structure=structure,
+            )
+
+        res = self.client.get(self.url, {'ordering': 'reference_code', 'pager': 'none'})
+
+        expected = [
+            'ABC',
+            'DEF',
+            'QWE1',
+            'QWE2',
+            'QWE10',
+            'A B 1',
+            'A B 2',
+            'A B 10',
+            'BA 1',
+            'BA 2',
+            'BA 003',
+            'BA 10',
+            'BA 100',
+            'BA 1000',
+            'BA 1001',
+            'BA 1002',
+            'X 1',
+            'XY 1',
+            'XYZ 1',
+        ]
+        actual = [sm['reference_code'] for sm in res.data]
+
+        self.assertEqual(expected, actual)
+
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_leaf_unit(self, mock_doc):
         structure = create_structure(self.structure_type)
