@@ -1,4 +1,4 @@
-from django.db.models import Case, CharField, F, IntegerField, Q, Value, When
+from django.db.models import Case, CharField, F, IntegerField, Value, When
 from django.db.models.functions import Cast, Length, StrIndex, Substr, Trim
 
 
