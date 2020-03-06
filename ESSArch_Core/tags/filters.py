@@ -46,6 +46,7 @@ class StructureUnitFilter(filters.FilterSet):
     ordering = StructureUnitOrderingFilter(
         fields=(
             ('reference_code', 'reference_code'),
+            ('name', 'name'),
         ),
     )
 
