@@ -191,6 +191,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SAVE_SEARCH: 'Save search',
       SAVED_SEARCHES: 'Saved searches',
       SCRIPT: 'Script',
+      SECURITY_LEVEL: 'Security level',
       SEE_ALL: 'See all',
       SEE_MORE: 'See more',
       SELECT_LOCATION_FOR_NODE: 'Link {{type.name}}: {{reference_code}} {{name}} to location',
