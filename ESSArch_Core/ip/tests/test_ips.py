@@ -3389,6 +3389,7 @@ class DownloadIPTestCase(TestCase):
             res['Content-Disposition'],
             'attachment; filename="{}"'.format(os.path.basename(self.ip.object_path)),
         )
+        res.close()
 
 
 class test_submit_ip(TestCase):
