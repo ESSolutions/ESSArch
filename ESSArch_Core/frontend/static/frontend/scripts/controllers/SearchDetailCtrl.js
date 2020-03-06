@@ -1061,7 +1061,8 @@ export default class SearchDetailCtrl {
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          $state.reload();
+          Notifications.add($translate.instant('EXPORTED_SUCCESSFULLY'), 'success');
+          vm.loadRecordAndTree(vm.structure);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
