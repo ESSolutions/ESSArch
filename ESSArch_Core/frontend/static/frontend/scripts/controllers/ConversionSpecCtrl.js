@@ -104,5 +104,35 @@ export default class ConversionSpecCtrl {
         }
       );
     };
+
+    vm.removeSpecificationItemModal = (key, value) => {
+      let specItem = angular.extend(
+        {
+          path: key,
+        },
+        value
+      );
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_specification_item_modal.html',
+        controller: 'SpecificationItemModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: {
+            specItem,
+          },
+        },
+      });
+      modalInstance.result
+        .then(() => {
+          vm.removeSpecification(key);
+        })
+        .catch(() => {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
+    };
   }
 }

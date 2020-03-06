@@ -1,6 +1,6 @@
 <div class="specification">
   <h4>
-    {{'ARCHIVE_MAINTENANCE.SPECIFICATION' | translate}}
+    {{'ARCHIVE_MAINTENANCE.CONVERSION_RULES' | translate}}
   </h4>
   <div class="w-100">
     <formly-form model="vm.newSpec" fields="vm.baseSpecFields" options="{}"></formly-form>
@@ -39,7 +39,7 @@
           <td class="shrink">
             <button
               class="btn btn-default fas fa-trash-alt btn-sm"
-              ng-click="vm.removeSpecification(key); $event.stopPropagation();"
+              ng-click="vm.removeSpecificationItemModal(key, value); $event.stopPropagation();"
               uib-tooltip="{{'REMOVE' | translate}}"
               tooltip-placement="auto top"
               tooltip-append-to-body="true"
