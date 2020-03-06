@@ -284,7 +284,8 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     """
     API endpoint for storage medium
     """
-    queryset = StorageMedium.objects.all()
+    queryset = StorageMedium.objects.all().natural_sort()
+
     serializer_class = StorageMediumSerializer
     filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter)
     filterset_class = StorageMediumFilter
@@ -292,7 +293,6 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     search_fields = (
         '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
-    ordering = ('-create_date',)
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:

@@ -11,9 +11,11 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.querysets import TreeQuerySet
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -403,8 +405,16 @@ class StructureUnitRelation(models.Model):
         unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
 
 
+class StructureUnitQueryset(TreeQuerySet):
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
+
+
 class StructureUnitManager(TreeManager, OrganizationManager):
-    pass
+    def get_queryset(self, *args, **kwargs):
+        return StructureUnitQueryset(self.model, using=self._db).order_by(
+            self.tree_id_attr, self.left_attr
+        )
 
 
 class StructureUnit(MPTTModel):
@@ -899,6 +909,9 @@ class TagVersionQuerySet(models.QuerySet):
             return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
         else:
             return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
+
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
 
 
 class TagVersionManager(OrganizationManager):

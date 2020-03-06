@@ -15,6 +15,7 @@ from ESSArch_Core.api.filters import OrderingFilterWithNulls, SearchFilter
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.ip.views import InformationPackageViewSet
 from ESSArch_Core.tags.filters import (
     StructureFilter,
@@ -350,7 +351,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'structure', 'type__structure_type',
         ).prefetch_related(
             'identifiers', 'notes', 'structure_unit_relations_a',
-        )
+        ).natural_sort()
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -396,7 +397,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             children = TagVersion.objects.none()
 
         context = {'structure': structure, 'request': request, 'user': request.user}
-        children = children.for_user(request.user)
+        children = children.for_user(request.user).natural_sort()
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
@@ -415,7 +416,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'structure', 'type__structure_type',
         ).prefetch_related(
             'identifiers', 'notes', 'structure_unit_relations_a',
-        )
+        ).natural_sort()
 
         serializer = self.get_serializer_class()
         context = {
