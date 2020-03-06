@@ -161,6 +161,17 @@ export default class EditNodeModalInstanceCtrl {
           },
         },
         {
+          templateOptions: {
+            label: $translate.instant('ACCESS.SECURITY_LEVEL'),
+            type: 'number',
+            required: false,
+            min: 1,
+            max: 5,
+          },
+          type: 'input',
+          key: 'security_level',
+        },
+        {
           key: 'reference_code',
           type: 'input',
           templateOptions: {
