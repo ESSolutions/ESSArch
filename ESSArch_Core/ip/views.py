@@ -1352,7 +1352,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )[1] is not None
 
             # remove existing premis and mets paths:
-            mets_path = ip.get_content_mets_file_path()
+            mets_path = os.path.join(ip.object_path, ip.get_content_mets_file_path())
             try:
                 os.remove(mets_path)
             except FileNotFoundError:
