@@ -690,31 +690,13 @@ export default class SearchDetailCtrl {
               vm.changeOrganizationModal(node.original);
             },
           };
-          const email = {
-            label: $translate.instant('EMAIL.EMAIL'),
+          const exportNode = {
+            label: $translate.instant('EXPORT'),
             _disabled: function() {
               return node.original._is_structure_unit;
             },
             action: function() {
-              const selected = vm.recordTreeInstance
-                .jstree(true)
-                .get_selected(true)
-                .map(function(x) {
-                  return x.original;
-                });
-              if (selected.length > 1) {
-                Search.massEmail(selected)
-                  .then(function(response) {
-                    Notifications.add($translate.instant('EMAILS_SENT'), 'success');
-                  })
-                  .catch(function(response) {
-                    if (response.status !== 500) {
-                      Notifications.add($translate.instant('EMAILS_FAILED'), 'error');
-                    }
-                  });
-              } else if (selected.length == 1) {
-                vm.emailDocument(selected[0]);
-              }
+              vm.exportNodeModal(node.original);
             },
           };
           const isUnit = node.original._is_structure_unit;
@@ -730,7 +712,7 @@ export default class SearchDetailCtrl {
                     (isUnit && isUnitLeaf === isLeaf) || node.original._index === 'archive'
                       ? addStructureUnit
                       : undefined,
-                  email: email,
+                  exportNode,
                   remove: remove,
                   addLocation: !isUnit && node.original._index !== 'archive' ? addLocation : null,
                   addDelivery: addDelivery,
