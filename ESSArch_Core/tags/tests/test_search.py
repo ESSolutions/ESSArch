@@ -306,3 +306,121 @@ class DocumentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(document_tag_version.pk))
+
+
+class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
+    fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('search-list')
+        Feature.objects.create(name='archival descriptions', enabled=True)
+        cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        cls.security_levels = [1, 2, 3, 4, 5]
+
+    def setUp(self):
+        super().setUp()
+
+        self.user = User.objects.create()
+        permission = Permission.objects.get(codename='search')
+        self.user.user_permissions.add(permission)
+        self.client.force_authenticate(user=self.user)
+
+    def test_user_with_no_security_level(self):
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels[1:]:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                res = self.client.get(self.url)
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+                self.assertEqual(len(res.data['hits']), 0)
+
+    def test_user_with_security_level_3(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                if lvl == 3:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 1)
+                    self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+                else:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 0)
+
+    def test_user_with_multiple_security_levels(self):
+        self.user.user_permissions.add(
+            Permission.objects.get(codename='security_level_1'),
+            Permission.objects.get(codename='security_level_3'),
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                if lvl in [1, 3]:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 1)
+                    self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+                else:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 0)

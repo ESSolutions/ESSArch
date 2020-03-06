@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, OuterRef, Subquery
+from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
@@ -730,11 +730,18 @@ class Tag(models.Model):
         except TagStructure.DoesNotExist:
             return Tag.objects.none()
 
-    def is_leaf_node(self, structure=None):
+    def is_leaf_node(self, user, structure=None):
         try:
-            return self.get_structures(structure).latest().is_leaf_node()
+            tag_structure = self.get_structures(structure).latest()
         except TagStructure.DoesNotExist:
             return True
+
+        if user.is_superuser:
+            return tag_structure.is_leaf_node()
+
+        return not tag_structure.get_descendants().filter(
+            Exists(TagVersion.objects.for_user(user, None).filter(tag=OuterRef('tag')))
+        ).exists()
 
     def __str__(self):
         try:
@@ -749,6 +756,11 @@ class Tag(models.Model):
             ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
+            ('security_level_1', 'Can see security level 1'),
+            ('security_level_2', 'Can see security level 2'),
+            ('security_level_3', 'Can see security level 3'),
+            ('security_level_4', 'Can see security level 4'),
+            ('security_level_5', 'Can see security level 5'),
         )
 
 
@@ -875,12 +887,26 @@ class TagVersionType(models.Model):
 
 class TagVersionQuerySet(models.QuerySet):
     def for_user(self, user, perms=None):
-        return get_objects_for_user(user, self, perms)
+        qs = get_objects_for_user(user, self, perms)
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+            return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
+        else:
+            return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
 
 
 class TagVersionManager(OrganizationManager):
     def get_queryset(self):
         return TagVersionQuerySet(self.model, using=self._db)
+
+    def for_user(self, user, perms):
+        return super().for_user(user, perms).for_user(user, perms)
 
 
 class TagVersion(models.Model):
@@ -907,6 +933,7 @@ class TagVersion(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = JSONField(default={})
+    security_level = models.IntegerField(_('security level'), null=True)
 
     def to_search_doc(self):
         try:
@@ -1096,8 +1123,8 @@ class TagVersion(models.Model):
         tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_descendants).select_related('tag')
 
-    def is_leaf_node(self, structure=None):
-        return self.tag.is_leaf_node(structure)
+    def is_leaf_node(self, user, structure=None):
+        return self.tag.is_leaf_node(user, structure)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)

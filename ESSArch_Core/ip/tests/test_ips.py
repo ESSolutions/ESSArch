@@ -2146,6 +2146,11 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
             structure=[
                 {
                     'type': 'file',
+                    'name': 'this_is_mets.xml',
+                    'use': 'mets_file',
+                },
+                {
+                    'type': 'file',
                     'name': 'premis.xml',
                     'use': 'preservation_description_file',
                 },
@@ -2208,6 +2213,10 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
                 content_location_value=ip.object_identifier_value,
                 container=False,
             ).exists()
+        )
+        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
+        self.assertTrue(
+            os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
 
     @TaskRunner()
@@ -3389,6 +3398,7 @@ class DownloadIPTestCase(TestCase):
             res['Content-Disposition'],
             'attachment; filename="{}"'.format(os.path.basename(self.ip.object_path)),
         )
+        res.close()
 
 
 class test_submit_ip(TestCase):
