@@ -245,18 +245,12 @@ class NestedLookupTest(TestCase):
 
 
 class ListFilesTest(TestCase):
-
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-        self.textdir = os.path.join(self.datadir, "textdir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.textdir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
+        self.textdir = os.path.join(self.datadir, "textdir")
+        os.makedirs(self.textdir)
 
     def create_files(self):
         files = []
