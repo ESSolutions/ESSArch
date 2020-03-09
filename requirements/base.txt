@@ -1,5 +1,5 @@
 boto3==1.10.9
-celery[tblib]==4.3.0
+celery[tblib]==4.4.0
 cffi==1.13.2
 channels==2.4.0
 channels_redis==2.4.1
@@ -14,14 +14,15 @@ django-cors-headers==3.2.0
 django-countries-plus==1.2.1
 django-filter==2.2.0
 django-groups-manager==1.0.0
-django-guardian==2.1.0
+django-guardian==2.2.0
 django-languages-plus==1.1.0
 django-mptt==0.11.0
 django-nested-inline==0.4.2
 django-picklefield==2.0
 django-redis==4.11.0
+django-relativity==0.2.1
 django-rest-auth[with_social]==0.9.5
-djangorestframework==3.10.3
+djangorestframework==3.11.0
 distro==1.4.0
 drf-dynamic-fields==0.3.1
 drf-extensions==0.6.0

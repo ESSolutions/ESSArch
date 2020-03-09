@@ -44,6 +44,9 @@
       </div>
     </div>
     <hr class="small" />
+    <div ng-if="vm.record.security_level">
+      {{'ACCESS.SECURITY_LEVEL' | translate}}: {{vm.record.security_level}}
+    </div>
     <div class="type-specific-results" ng-switch="vm.record._index">
       <div ng-switch-when="component">
         <div ng-switch="vm.record.type.name.toLowerCase()">
@@ -73,16 +76,6 @@
       </div>
       <div ng-switch-when="directory">
         <div ng-include="'static/frontend/views/search_directory_detail.html'"></div>
-      </div>
-      <hr class="mx-0" />
-      <div class="flex-row align-items-end">
-        <button class="btn btn-primary" ng-click="vm.emailDocument(vm.record)">
-          {{'ACCESS.SEND_AS_EMAIL' | translate}}
-        </button>
-        <label class="m-0">
-          <input type="checkbox" ng-model="vm.includeDescendants" />
-          {{'ACCESS.INCLUDE_DESCENDANT_NODES' | translate}}
-        </label>
       </div>
     </div>
   </div>

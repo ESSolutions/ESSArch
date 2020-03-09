@@ -183,6 +183,7 @@ class Component(VersionedDocType):
     structure_units = Nested(ComponentStructureUnitDocument)
     institution = Keyword()
     organization = Keyword()
+    security_level = Integer()
 
     @classmethod
     def get_model(cls):
@@ -195,13 +196,14 @@ class Component(VersionedDocType):
     @classmethod
     def from_obj(cls, obj, archive=None):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
+        archive = archive or obj.get_root()
 
         if archive is not None:
             archive_doc = InnerArchiveDocument.from_obj(archive)
-        elif obj.get_root() is not None:
-            archive_doc = InnerArchiveDocument.from_obj(obj.get_root())
+            archive_agents = [str(pk) for pk in archive.agents.values_list('pk', flat=True)]
         else:
             archive_doc = None
+            archive_agents = []
 
         if obj.tag.task is None:
             task_id = None
@@ -219,7 +221,8 @@ class Component(VersionedDocType):
             desc=obj.description,
             reference_code=obj.reference_code,
             type=obj.type.name,
-            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)] + archive_agents,
+            security_level=obj.security_level,
             **obj.custom_fields,
         )
         return doc
@@ -242,6 +245,7 @@ class Archive(VersionedDocType):
     institution = Keyword()
     organization = Keyword()
     organization_group = Integer()
+    security_level = Integer()
 
     @classmethod
     def get_model(cls):
@@ -267,6 +271,7 @@ class Archive(VersionedDocType):
             type=obj.type.name,
             reference_code=obj.reference_code,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            security_level=obj.security_level,
             **obj.custom_fields,
         )
         return doc

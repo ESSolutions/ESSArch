@@ -2,7 +2,7 @@ export default class RemoveNodeModalInstanceCtrl {
   constructor(Search, $translate, $uibModalInstance, data, Notifications, $rootScope) {
     const $ctrl = this;
     $ctrl.data = data;
-    $ctrl.node = data.node.original;
+    $ctrl.node = data.node;
 
     $ctrl.removeNode = function() {
       $rootScope.skipErrorNotification = true;

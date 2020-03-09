@@ -26,6 +26,12 @@ class ValidationError(ESSArchException):
         self.errors = errors
 
 
+class Locked(APIException, ESSArchException):
+    status_code = status.HTTP_423_LOCKED
+    default_detail = 'The resource that is being accessed is locked'
+    default_code = 'locked'
+
+
 class Conflict(APIException, ESSArchException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = 'The request could not be completed due to a conflict with the target resource'

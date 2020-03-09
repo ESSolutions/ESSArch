@@ -36,7 +36,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
 from elasticsearch_dsl import Index, Q as ElasticQ, Search
 from groups_manager.utils import get_permission_name
-from guardian.core import ObjectPermissionChecker
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from rest_framework import (
@@ -55,6 +54,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
+from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
@@ -491,22 +491,23 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             simple = self.apply_filters(filtered)
 
-            inner = self.annotate_generations(simple)
-            inner = self.annotate_filtered_first_generation(inner, user)
-            inner = self.get_related(inner, workareas)
-
-            outer = self.annotate_generations(simple)
-            outer = self.annotate_filtered_first_generation(outer, user)
-            outer = self.get_related(outer, workareas)
+            simple = self.annotate_generations(simple)
+            simple = self.annotate_filtered_first_generation(simple, user)
+            simple = self.get_related(simple, workareas)
+            simple = simple.select_related(
+                'responsible',
+                'submission_agreement__policy__cache_storage',
+                'submission_agreement__policy__ingest_path',
+            )
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',
             ).prefetch_related('data_versions')
 
-            inner = inner.filter(filtered_first_generation=False).prefetch_related(
+            inner = simple.filter(filtered_first_generation=False).prefetch_related(
                 Prefetch('profileip_set', queryset=profile_ips,)
             )
-            outer = outer.filter(filtered_first_generation=True).prefetch_related(
+            outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
             ).distinct()
 
@@ -520,12 +521,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).exclude(package_type=InformationPackage.AIC)
             qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
 
+            profile_ips = ProfileIP.objects.select_related(
+                'profile', 'ip', 'data',
+            ).prefetch_related('data_versions')
             qs = qs.select_related(
                 'responsible', 'submission_agreement__policy__cache_storage',
-                'submission_agreement__policy__ingest_path',
+                'submission_agreement__policy__ingest_path'
             ).prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
+                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
+                Prefetch('profileip_set', queryset=profile_ips,),
             )
             qs = self.annotate_generations(self.apply_filters(qs))
 
@@ -548,12 +553,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             qs = self.apply_filters(qs)
             qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
                              last_generation=self.last_generation_case(lower_higher))
-            qs = qs.select_related('responsible')
-            self.queryset = qs.prefetch_related(
+            qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            self.queryset = self.queryset.distinct()
+            self.queryset = qs.distinct()
             return self.queryset
 
         return self.queryset
@@ -1075,6 +1079,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def first_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
+            When(package_type=InformationPackage.AIC, then=Value(True)),
             When(generation=Subquery(lower_higher.values('min_gen')[:1]),
                  then=Value(True)),
             default=Value(False),
@@ -1085,6 +1090,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def last_generation_case(lower_higher):
         return Case(
             When(aic__isnull=True, then=Value(True)),
+            When(package_type=InformationPackage.AIC, then=Value(True)),
             When(generation=Subquery(lower_higher.values('max_gen')[:1]),
                  then=Value(True)),
             default=Value(False),
@@ -1346,7 +1352,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )[1] is not None
 
             # remove existing premis and mets paths:
-            mets_path = ip.get_content_mets_file_path()
+            mets_path = os.path.join(ip.object_path, ip.get_content_mets_file_path())
             try:
                 os.remove(mets_path)
             except FileNotFoundError:
@@ -1545,6 +1551,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             extracted=data.get('extracted', False),
             new=data.get('new', False),
             object_identifier_value=data.get('object_identifier_value'),
+            package_xml=data.get('package_xml', False),
+            aic_xml=data.get('aic_xml', False),
         )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
@@ -1708,13 +1716,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         fid = FormatIdentifier(allow_unknown_file_types=True)
         content_type = fid.get_mimetype(path)
 
-        with open(path, 'rb') as f:
-            return generate_file_response(
-                f,
-                content_type=content_type,
-                force_download=True,
-                name=os.path.basename(path),
-            )
+        # Django closes the file automatically, therefore we
+        # should not open the file using a context manager
+
+        return generate_file_response(
+            open(path, 'rb'),
+            content_type=content_type,
+            force_download=True,
+            name=os.path.basename(path),
+        )
 
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
     def files(self, request, pk=None):
@@ -2840,16 +2850,12 @@ class WorkareaViewSet(InformationPackageViewSet):
 
             simple = self.apply_filters(filtered)
 
-            inner = self.annotate_generations(simple)
-            inner = self.annotate_filtered_first_generation(inner, workareas, user, see_all)
-            inner = self.get_related(inner, workareas)
+            simple = self.annotate_generations(simple)
+            simple = self.annotate_filtered_first_generation(simple, workareas, user, see_all)
+            simple = self.get_related(simple, workareas)
 
-            outer = self.annotate_generations(simple)
-            outer = self.annotate_filtered_first_generation(outer, workareas, user, see_all)
-            outer = self.get_related(outer, workareas)
-
-            inner = inner.filter(filtered_first_generation=False)
-            outer = outer.filter(filtered_first_generation=True).prefetch_related(
+            inner = simple.filter(filtered_first_generation=False)
+            outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
             ).distinct()
 
@@ -2880,13 +2886,12 @@ class WorkareaViewSet(InformationPackageViewSet):
             qs = self.apply_filters(qs)
             qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
                              last_generation=self.last_generation_case(lower_higher))
-            qs = qs.select_related('responsible')
-            self.queryset = qs.prefetch_related(
+            qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', to_attr='prefetched_workareas')
             )
-            self.queryset = self.queryset.distinct()
-            return self.queryset
+
+            self.queryset = qs.distinct()
 
         return self.queryset
 
