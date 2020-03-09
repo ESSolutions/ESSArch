@@ -2146,6 +2146,11 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
             structure=[
                 {
                     'type': 'file',
+                    'name': 'this_is_mets.xml',
+                    'use': 'mets_file',
+                },
+                {
+                    'type': 'file',
                     'name': 'premis.xml',
                     'use': 'preservation_description_file',
                 },
@@ -2194,6 +2199,25 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         self.assertIn('{}.tar'.format(ip.pk), target_dir)
         self.assertIn('{}.xml'.format(ip.pk), target_dir)
         self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
+
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=storage_target,
+                content_location_value=f'{ip.object_identifier_value}.tar',
+                container=True,
+            ).exists()
+        )
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=self.cache_target,
+                content_location_value=ip.object_identifier_value,
+                container=False,
+            ).exists()
+        )
+        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
+        self.assertTrue(
+            os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
+        )
 
     @TaskRunner()
     def test_preserve_dip(self):
@@ -3374,6 +3398,7 @@ class DownloadIPTestCase(TestCase):
             res['Content-Disposition'],
             'attachment; filename="{}"'.format(os.path.basename(self.ip.object_path)),
         )
+        res.close()
 
 
 class test_submit_ip(TestCase):
@@ -3553,8 +3578,9 @@ class UploadTestCase(TestCase):
 
         EventType.objects.create(eventType=50700, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, 'datadir')
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.src = os.path.join(self.datadir, 'src')
         self.dst = os.path.join(self.datadir, 'dst')
         self.temp = os.path.join(self.datadir, 'temp')
@@ -3567,14 +3593,8 @@ class UploadTestCase(TestCase):
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
-        self.addCleanup(shutil.rmtree, self.datadir)
-
         for path in [self.src, self.dst, self.temp]:
-            try:
-                os.makedirs(path)
-            except OSError as e:
-                if e.errno != 17:
-                    raise
+            os.makedirs(path)
 
     def test_upload_file(self):
         perms = {'group': ['view_informationpackage', 'ip.can_upload']}
@@ -3669,9 +3689,11 @@ class FilesActionTests(TestCase):
         cls.user_role = GroupMemberRole.objects.create(codename='user_role')
 
     def setUp(self):
-        self.root = self.datadir = tempfile.mkdtemp()
-        self.datadir = os.path.join(self.root, 'datadir')
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.datadir2 = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir2)
 
         self.client = APIClient()
         self.user = User.objects.create(username="admin")
@@ -3795,7 +3817,7 @@ class FilesActionTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         data = {
-            'path': tempfile.mkdtemp(),
+            'path': tempfile.mkdtemp(dir=self.datadir2),
             'type': 'dummy'
         }
         resp = self.client.post(self.url, data=data)
@@ -3908,7 +3930,7 @@ class FilesActionTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         data = {
-            'path': tempfile.mkdtemp(),
+            'path': tempfile.mkdtemp(dir=self.datadir2),
             'type': 'dummy'
         }
         resp = self.client.post(self.url, data=data)
@@ -4032,7 +4054,7 @@ class FilesActionTests(TestCase):
         self.ip.save()
         self.client.force_authenticate(user=self.user)
 
-        data = {'path': tempfile.mkdtemp()}
+        data = {'path': tempfile.mkdtemp(dir=self.datadir2)}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['detail'], f"Illegal path {data['path']}")
@@ -4094,7 +4116,7 @@ class FilesActionTests(TestCase):
         self.ip.save()
         self.client.force_authenticate(user=self.user)
 
-        data = {'path': tempfile.mkdtemp()}
+        data = {'path': tempfile.mkdtemp(dir=self.datadir2)}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['detail'], f"Illegal path {data['path']}")

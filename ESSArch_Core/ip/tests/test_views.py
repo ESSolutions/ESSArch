@@ -1,3 +1,7 @@
+import os
+import shutil
+import tempfile
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase
@@ -30,8 +34,11 @@ User = get_user_model()
 
 class WorkareaEntryViewSetTestCase(TestCase):
     def setUp(self):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
 
         self.url = reverse('workarea-entries-list')
 
@@ -105,10 +112,20 @@ class WorkareaEntryViewSetTestCase(TestCase):
     def test_delete_aip_in_read_only_workarea(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+        aip2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=1)
 
         workarea = Workarea.objects.create(user=self.user, ip=aip, type=Workarea.ACCESS)
+        workarea2 = Workarea.objects.create(user=self.user, ip=aip2, type=Workarea.ACCESS)
+
+        os.makedirs(workarea.path)
+        os.makedirs(workarea2.path)
+
+        open(workarea.package_xml_path, 'a').close()
+        open(workarea.aic_xml_path, 'a').close()
+        open(workarea2.package_xml_path, 'a').close()
 
         self.org.add_object(aip)
+        self.org.add_object(aip2)
 
         url = reverse('workarea-entries-detail', args=(str(workarea.pk),))
         res = self.client.delete(url)
@@ -118,6 +135,23 @@ class WorkareaEntryViewSetTestCase(TestCase):
             aip.refresh_from_db()
         except InformationPackage.DoesNotExist:
             self.fail("IP should not be deleted when read only workarea is deleted")
+
+        self.assertFalse(os.path.exists(workarea.path))
+        self.assertFalse(os.path.exists(workarea.package_xml_path))
+        self.assertTrue(os.path.exists(workarea.aic_xml_path))
+        self.assertTrue(os.path.exists(workarea2.path))
+        self.assertTrue(os.path.exists(workarea2.package_xml_path))
+
+        with self.assertRaises(Workarea.DoesNotExist):
+            workarea.refresh_from_db()
+
+        url = reverse('workarea-entries-detail', args=(str(workarea2.pk),))
+        res = self.client.delete(url)
+        self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
+
+        self.assertFalse(os.path.exists(workarea2.aic_xml_path))
+        self.assertFalse(os.path.exists(workarea2.path))
+        self.assertFalse(os.path.exists(workarea2.package_xml_path))
 
     def test_delete_aip_in_non_read_only_workarea(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)

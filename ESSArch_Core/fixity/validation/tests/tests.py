@@ -1,4 +1,3 @@
-import errno
 import hashlib
 import os
 import shutil
@@ -166,14 +165,9 @@ class FormatValidatorTests(TestCase):
 class StructureValidatorTests(TestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
-        self.validator_class = StructureValidator
+        self.addCleanup(shutil.rmtree, self.root)
 
-    def tearDown(self):
-        try:
-            shutil.rmtree(self.root)
-        except OSError as exc:
-            if exc.errno != errno.ENOENT:
-                raise
+        self.validator_class = StructureValidator
 
     def test_validate_allow_empty_false(self):
         options = {
@@ -441,8 +435,9 @@ class DiffCheckValidatorTests(TestCase):
         Path.objects.all().delete()
 
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.fname = os.path.join(self.datadir, 'test1.xml')
         self.options = {'rootdir': self.datadir}
 
@@ -490,15 +485,6 @@ class DiffCheckValidatorTests(TestCase):
                 }
             }
         }
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
 
     def create_files(self):
         files = []
@@ -842,8 +828,9 @@ class DiffCheckValidatorRecursiveTests(TestCase):
         Path.objects.all().delete()
 
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.external = os.path.join(self.datadir, "external")
         self.level2 = os.path.join(self.external, "level2")
         self.external_level2 = os.path.join(self.level2, "external")
@@ -939,15 +926,8 @@ class DiffCheckValidatorRecursiveTests(TestCase):
             },
         }
 
-        for d in [self.datadir, self.level2, self.level3]:
-            try:
-                os.makedirs(d)
-            except OSError as e:
-                if e.errno != 17:
-                    raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
+        for d in [self.level2, self.level3]:
+            os.makedirs(d)
 
     def create_files(self):
         files = []
@@ -1029,9 +1009,12 @@ class XMLComparisonValidatorTests(TestCase):
         Path.objects.all().delete()
 
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.xmldir = os.path.join(self.datadir, "metadata")
+        os.mkdir(self.xmldir)
+
         self.mets = os.path.join(self.xmldir, 'mets.xml')
         self.premis = os.path.join(self.xmldir, 'premis.xml')
         self.options = {'rootdir': self.datadir}
@@ -1125,21 +1108,6 @@ class XMLComparisonValidatorTests(TestCase):
                 }
             }
         }
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-        try:
-            os.mkdir(self.xmldir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
 
     def create_files(self):
         files = []

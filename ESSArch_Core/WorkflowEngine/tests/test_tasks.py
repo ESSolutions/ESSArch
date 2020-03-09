@@ -23,8 +23,8 @@
 """
 
 import logging
-import os
 import shutil
+import tempfile
 import uuid
 from unittest import mock
 
@@ -226,20 +226,8 @@ class test_undoing_tasks(TestCase):
 class test_retrying_tasks(TestCase):
 
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno == 17:  # file exists
-                shutil.rmtree(self.datadir)
-                os.mkdir(self.datadir)
-            else:
-                raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
     def test_retry_with_args(self):
         x = 2

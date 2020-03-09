@@ -237,6 +237,9 @@ class GroupAdmin(DjangoGroupAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.has_perm("%s.%s" % ('auth', 'delete_group'))
 
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_group'))
+
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')
 
