@@ -669,7 +669,6 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
     @classmethod
     def create_policy(cls, checksum_algorithm):
         return StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
             checksum_algorithm=checksum_algorithm,
         )
@@ -829,16 +828,7 @@ class InformationPackageCreatePreservationWorkflowTests(TestCase):
     def test_preserve_container(self):
         Path.objects.create(entity='ingest_reception', value='ingest_reception')
         Path.objects.create(entity='temp', value='temp')
-        cache_storage = StorageMethod.objects.create()
-        cache_storage_target = StorageTarget.objects.create(name='cache target')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cache_storage,
-            storage_target=cache_storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
         policy = StoragePolicy.objects.create(
-            cache_storage=cache_storage,
             ingest_path=Path.objects.create(),
         )
         aic = InformationPackage.objects.create()
@@ -889,7 +879,6 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         sa = SubmissionAgreement.objects.create(policy=cls.policy)
@@ -939,7 +928,6 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         enabled_rel = self.add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
         other_policy = StoragePolicy.objects.create(
             policy_id='other',
-            cache_storage=self.policy.cache_storage,
             ingest_path=self.policy.ingest_path,
         )
         other_policy.storage_methods.add(enabled_rel.storage_method)

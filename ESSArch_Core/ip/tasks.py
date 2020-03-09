@@ -441,7 +441,7 @@ class PreserveInformationPackage(DBTask):
         storage_method = StorageMethod.objects.get(pk=storage_method_pk)
         policy_methods = policy.storage_methods.all()
 
-        if storage_method not in policy_methods and storage_method != policy.cache_storage:
+        if storage_method not in policy_methods:
             raise ValueError('{} not part of {}'.format(storage_method, policy))
 
         try:

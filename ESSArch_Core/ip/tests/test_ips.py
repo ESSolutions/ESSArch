@@ -520,24 +520,24 @@ class AccessTestCase(APITestCase):
         Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir))
         Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir))
 
-        cache = StorageMethod.objects.create()
-        cache_target = StorageTarget.objects.create(name='cache target')
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create()
 
         StorageMethodTargetRelation.objects.create(
-            storage_method=cache,
-            storage_target=cache_target,
+            storage_method=storage_method,
+            storage_target=storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
         storage_medium = StorageMedium.objects.create(
-            storage_target=cache_target,
+            storage_target=storage_target,
             status=20, location_status=50,
             block_size=1024, format=103
         )
 
         policy = StoragePolicy.objects.create(
-            cache_storage=cache,
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
+        policy.storage_methods.add(storage_method)
         sa = SubmissionAgreement.objects.create(policy=policy)
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.AIP, generation=0,
@@ -605,6 +605,32 @@ class AccessTestCase(APITestCase):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_step.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_archived_cached_ip(self, mock_step):
+        self.ip.archived = True
+        self.ip.save()
+
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create(name='cache')
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        StorageMedium.objects.create(
+            storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            medium_id='cache',
+        )
+        self.ip.policy.cache_storage = storage_method
+        self.ip.policy.save()
+
+        res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
@@ -1887,9 +1913,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
-        cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
+        policy = StoragePolicy.objects.create(ingest_path=ingest)
 
         sa = SubmissionAgreement.objects.create(policy=policy)
         ip = InformationPackage.objects.create(object_path='foo', submission_agreement=sa)
@@ -1966,7 +1991,6 @@ class InformationPackageViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
     def test_get_ip_with_submission_agreement(self, mock_data):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         sa = SubmissionAgreement.objects.create(
@@ -2114,28 +2138,30 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
 
         os.makedirs(os.path.join(receipts.value, 'xml'))
 
-        self.cache = StorageMethod.objects.create()
-        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest)
-
-        self.cache_target = StorageTarget.objects.create(name='cache', target=tempfile.mkdtemp(dir=self.datadir))
-        StorageMethodTargetRelation.objects.create(
-            storage_method=self.cache,
-            storage_target=self.cache_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
+        self.policy = StoragePolicy.objects.create(ingest_path=ingest)
 
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
     def test_preserve_aip(self, mock_index, mock_validate_schema):
-        storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False)
         storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
         StorageMethodTargetRelation.objects.create(
             storage_method=storage_method,
             storage_target=storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
-        self.policy.storage_methods.add(self.cache, storage_method)
+        self.policy.storage_methods.add(container_storage_method, storage_method)
 
         sa = SubmissionAgreement.objects.create(
             policy=self.policy,
@@ -2195,28 +2221,36 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         mock_index.assert_called_once()
 
         ip.refresh_from_db()
+        container_target_dir = os.listdir(container_storage_target.target)
+        self.assertNotIn(str(ip.pk), container_target_dir)
+        self.assertIn('{}.tar'.format(ip.pk), container_target_dir)
+        self.assertIn('{}.xml'.format(ip.pk), container_target_dir)
+        self.assertIn('{}.xml'.format(ip.aic.pk), container_target_dir)
+
         target_dir = os.listdir(storage_target.target)
-        self.assertIn('{}.tar'.format(ip.pk), target_dir)
-        self.assertIn('{}.xml'.format(ip.pk), target_dir)
-        self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
+        self.assertIn(str(ip.pk), target_dir)
+        self.assertNotIn('{}.tar'.format(ip.pk), target_dir)
+        self.assertNotIn('{}.xml'.format(ip.pk), target_dir)
+        self.assertNotIn('{}.xml'.format(ip.aic.pk), target_dir)
+
+        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
 
         self.assertTrue(
             StorageObject.objects.filter(
                 ip=ip, storage_medium__storage_target=storage_target,
+                content_location_value=f'{ip.object_identifier_value}',
+                container=False,
+            ).exists()
+        )
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=container_storage_target,
                 content_location_value=f'{ip.object_identifier_value}.tar',
                 container=True,
             ).exists()
         )
         self.assertTrue(
-            StorageObject.objects.filter(
-                ip=ip, storage_medium__storage_target=self.cache_target,
-                content_location_value=ip.object_identifier_value,
-                container=False,
-            ).exists()
-        )
-        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
-        self.assertTrue(
-            os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
+            os.path.isfile(os.path.join(storage_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
 
     @TaskRunner()
@@ -2232,7 +2266,6 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
     def setUpTestData(cls):
         Feature.objects.create(name='receive', enabled=True)
         Feature.objects.create(name='transfer', enabled=True)
-        cls.cache = StorageMethod.objects.create()
 
         org_group_type = GroupType.objects.create(label='organization')
         cls.group = Group.objects.create(name='organization', group_type=org_group_type)
@@ -2259,7 +2292,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         Path.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
         ingest = Path.objects.create(entity='ingest', value=ingest)
 
-        policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest, receive_extract_sip=True)
+        policy = StoragePolicy.objects.create(ingest_path=ingest, receive_extract_sip=True)
         self.sa = SubmissionAgreement.objects.create(
             policy=policy,
             profile_aic_description=Profile.objects.create(profile_type='aic_description'),
@@ -2655,7 +2688,6 @@ class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         cls.sa1 = SubmissionAgreement.objects.create(policy=cls.policy)
@@ -3241,7 +3273,6 @@ class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         cls.sa = SubmissionAgreement.objects.create(policy=policy)
@@ -3417,7 +3448,6 @@ class test_submit_ip(TestCase):
         self.client.force_authenticate(user=self.user)
 
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
 

@@ -984,16 +984,15 @@ class InformationPackage(models.Model):
         except Workarea.DoesNotExist:
             workarea_id = None
 
-        cache_storage = self.policy.cache_storage
         container_methods = self.policy.storage_methods.secure_storage().filter(
             remote=False, enabled=True,
-        ).exclude(pk=cache_storage.pk)
+        )
         non_container_methods = self.policy.storage_methods.archival_storage().filter(
             remote=False, enabled=True,
-        ).exclude(pk=cache_storage.pk)
+        )
         remote_methods = self.policy.storage_methods.filter(
             remote=True, enabled=True,
-        ).exclude(pk=cache_storage.pk)
+        )
 
         remote_servers = set([
             method.enabled_target.remote_server
@@ -1100,13 +1099,8 @@ class InformationPackage(models.Model):
                 "children": [
                     {
                         "step": True,
-                        "name": "Write to cache",
+                        "name": "Write to search index",
                         "children": [
-                            {
-                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                "label": "Write to storage medium",
-                                "args": [str(cache_storage.pk)],
-                            },
                             {
                                 "name": "ESSArch_Core.ip.tasks.WriteInformationPackageToSearchIndex",
                                 "label": "Write to search index",
@@ -1287,14 +1281,14 @@ class InformationPackage(models.Model):
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
         cache_storage = self.policy.cache_storage
-        try:
-            cache_target = cache_storage.enabled_target
-            if not cache_target.storagemedium_set.writeable().exists():
-                cache_target = None
-            else:
-                cache_target = cache_target.target
-        except StorageTarget.DoesNotExist:
-            cache_target = None
+        cache_target = None
+        if cache_storage is not None:
+            try:
+                cache_enabled_target = cache_storage.enabled_target
+                if cache_enabled_target.storagemedium_set.writeable().exists():
+                    cache_target = cache_enabled_target.target
+            except StorageTarget.DoesNotExist:
+                pass
 
         temp_dir = Path.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path()
@@ -1522,17 +1516,21 @@ class InformationPackage(models.Model):
                 ]
             else:
                 # reading from non long-term storage
+                if cache_target is not None:
+                    cache_dst = os.path.join(cache_target, self.object_identifier_value)
+                else:
+                    cache_dst = None
 
                 workflow = [
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Copy AIP to cache",
-                        "if": cache_target is not None,
+                        "if": cache_dst is not None,
                         "allow_failure": True,
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": storage_object.pk,
-                            "dst": os.path.join(cache_target, self.object_identifier_value),
+                            "dst": cache_dst,
                         },
                     },
                     {
