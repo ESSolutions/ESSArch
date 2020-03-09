@@ -58,7 +58,6 @@ export default class ExportNodeModalInstanceCtrl {
       })
         .then(() => {
           $ctrl.exporting = false;
-          Notifications.add($translate.instant('EMAIL.EMAIL_SENT'), 'success');
           $uibModalInstance.close();
         })
         .catch(() => {
