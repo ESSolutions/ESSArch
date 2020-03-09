@@ -232,6 +232,7 @@ class StorageMethod(models.Model):
     remote = models.BooleanField('remote', default=False)
     containers = models.BooleanField('Long-term', default=False)
     targets = models.ManyToManyField('StorageTarget', through='StorageMethodTargetRelation', related_name='methods')
+    cached = models.BooleanField('Cached', default=True)
 
     objects = StorageMethodQueryset.as_manager()
 
@@ -857,11 +858,12 @@ class StorageObject(models.Model):
         else:
             storage_backend = self.get_storage_backend()
             storage_medium.prepare_for_read()
-            temp_dir = Path.objects.get(entity='temp').value
 
             if storage_target.master_server:
                 # we are on a remote host that has been requested
                 # by master to write to its temp directory
+                temp_dir = Path.objects.get(entity='temp').value
+
                 user, passw, host = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY

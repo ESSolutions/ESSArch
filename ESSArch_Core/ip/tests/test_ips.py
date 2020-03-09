@@ -511,18 +511,21 @@ def create_premis_spec(sa: SubmissionAgreement):
 class AccessTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.user = User.objects.create()
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
-        datadir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, datadir)
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
-        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir))
-        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir))
-        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
 
         storage_method = StorageMethod.objects.create()
-        storage_target = StorageTarget.objects.create()
+        storage_target = StorageTarget.objects.create(
+            target=tempfile.mkdtemp(dir=self.datadir),
+        )
 
         StorageMethodTargetRelation.objects.create(
             storage_method=storage_method,
@@ -539,17 +542,25 @@ class AccessTestCase(APITestCase):
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
         policy.storage_methods.add(storage_method)
-        sa = SubmissionAgreement.objects.create(policy=policy)
+        sa = SubmissionAgreement.objects.create(
+            policy=policy,
+            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
+        )
+
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.AIP, generation=0,
-            submission_agreement=sa,
+            submission_agreement=sa, object_path=tempfile.mkdtemp(dir=self.datadir),
+            responsible=self.user,
+            aic=InformationPackage.objects.create(package_type=InformationPackage.AIC),
         )
-        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        sa.lock_to_information_package(self.ip, self.user)
 
-        StorageObject.objects.create(
+        storage_obj = StorageObject.objects.create(
             storage_medium=storage_medium, ip=self.ip,
-            content_location_type=DISK,
+            content_location_type=DISK, content_location_value=self.ip.object_identifier_value,
         )
+        os.makedirs(storage_obj.get_full_path())
+        open(os.path.join(storage_obj.get_full_path(), 'foo.txt'), 'a').close()
 
         self.user = User.objects.create_superuser(username="superuser")
         self.member = self.user.essauth_member
@@ -577,45 +588,43 @@ class AccessTestCase(APITestCase):
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip_read_only(self, mock_step):
+    @TaskRunner()
+    def test_received_ip_read_only(self):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip_new_generation(self, mock_step):
+    @TaskRunner()
+    def test_received_ip_new_generation(self):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip_read_only(self, mock_step):
+    @TaskRunner()
+    def test_archived_ip_read_only(self):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip_new_generation(self, mock_step):
+    @TaskRunner()
+    def test_archived_ip_new_generation(self):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_cached_ip(self, mock_step):
+    @TaskRunner()
+    def test_archived_cached_ip(self):
         self.ip.archived = True
         self.ip.save()
 
         storage_method = StorageMethod.objects.create()
-        storage_target = StorageTarget.objects.create(name='cache')
+        storage_target = StorageTarget.objects.create(
+            name='cache', target=tempfile.mkdtemp(dir=self.datadir),
+        )
 
         StorageMethodTargetRelation.objects.create(
             storage_method=storage_method,
@@ -633,7 +642,6 @@ class AccessTestCase(APITestCase):
 
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
 
 class WorkareaViewSetTestCase(TestCase):

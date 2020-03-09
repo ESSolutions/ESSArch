@@ -1298,6 +1298,7 @@ class InformationPackage(models.Model):
 
         storage_medium = storage_object.storage_medium
         storage_target = storage_medium.storage_target
+        storage_method = storage_target.methods.first()
 
         access_workarea = Path.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
@@ -1314,8 +1315,7 @@ class InformationPackage(models.Model):
         else:
             new_aip = self
 
-        if extracted or new:
-            os.makedirs(access_workarea_user, exist_ok=True)
+        os.makedirs(access_workarea_user, exist_ok=True)
 
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
@@ -1334,7 +1334,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
                     "label": "Extract temporary container to cache",
-                    "if": cache_target is not None,
+                    "if": storage_method.cached and cache_target is not None,
                     "allow_failure": True,
                     "args": [
                         temp_container_path,
@@ -1455,7 +1455,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
                         "label": "Extract temporary container to cache",
-                        "if": cache_target is not None,
+                        "if": storage_method.cached and cache_target is not None,
                         "allow_failure": True,
                         "args": [
                             temp_container_path,
@@ -1525,11 +1525,11 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Copy AIP to cache",
-                        "if": cache_dst is not None,
+                        "if": storage_method.cached and cache_dst is not None,
                         "allow_failure": True,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             "dst": cache_dst,
                         },
                     },
@@ -1539,7 +1539,7 @@ class InformationPackage(models.Model):
                         "if": extracted,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': access_workarea_user
                         },
                     },
@@ -1549,7 +1549,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': temp_object_path,
                         },
                     },
