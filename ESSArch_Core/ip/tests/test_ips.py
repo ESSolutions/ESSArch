@@ -79,6 +79,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
@@ -2107,7 +2108,7 @@ class InformationPackageViewSetPermissionListTests(APITestCase):
         self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.admin_sweden), self.expected_admin_perms)
 
 
-class InformationPackageViewSetPreserveTestCase(APITestCase):
+class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -2142,8 +2143,7 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
 
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
-    def test_preserve_aip(self, mock_index, mock_validate_schema):
+    def test_preserve_aip(self, mock_validate_schema):
         container_storage_method = StorageMethod.objects.create(containers=True)
         container_storage_target = StorageTarget.objects.create(
             name='container', target=tempfile.mkdtemp(dir=self.datadir),
@@ -2218,7 +2218,6 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
 
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_index.assert_called_once()
 
         ip.refresh_from_db()
         container_target_dir = os.listdir(container_storage_target.target)
