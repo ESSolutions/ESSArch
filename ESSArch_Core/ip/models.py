@@ -796,7 +796,7 @@ class InformationPackage(models.Model):
         else:
             path = 'mets.xml'
 
-        return normalize_path(os.path.join(self.object_path, path))
+        return normalize_path(path)
 
     def get_premis_file_path(self):
         try:
