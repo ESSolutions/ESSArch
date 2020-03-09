@@ -17,7 +17,7 @@ from ESSArch_Core.maintenance.models import (
     ConversionJob,
     find_all_files,
 )
-from ESSArch_Core.util import normalize_path, win_to_posix
+from ESSArch_Core.util import win_to_posix
 
 
 class MaintenanceJobGetReportDirectoryTests(TestCase):
@@ -329,10 +329,8 @@ class MaintenanceJobRunTests(TestCase):
 
 
 class FindAllFilesTests(TestCase):
-
     def setUp(self):
-        self.tmpdir = normalize_path(tempfile.mkdtemp())
-        self.datadir = os.path.join(self.tmpdir, "datadir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
         self.dir_names = [
             'a_dir', 'b_dir', 'c_dir',
