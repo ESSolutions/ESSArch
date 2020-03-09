@@ -45,10 +45,10 @@ class test_status(TestCase):
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
 
     def tearDown(self):
         get_redis_connection("default").flushall()
-        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
@@ -397,10 +397,10 @@ class test_progress(TestCase):
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
 
     def tearDown(self):
         get_redis_connection("default").flushall()
-        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
