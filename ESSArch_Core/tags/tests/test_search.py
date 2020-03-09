@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from elasticsearch.client import IngestClient
 from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
     connections,
@@ -73,6 +74,22 @@ class ESSArchSearchBaseTestCase(APITestCase):
 
         connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
         cls.es_client = cls._get_client()
+
+        IngestClient(cls.es_client).put_pipeline(id='ingest_attachment', body={
+            'description': "Extract attachment information",
+            'processors': [
+                {
+                    "attachment": {
+                        "field": "data",
+                        "indexed_chars": "-1"
+                    },
+                    "remove": {
+                        "field": "data"
+                    }
+                }
+            ]
+        })
+
         super().setUpClass()
 
     def setUp(self):
