@@ -39,10 +39,7 @@ from ESSArch_Core.storage.models import (
 
 class StorageMediumOrderingFilter(filters.OrderingFilter):
     def filter(self, qs, value):
-        if value in EMPTY_VALUES:
-            return qs
-
-        if 'medium_id' in value:
+        if value in EMPTY_VALUES or 'medium_id' in value:
             return qs.natural_sort()
         elif '-medium_id' in value:
             return qs.natural_sort().reverse()
