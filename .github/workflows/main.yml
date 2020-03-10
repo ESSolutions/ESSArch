@@ -176,6 +176,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - run: mkdir -p /image-cache
+
+      - id: image-cache
+        name: Cache MSSQL image
+        uses: actions/cache@v1
+        with:
+          path: /image-cache
+          key: image-cache-${{ runner.os }}-${{ hashFiles('.github/workflows/main.yml') }}
+
+      - if: steps.image-cache.outputs.cache-hit != 'true'
+        run: |
+          docker pull christianacca/mssql-server-windows-express:1809
+          docker save -o /image-cache/mssql.tar christianacca/mssql-server-windows-express:1809
+
+      - if: steps.image-cache.outputs.cache-hit == 'true'
+        run: docker load -i /image-cache/mssql.tar
+
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
