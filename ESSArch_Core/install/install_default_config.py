@@ -333,10 +333,12 @@ def installDefaultUsers():
         ['add_group', 'auth', 'group'],                    # Can add group
         ['change_group', 'auth', 'group'],                    # Can change group
         ['delete_group', 'auth', 'group'],                    # Can delete group
+        ['view_group', 'auth', 'group'],                    # Can view group
         # ---- app: auth ---- model: user
         ['add_user', 'auth', 'user'],                    # Can add user
         ['change_user', 'auth', 'user'],                    # Can change user
         ['delete_user', 'auth', 'user'],                    # Can delete user
+        ['view_user', 'auth', 'user'],                    # Can view user
         # ---- app: essauth ---- model: grouomemberrole
         ['add_groupmemberrole', 'essauth', 'groupmemberrole'],         # Can add role
         ['change_groupmemberrole', 'essauth', 'groupmemberrole'],      # Can change role

@@ -1351,7 +1351,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )[1] is not None
 
             # remove existing premis and mets paths:
-            mets_path = ip.get_content_mets_file_path()
+            mets_path = os.path.join(ip.object_path, ip.get_content_mets_file_path())
             try:
                 os.remove(mets_path)
             except FileNotFoundError:
@@ -1550,6 +1550,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             extracted=data.get('extracted', False),
             new=data.get('new', False),
             object_identifier_value=data.get('object_identifier_value'),
+            package_xml=data.get('package_xml', False),
+            aic_xml=data.get('aic_xml', False),
         )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
@@ -1713,13 +1715,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         fid = FormatIdentifier(allow_unknown_file_types=True)
         content_type = fid.get_mimetype(path)
 
-        with open(path, 'rb') as f:
-            return generate_file_response(
-                f,
-                content_type=content_type,
-                force_download=True,
-                name=os.path.basename(path),
-            )
+        # Django closes the file automatically, therefore we
+        # should not open the file using a context manager
+
+        return generate_file_response(
+            open(path, 'rb'),
+            content_type=content_type,
+            force_download=True,
+            name=os.path.basename(path),
+        )
 
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
     def files(self, request, pk=None):

@@ -119,6 +119,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     EXPAND_ALL: 'Expandera alla',
     EXPORT_ACTION: 'Exportera',
     EXPORT_RESULT: 'Exportera resultat',
+    EXPORTED_SUCCESSFULLY: 'Export lyckades',
     FAILED: 'Misslyckade',
     FAILURE: 'Fel',
     FAMILY_NAME: 'Efternamn',
