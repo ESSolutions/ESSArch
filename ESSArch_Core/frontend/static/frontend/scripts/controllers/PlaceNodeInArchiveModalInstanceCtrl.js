@@ -226,6 +226,9 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
                 });
             },
           },
+          hideExpression: ($viewValue, $modelValue, scope) => {
+            return !$ctrl.model.structure_unit;
+          },
         },
       ];
     };
