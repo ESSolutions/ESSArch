@@ -219,9 +219,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.5
+        uses: codecov/codecov-action@v1.0.6
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           name: Windows
           file: ./coverage.xml
           flags: backend
@@ -384,9 +383,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.5
+        uses: codecov/codecov-action@v1.0.6
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           name: Linux (${{matrix.db}})
           file: ./coverage.xml
           flags: backend
