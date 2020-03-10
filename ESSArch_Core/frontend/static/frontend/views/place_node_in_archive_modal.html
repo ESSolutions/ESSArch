@@ -20,8 +20,18 @@
       </table>
     </div>
     <formly-form model="$ctrl.archiveModel" fields="$ctrl.archiveFields" options="{}"></formly-form>
-    <formly-form model="$ctrl.structureModel" fields="$ctrl.structureFields" options="{}"></formly-form>
-    <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
+    <formly-form
+      ng-if="$ctrl.archiveModel.archive"
+      model="$ctrl.structureModel"
+      fields="$ctrl.structureFields"
+      options="{}"
+    ></formly-form>
+    <formly-form
+      ng-if="$ctrl.archiveModel.archive && $ctrl.structureModel.structure"
+      model="$ctrl.model"
+      fields="$ctrl.fields"
+      options="{}"
+    ></formly-form>
   </div>
   <div class="modal-footer">
     <button class="btn btn-primary" ng-disabled="$ctrl.placing" type="submit">
