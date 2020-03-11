@@ -30,6 +30,6 @@ class ConversionJobViewSetRunTests(TestCase):
         t.run(f, self.datadir, {'output': 'mp4'})
 
         mock_popen.assert_called_once_with(
-            ['ffmpeg', f'-i {normalize_path(f)} {normalize_path(os.path.join(os.path.dirname(f), "foo.mp4"))}'],
+            ['ffmpeg', '-i', normalize_path(f), normalize_path(os.path.join(os.path.dirname(f), "foo.mp4"))],
             shell=True, stdout=PIPE, stderr=PIPE,
         )

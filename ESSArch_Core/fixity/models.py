@@ -1,4 +1,5 @@
 import os
+import shlex
 import uuid
 from pathlib import PurePath
 from subprocess import PIPE, Popen
@@ -52,8 +53,8 @@ class ConversionTool(ExternalTool):
         from ESSArch_Core.util import normalize_path
 
         filepath = normalize_path(filepath)
-        cmd = self.prepare_cmd(filepath, options)
-        p = Popen([self.path, cmd], shell=True, stdout=PIPE, stderr=PIPE)
+        cmd = self.path + " " + self.prepare_cmd(filepath, options)
+        p = Popen(shlex.split(cmd), shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
             raise ConversionError(err)
