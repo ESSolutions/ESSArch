@@ -31,5 +31,5 @@ class ConversionJobViewSetRunTests(TestCase):
 
         mock_popen.assert_called_once_with(
             ['ffmpeg', '-i', normalize_path(f), "foo.mp4"],
-            shell=True, stdout=PIPE, stderr=PIPE,
+            stdout=PIPE, stderr=PIPE,
         )
