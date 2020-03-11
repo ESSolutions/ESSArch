@@ -8,6 +8,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.timezone import make_aware
+from elasticsearch import NotFoundError
 from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -22,6 +23,7 @@ from ESSArch_Core.agents.models import (
 )
 from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import EventType, Feature
+from ESSArch_Core.tags.documents import Archive, Component
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
@@ -2136,7 +2138,7 @@ class ChangeTagTests(ESSArchSearchBaseTestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class DeleteTagTests(TestCase):
+class DeleteTagTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
@@ -2146,7 +2148,7 @@ class DeleteTagTests(TestCase):
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
-        self.client = APIClient()
+        super().setUp()
 
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
@@ -2167,17 +2169,30 @@ class DeleteTagTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         archive_tag_version.refresh_from_db()
 
-    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
-    def test_delete_archive_with_permission(self, mock_signal):
+    def test_delete_archive_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
+        structure = create_structure(structure_type=StructureType.objects.create(), template=False)
+        unit = create_structure_unit(StructureUnitType.objects.create(structure_type=structure.type), structure, '1')
+
         archive_tag = Tag.objects.create()
         archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
+        TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        component_tag = Tag.objects.create()
+        component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        TagVersion.objects.create(tag=component_tag, type=component_type, elastic_index='component')
+        TagStructure.objects.create(tag=component_tag, structure=structure, structure_unit=unit)
 
         url = reverse('search-detail', args=(archive_tag_version.pk,))
+
+        Archive.index_documents()
+        Component.index_documents()
+        Archive.get(str(archive_tag.current_version.pk))
+        Component.get(str(component_tag.current_version.pk))
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -2187,6 +2202,18 @@ class DeleteTagTests(TestCase):
 
         with self.assertRaises(Tag.DoesNotExist):
             archive_tag.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            component_tag.refresh_from_db()
+
+        with self.assertRaises(Structure.DoesNotExist):
+            structure.refresh_from_db()
+
+        with self.assertRaises(NotFoundError):
+            Archive.get(str(archive_tag.current_version.pk))
+
+        with self.assertRaises(NotFoundError):
+            Component.get(str(component_tag.current_version.pk))
 
     def test_delete_component_without_permission(self):
         tag = Tag.objects.create()
@@ -2199,8 +2226,7 @@ class DeleteTagTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         tag_version.refresh_from_db()
 
-    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
-    def test_delete_component_with_permission(self, mock_signal):
+    def test_delete_component_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -2210,6 +2236,9 @@ class DeleteTagTests(TestCase):
         with self.subTest('single version'):
             tag = Tag.objects.create()
             tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+            Component.index_documents()
+            Component.get(str(tag_version.pk))
 
             url = reverse('search-detail', args=(tag_version.pk,))
             response = self.client.delete(url)
@@ -2221,10 +2250,19 @@ class DeleteTagTests(TestCase):
             with self.assertRaises(Tag.DoesNotExist):
                 tag.refresh_from_db()
 
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version.pk))
+
         with self.subTest('multiple versions'):
             tag = Tag.objects.create()
             tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
             tag_version2 = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+            tag.current_version = tag_version2
+            tag.save()
+
+            Component.index_documents()
+            Component.get(str(tag_version.pk))
+            Component.get(str(tag_version2.pk))
 
             url = reverse('search-detail', args=(tag_version.pk,))
             response = self.client.delete(url)
@@ -2233,8 +2271,25 @@ class DeleteTagTests(TestCase):
             with self.assertRaises(TagVersion.DoesNotExist):
                 tag_version.refresh_from_db()
 
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version.pk))
+
             tag_version2.refresh_from_db()
             tag.refresh_from_db()
+            Component.get(str(tag_version2.pk))
+
+            url = reverse('search-detail', args=(tag_version2.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version2.refresh_from_db()
+
+            with self.assertRaises(Tag.DoesNotExist):
+                tag.refresh_from_db()
+
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version2.pk))
 
 
 class CreateDeliveryTests(TestCase):

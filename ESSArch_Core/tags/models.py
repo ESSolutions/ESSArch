@@ -730,6 +730,9 @@ class Tag(models.Model):
             structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=include_self)
             return Tag.objects.filter(structures__in=structure_descendants)
         except TagStructure.DoesNotExist:
+            if include_self:
+                return Tag.objects.filter(pk=self.pk)
+
             return Tag.objects.none()
 
     def is_leaf_node(self, user, structure=None):

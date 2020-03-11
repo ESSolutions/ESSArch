@@ -1027,9 +1027,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if not request.user.has_perm(perm):
             raise exceptions.PermissionDenied('You do not have permission to delete this node')
 
-        if request.query_params.get('delete_descendants', False):
+        if obj.elastic_index == 'archive' and obj.tag.versions.count() == 1:
+            structures = Structure.objects.filter(
+                tagstructure__tag=obj.tag,
+                is_template=False,
+            ).values_list('pk', flat=True)
+            structures = list(structures)
+            Tag.objects.filter(structures__structure__tagstructure__tag=obj.tag).delete()
+            Structure.objects.filter(pk__in=structures).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if obj.tag.versions.count() == 1 or request.query_params.get('delete_descendants', False):
             structure = request.query_params.get('structure')
             obj.get_descendants(structure=structure, include_self=True).delete()
         else:
             obj.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
