@@ -181,7 +181,8 @@ class AppraisalJobTagViewSet(NestedViewSetMixin,
 
     queryset = Tag.objects.select_related('current_version').annotate(
         archive=Subquery(TagVersion.objects.filter(
-            current_version_tags__structures__subtree__tag=OuterRef('pk')
+            current_version_tags__structures__structure=OuterRef('structures__structure'),
+            type__archive_type=True,
         ).values('name')[:1], output_field=CharField())
     ).all()
     serializer_class = AppraisalJobTagSerializer

@@ -45,6 +45,8 @@ from ESSArch_Core.storage.tests.helpers import (
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
+    StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
     TagVersion,
@@ -416,23 +418,35 @@ class AppraisalJobViewSetTagListViewTests(APITestCase):
         )
 
         archive_tag = Tag.objects.create()
-        TagVersion.objects.create(
+        archive_tag_version = TagVersion.objects.create(
             tag=archive_tag, elastic_index='archive',
             type=TagVersionType.objects.create(archive_type=True, name='archive'),
             reference_code='a', name='foo_archive',
         )
+        archive_tag.current_version = archive_tag_version
+        archive_tag.save()
         archive_tag_structure = TagStructure.objects.create(tag=archive_tag, structure=structure)
         self.appraisal_job.tags.add(archive_tag)
+
+        structure_unit = StructureUnit.objects.create(
+            type=StructureUnitType.objects.create(structure_type=structure.type),
+            structure=structure,
+        )
 
         tag_version_type = TagVersionType.objects.create(archive_type=False, name='component')
         for _ in range(100):
             tag = Tag.objects.create()
-            TagVersion.objects.create(
+            tag_version = TagVersion.objects.create(
                 tag=tag, elastic_index='component',
                 type=tag_version_type, reference_code='b',
                 name='test_tag',
             )
-            TagStructure.objects.create(tag=tag, parent=archive_tag_structure, structure=structure)
+            tag.current_version = tag_version
+            tag.save()
+            TagStructure.objects.create(
+                tag=tag, parent=archive_tag_structure, structure=structure,
+                structure_unit=structure_unit,
+            )
             self.appraisal_job.tags.add(tag)
 
         with self.assertNumQueries(2):
