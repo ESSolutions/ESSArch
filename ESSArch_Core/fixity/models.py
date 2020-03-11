@@ -8,6 +8,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.fields import JSONField
+from ESSArch_Core.fixity.exceptions import ConversionError
 
 User = get_user_model()
 
@@ -52,7 +53,7 @@ class ConversionTool(ExternalTool):
         p = Popen([self.path, cmd], shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
-            raise BaseException(err)
+            raise ConversionError(err)
 
     def _run_docker(self, filepath, rootdir, options):
         import docker
