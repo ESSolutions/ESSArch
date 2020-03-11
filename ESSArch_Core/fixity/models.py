@@ -48,8 +48,11 @@ class ConversionTool(ExternalTool):
         kwargs.update(options)
         return self.cmd.format(**kwargs)
 
-    def _run_application(self, filepath, rootdir, options):
-        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
+    def _run_application(self, filepath, options):
+        from ESSArch_Core.util import normalize_path
+
+        filepath = normalize_path(filepath)
+        cmd = self.prepare_cmd(filepath, options)
         p = Popen([self.path, cmd], shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
@@ -71,7 +74,7 @@ class ConversionTool(ExternalTool):
 
     def run(self, filepath, rootdir, options):
         if self.type == ExternalTool.Type.APPLICATION:
-            return self._run_application(filepath, rootdir, options)
+            return self._run_application(filepath, options)
         elif self.type == ExternalTool.Type.DOCKER_IMAGE:
             return self._run_docker(filepath, rootdir, options)
 
