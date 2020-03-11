@@ -455,7 +455,7 @@ def preserve_new_generation(new_ip):
     )[1] is not None
 
     # remove existing premis and mets paths:
-    mets_path = new_ip.get_content_mets_file_path()
+    mets_path = os.path.join(new_ip.object_path, new_ip.get_content_mets_file_path())
     try:
         os.remove(mets_path)
     except FileNotFoundError:

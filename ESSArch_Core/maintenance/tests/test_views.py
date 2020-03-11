@@ -610,6 +610,8 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
         Path.objects.create(entity='appraisal_reports', value=tempfile.mkdtemp(dir=self.datadir))
 
+        with self.storage_obj.open(self.ip.get_content_mets_file_path(), 'w') as f:
+            f.write('<xml>mets</xml>')
         with self.storage_obj.open('foo.pdf', 'w') as f:
             f.write('foo')
         with self.storage_obj.open('foo/bar.pdf', 'w') as f:
@@ -804,8 +806,12 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             storage_medium__storage_target__methods=self.storage_method
         ).get()
         new_path = new_storage.get_full_path()
+        self.appraisal_job.refresh_from_db()
+        self.assertEqual(self.appraisal_job.status, celery_states.SUCCESS)
+
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
         self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
 
@@ -889,8 +895,12 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             storage_medium__storage_target__methods=self.storage_method
         ).get()
         new_path = new_storage.get_full_path()
+        self.appraisal_job.refresh_from_db()
+        self.assertEqual(self.appraisal_job.status, celery_states.SUCCESS)
+
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
         self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
 
