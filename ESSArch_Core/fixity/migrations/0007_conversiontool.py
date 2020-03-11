@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name='ConversionTool',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('APP', 'Application'), ('PY_MOD', 'Python Module'), ('DOCKER_IMG', 'Docker Image')], max_length=20, verbose_name='type')),
+                ('type', models.CharField(choices=[('APP', 'Application'), ('DOCKER_IMG', 'Docker Image')], max_length=20, verbose_name='type')),
                 ('name', models.CharField(max_length=255, unique=True, verbose_name='name')),
                 ('path', models.TextField(verbose_name='path')),
                 ('cmd', models.TextField(verbose_name='command')),

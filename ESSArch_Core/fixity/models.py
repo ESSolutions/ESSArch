@@ -16,7 +16,6 @@ User = get_user_model()
 class ExternalTool(models.Model):
     class Type(models.TextChoices):
         APPLICATION = 'APP'
-        PYTHON_MODULE = 'PY_MOD'
         DOCKER_IMAGE = 'DOCKER_IMG'
 
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
@@ -51,7 +50,7 @@ class ConversionTool(ExternalTool):
 
     def _run_application(self, filepath, rootdir, options):
         cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+        p = Popen([self.path, cmd], shell=True, stdout=PIPE, stderr=PIPE)
         out, err = p.communicate()
         if p.returncode != 0:
             raise BaseException(err)
@@ -70,18 +69,9 @@ class ConversionTool(ExternalTool):
             remove=True,
         )
 
-    def _run_python_module(self, filepath, rootdir, options):
-        mod = importlib.import_module(self.path).split('')
-        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
-        args = cmd.split(',')
-
-        mod.convert(*args)
-
     def run(self, filepath, rootdir, options):
         if self.type == ExternalTool.Type.APPLICATION:
             return self._run_application(filepath, rootdir, options)
-        elif self.type == ExternalTool.Type.DOCKER_IMAGE:
-            return self._run_docker(filepath, rootdir, options)
         elif self.type == ExternalTool.Type.PYTHON_MODULE:
             return self._run_python_module(filepath, rootdir, options)
 
