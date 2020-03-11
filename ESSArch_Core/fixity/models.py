@@ -58,7 +58,7 @@ class ConversionTool(ExternalTool):
             os.chdir(rootdir)
             filepath = normalize_path(filepath)
             cmd = self.path + " " + self.prepare_cmd(filepath, options)
-            p = Popen(shlex.split(cmd), shell=True, stdout=PIPE, stderr=PIPE)
+            p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
                 raise ConversionError(err)
