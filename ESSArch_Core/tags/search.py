@@ -38,7 +38,7 @@ from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import Structure, TagStructure, TagVersion
+from ESSArch_Core.tags.models import Structure, Tag, TagStructure, TagVersion
 from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
     ArchiveWriteSerializer,
@@ -962,9 +962,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if not request.user.has_perm(perm):
             raise exceptions.PermissionDenied('You do not have permission to delete this node')
 
-        if request.query_params.get('delete_descendants', False):
+        if obj.elastic_index == 'archive' and obj.tag.versions.count() == 1:
+            structures = Structure.objects.filter(
+                tagstructure__tag=obj.tag,
+                is_template=False,
+            ).values_list('pk', flat=True)
+            structures = list(structures)
+            Tag.objects.filter(structures__structure__tagstructure__tag=obj.tag).delete()
+            Structure.objects.filter(pk__in=structures).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if obj.tag.versions.count() == 1 or request.query_params.get('delete_descendants', False):
             structure = request.query_params.get('structure')
             obj.get_descendants(structure=structure, include_self=True).delete()
         else:
             obj.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
