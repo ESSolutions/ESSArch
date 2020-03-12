@@ -39,7 +39,7 @@ class ConvertFileTests(TestCase):
             convert_file("test.docx", "pdf")
 
         cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
     @mock.patch('ESSArch_Core.util.Popen')
@@ -53,7 +53,7 @@ class ConvertFileTests(TestCase):
             convert_file("test.docx", "pdf")
 
         cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
     @mock.patch('ESSArch_Core.util.Popen')
@@ -66,7 +66,7 @@ class ConvertFileTests(TestCase):
         self.assertEqual(convert_file("test.docx", "pdf"), 'test.pdf')
 
         cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
 
 class GetValueFromPathTest(TestCase):
