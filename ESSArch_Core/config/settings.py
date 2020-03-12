@@ -36,7 +36,7 @@ ESSARCH_WORKFLOW_POLLERS = {
 
 
 # Set test runner
-TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
+TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
