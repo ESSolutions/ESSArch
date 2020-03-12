@@ -46,22 +46,6 @@ TYPE_CHOICES = (
 )
 
 
-def find_all_files(datadir, ip, pattern):
-    found_files = []
-    for path in iglob(datadir + '/' + pattern):
-        if os.path.isdir(path):
-            for root, _dirs, files in walk(path):
-                rel = os.path.relpath(root, datadir)
-
-                for f in files:
-                    found_files.append({'ip': ip.object_identifier_value, 'document': os.path.join(rel, f)})
-
-        else:
-            rel = os.path.relpath(path, datadir)
-            found_files.append({'ip': ip.object_identifier_value, 'document': rel})
-    return found_files
-
-
 class MaintenanceTemplate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
