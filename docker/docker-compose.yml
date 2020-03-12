@@ -147,7 +147,7 @@ services:
     build:
       context: elasticsearch
       args:
-        ELK_VERSION: 7.5.2
+        ELK_VERSION: 7.6.1
     volumes:
       - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - essarch_elasticsearch_data:/usr/share/elasticsearch/data
@@ -163,7 +163,7 @@ services:
     build:
       context: elasticsearch
       args:
-        ELK_VERSION: 6.5.4
+        ELK_VERSION: 7.6.1
     volumes:
       - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     ports:
