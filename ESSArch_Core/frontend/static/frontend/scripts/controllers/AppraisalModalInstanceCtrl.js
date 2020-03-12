@@ -10,9 +10,14 @@ export default class AppraisalModalInstanceCtrl {
     $ctrl.publicTemplate = true;
     $ctrl.ip = null;
     $ctrl.model = {package_file_pattern: []};
+    $ctrl.fullIpAppraisal = true;
+
     $ctrl.$onInit = () => {
       if (data.appraisal) {
         $ctrl.model = angular.copy(data.appraisal);
+        if ($ctrl.model.package_file_pattern && $ctrl.model.package_file_pattern.length > 0) {
+          $ctrl.fullIpAppraisal = false;
+        }
       }
     };
 
@@ -87,11 +92,10 @@ export default class AppraisalModalInstanceCtrl {
         $ctrl.createForm.$setSubmitted();
         return;
       }
-      $ctrl.data = Utils.getDiff(data.appraisal, $ctrl.model, {map: {}});
       $http({
         url: appConfig.djangoUrl + 'appraisal-templates/' + template.id + '/',
         method: 'PATCH',
-        data: $ctrl.data,
+        data: $ctrl.model,
       })
         .then(function(response) {
           $ctrl.saving = false;
