@@ -1,10 +1,10 @@
-from django.conf.urls import url
-from rest_auth.views import (
+from dj_rest_auth.views import (
     PasswordChangeView,
     PasswordResetConfirmView,
     PasswordResetView,
     UserDetailsView,
 )
+from django.conf.urls import url
 
 from ESSArch_Core.auth.views import LoginView, LogoutView, login_services
 
