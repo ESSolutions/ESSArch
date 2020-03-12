@@ -1,4 +1,5 @@
 import os
+import shlex
 import shutil
 import tempfile
 from unittest import mock
@@ -1410,13 +1411,15 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
         ConversionTool.objects.create(
             name='ffmpeg', enabled=True, type=ConversionTool.Type.DOCKER_IMAGE,
-            path='ffmpeg', cmd='-i {input} {input_dir}/{input_name}.{output}',
+            path='ffmpeg', cmd='-i "{input}" "{input_dir}/{input_name}.{output}"',
         )
 
         with self.storage_obj.open('foo.mkv', 'w') as f:
             f.write('foo')
         with self.storage_obj.open('foo/bar.mkv', 'w') as f:
             f.write('bar')
+        with self.storage_obj.open('foo/bar 123.mkv', 'w') as f:
+            f.write('bar 123')
         with self.storage_obj.open('foo/baz.MKV', 'w') as f:
             f.write('baz')
         with self.storage_obj.open('logs/1.txt', 'w') as f:
@@ -1549,12 +1552,8 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
     def test_convert_packages_with_valid_specification(self, m_validate, mock_convert):
         def convert_side_effect(img, cmd, *args, volumes, **kwargs):
             rootdir = list(volumes.keys())[0]
-            _, src, dst = cmd.split(' ')
+            _, src, dst = shlex.split(cmd)
             shutil.copyfile(os.path.join(rootdir, src), os.path.join(rootdir, dst))
-
-        class AnyStringEndsWith(str):
-            def __eq__(a: str, b: str, *args, **kwargs):
-                return b.endswith(a)
 
         mock_convert.side_effect = convert_side_effect
 
@@ -1571,9 +1570,20 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
 
-        mock_convert.assert_called_once_with(
-            'ffmpeg', '-i foo/bar.mkv foo/bar.mp4', remove=True, volumes=mock.ANY, working_dir=mock.ANY,
-        )
+        mock_convert.assert_has_calls([
+            mock.call(
+                'ffmpeg', '-i "foo/bar.mkv" "foo/bar.mp4"',
+                remove=True, volumes=mock.ANY, working_dir=mock.ANY,
+            ),
+            mock.call(
+                'ffmpeg', '-i "foo/bar 123.mkv" "foo/bar 123.mp4"',
+                remove=True, volumes=mock.ANY, working_dir=mock.ANY,
+            ),
+            mock.call(
+                'ffmpeg', '-i "foo/baz.MKV" "foo/baz.mp4"',
+                remove=True, volumes=mock.ANY, working_dir=mock.ANY,
+            ),
+        ], any_order=True)
 
         self.assertFalse(
             ConversionJobEntry.objects.filter(
