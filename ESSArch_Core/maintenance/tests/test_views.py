@@ -1000,7 +1000,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo/bar.pdf')))
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
-        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
+        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), ['baz.PDF'])
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))
 
         with self.assertRaises(Tag.DoesNotExist):
@@ -1022,7 +1022,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertCountEqual(
             [normalize_path(os.path.join(x['href'], x['filename'])) for x in new_document_tags],
             [
-                'foo.pdf', 'logs/1.txt', 'logs/2.txt',
+                'foo.pdf', 'foo/baz.PDF', 'logs/1.txt', 'logs/2.txt',
                 'ipevents.xml', 'mets.xml', 'premis.xsd',
             ],
         )
