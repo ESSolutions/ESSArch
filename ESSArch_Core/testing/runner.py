@@ -4,7 +4,6 @@ from contextlib import contextmanager
 from celery import current_app
 from django.conf import settings
 from django.db import connection
-from django.db.backends.base.creation import TEST_DATABASE_PREFIX
 from django.test.runner import DiscoverRunner
 
 
