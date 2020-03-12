@@ -80,7 +80,7 @@ class DiskStorageBackend(BaseStorageBackend):
             container=container,
         )
 
-    def list_files(self, storage_object, pattern):
+    def list_files(self, storage_object, pattern, case_sensitive=True):
         if storage_object.container:
             raise NotImplementedError
 
@@ -92,7 +92,7 @@ class DiskStorageBackend(BaseStorageBackend):
                 for f in files:
                     yield normalize_path(os.path.join(rel, f))
         else:
-            for path in iglob(datadir + '/' + pattern):
+            for path in iglob(datadir + '/' + pattern, case_sensitive=case_sensitive):
                 if os.path.isdir(path):
                     for root, _dirs, files in walk(path):
                         rel = os.path.relpath(root, datadir)

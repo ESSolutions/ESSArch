@@ -215,7 +215,7 @@ class AppraisalJob(MaintenanceJob):
 
         if self.package_file_pattern:
             for pattern in self.package_file_pattern:
-                yield from storage_obj.list_files(pattern)
+                yield from storage_obj.list_files(pattern, case_sensitive=False)
         else:
             yield from storage_obj.list_files()
 
@@ -359,7 +359,7 @@ class AppraisalJob(MaintenanceJob):
 
                 # delete files specified in rule
                 for pattern in cast(List[str], self.package_file_pattern):
-                    for path in iglob(new_ip_tmpdir + '/' + pattern):
+                    for path in iglob(new_ip_tmpdir + '/' + pattern, case_sensitive=False):
                         if not in_directory(path, new_ip_tmpdir):
                             raise ValueError('Invalid file-pattern accessing files outside of package')
 
@@ -582,7 +582,7 @@ class ConversionJob(MaintenanceJob):
             raise NoReadableStorage
 
         for pattern, _ in self.specification.items():
-            yield from storage_obj.list_files(pattern)
+            yield from storage_obj.list_files(pattern, case_sensitive=False)
 
     def create_notification(self, status):
         if self.user is None:
@@ -638,7 +638,7 @@ class ConversionJob(MaintenanceJob):
                 tool = ConversionTool.objects.get(name=spec['tool'])
                 options = spec['options']
 
-                for path in iglob(new_ip_tmpdir + '/' + pattern):
+                for path in iglob(new_ip_tmpdir + '/' + pattern, case_sensitive=False):
                     if not in_directory(path, new_ip_tmpdir):
                         raise ValueError('Invalid file-pattern accessing files outside of package')
 

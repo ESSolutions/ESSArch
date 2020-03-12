@@ -392,6 +392,15 @@ class AppraisalJobViewSetInformationPackageListViewTests(APITestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertCountEqual(res.data, [foo, bar])
 
+        pattern = '**/*.TXT'
+        with self.subTest(pattern):
+            self.appraisal_job.package_file_pattern = [pattern]
+            self.appraisal_job.save()
+
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(res.data, [foo, bar])
+
         pattern = '**/baz.*'
         with self.subTest(pattern):
             self.appraisal_job.package_file_pattern = [pattern]
@@ -630,6 +639,8 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             f.write('foo')
         with self.storage_obj.open('foo/bar.pdf', 'w') as f:
             f.write('bar')
+        with self.storage_obj.open('foo/baz.PDF', 'w') as f:
+            f.write('baz')
         with self.storage_obj.open('logs/1.txt', 'w') as f:
             f.write('1')
         with self.storage_obj.open('logs/2.txt', 'w') as f:
@@ -826,6 +837,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
         self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'baz.PDF')))
         self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
 
@@ -915,6 +927,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
         self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.pdf')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'baz.PDF')))
         self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertFalse(os.path.isdir(os.path.join(new_path, 'logs')))
 
@@ -1369,6 +1382,15 @@ class ConversionJobViewSetInformationPackageListViewTests(APITestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertCountEqual(res.data, [foo, bar])
 
+        pattern = '**/*.TXT'
+        with self.subTest(pattern):
+            self.conversion_job.specification = {pattern: {}}
+            self.conversion_job.save()
+
+            res = self.client.get(url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertCountEqual(res.data, [foo, bar])
+
         pattern = '**/baz.*'
         with self.subTest(pattern):
             self.conversion_job.specification = {pattern: {}}
@@ -1395,6 +1417,8 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             f.write('foo')
         with self.storage_obj.open('foo/bar.mkv', 'w') as f:
             f.write('bar')
+        with self.storage_obj.open('foo/baz.MKV', 'w') as f:
+            f.write('baz')
         with self.storage_obj.open('logs/1.txt', 'w') as f:
             f.write('1')
         with self.storage_obj.open('logs/2.txt', 'w') as f:
@@ -1579,4 +1603,6 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
         self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'bar.mkv')))
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo', 'bar.mp4')))
+        self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo', 'baz.MKV')))
+        self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo', 'baz.mp4')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))

@@ -20,7 +20,7 @@ class BaseStorageBackend:
     def write(self, src, ip, storage_method, storage_medium, block_size=None):
         raise NotImplementedError('subclasses of BaseStorageBackend must provide an write() method')
 
-    def list_files(self, storage_object, pattern):
+    def list_files(self, storage_object, pattern, case_sensitive=True):
         raise NotImplementedError('subclasses of BaseStorageBackend must provide a list_files() method')
 
     def delete(self, storage_object):
