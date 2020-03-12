@@ -429,7 +429,7 @@ def run_shell_command(command, cwd):
     Run command in shell and return results.
     """
 
-    p = Popen(command, shell=True, cwd=cwd, stdout=PIPE)
+    p = Popen(command, cwd=cwd, stdout=PIPE)
     stdout = p.communicate()[0]
     if stdout:
         stdout = stdout.strip()
@@ -484,9 +484,9 @@ def nested_lookup(key, document):
                         yield result
 
 
-def mptt_to_dict(node, serializer):
-    result = serializer(instance=node).data
-    children = [mptt_to_dict(c, serializer) for c in node.get_children()]
+def mptt_to_dict(node, serializer, context=None):
+    result = serializer(instance=node, context=context).data
+    children = [mptt_to_dict(c, serializer, context=context) for c in node.get_children()]
     if children:
         result['children'] = children
     return result
@@ -495,7 +495,7 @@ def mptt_to_dict(node, serializer):
 def convert_file(path, new_format):
     cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
     logger.info(cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
     if p.returncode:

@@ -23,8 +23,8 @@
 """
 
 import logging
-import os
 import shutil
+import tempfile
 import uuid
 from unittest import mock
 
@@ -226,20 +226,8 @@ class test_undoing_tasks(TestCase):
 class test_retrying_tasks(TestCase):
 
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-
-        try:
-            os.mkdir(self.datadir)
-        except OSError as e:
-            if e.errno == 17:  # file exists
-                shutil.rmtree(self.datadir)
-                os.mkdir(self.datadir)
-            else:
-                raise
-
-    def tearDown(self):
-        shutil.rmtree(self.datadir)
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
     def test_retry_with_args(self):
         x = 2
@@ -262,6 +250,7 @@ class DBTaskTests(TestCase):
     @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
     def test_create_event_when_success(self, mocked_logger_log):
         db_task = DBTask()
+        db_task.eager = False
         t = ProcessTask.objects.create()
 
         db_task.create_event(
@@ -287,6 +276,7 @@ class DBTaskTests(TestCase):
     @mock.patch("billiard.einfo.ExceptionInfo")
     def test_create_event_when_failure(self, mock_einfo, mock_logger_log):
         db_task = DBTask()
+        db_task.eager = False
         t = ProcessTask.objects.create()
 
         db_task.create_event(
@@ -311,6 +301,7 @@ class DBTaskTests(TestCase):
     def test_success_when_event_type_not_none_then_create_event(self, mock_create_event):
         db_task = DBTask()
         db_task.event_type = 123
+        db_task.eager = False
         task_id = uuid.uuid4()
         retval = uuid.uuid4()
         args = uuid.uuid4()
@@ -324,6 +315,7 @@ class DBTaskTests(TestCase):
     def test_success_when_event_type_is_none_dont_create_event(self, mock_create_event):
         db_task = DBTask()
         db_task.event_type = None
+        db_task.eager = False
         task_id = uuid.uuid4()
         retval = uuid.uuid4()
         args = uuid.uuid4()
@@ -337,6 +329,7 @@ class DBTaskTests(TestCase):
     def test_success_when_track_is_False_then_return(self, mock_create_event):
         db_task = DBTask()
         db_task.track = False
+        db_task.eager = False
         task_id = uuid.uuid4()
         retval = uuid.uuid4()
         args = uuid.uuid4()
@@ -351,6 +344,7 @@ class DBTaskTests(TestCase):
     def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_einfo):
         db_task = DBTask()
         db_task.event_type = 123
+        db_task.eager = False
         task_id = uuid.uuid4()
         args = uuid.uuid4()
         kwargs = uuid.uuid4()
@@ -366,6 +360,7 @@ class DBTaskTests(TestCase):
     def test_failure_when_event_type_is_none_then_dont_create_event(self, create_event, mock_einfo):
         db_task = DBTask()
         db_task.event_type = None
+        db_task.eager = False
         task_id = uuid.uuid4()
         args = uuid.uuid4()
         kwargs = uuid.uuid4()
@@ -381,6 +376,7 @@ class DBTaskTests(TestCase):
     def test_failure_when_track_is_False_then_return(self, mock_create_event, mock_einfo):
         db_task = DBTask()
         db_task.track = False
+        db_task.eager = False
         task_id = uuid.uuid4()
         args = uuid.uuid4()
         kwargs = uuid.uuid4()

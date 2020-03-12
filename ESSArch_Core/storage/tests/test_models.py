@@ -404,17 +404,12 @@ class StorageObjectReadTests(TestCase):
 
 
 class StorageObjectDeleteFilesTests(TestCase):
-
     def setUp(self):
         self.datadir = normalize_path(tempfile.mkdtemp())
-        self.subdir = os.path.join(self.datadir, "subdir")
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.subdir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
+        self.subdir = os.path.join(self.datadir, "subdir")
+        os.makedirs(self.subdir)
 
         self.medium_location_param = Parameter.objects.create(entity=str(uuid.uuid4()), value="dummy_medium_location")
         self.agent_id_param = Parameter.objects.create(entity=str(uuid.uuid4()), value="dummy_agent_id")

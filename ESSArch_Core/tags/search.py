@@ -12,7 +12,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Prefetch
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -38,7 +38,7 @@ from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import Structure, TagStructure, TagVersion
+from ESSArch_Core.tags.models import Structure, Tag, TagStructure, TagVersion
 from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
     ArchiveWriteSerializer,
@@ -124,7 +124,7 @@ class ComponentSearch(FacetedSearch):
         components and `_id` on archives.
         """
 
-        organization_archives = TagVersion.objects.for_user(self.user, []).filter(elastic_index='archive')
+        organization_archives = TagVersion.objects.filter(elastic_index='archive').for_user(self.user, [])
         organization_archives = [str(x) for x in list(organization_archives.values_list('pk', flat=True))]
 
         s = super().search()
@@ -141,17 +141,56 @@ class ComponentSearch(FacetedSearch):
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
-            Q('bool', **{'must_not': {'exists': {'field': 'archive'}}}),
+            Q('bool', must_not=[
+                Q('nested', path='archive', ignore_unmapped=True, query=Q('bool', filter=Q('exists', field='archive')))
+            ]),
             Q('bool', **{'must_not': {'terms': {'_index': ['component-*', 'structure_unit-*']}}}),
         ]))
 
-        organization_ips = InformationPackage.objects.for_user(self.user, [])
-        organization_ips = [str(x) for x in list(organization_ips.values_list('pk', flat=True))]
+        # * get everything except documents connected to IPs available to the user
+        #
+        # * get documents connected to any IP available to the user if the user has the
+        #   permission to see files in other user's IPs. Otherwise, only get documents
+        #   from IPs that the user is responsible for
+
+        organization_ips = InformationPackage.objects.for_user(self.user, []).values_list('pk', flat=True)
+
+        if self.user.has_perm('ip.see_other_user_ip_files'):
+            document_ips = organization_ips
+        else:
+            document_ips = self.user.information_packages.values_list('pk', flat=True)
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
-            Q('terms', ip=organization_ips),
-            Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            Q('bool', must=[
+                Q('bool', minimum_should_match=1, should=[
+                    ~Q('exists', field='ip'),
+                    Q('terms', ip=list(organization_ips))
+                ]),
+                Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            ]),
+            Q('bool', must=[
+                Q('terms', _index=['document-*']),
+                Q('bool', minimum_should_match=1, should=[~Q('exists', field='ip'), Q('terms', ip=list(document_ips))])
+            ]),
         ]))
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            self.user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('terms', security_level=user_security_levels),
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
+        else:
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
             s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
@@ -308,6 +347,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             'tag__current_version', 'parent__tag__current_version'
         )
         tag_version = qs.select_related('tag').prefetch_related(Prefetch('tag__structures', prefetched_structures))
+
+        if not self.request.user.has_perm('ip.see_other_user_ip_files'):
+            tag_version = tag_version.exclude(
+                ~models.Q(tag__information_package__responsible=self.request.user),
+                elastic_index='document',
+            )
 
         obj = get_object_or_404(tag_version, pk=id)
         root = obj.get_root()
@@ -548,7 +593,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(tag, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         serialized = TagVersionSerializerWithVersions(tag, context=context).data
 
         return Response(serialized)
@@ -626,12 +671,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         parent = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(parent, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         children = parent.get_children(structure).select_related(
             'tag__information_package', 'type',
         ).prefetch_related(
             'agent_links', 'identifiers', 'notes', 'tag_version_relations_a',
-        )
+        ).for_user(request.user)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
@@ -736,7 +781,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         serializer.is_valid(raise_exception=True)
         tag = serializer.save()
-        return Response(TagVersionNestedSerializer(instance=tag.current_version).data, status=status.HTTP_201_CREATED)
+        return Response(
+            TagVersionNestedSerializer(instance=tag.current_version, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def _update_tag_metadata(self, tag_version, data):
         if 'structure_unit' in data:
@@ -914,9 +962,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if not request.user.has_perm(perm):
             raise exceptions.PermissionDenied('You do not have permission to delete this node')
 
-        if request.query_params.get('delete_descendants', False):
+        if obj.elastic_index == 'archive' and obj.tag.versions.count() == 1:
+            structures = Structure.objects.filter(
+                tagstructure__tag=obj.tag,
+                is_template=False,
+            ).values_list('pk', flat=True)
+            structures = list(structures)
+            Tag.objects.filter(structures__structure__tagstructure__tag=obj.tag).delete()
+            Structure.objects.filter(pk__in=structures).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if obj.tag.versions.count() == 1 or request.query_params.get('delete_descendants', False):
             structure = request.query_params.get('structure')
             obj.get_descendants(structure=structure, include_self=True).delete()
         else:
             obj.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)

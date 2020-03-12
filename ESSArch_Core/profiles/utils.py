@@ -1,4 +1,5 @@
 import collections
+import os
 from collections.abc import Mapping
 
 from django.core.exceptions import ObjectDoesNotExist
@@ -159,7 +160,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         if '_CTS_SCHEMA_PATH' not in ignore:
             data['_CTS_SCHEMA_PATH'] = (ip.get_content_type_schema_file,)
 
-        data['_CONTENT_METS_PATH'] = ip.content_mets_path
+        data['_CONTENT_METS_PATH'] = os.path.join(ip.object_path, ip.content_mets_path)
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
         data['_CONTENT_METS_SIZE'] = ip.content_mets_size
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()

@@ -32,12 +32,6 @@ class XMLSchemaValidatorTests(TestCase):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
     @staticmethod
     def create_schema():
         return """<?xml version="1.0" encoding="UTF-8"?>
@@ -264,12 +258,6 @@ class XMLSchematronValidatorTests(TestCase):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
-
     def create_schematron_file(self, schematron_file_name):
         schematron_content = """<?xml version="1.0" encoding="UTF-8"?>
         <schema xmlns="http://www.ascc.net/xml/schematron">
@@ -464,12 +452,6 @@ class XMLISOSchematronValidatorTests(TestCase):
     def setUp(self):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
-
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
 
     def create_schematron_file(self, schematron_file_name):
         schematron_content = """<?xml version="1.0" encoding="UTF-8"?>

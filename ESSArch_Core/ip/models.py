@@ -102,6 +102,7 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
     find_destination,
     generate_file_response,
@@ -634,6 +635,9 @@ class InformationPackage(models.Model):
         full_path = os.path.join(ctsdir, ctsfile)
         return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
 
+    def get_doc(self):
+        return InformationPackageDocument.get(id=str(self.pk))
+
     def get_archive_tag(self):
         if self.tag is not None:
             return self.tag
@@ -792,7 +796,7 @@ class InformationPackage(models.Model):
         else:
             path = 'mets.xml'
 
-        return normalize_path(os.path.join(self.object_path, path))
+        return normalize_path(path)
 
     def get_premis_file_path(self):
         try:
@@ -1210,7 +1214,8 @@ class InformationPackage(models.Model):
 
         return workflow
 
-    def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+    def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
+                               package_xml=False, aic_xml=False):
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
         else:
@@ -1363,7 +1368,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIP xml to workspace",
-                    "if": tar,
+                    "if": tar and package_xml,
                     "args": [
                         temp_mets_path,
                         access_workarea_user,
@@ -1372,7 +1377,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIC xml to workspace",
-                    "if": tar,
+                    "if": tar and aic_xml,
                     "args": [
                         temp_aic_mets_path,
                         access_workarea_user,
@@ -1426,7 +1431,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_object_path,
                             access_workarea_user_package_xml,
@@ -1435,7 +1440,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
@@ -1484,7 +1489,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIP xml to workspace",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_mets_path,
                             access_workarea_user_package_xml,
@@ -1493,7 +1498,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIC xml to workspace",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [
                             temp_aic_mets_path,
                             access_workarea_user_aic_xml,
@@ -1559,7 +1564,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_object_path,
                             access_workarea_user_package_xml,
@@ -1568,7 +1573,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
@@ -1615,6 +1620,8 @@ class InformationPackage(models.Model):
                 except ValueError:
                     # file has not been indexed, index it
                     index_path(self, src)
+
+        InformationPackageDocument.from_obj(self).save()
 
     def get_cached_storage_object(self):
         cache_method = self.policy.cache_storage
@@ -2027,8 +2034,18 @@ class Workarea(models.Model):
 
     @property
     def path(self):
-        area_dir = Path.objects.cached('entity', self.get_type_display() + '_workarea', 'value')
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+
+    @property
+    def package_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value) + '.xml'
+
+    @property
+    def aic_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.aic.object_identifier_value) + '.xml'
 
     def get_path(self):
         return self.path

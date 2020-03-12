@@ -285,10 +285,6 @@ class CreateStepTests(TestCase):
         self.user = User.objects.create(username='user')
         self.url = reverse('processstep-list')
 
-        ProcessStep.objects.create(name="example.Foo")
-        ProcessStep.objects.create(name="example.Greet")
-        ProcessStep.objects.create(name="example.HelloWorld")
-
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'example.Foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -304,6 +300,7 @@ class CreateStepTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, {'name': 'example.Foo'})
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ProcessStep.objects.get(name='example.Foo').user, self.user.username)
 
 
 class ChangeStepTests(TestCase):

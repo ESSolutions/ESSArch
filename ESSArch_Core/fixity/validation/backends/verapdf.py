@@ -29,7 +29,7 @@ def run_verapdf(filepath, policy=None, validate=True, extract_features=False):
     )
 
     logger.debug(cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
     return out, err, p.returncode
 

@@ -6,9 +6,14 @@ const Utils = () => {
         if (
           typeof objb[key] !== 'object' &&
           objb[key] !== obja[key] &&
-          (angular.isUndefined(options.map[key]) || objb[key] !== obja[key][options.map[key]])
+          (angular.isUndefined(options.map[key]) ||
+            (obja[key] == null && objb[key] != null) ||
+            objb[key] !== obja[key][options.map[key]])
         ) {
           diff[key] = objb[key];
+        }
+        if (objb[key] == null && obja != null) {
+          diff[key] = null;
         }
       }
       for (var key in obja) {

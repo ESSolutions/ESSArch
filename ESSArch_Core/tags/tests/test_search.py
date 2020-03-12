@@ -9,6 +9,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
     connections,
     get_connection as get_es_connection,
@@ -25,9 +26,11 @@ from ESSArch_Core.agents.models import (
     MainAgentType,
     RefCode,
 )
+from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import Feature
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.search import alias_migration
-from ESSArch_Core.tags.documents import Archive, Component
+from ESSArch_Core.tags.documents import Archive, Component, File
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
@@ -44,7 +47,7 @@ def get_test_client(nowait=False):
     client = get_es_connection('default')
 
     # wait for yellow status
-    for _ in range(1 if nowait else 100):
+    for _ in range(1 if nowait else 5):
         try:
             client.cluster.health(wait_for_status="yellow")
             return client
@@ -52,7 +55,7 @@ def get_test_client(nowait=False):
             time.sleep(0.1)
     else:
         # timeout
-        raise SkipTest("Elasticsearch failed to start.")
+        raise SkipTest("Elasticsearch failed to start")
 
 
 @override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
@@ -64,9 +67,13 @@ class ESSArchSearchBaseTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        super().setUpClass()
+        if cls._overridden_settings:
+            cls._cls_overridden_context = override_settings(**cls._overridden_settings)
+            cls._cls_overridden_context.enable()
+
         connections.configure(**settings.ELASTICSEARCH_CONNECTIONS)
         cls.es_client = cls._get_client()
+        super().setUpClass()
 
     def setUp(self):
         for _index_name, index_class in settings.ELASTICSEARCH_INDEXES['default'].items():
@@ -85,9 +92,17 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
     def setUpTestData(cls):
         cls.url = reverse('search-list')
         Feature.objects.create(name='archival descriptions', enabled=True)
-        cls.user = User.objects.create(is_superuser=True)
+        cls.user = User.objects.create()
         permission = Permission.objects.get(codename='search')
         cls.user.user_permissions.add(permission)
+
+        org_group_type = GroupType.objects.create(codename='organization')
+
+        cls.group1 = Group.objects.create(name='group1', group_type=org_group_type)
+        cls.group1.add_member(cls.user.essauth_member)
+
+        cls.group2 = Group.objects.create(name='group2', group_type=org_group_type)
+        cls.group2.add_member(cls.user.essauth_member)
 
         cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
         cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
@@ -123,7 +138,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         with self.subTest('without archive'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertNotEqual(res.data['hits'], [])
+            self.assertEqual(len(res.data['hits']), 1)
 
         structure_type = StructureType.objects.create()
         structure_template = Structure.objects.create(type=structure_type, is_template=True)
@@ -134,6 +149,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             type=self.archive_type,
             elastic_index="archive",
         )
+        self.group1.add_object(archive_tag_version)
         structure, archive_tag_structure = structure_template.create_template_instance(archive_tag)
         Archive.from_obj(archive_tag_version).save(refresh='true')
 
@@ -145,6 +161,14 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
             self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        with self.subTest('with archive, non-active organization'):
+            self.user.user_profile.current_organization = self.group2
+            self.user.user_profile.save()
+
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
 
     def test_filter_on_component_agent(self):
         agent = self.create_agent()
@@ -217,3 +241,186 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+
+class DocumentSearchTestCase(ESSArchSearchBaseTestCase):
+    fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('search-list')
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
+        org_group_type = GroupType.objects.create(codename='organization')
+        cls.group = Group.objects.create(group_type=org_group_type)
+        cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
+
+    def setUp(self):
+        super().setUp()
+
+        permission = Permission.objects.get(codename='search')
+        self.user = User.objects.create()
+        self.user.user_permissions.add(permission)
+        self.group.add_member(self.user.essauth_member)
+
+        self.client.force_authenticate(user=self.user)
+
+    def test_search_document_in_ip_with_other_user_responsible_without_permission_to_see_it(self):
+        other_user = User.objects.create(username='other')
+        self.group.add_member(other_user.essauth_member)
+
+        ip = InformationPackage.objects.create(responsible=other_user)
+        self.group.add_object(ip)
+
+        document_tag = Tag.objects.create(information_package=ip)
+        document_tag_version = TagVersion.objects.create(
+            tag=document_tag,
+            type=self.component_type,
+            elastic_index="document",
+        )
+        File.from_obj(document_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 0)
+
+    def test_search_document_in_ip_with_other_user_responsible_with_permission_to_see_it(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='see_other_user_ip_files'))
+
+        other_user = User.objects.create(username='other')
+        self.group.add_member(other_user.essauth_member)
+
+        ip = InformationPackage.objects.create(responsible=other_user)
+        self.group.add_object(ip)
+
+        document_tag = Tag.objects.create(information_package=ip)
+        document_tag_version = TagVersion.objects.create(
+            tag=document_tag,
+            type=self.component_type,
+            elastic_index="document",
+        )
+        File.from_obj(document_tag_version).save(refresh='true')
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['hits']), 1)
+        self.assertEqual(res.data['hits'][0]['_id'], str(document_tag_version.pk))
+
+
+class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
+    fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.url = reverse('search-list')
+        Feature.objects.create(name='archival descriptions', enabled=True)
+        cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        cls.security_levels = [1, 2, 3, 4, 5]
+
+    def setUp(self):
+        super().setUp()
+
+        self.user = User.objects.create()
+        permission = Permission.objects.get(codename='search')
+        self.user.user_permissions.add(permission)
+        self.client.force_authenticate(user=self.user)
+
+    def test_user_with_no_security_level(self):
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels[1:]:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                res = self.client.get(self.url)
+                self.assertEqual(res.status_code, status.HTTP_200_OK)
+                self.assertEqual(len(res.data['hits']), 0)
+
+    def test_user_with_security_level_3(self):
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                if lvl == 3:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 1)
+                    self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+                else:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 0)
+
+    def test_user_with_multiple_security_levels(self):
+        self.user.user_permissions.add(
+            Permission.objects.get(codename='security_level_1'),
+            Permission.objects.get(codename='security_level_3'),
+        )
+        self.user = User.objects.get(pk=self.user.pk)
+
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+            security_level=None,
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        with self.subTest(f'no security level'):
+            res = self.client.get(self.url)
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+            self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+        for lvl in self.security_levels:
+            with self.subTest(f'security level {lvl}'):
+                component_tag_version.security_level = lvl
+                component_tag_version.save()
+                Component.from_obj(component_tag_version).save(refresh='true')
+
+                if lvl in [1, 3]:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 1)
+                    self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+                else:
+                    res = self.client.get(self.url)
+                    self.assertEqual(res.status_code, status.HTTP_200_OK)
+                    self.assertEqual(len(res.data['hits']), 0)
