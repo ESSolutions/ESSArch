@@ -1009,7 +1009,12 @@ Data Transfer Element 3:Empty
       Storage Element 0:Empty
       Storage Element 1:Full :VolumeTag=HPS002L3'''
 
-        with mock.patch('ESSArch_Core.storage.tape.Popen.communicate', return_value=(output, '')):
+        with mock.patch('ESSArch_Core.storage.tape.Popen') as m_popen:
+            popen_obj = mock.MagicMock()
+            popen_obj.returncode = 0
+            popen_obj.communicate.return_value = (output, 'error')
+            m_popen.return_value = popen_obj
+
             url = reverse('robot-inventory', args=(robot.pk,))
             response = self.client.post(url)
             self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
