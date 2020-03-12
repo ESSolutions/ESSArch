@@ -302,6 +302,7 @@
               <th>{{'LABEL' | translate}}</th>
               <th>{{'START' | translate}}</th>
               <th>{{'END' | translate}}</th>
+              <th class="shrink">{{'STATUS' | translate}}</th>
               <th>{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</th>
               <th permission permission-only="'maintenance.delete_conversionjob'" class="white-space-nowrap shrink">
                 {{'REMOVE' | translate}}
@@ -314,6 +315,24 @@
               <td>{{x.label}}</td>
               <td>{{x.start_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               <td>{{x.end_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+              <td class="shrink text-center">
+                <i
+                  class="fas fa-check check-success"
+                  ng-if="x.status.toLowerCase() === 'success'"
+                  uib-tooltip="{{'SUCCESS' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                </i>
+                <i
+                  class="fas fa-times cross-failure"
+                  ng-if="x.status.toLowerCase() === 'failure'"
+                  uib-tooltip="{{'FAILURE' | translate}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                >
+                </i>
+              </td>
               <td>
                 <a ng-if="x.has_report" ng-click="vm.showReport(x)">{{'ARCHIVE_MAINTENANCE.REPORT' | translate}}</a>
                 <p class="m-0" ng-if="!x.has_report">{{'ARCHIVE_MAINTENANCE.NO_REPORT_AVAILABLE' | translate}}</p>
@@ -326,10 +345,10 @@
               </td>
             </tr>
             <tr ng-if="!vm.finished.length && !finishedLoading" class="empty-table-indicator">
-              <td colspan="6">{{'NO_RESULTS_FOUND' | translate}}</td>
+              <td colspan="7">{{'NO_RESULTS_FOUND' | translate}}</td>
             </tr>
             <tr ng-if="!vm.finished.length && finishedLoading" class="empty-table-indicator">
-              <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
+              <td class="loading-column" colspan="7">{{'LOADING' | translate}}</td>
             </tr>
           </tbody>
         </table>
