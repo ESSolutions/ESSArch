@@ -469,7 +469,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             raise
 
         if self.paginator is not None:
-            if size > 0 and results.hits.total > 0 and number > math.ceil(results.hits.total / size):
+            if size > 0 and results.hits.total['value'] > 0 and number > math.ceil(results.hits.total['value'] / size):
                 raise exceptions.NotFound('Invalid page.')
 
         results_dict = results.to_dict()
@@ -485,7 +485,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if export is not None:
             return self.generate_report(results_dict['hits']['hits'], export, request.user)
 
-        return Response(r, headers={'Count': results.hits.total})
+        return Response(r, headers={'Count': results.hits.total['value']})
 
     def generate_report(self, hits, format, user):
         try:
