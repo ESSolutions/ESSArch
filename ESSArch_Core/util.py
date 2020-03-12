@@ -429,7 +429,7 @@ def run_shell_command(command, cwd):
     Run command in shell and return results.
     """
 
-    p = Popen(command, shell=True, cwd=cwd, stdout=PIPE)
+    p = Popen(command, cwd=cwd, stdout=PIPE)
     stdout = p.communicate()[0]
     if stdout:
         stdout = stdout.strip()
@@ -495,7 +495,7 @@ def mptt_to_dict(node, serializer, context=None):
 def convert_file(path, new_format):
     cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
     logger.info(cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
     if p.returncode:
