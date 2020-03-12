@@ -2107,6 +2107,8 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         Parameter.objects.create(entity='medium_location', value='Media')
 
         Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
         ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
@@ -2218,6 +2220,9 @@ class InformationPackageViewSetPreserveTestCase(APITestCase):
         self.assertTrue(
             os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
+
+        tempdir = Path.objects.get(entity="temp").value
+        self.assertEqual(os.listdir(tempdir), [])
 
     @TaskRunner()
     def test_preserve_dip(self):

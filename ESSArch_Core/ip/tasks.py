@@ -492,6 +492,20 @@ class MarkArchived(DBTask):
         ip.save()
 
 
+class PostPreservationCleanup(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+
+        paths = Path.objects.filter(entity__in=[
+            'preingest_reception', 'preingest', 'ingest_reception',
+        ]).values_list('value', flat=True)
+
+        for p in paths:
+            delete_path(os.path.join(p, ip.object_identifier_value))
+            delete_path(os.path.join(p, ip.object_identifier_value) + '.tar')
+            delete_path(os.path.join(p, ip.object_identifier_value) + '.xml')
+
+
 class DeleteInformationPackage(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
 

@@ -1194,6 +1194,16 @@ class InformationPackage(models.Model):
                                         "label": "Delete temporary container",
                                         "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary mets",
+                                        "args": ["{{TEMP_METS_PATH}}"]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary aic mets",
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
+                                    },
                                 ],
                             },
                         ],
@@ -1209,6 +1219,10 @@ class InformationPackage(models.Model):
                 "label": "Delete from workarea",
                 "if": workarea_id,
                 "args": [str(workarea_id)],
+            },
+            {
+                "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",
+                "label": "Clean up workflow files",
             },
         ]
 
