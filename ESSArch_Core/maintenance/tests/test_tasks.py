@@ -15,7 +15,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 User = get_user_model()
 
 
-class PollAppraisalJobs(TestCase):
+class PollAppraisalJobsTests(TestCase):
     def setUp(self):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
@@ -63,12 +63,13 @@ class PollAppraisalJobs(TestCase):
         self.assertEqual(job.status, celery_states.SUCCESS)
 
 
-class PollConversionJobs(TestCase):
+class PollConversionJobsTests(TestCase):
     def setUp(self):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
         Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
+        EventType.objects.create(eventType=50750, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def create_task(self):
         return ProcessTask.objects.create(
