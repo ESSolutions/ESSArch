@@ -1407,6 +1407,7 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         super().setUp()
         self.conversion_job = ConversionJob.objects.create(user=self.user)
         self.url = reverse('conversionjob-run', args=(self.conversion_job.pk,))
+        self.event_type = EventType.objects.create(eventType=50750, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
         ConversionTool.objects.create(

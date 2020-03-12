@@ -445,6 +445,12 @@ def preserve_new_generation(new_ip):
     except FileNotFoundError:
         pass
 
+    events_file = os.path.join(new_ip.object_path, new_ip.get_events_file_path())
+    try:
+        os.remove(events_file)
+    except FileNotFoundError:
+        pass
+
     if generate_premis:
         premis_profile_data = new_ip.get_profile_data('preservation_metadata')
         data = fill_specification_data(premis_profile_data, ip=new_ip)
@@ -586,12 +592,13 @@ class ConversionJob(MaintenanceJob):
             refresh=True,
         )
 
-    def convert(self, ip, path, rootpath, tool: ConversionTool, options):
+    def convert(self, ip, path, rootpath, tool: ConversionTool, options, new_ip):
+        relpath = PurePath(path).relative_to(rootpath).as_posix()
         entry = ConversionJobEntry.objects.create(
             job=self,
             start_date=timezone.now(),
             ip=ip,
-            old_document=PurePath(path).relative_to(rootpath).as_posix(),
+            old_document=relpath,
             tool=tool.name,
         )
         tool.run(path, rootpath, options)
@@ -599,10 +606,20 @@ class ConversionJob(MaintenanceJob):
 
         entry.end_date = timezone.now()
         entry.save()
+
+        EventIP.objects.create(
+            eventType=self.delete_event_type,
+            eventOutcome=EventIP.SUCCESS,
+            eventOutcomeDetailNote='Converted {}'.format(relpath),
+            linkingObjectIdentifierValue=new_ip.object_identifier_value,
+        )
+
         return entry
 
     @transaction.atomic
     def _run(self):
+        self.delete_event_type = EventType.objects.get(eventType=50750)
+
         ips = self.information_packages
         tmpdir = Path.objects.get(entity='temp').value
 
@@ -630,9 +647,9 @@ class ConversionJob(MaintenanceJob):
                         for root, _dirs, files in walk(path):
                             for f in files:
                                 fpath = os.path.join(root, f)
-                                self.convert(ip, fpath, new_ip_tmpdir, tool, options)
+                                self.convert(ip, fpath, new_ip_tmpdir, tool, options, new_ip)
                     else:
-                        self.convert(ip, path, new_ip_tmpdir, tool, options)
+                        self.convert(ip, path, new_ip_tmpdir, tool, options, new_ip)
 
             with allow_join_result():
                 preserve_new_generation(new_ip)
