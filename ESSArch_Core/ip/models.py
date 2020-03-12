@@ -1822,6 +1822,9 @@ class InformationPackage(models.Model):
         ordering = ["generation", "-create_date"]
         verbose_name = _('information package')
         verbose_name_plural = _('information packages')
+        unique_together = (
+            ('aic', 'generation'),
+        )
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
