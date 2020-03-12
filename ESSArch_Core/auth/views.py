@@ -24,16 +24,16 @@
 
 import logging
 
+from dj_rest_auth.views import (
+    LoginView as rest_auth_LoginView,
+    LogoutView as rest_auth_LogoutView,
+)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_auth.views import (
-    LoginView as rest_auth_LoginView,
-    LogoutView as rest_auth_LogoutView,
-)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
