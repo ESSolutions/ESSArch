@@ -1,4 +1,4 @@
-boto3==1.10.9
+boto3==1.12.20
 celery[tblib]==4.4.1
 cffi==1.13.2
 channels==2.4.0
