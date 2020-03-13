@@ -961,13 +961,13 @@ class ComponentWriteSerializer(NodeWriteSerializer):
         queryset=InformationPackage.objects.filter(archived=True),
     )
     index = serializers.ChoiceField(choices=['component', 'document'])
-    parent = serializers.PrimaryKeyRelatedField(required=False, queryset=TagVersion.objects.all())
+    parent = serializers.PrimaryKeyRelatedField(required=False, queryset=TagVersion.objects.all(), allow_null=True)
     location = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), allow_null=True)
     structure = serializers.PrimaryKeyRelatedField(
-        required=False, queryset=Structure.objects.filter(is_template=False))
+        required=False, queryset=Structure.objects.filter(is_template=False),
+    )
     structure_unit = serializers.PrimaryKeyRelatedField(
-        required=False,
-        queryset=StructureUnit.objects.filter(structure__is_template=False),
+        required=False, queryset=StructureUnit.objects.filter(structure__is_template=False), allow_null=True,
     )
 
     def create(self, validated_data):
@@ -1085,6 +1085,9 @@ class ComponentWriteSerializer(NodeWriteSerializer):
         return instance
 
     def validate_parent(self, value):
+        if value is None:
+            return None
+
         if not self.instance:
             return value
 
@@ -1094,6 +1097,9 @@ class ComponentWriteSerializer(NodeWriteSerializer):
         return value
 
     def validate_structure_unit(self, value):
+        if value is None:
+            return None
+
         if not value.is_leaf_node():
             raise serializers.ValidationError(_("Must be a leaf unit"))
 
