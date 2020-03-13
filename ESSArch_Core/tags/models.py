@@ -989,7 +989,7 @@ class TagVersion(models.Model):
             index=self.elastic_index,
             doc_type='_all',
             id=str(self.pk),
-            params={'_source_exclude': 'attachment.content'}
+            params={'_source_excludes': 'attachment.content'}
         )
 
     def get_doc(self):
@@ -1011,7 +1011,7 @@ class TagVersion(models.Model):
         elif self.elastic_index == 'directory':
             cls = Directory
         elif self.elastic_index == 'document':
-            kwargs['params']['_source_exclude'] = 'attachment.content'
+            kwargs['params']['_source_excludes'] = 'attachment.content'
             cls = File
         else:
             cls = DocumentBase

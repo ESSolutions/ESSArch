@@ -1807,9 +1807,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise
 
             if self.paginator is not None:
-                ceil = math.ceil(results.hits.total / size)
+                ceil = math.ceil(results.hits.total['value'] / size)
                 ceil = 1 if ceil < 1 else ceil
-                if results.hits.total > 0 and number > ceil:
+                if results.hits.total['value'] > 0 and number > ceil:
                     raise exceptions.NotFound('Invalid page.')
 
             results_list = []
@@ -1830,7 +1830,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 results_list.append(d)
 
             if self.paginator is not None:
-                return Response(results_list, headers={'Count': results.hits.total})
+                return Response(results_list, headers={'Count': results.hits.total['value']})
 
             return Response(results_list)
 

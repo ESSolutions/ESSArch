@@ -68,7 +68,7 @@ RabbitMQ is used for the workflow management and distribution in ESSArch.
 Docker image: https://hub.docker.com/_/rabbitmq/
 
 
-`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ (Supported version: 6.5.x)
+`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ (Supported version: 7.6.*)
 ===========================================================================================
 
 Elasticsearch is the search engine used in ESSArch.
