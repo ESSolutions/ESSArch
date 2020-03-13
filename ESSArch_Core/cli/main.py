@@ -112,12 +112,14 @@ def install(ctx, data_directory):
     installDefaultConfiguration()
 
 
+@click.option('--pidfile', default=None, type=click.Path(exists=True, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
+@click.option('-n', '--hostname', default=None)
 @click.option('-c', '--concurrency', default=None, type=int)
-@click.option('-q', '--queues', default='celery,file_operation,validation')
+@click.option('-Q', '--queues', default='celery,file_operation,validation')
 @cli.command()
 @initialize
-def worker(queues, concurrency, loglevel):
+def worker(queues, concurrency, hostname, loglevel, pidfile):
     from ESSArch_Core.config.celery import app
 
     worker = app.Worker(
@@ -126,6 +128,8 @@ def worker(queues, concurrency, loglevel):
         queues=queues,
         optimization='fair',
         prefetch_multiplier=1,
+        hostname=hostname,
+        pidfile=pidfile,
     )
     worker.start()
     sys.exit(worker.exitcode)
