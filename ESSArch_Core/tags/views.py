@@ -204,7 +204,7 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = ('name',)
 
     def get_queryset(self):
-        return self.queryset.for_user(self.request.user, None)
+        return super().get_queryset().for_user(self.request.user, None)
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
