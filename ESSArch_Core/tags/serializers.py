@@ -654,6 +654,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     is_leaf_node = serializers.SerializerMethodField()
     _source = serializers.SerializerMethodField()
     masked_fields = serializers.SerializerMethodField()
+    archive = serializers.SerializerMethodField()
     related_tags = TagVersionRelationSerializer(source='tag_version_relations_a', many=True)
     medium_type = MediumTypeSerializer()
     notes = NodeNoteSerializer(many=True)
@@ -666,6 +667,9 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
+
+    def get_archive(self, obj):
+        return getattr(obj, 'archive', None)
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
@@ -699,7 +703,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
         fields = (
-            '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
+            '_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'archive',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
             'is_leaf_node', '_source', 'masked_fields', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
