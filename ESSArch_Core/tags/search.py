@@ -35,6 +35,7 @@ from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
@@ -76,18 +77,25 @@ class ComponentSearch(FacetedSearch):
         'start_date': {},
         'end_date': {},
         'type': {'many': True},
+        'appraisal_date_before': {},
+        'appraisal_date_after': {},
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, exclude_indices=None, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date = self.query_params_filter.pop('start_date', None)
         self.end_date = self.query_params_filter.pop('end_date', None)
+        self.appraisal_date_before = self.query_params_filter.pop('appraisal_date_before', None)
+        self.appraisal_date_after = self.query_params_filter.pop('appraisal_date_after', None)
         self.archives = self.query_params_filter.pop('archives', None)
         self.personal_identification_number = self.query_params_filter.pop('personal_identification_number', None)
         self.user = kwargs.pop('user')
         self.filter_values = {
             'indices': self.query_params_filter.pop('indices', [])
         }
+
+        if exclude_indices is not None:
+            self.index = [i for i in self.index if i not in exclude_indices]
 
         def validate_date(d):
             try:
@@ -201,6 +209,12 @@ class ComponentSearch(FacetedSearch):
         if self.end_date not in EMPTY_VALUES:
             s = s.filter('range', start_date={'lte': self.end_date})
 
+        if self.appraisal_date_after not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after})
+
+        if self.appraisal_date_before not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'lte': self.appraisal_date_before})
+
         if self.archives is not None:
             s = s.filter(Q('bool', minimum_should_match=1, should=[
                 Q('nested', path='archive', ignore_unmapped=True, query=Q(
@@ -281,11 +295,25 @@ def get_archive(id):
     return archive_data
 
 
+class ComponentSearchSerializer(serializers.Serializer):
+    appraisal_date_before = serializers.DateField(required=False, allow_null=True, default=None)
+    appraisal_date_after = serializers.DateField(required=False, allow_null=True, default=None)
+
+    def validate(self, data):
+        if (data['appraisal_date_after'] and data['appraisal_date_before'] and
+                data['appraisal_date_after'] > data['appraisal_date_before']):
+
+            raise serializers.ValidationError("appraisal_date_after must occur before appraisal_date_before")
+
+        return data
+
+
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     index = ComponentSearch.index
     lookup_field = 'pk'
     lookup_url_kwarg = None
+    serializer_class = ComponentSearchSerializer
 
     def __init__(self, *args, **kwargs):
         self.client = get_connection()
@@ -300,6 +328,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     def get_view_name(self):
         return 'Search {}'.format(getattr(self, 'suffix', None))
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
 
     def get_object(self, index=None):
         """
@@ -417,12 +452,24 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         params = {key: value[0] for (key, value) in dict(request.query_params).items()}
         query = params.pop('q', '')
         export = params.pop('export', None)
+        add_to_appraisal = params.pop('add_to_appraisal', None)
         params.pop('pager', None)
 
         logger.info(f"User '{request.user}' queried for '{query}'")
 
+        if export is not None and add_to_appraisal is not None:
+            raise exceptions.ParseError('Cannot both export results and add to appraisal')
+
         if export is not None and export not in EXPORT_FORMATS:
             raise exceptions.ParseError('Invalid export format "{}"'.format(export))
+
+        if add_to_appraisal is not None:
+            try:
+                appraisal_job = AppraisalJob.objects.get(pk=add_to_appraisal)
+            except AppraisalJob.DoesNotExist:
+                raise exceptions.ParseError('Appraisal job with id "{}" does not exist'.format(add_to_appraisal))
+        else:
+            appraisal_job = None
 
         filters = {
             'extension': params.pop('extension', None),
@@ -436,8 +483,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         for f in ('page', 'page_size', 'ordering'):
             filter_values.pop(f, None)
 
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        filter_values.update(serializer.validated_data)
+
         sort = self.get_sorting(request)
-        s = ComponentSearch(query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user)
+        exclude_indices = None
+
+        if appraisal_job is not None:
+            exclude_indices = ['structure_unit']
+
+        s = ComponentSearch(
+            query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user,
+            exclude_indices=exclude_indices,
+        )
 
         if self.paginator is not None:
             # Paginate in search engine
@@ -484,6 +543,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         if export is not None:
             return self.generate_report(results_dict['hits']['hits'], export, request.user)
+
+        if appraisal_job is not None:
+            ids = [hit['_id'] for hit in results_dict['hits']['hits']]
+            tags = Tag.objects.filter(versions__in=ids)
+            appraisal_job.tags.add(*tags)
+            return Response()
 
         return Response(r, headers={'Count': results.hits.total['value']})
 

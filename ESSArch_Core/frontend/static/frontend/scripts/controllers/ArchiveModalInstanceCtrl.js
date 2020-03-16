@@ -254,6 +254,14 @@ export default class ArchiveModalInstanceCtrl {
             label: $translate.instant('ACCESS.USE_UUID_AS_REFCODE'),
           },
         },
+        {
+          type: 'datepicker',
+          key: 'appraisal_date',
+          templateOptions: {
+            label: $translate.instant('ACCESS.APPRAISAL_DATE'),
+            appendToBody: false,
+          },
+        },
       ]);
     };
 

@@ -25,6 +25,10 @@ class MTFailedOperationException(ESSArchException):
     pass
 
 
+class NoReadableStorage(ESSArchException):
+    pass
+
+
 class StorageMediumFull(ESSArchException):
     pass
 

@@ -61,18 +61,15 @@
     <body>
         <div class="title">
             <h1>{% trans "Appraisal Report" %}</h1>
-            <b>{% trans "Appraisal Rule" %}: </b>{{rule.name}}
-            {% if rule.user %}
-            <b>{% trans "Appraisal Rule Creator" %}: </b>{{rule.user.username}}
-            {% endif %}
-            <br/>
             <b>{% trans "Appraisal Job" %}: </b>{{job.pk}}
             {% if job.user %}
             <b>{% trans "Appraisal Job Creator" %}: </b>{{job.user.username}}
             {% endif %}
             <br/>
+            <b>{% trans "Purpose" %}: </b>{{job.purpose}}
             <hr/>
         </div>
+        <h2>{% trans "Documents" %}</h2>
         <table>
             <thead>
                 <tr>
@@ -83,7 +80,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for entry in job.entries.all %}
+                {% for entry in ip_entries %}
                     <tr>
                         <td>{{entry.document}}</td>
                         <td>{{entry.ip.object_identifier_value}}</td>
@@ -93,8 +90,27 @@
                 {% endfor %}
             </tbody>
         </table>
+        <h2>{% trans "Nodes" %}</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>{% trans "Node" %}</th>
+                    <th>{% trans "Start date" %}</th>
+                    <th>{% trans "End date" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in tag_entries %}
+                    <tr>
+                        <td>{{entry.component}}</td>
+                        <td>{{entry.start_date | localtime | date:"Y-m-d G:i:s e"}}</td>
+                        <td>{{entry.end_date | localtime | date:"Y-m-d G:i:s e"}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         <div class="footer">
-            {% essarch_project_shortname %} ({% essarch_project_name %}) {% essarch_version %}. © Copyright ESSolutions AB.
+            {% essarch_project_name %} {% essarch_version %}. © Copyright ESSolutions AB.
         </div>
     </body>
 </html>

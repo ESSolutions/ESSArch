@@ -3,10 +3,14 @@ import logging
 import os
 import shutil
 import tarfile
+from os import walk
+
+from glob2 import iglob
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
+from ESSArch_Core.util import normalize_path
 
 logger = logging.getLogger('essarch.storage.backends.disk')
 
@@ -75,6 +79,29 @@ class DiskStorageBackend(BaseStorageBackend):
             ip=ip, storage_medium=storage_medium,
             container=container,
         )
+
+    def list_files(self, storage_object, pattern, case_sensitive=True):
+        if storage_object.container:
+            raise NotImplementedError
+
+        datadir = storage_object.get_full_path()
+
+        if pattern is None:
+            for root, _dirs, files in walk(datadir):
+                rel = os.path.relpath(root, datadir)
+                for f in files:
+                    yield normalize_path(os.path.join(rel, f))
+        else:
+            for path in iglob(datadir + '/' + pattern, case_sensitive=case_sensitive):
+                if os.path.isdir(path):
+                    for root, _dirs, files in walk(path):
+                        rel = os.path.relpath(root, datadir)
+
+                        for f in files:
+                            yield normalize_path(os.path.join(rel, f))
+
+                else:
+                    yield normalize_path(os.path.relpath(path, datadir))
 
     def delete(self, storage_object):
         path = storage_object.get_full_path()
