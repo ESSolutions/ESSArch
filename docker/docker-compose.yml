@@ -50,7 +50,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        essarch worker -l info -q celery,file_operation,validation
+        essarch worker -l info -Q celery,file_operation,validation
     restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
