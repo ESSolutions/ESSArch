@@ -179,36 +179,6 @@ def get_value_from_path(root, path):
     return el.text
 
 
-def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
-    """
-    Creates a new event and saves it to the database
-
-    Args:
-        eventType: The event type
-        eventOutcome: Success (0) or Fail (1)
-        eventOutcomeDetailNote: The result or traceback of the task depending on the outcome
-        agent: The agent creating the event
-        ip: The information package connected to the event
-
-    Returns:
-        The created event
-    """
-
-    from ESSArch_Core.ip.models import EventIP
-
-    e = EventIP.objects.create(
-        eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
-        eventOutcomeDetailNote=eventOutcomeDetailNote,
-        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
-    )
-
-    if application:
-        e.eventApplication = application
-        e.save()
-
-    return e
-
-
 def getSchemas(doc=None, filename=None):
     """
         Creates a schema based on the schemas specified in the provided XML

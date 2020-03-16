@@ -310,10 +310,12 @@ def installDefaultUsers():
         ['storage_migration', 'storage', 'storageobject'],  # Storage migration (Administration)
         ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance (Administration)
         ['storage_management', 'storage', 'storageobject'],  # Storage management (Administration)
-        # ---- app: maintenance ---- model: AppraisalRule
-        ['add_appraisalrule', 'maintenance', 'appraisalrule'],  # Can add appraisal rule (Administration)
+        # ---- app: maintenance ---- model: AppraisalTemplate
+        ['add_appraisaltemplate', 'maintenance', 'appraisaltemplate'],  # Can add appraisal template (Admin)
+        ['change_appraisaltemplate', 'maintenance', 'appraisaltemplate'],  # Can change appraisal template (Admin)
         # ---- app: maintenance ---- model: ConversionRule
-        ['add_conversionrule', 'maintenance', 'conversionrule'],  # Can add conversion rule (Administration)
+        ['add_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can add conversion template (Admin)
+        ['change_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can change conversion template (Admin)
         # ---- app: tags ---- model: Tag
         ['create_archive', 'tags', 'tag'],  # Can create archives
     ]

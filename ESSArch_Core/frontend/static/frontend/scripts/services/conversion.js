@@ -78,7 +78,7 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getRules = function(pagination, sortString, searchString) {
+  service.getTemplates = function(pagination, sortString, searchString) {
     const data = {
       page: pagination.pageNumber,
       page_size: pagination.number,
@@ -89,7 +89,7 @@ const conversion = ($http, appConfig) => {
 
     return $http({
       method: 'GET',
-      url: appConfig.djangoUrl + 'conversion-rules/',
+      url: appConfig.djangoUrl + 'conversion-templates/',
       params: data,
     }).then(function(response) {
       let count = response.headers('Count');

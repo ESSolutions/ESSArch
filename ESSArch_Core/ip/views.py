@@ -112,7 +112,6 @@ from ESSArch_Core.ip.serializers import (
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
-from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -1808,9 +1807,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise
 
             if self.paginator is not None:
-                ceil = math.ceil(results.hits.total / size)
+                ceil = math.ceil(results.hits.total['value'] / size)
                 ceil = 1 if ceil < 1 else ceil
-                if results.hits.total > 0 and number > ceil:
+                if results.hits.total['value'] > 0 and number > ceil:
                     raise exceptions.NotFound('Invalid page.')
 
             results_list = []
@@ -1831,7 +1830,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 results_list.append(d)
 
             if self.paginator is not None:
-                return Response(results_list, headers={'Count': results.hits.total})
+                return Response(results_list, headers={'Count': results.hits.total['value']})
 
             return Response(results_list)
 
@@ -1923,80 +1922,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 ptype, ip.pk
             )
         })
-
-    @action(detail=True, methods=['post'], url_path='add-appraisal-rule')
-    def add_appraisal_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        if ip.package_type == InformationPackage.AIC:
-            raise exceptions.ParseError('Cannot add appraisal rule to AIC')
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.add(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='remove-appraisal-rule')
-    def remove_appraisal_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.remove(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='add-conversion-rule')
-    def add_conversion_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        if ip.package_type == InformationPackage.AIC:
-            raise exceptions.ParseError('Cannot add conversion rule to AIC')
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.add(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='remove-conversion-rule')
-    def remove_conversion_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.remove(ip)
-        return Response()
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='validate')
