@@ -51,22 +51,41 @@ class CLITest(SimpleTestCase):
         with mock.patch('celery.app.base.Celery.Worker', return_value=MagicMock(exitcode=0)) as cmd:
             result = runner.invoke(worker)
             cmd.assert_called_once_with(
+                logfile=None,
                 loglevel='INFO',
+                hostname=None,
                 concurrency=None,
                 queues='celery,file_operation,validation',
                 optimization='fair',
+                pidfile=None,
                 prefetch_multiplier=1,
+                pool='prefork',
             )
             self.assertEqual(result.exit_code, 0)
 
         with mock.patch('celery.app.base.Celery.Worker', return_value=MagicMock(exitcode=0)) as cmd:
-            result = runner.invoke(worker, ['-q', 'validation', '-c', '5', '-l', 'DEBUG'])
+            result = runner.invoke(
+                worker,
+                [
+                    '-Q', 'validation',
+                    '-c', '5',
+                    '-l', 'DEBUG',
+                    '-n', 'testhost',
+                    '-P', 'gevent',
+                    '-f', 'worker.log',
+                    '--pidfile', 'worker.pid'
+                ],
+            )
             cmd.assert_called_once_with(
+                logfile='worker.log',
                 loglevel='DEBUG',
+                hostname='testhost',
                 concurrency=5,
                 queues='validation',
                 optimization='fair',
+                pidfile='worker.pid',
                 prefetch_multiplier=1,
+                pool='gevent',
             )
             self.assertEqual(result.exit_code, 0)
 
@@ -75,10 +94,10 @@ class CLITest(SimpleTestCase):
 
         with mock.patch('celery.app.base.Celery.Beat', return_value=MagicMock(exitcode=0)) as cmd:
             result = runner.invoke(beat)
-            cmd.assert_called_once_with(loglevel='INFO')
+            cmd.assert_called_once_with(logfile=None, loglevel='INFO', pidfile=None)
             self.assertEqual(result.exit_code, 0)
 
         with mock.patch('celery.app.base.Celery.Beat', return_value=MagicMock(exitcode=0)) as cmd:
-            result = runner.invoke(beat, ['-l', 'DEBUG'])
-            cmd.assert_called_once_with(loglevel='DEBUG')
+            result = runner.invoke(beat, ['-f', 'beat.log', '-l', 'DEBUG', '--pidfile', 'beat.pid'])
+            cmd.assert_called_once_with(logfile='beat.log', loglevel='DEBUG', pidfile='beat.pid')
             self.assertEqual(result.exit_code, 0)
