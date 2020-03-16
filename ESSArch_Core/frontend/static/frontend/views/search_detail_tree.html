@@ -22,7 +22,7 @@
 <div class="flex-wrap">
   <button
     ng-disabled="vm.locationButtonDisabled()"
-    class="btn btn-sm btn-primary"
+    class="btn btn-sm btn-primary mb-2px"
     style="margin-right: 2px;"
     ng-if="vm.recordTreeInstance"
     ng-click="vm.addNodeLocationModal(vm.getChecked())"
@@ -33,13 +33,23 @@
   </button>
   <button
     ng-disabled="vm.deliveryButtonDisabled()"
-    class="btn btn-sm btn-primary"
+    class="btn btn-sm btn-primary mb-2px"
     ng-if="vm.recordTreeInstance"
+    style="margin-right: 2px;"
     ng-click="vm.addNodeDeliveryModal(vm.getChecked())"
     permission
     permission-only="'tags.change_transfer'"
   >
     {{'ACCESS.LINK_TO_TRANSFER' | translate}}
+  </button>
+  <button
+    ng-disabled="vm.appraisalButtonDisabled()"
+    class="btn btn-sm btn-primary mb-2px"
+    ng-click="vm.AddNodesToAppraisalJobModal(vm.getChecked())"
+    permission
+    permission-only="'maintenance.change_appraisaljob'"
+  >
+    {{'ARCHIVE_MAINTENANCE.ADD_TO_APPRAISAL_JOB' | translate}}
   </button>
 </div>
 <hr class="small" ng-if="vm.record.structures.length > 0" />

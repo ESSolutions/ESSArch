@@ -30,7 +30,9 @@ import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
 import ConversionCtrl from '../controllers/ConversionCtrl';
 import ConversionModalInstanceCtrl from '../controllers/ConversionModalInstanceCtrl';
+import ConversionJobModalInstanceCtrl from '../controllers/ConversionJobModalInstanceCtrl';
 import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
+import AppraisalJobModalInstanceCtrl from '../controllers/AppraisalJobModalInstanceCtrl';
 import CreateDipCtrl from '../controllers/CreateDipCtrl';
 import CreateSipCtrl from '../controllers/CreateSipCtrl';
 import DataModalInstanceCtrl from '../controllers/DataModalInstanceCtrl';
@@ -44,6 +46,8 @@ import EventModalInstanceCtrl from '../controllers/EventModalInstanceCtrl';
 import HeadCtrl from '../controllers/HeadCtrl';
 import IngestCtrl from '../controllers/IngestCtrl';
 import IngestWorkareaCtrl from '../controllers/IngestWorkareaCtrl';
+import IpAppraisalJobModalInstanceCtrl from '../controllers/IpAppraisalJobModalInstanceCtrl';
+import IpConversionJobModalInstanceCtrl from '../controllers/IpConversionJobModalInstanceCtrl';
 import IpApprovalCtrl from '../controllers/IpApprovalCtrl';
 import IpInformationModalInstanceCtrl from '../controllers/IpInformationModalInstanceCtrl';
 import LanguageCtrl from '../controllers/LanguageCtrl';
@@ -54,6 +58,7 @@ import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MoveToApprovalModalInstanceCtrl from '../controllers/MoveToApprovalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
+import NodeAppraisalJobModalInstanceCtrl from '../controllers/NodeAppraisalJobModalInstanceCtrl';
 import NodeIdentifierModalInstanceCtrl from '../controllers/NodeIdentifierModalInstanceCtrl';
 import NodeOrganizationModalInstanceCtrl from '../controllers/NodeOrganizationModalInstanceCtrl';
 import NodeTransferModalInstanceCtrl from '../controllers/NodeTransferModalInstanceCtrl';
@@ -69,6 +74,10 @@ import PrepareIpCtrl from '../controllers/PrepareIpCtrl';
 import PrepareIpModalInstanceCtrl from '../controllers/PrepareIpModalInstanceCtrl';
 import PrepareSipCtrl from '../controllers/PrepareSipCtrl';
 import PreserveModalInstanceCtrl from '../controllers/PreserveModalInstanceCtrl';
+import PreviewAppraisalJobModalInstanceCtrl from '../controllers/PreviewAppraisalJobModalInstanceCtrl';
+import PreviewConversionJobModalInstanceCtrl from '../controllers/PreviewConversionJobModalInstanceCtrl';
+import PreviewIpAppraisalModalInstanceCtrl from '../controllers/PreviewIpAppraisalModalInstanceCtrl';
+import PreviewIpConversionModalInstanceCtrl from '../controllers/PreviewIpConversionModalInstanceCtrl';
 import ProfileManagerCtrl from '../controllers/ProfileManagerCtrl';
 import PublishClassificationStructureCtrl from '../controllers/PublishClassificationStructureCtrl';
 import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
@@ -85,6 +94,7 @@ import StatsReportModalInstanceCtrl from '../controllers/StatsReportModalInstanc
 import SearchCtrl from '../controllers/SearchCtrl';
 import SearchDetailCtrl from '../controllers/SearchDetailCtrl';
 import SearchIpCtrl from '../controllers/SearchIpCtrl';
+import SpecificationItemModalInstanceCtrl from '../controllers/SpecificationItemModalInstanceCtrl';
 import StepInfoModalInstanceCtrl from '../controllers/StepInfoModalInstanceCtrl';
 import StorageMaintenanceCtrl from '../controllers/StorageMaintenanceCtrl';
 import StorageMigrationCtrl from '../controllers/StorageMigrationCtrl';
@@ -282,7 +292,6 @@ export default angular
   ])
   .controller('AppCtrl', ['$rootScope', '$scope', '$uibModal', '$log', 'PermPermissionStore', '$translate', AppCtrl])
   .controller('AppraisalModalInstanceCtrl', [
-    'cronService',
     '$filter',
     '$translate',
     'IP',
@@ -291,6 +300,7 @@ export default angular
     '$http',
     'data',
     'Notifications',
+    'Utils',
     AppraisalModalInstanceCtrl,
   ])
   .controller('ArchiveMaintenanceCtrl', [ArchiveMaintenanceCtrl])
@@ -390,8 +400,6 @@ export default angular
     ConversionCtrl,
   ])
   .controller('ConversionModalInstanceCtrl', [
-    'cronService',
-    '$filter',
     '$translate',
     'IP',
     '$uibModalInstance',
@@ -399,9 +407,41 @@ export default angular
     '$http',
     'data',
     'Notifications',
+    '$scope',
+    'EditMode',
     ConversionModalInstanceCtrl,
   ])
+  .controller('ConversionJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'listViewService',
+    '$scope',
+    'EditMode',
+    '$uibModal',
+    '$log',
+    'myService',
+    ConversionJobModalInstanceCtrl,
+  ])
   .controller('ConfirmReceiveCtrl', ['IPReception', 'Notifications', '$uibModalInstance', 'data', ConfirmReceiveCtrl])
+  .controller('AppraisalJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    'Notifications',
+    'listViewService',
+    '$scope',
+    'EditMode',
+    '$uibModal',
+    '$log',
+    'myService',
+    AppraisalJobModalInstanceCtrl,
+  ])
   .controller('CreateDipCtrl', [
     'IP',
     'StoragePolicy',
@@ -488,6 +528,7 @@ export default angular
     'Notifications',
     'EditMode',
     '$rootScope',
+    'Utils',
     EditNodeModalInstanceCtrl,
   ])
   .controller('EditStructureUnitModalInstanceCtrl', [
@@ -535,6 +576,15 @@ export default angular
   .controller('HeadCtrl', ['$scope', '$rootScope', '$translate', '$state', '$transitions', HeadCtrl])
   .controller('IngestCtrl', IngestCtrl)
   .controller('IngestWorkareaCtrl', ['$scope', '$controller', IngestWorkareaCtrl])
+  .controller('IpAppraisalJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    IpAppraisalJobModalInstanceCtrl,
+  ])
   .controller('IpApprovalCtrl', [
     '$scope',
     '$controller',
@@ -542,6 +592,15 @@ export default angular
     '$translate',
     'ContextMenuBase',
     IpApprovalCtrl,
+  ])
+  .controller('IpConversionJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    IpConversionJobModalInstanceCtrl,
   ])
   .controller('IpInformationModalInstanceCtrl', [
     'IP',
@@ -597,6 +656,16 @@ export default angular
     'Requests',
     '$q',
     MoveToApprovalModalInstanceCtrl,
+  ])
+  .controller('NodeAppraisalJobModalInstanceCtrl', [
+    '$uibModalInstance',
+    '$translate',
+    'data',
+    '$http',
+    'appConfig',
+    'Search',
+    'Notifications',
+    NodeAppraisalJobModalInstanceCtrl,
   ])
   .controller('NodeDeliveryModalInstanceCtrl', [
     'appConfig',
@@ -779,6 +848,48 @@ export default angular
     '$translate',
     PrepareSipCtrl,
   ])
+  .controller('PreviewAppraisalJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    '$uibModal',
+    PreviewAppraisalJobModalInstanceCtrl,
+  ])
+  .controller('PreviewConversionJobModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    '$uibModal',
+    PreviewConversionJobModalInstanceCtrl,
+  ])
+  .controller('PreviewIpAppraisalModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    PreviewIpAppraisalModalInstanceCtrl,
+  ])
+  .controller('PreviewIpConversionModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'appConfig',
+    '$http',
+    'data',
+    '$scope',
+    'listViewService',
+    PreviewIpConversionModalInstanceCtrl,
+  ])
   .controller('PublishClassificationStructureCtrl', [
     '$http',
     'appConfig',
@@ -904,6 +1015,13 @@ export default angular
     '$transitions',
     'StructureUnitRelation',
     SearchDetailCtrl,
+  ])
+  .controller('SpecificationItemModalInstanceCtrl', [
+    '$translate',
+    '$uibModalInstance',
+    'data',
+    '$scope',
+    SpecificationItemModalInstanceCtrl,
   ])
   .controller('SearchIpCtrl', [
     'appConfig',
