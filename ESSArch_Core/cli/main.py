@@ -112,17 +112,19 @@ def install(ctx, data_directory):
     installDefaultConfiguration()
 
 
-@click.option('--pidfile', default=None, type=click.Path(exists=True, file_okay=True, dir_okay=False))
+@click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
 @click.option('-n', '--hostname', default=None)
 @click.option('-c', '--concurrency', default=None, type=int)
 @click.option('-Q', '--queues', default='celery,file_operation,validation')
 @cli.command()
 @initialize
-def worker(queues, concurrency, hostname, loglevel, pidfile):
+def worker(queues, concurrency, hostname, loglevel, logfile, pidfile):
     from ESSArch_Core.config.celery import app
 
     worker = app.Worker(
+        logfile=logfile,
         loglevel=loglevel,
         concurrency=concurrency,
         queues=queues,
@@ -135,12 +137,18 @@ def worker(queues, concurrency, hostname, loglevel, pidfile):
     sys.exit(worker.exitcode)
 
 
+@click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
 @cli.command()
 @initialize
-def beat(loglevel):
+def beat(loglevel, logfile, pidfile):
     from ESSArch_Core.config.celery import app
-    app.Beat(loglevel=loglevel).run()
+    app.Beat(
+        logfile=logfile,
+        loglevel=loglevel,
+        pidfile=pidfile,
+        ).run()
 
 
 list(
