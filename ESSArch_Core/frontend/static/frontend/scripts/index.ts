@@ -46,7 +46,6 @@ import 'angular-filesize-filter';
 import 'angular-formly';
 import 'angular-formly-templates-bootstrap';
 import 'angular-link-header-parser';
-import 'angular-marked';
 import 'angular-messages';
 import 'angular-mocks';
 import 'angular-pretty-xml';
@@ -892,32 +891,6 @@ angular
     function($animateProvider) {
       // Only animate elements with the 'angular-animate' class
       $animateProvider.classNameFilter(/angular-animate|ui-select-/);
-    },
-  ])
-  .config([
-    'markedProvider',
-    function(markedProvider) {
-      function isURL(str) {
-        const urlRegex =
-          '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
-        const url = new RegExp(urlRegex, 'i');
-        return str.length < 2083 && url.test(str);
-      }
-      markedProvider.setOptions({
-        gfm: true,
-        tables: true,
-      });
-      markedProvider.setRenderer({
-        link: function(href, title, text) {
-          if (!isURL(href)) {
-            return '<a ng-click=\'scrollToLink("' + href + '")\'' + '>' + text + '</a>';
-          } else {
-            return (
-              "<a href='" + href + "'" + (title ? " title='" + title + "'" : '') + " target='_blank'>" + text + '</a>'
-            );
-          }
-        },
-      });
     },
   ])
   .config([

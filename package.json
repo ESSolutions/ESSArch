@@ -29,7 +29,6 @@
     "angular-formly": "~8.4.1",
     "angular-formly-templates-bootstrap": "^6.5.1",
     "angular-link-header-parser": "^1.0.3",
-    "angular-marked": "~1.2.2",
     "angular-messages": "~1.7",
     "angular-mocks": "~1.7",
     "angular-permission": "~6.0.0",
@@ -102,7 +101,8 @@
   },
   "resolutions": {
     "angular": "~1.7",
-    "ng-annotate-webpack-plugin/**/acorn": "^7.1.1"
+    "**/acorn": "^7.1.1",
+    "**/mkdirp/**/minimist": "^0.2.1"
   },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",

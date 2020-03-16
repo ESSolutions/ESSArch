@@ -127,7 +127,6 @@ export default angular
     'flow',
     'formly',
     'formlyBootstrap',
-    'hc.marked',
     'ig.linkHeaderParser',
     'ngAnimate',
     'ngCookies',
