@@ -1,13 +1,23 @@
 from django.db.models import Exists, Max, Min, OuterRef
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
+from ESSArch_Core.fixity.filters import ValidationFilter
+from ESSArch_Core.fixity.models import ConversionTool, Validation
+from ESSArch_Core.fixity.serializers import (
+    ConversionToolSerializer,
+    ValidationFilesSerializer,
+    ValidationSerializer,
+)
 
-from .filters import ValidationFilter
-from .models import Validation
-from .serializers import ValidationFilesSerializer, ValidationSerializer
+
+class ConversionToolViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = ConversionTool.objects.filter(enabled=True)
+    serializer_class = ConversionToolSerializer
 
 
 class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):

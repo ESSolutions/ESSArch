@@ -354,13 +354,7 @@ main {
 
 .specification {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: 5px;
-  label,
-  div {
-    margin: 0 5px 0 5px;
-  }
+  flex-direction: column;
 }
 
 .color-red {

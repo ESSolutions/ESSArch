@@ -22,12 +22,23 @@
     <strong>Handling:</strong> {{ vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].name }}
     <br />
   </div>
-
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
   <div
-    ng-if="vm.record.custom_fields.create_date || vm.record.custom_fields.arrival_date || vm.record.custom_fields.dispatch_date || vm.record.custom_fields.decision_date || vm.record.custom_fields.preparation_date || vm.record.custom_fields.ended_date"
+    ng-if="vm.record.custom_fields.create_date || vm.record.custom_fields.arrival_date || vm.record.custom_fields.dispatch_date || vm.record.custom_fields.decision_date || vm.record.custom_fields.preparation_date || vm.record.custom_fields.ended_date || vm.record.appraisal_date"
   >
     <strong>Datum:</strong>
     <result-field label="Skapad" data="vm.record.custom_fields.create_date" type="date"></result-field>
+    <result-field
+      label="{{'ACCESS.APPRAISAL_DATE' | translate}}"
+      data="vm.record.appraisal_date ? vm.record.appraisal_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
     <result-field label="Inkommen" data="vm.record.custom_fields.arrival_date" type="date"></result-field>
     <result-field label="Expedierad" data="vm.record.custom_fields.dispatch_date" type="date"></result-field>
     <result-field label="Beslutat" data="vm.record.custom_fields.decision_date" type="date"></result-field>

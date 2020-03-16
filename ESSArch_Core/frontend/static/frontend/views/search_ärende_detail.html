@@ -1,7 +1,7 @@
 <div class="component-result">
   <div class="d-flex align-items-center justify-content-between">
     <h3 title="Namn">
-      <strong title="Namn" ng-if="vm.record._source.name">
+      <strong title="Namn" ng-if="vm.record._source.name || vm.record.name">
         {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
@@ -29,7 +29,9 @@
       ></button>
     </div>
   </div>
-  <h4><span title="Informationsobjekt">{{vm.record._source.type}}</span></h4>
+  <h4>
+    {{vm.record._source.type ? vm.record._source.type : vm.record.type.name}}
+  </h4>
   <div ng-if="vm.record.description">
     <p class="result-description">
       {{vm.record.description}}
@@ -74,8 +76,13 @@
       </button>
     </div>
   </div>
-  <br />
-
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
   <div
     ng-if="vm.record._source.create_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
   >

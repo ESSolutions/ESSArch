@@ -101,6 +101,24 @@ export default class SearchCtrl {
       });
     };
 
+    vm.appraisalFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.appraisalDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.appraisalDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = true;
+      }
+    };
+
     $scope.checkPermission = function(permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
@@ -464,6 +482,42 @@ export default class SearchCtrl {
           data: function() {
             return {
               vm: vm,
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function(data) {})
+        .catch(function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
+    };
+
+    vm.addToAppraisalModal = function() {
+      const pagination = vm.tableState.pagination;
+      const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+      const number = pagination.number || 25; // Number of entries showed per page.
+      const pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
+      let ordering = vm.tableState.sort.predicate;
+      if (vm.tableState.sort.reverse) {
+        ordering = '-' + ordering;
+      }
+      vm.filterObject.page = pageNumber;
+      vm.filterObject.page_size = number;
+      vm.filterObject.ordering = ordering;
+      const filters = vm.formatFilters();
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/add_search_to_appraisal_job_modal.html',
+        controller: 'NodeAppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: function() {
+            return {
+              search: {filters},
             };
           },
         },

@@ -5,6 +5,29 @@
         {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
+    <div class="flex-row justify-content-end align-items-center position-relative">
+      <button
+        class="btn btn-default fas fa-print"
+        tooltip-placement="auto-top"
+        tooltip-append-to-body="false"
+        uib-tooltip="{{'EXPORT' | translate}}"
+        ng-click="vm.exportNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-edit"
+        ng-if="checkPermission('tags.change_tagversion')"
+        tooltip-placement="auto-top"
+        uib-tooltip="{{'EDIT' | translate}}"
+        ng-click="vm.editNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-trash-alt"
+        tooltip-placement="auto-top"
+        ng-if="checkPermission('tags.delete_tagversion')"
+        uib-tooltip="{{'REMOVE' | translate}}"
+        ng-click="vm.removeNodeModal(vm.record)"
+      ></button>
+    </div>
   </div>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record.description">
@@ -18,7 +41,32 @@
       {{vm.getArchiveCreator(vm.record).auth_name}}
     </a>
   </div>
-  <div class="detail-field" ng-if="vm.record.information_package">
+  <div ng-if="vm.record.reference_code && vm.record.reference_code !== ''">
+    <label>{{ "ACCESS.REFERENCE_CODE" | translate }}</label>
+    <br />
+    <div class="btn-group id-button">
+      <button
+        class="btn btn-default"
+        clipboard
+        text="vm.record.reference_code"
+        on-copied="vm.idCopyDone()"
+        uib-tooltip="{{ 'COPYID' | translate }}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        <i class="fas" ng-class="{'fa-clipboard': !vm.idCopied, 'fa-clipboard-check color-success': vm.idCopied}"></i>
+      </button>
+      <button
+        class="btn btn-default"
+        uib-tooltip="{{'ACCESS.REFERENCE_CODE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      >
+        {{vm.record.reference_code}}
+      </button>
+    </div>
+  </div>
+  <div class="detail-field pt-base" ng-if="vm.record.information_package">
     <label>
       {{'INFORMATION_PACKAGE' | translate}}:&nbsp;
     </label>
@@ -27,12 +75,17 @@
       vm.record.information_package.object_identifier_value}}
     </a>
   </div>
-  <result-field
-    label="Referenskod"
-    break="true"
-    stronglabel="true"
-    data="vm.record._source.reference_code"
-  ></result-field>
+  <div ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
+  <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
+    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+  </div>
   <result-field label="{{'TYPE' | translate}}" stronglabel="true" data="vm.record._source.type"></result-field>
   <div ng-if="vm.record.location">
     <b> {{'ACCESS.LOCATION' | translate}} </b>:&nbsp;

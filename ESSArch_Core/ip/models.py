@@ -81,7 +81,7 @@ from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.managers import OrganizationManager
+from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
@@ -186,7 +186,7 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
-class InformationPackageQuerySet(models.QuerySet):
+class InformationPackageQuerySet(OrganizationQuerySet):
     def annotate_and_prefetch(self):
         def create_when(nested, celery_state):
             step_state_lookup = 'information_package__aic' if nested else 'information_package'
@@ -586,8 +586,9 @@ class InformationPackage(models.Model):
         user_perms = perms.pop('owner', [])
 
         organization = responsible.user_profile.current_organization
-        organization.assign_object(new_aip, custom_permissions=perms)
-        organization.add_object(new_aip)
+        if organization is not None:
+            organization.assign_object(new_aip, custom_permissions=perms)
+            organization.add_object(new_aip)
 
         for perm in user_perms:
             perm_name = get_permission_name(perm, new_aip)
