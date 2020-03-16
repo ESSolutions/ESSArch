@@ -148,7 +148,7 @@ def beat(loglevel, logfile, pidfile):
         logfile=logfile,
         loglevel=loglevel,
         pidfile=pidfile,
-        ).run()
+    ).run()
 
 
 list(
