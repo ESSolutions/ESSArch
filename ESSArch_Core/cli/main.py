@@ -112,6 +112,8 @@ def install(ctx, data_directory):
     installDefaultConfiguration()
 
 
+@click.option('-P', '--pool', default='prefork',
+              type=click.Choice(('prefork', 'eventlet', 'gevent', 'threads', 'solo'), case_sensitive=False))
 @click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
@@ -120,7 +122,7 @@ def install(ctx, data_directory):
 @click.option('-Q', '--queues', default='celery,file_operation,validation')
 @cli.command()
 @initialize
-def worker(queues, concurrency, hostname, loglevel, logfile, pidfile):
+def worker(queues, concurrency, hostname, loglevel, logfile, pidfile, pool):
     from ESSArch_Core.config.celery import app
 
     worker = app.Worker(
@@ -132,6 +134,7 @@ def worker(queues, concurrency, hostname, loglevel, logfile, pidfile):
         prefetch_multiplier=1,
         hostname=hostname,
         pidfile=pidfile,
+        pool=pool,
     )
     worker.start()
     sys.exit(worker.exitcode)
