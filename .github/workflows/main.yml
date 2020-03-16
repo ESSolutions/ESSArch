@@ -102,9 +102,16 @@ jobs:
         with:
           node-version: '12'
 
-      - name: Build
+      - name: Install
         run: |
           yarn install --frozen-lockfile
+
+      - name: Audit
+        run: |
+          yarn audit
+
+      - name: Build
+        run: |
           yarn build:prod
 
   build-docs:
