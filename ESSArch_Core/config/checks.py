@@ -14,6 +14,19 @@ E002 = Error(
     id="essarch.E002"
 )
 
+E003 = Error(
+    'DOCS_ROOT must be set',
+    id="essarch.E003"
+)
+
+
+@register()
+def docs_root_check(app_configs, **kwargs):
+    if not getattr(settings, 'DOCS_ROOT', None):
+        return [E003]
+
+    return []
+
 
 @register()
 def encryption_key_check(app_configs, **kwargs):
