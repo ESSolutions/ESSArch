@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-21 16:37+0200\n"
+"POT-Creation-Date: 2020-03-17 11:45+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
 #: ../../installation/prerequisites.rst:5
 msgid "Prerequisites"
@@ -159,7 +159,7 @@ msgstr ""
 #: ../../installation/prerequisites.rst:72
 msgid ""
 "`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ "
-"(Supported version: 6.5.x)"
+"(Supported version: 7.6.*)"
 msgstr ""
 
 #: ../../installation/prerequisites.rst:74
