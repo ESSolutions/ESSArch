@@ -102,7 +102,7 @@
   "resolutions": {
     "angular": "~1.7",
     "**/acorn": "^7.1.1",
-    "**/mkdirp/**/minimist": "^0.2.1"
+    "**/minimist": "^1.2.5"
   },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",
