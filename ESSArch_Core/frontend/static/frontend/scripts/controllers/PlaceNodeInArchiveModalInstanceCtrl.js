@@ -46,6 +46,9 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
         if (angular.isUndefined(structure) || structure === null) {
           $ctrl.options.unit = [];
         } else {
+          response.data.forEach(x => {
+            x.name_with_refcode = x.reference_code + ' - ' + x.name;
+          });
           $ctrl.options.unit = response.data;
         }
         return response.data;
@@ -175,7 +178,7 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
               return $ctrl.options.unit;
             },
             valueProp: 'id',
-            labelProp: 'name',
+            labelProp: 'name_with_refcode',
             required: true,
             placeholder: $translate.instant('ACCESS.STRUCTURE_UNIT'),
             label: $translate.instant('ACCESS.STRUCTURE_UNIT'),
