@@ -31,6 +31,7 @@ import logging
 import os
 import platform
 import re
+import shlex
 import shutil
 import tarfile
 import uuid
@@ -463,8 +464,8 @@ def mptt_to_dict(node, serializer, context=None):
 
 
 def convert_file(path, new_format):
-    cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
-    logger.info(cmd)
+    cmd = ['unoconv', '-f', new_format, '-eSelectPdfVersion=1', path]
+    logger.info(shlex.join(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
