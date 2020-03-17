@@ -1503,6 +1503,7 @@ export default class SearchDetailCtrl {
             node: node,
             isStructureTemplate: vm.structure.is_template,
             structure: vm.structure.id,
+            archive: vm.archive,
           },
         },
       });

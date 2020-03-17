@@ -94,6 +94,11 @@ export default class StructureUnitRelationModalInstanceCtrl {
 
     $ctrl.$onInit = function() {
       $ctrl.data = data;
+      if (data.archive) {
+        $ctrl.isTemplate = false;
+        $ctrl.archiveModel.archive = data.archive.id;
+        $ctrl.initArchiveSearch = data.archive.id;
+      }
       if (data.node) {
         $ctrl.node = angular.copy(data.node);
       }
