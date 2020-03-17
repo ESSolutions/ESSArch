@@ -1,5 +1,5 @@
 boto3==1.10.9
-celery[tblib]==4.4.1
+celery[tblib]==4.4.2
 cffi==1.13.2
 channels==2.4.0
 channels_redis==2.4.1
