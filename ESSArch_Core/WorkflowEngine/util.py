@@ -1,6 +1,7 @@
 import importlib
 
 from django.db import transaction
+from tenacity import retry, stop_after_delay, wait_random_exponential
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
@@ -20,7 +21,7 @@ def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
         result_params = on_error.get('result_params', {})
-        yield ProcessTask.objects.create(
+        yield ProcessTask(
             name=on_error['name'],
             reference=on_error.get('reference', None),
             label=on_error.get('label'),
@@ -35,7 +36,6 @@ def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):
         )
 
 
-@transaction.atomic
 def _create_step(parent_step, flow, ip, responsible, context=None):
     if context is None:
         context = {}
@@ -62,12 +62,12 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 context=context,
             )
 
-            on_error_tasks = _create_on_error_tasks(
+            on_error_tasks = list(_create_on_error_tasks(
                 flow_entry.get('on_error', []), ip=ip, responsible=responsible,
                 eager=parent_step.eager
-            )
-            for on_error_task in on_error_tasks:
-                child_s.on_error.add(on_error_task)
+            ))
+            ProcessTask.objects.bulk_create(on_error_tasks)
+            child_s.on_error.add(*on_error_tasks)
 
             _create_step(child_s, children, ip, responsible, context=context)
         else:
@@ -97,34 +97,41 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 run_if=flow_entry.get('run_if', ''),
             )
 
-            on_error_tasks = _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
-            for on_error_task in on_error_tasks:
-                task.on_error.add(on_error_task)
+            on_error_tasks = list(
+                _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+            )
+            ProcessTask.objects.bulk_create(on_error_tasks)
+            task.on_error.add(*on_error_tasks)
 
 
-@transaction.atomic
+@retry(reraise=True, stop=stop_after_delay(30),
+       wait=wait_random_exponential(multiplier=1, max=60))
 def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None):
     if on_error is None:
         on_error = []
     if context is None:
         context = {}
-    root_step = ProcessStep.objects.create(name=name, eager=eager, context=context)
     responsible = getattr(ip, 'responsible', None)
 
-    for on_error_task in _create_on_error_tasks(on_error, ip=ip, responsible=responsible):
-        root_step.on_error.add(on_error_task)
+    with transaction.atomic():
+        with ProcessStep.objects.delay_mptt_updates():
+            root_step = ProcessStep.objects.create(name=name, eager=eager, context=context)
 
-    _create_step(root_step, workflow_spec, ip, responsible)
+            on_error_tasks = list(_create_on_error_tasks(on_error, ip=ip, responsible=responsible))
+            ProcessTask.objects.bulk_create(on_error_tasks)
+            root_step.on_error.add(*on_error_tasks)
 
-    # remove steps without any tasks in any of its descendants
-    empty_steps = root_step.get_descendants(include_self=True).filter(tasks=None).exists()
-    while empty_steps:
-        root_step.get_descendants(include_self=True).filter(
-            child_steps__isnull=True,
-            tasks=None,
-        ).delete()
-        empty_steps = root_step.get_descendants(
-            include_self=True
-        ).filter(tasks=None, child_steps__isnull=True).exists()
+            _create_step(root_step, workflow_spec, ip, responsible)
 
-    return root_step
+            # remove steps without any tasks in any of its descendants
+            empty_steps = root_step.get_descendants(include_self=True).filter(tasks=None).exists()
+            while empty_steps:
+                root_step.get_descendants(include_self=True).filter(
+                    child_steps__isnull=True,
+                    tasks=None,
+                ).delete()
+                empty_steps = root_step.get_descendants(
+                    include_self=True
+                ).filter(tasks=None, child_steps__isnull=True).exists()
+
+            return root_step
