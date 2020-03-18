@@ -43,10 +43,11 @@ def get_optional(name):
 
 
 if __name__ == '__main__':
+    versions_dict = versioneer.get_versions()
     cmdclass = versioneer.get_cmdclass()
     setup(
         name='ESSArch',
-        version=versioneer.get_version(),
+        version=versions_dict['version'],
         description='ESSArch',
         long_description=open("README.md").read(),
         long_description_content_type='text/markdown',
@@ -63,7 +64,7 @@ if __name__ == '__main__':
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versioneer.get_versions()['full-revisionid'],
+            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versions_dict['full-revisionid'],
             'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
         classifiers=[
