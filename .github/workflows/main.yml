@@ -52,6 +52,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements/docs.txt -r requirements/lint.txt
+          pip check
           yarn install --frozen-lockfile
 
       - name: doc8
