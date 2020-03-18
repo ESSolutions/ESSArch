@@ -30,6 +30,11 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_method_rel,
+    add_storage_obj,
+)
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
@@ -895,48 +900,21 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         sa = SubmissionAgreement.objects.create(policy=cls.policy)
         cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=sa)
 
-    def add_storage_method_rel(self, storage_type, target_name, status):
-        storage_method = StorageMethod.objects.create(
-            type=storage_type,
-        )
-        storage_target = StorageTarget.objects.create(
-            name=target_name,
-        )
-
-        return StorageMethodTargetRelation.objects.create(
-            storage_method=storage_method,
-            storage_target=storage_target,
-            status=status,
-        )
-
-    def add_storage_medium(self, target, status):
-        return StorageMedium.objects.create(
-            storage_target=target,
-            status=status, location_status=50, block_size=1024, format=103,
-        )
-
-    def add_storage_obj(self, ip, medium, loc_type, loc_value):
-        return StorageObject.objects.create(
-            ip=ip, storage_medium=medium,
-            content_location_type=loc_type,
-            content_location_value=loc_value,
-        )
-
     def test_no_change(self):
-        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
         self.policy.storage_methods.add(rel.storage_method)
-        self.add_storage_medium(rel.storage_target, 20)
+        add_storage_medium(rel.storage_target, 20)
 
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
 
     def test_methods_in_different_policies(self):
-        migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
-        migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
-        self.add_storage_obj(self.ip, migrate_medium, DISK, '')
+        migrate_rel = add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = add_storage_medium(migrate_rel.storage_target, 20)
+        add_storage_obj(self.ip, migrate_medium, DISK, '')
         self.policy.storage_methods.add(migrate_rel.storage_method)
 
-        enabled_rel = self.add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
+        enabled_rel = add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
         other_policy = StoragePolicy.objects.create(
             policy_id='other',
             cache_storage=self.policy.cache_storage,
@@ -947,9 +925,9 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         self.assertFalse(self.ip.get_migratable_storage_methods().exists())
 
     def test_migrate_and_enabled_method_rels(self):
-        migrate_rel = self.add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
-        migrate_medium = self.add_storage_medium(migrate_rel.storage_target, 20)
-        self.add_storage_obj(self.ip, migrate_medium, DISK, '')
+        migrate_rel = add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = add_storage_medium(migrate_rel.storage_target, 20)
+        add_storage_obj(self.ip, migrate_medium, DISK, '')
 
         enabled_rel = StorageMethodTargetRelation.objects.create(
             storage_target=StorageTarget.objects.create(),
@@ -963,10 +941,10 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         self.assertEqual(enabled_rel.storage_method, self.ip.get_migratable_storage_methods().get())
 
     def test_new_storage_method(self):
-        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         self.policy.storage_methods.add(rel.storage_method)
-        medium = self.add_storage_medium(rel.storage_target, 20)
-        self.add_storage_obj(self.ip, medium, DISK, '')
+        medium = add_storage_medium(rel.storage_target, 20)
+        add_storage_obj(self.ip, medium, DISK, '')
 
         new_storage_method = StorageMethod.objects.create()
         new_storage_target = StorageTarget.objects.create(name='new')
@@ -981,9 +959,9 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         self.assertTrue(method_exists)
 
     def test_new_storage_target(self):
-        rel = self.add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         self.policy.storage_methods.add(rel.storage_method)
-        medium = self.add_storage_medium(rel.storage_target, 20)
+        medium = add_storage_medium(rel.storage_target, 20)
 
         # the IP is not migratable until there is a new
         # enabled target available

@@ -73,16 +73,16 @@
         },
         "archiveMaintenance": {
           "appraisal": {
-            "_permissions": ["maintenance.add_appraisalrule"]
+            "_permissions": ["maintenance.add_appraisaltemplate"]
           },
           "conversion": {
-            "_permissions": ["maintenance.add_conversionrule"]
+            "_permissions": ["maintenance.add_conversiontemplate"]
           },
           "mediaMigration": {
-            "_permissions": ["maintenance.add_conversionrule"]
+            "_permissions": ["maintenance.add_conversiontemplate"]
           },
           "start": {
-            "_permissions": ["maintenance.add_appraisalrule"]
+            "_permissions": ["maintenance.add_appraisaltemplate"]
           }
         },
         "administration": {

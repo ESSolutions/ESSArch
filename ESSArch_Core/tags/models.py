@@ -11,6 +11,7 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
+from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
@@ -689,6 +690,7 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+    appraisal_date = models.DateTimeField(null=True)
 
     objects = OrganizationManager()
 
@@ -728,6 +730,9 @@ class Tag(models.Model):
             structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=include_self)
             return Tag.objects.filter(structures__in=structure_descendants)
         except TagStructure.DoesNotExist:
+            if include_self:
+                return Tag.objects.filter(pk=self.pk)
+
             return Tag.objects.none()
 
     def is_leaf_node(self, user, structure=None):
@@ -984,7 +989,7 @@ class TagVersion(models.Model):
             index=self.elastic_index,
             doc_type='_all',
             id=str(self.pk),
-            params={'_source_exclude': 'attachment.content'}
+            params={'_source_excludes': 'attachment.content'}
         )
 
     def get_doc(self):
@@ -1006,7 +1011,7 @@ class TagVersion(models.Model):
         elif self.elastic_index == 'directory':
             cls = Directory
         elif self.elastic_index == 'document':
-            kwargs['params']['_source_exclude'] = 'attachment.content'
+            kwargs['params']['_source_excludes'] = 'attachment.content'
             cls = File
         else:
             cls = DocumentBase
@@ -1150,6 +1155,7 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+    subtree = MPTTSubtree()
 
     def copy_to_new_structure(self, new_structure, new_unit=None):
         new_parent_tag = None

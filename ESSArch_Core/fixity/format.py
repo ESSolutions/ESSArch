@@ -57,7 +57,6 @@ class FormatIdentifier:
 
         logger.debug('Initiating default mimetypes')
         mimetypes.init()
-        mimetypes._default_mime_types()
         logger.info('Initiated default mimetypes')
 
     def get_mimetype(self, fname):

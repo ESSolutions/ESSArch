@@ -221,7 +221,7 @@ export default class ClassificationStructureEditorCtrl {
             prepareTree(x);
           });
           rootNode.children = tree;
-          rootNode.state = {opened: true};
+          rootNode.state = {opened: false};
           const finalTree = [rootNode];
           return finalTree;
         })

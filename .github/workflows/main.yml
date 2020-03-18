@@ -1,11 +1,11 @@
 name: Tests
 
 on:
+  pull_request:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
+      - staging
+      - trying
       - master
 
 jobs:
@@ -219,9 +219,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.5
+        uses: codecov/codecov-action@v1.0.6
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           name: Windows
           file: ./coverage.xml
           flags: backend
@@ -262,11 +261,12 @@ jobs:
 
     services:
       elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.6.1
         ports:
           - 19200:9200
         options: >-
           -e="discovery.type=single-node"
+          --name="elasticsearch"
           --health-cmd="curl http://localhost:9200/_cluster/health"
           --health-interval=10s
           --health-timeout=5s
@@ -348,6 +348,9 @@ jobs:
 
       - name: Install
         run: |
+          docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
+          docker restart elasticsearch
+
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
@@ -384,9 +387,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.5
+        uses: codecov/codecov-action@v1.0.6
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           name: Linux (${{matrix.db}})
           file: ./coverage.xml
           flags: backend

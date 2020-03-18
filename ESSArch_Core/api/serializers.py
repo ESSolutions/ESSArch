@@ -75,3 +75,17 @@ class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = ('id', 'name_en',)
+
+
+class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        request = self.context.get('request', None)
+        queryset = super().get_queryset()
+
+        if queryset is None:
+            return None
+
+        if request is None:
+            return queryset
+
+        return queryset.for_user(request.user, None)

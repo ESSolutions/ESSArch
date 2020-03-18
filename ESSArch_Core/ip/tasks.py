@@ -382,7 +382,7 @@ class CreateContainer(DBTask):
         return dst
 
     def event_outcome_success(self, result, src, dst):
-        return "Created {}".format(dst)
+        return "Created {}".format(self.parse_params(dst))
 
 
 class ParseSubmitDescription(DBTask):

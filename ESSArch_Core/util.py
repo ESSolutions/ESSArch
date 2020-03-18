@@ -179,36 +179,6 @@ def get_value_from_path(root, path):
     return el.text
 
 
-def create_event(eventType, eventOutcome, eventOutcomeDetailNote, version, agent, application=None, ip=None):
-    """
-    Creates a new event and saves it to the database
-
-    Args:
-        eventType: The event type
-        eventOutcome: Success (0) or Fail (1)
-        eventOutcomeDetailNote: The result or traceback of the task depending on the outcome
-        agent: The agent creating the event
-        ip: The information package connected to the event
-
-    Returns:
-        The created event
-    """
-
-    from ESSArch_Core.ip.models import EventIP
-
-    e = EventIP.objects.create(
-        eventType=eventType, eventOutcome=eventOutcome, eventVersion=version,
-        eventOutcomeDetailNote=eventOutcomeDetailNote,
-        linkingAgentIdentifierValue=agent, linkingObjectIdentifierValue=ip,
-    )
-
-    if application:
-        e.eventApplication = application
-        e.save()
-
-    return e
-
-
 def getSchemas(doc=None, filename=None):
     """
         Creates a schema based on the schemas specified in the provided XML
@@ -429,7 +399,7 @@ def run_shell_command(command, cwd):
     Run command in shell and return results.
     """
 
-    p = Popen(command, shell=True, cwd=cwd, stdout=PIPE)
+    p = Popen(command, cwd=cwd, stdout=PIPE)
     stdout = p.communicate()[0]
     if stdout:
         stdout = stdout.strip()
@@ -493,9 +463,9 @@ def mptt_to_dict(node, serializer, context=None):
 
 
 def convert_file(path, new_format):
-    cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % (new_format, path)
-    logger.info(cmd)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+    cmd = ['unoconv', '-f', new_format, '-eSelectPdfVersion=1', path]
+    logger.info(''.join(cmd))
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
 
     if p.returncode:
