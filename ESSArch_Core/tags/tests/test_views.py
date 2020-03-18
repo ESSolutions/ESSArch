@@ -2795,6 +2795,43 @@ class DeleteLocationTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
+class ListLocationNodesTests(ESSArchSearchBaseTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+        cls.location_function_type = LocationFunctionType.objects.create(name='test')
+        cls.location_level_type = LocationLevelType.objects.create(name='test')
+
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+    def test_list(self):
+        self.client.force_authenticate(user=self.user)
+        location = Location.objects.create(
+            name='test',
+            function=self.location_function_type,
+            level_type=self.location_level_type,
+        )
+
+        tag = Tag.objects.create()
+        tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
+        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+        url = reverse('location-tags-list', args=(str(location.pk),))
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        tag_version.location = location
+        tag_version.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tag_version.pk))
+
+
 class AddNodeToLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):

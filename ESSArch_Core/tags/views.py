@@ -211,7 +211,7 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = ('name',)
 
     def get_queryset(self):
-        return self.queryset.for_user(self.request.user, None).annotate(
+        return super().get_queryset().for_user(self.request.user, None).annotate(
             archive=Subquery(TagVersion.objects.filter(
                 current_version_tags__structures__structure=OuterRef('tag__structures__structure'),
                 type__archive_type=True,
