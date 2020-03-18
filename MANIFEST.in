@@ -11,3 +11,4 @@ include ESSArch_Core/frontend/static/frontend/favicon.ico
 recursive-exclude ESSArch_Core/docs *
 recursive-include ESSArch_Core/docs/_build *
 recursive-include ESSArch_Core/docs *.py
+include ESSArch_Core/_version.py

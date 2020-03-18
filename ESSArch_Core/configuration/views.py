@@ -165,7 +165,9 @@ class SysInfoView(APIView):
             'linux_dist': distro.linux_distribution(),
         }
         context['hostname'] = socket.gethostname()
-        context['version'] = get_versions()
+        versions_dict = get_versions()
+        versions_dict.update({'full':versions_dict['full-revisionid']})
+        context['version'] = versions_dict
         context['time_checked'] = timezone.now()
         context['database'] = get_database_info()
 
