@@ -86,7 +86,7 @@
     "source-map-loader": "^0.2.4",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended-scss": "^4.0.0",
-    "stylelint-scss": "^3.11.1",
+    "stylelint-scss": "^3.15.0",
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.2",
     "ua-parser-js": "^0.7.20",
