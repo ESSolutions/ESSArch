@@ -133,7 +133,7 @@ jobs:
           # see https://github.com/pypa/pip/issues/4887
           pip install --upgrade six>=1.12.0
 
-          pip install .[docs]
+          pip install -e .[docs]
           essarch settings generate -qp local_essarch_settings.py
 
       - name: Build
