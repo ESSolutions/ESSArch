@@ -20,7 +20,7 @@ const Utils = () => {
         if (
           typeof obja[key] !== 'object' &&
           obja[key] !== objb[key] &&
-          !diff[key] &&
+          angular.isUndefined(diff[key]) &&
           (angular.isUndefined(options.map[key]) || obja[key][options.map[key]] !== objb[key])
         ) {
           if (diff[key]) {

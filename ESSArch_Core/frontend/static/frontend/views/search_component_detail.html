@@ -66,6 +66,13 @@
       </button>
     </div>
   </div>
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
   <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
     <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
     ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
@@ -137,6 +144,9 @@
         ></button>
       </div>
       <div class="flex-row">
+        <b>
+          {{x.type.name}}&nbsp;
+        </b>
         <b
           ><span
             uib-tooltip="{{ 'CREATE_DATE' | translate }}"
@@ -182,6 +192,11 @@
     <result-field
       label="{{'ACCESS.IMPORT_DATE' | translate}}"
       data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field
+      label="{{'ACCESS.APPRAISAL_DATE' | translate}}"
+      data="vm.record.appraisal_date ? vm.record.appraisal_date : ('ACCESS.DATE_MISSING' | translate)"
       type="date"
     ></result-field>
     <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>

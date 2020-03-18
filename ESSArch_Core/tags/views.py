@@ -1,5 +1,12 @@
 from django.db import transaction
-from django.db.models import Exists, OuterRef, ProtectedError, Q
+from django.db.models import (
+    CharField,
+    Exists,
+    OuterRef,
+    ProtectedError,
+    Q,
+    Subquery,
+)
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
@@ -204,7 +211,12 @@ class TagVersionViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = ('name',)
 
     def get_queryset(self):
-        return super().get_queryset().for_user(self.request.user, None)
+        return super().get_queryset().for_user(self.request.user, None).annotate(
+            archive=Subquery(TagVersion.objects.filter(
+                current_version_tags__structures__structure=OuterRef('tag__structures__structure'),
+                type__archive_type=True,
+            ).values('name')[:1], output_field=CharField())
+        )
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')

@@ -15,11 +15,11 @@ export default class {
     listViewService
   ) {
     const vm = this;
-    vm.rulesPerPage = 10;
+    vm.templatesPerPage = 10;
     vm.ongoingPerPage = 10;
     vm.nextPerPage = 10;
     vm.finishedPerPage = 10;
-    $scope.ruleLoading = false;
+    $scope.templateLoading = false;
     $scope.ongoingLoading = false;
     $scope.nextLoading = false;
     $scope.finishedLoading = false;
@@ -31,28 +31,28 @@ export default class {
       $interval.cancel(conversionInterval);
     });
     var conversionInterval = $interval(function() {
-      vm.rulePipe(vm.ruleTableState);
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     }, appConfig.ipInterval);
 
     $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
-      vm.rulePipe(vm.ruleTableState);
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     });
 
     /**
-     * Smart table pipe function for conversion rules
+     * Smart table pipe function for conversion templates
      * @param {*} tableState
      */
-    vm.rulePipe = function(tableState) {
+    vm.templatePipe = function(tableState) {
       if (tableState && tableState.search.predicateObject) {
         var search = tableState.search.predicateObject['$'];
       }
-      $scope.ruleLoading = true;
+      $scope.templateLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
         if (tableState.search.predicateObject) {
@@ -63,19 +63,19 @@ export default class {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
-        Conversion.getRules(paginationParams, sortString, search).then(function(response) {
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.templatesPerPage);
+        Conversion.getTemplates(paginationParams, sortString, search).then(function(response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
-          vm.ruleTableState = tableState;
-          vm.ruleFilters.forEach(function(x) {
-            response.data.forEach(function(rule) {
-              if (x == rule.id) {
-                rule.usedAsFilter = true;
+          vm.templateTableState = tableState;
+          vm.templateFilters.forEach(function(x) {
+            response.data.forEach(function(template) {
+              if (x == template.id) {
+                template.usedAsFilter = true;
               }
             });
           });
-          vm.rules = response.data;
-          $scope.ruleLoading = false;
+          vm.templates = response.data;
+          $scope.templateLoading = false;
         });
       }
     };
@@ -158,37 +158,24 @@ export default class {
       }
     };
 
-    /**
-     * Run conversion rule now
-     * @param {Object} conversion
-     */
-    vm.runJob = function(job) {
-      $http({
-        url: appConfig.djangoUrl + 'conversion-jobs/' + job.id + '/run/',
-        method: 'POST',
-      }).then(function(response) {
-        Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
-      });
-    };
-
     /*
-     * Array containing chosen(checked) conversion rules to use
+     * Array containing chosen(checked) conversion templates to use
      * as filter for the other conversion tables
      */
-    vm.ruleFilters = [];
+    vm.templateFilters = [];
 
     /**
-     * Add chosen conversion rule to list of filters or remove it.
-     * Connected to apprailsal rule table checkbox
-     * @param {Object} rule
+     * Add chosen conversion template to list of filters or remove it.
+     * Connected to apprailsal template table checkbox
+     * @param {Object} template
      */
-    vm.useAsFilter = function(rule) {
-      if (!vm.ruleFilters.includes(rule.id)) {
-        rule.used_as_filter = true;
-        vm.ruleFilters.push(rule.id);
+    vm.useAsFilter = function(template) {
+      if (!vm.templateFilters.includes(template.id)) {
+        template.used_as_filter = true;
+        vm.templateFilters.push(template.id);
       } else {
-        vm.ruleFilters.splice(vm.ruleFilters.indexOf(rule.id), 1);
-        rule.used_as_filter = false;
+        vm.templateFilters.splice(vm.templateFilters.indexOf(template.id), 1);
+        template.used_as_filter = false;
       }
     };
     /**
@@ -204,37 +191,40 @@ export default class {
      *  Clear search input
      */
     $scope.clearSearch = function() {
-      delete vm.ruleTableState.search.predicateObject;
+      delete vm.templateTableState.search.predicateObject;
       $('#search-input')[0].value = '';
-      vm.rulePipe();
+      vm.templatePipe();
     };
 
     /**
      * MODALS
      */
 
-    vm.previewModal = function(job) {
+    vm.runJobModal = function(job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/preview_conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/run_conversion_job_modal.html',
+        controller: 'ConversionJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
           data: {
-            preview: true,
-            job: job,
+            job,
+            allow_close: true,
           },
         },
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.runJob(job);
-          vm.rulePipe(vm.ruleTableState);
-          vm.nextPipe(vm.nextTableState);
-          vm.ongoingPipe(vm.ongoingTableState);
-          vm.finishedPipe(vm.finishedTableState);
+          if (data == 'edit_job') {
+            vm.editJob(job);
+          } else {
+            vm.templatePipe(vm.templateTableState);
+            vm.nextPipe(vm.nextTableState);
+            vm.ongoingPipe(vm.ongoingTableState);
+            vm.finishedPipe(vm.finishedTableState);
+          }
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -242,21 +232,22 @@ export default class {
       );
     };
 
-    vm.createRuleModal = function() {
+    vm.createTemplateModal = function() {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/create_conversion_modal.html',
+        templateUrl: 'static/frontend/views/create_conversion_template_modal.html',
         controller: 'ConversionModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {},
         },
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+          vm.templatePipe(vm.templateTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
@@ -264,113 +255,123 @@ export default class {
       );
     };
 
-    vm.ruleModal = function(rule) {
+    vm.editConversionTemplateModal = function(conversion) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_rule_modal.html',
+        templateUrl: 'static/frontend/views/edit_conversion_template_modal.html',
         controller: 'ConversionModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
-          data: {
-            rule: rule,
-          },
+          data: {conversion},
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
+        function(data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
+        },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.ongoingModal = function(conversion) {
+    vm.createJobModal = function(template) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/create_conversion_job_modal.html',
+        controller: 'ConversionJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
-            conversion: conversion,
-            state: 'Ongoing',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-
-    vm.nextModal = function(conversion) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            conversion: conversion,
-            state: 'Next',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-
-    vm.finishedModal = function(conversion) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            conversion: conversion,
-            state: 'Finished',
-          },
-        },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-    vm.removeConversionRuleModal = function(conversion) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/remove_conversion_rule_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            conversion: conversion,
+            template,
           },
         },
       });
       modalInstance.result.then(
         function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+          vm.nextPipe(vm.nextTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.editJob = function(job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/edit_conversion_job_modal.html',
+        controller: 'ConversionJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'lg',
+        resolve: {
+          data: {
+            job,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.removeConversionTemplateModal = function(conversion) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_conversion_template_modal.html',
+        controller: 'ConversionModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            conversion: conversion,
+            allow_close: true,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
+        },
+        function() {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.removeJob = function(job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_conversion_job_modal.html',
+        controller: 'ConversionJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            job,
+            allow_close: true,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+          vm.finishedPipe(vm.finishedTableState);
         },
         function() {
           $log.info('modal-component dismissed at: ' + new Date());

@@ -2,35 +2,98 @@
   <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.CONVERSION_PREVIEW' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <h4>{{'ARCHIVE_MAINTENANCE.FILES_TO_BE_CONVERTED' | translate}}</h4>
-  <div class="table-container table-x-overflow">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>
-            {{'FILENAME' | translate}}
-          </th>
-          <th>
-            IP
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr ng-repeat="x in $ctrl.jobPreview">
-          <td>
-            {{x.document}}
-          </td>
-          <td>
-            {{x.ip}}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div ng-if="!$ctrl.initModalLoad" class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
+    <div class="title-action-button-row">
+      <div class="title">
+        <h4>
+          {{'INFORMATION_PACKAGES' | translate}}
+        </h4>
+      </div>
+    </div>
+    <div class="search-prepare-wrapper">
+      <select
+        tabindex="-1"
+        id="items-per-page"
+        ng-change="updateIpsPerPage($ctrl.itemsPerPage)"
+        class="form-control items-per-page"
+        ng-model="$ctrl.itemsPerPage"
+        ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
+        uib-tooltip="{{'ITEMSPERPAGE' | translate}}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+      ></select>
+      <div class="refresh-icon">
+        <span
+          ng-click="$ctrl.getIps()"
+          class="clickable angular-animate fas fa-sync-alt fa-lg"
+          ng-class="{'fa-sync-alt-animate': $ctrl.ipLoading }"
+          uib-tooltip="{{'REFRESHTABLEDESC' | translate}}"
+          tooltip-placement="auto left"
+          tooltip-append-to-body="true"
+        ></span>
+      </div>
+    </div>
+
+    <div
+      id="table-container table-x-overflow"
+      tabindex="0"
+      ng-keydown="$ctrl.ipListKeydownListener($event)"
+      class="list-view-table"
+    >
+      <table class="table table-striped" style="margin-bottom: 0px;">
+        <a ng-if="$ctrl.ips.length" ng-click="$ctrl.deselectAll()">
+          {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}} {{'SELECTED' | translate}})
+        </a>
+        <a
+          ng-if="$ctrl.ips.length == 0 && $ctrl.displayedIps.length > 0"
+          ng-click="$ctrl.selectAll()"
+          translate="SELECT_ALL"
+        ></a>
+        <thead>
+          <tr>
+            <th class="clickable" class="column-label" tooltip-placement="auto top" tooltip-append-to-body="true">
+              {{'ID' | translate}}
+            </th>
+            <th class="clickable" class="column-label" tooltip-placement="auto top" tooltip-append-to-body="true">
+              {{'LABEL' | translate}}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-repeat="row in $ctrl.displayedIps"
+            ng-class="{'selected': $ctrl.selectedAmongOthers(row.id)}"
+            class="table-item selectable"
+            ng-click="$ctrl.previewIpModal($ctrl.data.job, row, $event)"
+            context-menu="menuOptions('row', row)"
+          >
+            <td>
+              <div ng-include src="'static/frontend/views/columns/column_object_identifier_value.html'"></div>
+            </td>
+            <td>
+              <div ng-include src="'static/frontend/views/columns/column_label.html'"></div>
+            </td>
+          </tr>
+          <tr ng-if="!$ctrl.displayedIps.length && !ipLoading" class="empty-table-indicator">
+            <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+          </tr>
+          <tr ng-if="!$ctrl.displayedIps.length && ipLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div ng-show="!initLoad">
+      <div
+        class="text-center"
+        st-template="static/frontend/views/pagination.html"
+        st-pagination=""
+        st-items-by-page="$ctrl.itemsPerPage"
+        st-displayed-pages="7"
+      ></div>
+    </div>
   </div>
 </div>
 <div class="modal-footer">
-  <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()" focused="true">
-    {{'ARCHIVE_MAINTENANCE.RUN' | translate}}
-  </button>
-  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CLOSE' | translate}}</button>
 </div>

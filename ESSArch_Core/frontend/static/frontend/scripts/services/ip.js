@@ -130,14 +130,14 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         method: 'POST',
         params: {action: 'receive', id: '@id'},
       },
-      appraisalRules: {
+      appraisalTemplates: {
         method: 'GET',
-        params: {action: 'appraisal-rules', id: '@id'},
+        params: {action: 'appraisal-templates', id: '@id'},
         isArray: true,
       },
-      conversionRules: {
+      conversionTemplates: {
         method: 'GET',
-        params: {action: 'conversion-rules', id: '@id'},
+        params: {action: 'conversion-templates', id: '@id'},
         isArray: true,
       },
       storageObjects: {
