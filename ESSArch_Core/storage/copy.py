@@ -16,11 +16,39 @@ from tenacity import (
 )
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
+from ESSArch_Core.util import get_tree_size_and_count
 
 MB = 1024 * 1024
 DEFAULT_BLOCK_SIZE = 10 * MB
 
 logger = logging.getLogger('essarch.storage.copy')
+
+
+def enough_space_available(dst: str, src: str, raise_exception: bool = False) -> bool:
+    """
+    Tells if there is enough space available at
+    path dst for src to be copied there
+
+    :param src: Path to be copied
+    :param dst: Destination
+    :param raise_exception: Raises exception if set to true and enough space
+        is not available
+    :return: True if src can be copied to dst, else False
+    """
+
+    src_size, _ = get_tree_size_and_count(src)
+    dst_free_space = shutil.disk_usage(dst).free
+
+    try:
+        assert src_size <= dst_free_space
+    except AssertionError:
+        if raise_exception:
+            raise NoSpaceLeftError(f'Not enough space available for {src} at {dst}')
+
+        return False
+
+    return True
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -167,12 +195,22 @@ def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     if requests_session is not None:
         copy_file_remotely(src, dst, requests_session, block_size=block_size)
     else:
+        enough_space_available(os.path.dirname(dst), src, True)
         copy_file_locally(src, dst)
 
     return dst
 
 
 def copy_dir(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
+    if os.path.isfile(dst):
+        raise ValueError(f'Cannot overwrite non-directory {dst} with directory {src}')
+
+    try:
+        enough_space_available(dst, src, True)
+    except FileNotFoundError:
+        os.makedirs(dst, exist_ok=True)
+        enough_space_available(dst, src, True)
+
     for root, dirs, files in walk(src):
         for f in files:
             src_filepath = os.path.join(root, f)
