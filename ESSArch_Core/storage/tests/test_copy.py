@@ -117,9 +117,9 @@ class CopyFileTestCase(SimpleTestCase):
 
         copy_file(src, dst, requests_session=session, block_size=1)
         mock_copy.assert_has_calls(
-            [mock.call(src, dst, 0, block_size=1, file_size=4, requests_session=session)]
-            + [mock.call(src, dst, i, block_size=1, file_size=4, requests_session=session, upload_id='test_upload_id')
-               for i in range(1, 5)]
+            [mock.call(src, dst, 0, block_size=1, file_size=4, requests_session=session)] +
+            [mock.call(src, dst, i, block_size=1, file_size=4, requests_session=session, upload_id='test_upload_id')
+             for i in range(1, 5)]
         )
 
     def test_copy_with_not_enough_space_at_dst(self):
