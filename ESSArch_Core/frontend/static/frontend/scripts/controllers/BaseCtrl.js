@@ -555,17 +555,6 @@ export default class BaseCtrl {
     vm.validatorFields = [
       {
         templateOptions: {
-          label: $translate.instant('VALIDATEFILEFORMAT'),
-        },
-        defaultValue: true,
-        type: 'checkbox',
-        ngModelElAttrs: {
-          tabindex: '-1',
-        },
-        key: 'validate_file_format',
-      },
-      {
-        templateOptions: {
           label: $translate.instant('VALIDATEXMLFILE'),
         },
         defaultValue: true,
@@ -585,17 +574,6 @@ export default class BaseCtrl {
           tabindex: '-1',
         },
         key: 'validate_logical_physical_representation',
-      },
-      {
-        templateOptions: {
-          label: $translate.instant('VALIDATEINTEGRITY'),
-        },
-        defaultValue: true,
-        type: 'checkbox',
-        ngModelElAttrs: {
-          tabindex: '-1',
-        },
-        key: 'validate_integrity',
       },
     ];
 

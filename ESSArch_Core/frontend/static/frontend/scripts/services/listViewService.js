@@ -402,7 +402,7 @@ const listViewService = (
   }
 
   function createDip(ip, validators) {
-    return IP.createDip(angular.extend({id: ip.id}, validators)).$promise.then(function(response) {
+    return IP.createDip({id: ip.id, validators}).$promise.then(function(response) {
       return response;
     });
   }

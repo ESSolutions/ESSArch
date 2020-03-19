@@ -1566,10 +1566,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if dip.state != 'Prepared':
             raise exceptions.ParseError('"%s" is not in the "Prepared" state' % dip)
 
-        with transaction.atomic():
-            dip.state = 'Creating'
-            dip.save()
-
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', True)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
@@ -1694,7 +1690,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "args": ["Created"],
             },
         ]
+
         with transaction.atomic():
+            dip.state = 'Creating'
+            dip.save()
+
             workflow = create_workflow(workflow_spec, dip)
             workflow.name = "Create DIP"
             workflow.information_package = dip
