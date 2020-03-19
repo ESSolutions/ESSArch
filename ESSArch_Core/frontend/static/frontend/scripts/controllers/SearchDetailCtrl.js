@@ -851,6 +851,10 @@ export default class SearchDetailCtrl {
           const fullItem = vm.recordTreeInstance.jstree(true).get_node(item.id);
           if (fullItem.original._index == 'archive') {
             vm.recordTreeInstance.jstree(true).set_type(item, 'archive');
+          } else if (fullItem.type !== 'agent') {
+            if (fullItem.original.type && fullItem.original.type.name) {
+              vm.recordTreeInstance.jstree(true).set_type(item, fullItem.original.type.name);
+            }
           }
         });
     };
@@ -915,6 +919,7 @@ export default class SearchDetailCtrl {
             childrenNodes.push(seeMore);
             vm.recordTreeInstance.jstree(true).create_node(e.node.id, seeMore);
           }
+          vm.setType();
         });
       }
     };
@@ -1503,6 +1508,7 @@ export default class SearchDetailCtrl {
             node: node,
             isStructureTemplate: vm.structure.is_template,
             structure: vm.structure.id,
+            archive: vm.archive,
           },
         },
       });
