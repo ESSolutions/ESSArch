@@ -1,7 +1,7 @@
 'use strict';
 
 /* @ngInject */
-const djangoAuth = ($q, $http, $rootScope, $window) => {
+const djangoAuth = ($q, $http, $rootScope, $window, $translate) => {
   // AngularJS will instantiate a singleton by calling "new" on this function
   const service = {
     /* START CUSTOMIZATION HERE */
@@ -17,50 +17,37 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
     request: function(args) {
       // Continue
       args = args || {};
-      const deferred = $q.defer(),
-        url = this.API_URL + args.url,
+      const url = this.API_URL + args.url,
         method = args.method || 'GET',
         params = args.params || {},
         data = args.data || {};
       // Fire the request, as configured.
-      $http({
+      return $http({
         url: url,
         withCredentials: this.use_session,
         method: method.toUpperCase(),
         params: params,
         data: data,
-      })
-        .then(
-          angular.bind(this, function(data, status) {
-            deferred.resolve(data, status);
-          })
-        )
-        .catch(
-          angular.bind(this, function(data, status, headers, config) {
-            console.log('error syncing with: ' + url);
-            // Set request status
-            if (data) {
-              data.status = status;
-            }
-            if (status == 0) {
-              if (data == '') {
-                data = {};
-                data['status'] = 0;
-                data['non_field_errors'] = ['Could not connect. Please try again.'];
-              }
-              // or if the data is null, then there was a timeout.
-              if (data == null) {
-                // Inject a non field error alerting the user
-                // that there's been a timeout error.
-                data = {};
-                data['status'] = 0;
-                data['non_field_errors'] = ['Server timed out. Please try again.'];
-              }
-            }
-            deferred.reject(data, status, headers, config);
-          })
-        );
-      return deferred.promise;
+      }).catch(function(response) {
+        console.log('error syncing with: ' + url);
+        if (angular.isUndefined(response.data)) {
+          response.data = {};
+        }
+        if (response.status === 0) {
+          if (response.data === '') {
+            response.data = {non_field_errors: ['Server timed out. Please try again.']};
+          }
+          // or if the data is null, then there was a timeout.
+          if (data == null) {
+            // Inject a non field error alerting the user
+            // that there's been a timeout error.
+            response.data = {non_field_errors: ['Server timed out. Please try again.']};
+          }
+        } else if (response.status >= 500) {
+          response.data = {non_field_errors: [$translate.instant('ERROR.UNKNOWN_ERROR')]};
+        }
+        return $q.reject(response);
+      });
     },
     login: function(username, password) {
       const djangoAuth = this;
