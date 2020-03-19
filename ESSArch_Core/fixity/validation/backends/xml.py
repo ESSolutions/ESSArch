@@ -91,11 +91,7 @@ class DiffCheckValidator(BaseValidator):
                 default='SHA-256',
             )
 
-        class DiffCheckValidatorSerializer(serializers.Serializer):
-            context = serializers.CharField(label='Metadata file')
-            options = OptionsSerializer()
-
-        return DiffCheckValidatorSerializer
+        return OptionsSerializer
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
