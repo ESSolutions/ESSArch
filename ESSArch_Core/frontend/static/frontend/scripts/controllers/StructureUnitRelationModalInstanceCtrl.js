@@ -83,6 +83,9 @@ export default class StructureUnitRelationModalInstanceCtrl {
         if (angular.isUndefined(structure) || structure === null) {
           $ctrl.unit.options = [];
         } else {
+          response.data.forEach(x => {
+            x.name_with_refcode = x.reference_code + ' - ' + x.name;
+          });
           $ctrl.unit.options = response.data;
         }
         return response.data;
@@ -91,6 +94,11 @@ export default class StructureUnitRelationModalInstanceCtrl {
 
     $ctrl.$onInit = function() {
       $ctrl.data = data;
+      if (data.archive) {
+        $ctrl.isTemplate = false;
+        $ctrl.archiveModel.archive = data.archive.id;
+        $ctrl.initArchiveSearch = data.archive.id;
+      }
       if (data.node) {
         $ctrl.node = angular.copy(data.node);
       }
@@ -217,7 +225,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
               return $ctrl.unit.options;
             },
             valueProp: 'id',
-            labelProp: 'name',
+            labelProp: 'name_with_refcode',
             required: true,
             placeholder: $translate.instant('ACCESS.STRUCTURE_UNIT'),
             label: $translate.instant('ACCESS.STRUCTURE_UNIT'),
