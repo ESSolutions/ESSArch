@@ -121,6 +121,13 @@ def copy_file_locally(src, dst):
     )
 
 
+@retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
+       wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+def _send_completion_request(requests_session, completion_url, data, headers):
+    response = requests_session.post(completion_url, data=data, headers=headers, timeout=60)
+    response.raise_for_status()
+
+
 def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE):
     fsize = os.stat(src).st_size
     idx = 0
@@ -149,13 +156,7 @@ def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE
     )
     headers = {'Content-Type': m.content_type}
 
-    @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def send_completion_request():
-        response = requests_session.post(completion_url, data=m, headers=headers, timeout=60)
-        response.raise_for_status()
-
-    send_completion_request()
+    _send_completion_request(requests_session, completion_url, m, headers)
 
     time_end = time.time()
     time_elapsed = time_end - time_start

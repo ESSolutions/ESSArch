@@ -106,14 +106,21 @@ class CopyFileTestCase(SimpleTestCase):
         self.assertTrue(os.path.isfile(dst))
         self.assertTrue(cmp(src, dst, shallow=False))
 
-    @mock.patch('ESSArch_Core.storage.copy.copy_file_remotely')
-    def test_copy_file_remotely(self, mock_copy):
-        src = 'foo'
+    @mock.patch('ESSArch_Core.storage.copy._send_completion_request')
+    @mock.patch('ESSArch_Core.storage.copy.copy_chunk_remotely', return_value='test_upload_id')
+    def test_copy_file_remotely(self, mock_copy, _mock_req):
+        src = os.path.join(self.datadir, 'foo.txt')
+        with open(src, 'w') as f:
+            f.write('test')
         dst = 'bar'
         session = requests.Session()
 
-        copy_file(src, dst, requests_session=session)
-        mock_copy.assert_called_once_with(src, dst, session, block_size=mock.ANY)
+        copy_file(src, dst, requests_session=session, block_size=1)
+        mock_copy.assert_has_calls(
+            [mock.call(src, dst, 0, block_size=1, file_size=4, requests_session=session)]
+            + [mock.call(src, dst, i, block_size=1, file_size=4, requests_session=session, upload_id='test_upload_id')
+               for i in range(1, 5)]
+        )
 
     def test_copy_with_not_enough_space_at_dst(self):
         src = os.path.join(self.datadir, 'foo.txt')
