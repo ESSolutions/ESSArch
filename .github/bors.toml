@@ -2,6 +2,7 @@ status = [
     "linting",
     "build-frontend",
     "build-docs",
+    "build-docker",
     "test-windows",
     "test-linux (sqlite)",
     "test-linux (mariadb)",
