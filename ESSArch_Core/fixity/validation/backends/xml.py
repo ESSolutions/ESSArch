@@ -94,12 +94,18 @@ class DiffCheckValidator(BaseValidator):
             self.fields['context'] = FilePathField(ip.object_path, allow_blank=True, default='')
 
     class OptionsSerializer(BaseValidator.OptionsSerializer):
-        rootdir = serializers.CharField(default='', allow_blank=True)
+        rootdir = serializers.CharField(required=False)
         recursive = serializers.BooleanField(default=True)
         default_algorithm = serializers.ChoiceField(
             choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
             default='SHA-256',
         )
+
+        def validate(self2, data):
+            if 'rootdir' not in data:
+                data['rootdir'] = self2.context['base_data']['path']
+
+            return data
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

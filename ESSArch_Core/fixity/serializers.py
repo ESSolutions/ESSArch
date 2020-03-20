@@ -20,24 +20,32 @@ class ValidatorWorkflowSerializer(serializers.Serializer):
 
     def validate_validators(self, validators):
         new_data = []
-        sub_context = {'information_package': self.context['request'].data.get('information_package', None)}
+        ip = self.context['request'].data.get('information_package', None)
+        sub_context = {'information_package': ip}
+        sub_context.update(self.context)
 
         for validator in validators:
             name = validator.pop('name')
             klass = get_validator(name)
-            options_serializer = klass.get_options_serializer_class()(
-                data=validator.pop('options', {}),
-                context=sub_context,
-            )
+
             serializer = klass.get_serializer_class()(
                 data=validator, context=sub_context,
             )
-
             serializer.is_valid(True)
-            options_serializer.is_valid(True)
-
             data = serializer.validated_data
             data['name'] = name
+
+            options_data = validator.pop('options', {})
+            options_context = {
+                'information_package': ip,
+                'base_data': data,
+            }
+            options_serializer = klass.get_options_serializer_class()(
+                data=options_data,
+                context=options_context,
+            )
+
+            options_serializer.is_valid(True)
             data['options'] = options_serializer.validated_data
 
             new_data.append(data)

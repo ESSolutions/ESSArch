@@ -33,7 +33,6 @@ from pathlib import PurePath
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
@@ -47,7 +46,6 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
 )
 from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
-from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.fixity.validation.backends.xml import (
@@ -307,66 +305,6 @@ class ValidateFileFormat(DBTask):
         return "Validated format of %s to be: format name: %s, format version: %s, format registry key: %s" % (
             filename, format_name, format_version, format_registry_key
         )
-
-
-class ValidateWorkarea(DBTask):
-    queue = 'validation'
-
-    def create_notification(self, ip):
-        errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
-
-        if errcount:
-            Notification.objects.create(
-                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
-                    ip=ip.object_identifier_value, errcount=errcount
-                ),
-                level=logging.ERROR,
-                user_id=self.responsible,
-                refresh=True
-            )
-        else:
-            Notification.objects.create(
-                message='"{ip}" was successfully validated'.format(
-                    ip=ip.object_identifier_value
-                ),
-                level=logging.INFO,
-                user_id=self.responsible,
-                refresh=True
-            )
-
-    def run(self, workarea, validators, stop_at_failure=True):
-        workarea = Workarea.objects.get(pk=workarea)
-        workarea.successfully_validated = {}
-
-        for validator in validators:
-            workarea.successfully_validated[validator] = None
-
-        workarea.save(update_fields=['successfully_validated'])
-        ip = workarea.ip
-        sa = ip.submission_agreement
-        validation_profile = ip.get_profile('validation')
-        profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
-        responsible = User.objects.get(pk=self.responsible)
-
-        try:
-            validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     task=self.get_processtask(), stop_at_failure=stop_at_failure,
-                                     responsible=responsible)
-        except ValidationError:
-            self.create_notification(ip)
-        else:
-            self.create_notification(ip)
-        finally:
-            validations = ip.validation_set.all()
-            failed_validators = validations.values('validator').filter(
-                passed=False, required=True
-            ).values_list('validator', flat=True)
-
-            for k, _v in workarea.successfully_validated.items():
-                class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
-                workarea.successfully_validated[k] = class_name not in failed_validators
-
-            workarea.save(update_fields=['successfully_validated'])
 
 
 class TransformWorkarea(DBTask):
