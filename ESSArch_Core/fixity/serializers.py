@@ -1,8 +1,7 @@
 from rest_framework import serializers
 
-from ESSArch_Core.api.fields import FilePathField
 from ESSArch_Core.fixity.models import ConversionTool, Validation
-from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
+from ESSArch_Core.fixity.validation import get_backend as get_validator
 from ESSArch_Core.ip.models import InformationPackage
 
 
@@ -14,29 +13,36 @@ class ConversionToolSerializer(serializers.ModelSerializer):
         fields = ('name', 'form',)
 
 
-class ValidatorDataSerializer(serializers.Serializer):
-    name = serializers.ChoiceField(choices=list(AVAILABLE_VALIDATORS.keys()))
-    path = serializers.CharField(label='Path to validate', allow_blank=True, default='')
-    context = serializers.CharField(label='Metadata file', allow_blank=True, default='')
-    options = serializers.JSONField(required=False)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        request = kwargs['context']['request']
-        ip = InformationPackage.objects.get(pk=request.data['information_package'])
-        self.fields['path'] = FilePathField(ip.object_path, allow_blank=True, default='')
-
-
 class ValidatorWorkflowSerializer(serializers.Serializer):
     purpose = serializers.CharField(default='Validation')
     information_package = serializers.PrimaryKeyRelatedField(queryset=InformationPackage.objects.all())
+    validators = serializers.ListField(min_length=1, child=serializers.JSONField())
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['validators'] = serializers.ListField(
-            min_length=1,
-            child=ValidatorDataSerializer(context=kwargs['context']),
-        )
+    def validate_validators(self, validators):
+        new_data = []
+        sub_context = {'information_package': self.context['request'].data.get('information_package', None)}
+
+        for validator in validators:
+            name = validator.pop('name')
+            klass = get_validator(name)
+            options_serializer = klass.get_options_serializer_class()(
+                data=validator.pop('options', {}),
+                context=sub_context,
+            )
+            serializer = klass.get_serializer_class()(
+                data=validator, context=sub_context,
+            )
+
+            serializer.is_valid(True)
+            options_serializer.is_valid(True)
+
+            data = serializer.validated_data
+            data['name'] = name
+            data['options'] = options_serializer.validated_data
+
+            new_data.append(data)
+
+        return new_data
 
 
 class ValidationSerializer(serializers.ModelSerializer):

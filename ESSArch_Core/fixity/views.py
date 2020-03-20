@@ -75,14 +75,13 @@ class ValidatorWorkflowViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet)
             options = options_serializer.validated_data
 
             path = os.path.join(ip.object_path, validator['path'])
-            context = os.path.join(ip.object_path, validator['context'])
             options['rootdir'] = ip.object_path
 
             task_spec = {
                 'name': 'ESSArch_Core.fixity.validation.tasks.Validate',
                 'label': 'Validate using {}'.format(klass.label),
                 'args': [name, path],
-                'params': {'context': context, 'options': options},
+                'params': {'context': validator['context'], 'options': options},
             }
 
             workflow_spec.append(task_spec)

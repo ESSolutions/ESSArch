@@ -11,5 +11,10 @@ class Validate(DBTask):
         options = {} if options is None else options
         klass = get_backend(name)
 
-        validator = klass(context=context, ip=self.ip, task=self.get_processtask(), options=options)
+        validator = klass(
+            context=context,
+            ip=self.get_information_package(),
+            task=self.get_processtask(),
+            options=options,
+        )
         validator.validate(path)

@@ -21,6 +21,13 @@ class BaseValidator:
         self.responsible = responsible
 
     @classmethod
+    def get_serializer_class(cls):
+        class Serializer(serializers.Serializer):
+            pass
+
+        return Serializer
+
+    @classmethod
     def get_options_serializer_class(cls):
         class OptionsSerializer(serializers.Serializer):
             pass
