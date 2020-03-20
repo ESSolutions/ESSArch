@@ -433,9 +433,9 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
             else:
                 rootdir = os.path.dirname(path)
 
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
-                                       task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
+                                       task=self.get_processtask(), ip=ip, responsible=ip.responsible)
         validator.validate(path)
 
     def event_outcome_success(self, result, path, xmlfile, skip_files=None, relpath=None):
@@ -452,7 +452,7 @@ class CompareXMLFiles(DBTask):
     def run(self, first, second, rootdir=None, recursive=True):
         Validation.objects.filter(task=self.get_processtask()).delete()
         first, second = self.parse_params(first, second)
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         if rootdir is None:
             rootdir = ip.object_path
         else:
@@ -462,7 +462,7 @@ class CompareXMLFiles(DBTask):
             context=first,
             options={'rootdir': rootdir, 'recursive': recursive},
             task=self.get_processtask(),
-            ip=self.ip,
+            ip=ip,
             responsible=ip.responsible,
         )
         validator.validate(second)
