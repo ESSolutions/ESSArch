@@ -41,6 +41,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libreoffice
 
 ADD requirements /code/requirements
 ADD setup.py /code/setup.py
+ADD setup.cfg /code/setup.cfg
 ADD versioneer.py /code/versioneer.py
 ADD README.md /code/README.md
 
