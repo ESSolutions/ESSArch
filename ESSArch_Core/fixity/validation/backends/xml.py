@@ -8,6 +8,7 @@ from django.utils import timezone
 from lxml import etree, isoschematron
 from rest_framework import serializers
 
+from ESSArch_Core.api.fields import FilePathField
 from ESSArch_Core.essxml.util import (
     find_files,
     find_pointers,
@@ -81,17 +82,24 @@ class DiffCheckValidator(BaseValidator):
             },
         ]
 
-    @classmethod
-    def get_options_serializer_class(cls):
-        class OptionsSerializer(serializers.Serializer):
-            rootdir = serializers.CharField(default='', allow_blank=True)
-            recursive = serializers.BooleanField(default=True)
-            default_algorithm = serializers.ChoiceField(
-                choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
-                default='SHA-256',
-            )
+    class Serializer(BaseValidator.Serializer):
+        context = serializers.CharField()
 
-        return OptionsSerializer
+        def __init__(self, *args, **kwargs):
+            from ESSArch_Core.ip.models import InformationPackage
+
+            super().__init__(*args, **kwargs)
+            ip_pk = kwargs['context']['information_package']
+            ip = InformationPackage.objects.get(pk=ip_pk)
+            self.fields['context'] = FilePathField(ip.object_path, allow_blank=True, default='')
+
+    class OptionsSerializer(BaseValidator.OptionsSerializer):
+        rootdir = serializers.CharField(default='', allow_blank=True)
+        recursive = serializers.BooleanField(default=True)
+        default_algorithm = serializers.ChoiceField(
+            choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
+            default='SHA-256',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -151,7 +159,7 @@ class DiffCheckValidator(BaseValidator):
             validator=self.__class__.__name__,
             required=self.required,
             task=self.task,
-            information_package_id=self.ip,
+            information_package=self.ip,
             responsible=self.responsible,
             message=msg,
             passed=passed,

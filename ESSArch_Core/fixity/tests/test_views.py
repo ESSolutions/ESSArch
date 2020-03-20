@@ -9,6 +9,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.testing.runner import TaskRunner
@@ -42,7 +43,7 @@ class ValidatorWorkflowViewSetTests(APITestCase):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @TaskRunner(False)
+    @TaskRunner()
     def test_create_and_run_workflow(self):
         self.client.force_authenticate(self.superuser)
 
@@ -55,6 +56,8 @@ class ValidatorWorkflowViewSetTests(APITestCase):
             f.write('hello')
 
         expected = calculate_checksum(os.path.join(ip.object_path, 'content', 'foo.txt'), 'SHA-224')
+        with open(os.path.join(ip.object_path, 'metadata.xml'), 'w') as f:
+            f.write('<files></files>')
 
         with self.subTest('invalid file path'):
             response = self.client.post(self.url, {
@@ -94,6 +97,57 @@ class ValidatorWorkflowViewSetTests(APITestCase):
             self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 0)
 
         with self.subTest('valid path and unexpected value'):
+            with self.assertRaises(ValidationError):
+                response = self.client.post(self.url, {
+                    'information_package': str(ip.pk),
+                    'validators': [
+                        {
+                            'name': 'checksum',
+                            'path': 'content/foo.txt',
+                            'context': 'checksum_str',
+                            'options': {
+                                'expected': 'incorrect',
+                                'algorithm': 'SHA-224',
+                            }
+                        },
+                    ],
+                })
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 1)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 1)
+
+        with self.subTest('multiple validators'):
+            with self.assertRaises(ValidationError):
+                response = self.client.post(self.url, {
+                    'information_package': str(ip.pk),
+                    'validators': [
+                        {
+                            'name': 'checksum',
+                            'path': 'content/foo.txt',
+                            'context': 'checksum_str',
+                            'options': {
+                                'expected': expected,
+                                'algorithm': 'SHA-224',
+                            }
+                        },
+                        {
+                            'name': 'diff_check',
+                            'path': 'content/foo.txt',
+                            'context': 'metadata.xml',
+                            'options': {
+                                'expected': expected,
+                                'algorithm': 'SHA-224',
+                            }
+                        },
+                    ],
+                })
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 2)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 2)
+
+            with open(os.path.join(ip.object_path, 'metadata.xml'), 'w') as f:
+                f.write('<files><file><FLocat href="content/foo.txt"/></file></files>')
+
             response = self.client.post(self.url, {
                 'information_package': str(ip.pk),
                 'validators': [
@@ -102,12 +156,21 @@ class ValidatorWorkflowViewSetTests(APITestCase):
                         'path': 'content/foo.txt',
                         'context': 'checksum_str',
                         'options': {
-                            'expected': 'incorrect',
+                            'expected': expected,
+                            'algorithm': 'SHA-224',
+                        }
+                    },
+                    {
+                        'name': 'diff_check',
+                        'path': 'content/foo.txt',
+                        'context': 'metadata.xml',
+                        'options': {
+                            'expected': expected,
                             'algorithm': 'SHA-224',
                         }
                     },
                 ],
             })
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 1)
-            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 1)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 4)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 2)

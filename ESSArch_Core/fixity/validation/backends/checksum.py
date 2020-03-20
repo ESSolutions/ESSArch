@@ -4,7 +4,6 @@ import traceback
 from django.utils import timezone
 from rest_framework import serializers
 
-from ESSArch_Core.api.fields import FilePathField
 from ESSArch_Core.essxml.util import find_file
 from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.checksum import calculate_checksum
@@ -29,34 +28,18 @@ class ChecksumValidator(BaseValidator):
 
     label = 'Checksum Validator'
 
-    @classmethod
-    def get_serializer_class(cls):
-        class Serializer(serializers.Serializer):
-            context = serializers.ChoiceField(choices=['checksum_str', 'checksum_file', 'xml_file'])
-            block_size = serializers.IntegerField(default=65536)
+    class Serializer(BaseValidator.Serializer):
+        context = serializers.ChoiceField(choices=['checksum_str', 'checksum_file', 'xml_file'])
+        block_size = serializers.IntegerField(default=65536)
 
-            def __init__(self, *args, **kwargs):
-                from ESSArch_Core.ip.models import InformationPackage
-
-                super().__init__(*args, **kwargs)
-                ip_pk = kwargs['context']['information_package']
-                ip = InformationPackage.objects.get(pk=ip_pk)
-                self.fields['path'] = FilePathField(ip.object_path, allow_blank=True, default='')
-
-        return Serializer
-
-    @classmethod
-    def get_options_serializer_class(cls):
-        class OptionsSerializer(serializers.Serializer):
-            expected = serializers.CharField()
-            rootdir = serializers.CharField(default='', allow_blank=True)
-            recursive = serializers.BooleanField(default=True)
-            algorithm = serializers.ChoiceField(
-                choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
-                default='SHA-256',
-            )
-
-        return OptionsSerializer
+    class OptionsSerializer(BaseValidator.OptionsSerializer):
+        expected = serializers.CharField()
+        rootdir = serializers.CharField(default='', allow_blank=True)
+        recursive = serializers.BooleanField(default=True)
+        algorithm = serializers.ChoiceField(
+            choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
+            default='SHA-256',
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

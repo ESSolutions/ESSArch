@@ -18,4 +18,4 @@ class FilePathField(serializers.CharField):
         if not os.path.exists(os.path.join(self.path, data)):
             self.fail('invalid_path', input=data)
 
-        return data
+        return os.path.join(self.path, data)
