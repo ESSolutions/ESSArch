@@ -237,18 +237,20 @@ export default class SearchDetailCtrl {
     vm.getClassificationStructureChildren = function(id) {
       console.log('Getting children of structure with id "' + id + '"');
       const url = vm.url + 'structures/' + id + '/units/';
-      return $http.get(url, {params: {has_parent: false, pager: 'none'}}).then(function(response) {
-        const data = response.data.map(function(unit) {
-          unit._id = unit.id;
-          unit._is_structure_unit = true;
-          delete unit.parent;
-          return vm.createNode(unit);
+      return $http
+        .get(url, {params: {has_parent: false, ordering: 'reference_code', pager: 'none'}})
+        .then(function(response) {
+          const data = response.data.map(function(unit) {
+            unit._id = unit.id;
+            unit._is_structure_unit = true;
+            delete unit.parent;
+            return vm.createNode(unit);
+          });
+          return {
+            data: data,
+            count: response.headers('Count'),
+          };
         });
-        return {
-          data: data,
-          count: response.headers('Count'),
-        };
-      });
     };
 
     vm.createPlaceholderNode = function() {

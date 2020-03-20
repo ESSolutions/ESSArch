@@ -142,6 +142,16 @@ jobs:
           cd ESSArch_Core/docs
           make html SPHINXOPTS="-W"
 
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build
+        run: |
+          cd docker
+          docker-compose build essarch
+
   test-windows:
     runs-on: windows-latest
     env:
