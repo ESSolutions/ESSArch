@@ -16,8 +16,8 @@ const Step = ($resource, appConfig, Task) => {
         params: {action: 'children', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource.forEach(function(res, idx, array) {
+          response: function (response) {
+            response.resource.forEach(function (res, idx, array) {
               array[idx] = res.flow_type == 'task' ? new Task(res) : res;
             });
             response.resource.$httpHeaders = response.headers;

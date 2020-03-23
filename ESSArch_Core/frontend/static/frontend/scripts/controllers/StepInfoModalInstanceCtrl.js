@@ -21,55 +21,55 @@ export default class StepInfoModalInstanceCtrl {
     };
 
     //Undo step/task
-    $scope.myTreeControl.scope.taskStepUndo = function(branch) {
+    $scope.myTreeControl.scope.taskStepUndo = function (branch) {
       branch
         .$undo()
-        .then(function(response) {
+        .then(function (response) {
           if ($scope.currentStepTask.flow_type === 'task') {
             $scope.getTask($scope.currentStepTask);
           } else {
             $scope.getStep($scope.currentStepTask);
           }
-          $timeout(function() {
+          $timeout(function () {
             $scope.statusViewUpdate($scope.ip);
           }, 1000);
         })
-        .catch(function() {
+        .catch(function () {
           console.log('error');
         });
     };
     //Redo step/task
-    $scope.myTreeControl.scope.taskStepRedo = function(branch) {
+    $scope.myTreeControl.scope.taskStepRedo = function (branch) {
       branch
         .$retry()
-        .then(function(response) {
+        .then(function (response) {
           if ($scope.currentStepTask.flow_type === 'task') {
             $scope.getTask($scope.currentStepTask);
           } else {
             $scope.getStep($scope.currentStepTask);
           }
-          $timeout(function() {
+          $timeout(function () {
             $scope.statusViewUpdate($scope.ip);
           }, 1000);
         })
-        .catch(function() {
+        .catch(function () {
           console.log('error');
         });
     };
 
     $ctrl.tracebackCopied = false;
-    $ctrl.copied = function() {
+    $ctrl.copied = function () {
       $ctrl.tracebackCopied = true;
     };
     $ctrl.idCopied = false;
-    $ctrl.idCopyDone = function() {
+    $ctrl.idCopyDone = function () {
       $ctrl.idCopied = true;
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
     $ctrl.mapStepStateProgress = $rootScope.mapStepStateProgress;
-    $scope.extendedEqual = function(specification_data, model) {
+    $scope.extendedEqual = function (specification_data, model) {
       let returnValue = true;
       for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
@@ -83,15 +83,15 @@ export default class StepInfoModalInstanceCtrl {
       }
     };
 
-    $scope.checkPermission = function(permissionName) {
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
 
     // build comma separated args display string
-    $ctrl.getArgsString = function(args) {
+    $ctrl.getArgsString = function (args) {
       if (!angular.isUndefined(args)) {
         return args
-          .map(function(x) {
+          .map(function (x) {
             if (x === null) {
               return 'null';
             } else {
@@ -104,9 +104,9 @@ export default class StepInfoModalInstanceCtrl {
       }
     };
 
-    $scope.getStep = function(branch) {
+    $scope.getStep = function (branch) {
       $scope.stepTaskLoading = true;
-      return Step.get({id: branch.id}).$promise.then(function(data) {
+      return Step.get({id: branch.id}).$promise.then(function (data) {
         if (data.time_started !== null && data.time_done !== null) {
           const started = moment(data.time_started);
           const done = moment(data.time_done);
@@ -120,7 +120,7 @@ export default class StepInfoModalInstanceCtrl {
       });
     };
     //Modal functions
-    $scope.tracebackModal = function() {
+    $scope.tracebackModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -135,8 +135,8 @@ export default class StepInfoModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {}
+        function (data) {},
+        function () {}
       );
     };
   }

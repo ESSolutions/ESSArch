@@ -59,15 +59,15 @@ export default class RobotInformationCtrl {
     // Table states
 
     let robotInterval;
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(robotInterval);
     });
     $interval.cancel(robotInterval);
-    robotInterval = $interval(function() {
+    robotInterval = $interval(function () {
       vm.updateTables();
     }, appConfig.robotInterval);
 
-    vm.updateTables = function() {
+    vm.updateTables = function () {
       $scope.loadRobots(vm.robotTableState);
       if (vm.selectedRobot != null) {
         $scope.getRobotQueue(vm.robotQueueTableState);
@@ -75,11 +75,11 @@ export default class RobotInformationCtrl {
         $scope.getDrives(vm.driveTableState);
       }
     };
-    $scope.menuOptions = function(rowType) {
+    $scope.menuOptions = function (rowType) {
       return [];
     };
 
-    $scope.initRequestData = function(types) {
+    $scope.initRequestData = function (types) {
       vm.requestTypes = types;
       vm.request = {
         type: types[0],
@@ -89,7 +89,7 @@ export default class RobotInformationCtrl {
     };
 
     // Getters
-    $scope.getDrives = function(tableState) {
+    $scope.getDrives = function (tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.driveTableState = tableState;
         $scope.tapeDrivesLoading = true;
@@ -100,19 +100,19 @@ export default class RobotInformationCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.drivesPerPage);
         Resource.getTapeDrives(paginationParams, tableState, sorting, search, vm.selectedRobot)
-          .then(function(result) {
+          .then(function (result) {
             vm.tapeDrives = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.tapeDrivesLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $scope.tapeDrivesLoading = false;
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('tapedrive', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('tapedrive', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getDrives(tableState);
@@ -122,7 +122,7 @@ export default class RobotInformationCtrl {
       }
     };
 
-    $scope.getSlots = function(tableState) {
+    $scope.getSlots = function (tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.slotTableState = tableState;
         $scope.tapeSlotsLoading = true;
@@ -133,19 +133,19 @@ export default class RobotInformationCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.slotsPerPage);
         Resource.getTapeSlots(paginationParams, tableState, sorting, search, vm.selectedRobot)
-          .then(function(result) {
+          .then(function (result) {
             vm.tapeSlots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.tapeSlotsLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $scope.tapeSlotsLoading = false;
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('tapeslot', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('tapeslot', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getSlots(tableState);
@@ -155,7 +155,7 @@ export default class RobotInformationCtrl {
       }
     };
 
-    $scope.getRobotQueue = function(tableState) {
+    $scope.getRobotQueue = function (tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.robotQueueTableState = tableState;
         $scope.robotQueueLoading = true;
@@ -166,12 +166,12 @@ export default class RobotInformationCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotQueueItemsPerPage);
         Resource.getRobotQueueForRobot(paginationParams, tableState, sorting, search, vm.selectedRobot)
-          .then(function(result) {
+          .then(function (result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.robotQueueLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $scope.robotQueueLoading = false;
             if (response.status == 404) {
               const filters = {
@@ -180,7 +180,7 @@ export default class RobotInformationCtrl {
 
               listViewService
                 .checkPages('robot_queue_for_robot', paginationParams.number, filters, vm.selectedRobot.id)
-                .then(function(result) {
+                .then(function (result) {
                   tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                   tableState.pagination.start =
                     result.numberOfPages * paginationParams.number - paginationParams.number;
@@ -191,7 +191,7 @@ export default class RobotInformationCtrl {
       }
     };
 
-    $scope.loadRobots = function(tableState) {
+    $scope.loadRobots = function (tableState) {
       $scope.ipLoading = true;
       if (!angular.isUndefined(tableState)) {
         vm.robotTableState = tableState;
@@ -202,18 +202,18 @@ export default class RobotInformationCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
         Resource.getRobots(paginationParams, tableState, sorting, search)
-          .then(function(result) {
+          .then(function (result) {
             vm.robots = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('robot', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('robot', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.loadRobots(tableState);
@@ -227,7 +227,7 @@ export default class RobotInformationCtrl {
 
     // Click funcitons
 
-    $scope.robotClick = function(robot) {
+    $scope.robotClick = function (robot) {
       if ($scope.select && vm.selectedRobot.id == robot.id) {
         $scope.select = false;
         $scope.edit = false;
@@ -241,12 +241,12 @@ export default class RobotInformationCtrl {
       }
     };
 
-    vm.inventoryClick = function(robot) {
+    vm.inventoryClick = function (robot) {
       $scope.initRequestData(['inventory']);
       requestModal(vm.request, robot);
     };
 
-    vm.tapeDriveClick = function(tapeDrive) {
+    vm.tapeDriveClick = function (tapeDrive) {
       if (tapeDrive == vm.tapeDrive) {
         vm.tapeDrive = null;
       } else {
@@ -265,7 +265,7 @@ export default class RobotInformationCtrl {
           }
         }
         if (types.includes('mount')) {
-          vm.getStorageMediumsByState(20).then(function(result) {
+          vm.getStorageMediumsByState(20).then(function (result) {
             $scope.storageMediums = result;
           });
         }
@@ -274,7 +274,7 @@ export default class RobotInformationCtrl {
       }
     };
 
-    vm.tapeSlotClick = function(tapeSlot) {
+    vm.tapeSlotClick = function (tapeSlot) {
       if (tapeSlot.medium_id === '') {
         return;
       }
@@ -300,49 +300,49 @@ export default class RobotInformationCtrl {
       }
     };
 
-    vm.getStorageMediumsByState = function(status) {
-      return StorageMedium.query({status: status}).$promise.then(function(data) {
+    vm.getStorageMediumsByState = function (status) {
+      return StorageMedium.query({status: status}).$promise.then(function (data) {
         return data;
       });
     };
 
     // Actions
-    vm.inventoryRobot = function(robot, request) {
-      Storage.inventoryRobot(robot).then(function(result) {
+    vm.inventoryRobot = function (robot, request) {
+      Storage.inventoryRobot(robot).then(function (result) {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.mountTapeDrive = function(tapeDrive, request) {
-      Storage.mountTapeDrive(tapeDrive, request.storageMedium).then(function() {
+    vm.mountTapeDrive = function (tapeDrive, request) {
+      Storage.mountTapeDrive(tapeDrive, request.storageMedium).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.unmountTapeDrive = function(tapeDrive, request, force) {
-      Storage.unmountTapeDrive(tapeDrive, force).then(function() {
+    vm.unmountTapeDrive = function (tapeDrive, request, force) {
+      Storage.unmountTapeDrive(tapeDrive, force).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.mountTapeSlot = function(tapeSlot, request) {
-      Storage.mountTapeSlot(tapeSlot, request).then(function() {
+    vm.mountTapeSlot = function (tapeSlot, request) {
+      Storage.mountTapeSlot(tapeSlot, request).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.unmountTapeSlot = function(tapeSlot, request, force) {
-      Storage.unmountTapeSlot(tapeSlot, force).then(function() {
+    vm.unmountTapeSlot = function (tapeSlot, request, force) {
+      Storage.unmountTapeSlot(tapeSlot, force).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
     // Requests
-    $scope.submitRequest = function(object, request) {
+    $scope.submitRequest = function (object, request) {
       switch (request.type) {
         case 'inventory':
           vm.inventoryRobot(object, request);
@@ -381,7 +381,7 @@ export default class RobotInformationCtrl {
         scope: $scope,
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               request: request,
               types: vm.requestTypes,
@@ -390,7 +390,7 @@ export default class RobotInformationCtrl {
           },
         },
       });
-      modalInstance.result.then(function(data) {
+      modalInstance.result.then(function (data) {
         if (vm.tapeDrive && data.id == vm.tapeDrive.id) {
           vm.tapeDrive = null;
         } else if (vm.tapeSlot && data.id == vm.tapeSlot.id) {
@@ -399,14 +399,14 @@ export default class RobotInformationCtrl {
       });
     }
 
-    $scope.closeRequestForm = function() {
+    $scope.closeRequestForm = function () {
       $scope.requestForm = false;
       $scope.eventlog = false;
       vm.tapeDrive = null;
       vm.tapeSlot = null;
     };
 
-    $scope.searchDisabled = function() {
+    $scope.searchDisabled = function () {
       if ($scope.filterModels.length > 0) {
         if ($scope.filterModels[0].column != null) {
           delete $scope.tableState.search.predicateObject;
@@ -416,7 +416,7 @@ export default class RobotInformationCtrl {
         return false;
       }
     };
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
       $scope.getListViewData();
@@ -424,7 +424,7 @@ export default class RobotInformationCtrl {
 
     // Click function for request form submit.
     // Replaced form="vm.requestForm" to work in IE
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       if (vm.requestForm.$valid) {
         $scope.submitRequest(vm.selectedRobot, vm.request);
       }

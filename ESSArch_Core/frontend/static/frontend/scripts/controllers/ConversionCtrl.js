@@ -27,17 +27,17 @@ export default class {
     $scope.$translate = $translate;
 
     //Cancel update intervals on state change
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(conversionInterval);
     });
-    var conversionInterval = $interval(function() {
+    var conversionInterval = $interval(function () {
       vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     }, appConfig.ipInterval);
 
-    $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
       vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
@@ -48,7 +48,7 @@ export default class {
      * Smart table pipe function for conversion templates
      * @param {*} tableState
      */
-    vm.templatePipe = function(tableState) {
+    vm.templatePipe = function (tableState) {
       if (tableState && tableState.search.predicateObject) {
         var search = tableState.search.predicateObject['$'];
       }
@@ -64,11 +64,11 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.templatesPerPage);
-        Conversion.getTemplates(paginationParams, sortString, search).then(function(response) {
+        Conversion.getTemplates(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.templateTableState = tableState;
-          vm.templateFilters.forEach(function(x) {
-            response.data.forEach(function(template) {
+          vm.templateFilters.forEach(function (x) {
+            response.data.forEach(function (template) {
               if (x == template.id) {
                 template.usedAsFilter = true;
               }
@@ -84,7 +84,7 @@ export default class {
      * Smart table pipe function for ongoing conversions
      * @param {*} tableState
      */
-    vm.ongoingPipe = function(tableState) {
+    vm.ongoingPipe = function (tableState) {
       $scope.ongoingLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -97,7 +97,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
-        Conversion.getOngoing(paginationParams, sortString, search).then(function(response) {
+        Conversion.getOngoing(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.ongoingTableState = tableState;
           vm.ongoing = response.data;
@@ -110,7 +110,7 @@ export default class {
      * Smart table pipe function for next conversions
      * @param {*} tableState
      */
-    vm.nextPipe = function(tableState) {
+    vm.nextPipe = function (tableState) {
       $scope.nextLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -123,7 +123,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
-        Conversion.getNext(paginationParams, sortString, search).then(function(response) {
+        Conversion.getNext(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.nextTableState = tableState;
           vm.next = response.data;
@@ -136,7 +136,7 @@ export default class {
      * Smart table pipe function for finished conversions
      * @param {*} tableState
      */
-    vm.finishedPipe = function(tableState) {
+    vm.finishedPipe = function (tableState) {
       $scope.finishedLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -149,7 +149,7 @@ export default class {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
-        Conversion.getFinished(paginationParams, sortString, search).then(function(response) {
+        Conversion.getFinished(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           vm.finishedTableState = tableState;
           vm.finished = response.data;
@@ -169,7 +169,7 @@ export default class {
      * Connected to apprailsal template table checkbox
      * @param {Object} template
      */
-    vm.useAsFilter = function(template) {
+    vm.useAsFilter = function (template) {
       if (!vm.templateFilters.includes(template.id)) {
         template.used_as_filter = true;
         vm.templateFilters.push(template.id);
@@ -182,7 +182,7 @@ export default class {
      * Show conversion report
      * @param {Object} conversion
      */
-    vm.showReport = function(conversion) {
+    vm.showReport = function (conversion) {
       const file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'conversion-jobs/' + conversion.id + '/report/');
       $window.open(file, '_blank');
     };
@@ -190,7 +190,7 @@ export default class {
     /**
      *  Clear search input
      */
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete vm.templateTableState.search.predicateObject;
       $('#search-input')[0].value = '';
       vm.templatePipe();
@@ -200,7 +200,7 @@ export default class {
      * MODALS
      */
 
-    vm.runJobModal = function(job) {
+    vm.runJobModal = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -216,7 +216,7 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           if (data == 'edit_job') {
             vm.editJob(job);
           } else {
@@ -226,13 +226,13 @@ export default class {
             vm.finishedPipe(vm.finishedTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.createTemplateModal = function() {
+    vm.createTemplateModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -246,16 +246,16 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.templatePipe(vm.templateTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editConversionTemplateModal = function(conversion) {
+    vm.editConversionTemplateModal = function (conversion) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -269,16 +269,16 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.templatePipe(vm.templateTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.createJobModal = function(template) {
+    vm.createJobModal = function (template) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -294,16 +294,16 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.nextPipe(vm.nextTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editJob = function(job) {
+    vm.editJob = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -319,16 +319,16 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.nextPipe(vm.nextTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeConversionTemplateModal = function(conversion) {
+    vm.removeConversionTemplateModal = function (conversion) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -344,16 +344,16 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.templatePipe(vm.templateTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeJob = function(job) {
+    vm.removeJob = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -369,11 +369,11 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.nextPipe(vm.nextTableState);
           vm.finishedPipe(vm.finishedTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

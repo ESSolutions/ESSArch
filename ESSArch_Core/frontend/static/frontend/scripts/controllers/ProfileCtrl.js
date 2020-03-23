@@ -36,11 +36,11 @@ export default class ProfileCtrl {
     };
     $scope.selectRowCollapse = [];
     // On init
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       init();
     };
 
-    vm.$onChanges = function(changes) {
+    vm.$onChanges = function (changes) {
       if (!changes.ip.isFirstChange()) {
         init();
       }
@@ -69,7 +69,7 @@ export default class ProfileCtrl {
       vm.cancel();
       vm.saCancel();
       vm.gettingSas = true;
-      listViewService.getSaProfiles($scope.ip).then(function(result) {
+      listViewService.getSaProfiles($scope.ip).then(function (result) {
         vm.gettingSas = false;
         $scope.saProfile.profiles = result.profiles;
         $scope.saProfile.locked = result.locked;
@@ -94,26 +94,26 @@ export default class ProfileCtrl {
       });
     }
 
-    vm.loadProfiles = function() {
+    vm.loadProfiles = function () {
       const sa = $scope.saProfile.profile;
       $scope.profilesLoading = true;
       $scope.selectRowCollection = [];
-      SA.profiles({id: sa.id}).$promise.then(function(resource) {
+      SA.profiles({id: sa.id}).$promise.then(function (resource) {
         $scope.profilesLoading = false;
-        $scope.selectRowCollection = resource.filter(x => vm.types[x.profile_type]);
+        $scope.selectRowCollection = resource.filter((x) => vm.types[x.profile_type]);
       });
     };
 
-    vm.changeDataVersion = function(profileIp, data) {
-      ProfileIp.patch({id: profileIp.id}, {data: data}).$promise.then(function(resource) {
+    vm.changeDataVersion = function (profileIp, data) {
+      ProfileIp.patch({id: profileIp.id}, {data: data}).$promise.then(function (resource) {
         vm.getAndShowProfile(vm.selectedProfile, {});
       });
     };
 
-    vm.getSas = search => {
+    vm.getSas = (search) => {
       return $http
         .get(appConfig.djangoUrl + 'submission-agreements/', {params: {page: 1, page_size: 10, search}})
-        .then(response => {
+        .then((response) => {
           $scope.saProfile.profiles = response.data;
           return response.data;
         });
@@ -123,7 +123,7 @@ export default class ProfileCtrl {
       return $scope.saProfile.profiles;
     };
 
-    $scope.pushData = function() {
+    $scope.pushData = function () {
       vm.shareData({
         $event: {
           aipProfileId: $scope.saProfile.profile.profile_aip.id,
@@ -134,40 +134,40 @@ export default class ProfileCtrl {
         },
       });
     };
-    $scope.$on('get_profile_data', function() {
+    $scope.$on('get_profile_data', function () {
       $scope.pushData();
     });
 
-    vm.saveProfileModel = function(type, model) {
+    vm.saveProfileModel = function (type, model) {
       vm.savingProfileModel = true;
       ProfileIpData.post({
         relation: vm.profileIp.id,
         version: vm.profileIp.data_versions.length,
         data: vm.profileModel,
       })
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           ProfileIp.patch({id: vm.profileIp.id}, {data: resource.id})
-            .$promise.then(function(response) {
+            .$promise.then(function (response) {
               vm.savingProfileModel = false;
               vm.cancel();
               return response;
             })
-            .catch(function(response) {
+            .catch(function (response) {
               vm.savingProfileModel = false;
             });
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.savingProfileModel = false;
         });
     };
 
-    vm.cancel = function() {
+    vm.cancel = function () {
       vm.profileModel = {};
       vm.profileFields = [];
       $scope.profileToSave = null;
       vm.selectedProfile = null;
     };
-    vm.saCancel = function() {
+    vm.saCancel = function () {
       vm.saModel = {};
       vm.saFields = [];
       $scope.selectedSa = null;
@@ -183,7 +183,7 @@ export default class ProfileCtrl {
     vm.saOldModel = {};
 
     //Click function for sa view
-    $scope.saClick = function(row) {
+    $scope.saClick = function (row) {
       vm.loadingSa = true;
       if ($scope.selectedSa && $scope.selectedSa.id === row.id && $scope.editSA) {
         vm.loadingSa = false;
@@ -199,9 +199,9 @@ export default class ProfileCtrl {
       }
     };
 
-    vm.saFieldsLoading = function() {
+    vm.saFieldsLoading = function () {
       let val = false;
-      angular.forEach(vm.loadingSaData, function(value, key) {
+      angular.forEach(vm.loadingSaData, function (value, key) {
         if (value === true) {
           val = true;
         }
@@ -212,13 +212,13 @@ export default class ProfileCtrl {
     vm.saIp = null;
     vm.selectedSa = null;
     vm.loadingSaData = {};
-    vm.getAndShowSa = function(sa, row) {
+    vm.getAndShowSa = function (sa, row) {
       vm.loadingSaData = true;
       vm.selectedSa = sa;
       SA.get({
         id: sa.id,
       })
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           if ($scope.ip.submission_agreement_data && $scope.ip.submission_agreement_data.id) {
             const data = $scope.ip.submission_agreement_data.data;
             const versions = $scope.ip.submission_agreement_data_versions;
@@ -242,16 +242,16 @@ export default class ProfileCtrl {
             vm.loadingSaData = false;
           }
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.loadingSaData = false;
           vm.saCancel();
         });
     };
 
-    vm.getSaData = function(ip, sa) {
-      return SaIpData.get({ip: ip.id, sa: sa.id, pager: 'none'}).$promise.then(function(resource) {
+    vm.getSaData = function (ip, sa) {
+      return SaIpData.get({ip: ip.id, sa: sa.id, pager: 'none'}).$promise.then(function (resource) {
         let current = null;
-        resource.forEach(x => {
+        resource.forEach((x) => {
           if (x.id === ip.submission_agreement_data) {
             current = x;
           }
@@ -261,14 +261,14 @@ export default class ProfileCtrl {
       });
     };
 
-    vm.changeSaDataVersion = version => {
+    vm.changeSaDataVersion = (version) => {
       return $http({
         url: appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/',
         method: 'PATCH',
         data: {
           submission_agreement_data: version,
         },
-      }).then(response => {
+      }).then((response) => {
         $scope.ip = response.data;
         vm.getAndShowSa($scope.saProfile.profile, {});
         $scope.$emit('REFRESH_LIST_VIEW', {});
@@ -276,9 +276,9 @@ export default class ProfileCtrl {
       });
     };
 
-    vm.getSaFields = sa => {
+    vm.getSaFields = (sa) => {
       const temp = [];
-      sa.template.forEach(function(x) {
+      sa.template.forEach(function (x) {
         if (!x.templateOptions.disabled) {
           if (vm.disabled || $scope.saProfile.locked) {
             x.templateOptions.disabled = true;
@@ -293,7 +293,7 @@ export default class ProfileCtrl {
     };
 
     vm.savingSaModel = false;
-    vm.saveSaModel = function(sa, model) {
+    vm.saveSaModel = function (sa, model) {
       vm.savingSaModel = true;
       return SaIpData.post({
         information_package: $scope.ip.id,
@@ -301,7 +301,7 @@ export default class ProfileCtrl {
         data: model,
         version: $scope.ip.submission_agreement_data_versions.length,
       })
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           return $http({
             url: appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/',
             method: 'PATCH',
@@ -309,25 +309,25 @@ export default class ProfileCtrl {
               submission_agreement_data: resource.id,
             },
           })
-            .then(response => {
+            .then((response) => {
               vm.savingSaModel = false;
               $scope.ip = response.data;
               $scope.$emit('REFRESH_LIST_VIEW', {});
               vm.saCancel();
               return response.data;
             })
-            .catch(response => {
+            .catch((response) => {
               vm.savingSaModel = false;
               return response;
             });
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.savingSaModel = false;
         });
     };
 
     //Click function for profile view
-    $scope.profileClick = function(row) {
+    $scope.profileClick = function (row) {
       if (vm.selectedProfile && vm.selectedProfile.id == row.id) {
         $scope.eventlog = false;
         $scope.edit = false;
@@ -339,9 +339,9 @@ export default class ProfileCtrl {
       }
     };
 
-    vm.fieldsLoading = function() {
+    vm.fieldsLoading = function () {
       let val = false;
-      angular.forEach(vm.loadingProfileData, function(value, key) {
+      angular.forEach(vm.loadingProfileData, function (value, key) {
         if (value === true) {
           val = true;
         }
@@ -352,16 +352,16 @@ export default class ProfileCtrl {
     vm.profileIp = null;
     vm.selectedProfile = null;
     vm.loadingProfileData = {};
-    vm.getAndShowProfile = function(profile, row) {
+    vm.getAndShowProfile = function (profile, row) {
       vm.loadingProfileData[profile.profile_type] = true;
       vm.selectedProfile = profile;
       $scope.selectedNode = null;
       Profile.get({
         id: profile.id,
       })
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           ProfileIp.query({profile: resource.id, ip: $scope.ip.id})
-            .$promise.then(function(profileIp) {
+            .$promise.then(function (profileIp) {
               resource.profile_name = resource.name;
               row.active = resource;
               row.profiles = [resource];
@@ -375,7 +375,7 @@ export default class ProfileCtrl {
               vm.dataVersion = vm.profileIp.data_versions[vm.profileIp.data_versions.indexOf(vm.profileIp.data.id)];
               getStructure(row.active);
               const temp = [];
-              row.active.template.forEach(function(x) {
+              row.active.template.forEach(function (x) {
                 if (!x.templateOptions.disabled) {
                   if (
                     vm.disabled ||
@@ -395,30 +395,30 @@ export default class ProfileCtrl {
               $scope.eventlog = true;
               vm.loadingProfileData[profile.profile_type] = false;
             })
-            .catch(function(response) {
+            .catch(function (response) {
               vm.profileFields = [];
               $scope.edit = true;
               $scope.eventlog = true;
               vm.loadingProfileData[profile.profile_type] = false;
             });
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.loadingProfileData[profile.profile_type] = false;
           vm.cancel();
         });
     };
 
-    vm.getProfileData = function(id) {
-      ProfileIpData.get({id: id}).$promise.then(function(resource) {
+    vm.getProfileData = function (id) {
+      ProfileIpData.get({id: id}).$promise.then(function (resource) {
         vm.profileModel = angular.copy(resource.data);
       });
     };
 
     //Changes SA profile for selected ip
-    $scope.changeSaProfile = function(sa, ip, oldSa_idx) {
+    $scope.changeSaProfile = function (sa, ip, oldSa_idx) {
       vm.changingSa = true;
       IP.changeSa({id: ip.id}, {submission_agreement: sa.id})
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           $scope.ip = resource;
           $scope.saProfile.profile = sa;
           vm.loadProfiles();
@@ -428,7 +428,7 @@ export default class ProfileCtrl {
           $scope.$emit('REFRESH_LIST_VIEW', {});
           vm.changingSa = false;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.changingSa = false;
         });
     };
@@ -450,7 +450,7 @@ export default class ProfileCtrl {
         id: profileId,
         sa: $scope.saProfile.profile.id,
         ip: $scope.ip.id,
-      }).$promise.then(function(resource) {
+      }).$promise.then(function (resource) {
         resource.profile_name = resource.name;
         row.active = resource;
         row.profiles = [resource];
@@ -462,10 +462,10 @@ export default class ProfileCtrl {
         $scope.profileToSave = row.active;
         $scope.subSelectProfile = 'profile';
         if (row.locked) {
-          vm.profileFields.forEach(function(field) {
+          vm.profileFields.forEach(function (field) {
             if (field.fieldGroup != null) {
-              field.fieldGroup.forEach(function(subGroup) {
-                subGroup.fieldGroup.forEach(function(item) {
+              field.fieldGroup.forEach(function (subGroup) {
+                subGroup.fieldGroup.forEach(function (item) {
                   item.type = 'input';
                   item.templateOptions.disabled = true;
                 });
@@ -481,12 +481,12 @@ export default class ProfileCtrl {
       });
     }
 
-    $scope.checkPermission = function(permissionName) {
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
 
     //Creates modal for lock SA
-    $scope.lockSaModal = function(sa) {
+    $scope.lockSaModal = function (sa) {
       $scope.saProfile = sa;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -500,20 +500,20 @@ export default class ProfileCtrl {
         resolve: {data: () => {}},
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.lockSa($scope.saProfile);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
     //Lock a SA
-    $scope.lockSa = function(sa) {
+    $scope.lockSa = function (sa) {
       SA.lock({
         id: sa.profile.id,
         ip: $scope.ip.id,
-      }).$promise.then(function(response) {
+      }).$promise.then(function (response) {
         sa.locked = true;
         vm.saCancel();
         $scope.$emit('REFRESH_LIST_VIEW', {});
@@ -544,7 +544,7 @@ export default class ProfileCtrl {
      * Maps profile type to a prettier format
      * @param {String} type
      */
-    vm.mapProfileType = function(type) {
+    vm.mapProfileType = function (type) {
       return typeMap[type] || type;
     };
 
@@ -585,11 +585,11 @@ export default class ProfileCtrl {
             {name: 'XSD Files', value: 'xsd_files'},
           ],
         },
-        hideExpression: function($viewValue, $modelValue, scope) {
+        hideExpression: function ($viewValue, $modelValue, scope) {
           return scope.model.type != 'file';
         },
         expressionProperties: {
-          'templateOptions.required': function($viewValue, $modelValue, scope) {
+          'templateOptions.required': function ($viewValue, $modelValue, scope) {
             return scope.model.type == 'file';
           },
         },
@@ -612,13 +612,13 @@ export default class ProfileCtrl {
         label: 'a6',
         labelSelected: 'a8',
       },
-      isLeaf: function(node) {
+      isLeaf: function (node) {
         return node.type == 'file';
       },
-      equality: function(node1, node2) {
+      equality: function (node1, node2) {
         return node1 === node2;
       },
-      isSelectable: function(node) {
+      isSelectable: function (node) {
         return !$scope.updateMode.active && !$scope.addMode.active;
       },
     };
@@ -632,7 +632,7 @@ export default class ProfileCtrl {
     $scope.currentNode = null;
     $scope.selectedNode = null;
     //Add node to map structure tree view
-    $scope.addNode = function(node) {
+    $scope.addNode = function (node) {
       const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
@@ -651,12 +651,12 @@ export default class ProfileCtrl {
       $scope.exitAddMode();
     };
     //Remove node from map structure tree view
-    $scope.removeNode = function(node) {
+    $scope.removeNode = function (node) {
       if (node.parentNode == null) {
         //$scope.treeElements.splice($scope.treeElements.indexOf(node.node), 1);
         return;
       }
-      node.parentNode.children.forEach(function(element) {
+      node.parentNode.children.forEach(function (element) {
         if (element.name == node.node.name) {
           node.parentNode.children.splice(node.parentNode.children.indexOf(element), 1);
         }
@@ -668,13 +668,13 @@ export default class ProfileCtrl {
     };
     //Enter "Add-mode" which shows a form
     //for adding a node to the map structure
-    $scope.enterAddMode = function(node) {
+    $scope.enterAddMode = function (node) {
       $scope.addMode.active = true;
       $('.tree-edit-item').draggable('disable');
     };
     //Exit add mode and return to default
     //map structure edit view
-    $scope.exitAddMode = function() {
+    $scope.exitAddMode = function () {
       $scope.addMode.active = false;
       $scope.treeItemClass = '';
       resetFormVariables();
@@ -686,7 +686,7 @@ export default class ProfileCtrl {
     };
 
     //Enter update mode which shows form for updating a node
-    $scope.enterUpdateMode = function(node, parentNode) {
+    $scope.enterUpdateMode = function (node, parentNode) {
       if (parentNode == null) {
         alert('Root directory can not be updated');
         return;
@@ -704,7 +704,7 @@ export default class ProfileCtrl {
     };
 
     //Exit update mode and return to default map-structure editor
-    $scope.exitUpdateMode = function() {
+    $scope.exitUpdateMode = function () {
       $scope.updateMode.active = false;
       $scope.updateMode.node = null;
       $scope.selectedNode = null;
@@ -717,7 +717,7 @@ export default class ProfileCtrl {
       vm.treeEditModel = {};
     }
     //Update current node variable with selected node in map structure tree view
-    $scope.updateCurrentNode = function(node, selected, parentNode) {
+    $scope.updateCurrentNode = function (node, selected, parentNode) {
       if (selected) {
         $scope.currentNode = {node: node, parentNode: parentNode};
       } else {
@@ -725,7 +725,7 @@ export default class ProfileCtrl {
       }
     };
     //Update node values
-    $scope.updateNode = function(node) {
+    $scope.updateNode = function (node) {
       if (vm.treeEditModel.name != '') {
         node.node.name = vm.treeEditModel.name;
       }
@@ -738,7 +738,7 @@ export default class ProfileCtrl {
       $scope.exitUpdateMode();
     };
     //Select function for clicking a node
-    $scope.showSelected = function(node, parentNode) {
+    $scope.showSelected = function (node, parentNode) {
       $scope.selectedNode = node;
       $scope.updateCurrentNode(node, $scope.selectedNode, parentNode);
       if ($scope.updateMode.active) {
@@ -746,7 +746,7 @@ export default class ProfileCtrl {
       }
     };
     //Submit function for either Add or update
-    $scope.treeEditSubmit = function(node) {
+    $scope.treeEditSubmit = function (node) {
       if ($scope.addMode.active) {
         $scope.addNode(node);
       } else if ($scope.updateMode.active) {
@@ -754,14 +754,14 @@ export default class ProfileCtrl {
       }
     };
     //context menu data
-    $scope.treeEditOptions = function(item) {
+    $scope.treeEditOptions = function (item) {
       if ($scope.addMode.active || $scope.updateMode.active) {
         return [];
       }
       return [
         [
           $translate.instant('ADD'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterAddMode($itemScope.node);
           },
@@ -769,7 +769,7 @@ export default class ProfileCtrl {
 
         [
           $translate.instant('REMOVE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.updateCurrentNode($itemScope.node, true, $itemScope.$parentNode);
             $scope.removeNode($scope.currentNode);
             $scope.selectedNode = null;
@@ -777,7 +777,7 @@ export default class ProfileCtrl {
         ],
         [
           $translate.instant('UPDATE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterUpdateMode($itemScope.node, $itemScope.$parentNode);
           },

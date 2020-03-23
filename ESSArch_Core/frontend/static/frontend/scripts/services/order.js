@@ -7,7 +7,7 @@ const order = ($resource, appConfig) => {
         method: 'GET',
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
