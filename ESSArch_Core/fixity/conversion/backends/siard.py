@@ -214,5 +214,5 @@ class SiardConverter(BaseConverter):
     @click.command()
     @click.argument('input_file', metavar='INPUT', type=click.Path(exists=True))
     def cli(input_file):
-        """Convert Siard to sqlite """
+        """Convert siard to sqlite """
         return SiardConverter().convert(input_file)
