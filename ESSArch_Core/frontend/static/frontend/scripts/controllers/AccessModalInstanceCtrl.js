@@ -7,18 +7,18 @@ export default class AccessModalInstanceCtrl {
     $ctrl.request = data.request;
     $ctrl.accessing = false;
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null) {
         $ctrl.data.ips = [$ctrl.data.ip];
       }
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
-    $ctrl.accessTitle = function(type) {
+    $ctrl.accessTitle = function (type) {
       switch (type) {
         case 'get':
           return 'GET';
@@ -31,7 +31,7 @@ export default class AccessModalInstanceCtrl {
       }
     };
     // Preserve IP
-    $ctrl.access = function() {
+    $ctrl.access = function () {
       $ctrl.accessing = true;
       const data = {
         purpose: $ctrl.data.request.purpose,
@@ -42,15 +42,15 @@ export default class AccessModalInstanceCtrl {
         aic_xml: $ctrl.data.request.aic_xml,
       };
       const promises = [];
-      $ctrl.data.ips.forEach(function(ip) {
+      $ctrl.data.ips.forEach(function (ip) {
         promises.push(
-          Requests.access(ip, data).then(function(response) {
+          Requests.access(ip, data).then(function (response) {
             return response;
           })
         );
       });
       $q.all(promises)
-        .then(function(data) {
+        .then(function (data) {
           $uibModalInstance.close(data);
           $ctrl.accessing = false;
         })

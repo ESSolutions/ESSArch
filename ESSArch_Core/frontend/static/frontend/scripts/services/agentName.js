@@ -1,4 +1,4 @@
-const AgentName = $filter => {
+const AgentName = ($filter) => {
   /**
    * Returns part and main name combined
    * @param {Object} agent
@@ -25,13 +25,13 @@ const AgentName = $filter => {
      * Get authorized name for agent including start/end dates
      * @param {Object} agent
      */
-    getAuthorizedName: function(agent, options) {
+    getAuthorizedName: function (agent, options) {
       agent = angular.copy(agent);
-      agent.names.sort(function(a, b) {
+      agent.names.sort(function (a, b) {
         return new Date(b.start_date) - new Date(a.start_date);
       });
       let name = null;
-      agent.names.forEach(function(x) {
+      agent.names.forEach(function (x) {
         if (x.type.authority && x.start_date !== null && x.end_date === null && name === null) {
           name = angular.copy(x);
           name.full_name = getFullName(x);
@@ -43,7 +43,7 @@ const AgentName = $filter => {
         }
       });
       if (name === null) {
-        agent.names.forEach(function(x) {
+        agent.names.forEach(function (x) {
           if (x.type.authority && name === null) {
             name = angular.copy(x);
             name.full_name = getFullName(x);
@@ -62,8 +62,8 @@ const AgentName = $filter => {
      * Parse agent names setting full_name field to a combination of part and main-names
      * @param {Object} agent
      */
-    parseAgentNames: function(agent, options) {
-      agent.names.forEach(function(x) {
+    parseAgentNames: function (agent, options) {
+      agent.names.forEach(function (x) {
         x.full_name = getFullName(x);
         if (x.type.authority) {
           agent.full_name = getFullName(x);

@@ -81,7 +81,7 @@ import {Feature} from './features/types';
 import {isEnabled} from './features/utils';
 
 export const resolve = (path: string, obj: object) => {
-  return path.split('.').reduce(function(prev, curr) {
+  return path.split('.').reduce(function (prev, curr) {
     return prev ? prev[curr] : undefined;
   }, obj || self);
 };
@@ -119,12 +119,12 @@ export const nestedEmptyPermissions = (page: object[] | object): boolean => {
 
 const resolveAuthenticated = [
   'djangoAuth',
-  function(djangoAuth) {
+  function (djangoAuth) {
     return djangoAuth.authenticationStatus();
   },
 ];
 
-const hasActiveFeature = feature => {
+const hasActiveFeature = (feature) => {
   return [
     '$rootScope',
     '$q',
@@ -167,7 +167,7 @@ angular
     '$stateProvider',
     '$urlServiceProvider',
     'permissionConfig',
-    function(
+    function (
       $urlMatcherFactoryProvider,
       $stateProvider: StateProvider,
       $urlServiceProvider: UrlService,
@@ -888,14 +888,14 @@ angular
   ])
   .config([
     '$animateProvider',
-    function($animateProvider) {
+    function ($animateProvider) {
       // Only animate elements with the 'angular-animate' class
       $animateProvider.classNameFilter(/angular-animate|ui-select-/);
     },
   ])
   .config([
     '$uibTooltipProvider',
-    function($uibTooltipProvider) {
+    function ($uibTooltipProvider) {
       const parser = new UAParser();
       const result = parser.getResult();
       const touch = result.device && (result.device.type === 'tablet' || result.device.type === 'mobile');
@@ -908,7 +908,7 @@ angular
   ])
   .config([
     '$resourceProvider',
-    function($resourceProvider) {
+    function ($resourceProvider) {
       // Don't strip trailing slashes from calculated URLs
       $resourceProvider.defaults.stripTrailingSlashes = false;
     },
@@ -917,7 +917,7 @@ angular
     '$compileProvider',
     'appConfig',
     '$logProvider',
-    function($compileProvider, appConfig, $logProvider) {
+    function ($compileProvider, appConfig, $logProvider) {
       $compileProvider.debugInfoEnabled(appConfig.debugInfo);
       $compileProvider.commentDirectivesEnabled(appConfig.commentDirectives);
       $compileProvider.cssClassDirectivesEnabled(appConfig.cssClassDirectives);
@@ -926,19 +926,19 @@ angular
   ])
   .config([
     '$permissionProvider',
-    function($permissionProvider) {
+    function ($permissionProvider) {
       $permissionProvider.suppressUndefinedPermissionWarning(true);
     },
   ])
   .config([
     'stConfig',
-    function(stConfig) {
+    function (stConfig) {
       stConfig.sort.delay = -1;
     },
   ])
   .config([
     '$compileProvider',
-    function($compileProvider) {
+    function ($compileProvider) {
       $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|tel|file|blob|data):/);
     },
   ])
@@ -946,12 +946,12 @@ angular
     return {
       restrict: 'A', // only activate on element attribute
       require: '?ngModel', // get a hold of NgModelController
-      link: function(scope, element, attrs, ngModel) {
+      link: function (scope, element, attrs, ngModel) {
         if (!ngModel) return; // do nothing if no ng-model
-        element.on('blur', function() {
+        element.on('blur', function () {
           const modelControllers = scope.$eval(attrs.setTouched);
           if (angular.isArray(modelControllers)) {
-            angular.forEach(modelControllers, function(modelCntrl) {
+            angular.forEach(modelControllers, function (modelCntrl) {
               modelCntrl.$setTouched();
             });
           }
@@ -973,7 +973,7 @@ angular
     'appConfig',
     '$transitions',
     '$q',
-    function(
+    function (
       djangoAuth,
       $rootScope,
       $state: StateService,
@@ -994,7 +994,7 @@ angular
       $rootScope.flowObjects = {};
       djangoAuth
         .initialize('/api/auth', false)
-        .then(function(response) {
+        .then(function (response) {
           $rootScope.auth = response.data;
           myService.getPermissions(response.data.permissions);
           $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
@@ -1002,11 +1002,11 @@ angular
           promises.push(
             $http
               .get<Feature[]>(appConfig.djangoUrl + 'features/')
-              .then(response => {
+              .then((response) => {
                 $rootScope.features = response.data;
                 return response.data;
               })
-              .catch(response => {
+              .catch((response) => {
                 $rootScope.features = [];
                 return response;
               })
@@ -1014,11 +1014,11 @@ angular
           promises.push(
             $http
               .get(appConfig.djangoUrl + 'site/')
-              .then(function(response) {
+              .then(function (response) {
                 $rootScope.site = response.data;
                 return response.data;
               })
-              .catch(function(response) {
+              .catch(function (response) {
                 $rootScope.site = null;
                 return response;
               })
@@ -1029,7 +1029,7 @@ angular
             // Also enable router to listen to url changes
             $urlService.listen();
           });
-          $transitions.onStart({}, function($transition) {
+          $transitions.onStart({}, function ($transition) {
             const to = $transition.to();
             if (to.name === 'login') {
               return;
@@ -1041,12 +1041,12 @@ angular
             }
           });
         })
-        .catch(function() {
+        .catch(function () {
           console.log('Got error response from auth api, redirecting to login with requested page:', $location.path());
           $state.go('login', {requestedPage: $location.path()});
         });
 
-      $transitions.onStart({}, function($transition) {
+      $transitions.onStart({}, function ($transition) {
         const to = $transition.to();
         const from = $transition.from();
         const params = $transition.params();

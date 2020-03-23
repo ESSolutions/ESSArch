@@ -2,15 +2,15 @@ export default class StructureRuleModalCtrl {
   constructor($uibModalInstance, $http, appConfig, data, EditMode, $q, $translate, Structure, Notifications) {
     const $ctrl = this;
     $ctrl.rule = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $ctrl.data = data;
       if (!data.remove) {
         const typePromises = [];
         typePromises.push(
           $http
             .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
-            .then(function(response) {
-              response.data.forEach(function(x) {
+            .then(function (response) {
+              response.data.forEach(function (x) {
                 x.id = x.pk;
               });
               return response.data;
@@ -21,11 +21,11 @@ export default class StructureRuleModalCtrl {
             .get(appConfig.djangoUrl + 'structure-unit-types/', {
               params: {structure_type: $ctrl.data.structure.structureType.id, pager: 'none'},
             })
-            .then(function(response) {
+            .then(function (response) {
               return response.data;
             })
         );
-        $q.all(typePromises).then(function(data) {
+        $q.all(typePromises).then(function (data) {
           $ctrl.typeOptions = [].concat.apply([], data);
           if ($ctrl.typeOptions.length > 0) {
             $ctrl.newRule = $ctrl.typeOptions.length > 0 ? $ctrl.typeOptions[0].name : null;
@@ -35,7 +35,7 @@ export default class StructureRuleModalCtrl {
       }
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           key: 'type',
@@ -59,7 +59,7 @@ export default class StructureRuleModalCtrl {
       ];
     };
 
-    $ctrl.addRule = function() {
+    $ctrl.addRule = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -76,7 +76,7 @@ export default class StructureRuleModalCtrl {
             rules: rules,
           },
         }
-      ).$promise.then(function(resource) {
+      ).$promise.then(function (resource) {
         $ctrl.adding = false;
         Notifications.add($translate.instant('ACCESS.RULE_ADDED'), 'success');
         EditMode.disable();
@@ -84,10 +84,10 @@ export default class StructureRuleModalCtrl {
       });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       const rules = angular.copy(data.rules);
-      angular.forEach(rules, function(value, key) {
+      angular.forEach(rules, function (value, key) {
         if (key == data.rule.key) {
           delete rules[key];
         }
@@ -101,7 +101,7 @@ export default class StructureRuleModalCtrl {
             rules: rules,
           },
         }
-      ).$promise.then(function(resource) {
+      ).$promise.then(function (resource) {
         $ctrl.removing = false;
         Notifications.add($translate.instant('ACCESS.RULE_REMOVED'), 'success');
         EditMode.disable();
@@ -109,7 +109,7 @@ export default class StructureRuleModalCtrl {
       });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };

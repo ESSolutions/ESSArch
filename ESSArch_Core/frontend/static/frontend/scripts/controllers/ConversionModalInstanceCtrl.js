@@ -44,49 +44,49 @@ export default class ConversionModalInstanceCtrl {
       },
     ];
 
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       $ctrl.addingTemplate = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-templates/',
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.addingTemplate = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_CREATED'), 'success');
           EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.addingTemplate = false;
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       $ctrl.addingTemplate = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-templates/' + data.conversion.id + '/',
         method: 'PATCH',
         data: $ctrl.model,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.addingTemplate = false;
           EditMode.disable();
           $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.addingTemplate = false;
         });
     };
 
-    $ctrl.removeConversion = function() {
+    $ctrl.removeConversion = function () {
       $ctrl.removingTemplate = true;
       const conversion = data.conversion;
       $http({
         url: appConfig.djangoUrl + 'conversion-templates/' + conversion.id,
         method: 'DELETE',
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removingTemplate = false;
           Notifications.add(
             $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATE_REMOVED', {name: conversion.name}),
@@ -95,22 +95,22 @@ export default class ConversionModalInstanceCtrl {
           EditMode.disable();
           $uibModalInstance.close();
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.removingTemplate = false;
         });
     };
 
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       EditMode.disable();
       $uibModalInstance.close();
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

@@ -8,14 +8,16 @@ export default class ConversionSpecCtrl {
     vm.toolData = {};
     vm.toolDataForm = [];
 
-    vm.getTools = search => {
-      return $http.get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}}).then(response => {
-        response.data.map(x => {
-          return {name: x.name, fullItem: x};
+    vm.getTools = (search) => {
+      return $http
+        .get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}})
+        .then((response) => {
+          response.data.map((x) => {
+            return {name: x.name, fullItem: x};
+          });
+          vm.tools = response.data;
+          return response.data;
         });
-        vm.tools = response.data;
-        return response.data;
-      });
     };
 
     vm.baseSpecFields = [
@@ -30,22 +32,22 @@ export default class ConversionSpecCtrl {
         type: 'uiselect',
         key: 'tool',
         templateOptions: {
-          options: function() {
+          options: function () {
             return vm.tools;
           },
           valueProp: 'name',
           labelProp: 'name',
-          onChange: newVal => {
-            vm.toolDataForm = vm.tools.filter(x => x.name === newVal)[0].form;
+          onChange: (newVal) => {
+            vm.toolDataForm = vm.tools.filter((x) => x.name === newVal)[0].form;
           },
           placeholder: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
           label: $translate.instant('ARCHIVE_MAINTENANCE.TOOL'),
           appendToBody: false,
-          refresh: function(search) {
+          refresh: function (search) {
             if (angular.isUndefined(search) || search === null || search === '') {
               search = '';
             }
-            return vm.getTools(search).then(function() {
+            return vm.getTools(search).then(function () {
               this.options = vm.tools;
               return vm.tools;
             });
@@ -54,7 +56,7 @@ export default class ConversionSpecCtrl {
       },
     ];
 
-    vm.addSpecification = function() {
+    vm.addSpecification = function () {
       if (vm.specification === null || vm.specification === []) {
         vm.specification = {};
       }
@@ -72,7 +74,7 @@ export default class ConversionSpecCtrl {
       }
     };
 
-    vm.removeSpecification = function(key) {
+    vm.removeSpecification = function (key) {
       delete vm.specification[key];
     };
 
@@ -98,8 +100,8 @@ export default class ConversionSpecCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

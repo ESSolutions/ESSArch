@@ -23,18 +23,18 @@ const loginCtrl = (
   $http({
     method: 'GET',
     url: djangoAuth.API_URL + '/services/',
-  }).then(function(response) {
+  }).then(function (response) {
     $scope.auth_services = response.data;
   });
 
-  $scope.login = function(formData) {
+  $scope.login = function (formData) {
     $scope.error = null;
     Validate.form_validation(formData, $scope.errors);
     if (!formData.$invalid) {
       $scope.loggingIn = true;
       djangoAuth
         .login($scope.model.username, $scope.model.password)
-        .then(function(data) {
+        .then(function (data) {
           $scope.loggingIn = false;
           $rootScope.auth = data;
           $rootScope.listViewColumns = myService.generateColumns(data.ip_list_columns).activeColumns;
@@ -49,7 +49,7 @@ const loginCtrl = (
           }
           $http
             .get(appConfig.djangoUrl + 'features/')
-            .then(response => {
+            .then((response) => {
               $rootScope.features = response.data;
             })
             .catch(() => {
@@ -57,14 +57,14 @@ const loginCtrl = (
             });
           $http
             .get(appConfig.djangoUrl + 'site/')
-            .then(function(response) {
+            .then(function (response) {
               $rootScope.site = response.data;
             })
-            .catch(function() {
+            .catch(function () {
               $rootScope.site = null;
             });
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $scope.loggingIn = false;
           if (angular.isUndefined(response.status) && response.data === null) {
             // When server does not respond

@@ -49,17 +49,17 @@ export default class AppraisalModalInstanceCtrl {
     ];
 
     $ctrl.path = '';
-    $ctrl.addPath = function(path) {
+    $ctrl.addPath = function (path) {
       if (path.length > 0) {
         $ctrl.model.package_file_pattern.push(path);
       }
       $ctrl.path = '';
     };
-    $ctrl.removePath = function(path) {
+    $ctrl.removePath = function (path) {
       $ctrl.model.package_file_pattern.splice($ctrl.model.package_file_pattern.indexOf(path), 1);
     };
     $ctrl.appraisalTemplate = null;
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       $ctrl.addingTemplate = true;
       if ($ctrl.createForm.$invalid) {
         $ctrl.createForm.$setSubmitted();
@@ -73,17 +73,17 @@ export default class AppraisalModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.addingTemplate = false;
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.TEMPLATE_CREATED'), 'success');
           $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.addingTemplate = false;
         });
     };
 
-    $ctrl.save = function(template) {
+    $ctrl.save = function (template) {
       $ctrl.saving = true;
       if ($ctrl.fullIpAppraisal) {
         $ctrl.model.package_file_pattern = [];
@@ -97,23 +97,23 @@ export default class AppraisalModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.model,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.removeAppraisal = function() {
+    $ctrl.removeAppraisal = function () {
       $ctrl.removingTemplate = true;
       const appraisal = data.appraisal;
       $http({
         url: appConfig.djangoUrl + 'appraisal-templates/' + appraisal.id,
         method: 'DELETE',
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removingTemplate = false;
           Notifications.add(
             $translate.instant('ARCHIVE_MAINTENANCE.APPRAISAL_TEMPLATE_REMOVED', {name: appraisal.name}),
@@ -121,18 +121,18 @@ export default class AppraisalModalInstanceCtrl {
           );
           $uibModalInstance.close();
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.removingTemplate = false;
         });
     };
 
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
-    $ctrl.submitAppraisal = function(appraisal) {
+    $ctrl.submitAppraisal = function (appraisal) {
       Notifications.add(
         $translate.instant('ARCHIVE_MAINTENANCE.NODE_ADDED_TO_APPRAISAL_TEMPLATE', {
           node: $ctrl.data.record.name,

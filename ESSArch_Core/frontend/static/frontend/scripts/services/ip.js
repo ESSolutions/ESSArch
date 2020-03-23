@@ -7,7 +7,7 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         method: 'GET',
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -22,8 +22,8 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         params: {action: 'events', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource.forEach(function(res, idx, array) {
+          response: function (response) {
+            response.resource.forEach(function (res, idx, array) {
               array[idx] = new Event(res);
             });
             response.resource.$httpHeaders = response.headers;
@@ -70,7 +70,7 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         params: {action: 'files', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -81,8 +81,8 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         params: {action: 'workflow', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource = response.resource.map(function(res) {
+          response: function (response) {
+            response.resource = response.resource.map(function (res) {
               return res.flow_type === 'task' ? new Task(res) : new Step(res);
             });
             response.resource.$httpHeaders = response.headers;

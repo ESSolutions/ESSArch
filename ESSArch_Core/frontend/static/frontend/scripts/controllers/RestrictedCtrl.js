@@ -22,8 +22,8 @@
     Email - essarch@essolutions.se
 */
 
-export default $scope => {
-  $scope.$on('djangoAuth.logged_in', function() {
+export default ($scope) => {
+  $scope.$on('djangoAuth.logged_in', function () {
     $state.go('home');
   });
 };

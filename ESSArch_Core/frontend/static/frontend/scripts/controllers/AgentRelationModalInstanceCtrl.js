@@ -13,13 +13,13 @@ export default class AgentRelationModalInstanceCtrl {
     $ctrl.options = {};
     $ctrl.fields = [];
 
-    $ctrl.getAgents = function(search) {
+    $ctrl.getAgents = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, excluded_ids: $ctrl.agent.id ? $ctrl.agent.id : ''},
-      }).then(function(response) {
-        response.data.forEach(function(agent) {
+      }).then(function (response) {
+        response.data.forEach(function (agent) {
           AgentName.parseAgentNames(agent);
         });
         $ctrl.options.agents = response.data;
@@ -27,7 +27,7 @@ export default class AgentRelationModalInstanceCtrl {
       });
     };
     $ctrl.data = data;
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.agent) {
         $ctrl.agent = angular.copy(data.agent);
       }
@@ -42,7 +42,7 @@ export default class AgentRelationModalInstanceCtrl {
         url: appConfig.djangoUrl + 'agent-relation-types/',
         params: {pager: 'none'},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.type = response.data;
         $ctrl.loadForm();
         EditMode.enable();
@@ -50,14 +50,14 @@ export default class AgentRelationModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'uiselect',
           key: 'agent',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.options.agents;
             },
             valueProp: 'id',
@@ -65,8 +65,8 @@ export default class AgentRelationModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
             label: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
             appendToBody: false,
-            refresh: function(search) {
-              return $ctrl.getAgents(search).then(function() {
+            refresh: function (search) {
+              return $ctrl.getAgents(search).then(function () {
                 this.options = $ctrl.options.agents;
                 return $ctrl.options.agents;
               });
@@ -122,14 +122,14 @@ export default class AgentRelationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const related_agents = angular.copy($ctrl.agent.related_agents);
-      related_agents.forEach(function(x, idx, array) {
+      related_agents.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -145,12 +145,12 @@ export default class AgentRelationModalInstanceCtrl {
           related_agents: related_agents.concat([$ctrl.relation]),
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.related_agents) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -164,14 +164,14 @@ export default class AgentRelationModalInstanceCtrl {
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const related_agents = angular.copy($ctrl.agent.related_agents);
-      related_agents.forEach(function(x, idx, array) {
+      related_agents.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -190,12 +190,12 @@ export default class AgentRelationModalInstanceCtrl {
           related_agents: related_agents,
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.related_agents) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -209,11 +209,11 @@ export default class AgentRelationModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const related_agents = angular.copy($ctrl.agent.related_agents);
-      related_agents.forEach(function(x, idx, array) {
+      related_agents.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -235,12 +235,12 @@ export default class AgentRelationModalInstanceCtrl {
           related_agents: related_agents,
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.related_agents) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -254,12 +254,12 @@ export default class AgentRelationModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

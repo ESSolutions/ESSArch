@@ -10,7 +10,7 @@ export default class SpecificationItemModalInstanceCtrl {
       delete $ctrl.specItem.options;
     };
 
-    $ctrl.getKeyString = key => {
+    $ctrl.getKeyString = (key) => {
       if (key === 'tool') {
         return $translate.instant('ARCHIVE_MAINTENANCE.TOOL');
       } else if (key === 'path') {
@@ -20,7 +20,7 @@ export default class SpecificationItemModalInstanceCtrl {
       }
     };
 
-    $ctrl.close = function() {
+    $ctrl.close = function () {
       $uibModalInstance.close();
     };
   }

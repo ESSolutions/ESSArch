@@ -30,9 +30,9 @@ export default class TransferCtrl {
 
     let watchers = [];
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
@@ -42,7 +42,7 @@ export default class TransferCtrl {
             (vm.selectedTransfer === null || params.transfer !== vm.selectedTransfer.id)
           ) {
             vm.initialSearch = params.transfer;
-            $http.get(appConfig.djangoUrl + 'transfers/' + params.transfer + '/').then(function(response) {
+            $http.get(appConfig.djangoUrl + 'transfers/' + params.transfer + '/').then(function (response) {
               vm.transferClick(response.data);
               vm.initLoad = false;
             });
@@ -53,7 +53,7 @@ export default class TransferCtrl {
       })
     );
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       vm.initLoad = true;
       vm.delivery = $stateParams.delivery;
       if (
@@ -64,11 +64,11 @@ export default class TransferCtrl {
         vm.initialSearch = $stateParams.transfer;
         $http
           .get(appConfig.djangoUrl + 'transfers/' + $stateParams.transfer + '/')
-          .then(function(response) {
+          .then(function (response) {
             vm.transferClick(response.data);
             vm.initLoad = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             vm.selectedTransfer = null;
             $state.go($state.current.name, {transfer: null, delivery: vm.delivery});
           });
@@ -77,7 +77,7 @@ export default class TransferCtrl {
       }
     };
 
-    vm.transferClick = function(transfer) {
+    vm.transferClick = function (transfer) {
       if (vm.selectedTransfer !== null && transfer.id === vm.selectedTransfer.id) {
         vm.selectedTransfer = null;
         $state.go($state.current.name, {transfer: null});
@@ -92,7 +92,7 @@ export default class TransferCtrl {
       }
     };
 
-    vm.transferPipe = function(tableState) {
+    vm.transferPipe = function (tableState) {
       if (vm.transfers.length == 0) {
         $scope.initLoad = true;
       }
@@ -121,7 +121,7 @@ export default class TransferCtrl {
           page_size: paginationParams.number,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.transfersLoading = false;
@@ -130,15 +130,15 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getTransfers = function(params) {
+    vm.getTransfers = function (params) {
       return $http
         .get(appConfig.djangoUrl + 'deliveries/' + vm.delivery + '/transfers/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
 
-    vm.tagsPipe = function(tableState) {
+    vm.tagsPipe = function (tableState) {
       vm.tagsLoading = true;
       if (angular.isUndefined(vm.tags) || vm.tags.length == 0) {
         $scope.initLoad = true;
@@ -165,7 +165,7 @@ export default class TransferCtrl {
           page_size: number,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.tagsLoading = false;
@@ -174,15 +174,15 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getTags = function(transfer, params) {
+    vm.getTags = function (transfer, params) {
       return $http
         .get(appConfig.djangoUrl + 'transfers/' + transfer.id + '/tags/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
 
-    vm.unitsPipe = function(tableState) {
+    vm.unitsPipe = function (tableState) {
       vm.unitsLoading = true;
       if (angular.isUndefined(vm.units) || vm.units.length == 0) {
         $scope.initLoad = true;
@@ -209,7 +209,7 @@ export default class TransferCtrl {
           page_size: number,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.unitsLoading = false;
@@ -218,15 +218,15 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getUnits = function(transfer, params) {
+    vm.getUnits = function (transfer, params) {
       return $http
         .get(appConfig.djangoUrl + 'transfers/' + transfer.id + '/structure-units/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
 
-    vm.transferEventsPipe = function(tableState) {
+    vm.transferEventsPipe = function (tableState) {
       vm.transferEventsLoading = true;
       if (angular.isUndefined(vm.transferEvents) || vm.transferEvents.length == 0) {
         $scope.initLoad = true;
@@ -253,7 +253,7 @@ export default class TransferCtrl {
           page_size: number,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.transferEventsLoading = false;
@@ -262,15 +262,15 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getTransferEvents = function(transfer, params) {
+    vm.getTransferEvents = function (transfer, params) {
       return $http
         .get(appConfig.djangoUrl + 'transfers/' + transfer.id + '/events/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
 
-    vm.getTransferColspan = function() {
+    vm.getTransferColspan = function () {
       if (myService.checkPermission('tags.change_transfer') && myService.checkPermission('tags.delete_transfer')) {
         return 3;
       } else if (
@@ -287,7 +287,7 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getNodeColspan = function() {
+    vm.getNodeColspan = function () {
       if (myService.checkPermission('tags.change_transfer')) {
         return 4;
       } else {
@@ -295,7 +295,7 @@ export default class TransferCtrl {
       }
     };
 
-    vm.getEventColspan = function() {
+    vm.getEventColspan = function () {
       if (myService.checkPermission('ip.change_eventip') && myService.checkPermission('ip.delete_eventip')) {
         return 6;
       } else if (myService.checkPermission('ip.change_eventip') || myService.checkPermission('ip.delete_eventip')) {
@@ -306,7 +306,7 @@ export default class TransferCtrl {
     };
 
     // Transfers
-    vm.createTransferModal = function() {
+    vm.createTransferModal = function () {
       const data = {};
       if ($stateParams.delivery) {
         data.delivery = $stateParams.delivery;
@@ -320,23 +320,23 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return data;
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.transferPipe(vm.transferTableState);
           vm.transferClick(data);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editTransferModal = function(transfer) {
+    vm.editTransferModal = function (transfer) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -346,7 +346,7 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               transfer: transfer,
             };
@@ -354,16 +354,16 @@ export default class TransferCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.transferPipe(vm.transferTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.viewTransferModal = function(transfer) {
+    vm.viewTransferModal = function (transfer) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -373,7 +373,7 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               transfer: transfer,
             };
@@ -381,16 +381,16 @@ export default class TransferCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.transferPipe(vm.transferTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeTransferModal = function(transfer) {
+    vm.removeTransferModal = function (transfer) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -400,7 +400,7 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               transfer: transfer,
               allow_close: true,
@@ -410,17 +410,17 @@ export default class TransferCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.selectedTransfer = null;
           vm.transferPipe(vm.transferTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.createEventModal = function(params) {
+    vm.createEventModal = function (params) {
       const data = {};
       if (params.transfer) {
         data.transfer = params.transfer;
@@ -437,13 +437,13 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return data;
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (params.transfer) {
             vm.transferPipe(vm.transferTableState);
             vm.transferEventsPipe(vm.transferEventsTableState);
@@ -453,13 +453,13 @@ export default class TransferCtrl {
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editEventModal = function(event, params) {
+    vm.editEventModal = function (event, params) {
       const data = {
         event: event,
       };
@@ -478,13 +478,13 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return data;
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (vm.activeTab === 'events') {
             vm.deliveryPipe(vm.tableState);
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
@@ -493,13 +493,13 @@ export default class TransferCtrl {
             vm.transferEventsPipe(vm.transferEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeEventModal = function(event) {
+    vm.removeEventModal = function (event) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -509,7 +509,7 @@ export default class TransferCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               event: event,
             };
@@ -517,7 +517,7 @@ export default class TransferCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (vm.activeTab === 'events') {
             vm.deliveryPipe(vm.tableState);
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
@@ -526,13 +526,13 @@ export default class TransferCtrl {
             vm.transferEventsPipe(vm.transferEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeLinkModal = function(node) {
+    vm.removeLinkModal = function (node) {
       let data;
       if (angular.isArray(node)) {
         data = {
@@ -559,11 +559,11 @@ export default class TransferCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.tagsPipe(vm.tagsTableState);
           vm.unitsPipe(vm.unitsTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
