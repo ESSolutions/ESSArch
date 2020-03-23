@@ -203,6 +203,7 @@ def siard_to_sqlite(siard):
                         logger.error(e)
 
         db.commit()
+        db.close()
 
 
 class SiardConverter(BaseConverter):
