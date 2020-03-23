@@ -190,7 +190,7 @@ def siard_to_sqlite(siard):
 
                     '''Count number of bindings needed for insert'''
                     bindings = []
-                    for binding in range(len(columns_to_append)):
+                    for _binding in range(len(columns_to_append)):
                         bindings.append('?')
 
                     try:
