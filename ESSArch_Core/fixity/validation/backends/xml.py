@@ -101,9 +101,16 @@ class DiffCheckValidator(BaseValidator):
             default='SHA-256',
         )
 
-        def validate(self2, data):
+        def validate(self, data):
             if 'rootdir' not in data:
-                data['rootdir'] = self2.context['base_data']['path']
+                if self.context['base_data']['path']:
+                    data['rootdir'] = self.context['base_data']['path']
+                else:
+                    from ESSArch_Core.ip.models import InformationPackage
+
+                    ip_pk = self.context['information_package']
+                    ip = InformationPackage.objects.get(pk=ip_pk)
+                    data['rootdir'] = ip.object_path
 
             return data
 

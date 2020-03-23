@@ -1942,7 +1942,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             klass = get_validator(name)
 
             options = validator['options']
-            path = os.path.join(ip.object_path, validator['path'])
+            if validator['path']:
+                path = os.path.join(ip.object_path, validator['path'])
+            else:
+                path = ip.object_path
 
             task_spec = {
                 'name': 'ESSArch_Core.fixity.validation.tasks.Validate',
