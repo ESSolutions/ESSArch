@@ -84,7 +84,7 @@ const listViewService = (
     } else {
       url = tableMap(table);
     }
-    return $http.head(appConfig.djangoUrl + url, {params: data}).then(function(response) {
+    return $http.head(appConfig.djangoUrl + url, {params: data}).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.length;
@@ -131,7 +131,7 @@ const listViewService = (
     }
 
     if ($rootScope.selectedTag != null) {
-      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(function(
+      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(function (
         resource
       ) {
         let count = resource.$httpHeaders('Count');
@@ -144,7 +144,7 @@ const listViewService = (
         };
       });
     } else {
-      return IP.query(data).$promise.then(function(resource) {
+      return IP.query(data).$promise.then(function (resource) {
         let count = resource.$httpHeaders('Count');
 
         if (count == null) {
@@ -175,7 +175,7 @@ const listViewService = (
         },
         columnFilters
       )
-    ).$promise.then(function(resource) {
+    ).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -201,7 +201,7 @@ const listViewService = (
         },
         columnFilters
       )
-    ).$promise.then(function(resource) {
+    ).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -219,7 +219,7 @@ const listViewService = (
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -244,7 +244,7 @@ const listViewService = (
         },
         columnFilters
       )
-    ).$promise.then(function(resource) {
+    ).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -263,7 +263,7 @@ const listViewService = (
       eventOutcomeDetailNote: eventDetail,
       eventOutcome: outcome.value,
       information_package: ip.id,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return response;
     });
   }
@@ -300,7 +300,7 @@ const listViewService = (
       ).$promise;
     }
 
-    return promise.then(function(resource) {
+    return promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -313,7 +313,7 @@ const listViewService = (
   }
   //Gets event type for dropdown selection
   function getEventlogData() {
-    return EventType.query().$promise.then(function(data) {
+    return EventType.query().$promise.then(function (data) {
       return data;
     });
   }
@@ -321,7 +321,7 @@ const listViewService = (
   function getStructure(profileId) {
     return Profile.get({
       id: profileId,
-    }).$promise.then(function(data) {
+    }).$promise.then(function (data) {
       return data.structure;
     });
   }
@@ -336,10 +336,10 @@ const listViewService = (
     };
     const promise = SA.query({
       pager: 'none',
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       sas = resource;
       saProfile.profiles = [];
-      sas.forEach(function(sa) {
+      sas.forEach(function (sa) {
         saProfile.profiles.push(sa);
         if (ip.submission_agreement == sa.id) {
           saProfile.profile = sa;
@@ -356,7 +356,7 @@ const listViewService = (
     ip.post({
       label: label,
       package_type: 0,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return 'created';
     });
   }
@@ -364,7 +364,7 @@ const listViewService = (
   function getIp(id) {
     return IP.get({
       id: id,
-    }).$promise.then(function(data) {
+    }).$promise.then(function (data) {
       return data;
     });
   }
@@ -372,13 +372,13 @@ const listViewService = (
   function getSa(id) {
     SA.get({
       id: id,
-    }).$promise.then(function(data) {
+    }).$promise.then(function (data) {
       return data;
     });
   }
   //Get list of files in Ip
   function getFileList(ip) {
-    return getIp(ip.id).then(function(result) {
+    return getIp(ip.id).then(function (result) {
       const array = [];
       const tempElement = {
         filename: result.object_path,
@@ -396,19 +396,19 @@ const listViewService = (
       object_identifier_value: objectIdentifierValue,
       orders: orders,
       package_type: 4,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return response;
     });
   }
 
   function createDip(ip, validators) {
-    return IP.createDip(angular.extend({id: ip.id}, validators)).$promise.then(function(response) {
+    return IP.createDip(angular.extend({id: ip.id}, validators)).$promise.then(function (response) {
       return response;
     });
   }
 
   function prepareOrder(order) {
-    return Order.save(order).$promise.then(function(response) {
+    return Order.save(order).$promise.then(function (response) {
       return response;
     });
   }
@@ -433,7 +433,7 @@ const listViewService = (
       };
     }
 
-    return $http.get(appConfig.djangoUrl + 'workarea-files/', {params: sendData}).then(function(response) {
+    return $http.get(appConfig.djangoUrl + 'workarea-files/', {params: sendData}).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
@@ -467,7 +467,7 @@ const listViewService = (
         path: pathStr,
       };
     }
-    return IP.files(sendData).$promise.then(function(data) {
+    return IP.files(sendData).$promise.then(function (data) {
       let count = data.$httpHeaders('Count');
       if (count == null) {
         count = data.length;
@@ -487,7 +487,7 @@ const listViewService = (
       src: src,
       dst: dst,
       type: type,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return response;
     });
   }
@@ -501,7 +501,7 @@ const listViewService = (
         path: path + file.name,
         type: file.type,
       }
-    ).$promise.then(function(response) {
+    ).$promise.then(function (response) {
       return response;
     });
   }
@@ -511,7 +511,7 @@ const listViewService = (
       type: workareaType,
       path: path + file.name,
       user: user,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return response;
     });
   }
@@ -520,7 +520,7 @@ const listViewService = (
     return IP.removeFile({
       id: ip.id,
       path: path + file.name,
-    }).$promise.then(function(response) {
+    }).$promise.then(function (response) {
       return response;
     });
   }
@@ -531,10 +531,10 @@ const listViewService = (
       path: path + file.name,
       user: user,
     })
-      .$promise.then(function(response) {
+      .$promise.then(function (response) {
         return response;
       })
-      .catch(function(response) {
+      .catch(function (response) {
         return response;
       });
   }
@@ -560,7 +560,7 @@ const listViewService = (
     if ($state.is('home.ingest.reception') && (ip.state == 'At reception' || ip.state == 'Prepared')) {
       sendData.id = ip.object_identifier_value;
       return IPReception.files(sendData)
-        .$promise.then(function(data) {
+        .$promise.then(function (data) {
           let count = data.$httpHeaders('Count');
           if (count == null) {
             count = data.length;
@@ -570,12 +570,12 @@ const listViewService = (
             data: data,
           };
         })
-        .catch(function(response) {
+        .catch(function (response) {
           return response;
         });
     } else {
       return IP.files(sendData)
-        .$promise.then(function(data) {
+        .$promise.then(function (data) {
           let count = data.$httpHeaders('Count');
           if (count == null) {
             count = data.length;
@@ -585,7 +585,7 @@ const listViewService = (
             data: data,
           };
         })
-        .catch(function(response) {
+        .catch(function (response) {
           return response;
         });
     }
@@ -595,7 +595,7 @@ const listViewService = (
     return IP.files({
       id: ip.id,
       path: path + file.name,
-    }).then(function(response) {
+    }).then(function (response) {
       return response;
     });
   }
@@ -605,7 +605,7 @@ const listViewService = (
       type: workareaType,
       path: path + file.name,
       user: user,
-    }).then(function(response) {
+    }).then(function (response) {
       return response;
     });
   }

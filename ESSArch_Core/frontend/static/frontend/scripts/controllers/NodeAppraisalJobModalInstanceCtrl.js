@@ -7,11 +7,11 @@ export default class NodeAppraisalJobModalInstanceCtrl {
     };
     $ctrl.data = data;
 
-    $ctrl.getJobs = search => {
+    $ctrl.getJobs = (search) => {
       return $http
         .get(appConfig.djangoUrl + 'appraisal-jobs/', {params: {search, status: 'PENDING'}})
-        .then(response => {
-          response.data.forEach(x => {
+        .then((response) => {
+          response.data.forEach((x) => {
             x.labelProp = x.label && x.label !== '' ? x.label : x.id;
           });
           $ctrl.options.jobs = response.data;
@@ -24,7 +24,7 @@ export default class NodeAppraisalJobModalInstanceCtrl {
         type: 'uiselect',
         key: 'job',
         templateOptions: {
-          options: function() {
+          options: function () {
             return $ctrl.options.jobs;
           },
           valueProp: 'id',
@@ -33,11 +33,11 @@ export default class NodeAppraisalJobModalInstanceCtrl {
           placeholder: $translate.instant('ARCHIVE_MAINTENANCE.APPRAISAL_JOB'),
           label: $translate.instant('ARCHIVE_MAINTENANCE.APPRAISAL_JOB'),
           appendToBody: false,
-          refresh: function(search) {
+          refresh: function (search) {
             if (angular.isUndefined(search) || search === null || search === '') {
               search = '';
             }
-            return $ctrl.getJobs(search).then(function() {
+            return $ctrl.getJobs(search).then(function () {
               this.options = $ctrl.options.jobs;
               return $ctrl.options.jobs;
             });
@@ -46,7 +46,7 @@ export default class NodeAppraisalJobModalInstanceCtrl {
       },
     ];
 
-    $ctrl.addSearchToJob = function() {
+    $ctrl.addSearchToJob = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -62,12 +62,12 @@ export default class NodeAppraisalJobModalInstanceCtrl {
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.NODES_ADDED_TO_APPRAISAL_JOB'), 'success');
           $uibModalInstance.close();
         })
-        .catch(e => {
+        .catch((e) => {
           $ctrl.adding = false;
         });
     };
 
-    $ctrl.addNodesToJob = function() {
+    $ctrl.addNodesToJob = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -77,7 +77,7 @@ export default class NodeAppraisalJobModalInstanceCtrl {
         method: 'PATCH',
         url: appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/tags/',
         data: {
-          tags: data.nodes.map(x => x.tag),
+          tags: data.nodes.map((x) => x.tag),
         },
       })
         .then(() => {
@@ -85,12 +85,12 @@ export default class NodeAppraisalJobModalInstanceCtrl {
           Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.NODES_ADDED_TO_APPRAISAL_JOB'), 'success');
           $uibModalInstance.close();
         })
-        .catch(e => {
+        .catch((e) => {
           $ctrl.adding = false;
         });
     };
 
-    $ctrl.removeNode = node => {
+    $ctrl.removeNode = (node) => {
       $ctrl.removing = true;
       $http({
         method: 'DELETE',
@@ -108,7 +108,7 @@ export default class NodeAppraisalJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

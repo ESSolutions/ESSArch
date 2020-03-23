@@ -5,7 +5,7 @@ export default class EditStructureUnitModalInstanceCtrl {
     $ctrl.options = {};
     $ctrl.nodeFields = [];
     $ctrl.types = [];
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.node) {
         $ctrl.node = data.node;
         EditMode.enable();
@@ -22,13 +22,13 @@ export default class EditStructureUnitModalInstanceCtrl {
         .get(appConfig.djangoUrl + 'structure-unit-types/', {
           params: {structure_type: data.structure.structureType.id, pager: 'none'},
         })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.structureUnitTypes = response.data;
           $ctrl.buildNodeForm();
         });
     };
 
-    $ctrl.buildNodeForm = function() {
+    $ctrl.buildNodeForm = function () {
       $ctrl.nodeFields = [
         {
           templateOptions: {
@@ -94,14 +94,14 @@ export default class EditStructureUnitModalInstanceCtrl {
       ];
     };
 
-    $ctrl.changed = function() {
+    $ctrl.changed = function () {
       return !angular.equals($ctrl.editNode, $ctrl.node);
     };
     /**
      * update new classification structure
      */
     $ctrl.saving = false;
-    $ctrl.update = function() {
+    $ctrl.update = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -113,24 +113,24 @@ export default class EditStructureUnitModalInstanceCtrl {
         url: appConfig.djangoUrl + 'structures/' + data.structure.id + '/units/' + $ctrl.node.id + '/',
         data: $ctrl.editNode,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

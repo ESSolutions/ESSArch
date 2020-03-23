@@ -19,7 +19,7 @@ export default class DownloadDipModalInstanceCtrl {
       $uibModalInstance.close();
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

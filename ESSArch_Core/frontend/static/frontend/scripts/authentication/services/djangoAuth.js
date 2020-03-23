@@ -14,7 +14,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
     /* END OF CUSTOMIZATION */
     authenticated: null,
     authPromise: null,
-    request: function(args) {
+    request: function (args) {
       // Continue
       args = args || {};
       const deferred = $q.defer(),
@@ -31,12 +31,12 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         data: data,
       })
         .then(
-          angular.bind(this, function(data, status) {
+          angular.bind(this, function (data, status) {
             deferred.resolve(data, status);
           })
         )
         .catch(
-          angular.bind(this, function(data, status, headers, config) {
+          angular.bind(this, function (data, status, headers, config) {
             console.log('error syncing with: ' + url);
             // Set request status
             if (data) {
@@ -62,7 +62,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         );
       return deferred.promise;
     },
-    login: function(username, password) {
+    login: function (username, password) {
       const djangoAuth = this;
       return this.request({
         method: 'POST',
@@ -71,17 +71,17 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
           username: username,
           password: password,
         },
-      }).then(function(response) {
+      }).then(function (response) {
         const data = response.data;
         djangoAuth.authenticated = true;
         $rootScope.$broadcast('djangoAuth.logged_in', data);
         return data;
       });
     },
-    logout: function() {
+    logout: function () {
       return ($window.location.href = this.API_URL + '/logout/');
     },
-    changePassword: function(password1, password2, oldPassword) {
+    changePassword: function (password1, password2, oldPassword) {
       return this.request({
         method: 'POST',
         url: '/password/change/',
@@ -92,7 +92,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         },
       });
     },
-    resetPassword: function(email) {
+    resetPassword: function (email) {
       return this.request({
         method: 'POST',
         url: '/password/reset/',
@@ -101,27 +101,27 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         },
       });
     },
-    profile: function() {
+    profile: function () {
       return this.request({
         method: 'GET',
         url: '/user/',
       });
     },
-    updateProfile: function(data) {
+    updateProfile: function (data) {
       return this.request({
         method: 'PATCH',
         url: '/user/',
         data: data,
       });
     },
-    verify: function(key) {
+    verify: function (key) {
       return this.request({
         method: 'POST',
         url: '/registration/verify-email/',
         data: {key: key},
       });
     },
-    confirmReset: function(uid, token, password1, password2) {
+    confirmReset: function (uid, token, password1, password2) {
       return this.request({
         method: 'POST',
         url: '/password/reset/confirm/',
@@ -133,7 +133,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         },
       });
     },
-    authenticationStatus: function(restrict, force) {
+    authenticationStatus: function (restrict, force) {
       // Set restrict to true to reject the promise if not logged in
       // Set to false or omit to resolve when status is known
       // Set force to true to ignore stored value and query API
@@ -158,11 +158,11 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
         // There isn't a stored value, or we're forcing a request back to
         // the API to get the authentication status.
         this.authPromise.then(
-          function(response) {
+          function (response) {
             da.authenticated = true;
             getAuthStatus.resolve(response);
           },
-          function() {
+          function () {
             da.authenticated = false;
             if (restrict) {
               getAuthStatus.reject('User is not logged in.');
@@ -174,7 +174,7 @@ const djangoAuth = ($q, $http, $rootScope, $window) => {
       }
       return getAuthStatus.promise;
     },
-    initialize: function(url) {
+    initialize: function (url) {
       this.API_URL = url;
       return this.authenticationStatus();
     },

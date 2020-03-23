@@ -1,6 +1,6 @@
 import {existsAndEnabled} from './../features/utils';
 
-const contentTabs = $rootScope => {
+const contentTabs = ($rootScope) => {
   const disabledStates = ['Creating', 'Submitting', 'Receiving', 'Transferring', 'Preserving'];
   const specialTabs = {
     'home.producer.prepareIp': {
@@ -64,18 +64,18 @@ const contentTabs = $rootScope => {
      * @param {String} page Current page, ie ip_approval, dip or access_ip
      * @param {String} tab Tab to check visibility for
      */
-    visible: function(ips, page) {
+    visible: function (ips, page) {
       let visible = true;
       let list = [];
       if (specialTabs[page]) {
-        ips.forEach(function(ip) {
+        ips.forEach(function (ip) {
           if (angular.isUndefined(ip.state) && page === 'home.access.orders') {
             ip.state = 'order';
           }
           if (disabledStates.includes(ip.state)) {
             visible = false;
           }
-          angular.forEach(specialTabs[page], function(value, key) {
+          angular.forEach(specialTabs[page], function (value, key) {
             if (value.includes(ip.state) && existsAndEnabled($rootScope.features, key)) {
               if (!list.includes(key)) {
                 list.push(key);
@@ -83,8 +83,8 @@ const contentTabs = $rootScope => {
             }
           });
         });
-        ips.forEach(function(ip) {
-          list.forEach(function(item, idx, array) {
+        ips.forEach(function (ip) {
+          list.forEach(function (item, idx, array) {
             if (!specialTabs[page][item].includes(ip.state)) {
               array.splice(idx, 1);
             }

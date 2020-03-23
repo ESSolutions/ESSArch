@@ -30,7 +30,7 @@ export default class ConversionJobModalInstanceCtrl {
           $ctrl.initModalLoad = true;
           $http
             .get(appConfig.djangoUrl + 'conversion-jobs/' + data.job.id + '/information-packages/')
-            .then(response => {
+            .then((response) => {
               $ctrl.model = angular.copy(data.job);
               $ctrl.ips = response.data;
               $ctrl.initModalLoad = false;
@@ -98,7 +98,7 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.displayedIps = [];
-    $ctrl.callServer = function(tableState) {
+    $ctrl.callServer = function (tableState) {
       $ctrl.ipLoading = true;
       if ($ctrl.displayedIps.length == 0) {
         $ctrl.initLoad = true;
@@ -132,7 +132,7 @@ export default class ConversionJobModalInstanceCtrl {
             $ctrl.columnFilters
           ),
         })
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.displayedIps = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $ctrl.ipLoading = false;
@@ -140,7 +140,7 @@ export default class ConversionJobModalInstanceCtrl {
             ipExists();
             SelectedIPUpdater.update($ctrl.displayedIps, $ctrl.ips, $ctrl.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -153,7 +153,7 @@ export default class ConversionJobModalInstanceCtrl {
                 filters.workarea = $ctrl.workarea;
               }
 
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function(response) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function (response) {
                 tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start =
                   response.numberOfPages * paginationParams.number - paginationParams.number;
@@ -164,9 +164,9 @@ export default class ConversionJobModalInstanceCtrl {
       }
     };
 
-    $ctrl.selectedAmongOthers = function(id) {
+    $ctrl.selectedAmongOthers = function (id) {
       let exists = false;
-      $ctrl.ips.forEach(function(ip) {
+      $ctrl.ips.forEach(function (ip) {
         if (ip.id == id) {
           exists = true;
         }
@@ -175,7 +175,7 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.selectAll = () => {
-      $ctrl.displayedIps.forEach(ip => {
+      $ctrl.displayedIps.forEach((ip) => {
         $ctrl.ips.push(ip);
       });
     };
@@ -184,7 +184,7 @@ export default class ConversionJobModalInstanceCtrl {
       $ctrl.ips = [];
     };
 
-    $ctrl.runJob = function(job) {
+    $ctrl.runJob = function (job) {
       if ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {})) {
         $ctrl.specificationWarning = true;
         return;
@@ -200,7 +200,7 @@ export default class ConversionJobModalInstanceCtrl {
       });
     };
 
-    $ctrl.createJob = function(template) {
+    $ctrl.createJob = function (template) {
       if (
         $ctrl.model.start_date !== null &&
         ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {}))
@@ -220,12 +220,12 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
-            .then(response => {
+            .then((response) => {
               return response;
             });
         })
@@ -240,7 +240,7 @@ export default class ConversionJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.save = function(template) {
+    $ctrl.save = function (template) {
       if (
         $ctrl.model.start_date !== null &&
         ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {}))
@@ -260,12 +260,12 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
-            .then(response => {
+            .then((response) => {
               return response;
             });
         })
@@ -281,7 +281,7 @@ export default class ConversionJobModalInstanceCtrl {
     };
 
     $ctrl.runningJob = false;
-    $ctrl.createJobAndStart = function(template) {
+    $ctrl.createJobAndStart = function (template) {
       if ($ctrl.model.specification == null || angular.equals($ctrl.model.specification, {})) {
         $ctrl.specificationWarning = true;
         return;
@@ -298,16 +298,16 @@ export default class ConversionJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
-            .then(response => {
+            .then((response) => {
               return response;
             });
         })
-        .then(response => {
+        .then((response) => {
           $http({
             url: appConfig.djangoUrl + 'conversion-jobs/' + response.data.id + '/run/',
             method: 'POST',
@@ -327,7 +327,7 @@ export default class ConversionJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removingJob = true;
       $http({
         url: appConfig.djangoUrl + 'conversion-jobs/' + data.job.id,
@@ -352,17 +352,17 @@ export default class ConversionJobModalInstanceCtrl {
       $uibModalInstance.close('edit_job');
     };
 
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       EditMode.disable();
       $uibModalInstance.close();
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $ctrl.previewModal = function(job) {
+    $ctrl.previewModal = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -378,14 +378,14 @@ export default class ConversionJobModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

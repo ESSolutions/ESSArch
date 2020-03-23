@@ -5,7 +5,7 @@ const event = ($resource, appConfig) => {
     {
       query: {
         method: 'GET',
-        transformResponse: function(data, headers) {
+        transformResponse: function (data, headers) {
           return {data: JSON.parse(data), headers: headers};
         },
       },

@@ -29,9 +29,9 @@ export default class ArchiveManagerCtrl {
 
     let watchers = [];
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
@@ -45,7 +45,7 @@ export default class ArchiveManagerCtrl {
       })
     );
 
-    vm.getArchives = function(tableState) {
+    vm.getArchives = function (tableState) {
       vm.archivesLoading = true;
       if (vm.archives.length == 0) {
         $scope.initLoad = true;
@@ -81,7 +81,7 @@ export default class ArchiveManagerCtrl {
               search: search,
             },
           })
-          .then(function(response) {
+          .then(function (response) {
             vm.archives = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.initLoad = false;
@@ -90,11 +90,11 @@ export default class ArchiveManagerCtrl {
       }
     };
 
-    vm.updateArchives = function() {
+    vm.updateArchives = function () {
       vm.getArchives($scope.tableState);
     };
 
-    vm.getArchiveColspan = function() {
+    vm.getArchiveColspan = function () {
       if (myService.checkPermission('tags.change_archive') && myService.checkPermission('tags.delete_archive')) {
         return 5;
       } else if (
@@ -107,7 +107,7 @@ export default class ArchiveManagerCtrl {
       }
     };
 
-    vm.archiveClick = function(archive) {
+    vm.archiveClick = function (archive) {
       if (vm.record !== null && archive.current_version.id === vm.record._id) {
         vm.record = null;
         $state.go('home.archivalDescriptions.archiveManager');
@@ -118,21 +118,21 @@ export default class ArchiveManagerCtrl {
       }
     };
 
-    vm.getArchive = function(id) {
-      return $http.get(appConfig.djangoUrl + 'search/' + id + '/').then(function(response) {
+    vm.getArchive = function (id) {
+      return $http.get(appConfig.djangoUrl + 'search/' + id + '/').then(function (response) {
         return response.data;
       });
     };
 
-    vm.getTypes = function() {
+    vm.getTypes = function () {
       return $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: true, pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           return angular.copy(response.data);
         });
     };
 
-    vm.newArchiveModal = function() {
+    vm.newArchiveModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -146,17 +146,17 @@ export default class ArchiveManagerCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.updateArchives();
           $state.go('home.archivalDescriptions.archiveManager.detail', {id: data.archive._id});
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.editArchiveModal = function(archive) {
-      vm.getArchive(archive.current_version.id).then(function(result) {
+    vm.editArchiveModal = function (archive) {
+      vm.getArchive(archive.current_version.id).then(function (result) {
         archive = result;
         const modalInstance = $uibModal.open({
           animation: true,
@@ -173,17 +173,17 @@ export default class ArchiveManagerCtrl {
           },
         });
         modalInstance.result.then(
-          function(data, $ctrl) {
+          function (data, $ctrl) {
             vm.updateArchives();
             $state.go('home.archivalDescriptions.archiveManager.detail', {id: archive._id}, {reload: true});
           },
-          function() {
+          function () {
             $log.info('modal-component dismissed at: ' + new Date());
           }
         );
       });
     };
-    vm.removeArchiveModal = function(archive) {
+    vm.removeArchiveModal = function (archive) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -200,11 +200,11 @@ export default class ArchiveManagerCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.updateArchives();
           $state.go('home.archivalDescriptions.archiveManager');
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

@@ -4,9 +4,9 @@ export default class LocationCtrl {
     $scope.$translate = $translate;
     vm.showTree = false;
     vm.location = null;
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if ($stateParams.id) {
-        $http.get(appConfig.djangoUrl + 'locations/' + $stateParams.id + '/').then(function(response) {
+        $http.get(appConfig.djangoUrl + 'locations/' + $stateParams.id + '/').then(function (response) {
           vm.location = response.data;
           vm.showTree = true;
         });
@@ -16,7 +16,7 @@ export default class LocationCtrl {
       }
     };
 
-    vm.onSelect = function(node) {
+    vm.onSelect = function (node) {
       if (node.id !== $stateParams.id) {
         $state.go($state.current.name, {id: node.id});
       }

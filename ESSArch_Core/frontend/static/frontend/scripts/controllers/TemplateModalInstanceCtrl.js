@@ -24,52 +24,52 @@ export default class TemplateModalInstanceCtrl {
         labelSelected: 'a8',
       },
     };
-    $ctrl.generateTemplate = function() {
+    $ctrl.generateTemplate = function () {
       $ctrl.data = $ctrl.model;
-      data.generate($ctrl.data).then(function(response) {
+      data.generate($ctrl.data).then(function (response) {
         $uibModalInstance.close(response);
       });
     };
-    $ctrl.saveStructure = function(structure) {
+    $ctrl.saveStructure = function (structure) {
       $ctrl.data = structure;
-      ProfileMakerTemplate.update({templateName: $ctrl.template.name}, {structure: structure}).$promise.then(function(
+      ProfileMakerTemplate.update({templateName: $ctrl.template.name}, {structure: structure}).$promise.then(function (
         resource
       ) {
         $uibModalInstance.close(resource);
       });
     };
-    $ctrl.addTemplate = function() {
+    $ctrl.addTemplate = function () {
       $ctrl.data = $ctrl.model;
-      data.add($ctrl.data).then(function(response) {
+      data.add($ctrl.data).then(function (response) {
         $uibModalInstance.close(response);
       });
     };
-    $ctrl.addExtension = function() {
+    $ctrl.addExtension = function () {
       $ctrl.data = $ctrl.model;
-      data.add($ctrl.data).then(function(data) {
+      data.add($ctrl.data).then(function (data) {
         $ctrl.template.extensions.push(data.id);
         ProfileMakerTemplate.update(
           {templateName: $ctrl.template.name},
           {
             extensions: $ctrl.template.extensions,
           }
-        ).$promise.then(function(resource) {
+        ).$promise.then(function (resource) {
           $uibModalInstance.close(resource);
         });
       });
     };
-    $ctrl.saveAttribute = function() {
+    $ctrl.saveAttribute = function () {
       $ctrl.data = $ctrl.model;
-      data.save($ctrl.data).then(function(response) {
+      data.save($ctrl.data).then(function (response) {
         $uibModalInstance.close(response);
       });
     };
-    $ctrl.addAttribute = function(nodeData, parent) {
-      data.add(nodeData, parent).then(function(response) {
+    $ctrl.addAttribute = function (nodeData, parent) {
+      data.add(nodeData, parent).then(function (response) {
         $uibModalInstance.close(response);
       });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

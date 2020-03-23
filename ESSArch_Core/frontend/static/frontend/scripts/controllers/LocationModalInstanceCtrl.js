@@ -4,7 +4,7 @@ export default class LocationModalInstanceCtrl {
     $ctrl.location = {};
     $ctrl.fields = [];
     $ctrl.options = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (!angular.isUndefined(data.location) && data.location !== null) {
         $ctrl.location = angular.copy(data.location);
         if (data.remove) {
@@ -19,46 +19,46 @@ export default class LocationModalInstanceCtrl {
       $ctrl.buildForm();
     };
 
-    $ctrl.getMetrics = function() {
-      return $http.get(appConfig.djangoUrl + 'metric-types/', {params: {pager: 'none'}}).then(function(response) {
+    $ctrl.getMetrics = function () {
+      return $http.get(appConfig.djangoUrl + 'metric-types/', {params: {pager: 'none'}}).then(function (response) {
         $ctrl.options.metric = response.data;
         return response.data;
       });
     };
-    $ctrl.getLevelTypes = function() {
+    $ctrl.getLevelTypes = function () {
       return $http
         .get(appConfig.djangoUrl + 'location-level-types/', {params: {pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.options.levelType = response.data;
           return response.data;
         });
     };
-    $ctrl.getFunctionTypes = function() {
+    $ctrl.getFunctionTypes = function () {
       return $http
         .get(appConfig.djangoUrl + 'location-function-types/', {params: {pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.options.functionType = response.data;
           return response.data;
         });
     };
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       const promises = [];
       promises.push(
-        $ctrl.getMetrics().then(function(profiles) {
+        $ctrl.getMetrics().then(function (profiles) {
           return profiles;
         })
       );
       promises.push(
-        $ctrl.getLevelTypes().then(function(levels) {
+        $ctrl.getLevelTypes().then(function (levels) {
           return levels;
         })
       );
       promises.push(
-        $ctrl.getFunctionTypes().then(function(functions) {
+        $ctrl.getFunctionTypes().then(function (functions) {
           return functions;
         })
       );
-      $q.all(promises).then(function(responses) {
+      $q.all(promises).then(function (responses) {
         $ctrl.fields = [
           {
             type: 'input',
@@ -118,7 +118,7 @@ export default class LocationModalInstanceCtrl {
       });
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -135,18 +135,18 @@ export default class LocationModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.location,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.adding = false;
           $ctrl.nonFieldErrors = response.data.non_field_errors;
         });
     };
 
-    $ctrl.edit = function() {
+    $ctrl.edit = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -158,29 +158,29 @@ export default class LocationModalInstanceCtrl {
         method: 'PATCH',
         data: Utils.getDiff(data.location, $ctrl.location, {map: {metric: 'id', function: 'id', level_type: 'id'}}),
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.saving = false;
           $ctrl.nonFieldErrors = response.data.non_field_errors;
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http({
         url: appConfig.djangoUrl + 'locations/' + data.location.id + '/',
         method: 'DELETE',
       })
-        .then(function(response) {
+        .then(function (response) {
           $uibModalInstance.close(response.data);
           $ctrl.removing = false;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (response.data && response.data.detail) {
             $ctrl.nonFieldErrors = [response.data.detail];
           }
@@ -188,12 +188,12 @@ export default class LocationModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
