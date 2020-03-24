@@ -1642,7 +1642,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     },
                     {
                         "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                        "if": generate_premis,
+                        "if": generate_premis and validate_xml_file,
                         "label": "Compare premis and content-mets",
                         "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
                         "params": {'recursive': False},
