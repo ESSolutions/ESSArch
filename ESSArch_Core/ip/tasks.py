@@ -43,10 +43,7 @@ from ESSArch_Core.ip.utils import (
     parse_submit_description_from_ip,
 )
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
-from ESSArch_Core.profiles.utils import (
-    fill_specification_data,
-    lowercase_profile_types,
-)
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file, enough_space_available
 from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
