@@ -16,6 +16,12 @@ from django.utils.translation import gettext as _
 from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_exponential,
+)
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.configuration.models import Path
@@ -38,7 +44,8 @@ from ESSArch_Core.ip.utils import (
 )
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.copy import copy_file, enough_space_available
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
     delete_path,
@@ -362,6 +369,8 @@ class CreatePhysicalModel(DBTask):
         return "Created physical model for %s" % ip.object_identifier_value
 
 
+@retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
+       wait=wait_exponential(max=60), stop=stop_after_delay(600))
 class CreateContainer(DBTask):
     def run(self, src, dst):
         src, dst = self.parse_params(src, dst)
@@ -376,6 +385,8 @@ class CreateContainer(DBTask):
         if os.path.isdir(dst):
             dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
             dst = os.path.join(dst, dst_filename)
+
+        enough_space_available(os.path.dirname(dst), src, True)
 
         if container_format == 'zip':
             self.event_type = 50410
