@@ -1340,11 +1340,6 @@ angular-clipboard@^1.7.0:
   resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.7.9.tgz#0f0cd2a9d1c81e5b8d6c6711d41f0909f9d0b8e0"
   integrity sha512-3eRq/aPrtCZKDWQnc3nW3sFoMbLiHkCkyDF2O9u7VXnqvVsUPaipk5R1ZqahgcSQHQrN/F5IU4T4nrz52qAZmA==
 
-angular-cron-jobs@^3.2.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/angular-cron-jobs/-/angular-cron-jobs-3.2.1.tgz#3ea4931be2680d6ed6a85346bbdf668f0c7ab33a"
-  integrity sha512-1o4Ef1CifSuLdX+RjFoH0SaEVEoTaGGVXhHaJWJJeX7emEwm2yYqAgQNb7LOSD5kn3ISh7Xo2lBep5peInC89Q==
-
 angular-date-time-input@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/angular-date-time-input/-/angular-date-time-input-1.2.1.tgz#6d7b7eb47fb2cf6198ca564c5dd5bc5156279d76"
@@ -5207,7 +5202,7 @@ known-css-properties@^0.17.0:
   resolved "https://registry.yarnpkg.com/known-css-properties/-/known-css-properties-0.17.0.tgz#1c535f530ee8e9e3e27bb6a718285780e1d07326"
   integrity sha512-Vi3nxDGMm/z+lAaCjvAR1u+7fiv+sG6gU/iYDj5QOF8h76ytK9EW/EKfF0NeTyiGBi8Jy6Hklty/vxISrLox3w==
 
-later@^1.1.6, later@^1.2.0:
+later@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/later/-/later-1.2.0.tgz#f2cf6c4dd7956dd2f520adf0329836e9876bad0f"
   integrity sha1-8s9sTdeVbdL1IK3wMpg26YdrrQ8=
@@ -5726,7 +5721,7 @@ mixin-deep@^1.2.0:
   dependencies:
     minimist "^1.2.5"
 
-moment@^2.15.x, moment@^2.18.1, moment@^2.22.2, moment@^2.8.4:
+moment@^2.15.x, moment@^2.18.1, moment@^2.22.2:
   version "2.24.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
   integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
@@ -7326,14 +7321,6 @@ prettier@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.0.1.tgz#3f00ac71263be34684b2b2c8d7e7f63737592dac"
   integrity sha512-piXGBcY1zoFOG0MvHpNE5reAGseLmaCRifQ/fmfF49BcYkInEs/naD/unxGNAeOKFA5+JxVrPyMvMlpzcd20UA==
-
-prettycron@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/prettycron/-/prettycron-0.10.0.tgz#10af0dfa20bbd9f6596d7fb5bb8b8546cac527bb"
-  integrity sha1-EK8N+iC72fZZbX+1u4uFRsrFJ7s=
-  dependencies:
-    later "^1.1.6"
-    moment "^2.8.4"
 
 private@^0.1.8:
   version "0.1.8"
