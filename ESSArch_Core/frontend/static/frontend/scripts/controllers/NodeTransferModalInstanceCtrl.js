@@ -3,7 +3,7 @@ export default class NodeTransferModalInstanceCtrl {
     const $ctrl = this;
     $ctrl.transfer = null;
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       EditMode.enable();
       if (!angular.isUndefined(data.node)) {
         $ctrl.node = angular.copy(data.node);
@@ -16,9 +16,9 @@ export default class NodeTransferModalInstanceCtrl {
       }
     };
 
-    $ctrl.filterNodes = function(nodes) {
+    $ctrl.filterNodes = function (nodes) {
       const filtered = [];
-      nodes.forEach(function(x) {
+      nodes.forEach(function (x) {
         if (
           !angular.isUndefined(x) &&
           x._is_structure_unit !== true &&
@@ -32,16 +32,16 @@ export default class NodeTransferModalInstanceCtrl {
       return filtered;
     };
 
-    $ctrl.cleartransfer = function() {
+    $ctrl.cleartransfer = function () {
       $ctrl.transfer = null;
     };
 
-    $ctrl.filterNodesByType = function(nodes) {
+    $ctrl.filterNodesByType = function (nodes) {
       const obj = {
         tags: [],
         structure_units: [],
       };
-      nodes.forEach(function(x) {
+      nodes.forEach(function (x) {
         if (!x.id) {
           x.id = x._id;
         }
@@ -54,7 +54,7 @@ export default class NodeTransferModalInstanceCtrl {
       return obj;
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.saving = true;
       let nodes = [];
       if (data.node) {
@@ -64,23 +64,23 @@ export default class NodeTransferModalInstanceCtrl {
       }
       $http
         .post(appConfig.djangoUrl + 'transfers/' + data.transfer.id + '/remove-nodes/', $ctrl.filterNodesByType(nodes))
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss();
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

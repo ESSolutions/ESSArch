@@ -31,7 +31,7 @@ export default class AppraisalJobModalInstanceCtrl {
           $ctrl.initModalLoad = true;
           $http
             .get(appConfig.djangoUrl + 'appraisal-jobs/' + data.job.id + '/information-packages/')
-            .then(response => {
+            .then((response) => {
               $ctrl.model = angular.copy(data.job);
               if ($ctrl.model.package_file_pattern && $ctrl.model.package_file_pattern.length > 0) {
                 $ctrl.fullIpAppraisal = false;
@@ -86,14 +86,14 @@ export default class AppraisalJobModalInstanceCtrl {
     ];
 
     $ctrl.path = '';
-    $ctrl.addPath = function(path) {
+    $ctrl.addPath = function (path) {
       if (path.length > 0) {
         $ctrl.model.package_file_pattern.push(path);
       }
       $ctrl.path = '';
     };
 
-    $ctrl.removePath = function(path) {
+    $ctrl.removePath = function (path) {
       $ctrl.model.package_file_pattern.splice($ctrl.model.package_file_pattern.indexOf(path), 1);
     };
 
@@ -107,12 +107,12 @@ export default class AppraisalJobModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
-            .then(response => {
+            .then((response) => {
               return response;
             });
         })
@@ -137,12 +137,12 @@ export default class AppraisalJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
-            .then(response => {
+            .then((response) => {
               return response;
             });
         })
@@ -167,16 +167,16 @@ export default class AppraisalJobModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.model,
       })
-        .then(response => {
+        .then((response) => {
           return $http
             .post(appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/information-packages/', {
-              information_packages: $ctrl.ips.map(x => x.id),
+              information_packages: $ctrl.ips.map((x) => x.id),
             })
             .then(() => {
               return response;
             });
         })
-        .then(response => {
+        .then((response) => {
           $http({
             url: appConfig.djangoUrl + 'appraisal-jobs/' + response.data.id + '/run/',
             method: 'POST',
@@ -196,7 +196,7 @@ export default class AppraisalJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
@@ -214,7 +214,7 @@ export default class AppraisalJobModalInstanceCtrl {
     };
 
     $ctrl.selectAll = () => {
-      $ctrl.displayedIps.forEach(ip => {
+      $ctrl.displayedIps.forEach((ip) => {
         $ctrl.ips.push(ip);
       });
     };
@@ -223,9 +223,9 @@ export default class AppraisalJobModalInstanceCtrl {
       $ctrl.ips = [];
     };
 
-    $ctrl.selectedAmongOthers = function(id) {
+    $ctrl.selectedAmongOthers = function (id) {
       let exists = false;
-      $ctrl.ips.forEach(function(ip) {
+      $ctrl.ips.forEach(function (ip) {
         if (ip.id == id) {
           exists = true;
         }
@@ -238,7 +238,7 @@ export default class AppraisalJobModalInstanceCtrl {
     };
 
     $ctrl.displayedIps = [];
-    $ctrl.callServer = function(tableState) {
+    $ctrl.callServer = function (tableState) {
       $ctrl.ipLoading = true;
       if ($ctrl.displayedIps.length == 0) {
         $ctrl.initLoad = true;
@@ -272,7 +272,7 @@ export default class AppraisalJobModalInstanceCtrl {
             $ctrl.columnFilters
           ),
         })
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.displayedIps = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $ctrl.ipLoading = false;
@@ -280,7 +280,7 @@ export default class AppraisalJobModalInstanceCtrl {
             ipExists();
             SelectedIPUpdater.update($ctrl.displayedIps, $ctrl.ips, $ctrl.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -293,7 +293,7 @@ export default class AppraisalJobModalInstanceCtrl {
                 filters.workarea = $ctrl.workarea;
               }
 
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function(response) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function (response) {
                 tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start =
                   response.numberOfPages * paginationParams.number - paginationParams.number;
@@ -304,7 +304,7 @@ export default class AppraisalJobModalInstanceCtrl {
       }
     };
 
-    $ctrl.tagsPipe = function(tableState) {
+    $ctrl.tagsPipe = function (tableState) {
       $ctrl.tagsLoading = true;
       if (angular.isUndefined($ctrl.tags) || $ctrl.tags.length == 0) {
         $scope.initLoad = true;
@@ -331,11 +331,11 @@ export default class AppraisalJobModalInstanceCtrl {
             ordering: sortString,
             search: search,
           })
-          .then(function(response) {
+          .then(function (response) {
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.initLoad = false;
             $ctrl.tagsLoading = false;
-            response.data.forEach(function(x) {
+            response.data.forEach(function (x) {
               if (angular.isUndefined(x.id) && x._id) {
                 x.id = x._id;
               }
@@ -345,10 +345,10 @@ export default class AppraisalJobModalInstanceCtrl {
       }
     };
 
-    $ctrl.getTags = function(job, params) {
+    $ctrl.getTags = function (job, params) {
       return $http
         .get(appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/tags/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
@@ -367,7 +367,7 @@ export default class AppraisalJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.runJob = function(job) {
+    $ctrl.runJob = function (job) {
       $http({
         url: appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/run/',
         method: 'POST',
@@ -377,7 +377,7 @@ export default class AppraisalJobModalInstanceCtrl {
       });
     };
 
-    $ctrl.removeNodeModal = function(node) {
+    $ctrl.removeNodeModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -394,16 +394,16 @@ export default class AppraisalJobModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $ctrl.tagsPipe($ctrl.tagsTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    $ctrl.previewModal = function(job) {
+    $ctrl.previewModal = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -419,14 +419,14 @@ export default class AppraisalJobModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

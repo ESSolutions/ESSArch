@@ -10,7 +10,7 @@ apiCheck.globalConfig.disabled = true;
 
 const formlyConfig = [
   'formlyConfigProvider',
-  function(formlyConfigProvider) {
+  function (formlyConfigProvider) {
     function _defineProperty(obj, key, value) {
       if (key in obj) {
         Object.defineProperty(obj, key, {
@@ -29,7 +29,7 @@ const formlyConfig = [
       template: inputTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
-      defaultOptions: function(options) {
+      defaultOptions: function (options) {
         return {
           templateOptions: {
             validation: {
@@ -45,7 +45,7 @@ const formlyConfig = [
       template: checkboxTemplate,
       overwriteOk: true,
       wrapper: ['bootstrapHasError'],
-      defaultOptions: function(options) {
+      defaultOptions: function (options) {
         return {
           templateOptions: {
             validation: {

@@ -1,50 +1,50 @@
 export default class ExportCtrl {
   constructor($scope, appConfig, $http, $window, SA, Profile) {
     const vm = this;
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       $http
         .get(appConfig.djangoUrl + 'submission-agreements/', {params: {pager: 'none', published: true}})
-        .then(function(response) {
+        .then(function (response) {
           vm.sas = response.data;
           vm.sa = null;
         });
 
-      $http.get(appConfig.djangoUrl + 'profiles/', {params: {pager: 'none'}}).then(function(response) {
+      $http.get(appConfig.djangoUrl + 'profiles/', {params: {pager: 'none'}}).then(function (response) {
         vm.profiles = response.data;
         vm.profile = null;
       });
     };
 
-    $scope.encodeJson = function(obj) {
+    $scope.encodeJson = function (obj) {
       return angular.toJson(obj);
     };
 
-    vm.profileFileName = function(item) {
+    vm.profileFileName = function (item) {
       if (item) {
         const name = item.name + '.json';
         return name;
       }
     };
 
-    vm.saFileName = function(item) {
+    vm.saFileName = function (item) {
       if (item) {
         const name = item.name + '.json';
         return name;
       }
     };
-    vm.downloadProfile = function(object) {
-      Profile.get({id: object.id}).$promise.then(function(resource) {
+    vm.downloadProfile = function (object) {
+      Profile.get({id: object.id}).$promise.then(function (resource) {
         vm.exportToFile($scope.encodeJson(resource), vm.profileFileName(resource));
       });
     };
 
-    vm.downloadSa = function(object) {
-      SA.get({id: object.id}).$promise.then(function(resource) {
+    vm.downloadSa = function (object) {
+      SA.get({id: object.id}).$promise.then(function (resource) {
         vm.exportToFile($scope.encodeJson(resource), vm.saFileName(resource));
       });
     };
 
-    vm.exportToFile = function(object, filename) {
+    vm.exportToFile = function (object, filename) {
       const blob = new Blob([object], {type: 'text/plain'});
       if ($window.navigator && $window.navigator.msSaveOrOpenBlob) {
         $window.navigator.msSaveOrOpenBlob(blob, filename);

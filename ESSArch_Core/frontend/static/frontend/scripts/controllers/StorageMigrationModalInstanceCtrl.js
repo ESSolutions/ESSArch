@@ -16,15 +16,15 @@ export default class StorageMigrationModalInstanceCtrl {
     $ctrl.data = data;
     $ctrl.migration = {};
     $ctrl.itemsPerPage = 10;
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null) {
         $ctrl.data.ips = [$ctrl.data.ip];
       }
       $ctrl.pageLoading = true;
-      $http.get(appConfig.djangoUrl + 'paths/', {params: {pager: 'none'}}).then(response => {
+      $http.get(appConfig.djangoUrl + 'paths/', {params: {pager: 'none'}}).then((response) => {
         $ctrl.pageLoading = false;
         let temp = '';
-        response.data.forEach(x => {
+        response.data.forEach((x) => {
           if (x.entity === 'temp') {
             temp = x.value;
           }
@@ -35,12 +35,12 @@ export default class StorageMigrationModalInstanceCtrl {
       EditMode.enable();
     };
 
-    const parseMethods = methods => {
+    const parseMethods = (methods) => {
       const methodTranslation = $translate.instant('STORAGE_METHOD');
       const targetTranslation = $translate.instant('STORAGE_TARGET');
 
-      return methods.map(x => {
-        let temp = x.storage_method_target_relations.filter(relation => {
+      return methods.map((x) => {
+        let temp = x.storage_method_target_relations.filter((relation) => {
           return relation.status === 1;
         });
         let enabledTarget = {name: null, id: null};
@@ -61,9 +61,9 @@ export default class StorageMigrationModalInstanceCtrl {
     };
 
     let methods = [];
-    const getMethods = search => {
+    const getMethods = (search) => {
       let params = {policy: data.policy, page: 1, page_size: 10, search, has_enabled_target: true};
-      return $http.get(appConfig.djangoUrl + 'storage-methods/', {params}).then(response => {
+      return $http.get(appConfig.djangoUrl + 'storage-methods/', {params}).then((response) => {
         methods = parseMethods(response.data);
         return methods;
       });
@@ -95,7 +95,7 @@ export default class StorageMigrationModalInstanceCtrl {
         defaultValue: true,
         model: tempModel,
         expressionProperties: {
-          'templateOptions.onChange': function($viewValue, $modelValue, scope) {
+          'templateOptions.onChange': function ($viewValue, $modelValue, scope) {
             if ($modelValue === true) {
               delete $ctrl.migration.storage_methods;
             }
@@ -110,11 +110,11 @@ export default class StorageMigrationModalInstanceCtrl {
           labelProp: 'methodWithTarget',
           multiple: true,
           valueProp: 'id',
-          optionsFunction: function() {
+          optionsFunction: function () {
             return methods;
           },
           appendToBody: false,
-          refresh: function(search) {
+          refresh: function (search) {
             return getMethods(search);
           },
         },
@@ -135,19 +135,19 @@ export default class StorageMigrationModalInstanceCtrl {
         url: appConfig.djangoUrl + 'storage-migrations/',
         data: angular.extend(
           {
-            information_packages: $ctrl.data.ips.map(x => {
+            information_packages: $ctrl.data.ips.map((x) => {
               return x.id;
             }),
           },
           $ctrl.migration
         ),
       })
-        .then(response => {
+        .then((response) => {
           $ctrl.migrating = false;
           EditMode.disable();
           $uibModalInstance.close(response);
         })
-        .catch(response => {
+        .catch((response) => {
           $ctrl.migrating = false;
         });
     };
@@ -163,29 +163,29 @@ export default class StorageMigrationModalInstanceCtrl {
           controllerAs: '$ctrl',
           size: 'lg',
           resolve: {
-            data: function() {
+            data: function () {
               return {
                 policy: data.policy,
                 storage_methods: $ctrl.migration.storage_methods,
-                information_packages: data.ips.map(x => x.id),
+                information_packages: data.ips.map((x) => x.id),
               };
             },
           },
         })
         .result.then(
-          function(data) {
+          function (data) {
             return data;
           },
-          function() {}
+          function () {}
         );
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

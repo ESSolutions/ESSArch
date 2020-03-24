@@ -12,16 +12,16 @@ export default class AgentNameModalInstanceCtrl {
       certainty: null,
     };
     $ctrl.fields = [];
-    $ctrl.resetName = function() {
+    $ctrl.resetName = function () {
       $ctrl.name = angular.copy($ctrl.nameTemplate);
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       return $http({
         url: appConfig.djangoUrl + 'agent-name-types/',
         params: {pager: 'none'},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options = {type: response.data};
         EditMode.enable();
         if (data.name) {
@@ -36,7 +36,7 @@ export default class AgentNameModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'select',
@@ -137,14 +137,14 @@ export default class AgentNameModalInstanceCtrl {
       ]);
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const names = angular.copy(data.agent.names);
-      names.forEach(function(x) {
+      names.forEach(function (x) {
         x.type = x.type.id;
       });
       $rootScope.skipErrorNotification = true;
@@ -153,12 +153,12 @@ export default class AgentNameModalInstanceCtrl {
         method: 'PATCH',
         data: {names: [$ctrl.name].concat(names)},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.names) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -170,14 +170,14 @@ export default class AgentNameModalInstanceCtrl {
           $ctrl.adding = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const names = angular.copy(data.agent.names);
-      names.forEach(function(x, idx, array) {
+      names.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -191,12 +191,12 @@ export default class AgentNameModalInstanceCtrl {
         method: 'PATCH',
         data: {names: names},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.names) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -209,11 +209,11 @@ export default class AgentNameModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const names = angular.copy(data.agent.names);
-      names.forEach(function(x, idx, array) {
+      names.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -230,12 +230,12 @@ export default class AgentNameModalInstanceCtrl {
         method: 'PATCH',
         data: {names: names},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.names) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -248,12 +248,12 @@ export default class AgentNameModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

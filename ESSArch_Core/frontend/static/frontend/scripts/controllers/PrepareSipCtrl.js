@@ -47,11 +47,11 @@ export default class PrepareSipCtrl {
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
     vm.fileListLoading = false;
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           vm.ipInformationModal(row);
         },
       });
@@ -59,7 +59,7 @@ export default class PrepareSipCtrl {
     };
 
     //Click function for ip table
-    vm.selectSingleRow = function(row, options) {
+    vm.selectSingleRow = function (row, options) {
       $scope.ips = [];
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.ip = null;
@@ -79,7 +79,7 @@ export default class PrepareSipCtrl {
         }
         if (vm.specificTabs.includes('submit_sip') || ContentTabs.visible([ip], $state.current.name)) {
           vm.fileListLoading = true;
-          listViewService.getFileList(ip).then(function(result) {
+          listViewService.getFileList(ip).then(function (result) {
             $scope.fileListCollection = result;
             vm.fileListLoading = false;
             return result;
@@ -93,13 +93,13 @@ export default class PrepareSipCtrl {
       formState: {},
     };
     //Get list of files in ip
-    $scope.getFileList = function(ip) {
-      listViewService.getFileList(ip).then(function(result) {
+    $scope.getFileList = function (ip) {
+      listViewService.getFileList(ip).then(function (result) {
         $scope.fileListCollection = result;
       });
     };
 
-    vm.submitSipModal = function(ip) {
+    vm.submitSipModal = function (ip) {
       const ips = $scope.ips.length > 0 ? $scope.ips : null;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -118,7 +118,7 @@ export default class PrepareSipCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {
+        .then(function (data) {
           $scope.ips = [];
           $scope.ip = null;
           $rootScope.ip = null;
@@ -126,7 +126,7 @@ export default class PrepareSipCtrl {
           vm.updateListViewConditional();
           $anchorScroll();
         })
-        .catch(function() {
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };

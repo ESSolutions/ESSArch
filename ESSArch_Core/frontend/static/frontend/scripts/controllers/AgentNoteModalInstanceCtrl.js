@@ -10,13 +10,13 @@ export default class AgentNoteModalInstanceCtrl {
       type: null,
     };
     $ctrl.fields = [];
-    $ctrl.resetNote = function() {
+    $ctrl.resetNote = function () {
       $ctrl.note = angular.copy($ctrl.noteTemplate);
     };
 
     $ctrl.getItemById = (id, list) => {
       let type = null;
-      list.forEach(item => {
+      list.forEach((item) => {
         if (item.id === id) {
           type = item;
         }
@@ -24,7 +24,7 @@ export default class AgentNoteModalInstanceCtrl {
       return type;
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       let history = false;
       if (data.note && data.note.type.history) {
         history = data.note.type.history;
@@ -35,7 +35,7 @@ export default class AgentNoteModalInstanceCtrl {
         url: appConfig.djangoUrl + 'agent-note-types/',
         params: {pager: 'none', history},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.typeOptions = response.data;
         EditMode.enable();
         if (data.note) {
@@ -49,7 +49,7 @@ export default class AgentNoteModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'select',
@@ -101,14 +101,14 @@ export default class AgentNoteModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const notes = angular.copy(data.agent.notes);
-      notes.forEach(function(x) {
+      notes.forEach(function (x) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -119,12 +119,12 @@ export default class AgentNoteModalInstanceCtrl {
         method: 'PATCH',
         data: {notes: [$ctrl.note].concat(notes)},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.notes) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -137,14 +137,14 @@ export default class AgentNoteModalInstanceCtrl {
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const notes = angular.copy(data.agent.notes);
-      notes.forEach(function(x, idx, array) {
+      notes.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -158,12 +158,12 @@ export default class AgentNoteModalInstanceCtrl {
         method: 'PATCH',
         data: {notes: notes},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.notes) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -176,11 +176,11 @@ export default class AgentNoteModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const notes = angular.copy(data.agent.notes);
-      notes.forEach(function(x, idx, array) {
+      notes.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -197,12 +197,12 @@ export default class AgentNoteModalInstanceCtrl {
         method: 'PATCH',
         data: {notes: notes},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.notes) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -215,12 +215,12 @@ export default class AgentNoteModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

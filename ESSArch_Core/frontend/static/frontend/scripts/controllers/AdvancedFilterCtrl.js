@@ -42,7 +42,7 @@ export default class AdvancedFilterCtrl {
       }
     };
 
-    vm.createFilterModel = initialValue => {
+    vm.createFilterModel = (initialValue) => {
       let model = getModel();
       if (!angular.isUndefined(initialValue)) {
         model = angular.extend(model, initialValue);
@@ -57,14 +57,14 @@ export default class AdvancedFilterCtrl {
       vm.fields = angular.copy(fields);
     };
 
-    vm.clearFilters = function() {
+    vm.clearFilters = function () {
       vm.createFilterModel();
       vm.createFilterFields();
       vm.submitAdvancedFilters();
     };
 
     //Toggle visibility of advanced filters
-    vm.toggleAdvancedFilters = function() {
+    vm.toggleAdvancedFilters = function () {
       if (vm.showAdvancedFilters) {
         vm.showAdvancedFilters = false;
       } else {
@@ -74,7 +74,7 @@ export default class AdvancedFilterCtrl {
         vm.showAdvancedFilters = true;
       }
       if (vm.showAdvancedFilters) {
-        $window.onclick = function(event) {
+        $window.onclick = function (event) {
           const clickedElement = $(event.target);
           if (!clickedElement) return;
           const elementClasses = event.target.classList;
@@ -99,7 +99,7 @@ export default class AdvancedFilterCtrl {
       }
     };
 
-    vm.filterActive = function() {
+    vm.filterActive = function () {
       let temp = false;
       for (const key in vm.activeModel) {
         if (
@@ -114,7 +114,7 @@ export default class AdvancedFilterCtrl {
       return temp;
     };
 
-    vm.submitAdvancedFilters = function() {
+    vm.submitAdvancedFilters = function () {
       if (vm.filterForm.$invalid) {
         vm.filterForm.$setSubmitted();
         return;

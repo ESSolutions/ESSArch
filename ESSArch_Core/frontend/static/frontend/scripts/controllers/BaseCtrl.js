@@ -99,13 +99,13 @@ export default class BaseCtrl {
       workarea: 'workspace/workspace.html',
       createDip: 'access/dissemination.html',
     };
-    vm.getStateDocPage = function() {
+    vm.getStateDocPage = function () {
       const page = $state.current.name.split('.').pop();
       return docStateMap[page];
     };
 
     //Request form data
-    $scope.initRequestData = function() {
+    $scope.initRequestData = function () {
       vm.request = {
         type: '',
         purpose: '',
@@ -122,19 +122,19 @@ export default class BaseCtrl {
       if ($stateParams.id) {
         let promise;
         if ($state.is('home.access.orders')) {
-          promise = $http.get(appConfig.djangoUrl + 'orders/' + $stateParams.id + '/').then(response => {
+          promise = $http.get(appConfig.djangoUrl + 'orders/' + $stateParams.id + '/').then((response) => {
             return response.data;
           });
         } else if ($state.is('home.workarea')) {
-          promise = $http.get(appConfig.djangoUrl + 'workareas/' + $stateParams.id + '/').then(response => {
+          promise = $http.get(appConfig.djangoUrl + 'workareas/' + $stateParams.id + '/').then((response) => {
             return response.data;
           });
         } else if ($state.is('home.ingest.reception')) {
-          promise = $http.get(appConfig.djangoUrl + 'ip-reception/' + $stateParams.id + '/').then(response => {
+          promise = $http.get(appConfig.djangoUrl + 'ip-reception/' + $stateParams.id + '/').then((response) => {
             return response.data;
           });
         } else {
-          promise = listViewService.getIp($stateParams.id).then(ip => {
+          promise = listViewService.getIp($stateParams.id).then((ip) => {
             if (
               ipSortString.includes(ip.state) ||
               ($state.includes('home.access.createDip') && ip.package_type === 4)
@@ -146,7 +146,7 @@ export default class BaseCtrl {
           });
         }
         promise
-          .then(ip => {
+          .then((ip) => {
             vm.initialSearch = angular.copy($stateParams.id);
             $scope.ipTableClick(ip, {}, {noStateChange: true});
 
@@ -167,11 +167,11 @@ export default class BaseCtrl {
 
     watchers.push(
       $scope.$watch(
-        function() {
+        function () {
           return $scope.ips.length;
         },
-        function(newVal) {
-          $timeout(function() {
+        function (newVal) {
+          $timeout(function () {
             if ($scope.ip !== null) {
               vm.specificTabs = ContentTabs.visible([$scope.ip], $state.current.name);
             } else {
@@ -190,12 +190,12 @@ export default class BaseCtrl {
 
     watchers.push(
       $scope.$watch(
-        function() {
+        function () {
           return $scope.ip === null ? null : $scope.ip.id;
         },
-        function(newVal) {
+        function (newVal) {
           if (newVal !== null) {
-            $timeout(function() {
+            $timeout(function () {
               vm.specificTabs = ContentTabs.visible([$scope.ip], $state.current.name);
               if (vm.specificTabs.length > 0) {
                 vm.activeTab = vm.specificTabs[0];
@@ -217,10 +217,10 @@ export default class BaseCtrl {
 
     //Cancel update intervals on state change
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
           $interval.cancel(listViewInterval);
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
@@ -234,7 +234,7 @@ export default class BaseCtrl {
       })
     );
 
-    $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
       $scope.getListViewData();
     });
 
@@ -243,11 +243,11 @@ export default class BaseCtrl {
     //Update ip list view with an interval
     //Update only if status < 100 and no step has failed in any IP
     let listViewInterval;
-    vm.updateListViewConditional = function() {
+    vm.updateListViewConditional = function () {
       $interval.cancel(listViewInterval);
-      listViewInterval = $interval(function() {
+      listViewInterval = $interval(function () {
         let updateVar = false;
-        vm.displayedIps.forEach(function(ip, idx) {
+        vm.displayedIps.forEach(function (ip, idx) {
           if (ip.status < 100) {
             if (ip.step_state != 'FAILURE') {
               updateVar = true;
@@ -258,9 +258,9 @@ export default class BaseCtrl {
           $scope.getListViewData();
         } else {
           $interval.cancel(listViewInterval);
-          listViewInterval = $interval(function() {
+          listViewInterval = $interval(function () {
             let updateVar = false;
-            vm.displayedIps.forEach(function(ip, idx) {
+            vm.displayedIps.forEach(function (ip, idx) {
               if (ip.status < 100) {
                 if (ip.step_state != 'FAILURE') {
                   updateVar = true;
@@ -318,7 +318,7 @@ export default class BaseCtrl {
           vm.archived,
           vm.workarea
         )
-          .then(function(result) {
+          .then(function (result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
@@ -326,7 +326,7 @@ export default class BaseCtrl {
             ipExists();
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -339,7 +339,7 @@ export default class BaseCtrl {
                 filters.workarea = vm.workarea;
               }
 
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
@@ -349,12 +349,12 @@ export default class BaseCtrl {
       }
     };
 
-    vm.sa_locked = function() {
+    vm.sa_locked = function () {
       if ($scope.ip !== null && $scope.ips.length == 0) {
         return $scope.ip.submission_agreement_locked;
       } else {
         let allLocked = true;
-        $scope.ips.forEach(function(ip) {
+        $scope.ips.forEach(function (ip) {
           if (!ip.submission_agreement_locked) {
             allLocked = false;
           }
@@ -366,11 +366,11 @@ export default class BaseCtrl {
     function ipExists() {
       if ($scope.ip != null) {
         let temp = false;
-        vm.displayedIps.forEach(function(aic) {
+        vm.displayedIps.forEach(function (aic) {
           if ($scope.ip.id == aic.id) {
             temp = true;
           } else {
-            aic.information_packages.forEach(function(ip) {
+            aic.information_packages.forEach(function (ip) {
               if ($scope.ip.id == ip.id) {
                 temp = true;
               }
@@ -389,7 +389,7 @@ export default class BaseCtrl {
     }
 
     //Get data for list view
-    $scope.getListViewData = function() {
+    $scope.getListViewData = function () {
       vm.callServer($scope.tableState);
       $rootScope.$broadcast('load_tags', {});
     };
@@ -400,7 +400,7 @@ export default class BaseCtrl {
       let inChildren = false;
       let parent = null;
       if ($scope.ip) {
-        vm.displayedIps.forEach(function(ip, idx, array) {
+        vm.displayedIps.forEach(function (ip, idx, array) {
           if ($scope.ip.id === ip.id) {
             index = idx + 1;
           }
@@ -410,7 +410,7 @@ export default class BaseCtrl {
               parent = ip;
               index = 0;
             }
-            ip.information_packages.forEach(function(child, i, arr) {
+            ip.information_packages.forEach(function (child, i, arr) {
               if ($scope.ip.id === child.id) {
                 if (i == arr.length - 1) {
                   index = idx + 1;
@@ -435,7 +435,7 @@ export default class BaseCtrl {
       let index = vm.displayedIps.length - 1;
       let parent = null;
       if ($scope.ip) {
-        vm.displayedIps.forEach(function(ip, idx, array) {
+        vm.displayedIps.forEach(function (ip, idx, array) {
           if ($scope.ip.id === ip.id) {
             index = idx - 1;
           }
@@ -444,7 +444,7 @@ export default class BaseCtrl {
               parent = array[idx - 1];
               index = parent.information_packages.length - 1;
             } else {
-              ip.information_packages.forEach(function(child, i, arr) {
+              ip.information_packages.forEach(function (child, i, arr) {
                 if ($scope.ip.id === child.id) {
                   if (i === 0) {
                     index = idx;
@@ -491,7 +491,7 @@ export default class BaseCtrl {
      * Handle keydown events in list view
      * @param {Event} e
      */
-    vm.ipListKeydownListener = function(e) {
+    vm.ipListKeydownListener = function (e) {
       switch (e.keyCode) {
         case arrowDown:
           e.preventDefault();
@@ -538,7 +538,7 @@ export default class BaseCtrl {
      * Handle keydown events in views outside list view
      * @param {Event} e
      */
-    vm.contentViewsKeydownListener = function(e) {
+    vm.contentViewsKeydownListener = function (e) {
       switch (e.keyCode) {
         case escape:
           if ($scope.ip) {
@@ -553,17 +553,6 @@ export default class BaseCtrl {
 
     vm.validatorModel = {};
     vm.validatorFields = [
-      {
-        templateOptions: {
-          label: $translate.instant('VALIDATEFILEFORMAT'),
-        },
-        defaultValue: true,
-        type: 'checkbox',
-        ngModelElAttrs: {
-          tabindex: '-1',
-        },
-        key: 'validate_file_format',
-      },
       {
         templateOptions: {
           label: $translate.instant('VALIDATEXMLFILE'),
@@ -586,23 +575,12 @@ export default class BaseCtrl {
         },
         key: 'validate_logical_physical_representation',
       },
-      {
-        templateOptions: {
-          label: $translate.instant('VALIDATEINTEGRITY'),
-        },
-        defaultValue: true,
-        type: 'checkbox',
-        ngModelElAttrs: {
-          tabindex: '-1',
-        },
-        key: 'validate_integrity',
-      },
     ];
 
     // File conversion
 
     vm.fileConversionModel = {};
-    $translate(['YES', 'NO']).then(function(translations) {
+    $translate(['YES', 'NO']).then(function (translations) {
       vm.fileConversionFields = [
         {
           templateOptions: {
@@ -624,7 +602,7 @@ export default class BaseCtrl {
     });
 
     // Requests
-    $scope.submitRequest = function(ip, request) {
+    $scope.submitRequest = function (ip, request) {
       switch (request.type) {
         case 'preserve':
           if ($scope.ips.length > 0) {
@@ -676,7 +654,7 @@ export default class BaseCtrl {
       }
     };
 
-    vm.preserveModal = function(ip, request) {
+    vm.preserveModal = function (ip, request) {
       let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
@@ -690,7 +668,7 @@ export default class BaseCtrl {
         controllerAs: 'vm',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ip,
               ips: ips,
@@ -700,20 +678,20 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.ips = [];
           $scope.initRequestData();
           $scope.getListViewData();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.transferModal = ips => {
+    vm.transferModal = (ips) => {
       if (ips.length === 0 && $scope.ip) {
         ips = [$scope.ip];
       }
@@ -741,7 +719,7 @@ export default class BaseCtrl {
         });
     };
 
-    vm.accessModal = function(ip, request) {
+    vm.accessModal = function (ip, request) {
       let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
@@ -754,7 +732,7 @@ export default class BaseCtrl {
         controller: 'AccessModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ip,
               ips: ips,
@@ -764,22 +742,22 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.ips = [];
           $scope.initRequestData();
-          $timeout(function() {
+          $timeout(function () {
             $scope.getListViewData();
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.moveToApprovalModal = function(ip, request) {
+    vm.moveToApprovalModal = function (ip, request) {
       let ips = null;
       if (Array.isArray(ip)) {
         ips = ip;
@@ -792,7 +770,7 @@ export default class BaseCtrl {
         controller: 'MoveToApprovalModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ip,
               ips: ips,
@@ -802,24 +780,24 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ip = null;
           $scope.ips = [];
           $rootScope.ip = null;
           $scope.initRequestData();
-          $timeout(function() {
+          $timeout(function () {
             vm.submittingRequest = false;
             $scope.getListViewData();
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
     // Preserve IP
-    $scope.preserveIp = function(ip, request) {
+    $scope.preserveIp = function (ip, request) {
       vm.submittingRequest = true;
       const params = {purpose: request.purpose};
       params.policy =
@@ -827,7 +805,7 @@ export default class BaseCtrl {
       if (request.appraisal_date != null) {
         params.appraisal_date = request.appraisal_date;
       }
-      Requests.preserve(ip, params).then(function(result) {
+      Requests.preserve(ip, params).then(function (result) {
         $scope.requestForm = false;
         $scope.eventlog = false;
         $scope.requestEventlog = false;
@@ -840,7 +818,7 @@ export default class BaseCtrl {
       });
     };
 
-    $scope.accessIp = function(ip, request) {
+    $scope.accessIp = function (ip, request) {
       vm.submittingRequest = true;
       const data = {
         purpose: request.purpose,
@@ -850,7 +828,7 @@ export default class BaseCtrl {
         package_xml: request.package_xml,
         aic_xml: request.aic_xml,
       };
-      Requests.access(ip, data).then(function(response) {
+      Requests.access(ip, data).then(function (response) {
         $scope.requestForm = false;
         $scope.eventlog = false;
         $scope.requestEventlog = false;
@@ -861,7 +839,7 @@ export default class BaseCtrl {
         $scope.statusShow = false;
         vm.submittingRequest = false;
         $scope.initRequestData();
-        $timeout(function() {
+        $timeout(function () {
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.getListViewData();
@@ -869,10 +847,10 @@ export default class BaseCtrl {
       });
     };
 
-    $scope.moveToApproval = function(ip, request) {
+    $scope.moveToApproval = function (ip, request) {
       vm.submittingRequest = true;
       const data = {purpose: request.purpose};
-      Requests.moveToApproval(ip, data).then(function(response) {
+      Requests.moveToApproval(ip, data).then(function (response) {
         $scope.requestForm = false;
         $scope.eventlog = false;
         $scope.requestEventlog = false;
@@ -883,7 +861,7 @@ export default class BaseCtrl {
         $scope.eventShow = false;
         $scope.statusShow = false;
         $scope.initRequestData();
-        $timeout(function() {
+        $timeout(function () {
           vm.submittingRequest = false;
           $scope.ip = null;
           $rootScope.ip = null;
@@ -895,7 +873,7 @@ export default class BaseCtrl {
     // Click functionality
 
     //Click function for Ip table
-    $scope.ipTableClick = function(row, event, options) {
+    $scope.ipTableClick = function (row, event, options) {
       if (event && event.shiftKey) {
         vm.shiftClickrow(row);
       } else if (event && event.ctrlKey) {
@@ -908,9 +886,9 @@ export default class BaseCtrl {
       }
     };
 
-    vm.shiftClickrow = function(row) {
+    vm.shiftClickrow = function (row) {
       const index = vm.displayedIps
-        .map(function(ip) {
+        .map(function (ip) {
           return ip.id;
         })
         .indexOf(row.id);
@@ -925,7 +903,7 @@ export default class BaseCtrl {
       const lastIndex =
         last != null
           ? vm.displayedIps
-              .map(function(ip) {
+              .map(function (ip) {
                 return ip.id;
               })
               .indexOf(last)
@@ -948,7 +926,7 @@ export default class BaseCtrl {
       $scope.statusShow = false;
     };
 
-    vm.ctrlClickRow = function(row) {
+    vm.ctrlClickRow = function (row) {
       if (row.package_type != 1) {
         if ($scope.ip != null) {
           $scope.ips.push($scope.ip);
@@ -959,7 +937,7 @@ export default class BaseCtrl {
         $scope.statusShow = false;
         $scope.filebrowser = false;
         let deleted = false;
-        $scope.ips.forEach(function(ip, idx, array) {
+        $scope.ips.forEach(function (ip, idx, array) {
           if (!deleted && ip.object_identifier_value == row.object_identifier_value) {
             array.splice(idx, 1);
             deleted = true;
@@ -985,7 +963,7 @@ export default class BaseCtrl {
       $scope.statusShow = false;
     };
 
-    vm.selectSingleRow = function(row, options) {
+    vm.selectSingleRow = function (row, options) {
       if (row.package_type == 1) {
         $scope.select = false;
         $scope.eventlog = false;
@@ -1047,9 +1025,9 @@ export default class BaseCtrl {
       $scope.statusShow = false;
     };
 
-    $scope.selectedAmongOthers = function(id) {
+    $scope.selectedAmongOthers = function (id) {
       let exists = false;
-      $scope.ips.forEach(function(ip) {
+      $scope.ips.forEach(function (ip) {
         if (ip.id == id) {
           exists = true;
         }
@@ -1057,18 +1035,18 @@ export default class BaseCtrl {
       return exists;
     };
 
-    vm.selectAll = function() {
+    vm.selectAll = function () {
       $scope.ips = [];
-      vm.displayedIps.forEach(function(ip) {
+      vm.displayedIps.forEach(function (ip) {
         vm.ctrlClickRow(ip);
         if (ip.information_packages && ip.information_packages.length > 0 && !ip.collapsed) {
-          ip.information_packages.forEach(function(subIp) {
+          ip.information_packages.forEach(function (subIp) {
             vm.ctrlClickRow(subIp);
           });
         }
       });
     };
-    vm.deselectAll = function() {
+    vm.deselectAll = function () {
       $scope.ips = [];
       $scope.ip = null;
       $rootScope.ip = null;
@@ -1077,12 +1055,12 @@ export default class BaseCtrl {
     // Basic functions
 
     //Adds a new event to the database
-    $scope.addEvent = function(ip, eventType, eventDetail) {
-      listViewService.addEvent(ip, eventType, eventDetail).then(function(value) {});
+    $scope.addEvent = function (ip, eventType, eventDetail) {
+      listViewService.addEvent(ip, eventType, eventDetail).then(function (value) {});
     };
 
     //Functions for extended filters
-    $scope.searchDisabled = function() {
+    $scope.searchDisabled = function () {
       if ($scope.filterModels.length > 0) {
         if ($scope.filterModels[0].column != null) {
           delete $scope.tableState.search.predicateObject;
@@ -1092,12 +1070,12 @@ export default class BaseCtrl {
         return false;
       }
     };
-    vm.clearFilters = function() {
+    vm.clearFilters = function () {
       vm.createFilterFields();
       $scope.submitAdvancedFilters();
     };
 
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
       $scope.getListViewData();
@@ -1112,12 +1090,12 @@ export default class BaseCtrl {
 
     // AIC's
     $scope.expandedAics = [];
-    $scope.expandAic = function(row) {
+    $scope.expandAic = function (row) {
       row.collapsed = !row.collapsed;
       if (!row.collapsed) {
         $scope.expandedAics.push(row.object_identifier_value);
       } else {
-        $scope.expandedAics.forEach(function(aic, index, array) {
+        $scope.expandedAics.forEach(function (aic, index, array) {
           if (aic == row.object_identifier_value) {
             $scope.expandedAics.splice(index, 1);
           }
@@ -1126,17 +1104,17 @@ export default class BaseCtrl {
     };
 
     // Expand all IP's
-    vm.expandAll = function() {
-      vm.displayedIps.forEach(function(ip) {
+    vm.expandAll = function () {
+      vm.displayedIps.forEach(function (ip) {
         ip.collapsed = false;
         $scope.expandedAics.push(ip.object_identifier_value);
       });
     };
 
-    vm.collapseAll = function() {
-      vm.displayedIps.forEach(function(ip) {
+    vm.collapseAll = function () {
+      vm.displayedIps.forEach(function (ip) {
         ip.collapsed = true;
-        $scope.expandedAics.forEach(function(aic, index, array) {
+        $scope.expandedAics.forEach(function (aic, index, array) {
           if (aic == ip.object_identifier_value) {
             $scope.expandedAics.splice(index, 1);
           }
@@ -1144,10 +1122,10 @@ export default class BaseCtrl {
       });
     };
 
-    vm.expandAllVisible = function() {
+    vm.expandAllVisible = function () {
       let visible = false;
       let expand = true;
-      vm.displayedIps.forEach(function(ip) {
+      vm.displayedIps.forEach(function (ip) {
         if (ip.information_packages && ip.information_packages.length) {
           visible = true;
           if (ip.collapsed == false) {
@@ -1159,7 +1137,7 @@ export default class BaseCtrl {
       return visible;
     };
     // Remove ip
-    $scope.ipRemoved = function(ipObject) {
+    $scope.ipRemoved = function (ipObject) {
       $scope.edit = false;
       $scope.select = false;
       $scope.eventlog = false;
@@ -1174,13 +1152,13 @@ export default class BaseCtrl {
     };
 
     //Get data for eventlog view
-    vm.getEventlogData = function() {
-      listViewService.getEventlogData().then(function(value) {
+    vm.getEventlogData = function () {
+      listViewService.getEventlogData().then(function (value) {
         $scope.eventTypeCollection = value;
       });
     };
 
-    $scope.updateIpsPerPage = function(items) {
+    $scope.updateIpsPerPage = function (items) {
       if (typeof items === 'number') {
         $cookies.put('essarch-ips-per-page', items);
       }
@@ -1188,10 +1166,10 @@ export default class BaseCtrl {
 
     $scope.menuOptions = [];
 
-    $scope.checkPermission = function(permissionName) {
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
-    $scope.extendedEqual = function(specification_data, model) {
+    $scope.extendedEqual = function (specification_data, model) {
       let returnValue = true;
       for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
@@ -1205,10 +1183,10 @@ export default class BaseCtrl {
       }
     };
 
-    vm.multipleIpResponsible = function() {
+    vm.multipleIpResponsible = function () {
       if ($scope.ips.length > 0) {
         var responsible = true;
-        $scope.ips.forEach(function(ip) {
+        $scope.ips.forEach(function (ip) {
           if (ip.responsible.id !== $rootScope.auth.id) {
             responsible = false;
           }
@@ -1220,11 +1198,11 @@ export default class BaseCtrl {
     };
 
     vm.allIncludedWithState = (list, state) => {
-      return list.filter(x => x.state === state).length === list.length;
+      return list.filter((x) => x.state === state).length === list.length;
     };
 
     //Create and show modal for remove ip
-    $scope.removeIpModal = function(ipObject) {
+    $scope.removeIpModal = function (ipObject) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1233,7 +1211,7 @@ export default class BaseCtrl {
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ipObject,
               workarea: $state.includes('**.workarea.**'),
@@ -1242,18 +1220,18 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ips = [];
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.ipRemoved(ipObject);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.ipInformationModal = function(ip) {
+    vm.ipInformationModal = function (ip) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1263,7 +1241,7 @@ export default class BaseCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ip,
             };
@@ -1271,14 +1249,14 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.changeOrganizationModal = function(ip) {
+    vm.changeOrganizationModal = function (ip) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1288,7 +1266,7 @@ export default class BaseCtrl {
         controllerAs: '$ctrl',
         size: 'md',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ip,
             };
@@ -1296,15 +1274,15 @@ export default class BaseCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {
+        .then(function (data) {
           $scope.getListViewData();
         })
-        .catch(function() {
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };
 
-    vm.downloadOrderModal = function(order) {
+    vm.downloadOrderModal = function (order) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1313,7 +1291,7 @@ export default class BaseCtrl {
         controller: 'OrderModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               order: order,
               allow_close: true,
@@ -1321,12 +1299,12 @@ export default class BaseCtrl {
           },
         },
       });
-      modalInstance.result.catch(function() {
+      modalInstance.result.catch(function () {
         $log.info('modal-component dismissed at: ' + new Date());
       });
     };
 
-    vm.downloadDipModal = function(ip) {
+    vm.downloadDipModal = function (ip) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1335,7 +1313,7 @@ export default class BaseCtrl {
         controller: 'DownloadDipModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip,
               allow_close: true,
@@ -1343,7 +1321,7 @@ export default class BaseCtrl {
           },
         },
       });
-      modalInstance.result.catch(function() {
+      modalInstance.result.catch(function () {
         $log.info('modal-component dismissed at: ' + new Date());
       });
     };
@@ -1353,7 +1331,7 @@ export default class BaseCtrl {
     $scope.options = {};
 
     //Toggle visibility of advanced filters
-    $scope.toggleAdvancedFilters = function() {
+    $scope.toggleAdvancedFilters = function () {
       if ($scope.showAdvancedFilters) {
         $scope.showAdvancedFilters = false;
       } else {
@@ -1363,7 +1341,7 @@ export default class BaseCtrl {
         $scope.showAdvancedFilters = true;
       }
       if ($scope.showAdvancedFilters) {
-        $window.onclick = function(event) {
+        $window.onclick = function (event) {
           const clickedElement = $(event.target);
           if (!clickedElement) return;
           const elementClasses = event.target.classList;
@@ -1388,7 +1366,7 @@ export default class BaseCtrl {
       }
     };
 
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
       $scope.getListViewData();
@@ -1396,13 +1374,13 @@ export default class BaseCtrl {
 
     // Click function for request form submit.
     // Replaced form="vm.requestForm" to work in IE
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       if (vm.requestForm.$valid) {
         $scope.submitRequest($scope.ip, vm.request);
       }
     };
 
-    vm.canDeleteIP = function(row) {
+    vm.canDeleteIP = function (row) {
       // IPs in workareas can always be deleted, including AICs
       if ($state.is('home.workarea')) {
         return true;

@@ -408,7 +408,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             children = TagVersion.objects.none()
 
         context = {'structure': structure, 'request': request, 'user': request.user}
-        children = children.for_user(request.user)
+        children = children.for_user(request.user).natural_sort()
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
@@ -427,7 +427,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'structure', 'type__structure_type',
         ).prefetch_related(
             'identifiers', 'notes', 'structure_unit_relations_a',
-        )
+        ).natural_sort()
 
         serializer = self.get_serializer_class()
         context = {

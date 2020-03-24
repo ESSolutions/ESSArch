@@ -30,13 +30,13 @@ const requests = (Notifications, IP, Workarea, $state) => {
     } else {
       promise = IP.preserve(angular.extend(request, {id: ip.id})).$promise;
     }
-    return promise.then(function(response) {
+    return promise.then(function (response) {
       Notifications.add(response.detail, 'success', 3000);
       return response;
     });
   }
   function access(ip, data) {
-    return IP.access(angular.extend(data, {id: ip.id})).$promise.then(function(response) {
+    return IP.access(angular.extend(data, {id: ip.id})).$promise.then(function (response) {
       Notifications.add(response.detail, 'success', 3000);
       return response;
     });
@@ -48,7 +48,7 @@ const requests = (Notifications, IP, Workarea, $state) => {
     } else {
       promise = IP.moveToApproval(angular.extend(data, {id: ip.id})).$promise;
     }
-    return promise.then(function(response) {
+    return promise.then(function (response) {
       Notifications.add(response.detail, 'success', 3000);
       return response;
     });

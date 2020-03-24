@@ -7,7 +7,7 @@ export default class AppCtrl {
     const questionMark = 187;
     let questionMarkModalOpen = false;
     $scope.isEnabled = isEnabled;
-    vm.questionMarkListener = function(e) {
+    vm.questionMarkListener = function (e) {
       if (e.shiftKey) {
         $('#list-view *').attr('UNSELECTABLE', 'on');
         $('#list-view').css({
@@ -27,7 +27,7 @@ export default class AppCtrl {
       }
     };
 
-    vm.keyUpListener = function(e) {
+    vm.keyUpListener = function (e) {
       if (e.keyCode == 16) {
         $('#list-view *').attr('UNSELECTABLE', 'off');
         $('#list-view').css({
@@ -41,12 +41,12 @@ export default class AppCtrl {
       }
     };
 
-    $scope.checkPermission = function(permissionName) {
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
 
     //Create and show modal for keyboard shortcuts
-    $scope.keyboardShortcutModal = function() {
+    $scope.keyboardShortcutModal = function () {
       questionMarkModalOpen = true;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -62,16 +62,16 @@ export default class AppCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           questionMarkModalOpen = false;
         },
-        function() {
+        function () {
           questionMarkModalOpen = false;
         }
       );
     };
 
-    $rootScope.mapStepStateProgress = function(row) {
+    $rootScope.mapStepStateProgress = function (row) {
       const property = angular.isUndefined(row.step_state) ? 'status' : 'step_state';
       switch (row[property]) {
         case 'SUCCESS':

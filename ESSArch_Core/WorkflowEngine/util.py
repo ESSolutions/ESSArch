@@ -55,6 +55,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
             child_s = ProcessStep.objects.create(
                 name=flow_entry['name'],
+                parallel=flow_entry.get('parallel', False),
                 parent_step=parent_step,
                 parent_step_pos=e_idx,
                 eager=parent_step.eager,

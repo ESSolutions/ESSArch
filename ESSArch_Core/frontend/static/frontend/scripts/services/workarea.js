@@ -7,7 +7,7 @@ export const workarea = ($resource, appConfig, Task, Step, Event) => {
         method: 'GET',
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -31,8 +31,8 @@ export const workarea = ($resource, appConfig, Task, Step, Event) => {
         params: {action: 'workflow', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource = response.resource.map(function(res) {
+          response: function (response) {
+            response.resource = response.resource.map(function (res) {
               return res.flow_type === 'task' ? new Task(res) : new Step(res);
             });
             response.resource.$httpHeaders = response.headers;
@@ -45,8 +45,8 @@ export const workarea = ($resource, appConfig, Task, Step, Event) => {
         params: {action: 'events', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource.forEach(function(res, idx, array) {
+          response: function (response) {
+            response.resource.forEach(function (res, idx, array) {
               array[idx] = new Event(res);
             });
             response.resource.$httpHeaders = response.headers;

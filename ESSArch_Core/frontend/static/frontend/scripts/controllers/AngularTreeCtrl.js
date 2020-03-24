@@ -40,12 +40,12 @@ export default class AngularTreeCtrl {
     };
     //TAGS
     $scope.tags = [];
-    $rootScope.loadTags = function() {
+    $rootScope.loadTags = function () {
       Tag.query({
         only_roots: true,
-      }).$promise.then(function(data) {
-        data.forEach(function(tag, index, array) {
-          $scope.expandedNodes.forEach(function(node) {
+      }).$promise.then(function (data) {
+        data.forEach(function (tag, index, array) {
+          $scope.expandedNodes.forEach(function (node) {
             if (tag.id == node.id) {
               $scope.onNodeToggle(tag);
             }
@@ -55,18 +55,18 @@ export default class AngularTreeCtrl {
       });
     };
     $rootScope.loadTags();
-    $scope.$on('load_tags', function() {
+    $scope.$on('load_tags', function () {
       $rootScope.loadTags();
     });
-    $scope.onNodeToggle = function(node) {
-      node.children.forEach(function(child, index, array) {
-        child.$get().then(function(data) {
+    $scope.onNodeToggle = function (node) {
+      node.children.forEach(function (child, index, array) {
+        child.$get().then(function (data) {
           array[index] = data;
         });
       });
     };
     $rootScope.selectedTag = null;
-    $scope.showSelectedNode = function(node) {
+    $scope.showSelectedNode = function (node) {
       if ($rootScope.selectedTag && $rootScope.selectedTag.id === node.id) {
         $rootScope.selectedTag = null;
       } else {
@@ -74,19 +74,19 @@ export default class AngularTreeCtrl {
       }
     };
     // Remove given node
-    $scope.removeNode = function(node) {
+    $scope.removeNode = function (node) {
       if (node.parentNode == null) {
-        $scope.tags.forEach(function(element) {
+        $scope.tags.forEach(function (element) {
           if (element.name == node.node.name) {
-            element.$delete().then(function(response) {
+            element.$delete().then(function (response) {
               $rootScope.loadTags();
             });
           }
         });
       } else {
-        node.parentNode.children.forEach(function(element) {
+        node.parentNode.children.forEach(function (element) {
           if (element.name == node.node.name) {
-            element.$delete().then(function(response) {
+            element.$delete().then(function (response) {
               $rootScope.loadTags();
             });
           }
@@ -94,7 +94,7 @@ export default class AngularTreeCtrl {
       }
     };
     //Update current node variable with selected node in map structure tree view
-    $scope.updateCurrentNode = function(node, selected, parentNode) {
+    $scope.updateCurrentNode = function (node, selected, parentNode) {
       if (selected) {
         $scope.currentNode = {node: node, parentNode: parentNode};
       } else {
@@ -102,29 +102,29 @@ export default class AngularTreeCtrl {
       }
     };
     //context menu data
-    $scope.navMenuOptions = function(item) {
+    $scope.navMenuOptions = function (item) {
       return [
         [
           $translate.instant('ADD'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.addTagModal($itemScope.node, true);
           },
         ],
       ];
     };
     //context menu data
-    $scope.navMenuItemOptions = function(item) {
+    $scope.navMenuItemOptions = function (item) {
       return [
         [
           $translate.instant('ADD'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.addTagModal($itemScope.node, false);
           },
         ],
 
         [
           $translate.instant('REMOVE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.updateCurrentNode($itemScope.node, true, $itemScope.$parentNode);
             $scope.removeNode($scope.currentNode);
             $scope.selectedNode = null;
@@ -132,20 +132,20 @@ export default class AngularTreeCtrl {
         ],
         [
           $translate.instant('UPDATE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.tagPropertiesModal($itemScope.node);
           },
         ],
         [
           $translate.instant('APPRAISAL'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $state.go('home.appraisal', {tag: $itemScope.node});
           },
         ],
       ];
     };
     // open modal for add tag
-    $scope.addTagModal = function(tag, isRoot) {
+    $scope.addTagModal = function (tag, isRoot) {
       if (isRoot) {
         $scope.parentTag = null;
       } else {
@@ -164,30 +164,30 @@ export default class AngularTreeCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.addTag(tag, data, isRoot);
           $scope.parentTag = null;
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
     // Add new tag
-    $scope.addTag = function(tag, data, isRoot) {
+    $scope.addTag = function (tag, data, isRoot) {
       isRoot ? (data.parent = null) : (data.parent = tag.url);
       data.information_packages = [];
       if (isRoot) {
-        Tag.save(data).$promise.then(function(response) {
+        Tag.save(data).$promise.then(function (response) {
           $rootScope.loadTags();
         });
       } else {
-        Tag.save(data).$promise.then(function(response) {
+        Tag.save(data).$promise.then(function (response) {
           $rootScope.loadTags();
         });
       }
     };
-    $scope.tagPropertiesModal = function(tag) {
+    $scope.tagPropertiesModal = function (tag) {
       $scope.displayedTag = tag;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -202,15 +202,15 @@ export default class AngularTreeCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.updateTag(tag, data);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    $scope.updateTag = function(tag, data) {
+    $scope.updateTag = function (tag, data) {
       Tag.update(
         angular.extend(
           {
@@ -218,7 +218,7 @@ export default class AngularTreeCtrl {
           },
           data
         )
-      ).$promise.then(function(response) {
+      ).$promise.then(function (response) {
         $rootScope.loadTags();
       });
     };
