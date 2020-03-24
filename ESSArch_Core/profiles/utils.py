@@ -1,6 +1,7 @@
 import collections
 import os
 from collections.abc import Mapping
+from pathlib import PurePath
 
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -156,8 +157,8 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         try:
             structure = ip.get_structure()
             content_dir, content_name = find_destination('content', structure)
-            data['_CONTENTPATH'] = os.path.join(ip.object_path, content_dir, content_name)
-        except ProfileIP.DoesNotExist:
+            data['_CONTENTPATH'] = PurePath(ip.object_path).joinpath(content_dir, content_name).as_posix()
+        except (ProfileIP.DoesNotExist, TypeError):
             data['_CONTENTPATH'] = ip.object_path
 
         data['_INNER_IP_OBJID'] = ip.sip_objid
