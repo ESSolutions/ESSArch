@@ -3,10 +3,10 @@ export default class StructureVersionModalInstanceCtrl {
     const $ctrl = this;
     $ctrl.data = {};
     $ctrl.fields = [];
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $ctrl.buildForm();
     };
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           key: 'version_name',
@@ -19,7 +19,7 @@ export default class StructureVersionModalInstanceCtrl {
       ];
     };
 
-    $ctrl.createNewVersion = function() {
+    $ctrl.createNewVersion = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -27,16 +27,16 @@ export default class StructureVersionModalInstanceCtrl {
       $ctrl.creating = true;
       $http
         .post(appConfig.djangoUrl + 'structures/' + data.structure.id + '/new-version/', $ctrl.data)
-        .then(function(response) {
+        .then(function (response) {
           Notifications.add($translate.instant('ACCESS.NEW_VERSION_CREATED'), 'success');
           $ctrl.creating = false;
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.creating = false;
         });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

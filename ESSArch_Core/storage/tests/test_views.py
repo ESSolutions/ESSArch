@@ -37,6 +37,72 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 User = get_user_model()
 
 
+class StorageMediumListTests(APITestCase):
+    def setUp(self):
+        user = User.objects.create(username='user')
+        self.client = APIClient()
+        self.client.force_authenticate(user=user)
+        self.url = reverse('storagemedium-list')
+
+    def test_sort_medium_id(self):
+        storage_target = StorageTarget.objects.create()
+
+        medium_ids = [
+            'BA 100',
+            'ABC',
+            'X 1',
+            'BA 1001',
+            'XY 1',
+            'XYZ 1',
+            'BA 1',
+            'BA 10',
+            'BA 2',
+            'BA 1002',
+            'BA 1000',
+            'BA 003',
+            'QWE1',
+            'QWE10',
+            'QWE2',
+            'A B 2',
+            'A B 10',
+            'DEF',
+            'A B 1',
+        ]
+
+        for mid in medium_ids:
+            StorageMedium.objects.create(
+                medium_id=mid, storage_target=storage_target,
+                status=20, location_status=50, block_size=1024, format=103,
+            )
+
+        res = self.client.get(self.url, {'ordering': 'medium_id', 'pager': 'none'})
+
+        expected = [
+            'ABC',
+            'DEF',
+            'QWE1',
+            'QWE2',
+            'QWE10',
+            'A B 1',
+            'A B 2',
+            'A B 10',
+            'BA 1',
+            'BA 2',
+            'BA 003',
+            'BA 10',
+            'BA 100',
+            'BA 1000',
+            'BA 1001',
+            'BA 1002',
+            'X 1',
+            'XY 1',
+            'XYZ 1',
+        ]
+        actual = [sm['medium_id'] for sm in res.data]
+
+        self.assertEqual(expected, actual)
+
+
 class StorageMediumDeactivatableTests(TestCase):
     @classmethod
     def setUpTestData(cls):

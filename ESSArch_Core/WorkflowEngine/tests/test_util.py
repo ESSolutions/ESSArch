@@ -51,25 +51,50 @@ class CreateWorkflowTestCase(TestCase):
                         "params": {'b': 'a'}
                     }
                 ]
+            },
+            {
+                "step": True,
+                "name": "Parallel step",
+                "parallel": True,
+                "children": [
+                    {
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.First",
+                        "label": "Parallel Foo Bar Task",
+                        "args": [1, 2, 3],
+                        "params": {'a': 'b'}
+                    },
+                    {
+                        "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
+                        "label": "Parallel Foo Bar Task2",
+                        "args": [3, 2, 1],
+                        "params": {'b': 'a'}
+                    }
+                ]
             }
         ]
 
         root_step = create_workflow(spec)
 
-        self.assertEqual(ProcessStep.objects.count(), 2)
-        self.assertEqual(ProcessTask.objects.count(), 2)
+        self.assertEqual(ProcessStep.objects.count(), 3)
+        self.assertEqual(ProcessTask.objects.count(), 4)
 
         self.assertEqual(root_step.tasks.count(), 0)
-        self.assertEqual(root_step.child_steps.count(), 1)
+        self.assertEqual(root_step.child_steps.count(), 2)
         self.assertEqual(root_step.on_error.count(), 0)
 
-        child_step = root_step.child_steps.get()
-
+        child_step = root_step.child_steps.get(parallel=False)
         self.assertEqual(child_step.tasks.count(), 2)
         self.assertEqual(child_step.child_steps.count(), 0)
         self.assertEqual(child_step.tasks.earliest('processstep_pos').name, spec[0]['children'][0]['name'])
         self.assertEqual(child_step.tasks.latest('processstep_pos').name, spec[0]['children'][1]['name'])
         self.assertEqual(child_step.on_error.count(), 0)
+
+        parallel_child_step = root_step.child_steps.get(parallel=True)
+        self.assertEqual(parallel_child_step.tasks.count(), 2)
+        self.assertEqual(parallel_child_step.child_steps.count(), 0)
+        self.assertEqual(parallel_child_step.tasks.earliest('processstep_pos').name, spec[0]['children'][0]['name'])
+        self.assertEqual(parallel_child_step.tasks.latest('processstep_pos').name, spec[0]['children'][1]['name'])
+        self.assertEqual(parallel_child_step.on_error.count(), 0)
 
     def test_empty_child_steps_are_removed(self):
         spec = [

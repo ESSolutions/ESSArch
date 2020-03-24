@@ -26,7 +26,7 @@ export default class StorageMaintenanceCtrl {
     vm.mediumFilterModel = {};
     vm.mediumFilterFields = [];
 
-    $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
       vm.updateStorageMediums();
     });
 
@@ -44,7 +44,7 @@ export default class StorageMaintenanceCtrl {
 
     vm.initLoad = true;
     vm.$onInit = () => {
-      return $http.get(appConfig.djangoUrl + 'storage-policies/', {params: {pager: 'none'}}).then(response => {
+      return $http.get(appConfig.djangoUrl + 'storage-policies/', {params: {pager: 'none'}}).then((response) => {
         if (response.data.length > 0) {
           vm.policyFilter = response.data[0];
           vm.mediumFilterModel.policy = response.data[0].id;
@@ -55,11 +55,11 @@ export default class StorageMaintenanceCtrl {
     };
 
     // Medium List
-    vm.updateStorageMediums = function() {
+    vm.updateStorageMediums = function () {
       vm.mediumPipe(vm.mediumTableState);
     };
 
-    vm.mediumPipe = function(tableState) {
+    vm.mediumPipe = function (tableState) {
       $scope.mediumLoading = true;
       if (vm.displayedMediums.length == 0) {
         $scope.initMediumLoad = true;
@@ -80,7 +80,7 @@ export default class StorageMaintenanceCtrl {
           vm.policyFilter !== null
         ) {
           vm.mediumFilterModel.policy = vm.policyFilter.id;
-          vm.mediumFilterFields.forEach(x => {
+          vm.mediumFilterFields.forEach((x) => {
             if (x.key === 'policy') {
               x.addDefault(vm.policyFilter);
             }
@@ -99,20 +99,20 @@ export default class StorageMaintenanceCtrl {
             vm.mediumFilterModel
           )
         )
-          .$promise.then(function(resource) {
+          .$promise.then(function (resource) {
             vm.displayedMediums = resource;
             tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.mediumLoading = false;
             $scope.initMediumLoad = false;
             SelectedIPUpdater.update(vm.displayedMediums, [], $scope.storageMedium);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function(response) {
+              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function (response) {
                 tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start =
                   response.numberOfPages * paginationParams.number - paginationParams.number;
@@ -125,8 +125,8 @@ export default class StorageMaintenanceCtrl {
       }
     };
 
-    vm.mediumSelected = medium => {
-      return vm.selectedMediums.some(x => x.id === medium.id);
+    vm.mediumSelected = (medium) => {
+      return vm.selectedMediums.some((x) => x.id === medium.id);
     };
 
     vm.selectedMediums = [];
@@ -138,7 +138,7 @@ export default class StorageMaintenanceCtrl {
       }
     };
 
-    vm.deselectMedium = medium => {
+    vm.deselectMedium = (medium) => {
       vm.selectedMediums.forEach((x, index, array) => {
         if (x.id === medium.id) {
           array.splice(index, 1);
@@ -146,7 +146,7 @@ export default class StorageMaintenanceCtrl {
       });
     };
 
-    vm.deactivateMediumModal = function(mediums) {
+    vm.deactivateMediumModal = function (mediums) {
       const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
@@ -162,11 +162,11 @@ export default class StorageMaintenanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.selectedMediums = [];
           vm.updateStorageMediums();
         },
-        function() {}
+        function () {}
       );
     };
   }

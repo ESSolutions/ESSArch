@@ -28,7 +28,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
     PermPermissionStore.clearStore();
     PermPermissionStore.defineManyPermissions(
       permissions,
-      /*@ngInject*/ function(permissionName) {
+      /*@ngInject*/ function (permissionName) {
         return permissions.includes(permissionName);
       }
     );
@@ -41,7 +41,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
     }
 
     let hasPermissions = false;
-    permissions.forEach(function(permission) {
+    permissions.forEach(function (permission) {
       if (checkPermission(permission)) {
         hasPermissions = true;
       }
@@ -56,7 +56,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
   function hasChild(node1, node2) {
     let temp1 = false;
     if (node2.children) {
-      node2.children.forEach(function(child) {
+      node2.children.forEach(function (child) {
         if (node1.name == child.name) {
           temp1 = true;
         }
@@ -68,7 +68,7 @@ const myService = (PermPermissionStore, djangoAuth) => {
     return temp1;
   }
   function getActiveColumns() {
-    return djangoAuth.profile().then(function(response) {
+    return djangoAuth.profile().then(function (response) {
       return generateColumns(response.data.ip_list_columns);
     });
   }
@@ -133,10 +133,10 @@ const myService = (PermPermissionStore, djangoAuth) => {
     ];
 
     const activeColumns = [];
-    const simpleColumns = allColumns.map(function(a) {
+    const simpleColumns = allColumns.map(function (a) {
       return a.label;
     });
-    columns.forEach(function(column) {
+    columns.forEach(function (column) {
       for (let i = 0; i < simpleColumns.length; i++) {
         if (column === simpleColumns[i]) {
           activeColumns.push(allColumns[i]);

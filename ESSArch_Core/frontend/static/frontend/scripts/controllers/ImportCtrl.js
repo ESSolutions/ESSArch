@@ -16,7 +16,7 @@ export default class ImportCtrl {
 
     vm.url = null;
 
-    vm.getSaProfiles = function() {
+    vm.getSaProfiles = function () {
       $scope.error = null;
       const auth = window.btoa(vm.user.username + ':' + vm.user.password);
       const headers = {Authorization: 'Basic ' + auth};
@@ -33,12 +33,12 @@ export default class ImportCtrl {
         },
         noAuth: true,
       })
-        .then(function(response) {
+        .then(function (response) {
           vm.loadingSas = false;
           vm.saProfile.profiles = response.data;
           vm.select = true;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           vm.loadingSas = false;
           if (response.data && response.data.detail) {
             $scope.error = response.data.detail;
@@ -46,7 +46,7 @@ export default class ImportCtrl {
         });
     };
 
-    vm.importSa = function(sa) {
+    vm.importSa = function (sa) {
       const auth = window.btoa(vm.user.username + ':' + vm.user.password);
       const headers = {Authorization: 'Basic ' + auth};
       const promises = [];
@@ -55,13 +55,13 @@ export default class ImportCtrl {
       for (const key in sa) {
         if (pattern.test(key) && sa[key] != null) {
           promises.push(
-            $http.get(vm.url + '/api/profiles/' + sa[key] + '/', {headers: headers}).then(function(response) {
+            $http.get(vm.url + '/api/profiles/' + sa[key] + '/', {headers: headers}).then(function (response) {
               const data = response.data;
               return Profile.new(data)
-                .$promise.then(function(response) {
+                .$promise.then(function (response) {
                   return response;
                 })
-                .catch(function(response) {
+                .catch(function (response) {
                   vm.importingSa = false;
                   if (response.status == 409) {
                     profileExistsModal(data);
@@ -73,7 +73,7 @@ export default class ImportCtrl {
         } else {
         }
       }
-      $q.all(promises).then(function() {
+      $q.all(promises).then(function () {
         if (vm.types && !angular.isUndefined(vm.types)) {
           const pattern = new RegExp('^profile_(?!(' + vm.types.join('|') + ')$)');
           for (const key in sa) {
@@ -83,12 +83,12 @@ export default class ImportCtrl {
           }
         }
         SA.new(sa)
-          .$promise.then(function(resource) {
+          .$promise.then(function (resource) {
             Notifications.add($translate.instant('IMPORT.SA_IMPORTED', resource), 'success', 5000, {isHtml: true});
             vm.select = false;
             vm.importingSa = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             vm.importingSa = false;
             if (response.status == 409) {
               saProfileExistsModal(sa);
@@ -97,7 +97,7 @@ export default class ImportCtrl {
       });
     };
 
-    vm.addSaFromFile = function(sa) {
+    vm.addSaFromFile = function (sa) {
       if (angular.isUndefined(sa)) {
         sa = vm.saFromFile;
       }
@@ -109,17 +109,17 @@ export default class ImportCtrl {
         return;
       }
       SA.new(parsedSa)
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           Notifications.add($translate.instant('IMPORT.SA_IMPORTED', resource), 'success', 5000, {isHtml: true});
           vm.select = false;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (response.status == 409) {
             saProfileExistsModal(parsedSa);
           }
         });
     };
-    vm.addProfileFromFile = function(profile) {
+    vm.addProfileFromFile = function (profile) {
       let parsedProfile;
       try {
         parsedProfile = JSON.parse(profile);
@@ -128,11 +128,11 @@ export default class ImportCtrl {
         return;
       }
       Profile.new(parsedProfile)
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           Notifications.add($translate.instant('IMPORT.PROFILE_IMPORTED', resource), 'success', 5000, {isHtml: true});
           return resource;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (response.status == 409) {
             profileExistsModal(parsedProfile);
           }
@@ -141,10 +141,10 @@ export default class ImportCtrl {
     };
 
     $scope.$watch(
-      function() {
+      function () {
         return vm.saFromFile;
       },
-      function() {
+      function () {
         if (vm.saFromFile) {
           vm.addSaFromFile(vm.saFromFile);
         }
@@ -152,10 +152,10 @@ export default class ImportCtrl {
     );
 
     $scope.$watch(
-      function() {
+      function () {
         return vm.profileFromFile;
       },
-      function() {
+      function () {
         if (vm.profileFromFile) {
           vm.addProfileFromFile(vm.profileFromFile);
         }
@@ -171,14 +171,14 @@ export default class ImportCtrl {
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               profile: profile,
             };
           },
         },
       });
-      modalInstance.result.then(function(data) {});
+      modalInstance.result.then(function (data) {});
     }
     function profileExistsModal(profile) {
       const modalInstance = $uibModal.open({
@@ -189,19 +189,19 @@ export default class ImportCtrl {
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               profile: profile,
             };
           },
         },
       });
-      modalInstance.result.then(function(data) {});
+      modalInstance.result.then(function (data) {});
     }
-    vm.triggerProfileUpload = function() {
+    vm.triggerProfileUpload = function () {
       document.getElementById('profile-upload').click();
     };
-    vm.triggerSaUpload = function() {
+    vm.triggerSaUpload = function () {
       document.getElementById('sa-upload').click();
     };
   }

@@ -5,7 +5,7 @@ export default class IpApprovalCtrl {
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Request form data
-    $scope.initRequestData = function() {
+    $scope.initRequestData = function () {
       vm.request = {
         type: '',
         purpose: '',
@@ -18,16 +18,16 @@ export default class IpApprovalCtrl {
     };
     $scope.initRequestData();
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function() {
+        click: function () {
           vm.ipInformationModal(row);
         },
       });
       methods.push(
-        ContextMenuBase.changeOrganization(function() {
+        ContextMenuBase.changeOrganization(function () {
           vm.changeOrganizationModal(row);
         })
       );

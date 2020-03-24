@@ -1,5 +1,5 @@
 export default ($scope, $window, $anchorScroll, $location, $translate, Sysinfo) => {
-  Sysinfo.get().$promise.then(function(result) {
+  Sysinfo.get().$promise.then(function (result) {
     if (result.platform.os == 'Darwin') {
       result.platform.os = 'macOS';
       result.platform.icon = 'fab fa-apple';
@@ -13,15 +13,15 @@ export default ($scope, $window, $anchorScroll, $location, $translate, Sysinfo) 
       result.platform.version = result.platform.linux_dist[1];
     }
 
-    result.python_packages = result.python_packages.map(function(x) {
+    result.python_packages = result.python_packages.map(function (x) {
       return x.split('==');
     });
     $scope.sysInfo = result;
   });
-  $scope.redirectToEss = function() {
+  $scope.redirectToEss = function () {
     $window.open('http://www.essolutions.se', '_blank');
   };
-  $scope.scrollToLink = function(link) {
+  $scope.scrollToLink = function (link) {
     $location.hash(link);
     $anchorScroll();
   };

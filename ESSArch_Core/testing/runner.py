@@ -3,15 +3,23 @@ from contextlib import contextmanager
 
 from celery import current_app
 from django.conf import settings
+from django.db import connection
 from django.test.runner import DiscoverRunner
 
 
-class QuietTestRunner(DiscoverRunner):
-    def run_tests(self, test_labels, extra_tests=None, **kwargs):
+class ESSArchTestRunner(DiscoverRunner):
+    def run_tests(self, *args, **kwargs):
         # Do not show log messages while testing
         logging.disable(logging.CRITICAL)
 
-        return super().run_tests(test_labels, extra_tests, **kwargs)
+        return super().run_tests(*args, **kwargs)
+
+    def setup_databases(self, **kwargs):
+        dbs = super().setup_databases(**kwargs)
+        if connection.vendor == 'microsoft':
+            db_name = connection.settings_dict['NAME']
+            connection.creation.install_regex_clr(db_name)
+        return dbs
 
 
 @contextmanager

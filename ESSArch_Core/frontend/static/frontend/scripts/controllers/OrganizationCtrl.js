@@ -23,15 +23,15 @@
 */
 
 export const OrganizationCtrl = ($scope, Organization) => {
-  $scope.changeOrganization = function() {
+  $scope.changeOrganization = function () {
     const org = $scope.currentOrganization;
     Organization.setOrganization(org);
   };
-  $scope.getCurrentOrganization = function() {
+  $scope.getCurrentOrganization = function () {
     $scope.currentOrganization = Organization.getOrganization();
   };
 
-  $scope.loadOrganizations = function() {
+  $scope.loadOrganizations = function () {
     $scope.availableOrganizations = Organization.availableOrganizations();
   };
 
@@ -41,18 +41,18 @@ export const OrganizationCtrl = ($scope, Organization) => {
 
 export const organization = ($rootScope, $http, $state, appConfig, myService) => {
   const service = {
-    availableOrganizations: function() {
+    availableOrganizations: function () {
       return $rootScope.auth.organizations;
     },
-    setOrganization: function(org) {
-      $http.patch(appConfig.djangoUrl + 'me/', {current_organization: org.id}).then(function(response) {
+    setOrganization: function (org) {
+      $http.patch(appConfig.djangoUrl + 'me/', {current_organization: org.id}).then(function (response) {
         $rootScope.auth = response.data;
         $rootScope.auth.current_organization = org;
         myService.getPermissions(response.data.permissions);
         $state.reload();
       });
     },
-    getOrganization: function() {
+    getOrganization: function () {
       return $rootScope.auth.current_organization;
     },
   };

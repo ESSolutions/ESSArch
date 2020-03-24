@@ -13,13 +13,13 @@ export default class AgentModalInstanceCtrl {
     $ctrl.nameFields = [];
     $ctrl.basicFields = [];
 
-    $ctrl.buildAgentModel = function() {
+    $ctrl.buildAgentModel = function () {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         method: 'OPTIONS',
-      }).then(function(response) {
+      }).then(function (response) {
         const model = {};
-        angular.forEach(response.data.actions.POST, function(value, key) {
+        angular.forEach(response.data.actions.POST, function (value, key) {
           if (value.many) {
             model[key] = [];
           } else if (value.type === 'datetime') {
@@ -32,7 +32,7 @@ export default class AgentModalInstanceCtrl {
             model[key] = value.choices[0].value;
           }
           if (!angular.isUndefined(value.child) && !angular.isUndefined(value.child.children)) {
-            angular.forEach(value.child.children, function(nestedVal, nestedKey) {
+            angular.forEach(value.child.children, function (nestedVal, nestedKey) {
               if (!angular.isUndefined(nestedVal.choices)) {
                 $ctrl.options[key] = {
                   child: {
@@ -54,7 +54,7 @@ export default class AgentModalInstanceCtrl {
       });
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.remove && data.agent) {
         $ctrl.agent = angular.copy(data.agent);
         return;
@@ -63,15 +63,15 @@ export default class AgentModalInstanceCtrl {
         return $http({
           url: appConfig.djangoUrl + 'agents/',
           method: 'OPTIONS',
-        }).then(function(response) {
+        }).then(function (response) {
           $ctrl.agent = angular.copy(data.agent);
           $ctrl.agent.ref_code = data.agent.ref_code.id;
-          angular.forEach(response.data.actions.POST, function(value, key) {
+          angular.forEach(response.data.actions.POST, function (value, key) {
             if (!angular.isUndefined(value.choices) && value.choices.length > 0) {
               $ctrl.options[key] = value;
             }
             if (!angular.isUndefined(value.child) && !angular.isUndefined(value.child.children)) {
-              angular.forEach(value.child.children, function(nestedVal, nestedKey) {
+              angular.forEach(value.child.children, function (nestedVal, nestedKey) {
                 if (!angular.isUndefined(nestedVal.choices)) {
                   $ctrl.options[key] = {
                     child: {
@@ -83,16 +83,16 @@ export default class AgentModalInstanceCtrl {
               });
             }
           });
-          $ctrl.buildTypeField($ctrl.agent).then(function(typeField) {
+          $ctrl.buildTypeField($ctrl.agent).then(function (typeField) {
             $ctrl.loadBasicFields();
             $ctrl.basicFields.unshift(typeField);
           });
         });
       } else {
-        $ctrl.buildAgentModel().then(function(model) {
+        $ctrl.buildAgentModel().then(function (model) {
           $ctrl.agent = model;
-          $ctrl.buildTypeField($ctrl.agent).then(function(typeField) {
-            typeField.templateOptions.onChange = function($modelValue) {
+          $ctrl.buildTypeField($ctrl.agent).then(function (typeField) {
+            typeField.templateOptions.onChange = function ($modelValue) {
               if ($modelValue && $modelValue.cpf && $modelValue.cpf === 'corporatebody') {
                 $ctrl.authName.part = '';
               }
@@ -105,10 +105,10 @@ export default class AgentModalInstanceCtrl {
       EditMode.enable();
     };
 
-    $ctrl.buildTypeField = function(agent) {
-      return $http.get(appConfig.djangoUrl + 'agent-types/', {params: {pager: 'none'}}).then(function(response) {
+    $ctrl.buildTypeField = function (agent) {
+      return $http.get(appConfig.djangoUrl + 'agent-types/', {params: {pager: 'none'}}).then(function (response) {
         const options = angular.copy(response.data);
-        options.forEach(function(x) {
+        options.forEach(function (x) {
           x.name = x.main_type.name;
         });
         const type = {
@@ -117,7 +117,7 @@ export default class AgentModalInstanceCtrl {
           templateOptions: {
             focus: true,
             options: options,
-            getTypeName: function(type) {
+            getTypeName: function (type) {
               return (
                 type.main_type.name +
                 (type.sub_type !== null && type.sub_type !== '' ? ' (' + type.sub_type + ')' : '')
@@ -133,14 +133,14 @@ export default class AgentModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForms = function() {
+    $ctrl.loadForms = function () {
       $ctrl.nameFields = [];
       $ctrl.basicFields = [];
       $ctrl.loadNameForm();
       $ctrl.loadBasicFields();
     };
 
-    $ctrl.loadNameForm = function() {
+    $ctrl.loadNameForm = function () {
       $ctrl.nameFields = [];
       if ($ctrl.agent.type && $ctrl.agent.type.cpf && $ctrl.agent.type.cpf !== 'corporatebody') {
         $ctrl.nameFields.push({
@@ -190,7 +190,7 @@ export default class AgentModalInstanceCtrl {
                 dateFormat: 'YYYY-MM-DD',
               },
               expressionProperties: {
-                'templateOptions.onChange': function($modelValue) {
+                'templateOptions.onChange': function ($modelValue) {
                   if (
                     $modelValue &&
                     ($ctrl.agent.start_date === null || angular.isUndefined($ctrl.agent.start_date))
@@ -210,7 +210,7 @@ export default class AgentModalInstanceCtrl {
                 dateFormat: 'YYYY-MM-DD',
               },
               expressionProperties: {
-                'templateOptions.onChange': function($modelValue) {
+                'templateOptions.onChange': function ($modelValue) {
                   if ($modelValue && ($ctrl.agent.end_date === null || angular.isUndefined($ctrl.agent.end_date))) {
                     $ctrl.agent.end_date = $modelValue;
                   }
@@ -243,10 +243,10 @@ export default class AgentModalInstanceCtrl {
       ]);
     };
 
-    $ctrl.loadBasicFields = function() {
+    $ctrl.loadBasicFields = function () {
       const promises = [];
       promises.push(
-        $ctrl.getRefCodes().then(function(refCodes) {
+        $ctrl.getRefCodes().then(function (refCodes) {
           if (refCodes.length > 0 && (angular.isUndefined($ctrl.agent.ref_code) || $ctrl.agent.ref_code === null)) {
             $ctrl.agent.ref_code = refCodes[0].id;
           }
@@ -254,14 +254,14 @@ export default class AgentModalInstanceCtrl {
         })
       );
       promises.push(
-        $ctrl.getLanguages().then(function(languages) {
+        $ctrl.getLanguages().then(function (languages) {
           if (angular.isUndefined($ctrl.agent.language) || $ctrl.agent.language === null) {
             $ctrl.agent.language = 'sv';
           }
           return languages;
         })
       );
-      $q.all(promises).then(function(responses) {
+      $q.all(promises).then(function (responses) {
         $ctrl.basicFields = [
           {
             className: 'row m-0',
@@ -305,18 +305,18 @@ export default class AgentModalInstanceCtrl {
             type: 'uiselect',
             key: 'language',
             templateOptions: {
-              options: function() {
+              options: function () {
                 return $ctrl.options.language.choices;
               },
               valueProp: 'id',
               labelProp: 'name_en',
               label: $translate.instant('ACCESS.LANGUAGE'),
               appendToBody: false,
-              optionsFunction: function(search) {
+              optionsFunction: function (search) {
                 return $ctrl.options.language.choices;
               },
-              refresh: function(search) {
-                return $ctrl.getLanguages(search).then(function() {
+              refresh: function (search) {
+                return $ctrl.getLanguages(search).then(function () {
                   this.options = $ctrl.options.language.choices;
                   return $ctrl.options.language.choices;
                 });
@@ -364,17 +364,17 @@ export default class AgentModalInstanceCtrl {
       });
     };
 
-    $ctrl.getLanguages = function(search) {
+    $ctrl.getLanguages = function (search) {
       return $http
         .get(appConfig.djangoUrl + 'languages/', {params: {search: search, pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.options.language = {choices: response.data};
           return response.data;
         });
     };
-    $ctrl.getRefCodes = function() {
-      return $http.get(appConfig.djangoUrl + 'ref-codes/', {params: {pager: 'none'}}).then(function(response) {
-        response.data.forEach(function(x) {
+    $ctrl.getRefCodes = function () {
+      return $http.get(appConfig.djangoUrl + 'ref-codes/', {params: {pager: 'none'}}).then(function (response) {
+        response.data.forEach(function (x) {
           x.formatted_name = x.country + '/' + x.repository_code;
         });
         $ctrl.options.ref_code = {choices: response.data};
@@ -382,19 +382,19 @@ export default class AgentModalInstanceCtrl {
       });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.creating = true;
       $ctrl.agent.names = [];
-      $http.get(appConfig.djangoUrl + 'agent-name-types/', {params: {authority: true}}).then(typesResponse => {
+      $http.get(appConfig.djangoUrl + 'agent-name-types/', {params: {authority: true}}).then((typesResponse) => {
         if (typesResponse.data.length >= 1) {
           $ctrl.authName.type = angular.copy(typesResponse.data[0]).id;
           $ctrl.agent.names.push($ctrl.authName);
@@ -406,12 +406,12 @@ export default class AgentModalInstanceCtrl {
             method: 'POST',
             data: agent,
           })
-            .then(function(response) {
+            .then(function (response) {
               $ctrl.creating = false;
               EditMode.disable();
               $uibModalInstance.close(response.data);
             })
-            .catch(function(response) {
+            .catch(function (response) {
               $ctrl.nonFieldErrors = response.data.non_field_errors;
               if (response.data.names) {
                 if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -429,14 +429,14 @@ export default class AgentModalInstanceCtrl {
       });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       const agent = angular.copy($ctrl.agent);
       agent.type = $ctrl.agent.type.id;
-      angular.forEach(agent, function(value, key) {
+      angular.forEach(agent, function (value, key) {
         if (angular.isArray(value)) {
           delete agent[key];
         }
@@ -448,12 +448,12 @@ export default class AgentModalInstanceCtrl {
         method: 'PATCH',
         data: agent,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.names) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -466,23 +466,23 @@ export default class AgentModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
         .delete(appConfig.djangoUrl + 'agents/' + $ctrl.agent.id)
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

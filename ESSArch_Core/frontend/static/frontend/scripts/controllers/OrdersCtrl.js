@@ -19,7 +19,7 @@ export default class {
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     vm.request.type = 'download_order';
 
-    vm.getOrderListColspan = function() {
+    vm.getOrderListColspan = function () {
       if (myService.checkPermission('ip.change_order') && myService.checkPermission('ip.delete_order')) {
         return 6;
       } else if (myService.checkPermission('ip.change_order') || myService.checkPermission('ip.delete_order')) {
@@ -56,7 +56,7 @@ export default class {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        Resource.getOrders(paginationParams, tableState, sorting, search).then(function(result) {
+        Resource.getOrders(paginationParams, tableState, sorting, search).then(function (result) {
           vm.displayedIps = result.data;
           tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
           $scope.ipLoading = false;
@@ -66,7 +66,7 @@ export default class {
     };
 
     //Click function for Ip table
-    $scope.ipTableClick = function(row, events, options) {
+    $scope.ipTableClick = function (row, events, options) {
       if ($scope.select && $scope.ip.id == row.id) {
         $scope.select = false;
         $scope.eventlog = false;
@@ -91,23 +91,23 @@ export default class {
       $scope.statusShow = false;
     };
     vm.ips = [];
-    vm.getIpsForOrder = function(order) {
+    vm.getIpsForOrder = function (order) {
       const ips = [];
-      order.information_packages.forEach(function(ipUrl) {
+      order.information_packages.forEach(function (ipUrl) {
         ips.push(
-          $http.get(ipUrl).then(function(response) {
+          $http.get(ipUrl).then(function (response) {
             return response.data;
           })
         );
       });
-      $q.all(ips).then(function(response) {
+      $q.all(ips).then(function (response) {
         console.log(response);
         vm.ips = response;
       });
     };
 
     vm.ip = null;
-    vm.openFilebrowser = function(ip) {
+    vm.openFilebrowser = function (ip) {
       if (vm.ip && vm.ip.id === ip.id) {
         vm.ip = null;
         $rootScope.ip = null;
@@ -117,7 +117,7 @@ export default class {
       }
     };
 
-    vm.ipPipe = function(tableState) {
+    vm.ipPipe = function (tableState) {
       $scope.ipsLoading = true;
       if (vm.ips.length == 0) {
         $scope.initLoad = true;
@@ -125,14 +125,14 @@ export default class {
       if (!angular.isUndefined(tableState)) {
         const ips = [];
         $scope.ipTableState = tableState;
-        $scope.ip.information_packages.forEach(function(ipUrl) {
+        $scope.ip.information_packages.forEach(function (ipUrl) {
           ips.push(
-            $http.get(ipUrl).then(function(response) {
+            $http.get(ipUrl).then(function (response) {
               return response.data;
             })
           );
         });
-        $q.all(ips).then(function(response) {
+        $q.all(ips).then(function (response) {
           vm.ips = response;
           $scope.ipsLoading = false;
         });
@@ -147,11 +147,11 @@ export default class {
     $scope.edit = false;
     $scope.eventlog = false;
     $scope.requestForm = false;
-    $scope.removeIp = function(order) {
+    $scope.removeIp = function (order) {
       $http({
         method: 'DELETE',
         url: appConfig.djangoUrl + 'orders/' + order.id + '/',
-      }).then(function() {
+      }).then(function () {
         vm.displayedIps.splice(vm.displayedIps.indexOf(order), 1);
         $scope.edit = false;
         $scope.select = false;
@@ -164,7 +164,7 @@ export default class {
         $scope.getListViewData();
       });
     };
-    $scope.newOrderModal = function() {
+    $scope.newOrderModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -178,14 +178,14 @@ export default class {
           data: {},
         },
       });
-      modalInstance.result.then(function(data) {
-        $timeout(function() {
+      modalInstance.result.then(function (data) {
+        $timeout(function () {
           $scope.getListViewData();
         });
       });
     };
 
-    $scope.editOrderModal = function(order) {
+    $scope.editOrderModal = function (order) {
       console.log('order: ', order);
       const modalInstance = $uibModal.open({
         animation: true,
@@ -202,15 +202,15 @@ export default class {
           },
         },
       });
-      modalInstance.result.then(function(data) {
-        $timeout(function() {
+      modalInstance.result.then(function (data) {
+        $timeout(function () {
           $scope.getListViewData();
         });
       });
     };
 
     //Create and show modal for remove ip
-    $scope.removeOrderModal = function(order) {
+    $scope.removeOrderModal = function (order) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -219,7 +219,7 @@ export default class {
         controller: 'OrderModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               order: order,
               allow_close: true,
@@ -228,11 +228,11 @@ export default class {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.select = false;
           $scope.getListViewData();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

@@ -27,12 +27,12 @@ export default class EditNodeModalInstanceCtrl {
     $ctrl.customFields = [];
     $ctrl.custom_fields_template = [];
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {
           params: {archive_type: data.node && data.node._index === 'archive', pager: 'none'},
         })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.options.type = response.data;
           $ctrl.node = angular.copy(data.node);
           $ctrl.node.type = data.node.type.pk;
@@ -42,7 +42,7 @@ export default class EditNodeModalInstanceCtrl {
     };
 
     function deleteField(field) {
-      $ctrl.customFields.forEach(function(x, idx, array) {
+      $ctrl.customFields.forEach(function (x, idx, array) {
         if (x.key === field) {
           array.splice(idx, 1);
           delete $ctrl.node.custom_fields[field];
@@ -51,18 +51,18 @@ export default class EditNodeModalInstanceCtrl {
     }
 
     function clearObject(obj) {
-      angular.forEach(obj, function(val, key) {
+      angular.forEach(obj, function (val, key) {
         obj[key] = null;
       });
     }
 
     $ctrl.selected = null;
 
-    $ctrl.changed = function() {
+    $ctrl.changed = function () {
       return !angular.equals($ctrl.node, data.node);
     };
 
-    $ctrl.addNewField = function() {
+    $ctrl.addNewField = function () {
       if ($ctrl.newFieldKey && $ctrl.newFieldVal) {
         const newFieldKey = angular.copy($ctrl.newFieldKey);
         const newFieldVal = angular.copy($ctrl.newFieldVal);
@@ -83,7 +83,7 @@ export default class EditNodeModalInstanceCtrl {
           templateOptions: {
             type: 'text',
             label: newFieldKey,
-            delete: function() {
+            delete: function () {
               deleteField(newFieldKey);
             },
           },
@@ -95,9 +95,9 @@ export default class EditNodeModalInstanceCtrl {
       }
     };
 
-    $ctrl.getType = id => {
+    $ctrl.getType = (id) => {
       let type = null;
-      $ctrl.options.type.forEach(x => {
+      $ctrl.options.type.forEach((x) => {
         if (id === x.pk) {
           type = x;
         }
@@ -114,7 +114,7 @@ export default class EditNodeModalInstanceCtrl {
       return edited;
     }
 
-    $ctrl.editField = function(field, value) {
+    $ctrl.editField = function (field, value) {
       $ctrl.node[field] = value;
       $ctrl.fields.push({
         templateOptions: {
@@ -126,7 +126,7 @@ export default class EditNodeModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           key: 'name',
@@ -150,7 +150,7 @@ export default class EditNodeModalInstanceCtrl {
           },
           defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0].pk : null,
           expressionProperties: {
-            'templateOptions.onChange': function($modelValue) {
+            'templateOptions.onChange': function ($modelValue) {
               $ctrl.custom_fields_template = $ctrl.getType($modelValue).custom_fields_template;
             },
           },
@@ -215,13 +215,13 @@ export default class EditNodeModalInstanceCtrl {
         },
       ];
       $ctrl.customFields = [];
-      angular.forEach($ctrl.node.custom_fields, function(value, key) {
+      angular.forEach($ctrl.node.custom_fields, function (value, key) {
         $ctrl.customFields.push({
           key: key,
           type: 'input',
           templateOptions: {
             label: key,
-            delete: function() {
+            delete: function () {
               deleteField(key);
             },
           },
@@ -229,56 +229,56 @@ export default class EditNodeModalInstanceCtrl {
       });
     };
 
-    $ctrl.updateSingleNode = function() {
+    $ctrl.updateSingleNode = function () {
       $rootScope.skipErrorNotification = true;
       Search.updateNode($ctrl.node, getEditedFields($ctrl.node))
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.submitting = false;
           Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
           EditMode.disable();
           $uibModalInstance.close('edited');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.submitting = false;
         });
     };
 
-    $ctrl.updateNodeAndDescendants = function() {
+    $ctrl.updateNodeAndDescendants = function () {
       if ($ctrl.changed()) {
         $rootScope.skipErrorNotification = true;
         Search.updateNodeAndDescendants($ctrl.node, getEditedFields($ctrl.node))
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
             EditMode.disable();
             $uibModalInstance.close('edited');
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
     };
 
-    $ctrl.massUpdate = function() {
+    $ctrl.massUpdate = function () {
       if ($ctrl.changed()) {
         $rootScope.skipErrorNotification = true;
         Search.massUpdate($ctrl.nodeList, getEditedFields($ctrl.node))
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_EDITED'), 'success');
             EditMode.disable();
             $uibModalInstance.close('edited');
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
     };
 
-    $ctrl.submit = function() {
+    $ctrl.submit = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -292,12 +292,12 @@ export default class EditNodeModalInstanceCtrl {
       }
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
