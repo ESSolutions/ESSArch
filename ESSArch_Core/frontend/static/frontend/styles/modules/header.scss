@@ -12,6 +12,7 @@
 .logo-user-wrapper {
   display: flex;
   align-items: flex-end;
+  margin-top: 10px;
   margin-bottom: 6px;
   @include small-screen {
     justify-content: space-between;
@@ -20,7 +21,8 @@
 
 .custom-logo {
   display: block;
-  margin-top: 12px;
+  margin-top: auto;
+  margin-bottom: auto;
   padding: 3px;
   img {
     width: 42px;
@@ -37,6 +39,9 @@
 .logo {
   height: 100%;
   display: inline-block;
+  vertical-align: middle;
+  margin-top: auto;
+  margin-bottom: auto;
   @include small-screen {
     flex: 1 1 0px;
   }
@@ -49,6 +54,8 @@
 
   &-with-logo {
     @include medium-screen-up {
+      margin-top: auto;
+      margin-bottom: auto;
       margin-left: 10px;
     }
   }
@@ -59,6 +66,8 @@
   }
   @include small-screen {
     text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
   }
 }
 
@@ -80,7 +89,8 @@
   align-items: center;
   justify-content: flex-end;
   height: 100%;
-  margin-top: 12px;
+  margin-top: auto;
+  margin-bottom: auto;
   @include medium-screen-up {
     margin-left: auto;
   }
