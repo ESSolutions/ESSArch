@@ -1,7 +1,7 @@
 <div class="modal-heading">
   <h3 class="modal-title" id="modal-title">{{'APPRAISAL' | translate}}</h3>
 </div>
-<form ng-submit="$ctrl.submitAppraisal($ctrl.appraisalRule)">
+<form ng-submit="$ctrl.submitAppraisal($ctrl.appraisalTemplate)">
   <div class="modal-body" id="modal-body">
     <p>{{$ctrl.data.record.name}}</p>
     <p>{{$ctrl.data.record.type}}</p>
@@ -10,8 +10,8 @@
         focused="true"
         class="form-control"
         required
-        ng-model="$ctrl.appraisalRule"
-        ng-options="x as x.name for x in $ctrl.appraisalRules"
+        ng-model="$ctrl.appraisalTemplate"
+        ng-options="x as x.name for x in $ctrl.appraisalTemplates"
         >{{x}}</select
       >
     </label>

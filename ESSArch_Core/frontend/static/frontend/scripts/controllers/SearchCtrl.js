@@ -52,11 +52,11 @@ export default class SearchCtrl {
     vm.searchList = [];
 
     // Change tab from outside this scope, used in search detail
-    $scope.$on('CHANGE_TAB', function(event, data) {
+    $scope.$on('CHANGE_TAB', function (event, data) {
       vm.activeTab = data.tab;
     });
-    $rootScope.$on('$translateChangeSuccess', function(event, current, previous) {
-      $http.get(appConfig.djangoUrl + 'search/', {params: {page_size: 0}}).then(function(response) {
+    $rootScope.$on('$translateChangeSuccess', function (event, current, previous) {
+      $http.get(appConfig.djangoUrl + 'search/', {params: {page_size: 0}}).then(function (response) {
         vm.loadTags(response.data.aggregations);
         vm.fileExtensions = response.data.aggregations._filter_extension.extension.buckets;
         vm.showTree = true;
@@ -65,7 +65,7 @@ export default class SearchCtrl {
 
     // When state is changed to search active tab is set to the first tab.
     // Fixing issues when backing from search detail state and no tab would be active
-    $transitions.onSuccess({}, function() {
+    $transitions.onSuccess({}, function () {
       if ($state.is('home.archivalDescriptions.search')) {
         vm.activeTab = 0;
       } else {
@@ -73,7 +73,7 @@ export default class SearchCtrl {
       }
     });
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       vm.clearSearch();
       if (
         $state.is('home.archivalDescriptions.search.detail') ||
@@ -93,7 +93,7 @@ export default class SearchCtrl {
         }
       }
       const filters = vm.formatFilters();
-      Search.query(filters).then(function(response) {
+      Search.query(filters).then(function (response) {
         vm.loadTags(response.aggregations);
         vm.fileExtensions = response.aggregations._filter_extension.extension.buckets;
         vm.showResults = true;
@@ -101,11 +101,29 @@ export default class SearchCtrl {
       });
     };
 
-    $scope.checkPermission = function(permissionName) {
+    vm.appraisalFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.appraisalDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.appraisalDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.appraisalFilterStatus[type] = true;
+      }
+    };
+
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
 
-    vm.goToDetailView = function() {
+    vm.goToDetailView = function () {
       if ($rootScope.latestRecord) {
         $state.go('home.archivalDescriptions.search.' + $rootScope.latestRecord._index, {
           id: $rootScope.latestRecord._id,
@@ -114,28 +132,28 @@ export default class SearchCtrl {
       }
     };
 
-    vm.getSavedSearches = function() {
+    vm.getSavedSearches = function () {
       vm.loadingSearches = true;
       $http
         .get(appConfig.djangoUrl + 'me/searches/', {pager: 'none'})
-        .then(function(response) {
+        .then(function (response) {
           vm.searchList = angular.copy(response.data);
           vm.loadingSearches = false;
         })
-        .catch(function() {
+        .catch(function () {
           vm.loadingSearches = false;
         });
     };
     vm.getSavedSearches();
 
-    vm.createArchive = function(archiveName, structureName, type, referenceCode) {
+    vm.createArchive = function (archiveName, structureName, type, referenceCode) {
       Search.addNode({
         name: archiveName,
         structure: structureName,
         index: 'archive',
         type: type,
         reference_code: referenceCode,
-      }).then(function(response) {
+      }).then(function (response) {
         vm.archiveName = null;
         vm.structureName = null;
         vm.nodeType = null;
@@ -144,7 +162,7 @@ export default class SearchCtrl {
       });
     };
 
-    vm.calculatePageNumber = function() {
+    vm.calculatePageNumber = function () {
       if (!angular.isUndefined(vm.tableState) && vm.tableState.pagination) {
         if (vm.searchResult.length == 0) {
           return (
@@ -171,7 +189,7 @@ export default class SearchCtrl {
       }
     };
 
-    vm.clearSearch = function() {
+    vm.clearSearch = function () {
       vm.filterObject = {
         q: '',
         type: null,
@@ -189,7 +207,7 @@ export default class SearchCtrl {
       };
     };
 
-    vm.searchSubmit = function() {
+    vm.searchSubmit = function () {
       if (vm.tableState) {
         vm.tableState.pagination.start = 0;
         // $timeout needed to make the function work as ngChange method for search filter components
@@ -200,26 +218,26 @@ export default class SearchCtrl {
       }
     };
 
-    vm.getArchives = function(search) {
+    vm.getArchives = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'tags/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, index: 'archive', search: search},
-      }).then(function(response) {
-        vm.options.archives = response.data.map(function(x) {
+      }).then(function (response) {
+        vm.options.archives = response.data.map(function (x) {
           return x.current_version;
         });
         return vm.options.archives;
       });
     };
 
-    vm.getAgents = function(search) {
+    vm.getAgents = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search},
-      }).then(function(response) {
-        response.data.forEach(function(agent) {
+      }).then(function (response) {
+        response.data.forEach(function (agent) {
           AgentName.parseAgentNames(agent);
           agent.auth_name = AgentName.getAuthorizedName(agent);
         });
@@ -228,14 +246,14 @@ export default class SearchCtrl {
       });
     };
 
-    vm.filterNodeTypes = function(search) {
-      const types = vm.options.originalTypes.filter(function(x) {
+    vm.filterNodeTypes = function (search) {
+      const types = vm.options.originalTypes.filter(function (x) {
         return x.key.toLowerCase().indexOf(search.toLowerCase()) !== -1;
       });
       vm.options.types = types;
     };
 
-    vm.formatFilters = function() {
+    vm.formatFilters = function () {
       const filters = angular.copy(vm.filterObject);
       const includedTypes = [];
       for (let key in vm.includedTypes) {
@@ -257,21 +275,21 @@ export default class SearchCtrl {
       }
       if (angular.isArray(filters.archives) && filters.archives !== null) {
         filters.archives = filters.archives
-          .map(function(x) {
+          .map(function (x) {
             return x.id;
           })
           .join(',');
       }
       if (angular.isArray(filters.agents) && filters.agents !== null) {
         filters.agents = filters.agents
-          .map(function(x) {
+          .map(function (x) {
             return x.id;
           })
           .join(',');
       }
       if (angular.isArray(filters.type) && filters.type !== null) {
         filters.type = filters.type
-          .map(function(x) {
+          .map(function (x) {
             return x.key;
           })
           .join(',');
@@ -282,7 +300,7 @@ export default class SearchCtrl {
     /**
      * Pipe function for search results
      */
-    vm.search = function(tableState) {
+    vm.search = function (tableState) {
       if (tableState) {
         vm.searching = true;
         vm.tableState = tableState;
@@ -298,7 +316,7 @@ export default class SearchCtrl {
         vm.filterObject.page_size = number;
         vm.filterObject.ordering = ordering;
         const filters = vm.formatFilters();
-        Search.query(filters).then(function(response) {
+        Search.query(filters).then(function (response) {
           const filterCopy = angular.copy(vm.filterObject);
           if (!angular.equals($stateParams.query, filterCopy)) {
             $state.go('home.archivalDescriptions.search', {query: filterCopy});
@@ -315,10 +333,10 @@ export default class SearchCtrl {
     };
     vm.tags = [];
 
-    vm.getAggregationChildren = function(aggregations, aggrType) {
+    vm.getAggregationChildren = function (aggregations, aggrType) {
       const aggregation = aggregations['_filter_' + aggrType][aggrType];
       let missing = true;
-      const children = aggregation.buckets.map(function(item) {
+      const children = aggregation.buckets.map(function (item) {
         if (item.name) {
           item.text = item.name + ' (' + item.doc_count + ')';
           item.a_attr = {
@@ -355,7 +373,7 @@ export default class SearchCtrl {
       return children;
     };
 
-    vm.loadTags = function(aggregations) {
+    vm.loadTags = function (aggregations) {
       const typeChildren = vm.getAggregationChildren(aggregations, 'type');
       vm.options.originalTypes = aggregations._filter_type.type.buckets;
       vm.options.types = angular.copy(vm.options.originalTypes);
@@ -373,19 +391,19 @@ export default class SearchCtrl {
       ];
     };
 
-    vm.getPathFromParents = function(tag) {
+    vm.getPathFromParents = function (tag) {
       if (tag.parents.length > 0) {
         vm.getTag(tag.parents[0]);
       }
     };
 
-    vm.getTag = function(tag) {
-      return $http.get(vm.url + 'search/' + tag.id + '/').then(function(response) {
+    vm.getTag = function (tag) {
+      return $http.get(vm.url + 'search/' + tag.id + '/').then(function (response) {
         return response.data;
       });
     };
 
-    vm.openResult = function(result, e) {
+    vm.openResult = function (result, e) {
       if (!result.id && result._id) {
         result.id = result._id;
       }
@@ -408,7 +426,7 @@ export default class SearchCtrl {
       core: {
         multiple: false,
         animation: 50,
-        error: function(error) {
+        error: function (error) {
           $log.error('treeCtrl: error from js tree - ' + angular.toJson(error));
         },
         check_callback: true,
@@ -422,11 +440,11 @@ export default class SearchCtrl {
       plugins: [],
     };
 
-    vm.applyModelChanges = function() {
+    vm.applyModelChanges = function () {
       return !vm.ignoreChanges;
     };
 
-    vm.getExportResultUrl = function(tableState, format) {
+    vm.getExportResultUrl = function (tableState, format) {
       if (tableState) {
         const filters = vm.formatFilters();
         if (filters.extension == '' || filters.extension == null || filters.extension == {}) {
@@ -450,7 +468,7 @@ export default class SearchCtrl {
       }
     };
 
-    vm.exportResultModal = function() {
+    vm.exportResultModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -461,7 +479,7 @@ export default class SearchCtrl {
         scope: $scope,
         size: 'sm',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               vm: vm,
             };
@@ -469,13 +487,49 @@ export default class SearchCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {})
-        .catch(function() {
+        .then(function (data) {})
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };
 
-    vm.saveSearchModal = function() {
+    vm.addToAppraisalModal = function () {
+      const pagination = vm.tableState.pagination;
+      const start = pagination.start || 0; // This is NOT the page number, but the index of item in the list that you want to use to display the table.
+      const number = pagination.number || 25; // Number of entries showed per page.
+      const pageNumber = isNaN(start / number) ? 1 : start / number + 1; // Prevents initial 404 response where pagenumber os NaN in request
+      let ordering = vm.tableState.sort.predicate;
+      if (vm.tableState.sort.reverse) {
+        ordering = '-' + ordering;
+      }
+      vm.filterObject.page = pageNumber;
+      vm.filterObject.page_size = number;
+      vm.filterObject.ordering = ordering;
+      const filters = vm.formatFilters();
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/add_search_to_appraisal_job_modal.html',
+        controller: 'NodeAppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: function () {
+            return {
+              search: {filters},
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function (data) {})
+        .catch(function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
+    };
+
+    vm.saveSearchModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -485,7 +539,7 @@ export default class SearchCtrl {
         controllerAs: '$ctrl',
         size: 'md',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               filters: vm.filterObject,
             };
@@ -493,15 +547,15 @@ export default class SearchCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {
+        .then(function (data) {
           vm.getSavedSearches();
         })
-        .catch(function() {
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };
 
-    vm.removeSearchModal = function(search) {
+    vm.removeSearchModal = function (search) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -511,7 +565,7 @@ export default class SearchCtrl {
         controllerAs: '$ctrl',
         size: 'smd',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               search: search,
             };
@@ -519,10 +573,10 @@ export default class SearchCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {
+        .then(function (data) {
           vm.getSavedSearches();
         })
-        .catch(function() {
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };

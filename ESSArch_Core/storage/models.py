@@ -38,6 +38,7 @@ from tenacity import (
 )
 
 from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
@@ -508,6 +509,9 @@ class StorageMediumQueryset(models.QuerySet):
     def non_migratable(self):
         return self.exclude(pk__in=self.migratable())
 
+    def natural_sort(self):
+        return natural_sort(self, 'medium_id')
+
     def fastest(self):
         container = Case(
             When(storage_target__methods__containers=False, then=Value(1)),
@@ -804,7 +808,7 @@ class StorageObject(models.Model):
         extracted = self.extract()
         return extracted.open(path, *args, **kwargs)
 
-    def read(self, dst, task):
+    def read(self, dst, task, extract=False):
         ip = self.ip
         is_cached_storage_object = self.is_cache_for_ip(ip)
 
@@ -874,7 +878,7 @@ class StorageObject(models.Model):
                 temp_aic_mets_path = ip.get_temp_container_aic_xml_path()
                 dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
 
-                storage_backend.read(self, temp_dir)
+                storage_backend.read(self, temp_dir, extract=extract)
 
                 if is_cached_storage_object or not self.container:
                     with tarfile.open(temp_container_path, 'w') as new_tar:
@@ -887,7 +891,11 @@ class StorageObject(models.Model):
                     copy_file(temp_aic_mets_path, dst, requests_session=session)
 
             else:
-                storage_backend.read(self, dst)
+                storage_backend.read(self, dst, extract=extract)
+
+    def list_files(self, pattern=None, case_sensitive=True):
+        backend = self.get_storage_backend()
+        return backend.list_files(self, pattern=pattern, case_sensitive=case_sensitive)
 
     def delete_files(self):
         backend = self.get_storage_backend()

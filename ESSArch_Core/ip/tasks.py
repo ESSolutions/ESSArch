@@ -16,6 +16,12 @@ from django.utils.translation import gettext as _
 from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_exponential,
+)
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.configuration.models import Path
@@ -36,12 +42,10 @@ from ESSArch_Core.ip.utils import (
     generate_premis,
     parse_submit_description_from_ip,
 )
-from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.utils import (
-    fill_specification_data,
-    lowercase_profile_types,
-)
-from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.storage.copy import copy_file, enough_space_available
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
     delete_path,
@@ -226,7 +230,6 @@ class PrepareAIP(DBTask):
                 # refresh date fields to convert them to datetime instances instead of
                 # strings to allow further datetime manipulation
                 ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-                ip.create_profile_rels(lowercase_profile_types, user)
         else:
             with transaction.atomic():
                 ip = existing_sip
@@ -237,7 +240,19 @@ class PrepareAIP(DBTask):
                 ip.state = 'Prepared'
                 ip.object_path = sip_path.as_posix()
                 ip.package_mets_path = xmlfile.as_posix()
-                ip.save()
+
+        ip.generation = 0
+        ip.aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            responsible=ip.responsible,
+            label=ip.label,
+            start_date=ip.start_date,
+            end_date=ip.end_date,
+        )
+        ip.save()
+
+        ProfileIP.objects.filter(ip=ip).delete()
+        ip.submission_agreement.lock_to_information_package(ip, user)
 
         return str(ip.pk)
 
@@ -354,6 +369,8 @@ class CreatePhysicalModel(DBTask):
         return "Created physical model for %s" % ip.object_identifier_value
 
 
+@retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
+       wait=wait_exponential(max=60), stop=stop_after_delay(600))
 class CreateContainer(DBTask):
     def run(self, src, dst):
         src, dst = self.parse_params(src, dst)
@@ -369,6 +386,8 @@ class CreateContainer(DBTask):
             dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
             dst = os.path.join(dst, dst_filename)
 
+        enough_space_available(os.path.dirname(dst), src, True)
+
         if container_format == 'zip':
             self.event_type = 50410
             zip_directory(dirname=src, zipname=dst, compress=compress)
@@ -382,7 +401,7 @@ class CreateContainer(DBTask):
         return dst
 
     def event_outcome_success(self, result, src, dst):
-        return "Created {}".format(dst)
+        return "Created {}".format(self.parse_params(dst))
 
 
 class ParseSubmitDescription(DBTask):

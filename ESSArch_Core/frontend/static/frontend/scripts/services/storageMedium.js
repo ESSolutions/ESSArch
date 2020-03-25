@@ -12,7 +12,7 @@ const storageMedium = ($resource, appConfig) => {
         params: {id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -23,7 +23,7 @@ const storageMedium = ($resource, appConfig) => {
         params: {action: 'storage-objects', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },

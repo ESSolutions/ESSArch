@@ -25,7 +25,7 @@ export default class LanguageCtrl {
       data: {
         language: lang,
       },
-    }).then(function(response) {
+    }).then(function (response) {
       return response;
     });
   }
@@ -34,7 +34,7 @@ export default class LanguageCtrl {
     return this.http({
       method: 'GET',
       url: this.appConfig.djangoUrl + 'me/',
-    }).then(function(response: ng.IHttpResponse<{language: string}>) {
+    }).then(function (response: ng.IHttpResponse<{language: string}>) {
       return response.data.language;
     });
   }
@@ -47,7 +47,7 @@ export default class LanguageCtrl {
   }
 
   getCurrentLanguage() {
-    this.getUserLanguage().then(apiLang => {
+    this.getUserLanguage().then((apiLang) => {
       this.changeLanguage(apiLang);
     });
   }

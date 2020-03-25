@@ -3,6 +3,8 @@ import os
 import shutil
 import tempfile
 import uuid
+from collections import namedtuple
+from filecmp import cmp
 from unittest import mock
 
 import pyfakefs.fake_filesystem as fake_fs
@@ -10,6 +12,7 @@ import requests
 from django.test import SimpleTestCase
 
 from ESSArch_Core.storage.copy import copy_chunk_remotely, copy_dir, copy_file
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 
 
 class CopyChunkTestCase(SimpleTestCase):
@@ -87,23 +90,68 @@ class CopyChunkTestCase(SimpleTestCase):
 
 
 class CopyFileTestCase(SimpleTestCase):
-    @mock.patch('ESSArch_Core.storage.copy.copy_file_remotely')
-    @mock.patch('ESSArch_Core.storage.copy.copy_file_locally')
-    def test_copy_file(self, mock_local, mock_remote):
-        src = 'foo'
-        dst = 'bar'
-        copy_file(src, dst)
-        mock_local.assert_called_once_with(src, dst)
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
+    def test_copy_file_locally(self):
+        src = os.path.join(self.datadir, 'foo.txt')
+        with open(src, 'w') as f:
+            f.write('test')
+
+        dst = os.path.join(self.datadir, 'bar.txt')
+        copy_file(src, dst)
+
+        self.assertTrue(os.path.isfile(src))
+        self.assertTrue(os.path.isfile(dst))
+        self.assertTrue(cmp(src, dst, shallow=False))
+
+    @mock.patch('ESSArch_Core.storage.copy._send_completion_request')
+    @mock.patch('ESSArch_Core.storage.copy.copy_chunk_remotely', return_value='test_upload_id')
+    def test_copy_file_remotely(self, mock_copy, _mock_req):
+        src = os.path.join(self.datadir, 'foo.txt')
+        with open(src, 'w') as f:
+            f.write('test')
+        dst = 'bar'
         session = requests.Session()
-        copy_file(src, dst, requests_session=session)
-        mock_remote.assert_called_once_with(src, dst, session, block_size=mock.ANY)
+
+        copy_file(src, dst, requests_session=session, block_size=1)
+        mock_copy.assert_has_calls(
+            [mock.call(src, dst, 0, block_size=1, file_size=4, requests_session=session)] +
+            [mock.call(src, dst, i, block_size=1, file_size=4, requests_session=session, upload_id='test_upload_id')
+             for i in range(1, 5)]
+        )
+
+    def test_copy_with_not_enough_space_at_dst(self):
+        src = os.path.join(self.datadir, 'foo.txt')
+        with open(src, 'w') as f:
+            f.write('test')
+
+        dst = os.path.join(self.datadir, 'bar.txt')
+
+        mock_size = mock.patch('ESSArch_Core.storage.copy.get_tree_size_and_count', return_value=(10, 1))
+
+        ntuple_free = namedtuple('usage', 'free')
+        mock_free = mock.patch('ESSArch_Core.storage.copy.shutil.disk_usage', return_value=ntuple_free(free=5))
+
+        with mock_size, mock_free:
+            with self.assertRaises(NoSpaceLeftError):
+                copy_file(src, dst)
 
 
 class CopyDirTests(SimpleTestCase):
     def setUp(self):
         self.root = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.root)
+
+    def test_copy_directory_onto_file(self):
+        src = tempfile.mkdtemp(dir=self.root)
+        dstf, dst = tempfile.mkstemp(dir=self.root)
+        os.close(dstf)
+
+        msg = f'Cannot overwrite non-directory {dst} with directory {src}'
+        with self.assertRaisesMessage(ValueError, msg):
+            copy_dir(src, dst)
 
     def test_copy_trees(self):
         src = os.path.join(self.root, 'src')
@@ -137,3 +185,18 @@ class CopyDirTests(SimpleTestCase):
         # ensure source still exists
         self.assertTrue(os.path.isdir(os.path.join(src, 'a')))
         self.assertTrue(os.path.isdir(os.path.join(src, 'b')))
+
+    def test_copy_with_not_enough_space_at_dst(self):
+        src = tempfile.mkdtemp(dir=self.root)
+        with open(os.path.join(src, 'foo.txt'), 'w') as f:
+            f.write('test')
+        dst = tempfile.mkdtemp(dir=self.root)
+
+        mock_size = mock.patch('ESSArch_Core.storage.copy.get_tree_size_and_count', return_value=(10, 1))
+
+        ntuple_free = namedtuple('usage', 'free')
+        mock_free = mock.patch('ESSArch_Core.storage.copy.shutil.disk_usage', return_value=ntuple_free(free=5))
+
+        with mock_size, mock_free:
+            with self.assertRaises(NoSpaceLeftError):
+                copy_dir(src, dst)

@@ -354,72 +354,11 @@ main {
 
 .specification {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: 5px;
-  label,
-  div {
-    margin: 0 5px 0 5px;
-  }
+  flex-direction: column;
 }
 
 .color-red {
   color: red;
-}
-
-.cron-form {
-  margin-bottom: 10px;
-  .cron-wrap {
-    display: flex !important;
-    flex-direction: column !important;
-    overflow-x: auto;
-    .cron-select {
-      margin-bottom: 1rem;
-    }
-    .select-options {
-      display: flex;
-      flex-direction: column;
-      .option-pair {
-        .seconds-wrap {
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          margin-top: 16px;
-        }
-        select,
-        label {
-          display: block;
-        }
-        display: flex;
-        flex-direction: row;
-        padding: 0 5px 0 5px;
-        .day-of-month-value {
-          max-width: 100px;
-          margin: 5px;
-        }
-        .day-value {
-          max-width: 100px;
-          margin: 5px;
-        }
-        .month-value {
-          max-width: 100px;
-          margin: 5px;
-        }
-        .hour-value {
-          max-width: 100px;
-          margin: 5px;
-        }
-        .minute-value {
-          max-width: 100px;
-          select,
-          label {
-            display: inline;
-          }
-          margin: 5px;
-        }
-      }
-    }
-  }
 }
 
 .new-archive-container {

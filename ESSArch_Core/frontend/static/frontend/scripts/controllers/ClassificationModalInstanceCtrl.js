@@ -20,13 +20,13 @@ export default class ClassificationModalInstanceCtrl {
     $ctrl.types = [];
     $ctrl.data = data;
     $ctrl.newStructure = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.node) {
         $ctrl.node = data.node;
       }
       EditMode.enable();
       if (data.structure) {
-        $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function(response) {
+        $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function (response) {
           $ctrl.typeOptions = response.data;
           $ctrl.structure = angular.copy(data.structure);
           $ctrl.structure.type = angular.copy(data.structure.structureType.id);
@@ -34,7 +34,7 @@ export default class ClassificationModalInstanceCtrl {
         });
       }
       if (data.newStructure) {
-        $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function(response) {
+        $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function (response) {
           $ctrl.typeOptions = response.data;
           $ctrl.buildStructureForm();
         });
@@ -43,7 +43,7 @@ export default class ClassificationModalInstanceCtrl {
           .get(appConfig.djangoUrl + 'structure-unit-types/', {
             params: {structure_type: data.structure.structureType.id, pager: 'none'},
           })
-          .then(function(response) {
+          .then(function (response) {
             if (data.node.structureType) {
               if (data.children) {
                 $ctrl.newNode.reference_code = (data.children.length + 1).toString();
@@ -52,7 +52,7 @@ export default class ClassificationModalInstanceCtrl {
             } else {
               if (data.node._index !== 'archive') {
                 const url = appConfig.djangoUrl + 'structure-units/' + data.node.id + '/children/';
-                $http.head(url).then(function(childrenResponse) {
+                $http.head(url).then(function (childrenResponse) {
                   const count = parseInt(childrenResponse.headers('Count'));
                   if (!isNaN(count)) {
                     $ctrl.newNode.reference_code = (count + 1).toString();
@@ -67,7 +67,7 @@ export default class ClassificationModalInstanceCtrl {
       }
     };
 
-    $ctrl.buildStructureForm = function() {
+    $ctrl.buildStructureForm = function () {
       $ctrl.structureFields = [
         {
           key: 'name',
@@ -140,7 +140,7 @@ export default class ClassificationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.buildNodeForm = function() {
+    $ctrl.buildNodeForm = function () {
       $ctrl.nodeFields = [
         {
           templateOptions: {
@@ -209,21 +209,21 @@ export default class ClassificationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.changed = function() {
+    $ctrl.changed = function () {
       return !angular.equals($ctrl.newNode, {});
     };
 
-    $ctrl.removeNode = function() {
+    $ctrl.removeNode = function () {
       $http
         .delete(appConfig.djangoUrl + 'structures/' + data.structure.id + '/units/' + $ctrl.node.id)
-        .then(function(response) {
+        .then(function (response) {
           Notifications.add($translate.instant('ACCESS.NODE_REMOVED'), 'success');
           EditMode.disable();
           $uibModalInstance.close('added');
         });
     };
 
-    $ctrl.submit = function() {
+    $ctrl.submit = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -239,13 +239,13 @@ export default class ClassificationModalInstanceCtrl {
               parent: parent,
             })
           )
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_ADDED'), 'success');
             EditMode.disable();
             $uibModalInstance.close(response.data);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
@@ -254,7 +254,7 @@ export default class ClassificationModalInstanceCtrl {
     /**
      * update new classification structure
      */
-    $ctrl.update = function() {
+    $ctrl.update = function () {
       $ctrl.saving = true;
       $rootScope.skipErrorNotification = true;
       $http({
@@ -264,13 +264,13 @@ export default class ClassificationModalInstanceCtrl {
           name: $ctrl.name,
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           $uibModalInstance.close(response.data);
           EditMode.disable();
           Notifications.add($translate.instant('NODE_UPDATED'), 'success');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
@@ -278,7 +278,7 @@ export default class ClassificationModalInstanceCtrl {
     /**
      * Save new classification structure
      */
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -286,19 +286,19 @@ export default class ClassificationModalInstanceCtrl {
       $ctrl.creating = true;
       $rootScope.skipErrorNotification = true;
       Structure.new($ctrl.newStructure)
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           EditMode.disable();
           $ctrl.creating = false;
           $uibModalInstance.close(resource);
           Notifications.add($translate.instant('ACCESS.CLASSIFICATION_STRUCTURE_CREATED'), 'success');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.creating = false;
         });
     };
 
-    $ctrl.saveEditedStructure = function() {
+    $ctrl.saveEditedStructure = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -310,33 +310,33 @@ export default class ClassificationModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.structure,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.saving = false;
           $ctrl.nonFieldErrors = response.data.non_field_errors;
         });
     };
 
     $ctrl.removing = false;
-    $ctrl.remove = function(structure) {
+    $ctrl.remove = function (structure) {
       $ctrl.removing = true;
-      Structure.remove({id: structure.id}).$promise.then(function(response) {
+      Structure.remove({id: structure.id}).$promise.then(function (response) {
         $ctrl.removing = false;
         Notifications.add($translate.instant('ACCESS.CLASSIFICATION_STRUCTURE_REMOVED'), 'success');
         EditMode.disable();
         $uibModalInstance.close();
       });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

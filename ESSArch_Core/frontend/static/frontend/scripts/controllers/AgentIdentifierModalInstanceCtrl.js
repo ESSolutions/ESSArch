@@ -5,7 +5,7 @@ export default class AgentIdentifierModalInstanceCtrl {
     $ctrl.fields = [];
     $ctrl.options = {};
 
-    $ctrl.resetIdentifier = function(initialValue) {
+    $ctrl.resetIdentifier = function (initialValue) {
       if (initialValue) {
         $ctrl.identifier = initialValue;
       } else {
@@ -13,7 +13,7 @@ export default class AgentIdentifierModalInstanceCtrl {
       }
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.remove) {
         $ctrl.identifier = angular.copy(data.identifier);
       } else {
@@ -21,7 +21,7 @@ export default class AgentIdentifierModalInstanceCtrl {
           url: appConfig.djangoUrl + 'agent-identifier-types/',
           params: {pager: 'none'},
           method: 'GET',
-        }).then(function(response) {
+        }).then(function (response) {
           $ctrl.options = {type: response.data};
           EditMode.enable();
           if (data.identifier) {
@@ -37,7 +37,7 @@ export default class AgentIdentifierModalInstanceCtrl {
       }
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'select',
@@ -64,14 +64,14 @@ export default class AgentIdentifierModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const identifiers = angular.copy(data.agent.identifiers);
-      identifiers.forEach(function(x) {
+      identifiers.forEach(function (x) {
         x.type = x.type.id;
       });
       $rootScope.skipErrorNotification = true;
@@ -80,12 +80,12 @@ export default class AgentIdentifierModalInstanceCtrl {
         method: 'PATCH',
         data: {identifiers: [$ctrl.identifier].concat(identifiers)},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.identifiers) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -97,14 +97,14 @@ export default class AgentIdentifierModalInstanceCtrl {
           $ctrl.adding = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const identifiers = angular.copy(data.agent.identifiers);
-      identifiers.forEach(function(x, idx, array) {
+      identifiers.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -118,12 +118,12 @@ export default class AgentIdentifierModalInstanceCtrl {
         method: 'PATCH',
         data: {identifiers: identifiers},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.identifiers) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -136,11 +136,11 @@ export default class AgentIdentifierModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const identifiers = angular.copy(data.agent.identifiers);
-      identifiers.forEach(function(x, idx, array) {
+      identifiers.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -157,12 +157,12 @@ export default class AgentIdentifierModalInstanceCtrl {
         method: 'PATCH',
         data: {identifiers: identifiers},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.identifiers) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -175,12 +175,12 @@ export default class AgentIdentifierModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

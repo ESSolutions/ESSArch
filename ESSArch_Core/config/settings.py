@@ -36,7 +36,7 @@ ESSARCH_WORKFLOW_POLLERS = {
 
 
 # Set test runner
-TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
+TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
@@ -413,6 +413,7 @@ except ImportError:
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.ip.tasks",
+    "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.storage.tasks",
     "ESSArch_Core.tasks",
@@ -438,19 +439,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': timedelta(minutes=10),
     },
     'PollAppraisalJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollAppraisalJobs',
-        'schedule': timedelta(minutes=10),
-    },
-    'ScheduleAppraisalJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.ScheduleAppraisalJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollAppraisalJobs',
         'schedule': timedelta(minutes=10),
     },
     'PollConversionJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollConversionJobs',
-        'schedule': timedelta(minutes=10),
-    },
-    'ScheduleConversionJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.ScheduleConversionJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
     },
 }

@@ -11,16 +11,16 @@ export default class AgentMandateModalInstanceCtrl {
       end_date: null,
       href: '',
     };
-    $ctrl.resetMandate = function() {
+    $ctrl.resetMandate = function () {
       $ctrl.mandate = angular.copy($ctrl.mandateTemplate);
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       return $http({
         url: appConfig.djangoUrl + 'authority-types/',
         params: {pager: 'none'},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options = {mandate: response.data};
         EditMode.enable();
         if (data.mandate) {
@@ -34,7 +34,7 @@ export default class AgentMandateModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'input',
@@ -101,14 +101,14 @@ export default class AgentMandateModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const mandates = angular.copy(data.agent.mandates);
-      mandates.forEach(function(x) {
+      mandates.forEach(function (x) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
         }
@@ -119,12 +119,12 @@ export default class AgentMandateModalInstanceCtrl {
         method: 'PATCH',
         data: {mandates: [$ctrl.mandate].concat(mandates)},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.mandates) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -136,14 +136,14 @@ export default class AgentMandateModalInstanceCtrl {
           $ctrl.adding = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const mandates = angular.copy(data.agent.mandates);
-      mandates.forEach(function(x, idx, array) {
+      mandates.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
         }
@@ -157,12 +157,12 @@ export default class AgentMandateModalInstanceCtrl {
         method: 'PATCH',
         data: {mandates: mandates},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.mandates) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -175,11 +175,11 @@ export default class AgentMandateModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const mandates = angular.copy(data.agent.mandates);
-      mandates.forEach(function(x, idx, array) {
+      mandates.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = angular.copy(x.type.id);
         }
@@ -196,12 +196,12 @@ export default class AgentMandateModalInstanceCtrl {
         method: 'PATCH',
         data: {mandates: mandates},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.mandates) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -214,12 +214,12 @@ export default class AgentMandateModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

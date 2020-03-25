@@ -2,7 +2,7 @@
     ESSArch is an open source archiving and digital preservation system
 
     ESSArch
-    Copyright (C) 2005-2019 ES Solutions AB
+    Copyright (C) 2005-2020 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,12 +27,6 @@ import os
 import versioneer
 from setuptools import find_packages, setup
 
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'ESSArch_Core/_version.py'
-versioneer.versionfile_build = None
-versioneer.tag_prefix = ''  # tags are like 1.2.0
-versioneer.parentdir_prefix = 'ESSArch_Core-'
-
 
 def get_requirements(env):
     path = os.path.join('requirements/{}.txt').format(env)
@@ -49,10 +43,11 @@ def get_optional(name):
 
 
 if __name__ == '__main__':
+    versions_dict = versioneer.get_versions()
     cmdclass = versioneer.get_cmdclass()
     setup(
         name='ESSArch',
-        version=versioneer.get_version(),
+        version=versions_dict['version'],
         description='ESSArch',
         long_description=open("README.md").read(),
         long_description_content_type='text/markdown',
@@ -69,7 +64,7 @@ if __name__ == '__main__':
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versioneer.get_versions()['full'],
+            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versions_dict['full-revisionid'],
             'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
         classifiers=[

@@ -30,7 +30,7 @@ export default class StateTreeCtrl {
 
     $scope.$translate = $translate;
 
-    vm.$onChanges = function() {
+    vm.$onChanges = function () {
       $scope.tree_data = [];
       $scope.ip = vm.ip;
       $scope.responsible = $translate.instant('RESPONSIBLE');
@@ -68,17 +68,17 @@ export default class StateTreeCtrl {
 
       $scope.statusViewUpdate($scope.ip);
       $interval.cancel(stateInterval);
-      stateInterval = $interval(function() {
+      stateInterval = $interval(function () {
         $scope.statusViewUpdate($scope.ip);
       }, appConfig.stateInterval);
     };
 
-    vm.$onDestroy = function() {
+    vm.$onDestroy = function () {
       $interval.cancel(stateInterval);
     };
 
     //Cancel update intervals on state change
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(stateInterval);
     });
 
@@ -93,7 +93,7 @@ export default class StateTreeCtrl {
      * Handle keydown events for state view table
      * @param {Event} e
      */
-    $scope.myTreeControl.scope.stateTableKeydownListener = function(e, branch) {
+    $scope.myTreeControl.scope.stateTableKeydownListener = function (e, branch) {
       switch (e.keyCode) {
         case arrowDown:
           e.preventDefault();
@@ -129,46 +129,46 @@ export default class StateTreeCtrl {
     };
 
     //Undo step/task
-    $scope.myTreeControl.scope.taskStepUndo = function(branch) {
+    $scope.myTreeControl.scope.taskStepUndo = function (branch) {
       branch
         .$undo()
-        .then(function(response) {
+        .then(function (response) {
           if ($scope.currentStepTask.flow_type === 'task') {
             $scope.getTask($scope.currentStepTask);
           } else {
             $scope.getStep($scope.currentStepTask);
           }
-          $timeout(function() {
+          $timeout(function () {
             $scope.statusViewUpdate($scope.ip);
           }, 1000);
         })
-        .catch(function() {
+        .catch(function () {
           console.log('error');
         });
     };
     //Redo step/task
-    $scope.myTreeControl.scope.taskStepRedo = function(branch) {
+    $scope.myTreeControl.scope.taskStepRedo = function (branch) {
       branch
         .$retry()
-        .then(function(response) {
-          $timeout(function() {
+        .then(function (response) {
+          $timeout(function () {
             $scope.statusViewUpdate($scope.ip);
           }, 1000);
         })
-        .catch(function() {
+        .catch(function () {
           console.log('error');
         });
     };
     $scope.currentStepTask = {id: ''};
-    $scope.myTreeControl.scope.updatePageNumber = function(branch, page) {
+    $scope.myTreeControl.scope.updatePageNumber = function (branch, page) {
       if (page > branch.page_number && branch.next) {
         branch.page_number = parseInt(branch.next.page);
-        StateTree.getChildrenForStep(branch, branch.page_number).then(function(result) {
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function (result) {
           branch = result;
         });
       } else if (page < branch.page_number && branch.prev && page > 0) {
         branch.page_number = parseInt(branch.prev.page);
-        StateTree.getChildrenForStep(branch, branch.page_number).then(function(result) {
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function (result) {
           branch = result;
         });
       }
@@ -176,13 +176,13 @@ export default class StateTreeCtrl {
     $scope.myTreeControl.scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
 
     //Click on +/- on step
-    $scope.stepClick = function(step) {
+    $scope.stepClick = function (step) {
       StateTree.getChildrenForStep(step);
     };
 
-    $scope.getTask = function(branch) {
+    $scope.getTask = function (branch) {
       $scope.stepTaskLoading = true;
-      return Task.get({id: branch.id}).$promise.then(function(data) {
+      return Task.get({id: branch.id}).$promise.then(function (data) {
         if (data.time_started !== null && data.time_done !== null) {
           const started = moment(data.time_started);
           const done = moment(data.time_done);
@@ -196,9 +196,9 @@ export default class StateTreeCtrl {
       });
     };
 
-    $scope.getStep = function(branch) {
+    $scope.getStep = function (branch) {
       $scope.stepTaskLoading = true;
-      return Step.get({id: branch.id}).$promise.then(function(data) {
+      return Step.get({id: branch.id}).$promise.then(function (data) {
         if (data.time_started !== null && data.time_done !== null) {
           const started = moment(data.time_started);
           const done = moment(data.time_done);
@@ -212,23 +212,23 @@ export default class StateTreeCtrl {
       });
     };
     //Click funciton for steps and tasks
-    $scope.stepTaskClick = function(branch) {
+    $scope.stepTaskClick = function (branch) {
       $scope.stepTaskLoading = true;
       if (branch.flow_type == 'task') {
-        $scope.getTask(branch).then(function(data) {
+        $scope.getTask(branch).then(function (data) {
           $scope.taskInfoModal();
         });
       } else {
-        $scope.getStep(branch).then(function(data) {
+        $scope.getStep(branch).then(function (data) {
           $scope.stepInfoModal();
         });
       }
     };
 
-    $scope.checkPermission = function(permissionName) {
+    $scope.checkPermission = function (permissionName) {
       return !angular.isUndefined(PermPermissionStore.getPermissionDefinition(permissionName));
     };
-    $scope.extendedEqual = function(specification_data, model) {
+    $scope.extendedEqual = function (specification_data, model) {
       let returnValue = true;
       for (const prop in model) {
         if (model[prop] == '' && angular.isUndefined(specification_data[prop])) {
@@ -243,14 +243,14 @@ export default class StateTreeCtrl {
     };
     $scope.myTreeControl.scope.stateLoading = false;
     //Update status view data
-    $scope.statusViewUpdate = function(row) {
+    $scope.statusViewUpdate = function (row) {
       $scope.myTreeControl.scope.stateLoading = true;
       let expandedNodes = [];
       if ($scope.tree_data != []) {
         expandedNodes = checkExpanded($scope.tree_data);
       }
-      return StateTree.getTreeData(row, expandedNodes).then(function(value) {
-        return $q.all(value).then(function(values) {
+      return StateTree.getTreeData(row, expandedNodes).then(function (value) {
+        return $q.all(value).then(function (values) {
           if ($scope.tree_data.length && values.length) {
             $scope.tree_data = updateStepProperties($scope.tree_data, values);
           } else {
@@ -276,7 +276,7 @@ export default class StateTreeCtrl {
             }
           }
           if (B[i].flow_type != 'task') {
-            waitForChildren(A[i], B[i]).then(function(result) {
+            waitForChildren(A[i], B[i]).then(function (result) {
               result.step.children = result.children;
             });
           }
@@ -290,7 +290,7 @@ export default class StateTreeCtrl {
     // Waits for promises in b.children to resolve before returning
     // the result from updateStepProperties called with children of a and b
     function waitForChildren(a, b) {
-      return $q.all(b.children).then(function(bchildren) {
+      return $q.all(b.children).then(function (bchildren) {
         return {step: a, children: updateStepProperties(a.children, bchildren)};
       });
     }
@@ -308,7 +308,7 @@ export default class StateTreeCtrl {
     //checks expanded rows in tree structure
     function checkExpanded(nodes) {
       let ret = [];
-      nodes.forEach(function(node) {
+      nodes.forEach(function (node) {
         if (node.expanded == true) {
           ret.push(node);
         }
@@ -320,7 +320,7 @@ export default class StateTreeCtrl {
     }
 
     //Creates and shows modal with task information
-    $scope.taskInfoModal = function() {
+    $scope.taskInfoModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
@@ -336,14 +336,14 @@ export default class StateTreeCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
+        function (data, $ctrl) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
     //Creates and shows modal with step information
-    $scope.stepInfoModal = function() {
+    $scope.stepInfoModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
@@ -359,8 +359,8 @@ export default class StateTreeCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
+        function (data, $ctrl) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

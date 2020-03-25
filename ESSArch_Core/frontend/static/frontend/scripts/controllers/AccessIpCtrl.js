@@ -7,11 +7,11 @@ export default class AccessIpCtrl {
 
     $scope.ips = [];
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('APPRAISAL'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           if ($scope.ips.length === 0) {
             vm.openAppraisalModal([row]);
           } else {
@@ -21,7 +21,7 @@ export default class AccessIpCtrl {
       });
       methods.push({
         text: $translate.instant('CONVERSION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           if ($scope.ips.length === 0) {
             vm.openConversionModal([row]);
           } else {
@@ -30,14 +30,14 @@ export default class AccessIpCtrl {
         },
       });
       methods.push(
-        ContextMenuBase.changeOrganization(function() {
+        ContextMenuBase.changeOrganization(function () {
           vm.changeOrganizationModal(row);
         })
       );
 
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           vm.ipInformationModal(row);
         },
       });
@@ -45,31 +45,19 @@ export default class AccessIpCtrl {
     };
 
     const watchers = [];
-    watchers.push(
-      $scope.$watch(
-        function() {
-          return $scope.ip;
-        },
-        function(newVal, oldVal) {
-          if (newVal != null) {
-            $scope.ips = [];
-          }
-        }
-      )
-    );
 
     //Destroy watchers on state change
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       if ($transition.from().name !== $transition.to().name) {
-        watchers.forEach(function(watcher) {
+        watchers.forEach(function (watcher) {
           watcher();
         });
       }
     });
 
-    $scope.selectedAmongOthers = function(id) {
+    $scope.selectedAmongOthers = function (id) {
       let exists = false;
-      $scope.ips.forEach(function(ip) {
+      $scope.ips.forEach(function (ip) {
         if (ip.id == id) {
           exists = true;
         }
@@ -77,12 +65,12 @@ export default class AccessIpCtrl {
       return exists;
     };
 
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       $scope.submitRequest($scope.ips, vm.request);
     };
 
     // Requests
-    $scope.submitRequest = function(ips, request) {
+    $scope.submitRequest = function (ips, request) {
       switch (request.type) {
         case 'get':
         case 'get_tar':
@@ -99,7 +87,7 @@ export default class AccessIpCtrl {
       }
     };
 
-    vm.openAppraisalModal = function(ips) {
+    vm.openAppraisalModal = function (ips) {
       if (ips.length == 0 && $scope.ip != null) {
         ips.push($scope.ip);
       }
@@ -107,46 +95,49 @@ export default class AccessIpCtrl {
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/ip_appraisal_modal.html',
+        controller: 'IpAppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
-              ips: ips,
+              ips,
             };
           },
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.openConversionModal = function(ips) {
+    vm.openConversionModal = function (ips) {
+      if (ips.length == 0 && $scope.ip != null) {
+        ips.push($scope.ip);
+      }
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/conversion_modal.html',
-        controller: 'ConversionModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/ip_conversion_modal.html',
+        controller: 'IpConversionJobModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
-              ips: ips,
+              ips,
             };
           },
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

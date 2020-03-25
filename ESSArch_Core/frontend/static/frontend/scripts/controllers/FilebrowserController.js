@@ -4,7 +4,7 @@ export default class FilebrowserController {
     $scope.deckGridData = [];
     const vm = this;
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if (!$scope.ip) {
         $scope.ip = $rootScope.ip;
       }
@@ -13,7 +13,7 @@ export default class FilebrowserController {
       $scope.gridArrayLoading = true;
     };
 
-    vm.$onChanges = function(changes) {
+    vm.$onChanges = function (changes) {
       if (changes.user) {
         $scope.previousGridArrays = [];
         $scope.dirPipe($scope.tableState);
@@ -23,31 +23,31 @@ export default class FilebrowserController {
       }
     };
     const watchers = [];
-    vm.$onDestroy = function() {
-      watchers.forEach(function(watcher) {
+    vm.$onDestroy = function () {
+      watchers.forEach(function (watcher) {
         watcher();
       });
     };
     $scope.listView = false;
     $scope.gridView = true;
-    $scope.useListView = function() {
+    $scope.useListView = function () {
       $scope.listView = true;
       $scope.gridView = false;
     };
 
-    $scope.useGridView = function() {
+    $scope.useGridView = function () {
       $scope.listView = false;
       $scope.gridView = true;
     };
 
     $scope.filesPerPage = $cookies.get('files-per-page') || 50;
-    $scope.changeFilesPerPage = function(filesPerPage) {
+    $scope.changeFilesPerPage = function (filesPerPage) {
       if (typeof filesPerPage === 'number') {
         $cookies.put('files-per-page', filesPerPage, {expires: new Date('Fri, 31 Dec 9999 23:59:59 GMT')});
       }
     };
 
-    $scope.previousGridArraysString = function() {
+    $scope.previousGridArraysString = function () {
       if ($scope.ip) {
         let retString = '';
         if ($state.includes('**.workarea.**')) {
@@ -58,14 +58,14 @@ export default class FilebrowserController {
           retString += '/';
         }
 
-        $scope.previousGridArrays.forEach(function(card) {
+        $scope.previousGridArrays.forEach(function (card) {
           retString = retString.concat(card.name, '/');
         });
         return retString;
       }
     };
 
-    $scope.dirPipe = function(tableState) {
+    $scope.dirPipe = function (tableState) {
       if (vm.browserstate) {
         vm.browserstate.path = $scope.previousGridArraysString();
       }
@@ -84,7 +84,7 @@ export default class FilebrowserController {
               paginationParams,
               vm.user ? vm.user.id : null
             )
-            .then(function(dir) {
+            .then(function (dir) {
               $scope.deckGridData = dir.data;
               tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
               $scope.gridArrayLoading = false;
@@ -92,7 +92,7 @@ export default class FilebrowserController {
               $scope.openingNewPage = false;
             });
         } else {
-          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function(dir) {
+          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function (dir) {
             $scope.deckGridData = dir.data;
             tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
             $scope.gridArrayLoading = false;
@@ -103,11 +103,11 @@ export default class FilebrowserController {
       }
     };
 
-    $scope.$on('UPDATE_FILEBROWSER', function(data) {
+    $scope.$on('UPDATE_FILEBROWSER', function (data) {
       $scope.dirPipe($scope.tableState);
     });
 
-    $scope.deckGridInit = function(ip) {
+    $scope.deckGridInit = function (ip) {
       $scope.previousGridArrays = [];
       if ($scope.tableState) {
         $scope.dirPipe($scope.tableState);
@@ -119,10 +119,10 @@ export default class FilebrowserController {
     }
     watchers.push(
       $scope.$watch(
-        function() {
+        function () {
           return $rootScope.ip;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           const old = angular.copy($scope.ip);
           $scope.ip = $rootScope.ip;
           if (old.id !== $rootScope.ip.id) {
@@ -133,7 +133,7 @@ export default class FilebrowserController {
         true
       )
     );
-    $scope.previousGridArray = function() {
+    $scope.previousGridArray = function () {
       $scope.previousGridArrays.pop();
       if ($scope.tableState) {
         $scope.tableState.pagination.start = 0;
@@ -142,12 +142,12 @@ export default class FilebrowserController {
         $scope.selectedCards = [];
       }
     };
-    $scope.updateGridArray = function(ip) {
+    $scope.updateGridArray = function (ip) {
       if ($scope.tableState) {
         $scope.dirPipe($scope.tableState);
       }
     };
-    $scope.expandFile = function(ip, card) {
+    $scope.expandFile = function (ip, card) {
       if (card.type == 'dir' || card.name.endsWith('.tar') || card.name.endsWith('.zip')) {
         $scope.previousGridArrays.push(card);
         if ($scope.tableState) {
@@ -171,7 +171,7 @@ export default class FilebrowserController {
       return false;
     }
 
-    $scope.cardSelect = function(card) {
+    $scope.cardSelect = function (card) {
       if (includesWithProperty($scope.selectedCards, 'name', card.name)) {
         $scope.selectedCards.splice($scope.selectedCards.indexOf(card), 1);
       } else {
@@ -189,7 +189,7 @@ export default class FilebrowserController {
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               file: folder,
               type: fileToOverwrite.type,
@@ -197,7 +197,7 @@ export default class FilebrowserController {
           },
         },
       });
-      modalInstance.result.then(function(data) {
+      modalInstance.result.then(function (data) {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .deleteWorkareaFile(
@@ -206,14 +206,14 @@ export default class FilebrowserController {
               fileToOverwrite,
               vm.user ? vm.user.id : null
             )
-            .then(function() {
-              listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
+            .then(function () {
+              listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function () {
                 $scope.updateGridArray();
               });
             });
         } else {
-          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), fileToOverwrite).then(function() {
-            listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function() {
+          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), fileToOverwrite).then(function () {
+            listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function () {
               $scope.updateGridArray();
             });
           });
@@ -221,13 +221,13 @@ export default class FilebrowserController {
       });
     }
 
-    $scope.createFolder = function(folderName) {
+    $scope.createFolder = function (folderName) {
       const folder = {
         type: 'dir',
         name: folderName,
       };
       let fileExists = false;
-      $scope.deckGridData.forEach(function(chosen, index) {
+      $scope.deckGridData.forEach(function (chosen, index) {
         if (chosen.name === folder.name) {
           fileExists = true;
           folderNameExistsModal(index, folder, chosen);
@@ -237,18 +237,18 @@ export default class FilebrowserController {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .addNewWorkareaFolder(vm.workarea, $scope.previousGridArraysString(), folder, vm.user ? vm.user.id : null)
-            .then(function(response) {
+            .then(function (response) {
               $scope.updateGridArray();
             });
         } else {
-          listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function(response) {
+          listViewService.addNewFolder($scope.ip, $scope.previousGridArraysString(), folder).then(function (response) {
             $scope.updateGridArray();
           });
         }
       }
     };
 
-    $scope.getFile = function(file) {
+    $scope.getFile = function (file) {
       if ($state.includes('**.workarea.**')) {
         file.content = $sce.trustAsResourceUrl(
           appConfig.djangoUrl +
@@ -281,7 +281,7 @@ export default class FilebrowserController {
       $window.open(file.content, '_blank');
     };
 
-    $scope.newDirModal = function() {
+    $scope.newDirModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -294,40 +294,37 @@ export default class FilebrowserController {
           data: {},
         },
       });
-      modalInstance.result.then(function(data) {
+      modalInstance.result.then(function (data) {
         $scope.createFolder(data.dir_name);
       });
     };
-    $scope.removeFiles = function() {
-      $scope.selectedCards.forEach(function(file) {
+    $scope.removeFiles = function () {
+      $scope.selectedCards.forEach(function (file) {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .deleteWorkareaFile(vm.workarea, $scope.previousGridArraysString(), file, vm.user ? vm.user.id : null)
-            .then(function() {
+            .then(function () {
               $scope.updateGridArray();
             });
         } else {
-          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), file).then(function() {
+          listViewService.deleteFile($scope.ip, $scope.previousGridArraysString(), file).then(function () {
             $scope.updateGridArray();
           });
         }
       });
       $scope.selectedCards = [];
     };
-    $scope.isSelected = function(card) {
+    $scope.isSelected = function (card) {
       let cardClass = '';
-      $scope.selectedCards.forEach(function(file) {
+      $scope.selectedCards.forEach(function (file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';
         }
       });
       return cardClass;
     };
-    $scope.getFileExtension = function(file) {
-      return file.name
-        .split('.')
-        .pop()
-        .toUpperCase();
+    $scope.getFileExtension = function (file) {
+      return file.name.split('.').pop().toUpperCase();
     };
   }
 }

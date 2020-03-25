@@ -1,4 +1,4 @@
-const messenger = $window => {
+const messenger = ($window) => {
   return $window.Messenger;
 };
 
