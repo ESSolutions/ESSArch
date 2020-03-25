@@ -557,6 +557,64 @@ class ListStructureUnitTests(APITestCase):
         self.user = User.objects.create(username='user', is_superuser=True)
         self.client.force_authenticate(user=self.user)
 
+    def test_sort_reference_code(self):
+        structure = create_structure(self.structure_type)
+
+        ref_codes = [
+            'BA 100',
+            'ABC',
+            'X 1',
+            'BA 1001',
+            'XY 1',
+            'XYZ 1',
+            'BA 1',
+            'BA 10',
+            'BA 2',
+            'BA 1002',
+            'BA 1000',
+            'BA 003',
+            'QWE1',
+            'QWE10',
+            'QWE2',
+            'A B 2',
+            'A B 10',
+            'DEF',
+            'A B 1',
+        ]
+
+        for ref_code in ref_codes:
+            StructureUnit.objects.create(
+                reference_code=ref_code, type=self.unit_type,
+                structure=structure,
+            )
+
+        res = self.client.get(self.url, {'ordering': 'reference_code', 'pager': 'none'})
+
+        expected = [
+            'ABC',
+            'DEF',
+            'QWE1',
+            'QWE2',
+            'QWE10',
+            'A B 1',
+            'A B 2',
+            'A B 10',
+            'BA 1',
+            'BA 2',
+            'BA 003',
+            'BA 10',
+            'BA 100',
+            'BA 1000',
+            'BA 1001',
+            'BA 1002',
+            'X 1',
+            'XY 1',
+            'XYZ 1',
+        ]
+        actual = [sm['reference_code'] for sm in res.data]
+
+        self.assertEqual(expected, actual)
+
     @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
     def test_leaf_unit(self, mock_doc):
         structure = create_structure(self.structure_type)
@@ -2793,6 +2851,43 @@ class DeleteLocationTests(TestCase):
         response = self.client.delete(url)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class ListLocationNodesTests(ESSArchSearchBaseTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+        cls.location_function_type = LocationFunctionType.objects.create(name='test')
+        cls.location_level_type = LocationLevelType.objects.create(name='test')
+
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+    def test_list(self):
+        self.client.force_authenticate(user=self.user)
+        location = Location.objects.create(
+            name='test',
+            function=self.location_function_type,
+            level_type=self.location_level_type,
+        )
+
+        tag = Tag.objects.create()
+        tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
+        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+        url = reverse('location-tags-list', args=(str(location.pk),))
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        tag_version.location = location
+        tag_version.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tag_version.pk))
 
 
 class AddNodeToLocationTests(TestCase):

@@ -24,7 +24,7 @@
 
 const UiSelectConfig = [
   'uiSelectConfig',
-  function(uiSelectConfig) {
+  function (uiSelectConfig) {
     uiSelectConfig.theme = 'bootstrap';
     uiSelectConfig.appendToBody = true;
   },

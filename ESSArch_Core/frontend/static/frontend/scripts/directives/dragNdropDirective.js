@@ -22,15 +22,15 @@
     Email - essarch@essolutions.se
 */
 
-export default myService => {
+export default (myService) => {
   return {
     restrict: 'EA',
-    link: function(scope, elt, attrs) {
+    link: function (scope, elt, attrs) {
       elt.draggable({
         cursor: 'move',
         appendTo: 'body',
         disabled: !scope.$parentNode,
-        drag: function(event, ui) {
+        drag: function (event, ui) {
           const destination = ui.helper.data('destination');
           if (destination) {
             const cursorPos = event.pageY;
@@ -51,7 +51,7 @@ export default myService => {
             destination.addClass('hover-' + position);
           }
         },
-        helper: function(event) {
+        helper: function (event) {
           const helper = $('<div class="helper">' + scope.node.name + '</div>');
           // fill some data to be catched up by droppable() of receiver directives
           helper.data('node', scope.node);
@@ -61,22 +61,22 @@ export default myService => {
       });
       elt.droppable({
         tolerance: 'pointer',
-        over: function(event, ui) {
+        over: function (event, ui) {
           ui.helper.data('destination', elt);
           elt.addClass('hover');
         },
-        out: function(event, ui) {
+        out: function (event, ui) {
           ui.helper.data('destination', null);
           elt.removeClass('hover hover-up hover-middle hover-down');
         },
-        drop: function(event, ui) {
+        drop: function (event, ui) {
           const toNode = scope.node;
           const toParent = scope.$parentNode ? scope.$parentNode.children : null;
           const fromNode = ui.helper.data('node');
           const fromParentNode = ui.helper.data('parentNode');
           const position = ui.helper.data('position');
 
-          scope.$apply(function() {
+          scope.$apply(function () {
             let idx;
             if (!myService.hasChild(toNode, fromNode)) {
               if (fromParentNode) {
@@ -111,7 +111,7 @@ export default myService => {
         },
       });
 
-      var dereg = scope.$on('$destroy', function() {
+      var dereg = scope.$on('$destroy', function () {
         try {
           elet.draggable('destroy');
         } catch (e) {

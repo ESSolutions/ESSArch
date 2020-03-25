@@ -1,9 +1,9 @@
-export default $translate => {
+export default ($translate) => {
   const service = {
-    changeOrganization: function(callback) {
+    changeOrganization: function (callback) {
       return {
         text: $translate.instant('ORGANIZATION.CHANGE_ORGANIZATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           callback();
         },
       };

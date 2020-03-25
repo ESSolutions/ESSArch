@@ -1,6 +1,6 @@
 const Utils = () => {
   const service = {
-    getDiff: function(obja, objb, options) {
+    getDiff: function (obja, objb, options) {
       const diff = {};
       for (var key in objb) {
         if (

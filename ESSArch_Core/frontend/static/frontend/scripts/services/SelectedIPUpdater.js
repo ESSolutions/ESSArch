@@ -10,7 +10,7 @@ const selectedIpUpdater = () => {
      * @param {Object} selectedIp selected IP (single select)
      */
 
-    update: function(newIps, selectedIps, selectedIp) {
+    update: function (newIps, selectedIps, selectedIp) {
       if (selectedIps.length > 0) {
         for (let i = 0; i < selectedIps.length; i++) {
           for (let j = 0; j < newIps.length; j++) {
@@ -24,7 +24,7 @@ const selectedIpUpdater = () => {
           }
         }
       } else if (selectedIp !== null) {
-        newIps.forEach(function(ip) {
+        newIps.forEach(function (ip) {
           if (!angular.equals(ip, selectedIp) && ip.id === selectedIp.id) {
             updateSingleIp(selectedIp, ip);
           }

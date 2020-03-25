@@ -19,7 +19,7 @@ export default class ArchiveModalInstanceCtrl {
     $ctrl.options = {};
     $ctrl.initStructureSearch = null;
     $ctrl.initAgentSearch = null;
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       EditMode.enable();
       if (data.archive && data.remove) {
         $ctrl.archive = angular.copy(data.archive);
@@ -40,15 +40,15 @@ export default class ArchiveModalInstanceCtrl {
           };
         }
         $ctrl.options = {agents: [], structures: [], type: []};
-        $ctrl.getStructures().then(function(structures) {
+        $ctrl.getStructures().then(function (structures) {
           if ($ctrl.archive.structures) {
-            $ctrl.archive.structures = angular.copy($ctrl.archive.structures).map(function(x) {
+            $ctrl.archive.structures = angular.copy($ctrl.archive.structures).map(function (x) {
               return x.template;
             });
             const toAdd = [];
-            $ctrl.archive.structures.forEach(function(b) {
+            $ctrl.archive.structures.forEach(function (b) {
               let exists = false;
-              structures.forEach(function(a) {
+              structures.forEach(function (a) {
                 if (a.id === b) {
                   a.disabled = true;
                   exists = true;
@@ -59,21 +59,21 @@ export default class ArchiveModalInstanceCtrl {
               }
             });
             const promises = [];
-            toAdd.forEach(function(x) {
+            toAdd.forEach(function (x) {
               promises.push(
-                $http.get(appConfig.djangoUrl + 'structures/' + x + '/').then(function(response) {
+                $http.get(appConfig.djangoUrl + 'structures/' + x + '/').then(function (response) {
                   response.data.name_with_version = StructureName.getNameWithVersion(response.data);
                   response.data.disabled = true;
                   return response.data;
                 })
               );
             });
-            $q.all(promises).then(function(result) {
+            $q.all(promises).then(function (result) {
               structures = structures.concat(result);
               $ctrl.options.structures = structures;
             });
           }
-          $ctrl.getTypes().then(function(types) {
+          $ctrl.getTypes().then(function (types) {
             $ctrl.options.type = types;
             $ctrl.buildForm();
           });
@@ -82,21 +82,21 @@ export default class ArchiveModalInstanceCtrl {
     };
     $ctrl.creating = false;
 
-    $ctrl.getTypes = function() {
+    $ctrl.getTypes = function () {
       return $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: true, pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           return angular.copy(response.data);
         });
     };
 
-    $ctrl.getAgents = function(search) {
+    $ctrl.getAgents = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search},
-      }).then(function(response) {
-        response.data.forEach(function(agent) {
+      }).then(function (response) {
+        response.data.forEach(function (agent) {
           AgentName.parseAgentNames(agent);
         });
         $ctrl.options.agents = response.data;
@@ -104,19 +104,19 @@ export default class ArchiveModalInstanceCtrl {
       });
     };
 
-    $ctrl.getStructures = function(search) {
+    $ctrl.getStructures = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'structures/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, is_template: true, published: true, latest_version: true},
-      }).then(function(response) {
+      }).then(function (response) {
         StructureName.parseStructureNames(response.data);
         $ctrl.options.structures = response.data;
         return $ctrl.options.structures;
       });
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'input',
@@ -134,7 +134,7 @@ export default class ArchiveModalInstanceCtrl {
           key: 'structures',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.options.structures;
             },
             valueProp: 'id',
@@ -143,12 +143,12 @@ export default class ArchiveModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.CLASSIFICATION_STRUCTURES'),
             label: $translate.instant('ACCESS.CLASSIFICATION_STRUCTURES'),
             appendToBody: false,
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initStructureSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
-              return $ctrl.getStructures(search).then(function() {
+              return $ctrl.getStructures(search).then(function () {
                 this.options = $ctrl.options.structures;
                 return $ctrl.options.structures;
               });
@@ -163,7 +163,7 @@ export default class ArchiveModalInstanceCtrl {
             key: 'archive_creator',
             templateOptions: {
               required: true,
-              options: function() {
+              options: function () {
                 return $ctrl.options.agents;
               },
               valueProp: 'id',
@@ -172,12 +172,12 @@ export default class ArchiveModalInstanceCtrl {
               placeholder: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
               label: $translate.instant('ACCESS.ARCHIVE_CREATOR'),
               appendToBody: false,
-              refresh: function(search) {
+              refresh: function (search) {
                 if ($ctrl.initAgentSearch && (angular.isUndefined(search) || search === null || search === '')) {
                   search = angular.copy($ctrl.initAgentSearch);
                   $ctrl.initAgentSearch = null;
                 }
-                return $ctrl.getAgents(search).then(function() {
+                return $ctrl.getAgents(search).then(function () {
                   this.options = $ctrl.options.agents;
                   return $ctrl.options.agents;
                 });
@@ -239,10 +239,10 @@ export default class ArchiveModalInstanceCtrl {
             label: $translate.instant('ACCESS.REFERENCE_CODE'),
           },
           expressionProperties: {
-            'templateOptions.required': function($viewValue, $modelValue, scope) {
+            'templateOptions.required': function ($viewValue, $modelValue, scope) {
               return !scope.model.use_uuid_as_refcode;
             },
-            'templateOptions.disabled': function($viewValue, $modelValue, scope) {
+            'templateOptions.disabled': function ($viewValue, $modelValue, scope) {
               return scope.model.use_uuid_as_refcode;
             },
           },
@@ -265,7 +265,7 @@ export default class ArchiveModalInstanceCtrl {
       ]);
     };
 
-    $ctrl.create = function(archive) {
+    $ctrl.create = function (archive) {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -277,19 +277,19 @@ export default class ArchiveModalInstanceCtrl {
           index: 'archive',
         })
       )
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.creating = false;
           Notifications.add($translate.instant('ACCESS.NEW_ARCHIVE_CREATED'), 'success');
           EditMode.disable();
           $uibModalInstance.close({archive: response.data});
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.creating = false;
         });
     };
 
-    $ctrl.save = function(archive) {
+    $ctrl.save = function (archive) {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -313,39 +313,39 @@ export default class ArchiveModalInstanceCtrl {
         {_id: data.archive._id},
         angular.extend(Utils.getDiff(data.archive, $ctrl.archive, {map: {type: 'pk'}}), extraDiff)
       )
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           Notifications.add($translate.instant('ACCESS.ARCHIVE_SAVED'), 'success');
           EditMode.disable();
           $uibModalInstance.close({archive: response.data});
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       Search.removeNode({_id: data.archive.id})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

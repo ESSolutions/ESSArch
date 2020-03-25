@@ -1,6 +1,10 @@
 from ESSArch_Core.exceptions import ESSArchException
 
 
+class NoSpaceLeftError(ESSArchException):
+    pass
+
+
 class RobotException(ESSArchException):
     pass
 

@@ -44,11 +44,11 @@ export default class PrepareIpCtrl {
     $scope.angular = angular;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           vm.ipInformationModal(row);
         },
       });
@@ -57,8 +57,8 @@ export default class PrepareIpCtrl {
 
     $scope.selectedProfileRow = {profile_type: '', class: ''};
     $scope.prepareAlert = null;
-    $scope.setSelectedProfile = function(row) {
-      $scope.selectRowCollection.forEach(function(profileRow) {
+    $scope.setSelectedProfile = function (row) {
+      $scope.selectRowCollection.forEach(function (profileRow) {
         if (profileRow.profile_type == $scope.selectedProfileRow.profile_type) {
           profileRow.class = '';
         }
@@ -71,8 +71,8 @@ export default class PrepareIpCtrl {
       }
     };
 
-    $scope.$on('refresh_list_view', function() {
-      $timeout(function() {
+    $scope.$on('refresh_list_view', function () {
+      $timeout(function () {
         $scope.getListViewData();
         $scope.ip.submission_agreement_locked = true;
       });
@@ -84,7 +84,7 @@ export default class PrepareIpCtrl {
     vm.profileFields = [];
     vm.options = {};
     //Click funciton for sa view
-    $scope.saClick = function(row) {
+    $scope.saClick = function (row) {
       if ($scope.selectProfile == row && $scope.editSA) {
         $scope.editSA = false;
       } else {
@@ -99,17 +99,17 @@ export default class PrepareIpCtrl {
         vm.profileModel = {};
 
         // only keep fields defined in template
-        vm.profileFields.forEach(function(field) {
+        vm.profileFields.forEach(function (field) {
           vm.profileOldModel[field.key] = chosen[field.key];
           vm.profileModel[field.key] = chosen[field.key];
         });
 
         $scope.profileToSave = chosen;
         if (row.locked) {
-          vm.profileFields.forEach(function(field) {
+          vm.profileFields.forEach(function (field) {
             if (field.fieldGroup != null) {
-              field.fieldGroup.forEach(function(subGroup) {
-                subGroup.fieldGroup.forEach(function(item) {
+              field.fieldGroup.forEach(function (subGroup) {
+                subGroup.fieldGroup.forEach(function (item) {
                   item.type = 'input';
                   item.templateOptions.disabled = true;
                 });
@@ -125,7 +125,7 @@ export default class PrepareIpCtrl {
     };
 
     //Click funciton for profile view
-    $scope.profileClick = function(row) {
+    $scope.profileClick = function (row) {
       if ($scope.selectProfile == row && $scope.edit) {
         $scope.eventlog = false;
         $scope.edit = false;
@@ -147,7 +147,7 @@ export default class PrepareIpCtrl {
         id: profileId,
         sa: $scope.saProfile.profile.id,
         ip: $scope.ip.id,
-      }).$promise.then(function(resource) {
+      }).$promise.then(function (resource) {
         resource.profile_name = resource.name;
         row.active = resource;
         row.profiles = [resource];
@@ -159,10 +159,10 @@ export default class PrepareIpCtrl {
         $scope.expandedNodes = [$scope.treeElements[0]].concat($scope.treeElements[0].children);
         $scope.profileToSave = row.active;
         if (row.locked) {
-          vm.profileFields.forEach(function(field) {
+          vm.profileFields.forEach(function (field) {
             if (field.fieldGroup != null) {
-              field.fieldGroup.forEach(function(subGroup) {
-                subGroup.fieldGroup.forEach(function(item) {
+              field.fieldGroup.forEach(function (subGroup) {
+                subGroup.fieldGroup.forEach(function (item) {
                   item.type = 'input';
                   item.templateOptions.disabled = true;
                 });
@@ -179,7 +179,7 @@ export default class PrepareIpCtrl {
     }
 
     //Include the given profile type in the SA
-    $scope.includeProfileType = function(type) {
+    $scope.includeProfileType = function (type) {
       const sendData = {
         type: type,
       };
@@ -192,7 +192,7 @@ export default class PrepareIpCtrl {
     };
 
     //Exclude the given profile type in the SA
-    $scope.excludeProfileType = function(type) {
+    $scope.excludeProfileType = function (type) {
       const sendData = {
         type: type,
       };
@@ -204,7 +204,7 @@ export default class PrepareIpCtrl {
       );
     };
     //Make a profile "Checked"
-    $scope.setCheckedProfile = function(type, checked) {
+    $scope.setCheckedProfile = function (type, checked) {
       IP.checkProfile({
         id: $scope.ip.id,
         type: type,
@@ -218,7 +218,7 @@ export default class PrepareIpCtrl {
     $scope.optionalOptions = true;
 
     //Create and show modal for creating new ip
-    $scope.newIpModal = function() {
+    $scope.newIpModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -228,16 +228,16 @@ export default class PrepareIpCtrl {
         controllerAs: '$ctrl',
         resolve: {data: () => {}},
       });
-      modalInstance.closed.then(function(data) {
+      modalInstance.closed.then(function (data) {
         $scope.getListViewData();
         vm.updateListViewConditional();
       });
     };
 
-    $scope.closeAlert = function() {
+    $scope.closeAlert = function () {
       $scope.lockAlert = null;
     };
-    $scope.closePrepareAlert = function() {
+    $scope.closePrepareAlert = function () {
       $scope.prepareAlert = null;
     };
 
@@ -281,11 +281,11 @@ export default class PrepareIpCtrl {
             {name: 'XSD Files', value: 'xsd_files'},
           ],
         },
-        hideExpression: function($viewValue, $modelValue, scope) {
+        hideExpression: function ($viewValue, $modelValue, scope) {
           return scope.model.type != 'file';
         },
         expressionProperties: {
-          'templateOptions.required': function($viewValue, $modelValue, scope) {
+          'templateOptions.required': function ($viewValue, $modelValue, scope) {
             return scope.model.type == 'file';
           },
         },
@@ -308,20 +308,20 @@ export default class PrepareIpCtrl {
         label: 'a6',
         labelSelected: 'a8',
       },
-      isLeaf: function(node) {
+      isLeaf: function (node) {
         return node.type == 'file';
       },
-      equality: function(node1, node2) {
+      equality: function (node1, node2) {
         return node1 === node2;
       },
-      isSelectable: function(node) {
+      isSelectable: function (node) {
         return !$scope.updateMode.active && !$scope.addMode.active;
       },
     };
 
     //Populate map structure tree view given tree width and amount of levels
     function getStructure(profileId) {
-      listViewService.getStructure(profileId).then(function(value) {
+      listViewService.getStructure(profileId).then(function (value) {
         $scope.treeElements = [{name: 'root', type: 'folder', children: value}];
         $scope.expandedNodes = [$scope.treeElements[0]].concat($scope.treeElements[0].children);
       });
@@ -330,7 +330,7 @@ export default class PrepareIpCtrl {
     $scope.currentNode = null;
     $scope.selectedNode = null;
     //Add node to map structure tree view
-    $scope.addNode = function(node) {
+    $scope.addNode = function (node) {
       const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
@@ -349,12 +349,12 @@ export default class PrepareIpCtrl {
       $scope.exitAddMode();
     };
     //Remove node from map structure tree view
-    $scope.removeNode = function(node) {
+    $scope.removeNode = function (node) {
       if (node.parentNode == null) {
         //$scope.treeElements.splice($scope.treeElements.indexOf(node.node), 1);
         return;
       }
-      node.parentNode.children.forEach(function(element) {
+      node.parentNode.children.forEach(function (element) {
         if (element.name == node.node.name) {
           node.parentNode.children.splice(node.parentNode.children.indexOf(element), 1);
         }
@@ -366,13 +366,13 @@ export default class PrepareIpCtrl {
     };
     //Enter "Add-mode" which shows a form
     //for adding a node to the map structure
-    $scope.enterAddMode = function(node) {
+    $scope.enterAddMode = function (node) {
       $scope.addMode.active = true;
       $('.tree-edit-item').draggable('disable');
     };
     //Exit add mode and return to default
     //map structure edit view
-    $scope.exitAddMode = function() {
+    $scope.exitAddMode = function () {
       $scope.addMode.active = false;
       $scope.treeItemClass = '';
       resetFormVariables();
@@ -384,7 +384,7 @@ export default class PrepareIpCtrl {
     };
 
     //Enter update mode which shows form for updating a node
-    $scope.enterUpdateMode = function(node, parentNode) {
+    $scope.enterUpdateMode = function (node, parentNode) {
       if (parentNode == null) {
         alert('Root directory can not be updated');
         return;
@@ -402,7 +402,7 @@ export default class PrepareIpCtrl {
     };
 
     //Exit update mode and return to default map-structure editor
-    $scope.exitUpdateMode = function() {
+    $scope.exitUpdateMode = function () {
       $scope.updateMode.active = false;
       $scope.updateMode.node = null;
       $scope.selectedNode = null;
@@ -415,7 +415,7 @@ export default class PrepareIpCtrl {
       vm.treeEditModel = {};
     }
     //Update current node variable with selected node in map structure tree view
-    $scope.updateCurrentNode = function(node, selected, parentNode) {
+    $scope.updateCurrentNode = function (node, selected, parentNode) {
       if (selected) {
         $scope.currentNode = {node: node, parentNode: parentNode};
       } else {
@@ -423,7 +423,7 @@ export default class PrepareIpCtrl {
       }
     };
     //Update node values
-    $scope.updateNode = function(node) {
+    $scope.updateNode = function (node) {
       if (vm.treeEditModel.name != '') {
         node.node.name = vm.treeEditModel.name;
       }
@@ -436,7 +436,7 @@ export default class PrepareIpCtrl {
       $scope.exitUpdateMode();
     };
     //Select function for clicking a node
-    $scope.showSelected = function(node, parentNode) {
+    $scope.showSelected = function (node, parentNode) {
       $scope.selectedNode = node;
       $scope.updateCurrentNode(node, $scope.selectedNode, parentNode);
       if ($scope.updateMode.active) {
@@ -444,7 +444,7 @@ export default class PrepareIpCtrl {
       }
     };
     //Submit function for either Add or update
-    $scope.treeEditSubmit = function(node) {
+    $scope.treeEditSubmit = function (node) {
       if ($scope.addMode.active) {
         $scope.addNode(node);
       } else if ($scope.updateMode.active) {
@@ -454,14 +454,14 @@ export default class PrepareIpCtrl {
       }
     };
     //context menu data
-    $scope.treeEditOptions = function(item) {
+    $scope.treeEditOptions = function (item) {
       if ($scope.addMode.active || $scope.updateMode.active) {
         return [];
       }
       return [
         [
           $translate.instant('ADD'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterAddMode($itemScope.node);
           },
@@ -469,7 +469,7 @@ export default class PrepareIpCtrl {
 
         [
           $translate.instant('REMOVE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.updateCurrentNode($itemScope.node, true, $itemScope.$parentNode);
             $scope.removeNode($scope.currentNode);
             $scope.selectedNode = null;
@@ -477,7 +477,7 @@ export default class PrepareIpCtrl {
         ],
         [
           $translate.instant('UPDATE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterUpdateMode($itemScope.node, $itemScope.$parentNode);
           },
@@ -485,7 +485,7 @@ export default class PrepareIpCtrl {
       ];
     };
 
-    vm.prepareIpForUploadModal = function(ip) {
+    vm.prepareIpForUploadModal = function (ip) {
       const ips = $scope.ips.length > 0 ? $scope.ips : null;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -505,7 +505,7 @@ export default class PrepareIpCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.getListViewData();
           $scope.ip = null;
           $rootScope.ip = null;
@@ -514,7 +514,7 @@ export default class PrepareIpCtrl {
           $scope.eventlog = false;
           $scope.edit = false;
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
