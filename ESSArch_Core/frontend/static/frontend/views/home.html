@@ -3,7 +3,7 @@
     <div class="logo-user-wrapper" ng-controller="UtilCtrl">
       <div class="logo">
         <div ng-if="!angular.isUndefined(site) && site !== null && site.logo !== null" class="custom-logo">
-          <img src="{{site.logo}}" width="36" alt="logo" ng-click="infoPage()" />
+          <img ng-src="{{site.logo}}" width="36" alt="logo" ng-click="infoPage()" />
         </div>
       </div>
       <h3 class="page-title" ng-class="{'page-title-with-logo': site.logo}" ng-click="infoPage()">ESSArch</h3>
