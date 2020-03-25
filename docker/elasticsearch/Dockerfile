@@ -1,8 +1,6 @@
 ARG ELK_VERSION
 
-# https://github.com/elastic/elasticsearch-docker
-FROM docker.elastic.co/elasticsearch/elasticsearch:${ELK_VERSION}
+FROM docker.elastic.co/elasticsearch/elasticsearch-oss:${ELK_VERSION}
 
-# Add your elasticsearch plugins setup here
-
+# Install plugins
 RUN elasticsearch-plugin install --batch ingest-attachment

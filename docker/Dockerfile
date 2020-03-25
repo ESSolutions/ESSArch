@@ -90,7 +90,7 @@ ADD requirements/optional.txt /code/requirements/optional.txt
 ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
-RUN pip install --no-cache-dir -e .[mysql,postgres]
+RUN pip install --no-cache-dir -e .[mysql,postgres,logstash]
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
