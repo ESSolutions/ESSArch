@@ -1,15 +1,12 @@
-<div class="body-wrapper">
+<div class="body-wrapper" xmlns:div="http://www.w3.org/1999/html">
   <header class="header">
-    <div class="logo-search-user-admin-wrapper">
+    <div class="logo-user-wrapper">
       <div class="logo" ng-controller="UtilCtrl">
         <div ng-if="!angular.isUndefined(site) && site !== null && site.logo !== null" class="custom-logo">
           <img src="{{site.logo}}" width="36" alt="logo" />
         </div>
-        <h3 class="page-title" ng-click="infoPage()">ESSArch</h3>
-        <h3 class="page-title-small" ng-class="{'has-custom-logo': site.logo !== null}" ng-click="infoPage()">
-          ESSArch
-        </h3>
       </div>
+      <h3 class="page-title" ng-class="{'page-title-with-logo': site.logo}" ng-click="infoPage()">ESSArch</h3>
       <div class="user-admin">
         <div ng-controller="UtilCtrl" class="mobile-notification">
           <div class="notification-icon position-relative">
