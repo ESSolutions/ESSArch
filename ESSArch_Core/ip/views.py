@@ -1363,24 +1363,25 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 pass
 
             sip_profile = ip.submission_agreement.profile_sip
-            sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, ip.sip_path)
-            if os.path.isfile(ip.sip_path):
-                sip_mets_data = parse_mets(
-                    open_file(
-                        os.path.join(ip.object_path, sip_mets_dir, sip_mets_file),
-                        container=ip.sip_path,
-                        container_prefix=ip.object_identifier_value,
+            if ip.package_type == InformationPackage.AIP and sip_profile is not None and ip.sip_path is not None:
+                sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, ip.sip_path)
+                if os.path.isfile(ip.sip_path):
+                    sip_mets_data = parse_mets(
+                        open_file(
+                            os.path.join(ip.object_path, sip_mets_dir, sip_mets_file),
+                            container=ip.sip_path,
+                            container_prefix=ip.object_identifier_value,
+                        )
                     )
-                )
-            else:
-                sip_mets_data = parse_mets(open_file(os.path.join(ip.object_path, sip_mets_dir, sip_mets_file)))
+                else:
+                    sip_mets_data = parse_mets(open_file(os.path.join(ip.object_path, sip_mets_dir, sip_mets_file)))
 
-            # prefix all SIP data
-            sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+                # prefix all SIP data
+                sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
 
-            aip_profile_rel_data = ip.get_profile_rel('aip').data
-            aip_profile_rel_data.data.update(sip_mets_data)
-            aip_profile_rel_data.save()
+                aip_profile_rel_data = ip.get_profile_rel('aip').data
+                aip_profile_rel_data.data.update(sip_mets_data)
+                aip_profile_rel_data.save()
 
             if generate_premis:
                 premis_profile_data = ip.get_profile_data('preservation_metadata')
