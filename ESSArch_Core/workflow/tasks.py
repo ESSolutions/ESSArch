@@ -143,7 +143,7 @@ class ReceiveSIP(DBTask):
         ip.save()
         return sip_dst
 
-    def event_outcome_success(self, result, purpose=None):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Received SIP"
 
 
