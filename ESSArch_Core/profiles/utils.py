@@ -1,10 +1,12 @@
 import collections
 import os
 from collections.abc import Mapping
+from pathlib import PurePath
 
 from django.core.exceptions import ObjectDoesNotExist
 
 from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.util import find_destination
 
 profile_types = [
     "Transfer Project",
@@ -128,6 +130,8 @@ def _get_agents(ip):
 
 
 def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
+    from ESSArch_Core.profiles.models import ProfileIP
+
     data = data or {}
     ignore = ignore or []
 
@@ -149,6 +153,14 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
         data['_OBJPATH'] = ip.object_path
+
+        try:
+            structure = ip.get_structure()
+            content_dir, content_name = find_destination('content', structure)
+            data['_CONTENTPATH'] = PurePath(ip.object_path).joinpath(content_dir, content_name).as_posix()
+        except (ProfileIP.DoesNotExist, TypeError):
+            data['_CONTENTPATH'] = ip.object_path
+
         data['_INNER_IP_OBJID'] = ip.sip_objid
         data['_INNER_IP_PATH'] = ip.sip_path
         data['_STARTDATE'] = ip.start_date

@@ -45,18 +45,18 @@ export default class MediaInformationCtrl {
     let mediumInterval;
     let objectInterval;
     $interval.cancel(mediumInterval);
-    mediumInterval = $interval(function() {
+    mediumInterval = $interval(function () {
       vm.getMediumData();
     }, appConfig.storageMediumInterval);
     watchers.push(
       $scope.$watch(
-        function() {
+        function () {
           return $scope.select;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue) {
             $interval.cancel(objectInterval);
-            objectInterval = $interval(function() {
+            objectInterval = $interval(function () {
               vm.getObjectData();
             }, appConfig.storageObjectInterval);
           } else {
@@ -65,18 +65,18 @@ export default class MediaInformationCtrl {
         }
       )
     );
-    $transitions.onSuccess({}, function($transition) {
-      watchers.forEach(function(watcher) {
+    $transitions.onSuccess({}, function ($transition) {
+      watchers.forEach(function (watcher) {
         watcher();
       });
     });
     //Cancel update intervals on state change
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(mediumInterval);
       $interval.cancel(objectInterval);
     });
 
-    $scope.storageMediumTableClick = function(row) {
+    $scope.storageMediumTableClick = function (row) {
       if ($scope.select && $scope.storageMedium.id == row.id) {
         $scope.select = false;
         $scope.eventlog = false;
@@ -95,7 +95,7 @@ export default class MediaInformationCtrl {
       $scope.statusShow = false;
     };
 
-    $scope.updateStorageMediums = function() {
+    $scope.updateStorageMediums = function () {
       vm.callServer($scope.mediumTableState);
     };
     /*******************************************/
@@ -117,20 +117,20 @@ export default class MediaInformationCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getStorageMediums(paginationParams, tableState, sorting, search)
-          .then(function(result) {
+          .then(function (result) {
             vm.displayedMediums = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedMediums, [], $scope.storageMedium);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
@@ -162,19 +162,19 @@ export default class MediaInformationCtrl {
           sorting,
           search
         )
-          .then(function(result) {
+          .then(function (result) {
             vm.storageObjects = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.objectLoading = false;
             $scope.initObjLoad = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('storage_object', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('storage_object', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.objectPipe(tableState);
@@ -183,13 +183,13 @@ export default class MediaInformationCtrl {
           });
       }
     };
-    vm.getMediumData = function() {
+    vm.getMediumData = function () {
       vm.callServer(vm.mediumTableState);
     };
-    vm.getObjectData = function() {
+    vm.getObjectData = function () {
       vm.objectPipe(vm.objectTableState);
     };
-    $scope.searchDisabled = function() {
+    $scope.searchDisabled = function () {
       if ($scope.filterModels.length > 0) {
         if ($scope.filterModels[0].column != null) {
           delete $scope.tableState.search.predicateObject;
@@ -199,7 +199,7 @@ export default class MediaInformationCtrl {
         return false;
       }
     };
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete $scope.tableState.search.predicateObject;
       $('#search-input')[0].value = '';
       $scope.getListViewData();

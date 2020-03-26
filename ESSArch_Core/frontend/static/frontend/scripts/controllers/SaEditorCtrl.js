@@ -8,14 +8,14 @@ export default class SaEditorCtrl {
     vm.saLoading = false;
     vm.profileOptions = {};
     vm.policyOptions = [];
-    vm.$onInit = function() {
-      SA.query({pager: 'none'}).$promise.then(function(resource) {
+    vm.$onInit = function () {
+      SA.query({pager: 'none'}).$promise.then(function (resource) {
         vm.saProfiles = resource;
       });
 
       // Fill the profile fields with available profile options
-      $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function(response) {
-        vm.saFields = response.data.map(function(field) {
+      $http.get(appConfig.djangoUrl + 'submission-agreement-template/').then(function (response) {
+        vm.saFields = response.data.map(function (field) {
           if (field.key.startsWith('profile_') && !field.templateOptions.useTemplate) {
             field = getProfileSelectField(angular.copy(field));
           }
@@ -37,7 +37,7 @@ export default class SaEditorCtrl {
       type: 'uiselect',
       key: 'policy',
       templateOptions: {
-        options: function() {
+        options: function () {
           return vm.policyOptions;
         },
         valueProp: 'id',
@@ -58,18 +58,18 @@ export default class SaEditorCtrl {
       },
     };
 
-    vm.getPolicy = search => {
+    vm.getPolicy = (search) => {
       return $http({
         url: appConfig.djangoUrl + 'storage-policies/',
         mathod: 'GET',
         params: {pager: 'none', search: search},
-      }).then(function(response) {
+      }).then(function (response) {
         vm.policyOptions = response.data;
         return vm.policyOptions;
       });
     };
 
-    let getProfileSelectField = field => {
+    let getProfileSelectField = (field) => {
       const type = field.key.replace('profile_', '');
       if (angular.isUndefined(vm.profileOptions[type])) {
         vm.profileOptions[type] = [];
@@ -78,7 +78,7 @@ export default class SaEditorCtrl {
         type: 'uiselect',
         key: field.key,
         templateOptions: {
-          options: function() {
+          options: function () {
             return vm.profileOptions[type];
           },
           valueProp: 'id',
@@ -108,13 +108,13 @@ export default class SaEditorCtrl {
         url: appConfig.djangoUrl + 'profiles/',
         mathod: 'GET',
         params: {pager: 'none', search: search, type},
-      }).then(function(response) {
+      }).then(function (response) {
         vm.profileOptions[type] = response.data;
         return vm.profileOptions[type];
       });
     };
 
-    vm.newSa = function(use_template) {
+    vm.newSa = function (use_template) {
       vm.saLoading = true;
       vm.enableFields();
       vm.saModel = null;
@@ -125,7 +125,7 @@ export default class SaEditorCtrl {
         delete sa.url;
         sa.published = false;
         sa.name = '';
-        $timeout(function() {
+        $timeout(function () {
           vm.saModel = sa;
           vm.saProfiles.push(vm.saModel);
           vm.saProfile = vm.saModel;
@@ -133,7 +133,7 @@ export default class SaEditorCtrl {
         });
       } else {
         vm.saProfile = null;
-        $timeout(function() {
+        $timeout(function () {
           vm.saModel = {};
           vm.saProfiles.push(vm.saModel);
           vm.saProfile = vm.saModel;
@@ -144,7 +144,7 @@ export default class SaEditorCtrl {
       $scope.edit = true;
     };
 
-    vm.chooseSa = function(sa) {
+    vm.chooseSa = function (sa) {
       vm.saLoading = true;
       vm.saProfile = sa;
       vm.saModel = null;
@@ -153,7 +153,7 @@ export default class SaEditorCtrl {
       } else {
         vm.enableFields();
       }
-      $timeout(function() {
+      $timeout(function () {
         vm.saModel = sa;
       });
       vm.createNewSa = false;
@@ -161,8 +161,8 @@ export default class SaEditorCtrl {
       vm.saLoading = false;
     };
 
-    vm.disableFields = function() {
-      vm.saFields.forEach(function(field) {
+    vm.disableFields = function () {
+      vm.saFields.forEach(function (field) {
         field.templateOptions.disabled = true;
         if (field.templateOptions.clearEnabled) {
           field.templateOptions.clearEnabled = false;
@@ -170,15 +170,15 @@ export default class SaEditorCtrl {
       });
     };
 
-    vm.enableFields = function() {
-      vm.saFields.forEach(function(field) {
+    vm.enableFields = function () {
+      vm.saFields.forEach(function (field) {
         field.templateOptions.disabled = false;
         if (field.templateOptions.clearEnabled === false) {
           field.templateOptions.clearEnabled = true;
         }
       });
     };
-    vm.createProfileModel = function(sa) {
+    vm.createProfileModel = function (sa) {
       for (const key in sa) {
         if (/^profile/.test(key) && sa[key] != null) {
           vm.profileModel[key] = sa[key];
@@ -186,7 +186,7 @@ export default class SaEditorCtrl {
       }
     };
 
-    vm.saveSa = function() {
+    vm.saveSa = function () {
       if (vm.createNewSa) {
         vm.saveNewSa();
       } else {
@@ -194,16 +194,16 @@ export default class SaEditorCtrl {
       }
     };
 
-    vm.saveNewSa = function() {
+    vm.saveNewSa = function () {
       const newSa = new SA(vm.saModel);
-      newSa.$save().then(function(savedSa) {
+      newSa.$save().then(function (savedSa) {
         vm.createNewSa = false;
         vm.saProfile = null;
         vm.saModel = {};
         $scope.edit = false;
-        SA.query({pager: 'none'}).$promise.then(function(resource) {
+        SA.query({pager: 'none'}).$promise.then(function (resource) {
           vm.saProfiles = resource;
-          vm.saProfiles.forEach(function(sa) {
+          vm.saProfiles.forEach(function (sa) {
             if (sa.id == savedSa.id) {
               vm.saProfile = sa;
             }
@@ -215,15 +215,15 @@ export default class SaEditorCtrl {
       });
     };
 
-    vm.updateSa = function() {
-      SA.update(vm.saModel).$promise.then(function(savedSa) {
+    vm.updateSa = function () {
+      SA.update(vm.saModel).$promise.then(function (savedSa) {
         vm.createNewSa = false;
         vm.saProfile = null;
         vm.saModel = {};
         $scope.edit = false;
-        SA.query({pager: 'none'}).$promise.then(function(resource) {
+        SA.query({pager: 'none'}).$promise.then(function (resource) {
           vm.saProfiles = resource;
-          vm.saProfiles.forEach(function(sa) {
+          vm.saProfiles.forEach(function (sa) {
             if (sa.id == savedSa.id) {
               vm.saProfile = sa;
             }
@@ -235,11 +235,11 @@ export default class SaEditorCtrl {
       });
     };
 
-    vm.publishSa = function() {
-      SA.publish({id: vm.saProfile.id}).$promise.then(function(resource) {
-        SA.query({pager: 'none'}).$promise.then(function(resource) {
+    vm.publishSa = function () {
+      SA.publish({id: vm.saProfile.id}).$promise.then(function (resource) {
+        SA.query({pager: 'none'}).$promise.then(function (resource) {
           vm.saProfiles = resource;
-          vm.saProfiles.forEach(function(sa) {
+          vm.saProfiles.forEach(function (sa) {
             if (sa.id == vm.saProfile.id) {
               vm.saProfile = sa;
             }

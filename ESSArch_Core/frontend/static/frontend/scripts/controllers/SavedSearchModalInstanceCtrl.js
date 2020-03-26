@@ -1,28 +1,28 @@
 export default class SavedSearchModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, $http, data) {
     const $ctrl = this;
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $ctrl.data = data;
     };
 
-    $ctrl.remove = function() {
-      $http.delete(appConfig.djangoUrl + 'me/searches/' + $ctrl.data.search.id).then(function(response) {
+    $ctrl.remove = function () {
+      $http.delete(appConfig.djangoUrl + 'me/searches/' + $ctrl.data.search.id).then(function (response) {
         $uibModalInstance.close(response.data);
       });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       $ctrl.saving = true;
       $http
         .post(appConfig.djangoUrl + 'me/searches/', {name: $ctrl.name, query: $ctrl.data.filters})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.saving = false;
         });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

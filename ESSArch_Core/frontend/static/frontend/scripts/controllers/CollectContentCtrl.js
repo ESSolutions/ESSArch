@@ -50,11 +50,11 @@ export default class CollectContentCtrl {
     };
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           vm.ipInformationModal(row);
         },
       });
@@ -73,13 +73,13 @@ export default class CollectContentCtrl {
     let fileBrowserInterval;
     watchers.push(
       $scope.$watch(
-        function() {
+        function () {
           return $scope.select;
         },
-        function(newValue, oldValue) {
+        function (newValue, oldValue) {
           if (newValue) {
             $interval.cancel(fileBrowserInterval);
-            fileBrowserInterval = $interval(function() {
+            fileBrowserInterval = $interval(function () {
               $scope.updateGridArray();
             }, appConfig.fileBrowserInterval);
           } else {
@@ -88,14 +88,14 @@ export default class CollectContentCtrl {
         }
       )
     );
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(fileBrowserInterval);
-      watchers.forEach(function(watcher) {
+      watchers.forEach(function (watcher) {
         watcher();
       });
     });
 
-    vm.uploadCompletedModal = function(ip) {
+    vm.uploadCompletedModal = function (ip) {
       const ips = $scope.ips.length > 0 ? $scope.ips : null;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -113,7 +113,7 @@ export default class CollectContentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ips = [];
           $scope.ip = null;
           $rootScope.ip = null;
@@ -121,14 +121,14 @@ export default class CollectContentCtrl {
           vm.updateListViewConditional();
           $anchorScroll();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
     //Click function for ip table
-    vm.selectSingleRow = function(row, options) {
+    vm.selectSingleRow = function (row, options) {
       $scope.ips = [];
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.select = false;
@@ -151,7 +151,7 @@ export default class CollectContentCtrl {
         $scope.currentFlowObject = $rootScope.flowObjects[row.id];
         if ($scope.select) {
           $scope.showFileUpload = false;
-          $timeout(function() {
+          $timeout(function () {
             $scope.showFileUpload = true;
           });
         }
@@ -165,14 +165,14 @@ export default class CollectContentCtrl {
     };
 
     //UPLOAD
-    $scope.updateListViewTimeout = function(timeout) {
-      $timeout(function() {
+    $scope.updateListViewTimeout = function (timeout) {
+      $timeout(function () {
         $scope.getListViewData();
       }, timeout);
     };
     //Deckgrid test
 
-    $scope.updateGridArray = function(ip) {
+    $scope.updateGridArray = function (ip) {
       $scope.$broadcast('UPDATE_FILEBROWSER', {});
     };
 
@@ -185,20 +185,20 @@ export default class CollectContentCtrl {
       return false;
     }
 
-    $scope.createFolder = function(folderName) {
+    $scope.createFolder = function (folderName) {
       const folder = {
         type: 'dir',
         name: folderName,
       };
       let fileExists = false;
-      $scope.deckGridData.forEach(function(chosen, index) {
+      $scope.deckGridData.forEach(function (chosen, index) {
         if (chosen.name === folder.name) {
           fileExists = true;
           folderNameExistsModal(index, folder, chosen);
         }
       });
       if (!fileExists) {
-        listViewService.addNewFolder($scope.ip, vm.browserstate.path, folder).then(function(response) {
+        listViewService.addNewFolder($scope.ip, vm.browserstate.path, folder).then(function (response) {
           $scope.updateGridArray();
         });
       }
@@ -214,7 +214,7 @@ export default class CollectContentCtrl {
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               file: folder,
               type: fileToOverwrite.type,
@@ -222,15 +222,15 @@ export default class CollectContentCtrl {
           },
         },
       });
-      modalInstance.result.then(function(data) {
-        listViewService.deleteFile($scope.ip, vm.browserstate.path, fileToOverwrite).then(function() {
-          listViewService.addNewFolder($scope.ip, vm.browserstate.path, folder).then(function() {
+      modalInstance.result.then(function (data) {
+        listViewService.deleteFile($scope.ip, vm.browserstate.path, fileToOverwrite).then(function () {
+          listViewService.addNewFolder($scope.ip, vm.browserstate.path, folder).then(function () {
             $scope.updateGridArray();
           });
         });
       });
     }
-    $scope.newDirModal = function() {
+    $scope.newDirModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -240,12 +240,12 @@ export default class CollectContentCtrl {
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
       });
-      modalInstance.result.then(function(data) {
+      modalInstance.result.then(function (data) {
         $scope.createFolder(data.dir_name);
       });
     };
 
-    $scope.openEadEditor = function(ip) {
+    $scope.openEadEditor = function (ip) {
       // Fixes dual-screen position                         Most browsers      Firefox
       const w = 900;
       const h = 600;
@@ -271,13 +271,13 @@ export default class CollectContentCtrl {
         'scrollbars=yes, width=' + w + ', height=' + h + ', top=' + top + ', left=' + left
       );
     };
-    $scope.getFlowTarget = function() {
+    $scope.getFlowTarget = function () {
       return appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/upload/';
     };
-    $scope.getQuery = function(FlowFile, FlowChunk, isTest) {
+    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
       return {destination: vm.browserstate.path};
     };
-    $scope.fileUploadSuccess = function(ip, file, message, flow) {
+    $scope.fileUploadSuccess = function (ip, file, message, flow) {
       $scope.uploadedFiles++;
       const path = flow.opts.query.destination + file.relativePath;
 
@@ -286,32 +286,32 @@ export default class CollectContentCtrl {
         path: path,
       });
     };
-    $scope.fileTransferFilter = function(file) {
+    $scope.fileTransferFilter = function (file) {
       return file.isUploading();
     };
-    $scope.removeFiles = function() {
-      $scope.selectedCards.forEach(function(file) {
-        listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function() {
+    $scope.removeFiles = function () {
+      $scope.selectedCards.forEach(function (file) {
+        listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function () {
           $scope.updateGridArray();
         });
       });
       $scope.selectedCards = [];
     };
-    $scope.isSelected = function(card) {
+    $scope.isSelected = function (card) {
       let cardClass = '';
-      $scope.selectedCards.forEach(function(file) {
+      $scope.selectedCards.forEach(function (file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';
         }
       });
       return cardClass;
     };
-    $scope.resetUploadedFiles = function() {
+    $scope.resetUploadedFiles = function () {
       $scope.uploadedFiles = 0;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function(flow, transfers) {
+    $scope.flowComplete = function (flow, transfers) {
       if (flow.progress() === 1) {
         flow.flowCompleted = true;
         flow.flowSize = flow.getSize();
@@ -323,10 +323,10 @@ export default class CollectContentCtrl {
       }
       $scope.updateGridArray();
     };
-    $scope.hideFlowCompleted = function(flow) {
+    $scope.hideFlowCompleted = function (flow) {
       flow.flowCompleted = false;
     };
-    $scope.getUploadedPercentage = function(totalSize, uploadedSize, totalFiles) {
+    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
       if (totalSize == 0 || uploadedSize / totalSize == 1) {
         return ($scope.uploadedFiles / totalFiles) * 100;
       } else {
@@ -334,13 +334,10 @@ export default class CollectContentCtrl {
       }
     };
 
-    $scope.getFileExtension = function(file) {
-      return file.name
-        .split('.')
-        .pop()
-        .toUpperCase();
+    $scope.getFileExtension = function (file) {
+      return file.name.split('.').pop().toUpperCase();
     };
-    $scope.createNewFlow = function(ip) {
+    $scope.createNewFlow = function (ip) {
       const flowObj = new Flow({
         target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
         simultaneousUploads: 15,
@@ -350,14 +347,14 @@ export default class CollectContentCtrl {
         headers: {'X-CSRFToken': $cookies.get('csrftoken')},
         complete: $scope.flowComplete,
       });
-      flowObj.on('complete', function() {
+      flowObj.on('complete', function () {
         vm.uploading = false;
         $scope.flowComplete(flowObj, flowObj.files);
       });
-      flowObj.on('fileSuccess', function(file, message) {
+      flowObj.on('fileSuccess', function (file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
       });
-      flowObj.on('uploadStart', function() {
+      flowObj.on('uploadStart', function () {
         vm.uploading = true;
         flowObj.opts.query = {destination: vm.browserstate.path};
       });

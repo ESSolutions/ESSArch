@@ -6,7 +6,7 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
     $ctrl.$onInit = () => {};
 
     $ctrl.displayedIps = [];
-    $ctrl.callServer = function(tableState) {
+    $ctrl.callServer = function (tableState) {
       $ctrl.ipLoading = true;
       if ($ctrl.displayedIps.length == 0) {
         $ctrl.initLoad = true;
@@ -40,20 +40,20 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
             $ctrl.columnFilters
           ),
         })
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.displayedIps = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $ctrl.ipLoading = false;
             $ctrl.initLoad = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.ipLoading = false;
             $ctrl.initLoad = false;
           });
       }
     };
 
-    $ctrl.tagsPipe = function(tableState) {
+    $ctrl.tagsPipe = function (tableState) {
       $ctrl.tagsLoading = true;
       if (angular.isUndefined($ctrl.tags) || $ctrl.tags.length == 0) {
         $scope.initLoad = true;
@@ -80,11 +80,11 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
             ordering: sortString,
             search: search,
           })
-          .then(function(response) {
+          .then(function (response) {
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.initLoad = false;
             $ctrl.tagsLoading = false;
-            response.data.forEach(function(x) {
+            response.data.forEach(function (x) {
               if (angular.isUndefined(x.id) && x._id) {
                 x.id = x._id;
               }
@@ -94,21 +94,21 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
       }
     };
 
-    $ctrl.getTags = function(job, params) {
+    $ctrl.getTags = function (job, params) {
       return $http
         .get(appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/tags/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
 
-    $ctrl.previewIpModal = function(job, ip) {
+    $ctrl.previewIpModal = function (job, ip) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -125,8 +125,8 @@ export default class PreviewAppraisalJobModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

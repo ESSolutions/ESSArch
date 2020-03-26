@@ -781,11 +781,7 @@ class InformationPackage(models.Model):
         return self.get_profile_data(profile_type).get('allow_encrypted_files', False)
 
     def get_structure(self):
-        if self.package_type == InformationPackage.AIP and self.state == 'Prepared':
-            ip_profile_type = 'sip'
-        else:
-            ip_profile_type = self.get_package_type_display().lower()
-
+        ip_profile_type = self.get_package_type_display().lower()
         ip_profile_rel = self.get_profile_rel(ip_profile_type)
         return ip_profile_rel.profile.structure
 

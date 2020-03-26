@@ -35,21 +35,21 @@ export default class WorkareaCtrl {
       current: null,
       options: [],
     };
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
         $http
           .get(appConfig.djangoUrl + 'organizations/' + $rootScope.auth.current_organization.id + '/')
-          .then(function(response) {
+          .then(function (response) {
             vm.organizationMember.options = response.data.group_members;
           });
       }
     };
     vm.archived = null;
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       return [
-        ContextMenuBase.changeOrganization(function() {
+        ContextMenuBase.changeOrganization(function () {
           vm.changeOrganizationModal(row);
         }),
       ];
@@ -85,7 +85,7 @@ export default class WorkareaCtrl {
           vm.columnFilters,
           vm.organizationMember.current
         )
-          .then(function(result) {
+          .then(function (result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
@@ -93,7 +93,7 @@ export default class WorkareaCtrl {
             ipExists();
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -106,7 +106,7 @@ export default class WorkareaCtrl {
                 filters.workarea = vm.workarea;
               }
 
-              listViewService.checkPages('workspace', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('workspace', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
@@ -119,11 +119,11 @@ export default class WorkareaCtrl {
     function ipExists() {
       if ($scope.ip != null) {
         let temp = false;
-        vm.displayedIps.forEach(function(aic) {
+        vm.displayedIps.forEach(function (aic) {
           if ($scope.ip.id == aic.id) {
             temp = true;
           } else {
-            aic.information_packages.forEach(function(ip) {
+            aic.information_packages.forEach(function (ip) {
               if ($scope.ip.id == ip.id) {
                 temp = true;
               }
@@ -138,7 +138,7 @@ export default class WorkareaCtrl {
       }
     }
     // Remove ip
-    $scope.ipRemoved = function(ipObject) {
+    $scope.ipRemoved = function (ipObject) {
       $scope.edit = false;
       $scope.select = false;
       $scope.eventlog = false;
@@ -152,7 +152,7 @@ export default class WorkareaCtrl {
       $scope.getListViewData();
     };
 
-    $scope.filebrowserClick = function(ip) {
+    $scope.filebrowserClick = function (ip) {
       $scope.previousGridArrays = [];
       $scope.filebrowser = true;
       if (!$rootScope.flowObjects[$scope.ip.id]) {
@@ -161,14 +161,14 @@ export default class WorkareaCtrl {
       $scope.currentFlowObject = $rootScope.flowObjects[$scope.ip.id];
       if ($scope.filebrowser) {
         $scope.showFileUpload = false;
-        $timeout(function() {
+        $timeout(function () {
           $scope.showFileUpload = true;
         });
       }
       $scope.previousGridArrays = [];
     };
 
-    $scope.removeIpModal = function(ipObject) {
+    $scope.removeIpModal = function (ipObject) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -177,7 +177,7 @@ export default class WorkareaCtrl {
         controller: 'ModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ip: ipObject,
               workarea: $state.includes('**.workarea.**'),
@@ -186,13 +186,13 @@ export default class WorkareaCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ips = [];
           $scope.ip = null;
           $rootScope.ip = null;
           $scope.ipRemoved(ipObject);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
@@ -202,7 +202,7 @@ export default class WorkareaCtrl {
     //            Upload
     // **********************************
 
-    vm.getUploadWorkareaType = function() {
+    vm.getUploadWorkareaType = function () {
       let type = null;
       for (let i = 0; i < $scope.ip.workarea.length; i++) {
         if (!$scope.ip.workarea[i].readOnly) {
@@ -213,13 +213,13 @@ export default class WorkareaCtrl {
       return type;
     };
 
-    $scope.updateGridArray = function(ip) {
+    $scope.updateGridArray = function (ip) {
       $scope.$broadcast('UPDATE_FILEBROWSER', {});
     };
 
     $scope.uploadDisabled = false;
-    $scope.updateListViewTimeout = function(timeout) {
-      $timeout(function() {
+    $scope.updateListViewTimeout = function (timeout) {
+      $timeout(function () {
         $scope.getListViewData();
       }, timeout);
     };
@@ -227,13 +227,13 @@ export default class WorkareaCtrl {
     vm.flowDestination = null;
     $scope.showFileUpload = true;
     $scope.currentFlowObject = null;
-    $scope.getFlowTarget = function() {
+    $scope.getFlowTarget = function () {
       return appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType() + '/';
     };
-    $scope.getQuery = function(FlowFile, FlowChunk, isTest) {
+    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
       return {destination: vm.browserstate.path};
     };
-    $scope.fileUploadSuccess = function(ip, file, message, flow) {
+    $scope.fileUploadSuccess = function (ip, file, message, flow) {
       $scope.uploadedFiles++;
       const path = flow.opts.query.destination + file.relativePath;
 
@@ -244,32 +244,32 @@ export default class WorkareaCtrl {
         {path: path}
       );
     };
-    $scope.fileTransferFilter = function(file) {
+    $scope.fileTransferFilter = function (file) {
       return file.isUploading();
     };
-    $scope.removeFiles = function() {
-      $scope.selectedCards.forEach(function(file) {
-        listViewService.deleteWorkareaFile(vm.workarea, vm.browserstate.path, file).then(function() {
+    $scope.removeFiles = function () {
+      $scope.selectedCards.forEach(function (file) {
+        listViewService.deleteWorkareaFile(vm.workarea, vm.browserstate.path, file).then(function () {
           $scope.updateGridArray();
         });
       });
       $scope.selectedCards = [];
     };
-    $scope.isSelected = function(card) {
+    $scope.isSelected = function (card) {
       let cardClass = '';
-      $scope.selectedCards.forEach(function(file) {
+      $scope.selectedCards.forEach(function (file) {
         if (card.name == file.name) {
           cardClass = 'card-selected';
         }
       });
       return cardClass;
     };
-    $scope.resetUploadedFiles = function() {
+    $scope.resetUploadedFiles = function () {
       $scope.uploadedFiles = 0;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function(flow, transfers) {
+    $scope.flowComplete = function (flow, transfers) {
       if (flow.progress() === 1) {
         flow.flowCompleted = true;
         flow.flowSize = flow.getSize();
@@ -282,10 +282,10 @@ export default class WorkareaCtrl {
 
       $scope.updateGridArray();
     };
-    $scope.hideFlowCompleted = function(flow) {
+    $scope.hideFlowCompleted = function (flow) {
       flow.flowCompleted = false;
     };
-    $scope.getUploadedPercentage = function(totalSize, uploadedSize, totalFiles) {
+    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
       if (totalSize == 0 || uploadedSize / totalSize == 1) {
         return ($scope.uploadedFiles / totalFiles) * 100;
       } else {
@@ -293,7 +293,7 @@ export default class WorkareaCtrl {
       }
     };
 
-    $scope.createNewFlow = function(ip) {
+    $scope.createNewFlow = function (ip) {
       const flowObj = new Flow({
         target: appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType(),
         chunkSize: 10 * 1024 * 1024, // 50MB
@@ -303,13 +303,13 @@ export default class WorkareaCtrl {
         headers: {'X-CSRFToken': $cookies.get('csrftoken')},
         complete: $scope.flowComplete,
       });
-      flowObj.on('complete', function() {
+      flowObj.on('complete', function () {
         $scope.flowComplete(flowObj, flowObj.files);
       });
-      flowObj.on('fileSuccess', function(file, message) {
+      flowObj.on('fileSuccess', function (file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
       });
-      flowObj.on('uploadStart', function() {
+      flowObj.on('uploadStart', function () {
         flowObj.opts.query = {destination: vm.browserstate.path};
       });
       $rootScope.flowObjects[ip.id] = flowObj;

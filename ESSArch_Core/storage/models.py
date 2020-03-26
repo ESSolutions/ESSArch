@@ -38,6 +38,7 @@ from tenacity import (
 )
 
 from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
@@ -507,6 +508,9 @@ class StorageMediumQueryset(models.QuerySet):
 
     def non_migratable(self):
         return self.exclude(pk__in=self.migratable())
+
+    def natural_sort(self):
+        return natural_sort(self, 'medium_id')
 
     def fastest(self):
         container = Case(

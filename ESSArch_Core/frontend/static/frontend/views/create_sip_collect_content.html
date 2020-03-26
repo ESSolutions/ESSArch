@@ -27,7 +27,7 @@
                 src="'static/frontend/views/file_upload.html'"
               ></div>
               <div ng-if="ip.responsible.id != auth.id && !checkPermission('ip.can_upload')">
-                <p style="color:red;">{{'UPLOAD.NO_PERMISSION_UPLOAD' | translate}}!</p>
+                <p style="color: red;">{{'UPLOAD.NO_PERMISSION_UPLOAD' | translate}}!</p>
               </div>
             </div>
             <div class="eventlog-view" ng-class="{'border-none': 'ips.length > 0'}">

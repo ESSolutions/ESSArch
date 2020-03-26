@@ -4,7 +4,7 @@ angular.module(
   [],
   [
     '$provide',
-    function($provide) {
+    function ($provide) {
       const PLURAL_CATEGORY = {ZERO: 'zero', ONE: 'one', TWO: 'two', FEW: 'few', MANY: 'many', OTHER: 'other'};
       function getDecimals(n) {
         n = n + '';
@@ -102,7 +102,7 @@ angular.module(
         },
         id: 'sv',
         localeID: 'sv',
-        pluralCat: function(n, opt_precision) {
+        pluralCat: function (n, opt_precision) {
           const i = n | 0;
           const vf = getVF(n, opt_precision);
           if (i == 1 && vf.v == 0) {

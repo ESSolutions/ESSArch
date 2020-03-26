@@ -29,22 +29,22 @@ export default class PrepareDipModalInstanceCtrl {
       $ctrl.data = data;
     }
 
-    $ctrl.prepareDip = function() {
+    $ctrl.prepareDip = function () {
       $ctrl.preparing = true;
       let promises = [];
-      $ctrl.data.ips.forEach(ip => {
+      $ctrl.data.ips.forEach((ip) => {
         promises.push(
-          IP.prepareDip({id: ip.id}).$promise.then(function(response) {
+          IP.prepareDip({id: ip.id}).$promise.then(function (response) {
             return response;
           })
         );
       });
-      $q.all(promises).then(responses => {
+      $q.all(promises).then((responses) => {
         $ctrl.preparing = false;
         $uibModalInstance.close();
       });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

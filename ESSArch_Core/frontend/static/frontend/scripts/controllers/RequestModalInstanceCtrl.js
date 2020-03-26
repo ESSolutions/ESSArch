@@ -5,11 +5,11 @@ export default class RequestModalInstanceCtrl {
     $ctrl.object = data.object;
     $ctrl.requestTypes = data.types;
     $ctrl.request = data.request;
-    $ctrl.submit = function() {
+    $ctrl.submit = function () {
       $scope.submitRequest($ctrl.object, $ctrl.request);
       $uibModalInstance.close($ctrl.object);
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

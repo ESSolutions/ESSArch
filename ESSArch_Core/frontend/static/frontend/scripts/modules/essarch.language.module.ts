@@ -6,7 +6,7 @@ import sv from '../../lang/sv';
 /* @ngInject */
 const language = angular.module('essarch.language', ['pascalprecht.translate']).config([
   '$translateProvider',
-  function($translateProvider: ng.translate.ITranslateProvider) {
+  function ($translateProvider: ng.translate.ITranslateProvider) {
     $translateProvider.storageKey('essarch_language');
     $translateProvider.useCookieStorage();
     $translateProvider.useSanitizeValueStrategy('escape');
@@ -21,11 +21,11 @@ const language = angular.module('essarch.language', ['pascalprecht.translate']).
       .preferredLanguage();
   },
 ]);
-en.forEach(x => {
+en.forEach((x) => {
   language.config(['$translateProvider', x]);
 });
 
-sv.forEach(x => {
+sv.forEach((x) => {
   language.config(['$translateProvider', x]);
 });
 
