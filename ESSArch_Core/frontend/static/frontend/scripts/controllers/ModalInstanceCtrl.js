@@ -127,7 +127,7 @@ export default class ModalInstanceCtrl {
 
     $ctrl.createDip = (ip) => {
       $ctrl.creating = true;
-      listViewService.createDip(ip).then(function (response) {
+      listViewService.createDip(ip, $ctrl.data.validators).then(function (response) {
         $ctrl.creating = false;
         $uibModalInstance.close(response.data);
       });

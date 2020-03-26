@@ -130,7 +130,6 @@ import '../configs/permissions.json';
 export default angular
   .module('essarch.controllers', [
     'angular-clipboard',
-    'angular-cron-jobs',
     'angularResizable',
     'essarch.appConfig',
     'essarch.services',

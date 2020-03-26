@@ -12,3 +12,4 @@ status = [
 ]
 delete_merged_branches = true
 use_squash_merge = true
+timeout-sec = 14400
