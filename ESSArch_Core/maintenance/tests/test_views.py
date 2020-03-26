@@ -956,10 +956,16 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         component_tag_to_keep = Tag.objects.create(information_package=self.ip)
         TagVersion.objects.create(tag=component_tag_to_keep, type=tag_version_type, elastic_index='component')
 
-        document_tag = Tag.objects.create(information_package=self.ip)
+        document_tag_to_delete = Tag.objects.create(information_package=self.ip)
         TagVersion.objects.create(
-            tag=document_tag, type=tag_version_type, elastic_index='document',
+            tag=document_tag_to_delete, type=tag_version_type, elastic_index='document',
             custom_fields={'href': 'foo', 'filename': 'bar.pdf'}
+        )
+
+        document_tag_to_delete2 = Tag.objects.create(information_package=self.ip)
+        TagVersion.objects.create(
+            tag=document_tag_to_delete2, type=tag_version_type, elastic_index='document',
+            custom_fields={'href': 'foo', 'filename': 'baz.pdf'}
         )
 
         document_tag_to_keep = Tag.objects.create(information_package=self.ip)
@@ -968,10 +974,12 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             custom_fields={'href': '', 'filename': 'foo.pdf'}
         )
 
-        self.appraisal_job.tags.add(component_tag, document_tag)
+        self.appraisal_job.tags.add(component_tag, document_tag_to_delete, document_tag_to_delete2)
 
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(InformationPackage.objects.filter(aic=self.ip.aic).count(), 1)
+        self.assertEqual(InformationPackage.objects.get(aic=self.ip.aic).generation, 2)
         self.assertFalse(
             AppraisalJobEntry.objects.filter(
                 job=self.appraisal_job, ip=None, document='foo.pdf',
@@ -980,6 +988,11 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertTrue(
             AppraisalJobEntry.objects.filter(
                 job=self.appraisal_job, ip=None, document='foo/bar.pdf',
+            ).exists()
+        )
+        self.assertTrue(
+            AppraisalJobEntry.objects.filter(
+                job=self.appraisal_job, ip=None, document='foo/baz.pdf',
             ).exists()
         )
 
@@ -1000,14 +1013,17 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertFalse(os.path.isfile(os.path.join(new_path, 'foo/bar.pdf')))
         self.assertTrue(os.path.isfile(os.path.join(new_path, 'foo.pdf')))
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'foo')))
-        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), ['baz.PDF'])
+        self.assertEqual(os.listdir(os.path.join(new_path, 'foo')), [])
         self.assertTrue(os.path.isdir(os.path.join(new_path, 'logs')))
 
         with self.assertRaises(Tag.DoesNotExist):
             component_tag.refresh_from_db()
 
         with self.assertRaises(Tag.DoesNotExist):
-            document_tag.refresh_from_db()
+            document_tag_to_delete.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            document_tag_to_delete2.refresh_from_db()
 
         with self.assertRaises(Tag.DoesNotExist):
             document_tag_to_keep.refresh_from_db()
@@ -1022,7 +1038,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.assertCountEqual(
             [normalize_path(os.path.join(x['href'], x['filename'])) for x in new_document_tags],
             [
-                'foo.pdf', 'foo/baz.PDF', 'logs/1.txt', 'logs/2.txt',
+                'foo.pdf', 'logs/1.txt', 'logs/2.txt',
                 'ipevents.xml', 'mets.xml', 'premis.xsd',
             ],
         )
