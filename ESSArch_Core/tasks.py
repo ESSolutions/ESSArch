@@ -493,7 +493,7 @@ class CompareRepresentationXMLFiles(DBTask):
 
         representations_dir = os.path.join(reps_path, reps_dir)
 
-        for p in find_pointers(ip.content_mets_path):
+        for p in find_pointers(os.path.join(ip.object_path, ip.content_mets_path)):
             rep_mets_path = p.path
             rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
             rep_path = os.path.relpath(rep_mets_path, representations_dir)
