@@ -32,7 +32,7 @@ glob2==0.7
 jsonfield2==3.1.0
 lxml==4.5.0
 msoffcrypto-tool==4.10.1
-natsort==6.0.0
+natsort==7.0.1
 opf-fido==1.4.0
 pyfakefs==3.6
 python-dateutil==2.8.0
