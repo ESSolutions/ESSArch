@@ -23,8 +23,11 @@
   padding-left: 0;
 }
 
-.mobile-notification {
+.notifications-wrapper {
   margin-right: 5px;
+  @include medium-screen-up {
+    position: relative;
+  }
   .unseen-text {
     top: -9.6px;
   }
