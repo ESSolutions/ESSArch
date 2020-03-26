@@ -40,7 +40,6 @@ import 'angular-bootstrap-contextmenu';
 import 'angular-bootstrap-grid-tree';
 import 'angular-clipboard';
 import 'angular-cookies';
-import 'angular-cron-jobs';
 import 'angular-date-time-input';
 import 'angular-filesize-filter';
 import 'angular-formly';
