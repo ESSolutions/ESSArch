@@ -3125,11 +3125,15 @@ class test_submit_ip(TestCase):
         mock_step.assert_called_once()
 
 
-class test_set_uploaded(TestCase):
+class test_set_uploaded(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(username="admin")
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
 
-        self.client = APIClient()
+        temp_dir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir)).value
+        os.makedirs(os.path.join(temp_dir, 'file_upload'))
+
+        self.user = User.objects.create(username="admin")
         self.client.force_authenticate(user=self.user)
 
         self.ip = InformationPackage.objects.create(state='Uploading')

@@ -824,8 +824,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
         # delete temp files
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
-        shutil.rmtree(temp_path)
+        try:
+            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            shutil.rmtree(temp_path)
+        except FileNotFoundError:
+            pass
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
@@ -2965,14 +2968,12 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @action(detail=False, methods=['get', 'post'], url_path='upload')
     def upload(self, request):
-        print(0)
         try:
             workarea = self.request.query_params['type'].lower()
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
         user = self.get_user(request)
-        print(1)
 
         self.validate_workarea(workarea)
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
@@ -2980,10 +2981,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         data = request.GET if request.method == 'GET' else request.data
         dst = data.get('destination', '').strip('/ ')
 
-        print('1.5')
-
         self.validate_path(os.path.join(root, dst), root)
-        print('1.7')
         relative_root = os.path.join(root, dst)[len(root) + 1:].split('/')[0]
 
         try:
@@ -2995,7 +2993,6 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             detail = 'You are not allowed to modify read-only IPs'
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
-        print(2)
         relative_path = data.get('flowRelativePath', '')
         if len(relative_path) == 0:
             raise exceptions.ParseError('The path cannot be empty')
@@ -3010,7 +3007,6 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
         full_chunk_path = os.path.join(temp_path, str(workarea_obj.pk), chunk_path)
-        print(3)
 
         if request.method == 'GET':
             if os.path.exists(full_chunk_path):
@@ -3021,7 +3017,6 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        print(4)
         if request.method == 'POST':
             chunk = request.FILES['file']
             os.makedirs(os.path.dirname(full_chunk_path), exist_ok=True)
