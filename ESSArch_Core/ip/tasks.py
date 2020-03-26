@@ -534,6 +534,9 @@ class DeleteInformationPackage(DBTask):
         old_state = ip.state
         ip.state = 'Deleting'
         ip.save()
+
+        ip.delete_temp_files()
+
         try:
             ip.delete_workareas()
             if delete_files:
@@ -577,4 +580,6 @@ class CreateWorkarea(DBTask):
 
 class DeleteWorkarea(DBTask):
     def run(self, pk):
-        Workarea.objects.filter(pk=pk).delete()
+        workarea = Workarea.objects.get(pk=pk)
+        workarea.delete_files()
+        workarea.delete()
