@@ -640,7 +640,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             f.write('foo')
         with self.storage_obj.open('foo/bar.pdf', 'w') as f:
             f.write('bar')
-        with self.storage_obj.open('foo/baz.PDF', 'w') as f:
+        with self.storage_obj.open('foo/baz.pdf', 'w') as f:
             f.write('baz')
         with self.storage_obj.open('logs/1.txt', 'w') as f:
             f.write('1')
