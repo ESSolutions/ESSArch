@@ -26,7 +26,9 @@ import logging
 
 from billiard.einfo import ExceptionInfo
 from celery import exceptions, states as celery_states
+from celery._state import _task_stack
 from celery.task.base import Task
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
@@ -44,55 +46,25 @@ logger = logging.getLogger('essarch')
 
 class DBTask(Task):
     abstract = True
-    args = []
     event_type = None
     queue = 'celery'
-    hidden = False
-    undo_type = False
-    responsible = None
-    ip = None
-    step = None
-    step_pos = None
     track = True
-    allow_failure = False
 
     def __call__(self, *args, **kwargs):
-        options = kwargs.pop('_options', {})
-
-        self.args = options.get('args', [])
-        self.responsible = options.get('responsible')
-        self.ip = options.get('ip')
-        self.step = options.get('step')
-        self.step_pos = options.get('step_pos')
-        self.hidden = options.get('hidden', False) or self.hidden
-        if options.get('hidden') is not None:
-            self.hidden = options['hidden']
-
-        self.undo_type = options.get('undo', False)
-        self.result_params = options.get('result_params', {}) or {}
-        self.task_id = options.get('task_id') or self.request.id
-        self.eager = options.get('eager') or self.request.is_eager
-        self.allow_failure = options.get('allow_failure') or self.allow_failure
-
-        for k, v in self.result_params.items():
-            kwargs[k] = get_result(self.step, v)
-
-        if self.track:
-            ProcessTask.objects.filter(celery_id=self.task_id).update(
-                hidden=self.hidden,
-            )
-
+        _task_stack.push(self)
+        self.push_request(args=args, kwargs=kwargs)
         try:
-            user = User.objects.get(pk=self.responsible)
-            if user.user_profile is not None:
-                with translation.override(user.user_profile.language):
-                    return self._run(*args, **kwargs)
-        except User.DoesNotExist:
-            pass
-
-        return self._run(*args, **kwargs)
+            return self._run(*args, **kwargs)
+        finally:
+            self.pop_request()
+            _task_stack.pop()
 
     def _run(self, *args, **kwargs):
+        kwargs.pop('_options', None)
+
+        if self.track:
+            ProcessTask.objects.filter(celery_id=self.task_id).update(hidden=self.hidden)
+
         self.extra_data = {}
         if self.ip:
             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
@@ -101,16 +73,27 @@ class DBTask(Task):
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
                 logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
+                r = self._maybe_run(*args, **kwargs)
 
-                t = self.get_processtask()
-                if t.run_if and not self.parse_params(t.run_if)[0]:
-                    r = None
-                    t.hidden = True
-                    t.save()
-                else:
-                    r = self._run_task(*args, **kwargs)
             logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
             return r
+
+        return self._maybe_run(*args, **kwargs)
+
+    def _maybe_run(self, *args, **kwargs):
+        t = self.get_processtask()
+        if t.run_if and not self.parse_params(t.run_if)[0]:
+            t.hidden = True
+            t.save()
+            return None
+        else:
+            try:
+                user = User.objects.get(pk=self.responsible)
+                if user.user_profile is not None:
+                    with translation.override(user.user_profile.language):
+                        return self._run_task(*args, **kwargs)
+            except User.DoesNotExist:
+                pass
 
         return self._run_task(*args, **kwargs)
 
@@ -119,6 +102,9 @@ class DBTask(Task):
             step = ProcessStep.objects.get(pk=self.step)
             for ancestor in step.get_ancestors(include_self=True):
                 self.extra_data.update(ancestor.context)
+
+        for k, v in self.result_params.items():
+            kwargs[k] = get_result(self.step, v)
 
         try:
             if self.undo_type:
@@ -143,13 +129,14 @@ class DBTask(Task):
 
             raise
         else:
-            self.success(res, self.task_id, args, kwargs)
+            if not self.undo_type:
+                self.success(res, self.task_id, args, kwargs)
 
         return res
 
     def update_state(self, task_id=None, state=None, meta=None, **kwargs):
         if task_id is None:
-            task_id = self.request.id
+            task_id = self.task_id
 
         self.backend.update_state(task_id, meta, state, request=self.request, **kwargs)
 
@@ -201,7 +188,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if getattr(self, 'eager', True):
+        if self.eager:
             self.update_state(task_id=task_id, state=celery_states.FAILURE)
             self.backend._store_result(
                 task_id, self.backend.prepare_exception(exc),
@@ -219,7 +206,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if getattr(self, 'eager', True):
+        if self.eager:
             self.update_state(task_id=task_id, state=celery_states.SUCCESS)
             self.backend.store_result(task_id, retval, celery_states.SUCCESS)
 
@@ -236,15 +223,59 @@ class DBTask(Task):
         return tuple([parseContent(param, self.extra_data) for param in params])
 
     def get_processtask(self):
-        try:
-            celery_id = self.request.id
-        except AttributeError:
-            celery_id = self.task_id
+        return ProcessTask.objects.get(celery_id=self.task_id)
 
-        return ProcessTask.objects.get(celery_id=celery_id)
+    @property
+    def options(self):
+        return self.request.kwargs.get('_options', {})
+
+    @property
+    def task_id(self):
+        return self.options.get('task_id')
+
+    @property
+    def ip(self):
+        return self.options.get('ip')
 
     def get_information_package(self):
         return InformationPackage.objects.get(pk=self.ip)
+
+    @property
+    def responsible(self):
+        return self.options.get('responsible')
+
+    @property
+    def result_params(self):
+        return self.options.get('result_params', {})
+
+    @property
+    def allow_failure(self):
+        return self.options.get('allow_failure', False)
+
+    @property
+    def eager(self):
+        always_eager = getattr(settings, 'CELERY_TASK_ALWAYS_EAGER', False)
+        return self.options.get('eager', self.request.is_eager) or always_eager
+
+    @property
+    def hidden(self):
+        hidden = self.options.get('hidden', False)
+        if self.options.get('hidden') is not None:
+            hidden = self.options['hidden']
+
+        return hidden
+
+    @property
+    def step(self):
+        return self.options.get('step')
+
+    @property
+    def step_pos(self):
+        return self.options.get('step_pos')
+
+    @property
+    def undo_type(self):
+        return self.options.get('undo', False)
 
     def event_outcome_success(self, result, *args, **kwargs):
         pass

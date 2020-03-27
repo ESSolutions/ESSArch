@@ -63,7 +63,7 @@ class SubmitSIP(DBTask):
     event_type = 10500
 
     def run(self, delete_source=False, update_path=True):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
 
         reception = Path.objects.get(entity="ingest_reception").value
         container_format = ip.get_container_format()
@@ -110,7 +110,7 @@ class SubmitSIP(DBTask):
         self.set_progress(100, total=100)
 
     def undo(self, delete_source=False, update_path=True):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
 
         reception = Path.objects.get(entity="ingest_reception").value
         container_format = ip.get_container_format()
@@ -130,7 +130,7 @@ class TransferIP(DBTask):
     event_type = 20600
 
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         src = ip.object_path
         srcdir, srcfile = os.path.split(src)
 

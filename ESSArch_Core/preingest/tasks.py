@@ -31,7 +31,7 @@ from django.db import transaction
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.ip.models import Agent, InformationPackage
+from ESSArch_Core.ip.models import Agent
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 User = get_user_model()
@@ -42,7 +42,7 @@ class ReceiveIP(DBTask):
 
     @transaction.atomic
     def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         sa = ip.submission_agreement
         preingest_path = Path.objects.get(entity="preingest").value
         dst_dir = os.path.join(preingest_path, ip.object_identifier_value)

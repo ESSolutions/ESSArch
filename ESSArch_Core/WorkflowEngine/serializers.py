@@ -37,6 +37,7 @@ from ESSArch_Core.WorkflowEngine.util import get_result
 class ProcessStepChildrenSerializer(serializers.Serializer):
     url = serializers.SerializerMethodField()
     id = serializers.UUIDField()
+    celery_id = serializers.UUIDField()
     flow_type = serializers.SerializerMethodField()
     name = serializers.CharField()
     label = serializers.SerializerMethodField()

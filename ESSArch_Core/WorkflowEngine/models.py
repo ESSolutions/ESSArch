@@ -77,6 +77,7 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
         'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'undo': t.undo_type, 'result_params': t.result_params,
         'allow_failure': t.allow_failure,
+        'task_id': str(t.celery_id), 'eager': t.eager,
     }
 
     created = create_task(t.name)
@@ -757,10 +758,10 @@ class ProcessTask(Process):
         ip_id = str(self.information_package_id) if self.information_package_id is not None else None
         step_id = str(self.processstep_id) if self.processstep_id is not None else None
         self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip':
-            ip_id, 'step': step_id,
+            'responsible': self.responsible_id, 'ip': ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
             'allow_failure': self.allow_failure,
+            'task_id': str(self.celery_id), 'eager': self.eager,
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
@@ -796,10 +797,10 @@ class ProcessTask(Process):
         ip_id = str(self.information_package_id) if self.information_package_id is not None else None
         step_id = str(self.processstep_id) if self.processstep_id is not None else None
         self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip':
-            ip_id, 'step': step_id, 'step_pos': self.processstep_pos,
-            'hidden': self.hidden, 'undo': True,
+            'responsible': self.responsible_id, 'ip': ip_id, 'step': step_id,
+            'step_pos': self.processstep_pos, 'hidden': self.hidden, 'undo': True,
             'allow_failure': self.allow_failure,
+            'task_id': str(self.celery_id), 'eager': self.eager,
         }
 
         if undoobj.eager:
