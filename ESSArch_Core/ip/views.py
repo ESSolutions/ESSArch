@@ -126,7 +126,6 @@ from ESSArch_Core.util import (
     list_files,
     merge_file_chunks,
     normalize_path,
-    open_file,
     parse_content_range_header,
     remove_prefix,
     timestamp_to_datetime,
