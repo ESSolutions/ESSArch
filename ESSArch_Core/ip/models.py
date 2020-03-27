@@ -79,6 +79,7 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
@@ -821,6 +822,28 @@ class InformationPackage(models.Model):
             return normalize_path(parseContent(full_path, fill_specification_data(ip=self)))
 
         return 'ipevents.xml'
+
+    def update_sip_data(self):
+        sip_profile = self.submission_agreement.profile_sip
+        if sip_profile is not None and self.sip_path is not None:
+            sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, self.sip_path)
+            if os.path.isfile(self.sip_path):
+                sip_mets_data = parse_mets(
+                    open_file(
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        container=self.sip_path,
+                        container_prefix=self.object_identifier_value,
+                    )
+                )
+            else:
+                sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+
+            # prefix all SIP data
+            sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+            aip_profile_rel_data = self.get_profile_rel('aip').data
+            aip_profile_rel_data.data.update(sip_mets_data)
+            aip_profile_rel_data.save()
 
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
