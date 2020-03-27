@@ -104,6 +104,7 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
+    delete_path,
     find_destination,
     generate_file_response,
     get_files_and_dirs,
@@ -1191,6 +1192,16 @@ class InformationPackage(models.Model):
                                         "label": "Delete temporary container",
                                         "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary mets",
+                                        "args": ["{{TEMP_METS_PATH}}"]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary aic mets",
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
+                                    },
                                 ],
                             },
                         ],
@@ -1207,6 +1218,10 @@ class InformationPackage(models.Model):
                 "if": workarea_id,
                 "args": [str(workarea_id)],
             },
+            {
+                "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",
+                "label": "Clean up workflow files",
+            },
         ]
 
         return workflow
@@ -1221,7 +1236,7 @@ class InformationPackage(models.Model):
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
-            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
 
             if new:
                 new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
@@ -1789,6 +1804,16 @@ class InformationPackage(models.Model):
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
 
+    def delete_temp_files(self):
+        paths = [
+            os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.object_identifier_value)),
+        ]
+
+        for path in paths:
+            delete_path(path)
+
     def delete_files(self):
         path = self.get_path()
 
@@ -1812,6 +1837,7 @@ class InformationPackage(models.Model):
 
     def delete_workareas(self):
         for workarea in self.workareas.all():
+            workarea.delete_temp_files()
             workarea.delete_files()
             workarea.delete()
 
@@ -2049,6 +2075,15 @@ class Workarea(models.Model):
 
     def get_path(self):
         return self.path
+
+    def delete_temp_files(self):
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        delete_path(temp_path)
+
+    def delete_files(self):
+        path = self.get_path()
+        self.delete_temp_files()
+        delete_path(path)
 
     class Meta:
         ordering = ["ip"]
