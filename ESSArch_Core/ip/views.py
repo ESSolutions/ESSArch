@@ -61,11 +61,7 @@ from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
-from ESSArch_Core.essxml.util import (
-    get_objectpath,
-    parse_mets,
-    parse_submit_description,
-)
+from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
@@ -130,7 +126,6 @@ from ESSArch_Core.util import (
     list_files,
     merge_file_chunks,
     normalize_path,
-    open_file,
     parse_content_range_header,
     remove_prefix,
     timestamp_to_datetime,
@@ -1301,17 +1296,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if workarea is None:
             raise exceptions.ParseError(detail='IP not in writeable workarea')
 
-        generate_premis = ip.profile_locked('preservation_metadata')
         workflow = [
-            {
-                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                "label": "Generate premis",
-                "if": generate_premis,
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                "label": "Generate content-mets",
-            },
             {
                 "name": "ESSArch_Core.workflow.tasks.ReceiveAIP",
                 "label": "Receive AIP",
@@ -1371,26 +1356,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             except FileNotFoundError:
                 pass
 
-            sip_profile = ip.submission_agreement.profile_sip
-            if ip.package_type == InformationPackage.AIP and sip_profile is not None and ip.sip_path is not None:
-                sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, ip.sip_path)
-                if os.path.isfile(ip.sip_path):
-                    sip_mets_data = parse_mets(
-                        open_file(
-                            os.path.join(ip.object_path, sip_mets_dir, sip_mets_file),
-                            container=ip.sip_path,
-                            container_prefix=ip.object_identifier_value,
-                        )
-                    )
-                else:
-                    sip_mets_data = parse_mets(open_file(os.path.join(ip.object_path, sip_mets_dir, sip_mets_file)))
-
-                # prefix all SIP data
-                sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
-
-                aip_profile_rel_data = ip.get_profile_rel('aip').data
-                aip_profile_rel_data.data.update(sip_mets_data)
-                aip_profile_rel_data.save()
+            ip.update_sip_data()
 
             if generate_premis:
                 premis_profile_data = ip.get_profile_data('preservation_metadata')
