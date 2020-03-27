@@ -1688,6 +1688,8 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         Parameter.objects.create(entity='medium_location', value='Media')
 
         Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
         ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
@@ -1799,6 +1801,9 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         self.assertTrue(
             os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
+
+        tempdir = Path.objects.get(entity="temp").value
+        self.assertEqual(os.listdir(tempdir), [])
 
     @TaskRunner()
     def test_preserve_dip(self):
@@ -3120,11 +3125,15 @@ class test_submit_ip(TestCase):
         mock_step.assert_called_once()
 
 
-class test_set_uploaded(TestCase):
+class test_set_uploaded(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(username="admin")
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
 
-        self.client = APIClient()
+        temp_dir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir)).value
+        os.makedirs(os.path.join(temp_dir, 'file_upload'))
+
+        self.user = User.objects.create(username="admin")
         self.client.force_authenticate(user=self.user)
 
         self.ip = InformationPackage.objects.create(state='Uploading')

@@ -331,6 +331,8 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         workarea = self.get_object()
 
         if not workarea.read_only:
+            workarea.delete_files()
+            workarea.ip.delete_files()
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -820,6 +822,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+
+        # delete temp files
+        try:
+            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            shutil.rmtree(temp_path)
+        except FileNotFoundError:
+            pass
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
