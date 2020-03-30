@@ -4,6 +4,8 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
+const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const gitRevisionPlugin = new GitRevisionPlugin();
 
 const basedir = path.resolve(__dirname, 'ESSArch_Core/frontend/static/frontend');
 
@@ -132,7 +134,10 @@ module.exports = (env, argv) => {
       }),
       new ManifestPlugin({fileName: 'rev-manifest.json'}),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-      new webpack.DefinePlugin({'process.env': {LATER_COV: false}}),
+      new webpack.DefinePlugin({
+        'process.env': {LATER_COV: false},
+        COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
+      }),
     ],
     node: {
       fs: 'empty',
