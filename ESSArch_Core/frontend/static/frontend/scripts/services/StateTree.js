@@ -13,8 +13,8 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         hidden: false,
       }).$promise;
     }
-    return promise.then(function(workflow) {
-      workflow.forEach(function(flow_node) {
+    return promise.then(function (workflow) {
+      workflow.forEach(function (flow_node) {
         flow_node.time_started = $filter('date')(flow_node.time_started, 'yyyy-MM-dd HH:mm:ss');
         flow_node.children = flow_node.flow_type == 'step' ? [{val: -1}] : [];
         flow_node.childrenFetched = false;
@@ -29,8 +29,8 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
     const expandedObject = expand(steps, expandedNodes);
     const expanded = expandedObject.expandedSteps;
     steps = expandedObject.steps;
-    expanded.forEach(function(item) {
-      steps[item.stepIndex] = getChildrenForStep(steps[item.stepIndex], item.number).then(function(stepChildren) {
+    expanded.forEach(function (item) {
+      steps[item.stepIndex] = getChildrenForStep(steps[item.stepIndex], item.number).then(function (stepChildren) {
         const temp = stepChildren;
         temp.children = expandAndGetChildren(temp.children, expandedNodes);
         return temp;
@@ -53,7 +53,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
       page: step.page_number,
       page_size: page_size,
       hidden: false,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -75,7 +75,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         step.children.pop();
       }
       const tempChildArray = [];
-      resource.forEach(function(child) {
+      resource.forEach(function (child) {
         if (child.flow_type == 'step') {
           child.isCollapsed = false;
           child.tasksCollapsed = true;
@@ -85,7 +85,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         tempChildArray.push(child);
       });
       step.children = tempChildArray;
-      step.children = step.children.map(function(c) {
+      step.children = step.children.map(function (c) {
         c.time_started = $filter('date')(c.time_started, 'yyyy-MM-dd HH:mm:ss');
         return c;
       });
@@ -100,8 +100,8 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   // Returns updated steps and an array containing the expanded nodes
   function expand(steps, expandedNodes) {
     const expanded = [];
-    expandedNodes.forEach(function(node) {
-      steps.forEach(function(step, idx) {
+    expandedNodes.forEach(function (node) {
+      steps.forEach(function (step, idx) {
         if (step.id == node.id) {
           step.expanded = true;
           expanded.push({stepIndex: idx, number: node.page_number});

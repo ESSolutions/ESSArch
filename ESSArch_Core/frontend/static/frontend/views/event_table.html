@@ -95,7 +95,7 @@
               </i>
             </td>
             <td class="white-space-nowrap">{{ row.eventDetail }}</td>
-            <td class=" white-space-nowrap">{{ row.eventOutcomeDetailNote }}</td>
+            <td class="white-space-nowrap">{{ row.eventOutcomeDetailNote }}</td>
             <td class="white-space-nowrap">{{ row.linkingAgentIdentifierValue }}</td>
             <td class="white-space-nowrap">{{ row.eventDateTime | date: "yyyy-MM-dd HH:mm:ss" }}</td>
           </tr>
@@ -165,7 +165,7 @@
   <div
     uib-alert
     ng-if="addEventAlert"
-    style="width:50%; float:right; margin-right: 10px;"
+    style="width: 50%; float: right; margin-right: 10px;"
     ng-class="'alert-' + (addEventAlert.type || 'warning')"
     close="closeAlert()"
   >

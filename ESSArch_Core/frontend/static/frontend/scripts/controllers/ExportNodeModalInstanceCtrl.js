@@ -5,7 +5,7 @@ export default class ExportNodeModalInstanceCtrl {
     $ctrl.exportOptions = [];
     $ctrl.model = {option: 'email'};
 
-    let getExportOptions = node => {
+    let getExportOptions = (node) => {
       $ctrl.exportOptions = [{name: $translate.instant('ACCESS.SEND_AS_EMAIL'), value: 'email'}];
       if (node._index === 'archive') {
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.CREATE_LABELS'), value: 'labels'});
@@ -20,14 +20,14 @@ export default class ExportNodeModalInstanceCtrl {
         key: 'option',
         templateOptions: {
           required: true,
-          options: function() {
+          options: function () {
             return $ctrl.exportOptions;
           },
           valueProp: 'value',
           labelProp: 'name',
           label: $translate.instant('ACCESS.EXPORT_OPTION'),
           appendToBody: false,
-          refresh: function(search) {
+          refresh: function (search) {
             return getExportOptions(data.node);
           },
         },
@@ -41,7 +41,7 @@ export default class ExportNodeModalInstanceCtrl {
           falseValue: undefined,
         },
         defaultValue: false,
-        hideExpression: function($viewValue, $modelValue, scope) {
+        hideExpression: function ($viewValue, $modelValue, scope) {
           return scope.model.option !== 'email';
         },
       },
@@ -65,19 +65,19 @@ export default class ExportNodeModalInstanceCtrl {
         });
     };
 
-    let exportLabels = node => {
+    let exportLabels = (node) => {
       const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/label/');
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
 
-    let exportArchive = node => {
+    let exportArchive = (node) => {
       const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/export/');
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
 
-    $ctrl.export = option => {
+    $ctrl.export = (option) => {
       if (option) {
         if (option === 'email') {
           exportEmail(data.node, $ctrl.model.include_descendants);
@@ -88,7 +88,7 @@ export default class ExportNodeModalInstanceCtrl {
         }
       }
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

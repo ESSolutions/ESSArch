@@ -2,7 +2,7 @@ export default class TransferModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     const $ctrl = this;
     $ctrl.transfer = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (!data.remove) {
         if (data.transfer) {
           $ctrl.transfer = angular.copy(data.transfer);
@@ -15,7 +15,7 @@ export default class TransferModalInstanceCtrl {
       }
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'input',
@@ -71,11 +71,11 @@ export default class TransferModalInstanceCtrl {
       ];
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -88,18 +88,18 @@ export default class TransferModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.transfer,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.creating = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.creating = false;
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -111,34 +111,34 @@ export default class TransferModalInstanceCtrl {
         method: 'PATCH',
         data: Utils.getDiff(data.transfer, $ctrl.transfer, {map: {type: 'id'}}),
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
         .delete(appConfig.djangoUrl + 'transfers/' + $ctrl.transfer.id)
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

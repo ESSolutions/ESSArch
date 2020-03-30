@@ -3,14 +3,14 @@ export default class MapStructureEditorCtrl {
     const vm = this;
     vm.noStructure = false;
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if (vm.profile.structure.length == 0) {
         vm.useDefaultStructure();
       }
       $scope.treeElements = [{name: 'root', type: 'folder', children: vm.profile.structure}];
       $scope.expandedNodes = [$scope.treeElements[0]].concat($scope.treeElements[0].children);
     };
-    vm.useDefaultStructure = function() {
+    vm.useDefaultStructure = function () {
       vm.noStructure = true;
       vm.profile.structure = [
         {
@@ -105,11 +105,11 @@ export default class MapStructureEditorCtrl {
             {name: 'XSD Files', value: 'xsd_files'},
           ],
         },
-        hideExpression: function($viewValue, $modelValue, scope) {
+        hideExpression: function ($viewValue, $modelValue, scope) {
           return scope.model.type != 'file';
         },
         expressionProperties: {
-          'templateOptions.required': function($viewValue, $modelValue, scope) {
+          'templateOptions.required': function ($viewValue, $modelValue, scope) {
             return scope.model.type == 'file';
           },
         },
@@ -132,13 +132,13 @@ export default class MapStructureEditorCtrl {
         label: 'a6',
         labelSelected: 'a8',
       },
-      isLeaf: function(node) {
+      isLeaf: function (node) {
         return node.type == 'file';
       },
-      equality: function(node1, node2) {
+      equality: function (node1, node2) {
         return node1 === node2;
       },
-      isSelectable: function(node) {
+      isSelectable: function (node) {
         return !$scope.updateMode.active && !$scope.addMode.active;
       },
     };
@@ -167,7 +167,7 @@ export default class MapStructureEditorCtrl {
     $scope.currentNode = null;
     $scope.selectedNode = null;
     //Add node to map structure tree view
-    $scope.addNode = function(node) {
+    $scope.addNode = function (node) {
       const dir = {
         name: vm.treeEditModel.name,
         type: vm.treeEditModel.type,
@@ -186,12 +186,12 @@ export default class MapStructureEditorCtrl {
       $scope.exitAddMode();
     };
     //Remove node from map structure tree view
-    $scope.removeNode = function(node) {
+    $scope.removeNode = function (node) {
       if (node.parentNode == null) {
         //$scope.treeElements.splice($scope.treeElements.indexOf(node.node), 1);
         return;
       }
-      node.parentNode.children.forEach(function(element) {
+      node.parentNode.children.forEach(function (element) {
         if (element.name == node.node.name) {
           node.parentNode.children.splice(node.parentNode.children.indexOf(element), 1);
         }
@@ -203,13 +203,13 @@ export default class MapStructureEditorCtrl {
     };
     //Enter "Add-mode" which shows a form
     //for adding a node to the map structure
-    $scope.enterAddMode = function(node) {
+    $scope.enterAddMode = function (node) {
       $scope.addMode.active = true;
       $('.tree-edit-item').draggable('disable');
     };
     //Exit add mode and return to default
     //map structure edit view
-    $scope.exitAddMode = function() {
+    $scope.exitAddMode = function () {
       $scope.addMode.active = false;
       $scope.treeItemClass = '';
       resetFormVariables();
@@ -221,7 +221,7 @@ export default class MapStructureEditorCtrl {
     };
 
     //Enter update mode which shows form for updating a node
-    $scope.enterUpdateMode = function(node, parentNode) {
+    $scope.enterUpdateMode = function (node, parentNode) {
       if (parentNode == null) {
         alert('Root directory can not be updated');
         return;
@@ -239,7 +239,7 @@ export default class MapStructureEditorCtrl {
     };
 
     //Exit update mode and return to default map-structure editor
-    $scope.exitUpdateMode = function() {
+    $scope.exitUpdateMode = function () {
       $scope.updateMode.active = false;
       $scope.updateMode.node = null;
       $scope.selectedNode = null;
@@ -252,7 +252,7 @@ export default class MapStructureEditorCtrl {
       vm.treeEditModel = {};
     }
     //Update current node variable with selected node in map structure tree view
-    $scope.updateCurrentNode = function(node, selected, parentNode) {
+    $scope.updateCurrentNode = function (node, selected, parentNode) {
       if (selected) {
         $scope.currentNode = {node: node, parentNode: parentNode};
       } else {
@@ -260,7 +260,7 @@ export default class MapStructureEditorCtrl {
       }
     };
     //Update node values
-    $scope.updateNode = function(node) {
+    $scope.updateNode = function (node) {
       if (vm.treeEditModel.name != '') {
         node.node.name = vm.treeEditModel.name;
       }
@@ -273,7 +273,7 @@ export default class MapStructureEditorCtrl {
       $scope.exitUpdateMode();
     };
     //Select function for clicking a node
-    $scope.showSelected = function(node, parentNode) {
+    $scope.showSelected = function (node, parentNode) {
       $scope.selectedNode = node;
       $scope.updateCurrentNode(node, $scope.selectedNode, parentNode);
       if ($scope.updateMode.active) {
@@ -281,7 +281,7 @@ export default class MapStructureEditorCtrl {
       }
     };
     //Submit function for either Add or update
-    $scope.treeEditSubmit = function(node) {
+    $scope.treeEditSubmit = function (node) {
       if ($scope.addMode.active) {
         $scope.addNode(node);
       } else if ($scope.updateMode.active) {
@@ -289,14 +289,14 @@ export default class MapStructureEditorCtrl {
       }
     };
     //context menu data
-    $scope.treeEditOptions = function(item) {
+    $scope.treeEditOptions = function (item) {
       if ($scope.addMode.active || $scope.updateMode.active) {
         return [];
       }
       return [
         [
           $translate.instant('ADD'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterAddMode($itemScope.node);
           },
@@ -304,7 +304,7 @@ export default class MapStructureEditorCtrl {
 
         [
           $translate.instant('REMOVE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.updateCurrentNode($itemScope.node, true, $itemScope.$parentNode);
             $scope.removeNode($scope.currentNode);
             $scope.selectedNode = null;
@@ -312,7 +312,7 @@ export default class MapStructureEditorCtrl {
         ],
         [
           $translate.instant('UPDATE'),
-          function($itemScope, $event, modelValue, text, $li) {
+          function ($itemScope, $event, modelValue, text, $li) {
             $scope.showSelected($itemScope.node, $itemScope.$parentNode);
             $scope.enterUpdateMode($itemScope.node, $itemScope.$parentNode);
           },

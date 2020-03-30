@@ -51,39 +51,39 @@ export default class StructureUnitRelationModalInstanceCtrl {
     $ctrl.initStructureSearch = null;
     $ctrl.initUnitSearch = null;
 
-    $ctrl.getArchives = function(search) {
+    $ctrl.getArchives = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'tags/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, index: 'archive', search: search},
-      }).then(response => {
+      }).then((response) => {
         $ctrl.options.archive = ArchiveName.parseArchiveNames(response.data);
         return $ctrl.options.archive;
       });
     };
 
-    $ctrl.getStructures = function(search, archive) {
+    $ctrl.getStructures = function (search, archive) {
       return $http({
         url: appConfig.djangoUrl + 'structures/',
         method: 'GET',
         params: {search: search, archive: archive, page: 1, page_size: 10, is_template: $ctrl.isTemplate},
-      }).then(function(response) {
+      }).then(function (response) {
         StructureName.parseStructureNames(response.data);
         $ctrl.options.structure = response.data;
         return response.data;
       });
     };
 
-    $ctrl.getStructureUnits = function(search, structure) {
+    $ctrl.getStructureUnits = function (search, structure) {
       return $http({
         url: appConfig.djangoUrl + 'structure-units/',
         method: 'GET',
         params: {structure: structure, search: search, page: 1, page_size: 10},
-      }).then(function(response) {
+      }).then(function (response) {
         if (angular.isUndefined(structure) || structure === null) {
           $ctrl.unit.options = [];
         } else {
-          response.data.forEach(x => {
+          response.data.forEach((x) => {
             x.name_with_refcode = x.reference_code + ' - ' + x.name;
           });
           $ctrl.unit.options = response.data;
@@ -92,7 +92,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
       });
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $ctrl.data = data;
       if (data.archive) {
         $ctrl.isTemplate = false;
@@ -118,7 +118,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
       return $http({
         url: appConfig.djangoUrl + 'node-relation-types/',
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.type = response.data;
         $ctrl.buildStructureForm();
         $ctrl.buildForm();
@@ -127,20 +127,20 @@ export default class StructureUnitRelationModalInstanceCtrl {
       });
     };
 
-    $ctrl.isTemplateChange = newVal => {
+    $ctrl.isTemplateChange = (newVal) => {
       $ctrl.archiveModel.archive = null;
       $ctrl.structureModel.structure = null;
       $ctrl.relation.structure_unit = null;
     };
 
-    $ctrl.buildStructureForm = function() {
+    $ctrl.buildStructureForm = function () {
       $ctrl.archiveFields = [
         {
           type: 'uiselect',
           key: 'archive',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.options.archive;
             },
             valueProp: 'id',
@@ -149,22 +149,22 @@ export default class StructureUnitRelationModalInstanceCtrl {
             label: $translate.instant('ACCESS.ARCHIVE'),
             clearEnabled: true,
             appendToBody: false,
-            optionsFunction: function(search) {
+            optionsFunction: function (search) {
               return $ctrl.options.archive;
             },
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initArchiveSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initArchiveSearch);
                 $ctrl.initArchiveSearch = null;
               }
-              return $ctrl.getArchives(search).then(function() {
+              return $ctrl.getArchives(search).then(function () {
                 this.options = $ctrl.options.archive;
                 return $ctrl.options.archive;
               });
             },
           },
           expressionProperties: {
-            'templateOptions.onChange': function($modelValue) {
+            'templateOptions.onChange': function ($modelValue) {
               if (!skipChange.archive) {
                 $ctrl.structureModel.structure = null;
                 $ctrl.relation.structure_unit = null;
@@ -181,7 +181,7 @@ export default class StructureUnitRelationModalInstanceCtrl {
           key: 'structure',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.options.structure;
             },
             valueProp: 'id',
@@ -190,19 +190,19 @@ export default class StructureUnitRelationModalInstanceCtrl {
             label: $translate.instant('ACCESS.CLASSIFICATION_STRUCTURE'),
             clearEnabled: true,
             appendToBody: false,
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initStructureSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
-              return $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function() {
+              return $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function () {
                 this.options = $ctrl.options.structure;
                 return $ctrl.options.structure;
               });
             },
           },
           expressionProperties: {
-            'templateOptions.onChange': function($modelValue) {
+            'templateOptions.onChange': function ($modelValue) {
               if (!skipChange.structure) {
                 $ctrl.relation.structure_unit = null;
               } else {
@@ -214,14 +214,14 @@ export default class StructureUnitRelationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'uiselect',
           key: 'structure_unit',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.unit.options;
             },
             valueProp: 'id',
@@ -231,14 +231,14 @@ export default class StructureUnitRelationModalInstanceCtrl {
             label: $translate.instant('ACCESS.STRUCTURE_UNIT'),
             appendToBody: false,
             clearEnabled: true,
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initUnitSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initUnitSearch);
                 $ctrl.initUnitSearch = null;
               }
               return $ctrl
                 .getStructureUnits(search, $ctrl.structureModel.structure, $ctrl.archiveModel.archive)
-                .then(function() {
+                .then(function () {
                   this.options = $ctrl.unit.options;
                   return $ctrl.unit.options;
                 });
@@ -294,12 +294,12 @@ export default class StructureUnitRelationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
-      const units = angular.copy($ctrl.node).related_structure_units.map(function(x) {
+      const units = angular.copy($ctrl.node).related_structure_units.map(function (x) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
         return x;
@@ -313,25 +313,25 @@ export default class StructureUnitRelationModalInstanceCtrl {
           related_structure_units: units.concat([$ctrl.relation]),
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.adding = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       const units = angular.copy($ctrl.node).related_structure_units;
-      units.forEach(function(x, idx, array) {
+      units.forEach(function (x, idx, array) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
         if (x.id === $ctrl.relation.id) {
@@ -347,26 +347,26 @@ export default class StructureUnitRelationModalInstanceCtrl {
           related_structure_units: units,
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       let toRemove = null;
       const units = angular.copy($ctrl.node).related_structure_units;
-      units.forEach(function(x, idx) {
+      units.forEach(function (x, idx) {
         x.structure_unit = angular.copy(x.structure_unit.id);
         x.type = angular.copy(x.type.id);
         if (x.id === $ctrl.relation.id) {
@@ -385,24 +385,24 @@ export default class StructureUnitRelationModalInstanceCtrl {
           related_structure_units: units,
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

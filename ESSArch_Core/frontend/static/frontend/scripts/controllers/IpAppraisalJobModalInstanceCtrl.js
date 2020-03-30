@@ -7,11 +7,11 @@ export default class IpAppraisalJobModalInstanceCtrl {
     };
     $ctrl.data = data;
 
-    $ctrl.getJobs = search => {
+    $ctrl.getJobs = (search) => {
       return $http
         .get(appConfig.djangoUrl + 'appraisal-jobs/', {params: {search, status: 'PENDING'}})
-        .then(response => {
-          response.data.forEach(x => {
+        .then((response) => {
+          response.data.forEach((x) => {
             x.labelProp = x.label && x.label !== '' ? x.label : x.id;
           });
           $ctrl.options.jobs = response.data;
@@ -24,7 +24,7 @@ export default class IpAppraisalJobModalInstanceCtrl {
         type: 'uiselect',
         key: 'job',
         templateOptions: {
-          options: function() {
+          options: function () {
             return $ctrl.options.jobs;
           },
           valueProp: 'id',
@@ -33,11 +33,11 @@ export default class IpAppraisalJobModalInstanceCtrl {
           placeholder: $translate.instant('ARCHIVE_MAINTENANCE.APPRAISAL_JOB'),
           label: $translate.instant('ARCHIVE_MAINTENANCE.APPRAISAL_JOB'),
           appendToBody: false,
-          refresh: function(search) {
+          refresh: function (search) {
             if (angular.isUndefined(search) || search === null || search === '') {
               search = '';
             }
-            return $ctrl.getJobs(search).then(function() {
+            return $ctrl.getJobs(search).then(function () {
               this.options = $ctrl.options.jobs;
               return $ctrl.options.jobs;
             });
@@ -46,7 +46,7 @@ export default class IpAppraisalJobModalInstanceCtrl {
       },
     ];
 
-    $ctrl.addToJob = function() {
+    $ctrl.addToJob = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -55,7 +55,7 @@ export default class IpAppraisalJobModalInstanceCtrl {
 
       $http
         .patch(appConfig.djangoUrl + 'appraisal-jobs/' + $ctrl.model.job + '/information-packages/', {
-          information_packages: data.ips.map(x => x.id),
+          information_packages: data.ips.map((x) => x.id),
         })
         .then(() => {
           $ctrl.adding = false;
@@ -66,7 +66,7 @@ export default class IpAppraisalJobModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

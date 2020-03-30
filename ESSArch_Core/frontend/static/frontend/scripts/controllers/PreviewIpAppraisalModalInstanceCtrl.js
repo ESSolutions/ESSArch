@@ -6,7 +6,7 @@ export default class PreviewIpAppraisalModalInstanceCtrl {
     $ctrl.$onInit = () => {};
 
     $ctrl.files = [];
-    $ctrl.filePipe = function(tableState) {
+    $ctrl.filePipe = function (tableState) {
       $ctrl.filesLoading = true;
       if ($ctrl.files.length == 0) {
         $ctrl.initLoad = true;
@@ -40,23 +40,23 @@ export default class PreviewIpAppraisalModalInstanceCtrl {
             pager: paginationParams.pager,
           },
         })
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.files = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $ctrl.filesLoading = false;
             $ctrl.initLoad = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.filesLoading = false;
             $ctrl.initLoad = false;
           });
       }
     };
 
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

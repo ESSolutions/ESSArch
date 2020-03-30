@@ -28,7 +28,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -68,7 +68,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -88,7 +88,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -108,7 +108,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -128,7 +128,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -147,7 +147,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -166,7 +166,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       pager: pagination.pager,
       ordering: sortString,
       search: searchString,
-    }).$promise.then(function(resource) {
+    }).$promise.then(function (resource) {
       let count = resource.$httpHeaders('Count');
       if (count == null) {
         count = resource.length;
@@ -182,34 +182,34 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   function inventoryRobot(robot) {
     return robot
       .$inventory()
-      .then(function(response) {
+      .then(function (response) {
         return response;
       })
-      .catch(function(response) {
+      .catch(function (response) {
         return response.statusText;
       });
   }
 
   function mountTapeDrive(tapeDrive, medium) {
-    return TapeDrive.mount({id: tapeDrive.id, storage_medium: medium.id}).$promise.then(function(response) {
+    return TapeDrive.mount({id: tapeDrive.id, storage_medium: medium.id}).$promise.then(function (response) {
       return response;
     });
   }
 
   function unmountTapeDrive(tapeDrive, force) {
-    return TapeDrive.unmount({id: tapeDrive.id, force: force}).$promise.then(function(response) {
+    return TapeDrive.unmount({id: tapeDrive.id, force: force}).$promise.then(function (response) {
       return response;
     });
   }
 
   function mountTapeSlot(tapeSlot, medium) {
-    return StorageMedium.mount({id: tapeSlot.storage_medium.id}).$promise.then(function(response) {
+    return StorageMedium.mount({id: tapeSlot.storage_medium.id}).$promise.then(function (response) {
       return response;
     });
   }
 
   function unmountTapeSlot(tapeSlot, force) {
-    return StorageMedium.unmount({id: tapeSlot.storage_medium.id, force: force}).$promise.then(function(response) {
+    return StorageMedium.unmount({id: tapeSlot.storage_medium.id, force: force}).$promise.then(function (response) {
       return response;
     });
   }

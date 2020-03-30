@@ -19,7 +19,7 @@ export default class EventCtrl {
     const vm = this;
     $scope.$translate = $translate;
 
-    vm.getCookieName = function() {
+    vm.getCookieName = function () {
       let name;
       switch ($rootScope.app) {
         case 'ESSArch Preservation Platform':
@@ -39,7 +39,7 @@ export default class EventCtrl {
     };
 
     vm.itemsPerPage = $cookies.get(vm.getCookieName) || 10;
-    $scope.updateEventsPerPage = function(items) {
+    $scope.updateEventsPerPage = function (items) {
       $cookies.put(vm.getCookieName, items);
     };
     $scope.selected = [];
@@ -49,11 +49,11 @@ export default class EventCtrl {
       addEventError: {type: 'danger', msg: 'EVENT.ERROR_MESSAGE'},
       addEventSuccess: {type: 'success', msg: 'EVENT.EVENT_ADDED'},
     };
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       $scope.ip = vm.ip;
       vm.getEventlogData();
     };
-    vm.$onChanges = function() {
+    vm.$onChanges = function () {
       $scope.addEventAlert = null;
       $scope.ip = vm.ip;
       vm.getEventlogData();
@@ -62,19 +62,19 @@ export default class EventCtrl {
       }
     };
     //Get data for eventlog view
-    vm.getEventlogData = function() {
-      listViewService.getEventlogData().then(function(value) {
+    vm.getEventlogData = function () {
+      listViewService.getEventlogData().then(function (value) {
         vm.eventTypeCollection = value;
       });
     };
 
-    $scope.closeAlert = function() {
+    $scope.closeAlert = function () {
       $scope.addEventAlert = null;
     };
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(eventInterval);
     });
-    $scope.$on('$destroy', function() {
+    $scope.$on('$destroy', function () {
       $interval.cancel(eventInterval);
     });
     $scope.newEventForm = {
@@ -86,18 +86,18 @@ export default class EventCtrl {
       0: 'success',
       1: 'failure',
     };
-    $scope.getEventOutcome = function(outcome) {
+    $scope.getEventOutcome = function (outcome) {
       const level = $scope.eventLevels[outcome];
       return level;
     };
-    $scope.eventOutcomes = (function() {
+    $scope.eventOutcomes = (function () {
       const levels = $scope.eventLevels;
-      return Object.keys(levels).map(function(k) {
+      return Object.keys(levels).map(function (k) {
         return {value: k, name: levels[k]};
       });
     })();
     //Event click funciton
-    $scope.eventClick = function(row) {
+    $scope.eventClick = function (row) {
       if (row.class == 'selected') {
         row.class = '';
         for (let i = 0; i < $scope.selected.length; i++) {
@@ -110,11 +110,11 @@ export default class EventCtrl {
         $scope.selected.push(row);
       }
     };
-    $scope.addEvent = function(ip, eventType, eventDetail, eventOutcome) {
+    $scope.addEvent = function (ip, eventType, eventDetail, eventOutcome) {
       $scope.addEventAlert = null;
       listViewService
         .addEvent(ip, eventType, eventDetail, eventOutcome)
-        .then(function(value) {
+        .then(function (value) {
           $scope.stCtrl.pipe();
           $scope.newEventForm = {
             eventType: '',
@@ -130,13 +130,13 @@ export default class EventCtrl {
     let eventInterval;
     function updateEvents() {
       $interval.cancel(eventInterval);
-      eventInterval = $interval(function() {
+      eventInterval = $interval(function () {
         $scope.stCtrl.pipe();
       }, appConfig.eventInterval);
     }
     updateEvents();
     //Get data from rest api for event table
-    $scope.eventPipe = function(tableState, ctrl) {
+    $scope.eventPipe = function (tableState, ctrl) {
       $scope.eventLoading = true;
       if (vm.displayed.length == 0) {
         $scope.initLoad = true;
@@ -158,16 +158,16 @@ export default class EventCtrl {
         vm.columnFilters,
         search
       )
-        .then(function(result) {
+        .then(function (result) {
           vm.displayed = result.data;
           tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
           $scope.tableState = tableState;
           $scope.eventLoading = false;
           $scope.initLoad = false;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (response.status === 404) {
-            listViewService.checkPages('events', paginationParams.number, vm.columnFilters).then(function(result) {
+            listViewService.checkPages('events', paginationParams.number, vm.columnFilters).then(function (result) {
               tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
               tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
               $scope.stCtrl.pipe();
@@ -179,7 +179,7 @@ export default class EventCtrl {
     vm.columnFilters = {};
     vm.fields = [];
 
-    $scope.clearSearch = function() {
+    $scope.clearSearch = function () {
       delete $scope.tableState.search.predicateObject;
       $('#event-search-input')[0].value = '';
       $scope.stCtrl.pipe();
@@ -187,7 +187,7 @@ export default class EventCtrl {
 
     // Click function for request form submit.
     // Replaced form="vm.requestForm" to work in IE
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       if (vm.requestForm.$valid) {
         $scope.submitRequest($scope.ip, vm.request);
       }

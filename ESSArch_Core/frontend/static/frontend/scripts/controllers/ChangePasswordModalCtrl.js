@@ -9,13 +9,13 @@ export default class ChangePasswordModalCtrl {
     $ctrl.error_messages_pw1 = [];
     $ctrl.error_messages_pw2 = [];
 
-    $ctrl.changePassword = function() {
+    $ctrl.changePassword = function () {
       djangoAuth
         .changePassword($ctrl.pw1, $ctrl.pw2, $ctrl.oldPw)
-        .then(function(response) {
+        .then(function (response) {
           $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(error) {
+        .catch(function (error) {
           $ctrl.error_messages_old = error.old_password || [];
           $ctrl.error_messages_pw1 = error.new_password1 || [];
           $ctrl.error_messages_pw2 = error.new_password2 || [];
@@ -23,7 +23,7 @@ export default class ChangePasswordModalCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

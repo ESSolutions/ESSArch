@@ -1,5 +1,5 @@
 /*@ngInject*/
-const general = $translateProvider => {
+const general = ($translateProvider) => {
   $translateProvider.translations('en', {
     ACCESSIP: 'Storage units',
     ADD_ATTRIBUTE: 'Add Attribute',

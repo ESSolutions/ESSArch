@@ -36,10 +36,10 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService.getEvents(ip, pagination, sortString, columnFilters, search).then(function(value) {
+    return listViewService.getEvents(ip, pagination, sortString, columnFilters, search).then(function (value) {
       const eventCollection = value.data;
-      eventCollection.forEach(function(event) {
-        selected.forEach(function(item) {
+      eventCollection.forEach(function (event) {
+        selected.forEach(function (item) {
           if (item.id == event.id) {
             event.class = 'selected';
           }
@@ -64,11 +64,11 @@ const resource = (listViewService, Storage, $rootScope) => {
     }
     return listViewService
       .getListViewData(pagination, sortString, search, state, viewType, columnFilters, archived, workarea, params)
-      .then(function(value) {
+      .then(function (value) {
         const ipCollection = value.data;
-        ipCollection.forEach(function(ip) {
+        ipCollection.forEach(function (ip) {
           ip.collapsed = true;
-          expandedAics.forEach(function(aic, index, array) {
+          expandedAics.forEach(function (aic, index, array) {
             if (ip.object_identifier_value == aic) {
               ip.collapsed = false;
             }
@@ -103,11 +103,11 @@ const resource = (listViewService, Storage, $rootScope) => {
         columnFilters,
         user
       )
-      .then(function(value) {
+      .then(function (value) {
         const ipCollection = value.data;
-        ipCollection.forEach(function(ip) {
+        ipCollection.forEach(function (ip) {
           ip.collapsed = true;
-          expandedAics.forEach(function(aic, index, array) {
+          expandedAics.forEach(function (aic, index, array) {
             if (ip.object_identifier_value == aic) {
               ip.collapsed = false;
             }
@@ -125,9 +125,9 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService.getDipPage(pagination, sortString, search, columnFilters).then(function(value) {
+    return listViewService.getDipPage(pagination, sortString, search, columnFilters).then(function (value) {
       const ipCollection = value.data;
-      ipCollection.forEach(function(ip) {
+      ipCollection.forEach(function (ip) {
         ip.collapsed = false;
       });
       return {
@@ -142,9 +142,9 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService.getOrderPage(pagination, sortString, search).then(function(value) {
+    return listViewService.getOrderPage(pagination, sortString, search).then(function (value) {
       const ipCollection = value.data;
-      ipCollection.forEach(function(ip) {
+      ipCollection.forEach(function (ip) {
         ip.collapsed = false;
       });
       return {
@@ -159,13 +159,15 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return listViewService.getReceptionIps(pagination, sortString, search, state, columnFilters).then(function(value) {
-      const ipCollection = value.data;
-      return {
-        data: ipCollection,
-        numberOfPages: Math.ceil(value.count / pagination.number),
-      };
-    });
+    return listViewService
+      .getReceptionIps(pagination, sortString, search, state, columnFilters)
+      .then(function (value) {
+        const ipCollection = value.data;
+        return {
+          data: ipCollection,
+          numberOfPages: Math.ceil(value.count / pagination.number),
+        };
+      });
   }
 
   // Storage
@@ -175,7 +177,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageMediums(pagination, $rootScope.navigationFilter, sortString, search).then(function(
+    return Storage.getStorageMediums(pagination, $rootScope.navigationFilter, sortString, search).then(function (
       value
     ) {
       const storageMediumCollection = value.data;
@@ -190,7 +192,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageObjectsForMedium(mediumId, pagination, medium, sortString, search).then(function(value) {
+    return Storage.getStorageObjectsForMedium(mediumId, pagination, medium, sortString, search).then(function (value) {
       const storageObjectCollection = value.data;
       return {
         data: storageObjectCollection,
@@ -203,7 +205,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageObjects(pagination, medium, sortString, search).then(function(value) {
+    return Storage.getStorageObjects(pagination, medium, sortString, search).then(function (value) {
       const storageObjectCollection = value.data;
       return {
         data: storageObjectCollection,
@@ -217,7 +219,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobots(pagination, sortString, search).then(function(value) {
+    return Storage.getRobots(pagination, sortString, search).then(function (value) {
       const robotCollection = value.data;
       return {
         data: robotCollection,
@@ -231,7 +233,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobotQueue(pagination, sortString, search).then(function(value) {
+    return Storage.getRobotQueue(pagination, sortString, search).then(function (value) {
       const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
@@ -245,7 +247,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getRobotQueueForRobot(pagination, sortString, search, robot).then(function(value) {
+    return Storage.getRobotQueueForRobot(pagination, sortString, search, robot).then(function (value) {
       const robotQueueCollection = value.data;
       return {
         data: robotQueueCollection,
@@ -259,7 +261,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getIoQueue(pagination, sortString, search).then(function(value) {
+    return Storage.getIoQueue(pagination, sortString, search).then(function (value) {
       const ioQueueCollection = value.data;
       return {
         data: ioQueueCollection,
@@ -273,7 +275,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getTapeDrives(pagination, sortString, search, robot).then(function(value) {
+    return Storage.getTapeDrives(pagination, sortString, search, robot).then(function (value) {
       const tapeDrivecollection = value.data;
       return {
         data: tapeDrivecollection,
@@ -287,7 +289,7 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getTapeSlots(pagination, sortString, search, robot).then(function(value) {
+    return Storage.getTapeSlots(pagination, sortString, search, robot).then(function (value) {
       const tapeSlotCollection = value.data;
       return {
         data: tapeSlotCollection,

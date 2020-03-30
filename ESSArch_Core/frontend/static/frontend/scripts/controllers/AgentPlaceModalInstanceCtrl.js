@@ -5,16 +5,16 @@ export default class AgentPlaceModalInstanceCtrl {
     $ctrl.topography = {};
     $ctrl.placeTemplate = {};
     $ctrl.fields = [];
-    $ctrl.resetPlace = function() {
+    $ctrl.resetPlace = function () {
       $ctrl.place = angular.copy($ctrl.placeTemplate);
     };
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       return $http({
         url: appConfig.djangoUrl + 'agent-place-types/',
         params: {pager: 'none'},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options = {type: response.data};
         EditMode.enable();
         if (data.place) {
@@ -30,7 +30,7 @@ export default class AgentPlaceModalInstanceCtrl {
       });
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.topographyFields = [
         {
           type: 'input',
@@ -106,7 +106,7 @@ export default class AgentPlaceModalInstanceCtrl {
           key: 'lng',
           validators: {
             coordinate: {
-              expression: function(viewValue, modelValue) {
+              expression: function (viewValue, modelValue) {
                 const value = modelValue || viewValue;
                 return (
                   /^-?[0-9]{1,3}[.][0-9]{1,6}$/.test(value) ||
@@ -128,7 +128,7 @@ export default class AgentPlaceModalInstanceCtrl {
           key: 'lat',
           validators: {
             coordinate: {
-              expression: function(viewValue, modelValue) {
+              expression: function (viewValue, modelValue) {
                 const value = modelValue || viewValue;
                 return (
                   /^-?[0-9]{1,3}[.][0-9]{1,6}$/.test(value) ||
@@ -196,14 +196,14 @@ export default class AgentPlaceModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.adding = true;
       const places = angular.copy(data.agent.places);
-      places.forEach(function(x) {
+      places.forEach(function (x) {
         x.type = x.type.id;
       });
       $ctrl.place.topography = angular.copy($ctrl.topography);
@@ -213,12 +213,12 @@ export default class AgentPlaceModalInstanceCtrl {
         method: 'PATCH',
         data: {places: [$ctrl.place].concat(places)},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.places) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -230,14 +230,14 @@ export default class AgentPlaceModalInstanceCtrl {
           $ctrl.adding = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
       }
       $ctrl.saving = true;
       const places = angular.copy(data.agent.places);
-      places.forEach(function(x, idx, array) {
+      places.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -252,12 +252,12 @@ export default class AgentPlaceModalInstanceCtrl {
         method: 'PATCH',
         data: {places: places},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.places) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -270,11 +270,11 @@ export default class AgentPlaceModalInstanceCtrl {
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       let toRemove = null;
       const places = angular.copy(data.agent.places);
-      places.forEach(function(x, idx, array) {
+      places.forEach(function (x, idx, array) {
         if (typeof x.type === 'object') {
           x.type = x.type.id;
         }
@@ -291,12 +291,12 @@ export default class AgentPlaceModalInstanceCtrl {
         method: 'PATCH',
         data: {places: places},
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           if (response.data.places) {
             if (angular.isArray($ctrl.nonFieldErrors)) {
@@ -309,12 +309,12 @@ export default class AgentPlaceModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

@@ -140,10 +140,11 @@ class ReceiveSIP(DBTask):
             self.logger.debug('Copying {} to {}'.format(container, sip_dst))
             shutil.copy2(container, sip_dst)
 
+        ip.sip_path = os.path.relpath(sip_dst, ip.object_path)
         ip.save()
         return sip_dst
 
-    def event_outcome_success(self, result, purpose=None):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Received SIP"
 
 
