@@ -2,6 +2,7 @@ import advancedFilters from '../components/AdvancedFilterComponent';
 import archiveManager from '../components/ArchiveManagerComponent';
 import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';
 import conversionSpec from '../components/ConversionSpecComponent';
+import Conversion from '../components/ConversionComponent';
 import agents from '../components/AgentsComponent';
 import dashboardStats from '../components/DashboardStatsComponent';
 import deliveryComponent from '../components/DeliveryComponent';
@@ -32,6 +33,7 @@ export default angular
   .component('archiveManager', archiveManager)
   .component('classificationStructureEditor', classificationStructureEditor)
   .component('conversionSpec', conversionSpec)
+  .component('conversionView', Conversion)
   .component('dashboardStats', dashboardStats)
   .component('deliveryPage', deliveryComponent)
   .component('essarchFooter', essarchFooter)
