@@ -1,0 +1,25 @@
+<div>
+  <h4>
+    {{'ARCHIVE_MAINTENANCE.PATHS' | translate}}
+  </h4>
+  <label>
+    <input type="checkbox" ng-model="$ctrl.fullIpAppraisal" />
+    {{'ARCHIVE_MAINTENANCE.FULL_IP_APPRAISAL' | translate}}
+  </label>
+  <div ng-if="!$ctrl.fullIpAppraisal">
+    <div class="flex-row">
+      <input class="form-control" ng-enter="$ctrl.addPath($ctrl.path)" ng-model="$ctrl.path" />
+      <button type="button" class="btn btn-success btn-small px-base" ng-click="$ctrl.addPath($ctrl.path)">
+        <i class="fas fa-plus"></i>
+      </button>
+    </div>
+    <div class="path-row">
+      <div ng-repeat="path in $ctrl.model.package_file_pattern track by $index" class="path-item">
+        {{path}}&nbsp;<i ng-click="$ctrl.removePath(path)" class="fas fa-times clickable"></i>
+      </div>
+      <div ng-if="$ctrl.model.package_file_pattern.length == 0">
+        <span ng-if="!$ctrl.showRequired">{{'ARCHIVE_MAINTENANCE.NO_PATHS_CHOSEN' | translate}}</span>
+      </div>
+    </div>
+  </div>
+</div>

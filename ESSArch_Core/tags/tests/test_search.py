@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from pydoc import locate
 from unittest import SkipTest
 
@@ -9,6 +10,7 @@ from django.contrib.auth.models import Permission
 from django.test import override_settings, tag
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timezone import make_aware
 from elasticsearch.client import IngestClient
 from elasticsearch.exceptions import ConnectionError
 from elasticsearch_dsl.connections import (
@@ -30,11 +32,19 @@ from ESSArch_Core.agents.models import (
 from ESSArch_Core.auth.models import Group, GroupType
 from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.search import alias_migration
-from ESSArch_Core.tags.documents import Archive, Component, File
+from ESSArch_Core.tags.documents import (
+    Archive,
+    Component,
+    File,
+    StructureUnitDocument,
+)
 from ESSArch_Core.tags.models import (
     Structure,
     StructureType,
+    StructureUnit,
+    StructureUnitType,
     Tag,
     TagStructure,
     TagVersion,
@@ -258,6 +268,100 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data['hits']), 1)
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
+
+    def test_filter_appraisal_date(self):
+        component_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=26)))
+        component_tag_version = TagVersion.objects.create(
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        doc = Component.from_obj(component_tag_version)
+        doc.save(refresh='true')
+
+        with self.subTest('2020-02-26 before 2020-12-31'):
+            res = self.client.get(self.url, data={'appraisal_date_before': '2020-12-31'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+
+        with self.subTest('2020-02-26 after 2020-01-01'):
+            res = self.client.get(self.url, data={'appraisal_date_after': '2020-01-01'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+
+        with self.subTest('2020-02-26 not before 2020-01-01'):
+            res = self.client.get(self.url, data={'appraisal_date_before': '2020-01-01'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
+
+        with self.subTest('2020-02-26 not after 2020-12-31'):
+            res = self.client.get(self.url, data={'appraisal_date_after': '2020-12-31'})
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
+
+        with self.subTest('2020-02-26 between 2020-01-01 and 2020-12-31'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-01-01',
+                'appraisal_date_before': '2020-12-31',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+
+        with self.subTest('2020-02-26 not between 2020-12-01 and 2020-12-31'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-12-01',
+                'appraisal_date_before': '2020-12-31',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
+
+        with self.subTest('invalid range 2020-12-31 - 2020-01-01'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2020-12-31',
+                'appraisal_date_before': '2020-01-01',
+            })
+            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_add_results_to_appraisal(self):
+        component_tag = Tag.objects.create()
+        component_tag_version = TagVersion.objects.create(
+            name='foo',
+            tag=component_tag,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        Component.from_obj(component_tag_version).save(refresh='true')
+
+        component_tag2 = Tag.objects.create()
+        component_tag_version2 = TagVersion.objects.create(
+            name='bar',
+            tag=component_tag2,
+            type=self.component_type,
+            elastic_index="component",
+        )
+        Component.from_obj(component_tag_version2).save(refresh='true')
+
+        # test that we don't try to add structure units matched by query to job
+        structure = Structure.objects.create(type=StructureType.objects.create(), is_template=False)
+        structure_unit = StructureUnit.objects.create(
+            name='foo',
+            structure=structure, type=StructureUnitType.objects.create(structure_type=structure.type),
+        )
+        StructureUnitDocument.from_obj(structure_unit).save(refresh='true')
+
+        appraisal_job = AppraisalJob.objects.create()
+        res = self.client.get(self.url, data={
+            'q': 'foo',
+            'add_to_appraisal': appraisal_job.pk
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(appraisal_job.tags.all(), [component_tag])
+
+        res = self.client.get(self.url, data={
+            'add_to_appraisal': appraisal_job.pk
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(appraisal_job.tags.all(), [component_tag, component_tag2])
 
 
 class DocumentSearchTestCase(ESSArchSearchBaseTestCase):

@@ -3,11 +3,11 @@ export default class UserDropdownCtrl {
     let options, optionsAuth;
     const vm = this;
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       options = [
         {
           label: $translate.instant('LOGIN'),
-          click: function() {
+          click: function () {
             $state.go('login');
           },
         },
@@ -16,19 +16,19 @@ export default class UserDropdownCtrl {
       optionsAuth = [
         {
           label: $translate.instant('USERSETTINGS'),
-          click: function() {
+          click: function () {
             $state.go('home.userSettings');
           },
         },
         {
           label: $translate.instant('CHANGE_PASSWORD'),
-          click: function() {
+          click: function () {
             $scope.changePasswordModal();
           },
         },
         {
           label: $translate.instant('LOGOUT'),
-          click: function() {
+          click: function () {
             vm.auth = null;
             djangoAuth.logout();
           },
@@ -36,15 +36,15 @@ export default class UserDropdownCtrl {
       ];
     };
 
-    $scope.$on('djangoAuth.logged_out', function(event) {
+    $scope.$on('djangoAuth.logged_out', function (event) {
       window.location.replace('/');
     });
 
     $scope.$watch(
-      function() {
+      function () {
         return djangoAuth.authenticated;
       },
-      function() {
+      function () {
         if (!djangoAuth.authenticated) {
           $scope.editUserOptions = options;
         } else {
@@ -58,13 +58,13 @@ export default class UserDropdownCtrl {
       isopen: false,
     };
 
-    $scope.toggleDropdown = function($event) {
+    $scope.toggleDropdown = function ($event) {
       $event.preventDefault();
       $event.stopPropagation();
       $scope.status.isopen = !$scope.status.isopen;
     };
 
-    $scope.changePasswordModal = function() {
+    $scope.changePasswordModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -79,8 +79,8 @@ export default class UserDropdownCtrl {
         },
       });
       modalInstance.result
-        .then(function(data) {})
-        .catch(function() {
+        .then(function (data) {})
+        .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
     };

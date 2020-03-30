@@ -2,12 +2,12 @@ export default class EventModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     const $ctrl = this;
     $ctrl.event = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (!data.remove) {
         if (data.event) {
           $ctrl.event = angular.copy(data.event);
         }
-        $ctrl.getEventTypes().then(function(response) {
+        $ctrl.getEventTypes().then(function (response) {
           $ctrl.buildForm();
         });
       } else {
@@ -17,16 +17,16 @@ export default class EventModalInstanceCtrl {
       }
     };
 
-    $ctrl.getEventTypes = function(search) {
+    $ctrl.getEventTypes = function (search) {
       return $http
         .get(appConfig.djangoUrl + 'event-types/', {params: {category: 1, search: search}})
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.eventTypes = response.data;
           return response.data;
         });
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'select',
@@ -87,11 +87,11 @@ export default class EventModalInstanceCtrl {
       ];
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -109,17 +109,17 @@ export default class EventModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.event,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.creating = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.creating = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -135,34 +135,34 @@ export default class EventModalInstanceCtrl {
         method: 'PATCH',
         data: saveData,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
         .delete(appConfig.djangoUrl + 'events/' + $ctrl.event.id)
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

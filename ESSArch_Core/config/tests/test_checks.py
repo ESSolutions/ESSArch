@@ -6,6 +6,26 @@ from ESSArch_Core.config import checks
 from ESSArch_Core.crypto import generate_key
 
 
+class DocsRootCheckTests(SimpleTestCase):
+    @property
+    def func(self):
+        from ESSArch_Core.config.checks import docs_root_check
+        return docs_root_check
+
+    @override_settings()
+    def test_missing_path(self):
+        del settings.DOCS_ROOT
+        self.assertEqual(self.func(None), [checks.E003])
+
+    @override_settings(DOCS_ROOT='',)
+    def test_empty_path(self):
+        self.assertEqual(self.func(None), [checks.E003])
+
+    @override_settings(DOCS_ROOT='example/docs',)
+    def test_valid_path(self):
+        self.assertEqual(self.func(None), [])
+
+
 class EncryptionKeyCheckTests(SimpleTestCase):
     @property
     def func(self):

@@ -51,7 +51,7 @@ export default class PrepareIpModalInstanceCtrl {
         key: 'object_identifier_value',
         validators: {
           coordinate: {
-            expression: function(viewValue, modelValue) {
+            expression: function (viewValue, modelValue) {
               const value = modelValue || viewValue;
               return (
                 /^[^/|\\|\||*|>|<|:|"|?]*$/.test(value) || value === '' || angular.isUndefined(value) || value === null
@@ -75,22 +75,22 @@ export default class PrepareIpModalInstanceCtrl {
 
       $ctrl.preparing = true;
       return IP.prepare($ctrl.ipData)
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           $ctrl.preparing = false;
           EditMode.disable();
           return $uibModalInstance.close($ctrl.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.preparing = false;
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press') {
         const message = $translate.instant('UNSAVED_DATA_WARNING');
         if (!confirm(message)) {

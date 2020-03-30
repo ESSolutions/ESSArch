@@ -27,12 +27,12 @@ export default class DeliveryCtrl {
 
     let watchers = [];
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         let params = $transition.params();
         const toTransfers = $transition.to().name === 'home.archivalDescriptions.deliveries.transfers';
         const fromTransfers = $transition.from().name === 'home.archivalDescriptions.deliveries.transfers';
         if ($transition.from().name !== $transition.to().name && !(toTransfers || fromTransfers)) {
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
@@ -43,7 +43,7 @@ export default class DeliveryCtrl {
           } else {
             if (params.delivery !== null && (vm.selected === null || params.delivery !== vm.selected.id)) {
               vm.initialSearch = params.delivery;
-              $http.get(appConfig.djangoUrl + 'deliveries/' + params.delivery + '/').then(function(response) {
+              $http.get(appConfig.djangoUrl + 'deliveries/' + params.delivery + '/').then(function (response) {
                 vm.selected = null;
                 $timeout(() => {
                   vm.activeTab = 'events';
@@ -59,9 +59,9 @@ export default class DeliveryCtrl {
       })
     );
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       vm.initLoad = true;
-      listViewService.getEventlogData().then(function(types) {
+      listViewService.getEventlogData().then(function (types) {
         vm.types = types;
         if (
           !angular.isUndefined($stateParams.delivery) &&
@@ -71,11 +71,11 @@ export default class DeliveryCtrl {
           vm.initialSearch = $stateParams.delivery;
           $http
             .get(appConfig.djangoUrl + 'deliveries/' + $stateParams.delivery + '/')
-            .then(function(response) {
+            .then(function (response) {
               vm.deliveryClick(response.data);
               vm.initLoad = false;
               if (angular.copy($state.current.name.split('.')).pop() === 'transfers') {
-                $timeout(function() {
+                $timeout(function () {
                   vm.activeTab = 'transfers';
 
                   $state.go('home.archivalDescriptions.deliveries.transfers', {
@@ -85,7 +85,7 @@ export default class DeliveryCtrl {
                 });
               }
             })
-            .catch(function(response) {
+            .catch(function (response) {
               vm.selected = null;
               $state.go($state.current.name, {delivery: null});
             });
@@ -95,9 +95,9 @@ export default class DeliveryCtrl {
       });
     };
 
-    vm.mapEventType = function(type) {
+    vm.mapEventType = function (type) {
       let mapped = type;
-      vm.types.forEach(function(x) {
+      vm.types.forEach(function (x) {
         if (x.eventType === type) {
           mapped = x.eventDetail;
         }
@@ -105,10 +105,10 @@ export default class DeliveryCtrl {
       return mapped;
     };
 
-    vm.eventsClick = function(event) {
+    vm.eventsClick = function (event) {
       if (event.transfer) {
         vm.activeTab = 'transfers';
-        $timeout(function() {
+        $timeout(function () {
           $state.go('home.archivalDescriptions.deliveries.transfers', {
             delivery: vm.selected.id,
             transfer: event.transfer.id,
@@ -117,7 +117,7 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.deliveryClick = function(delivery) {
+    vm.deliveryClick = function (delivery) {
       if (vm.selected !== null && delivery.id === vm.selected.id) {
         vm.selected = null;
         $state.go('home.archivalDescriptions.deliveries', {delivery: null});
@@ -128,8 +128,8 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.tabClick = function(tab) {
-      $timeout(function() {
+    vm.tabClick = function (tab) {
+      $timeout(function () {
         if (tab === 'transfers') {
           $state.go('home.archivalDescriptions.deliveries.transfers', {delivery: vm.selected.id});
         } else {
@@ -138,7 +138,7 @@ export default class DeliveryCtrl {
       });
     };
 
-    vm.deliveryPipe = function(tableState) {
+    vm.deliveryPipe = function (tableState) {
       if (vm.deliveries.length == 0) {
         $scope.initLoad = true;
       }
@@ -169,7 +169,7 @@ export default class DeliveryCtrl {
           pager: paginationParams.pager,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.deliveriesLoading = false;
@@ -178,13 +178,13 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.getDeliveries = function(params) {
-      return $http.get(appConfig.djangoUrl + 'deliveries/', {params: params}).then(function(response) {
+    vm.getDeliveries = function (params) {
+      return $http.get(appConfig.djangoUrl + 'deliveries/', {params: params}).then(function (response) {
         return response;
       });
     };
 
-    vm.deliveryEventsPipe = function(tableState) {
+    vm.deliveryEventsPipe = function (tableState) {
       vm.deliveryEventsLoading = true;
       if (angular.isUndefined(vm.deliveryEvents) || vm.deliveryEvents.length == 0) {
         $scope.initLoad = true;
@@ -209,7 +209,7 @@ export default class DeliveryCtrl {
           pager: paginationParams.pager,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.deliveryEventsLoading = false;
@@ -218,15 +218,15 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.getDeliveryEvents = function(delivery, params) {
+    vm.getDeliveryEvents = function (delivery, params) {
       return $http
         .get(appConfig.djangoUrl + 'deliveries/' + delivery.id + '/events/', {params: params})
-        .then(function(response) {
+        .then(function (response) {
           return response;
         });
     };
 
-    vm.getDeliveryColspan = function() {
+    vm.getDeliveryColspan = function () {
       if (myService.checkPermission('tags.change_delivery') && myService.checkPermission('tags.delete_delivery')) {
         return 8;
       } else if (
@@ -239,7 +239,7 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.getEventColspan = function() {
+    vm.getEventColspan = function () {
       if (myService.checkPermission('ip.change_eventip') && myService.checkPermission('ip.delete_eventip')) {
         return 7;
       } else if (myService.checkPermission('ip.change_eventip') || myService.checkPermission('ip.delete_eventip')) {
@@ -249,7 +249,7 @@ export default class DeliveryCtrl {
       }
     };
 
-    vm.createModal = function() {
+    vm.createModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -259,23 +259,23 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {};
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.selected = data;
           vm.deliveryPipe(vm.tableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editModal = function(delivery) {
+    vm.editModal = function (delivery) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -285,7 +285,7 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               delivery: delivery,
             };
@@ -293,16 +293,16 @@ export default class DeliveryCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.deliveryPipe(vm.tableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeModal = function(delivery) {
+    vm.removeModal = function (delivery) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -312,7 +312,7 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               delivery: delivery,
               allow_close: true,
@@ -322,17 +322,17 @@ export default class DeliveryCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.selected = null;
           vm.deliveryPipe(vm.tableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.createEventModal = function(params) {
+    vm.createEventModal = function (params) {
       const data = {};
       if (params.transfer) {
         data.transfer = params.transfer;
@@ -349,13 +349,13 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return data;
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (params.transfer) {
             vm.transferPipe(vm.transferTableState);
             vm.transferEventsPipe(vm.transferEventsTableState);
@@ -365,13 +365,13 @@ export default class DeliveryCtrl {
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editEventModal = function(event, params) {
+    vm.editEventModal = function (event, params) {
       const data = {
         event: event,
       };
@@ -390,13 +390,13 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return data;
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (vm.activeTab === 'events') {
             vm.deliveryPipe(vm.tableState);
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
@@ -405,13 +405,13 @@ export default class DeliveryCtrl {
             vm.transferEventsPipe(vm.transferEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeEventModal = function(event) {
+    vm.removeEventModal = function (event) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -421,7 +421,7 @@ export default class DeliveryCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               event: event,
             };
@@ -429,7 +429,7 @@ export default class DeliveryCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (vm.activeTab === 'events') {
             vm.deliveryPipe(vm.tableState);
             vm.deliveryEventsPipe(vm.deliveryEventsTableState);
@@ -438,7 +438,7 @@ export default class DeliveryCtrl {
             vm.transferEventsPipe(vm.transferEventsTableState);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

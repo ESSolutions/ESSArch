@@ -79,9 +79,10 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.managers import OrganizationManager
+from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
@@ -104,6 +105,7 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
+    delete_path,
     find_destination,
     generate_file_response,
     get_files_and_dirs,
@@ -186,7 +188,7 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
-class InformationPackageQuerySet(models.QuerySet):
+class InformationPackageQuerySet(OrganizationQuerySet):
     def annotate_and_prefetch(self):
         def create_when(nested, celery_state):
             step_state_lookup = 'information_package__aic' if nested else 'information_package'
@@ -586,8 +588,9 @@ class InformationPackage(models.Model):
         user_perms = perms.pop('owner', [])
 
         organization = responsible.user_profile.current_organization
-        organization.assign_object(new_aip, custom_permissions=perms)
-        organization.add_object(new_aip)
+        if organization is not None:
+            organization.assign_object(new_aip, custom_permissions=perms)
+            organization.add_object(new_aip)
 
         for perm in user_perms:
             perm_name = get_permission_name(perm, new_aip)
@@ -780,11 +783,7 @@ class InformationPackage(models.Model):
         return self.get_profile_data(profile_type).get('allow_encrypted_files', False)
 
     def get_structure(self):
-        if self.package_type == InformationPackage.AIP and self.state == 'Prepared':
-            ip_profile_type = 'sip'
-        else:
-            ip_profile_type = self.get_package_type_display().lower()
-
+        ip_profile_type = self.get_package_type_display().lower()
         ip_profile_rel = self.get_profile_rel(ip_profile_type)
         return ip_profile_rel.profile.structure
 
@@ -824,6 +823,28 @@ class InformationPackage(models.Model):
             return normalize_path(parseContent(full_path, fill_specification_data(ip=self)))
 
         return 'ipevents.xml'
+
+    def update_sip_data(self):
+        sip_profile = self.submission_agreement.profile_sip
+        if sip_profile is not None and self.sip_path is not None:
+            sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, self.sip_path)
+            if os.path.isfile(self.sip_path):
+                sip_mets_data = parse_mets(
+                    open_file(
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        container=self.sip_path,
+                        container_prefix=self.object_identifier_value,
+                    )
+                )
+            else:
+                sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+
+            # prefix all SIP data
+            sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+            aip_profile_rel_data = self.get_profile_rel('aip').data
+            aip_profile_rel_data.data.update(sip_mets_data)
+            aip_profile_rel_data.save()
 
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
@@ -1188,6 +1209,16 @@ class InformationPackage(models.Model):
                                         "label": "Delete temporary container",
                                         "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary mets",
+                                        "args": ["{{TEMP_METS_PATH}}"]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary aic mets",
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
+                                    },
                                 ],
                             },
                         ],
@@ -1204,6 +1235,10 @@ class InformationPackage(models.Model):
                 "if": workarea_id,
                 "args": [str(workarea_id)],
             },
+            {
+                "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",
+                "label": "Clean up workflow files",
+            },
         ]
 
         return workflow
@@ -1218,7 +1253,7 @@ class InformationPackage(models.Model):
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
-            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
 
             if new:
                 new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
@@ -1790,6 +1825,16 @@ class InformationPackage(models.Model):
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
 
+    def delete_temp_files(self):
+        paths = [
+            os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.object_identifier_value)),
+        ]
+
+        for path in paths:
+            delete_path(path)
+
     def delete_files(self):
         path = self.get_path()
 
@@ -1813,6 +1858,7 @@ class InformationPackage(models.Model):
 
     def delete_workareas(self):
         for workarea in self.workareas.all():
+            workarea.delete_temp_files()
             workarea.delete_files()
             workarea.delete()
 
@@ -2050,6 +2096,15 @@ class Workarea(models.Model):
 
     def get_path(self):
         return self.path
+
+    def delete_temp_files(self):
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        delete_path(temp_path)
+
+    def delete_files(self):
+        path = self.get_path()
+        self.delete_temp_files()
+        delete_path(path)
 
     class Meta:
         ordering = ["ip"]

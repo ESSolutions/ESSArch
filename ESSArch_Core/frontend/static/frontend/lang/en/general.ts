@@ -1,5 +1,5 @@
 /*@ngInject*/
-const general = $translateProvider => {
+const general = ($translateProvider) => {
   $translateProvider.translations('en', {
     ACCESSIP: 'Storage units',
     ADD_ATTRIBUTE: 'Add Attribute',
@@ -154,10 +154,10 @@ const general = $translateProvider => {
     GLOBALSEARCHDESC_ORDER: 'List all orders associated to the search term',
     GLOBALSEARCHDESC_QUEUE: 'List all queue entries associated to the search term',
     GLOBALSEARCHDESC_ROBOT: 'List all robots associated to the search term',
-    GLOBALSEARCHDESC_RULE: 'List all rules associated to the search term',
     GLOBALSEARCHDESC_STRUCTURES: 'List all classification structures associated to the search term',
     GLOBALSEARCHDESC_TAPE_DRIVE: 'List all tape drives associated to the search term',
     GLOBALSEARCHDESC_TAPE_SLOT: 'List all tape slots associated to the search term',
+    GLOBALSEARCHDESC_TEMPLATE: 'List all templates associated to the search term',
     GLOBALSEARCHDESC_VALIDATION: 'List all validations associated to the search term',
     GRID_VIEW: 'Grid',
     HELP: 'Help',

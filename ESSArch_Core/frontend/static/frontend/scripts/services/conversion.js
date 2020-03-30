@@ -1,6 +1,6 @@
 const conversion = ($http, appConfig) => {
   const service = {};
-  service.getFinished = function(pagination, sortString, searchString) {
+  service.getFinished = function (pagination, sortString, searchString) {
     const data = {
       end_date__isnull: false,
       page: pagination.pageNumber,
@@ -14,7 +14,7 @@ const conversion = ($http, appConfig) => {
       method: 'GET',
       url: appConfig.djangoUrl + 'conversion-jobs/',
       params: data,
-    }).then(function(response) {
+    }).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
@@ -26,7 +26,7 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getNext = function(pagination, sortString, searchString) {
+  service.getNext = function (pagination, sortString, searchString) {
     const data = {
       status: 'PENDING',
       page: pagination.pageNumber,
@@ -40,7 +40,7 @@ const conversion = ($http, appConfig) => {
       method: 'GET',
       url: appConfig.djangoUrl + 'conversion-jobs/',
       params: data,
-    }).then(function(response) {
+    }).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
@@ -52,7 +52,7 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getOngoing = function(pagination, sortString, searchString) {
+  service.getOngoing = function (pagination, sortString, searchString) {
     const data = {
       status: 'STARTED',
       page: pagination.pageNumber,
@@ -66,7 +66,7 @@ const conversion = ($http, appConfig) => {
       method: 'GET',
       url: appConfig.djangoUrl + 'conversion-jobs/',
       params: data,
-    }).then(function(response) {
+    }).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;
@@ -78,7 +78,7 @@ const conversion = ($http, appConfig) => {
     });
   };
 
-  service.getRules = function(pagination, sortString, searchString) {
+  service.getTemplates = function (pagination, sortString, searchString) {
     const data = {
       page: pagination.pageNumber,
       page_size: pagination.number,
@@ -89,9 +89,9 @@ const conversion = ($http, appConfig) => {
 
     return $http({
       method: 'GET',
-      url: appConfig.djangoUrl + 'conversion-rules/',
+      url: appConfig.djangoUrl + 'conversion-templates/',
       params: data,
-    }).then(function(response) {
+    }).then(function (response) {
       let count = response.headers('Count');
       if (count == null) {
         count = response.data.length;

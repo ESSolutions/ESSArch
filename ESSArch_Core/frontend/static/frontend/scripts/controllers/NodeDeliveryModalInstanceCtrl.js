@@ -2,7 +2,7 @@ export default class NodeDeliveryModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, $rootScope, $q, Notifications) {
     const $ctrl = this;
     $ctrl.model = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.nodes) {
         $ctrl.nodes = $ctrl.filterNodes(angular.copy(data.nodes));
       } else if (data.node) {
@@ -11,14 +11,14 @@ export default class NodeDeliveryModalInstanceCtrl {
       $ctrl.buildForm();
     };
 
-    $ctrl.getDeliveries = function(search) {
-      return $http.get(appConfig.djangoUrl + 'deliveries/', {params: {search: search}}).then(function(response) {
+    $ctrl.getDeliveries = function (search) {
+      return $http.get(appConfig.djangoUrl + 'deliveries/', {params: {search: search}}).then(function (response) {
         $ctrl.deliveries = response.data;
         return response.data;
       });
     };
 
-    $ctrl.getTransfers = function(search) {
+    $ctrl.getTransfers = function (search) {
       if ($ctrl.model.delivery === null || angular.isUndefined($ctrl.model.delivery)) {
         const deferred = $q.defer();
         deferred.resolve([]);
@@ -26,21 +26,21 @@ export default class NodeDeliveryModalInstanceCtrl {
       } else {
         return $http
           .get(appConfig.djangoUrl + 'deliveries/' + $ctrl.model.delivery + '/transfers/', {params: {search: search}})
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.transfers = response.data;
             return response.data;
           });
       }
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'uiselect',
           key: 'delivery',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.deliveries;
             },
             valueProp: 'id',
@@ -48,14 +48,14 @@ export default class NodeDeliveryModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.DELIVERY'),
             label: $translate.instant('ACCESS.DELIVERY'),
             appendToBody: false,
-            onChange: function($modelValue) {
+            onChange: function ($modelValue) {
               $ctrl.model.transfer = null;
             },
-            optionsFunction: function(search) {
+            optionsFunction: function (search) {
               return $ctrl.deliveries;
             },
-            refresh: function(search) {
-              return $ctrl.getDeliveries(search).then(function() {
+            refresh: function (search) {
+              return $ctrl.getDeliveries(search).then(function () {
                 this.options = $ctrl.deliveries;
                 return $ctrl.deliveries;
               });
@@ -67,7 +67,7 @@ export default class NodeDeliveryModalInstanceCtrl {
           key: 'transfer',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.transfers;
             },
             valueProp: 'id',
@@ -75,11 +75,11 @@ export default class NodeDeliveryModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.TRANSFER'),
             label: $translate.instant('ACCESS.TRANSFER'),
             appendToBody: false,
-            optionsFunction: function(search) {
+            optionsFunction: function (search) {
               return $ctrl.transfers;
             },
-            refresh: function(search) {
-              return $ctrl.getTransfers(search).then(function() {
+            refresh: function (search) {
+              return $ctrl.getTransfers(search).then(function () {
                 this.options = $ctrl.transfers;
                 return $ctrl.transfers;
               });
@@ -89,9 +89,9 @@ export default class NodeDeliveryModalInstanceCtrl {
       ];
     };
 
-    $ctrl.filterNodes = function(nodes) {
+    $ctrl.filterNodes = function (nodes) {
       const filtered = [];
-      nodes.forEach(function(x) {
+      nodes.forEach(function (x) {
         if (!angular.isUndefined(x) && x.placeholder !== true && x.type !== 'agent') {
           filtered.push(x);
         }
@@ -99,12 +99,12 @@ export default class NodeDeliveryModalInstanceCtrl {
       return filtered;
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -113,7 +113,7 @@ export default class NodeDeliveryModalInstanceCtrl {
       const structureUnits = [];
       const tags = [];
       if ($ctrl.nodes && $ctrl.nodes.length > 0) {
-        $ctrl.nodes.forEach(function(x) {
+        $ctrl.nodes.forEach(function (x) {
           if (x._is_structure_unit) {
             structureUnits.push(x);
           } else {
@@ -132,27 +132,27 @@ export default class NodeDeliveryModalInstanceCtrl {
         url: appConfig.djangoUrl + 'transfers/' + $ctrl.model.transfer + '/add-nodes/',
         method: 'POST',
         data: {
-          structure_units: structureUnits.map(function(x) {
+          structure_units: structureUnits.map(function (x) {
             return x.id;
           }),
-          tags: tags.map(function(x) {
+          tags: tags.map(function (x) {
             return x.id;
           }),
         },
       })
-        .then(function(response) {
+        .then(function (response) {
           Notifications.add($translate.instant('ACCESS.ADDED_TO_TRANSFER'), 'success');
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

@@ -9,16 +9,23 @@
   cursor: pointer;
 }
 
-.logo-search-user-admin-wrapper {
-  width: 100%;
+.logo-user-wrapper {
+  display: flex;
+  align-items: flex-end;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  @include small-screen {
+    justify-content: space-between;
+  }
 }
 
 .custom-logo {
   display: block;
-  float: left;
-  margin-top: 12px;
+  margin-top: auto;
+  margin-bottom: auto;
   padding: 3px;
   img {
+    cursor: pointer;
     width: 42px;
     height: auto;
   }
@@ -33,34 +40,36 @@
 .logo {
   height: 100%;
   display: inline-block;
+  vertical-align: middle;
+  margin-top: auto;
+  margin-bottom: auto;
   @include small-screen {
-    width: 100%;
+    flex: 1 1 0px;
   }
 }
 
 .page-title {
   display: inline-block;
-  margin-top: 12px;
-  margin-bottom: 12px;
   cursor: pointer;
-  @include small-screen {
-    display: none;
-  }
-}
+  flex: 1 1 0px;
+  user-select: none;
 
-.page-title-small {
-  display: none;
-  width: 100%;
-  text-align: center;
-  &.has-custom-logo {
-    width: calc(100% - 96px);
-    margin-right: 48px;
+  &-with-logo {
+    @include medium-screen-up {
+      margin-top: auto;
+      margin-bottom: auto;
+      margin-left: 10px;
+    }
   }
-  margin-top: 12px;
-  margin-bottom: 12px;
-  cursor: pointer;
+
+  @include medium-screen-up {
+    margin-top: auto;
+    margin-bottom: auto;
+  }
   @include small-screen {
-    display: inline-block;
+    text-align: center;
+    margin-top: auto;
+    margin-bottom: auto;
   }
 }
 
@@ -78,17 +87,14 @@
 
 .user-admin {
   display: flex;
+  flex: 1 1 0px;
   align-items: center;
   justify-content: flex-end;
   height: 100%;
-  float: right;
-  margin-top: 12px;
-  @include small-screen {
-    margin-top: 0;
-    position: absolute;
-    top: 34px;
-    right: 10px;
-    height: 0;
+  margin-top: auto;
+  margin-bottom: auto;
+  @include medium-screen-up {
+    margin-left: auto;
   }
 }
 

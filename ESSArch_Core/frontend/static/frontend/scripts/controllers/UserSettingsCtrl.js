@@ -5,19 +5,19 @@ export default class UserSettingsCtrl {
     vm.activeColumns = {chosen: []};
     vm.availableColumns = {options: [], chosen: []};
 
-    $scope.changeIpViewType = function(type) {
+    $scope.changeIpViewType = function (type) {
       Me.update({
         ip_list_view_type: type,
-      }).$promise.then(function(data) {
+      }).$promise.then(function (data) {
         $window.sessionStorage.setItem('view-type', data.ip_list_view_type);
         $rootScope.auth = data;
       });
     };
 
     function loadColumnPicker() {
-      vm.allColumns.forEach(function(column) {
+      vm.allColumns.forEach(function (column) {
         let tempBool = false;
-        vm.activeColumns.options.forEach(function(activeColumn) {
+        vm.activeColumns.options.forEach(function (activeColumn) {
           if (column == activeColumn) {
             tempBool = true;
           }
@@ -28,26 +28,26 @@ export default class UserSettingsCtrl {
       });
     }
 
-    myService.getActiveColumns().then(function(result) {
+    myService.getActiveColumns().then(function (result) {
       vm.activeColumns.options = result.activeColumns;
       vm.allColumns = result.allColumns;
       loadColumnPicker();
     });
-    $scope.moveToActive = function(inputArray) {
-      inputArray.forEach(function(column) {
+    $scope.moveToActive = function (inputArray) {
+      inputArray.forEach(function (column) {
         vm.activeColumns.options.push(column);
         vm.availableColumns.options.splice(vm.availableColumns.options.indexOf(column), 1);
       });
       vm.availableColumns.chosen = [];
     };
-    $scope.moveToAvailable = function(inputArray) {
-      inputArray.forEach(function(column) {
+    $scope.moveToAvailable = function (inputArray) {
+      inputArray.forEach(function (column) {
         vm.availableColumns.options.push(column);
         vm.activeColumns.options.splice(vm.activeColumns.options.indexOf(column), 1);
       });
       vm.activeColumns.chosen = [];
     };
-    $scope.moveUp = function(elements) {
+    $scope.moveUp = function (elements) {
       const A = vm.activeColumns.options;
       for (let i = 0; i < elements.length; i++) {
         const from = A.indexOf(elements[i]);
@@ -57,7 +57,7 @@ export default class UserSettingsCtrl {
       }
     };
 
-    $scope.moveDown = function(elements) {
+    $scope.moveDown = function (elements) {
       const A = vm.activeColumns.options;
       for (let i = elements.length - 1; i >= 0; i--) {
         const from = A.indexOf(elements[i]);
@@ -66,20 +66,20 @@ export default class UserSettingsCtrl {
         }
       }
     };
-    Array.prototype.move = function(from, to) {
+    Array.prototype.move = function (from, to) {
       this.splice(to, 0, this.splice(from, 1)[0]);
     };
-    $scope.saveColumns = function() {
+    $scope.saveColumns = function () {
       $rootScope.listViewColumns = vm.activeColumns.options;
       vm.activeColumns.chosen = [];
       $scope.saveAlert = null;
-      const updateArray = vm.activeColumns.options.map(function(a) {
+      const updateArray = vm.activeColumns.options.map(function (a) {
         return a.label;
       });
       Me.update({
         ip_list_columns: updateArray,
       }).$promise.then(
-        function(data) {
+        function (data) {
           $rootScope.auth = data;
           $scope.saveAlert = $scope.alerts.saveSuccess;
         },
@@ -93,7 +93,7 @@ export default class UserSettingsCtrl {
       saveError: {type: 'danger', msg: 'SAVE_ERROR'},
       saveSuccess: {type: 'success', msg: 'SAVED_MESSAGE'},
     };
-    $scope.closeAlert = function() {
+    $scope.closeAlert = function () {
       $scope.saveAlert = null;
     };
   }

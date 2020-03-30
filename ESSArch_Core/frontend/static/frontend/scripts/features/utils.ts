@@ -2,7 +2,7 @@ import {Feature} from './types';
 
 let isEnabled = (list: Feature[], featureName: string) => {
   let enabled = false;
-  list.forEach(x => {
+  list.forEach((x) => {
     if (x.name === featureName && x.enabled) {
       enabled = true;
     }
@@ -13,7 +13,7 @@ let isEnabled = (list: Feature[], featureName: string) => {
 let existsAndEnabled = (list: Feature[], featureName: string) => {
   let enabled = false;
   let exists = false;
-  list.forEach(x => {
+  list.forEach((x) => {
     if (x.name === featureName) {
       exists = true;
       enabled = x.enabled;
