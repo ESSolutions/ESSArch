@@ -42,6 +42,7 @@ from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.storage.exceptions import NoWriteableStorage
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 
 logger = logging.getLogger('essarch.storage.models')
@@ -786,10 +787,14 @@ class StorageObject(models.Model):
 
         policy = self.ip.policy
         target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
-            storage_target__methods__storage_policy=policy).first()
+            storage_target__methods__storage_policies=policy).first()
 
         if target_medium is None:
-            target = StorageTarget.objects.archival_storage().fastest().filter(methods__storage_policy=policy).first()
+            target = StorageTarget.objects.archival_storage().fastest().filter(
+                methods__storage_policies=policy,
+            ).first()
+            if target is None:
+                raise NoWriteableStorage()
             qs = StorageMedium.objects.archival_storage().writeable().fastest()
             target_medium, _ = target.get_or_create_storage_medium(qs=qs)
 
@@ -801,12 +806,8 @@ class StorageObject(models.Model):
         return new_obj
 
     def open(self, path, *args, **kwargs):
-        if not self.container:
-            backend = self.get_storage_backend()
-            return backend.open(self, path, *args, **kwargs)
-
-        extracted = self.extract()
-        return extracted.open(path, *args, **kwargs)
+        backend = self.get_storage_backend()
+        return backend.open(self, path, *args, **kwargs)
 
     def read(self, dst, task, extract=False):
         ip = self.ip

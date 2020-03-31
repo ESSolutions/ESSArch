@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import tarfile
+import tempfile
 from os import walk
 
 from glob2 import iglob
@@ -28,9 +29,20 @@ class DiskStorageBackend(BaseStorageBackend):
 
         return os.path.join(dst, root)
 
-    def open(self, storage_object, file, *args, **kwargs):
+    def open(self, storage_object, file, mode='r', *args, **kwargs):
+        if storage_object.container:
+            tmp = tempfile.NamedTemporaryFile(mode='w+b' if 'b' in mode else 'w+')
+            with tarfile.open(storage_object.get_full_path()) as t:
+                f = t.extractfile(file)
+                if 'b' in mode:
+                    tmp.write(f.read())
+                else:
+                    tmp.write(f.read().decode('utf-8'))
+                tmp.seek(0)
+            return tmp
+
         path = os.path.join(storage_object.get_full_path(), file)
-        return open(path, *args, **kwargs)
+        return open(path, mode, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         src = storage_object.get_full_path()
