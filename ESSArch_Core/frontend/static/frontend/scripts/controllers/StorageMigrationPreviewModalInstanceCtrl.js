@@ -12,7 +12,7 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
       $ctrl.previewPipe($ctrl.tableState);
     };
 
-    $ctrl.previewPipe = tableState => {
+    $ctrl.previewPipe = (tableState) => {
       $ctrl.previewLoading = true;
       if ($ctrl.previews.length === 0) {
         $scope.initLoad = true;
@@ -43,8 +43,8 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
             storage_methods: data.storage_methods,
           },
         })
-          .then(function(response) {
-            response.data.forEach(x => {
+          .then(function (response) {
+            response.data.forEach((x) => {
               if (!$ctrl.expanded.includes(x.id)) {
                 x.collapsed = true;
                 x.targets = [];
@@ -53,7 +53,7 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
                 x.targetsLoading = true;
                 $ctrl
                   .getTargetsForIp(x)
-                  .then(targets => {
+                  .then((targets) => {
                     x.targets = targets;
                     x.collapsed = false;
                     x.targetsLoading = false;
@@ -69,18 +69,18 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
             $ctrl.previewLoading = false;
             $scope.initLoad = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.previewLoading = false;
           });
       }
     };
 
-    $ctrl.togglePreviewRow = previewItem => {
+    $ctrl.togglePreviewRow = (previewItem) => {
       previewItem.targetsLoading = true;
       if (previewItem.collapsed) {
         $ctrl
           .getTargetsForIp(previewItem)
-          .then(targets => {
+          .then((targets) => {
             previewItem.targets = targets;
             previewItem.collapsed = false;
             $ctrl.expanded.push(previewItem.id);
@@ -96,19 +96,19 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
       }
     };
 
-    $ctrl.getTargetsForIp = previewItem => {
+    $ctrl.getTargetsForIp = (previewItem) => {
       let params = {
         policy: data.policy,
         storage_methods: data.storage_methods,
       };
       return $http
         .get(appConfig.djangoUrl + 'storage-migrations-preview/' + previewItem.id + '/', {params})
-        .then(response => {
+        .then((response) => {
           return response.data;
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

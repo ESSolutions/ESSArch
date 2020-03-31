@@ -33,9 +33,9 @@ export default class ReceiveModalInstanceCtrl {
       return ip;
     };
 
-    $ctrl.checkInitialSas = ips => {
+    $ctrl.checkInitialSas = (ips) => {
       let ipSaMap = {};
-      ips.forEach(ip => {
+      ips.forEach((ip) => {
         if (ip.altrecordids && ip.altrecordids.SUBMISSIONAGREEMENT && ip.altrecordids.SUBMISSIONAGREEMENT.length > 0) {
           if (ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]]) {
             ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]].push(ip.id);
@@ -54,11 +54,11 @@ export default class ReceiveModalInstanceCtrl {
           ip.saLoading = false;
         }
       });
-      Object.keys(ipSaMap).forEach(key => {
+      Object.keys(ipSaMap).forEach((key) => {
         $http
           .get(appConfig.djangoUrl + 'submission-agreements/' + key + '/')
-          .then(response => {
-            ipSaMap[key].forEach(x => {
+          .then((response) => {
+            ipSaMap[key].forEach((x) => {
               let ip = $ctrl.getIpById(ips, x);
               ip.sa = response.data;
               ip.saLoading = false;
@@ -66,9 +66,9 @@ export default class ReceiveModalInstanceCtrl {
             });
             return response.data;
           })
-          .catch(error => {
+          .catch((error) => {
             if (error.status === 404) {
-              ipSaMap[key].forEach(x => {
+              ipSaMap[key].forEach((x) => {
                 let ip = $ctrl.getIpById(ips, x);
                 ip.sa = null;
                 ip.saLoading = false;
@@ -81,12 +81,12 @@ export default class ReceiveModalInstanceCtrl {
 
     $ctrl.unidentifiedIpSas = {};
 
-    $ctrl.getSas = function(search) {
+    $ctrl.getSas = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'submission-agreements/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, published: true},
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.sas = response.data;
         return $ctrl.options.sas;
       });
@@ -97,7 +97,7 @@ export default class ReceiveModalInstanceCtrl {
         type: 'uiselect',
         key: 'submission_agreement',
         templateOptions: {
-          options: function() {
+          options: function () {
             return $ctrl.options.sas;
           },
           valueProp: 'id',
@@ -105,7 +105,7 @@ export default class ReceiveModalInstanceCtrl {
           multiple: false,
           placeholder: $translate.instant('SUBMISSION_AGREEMENT'),
           appendToBody: true,
-          refresh: function(search) {
+          refresh: function (search) {
             if ($ctrl.initSaSearch && (angular.isUndefined(search) || search === null || search === '')) {
               search = angular.copy($ctrl.initSaSearch);
               $ctrl.initSaSearch = null;
@@ -117,9 +117,9 @@ export default class ReceiveModalInstanceCtrl {
       },
     ];
 
-    $ctrl.hasSelectedSa = list => {
+    $ctrl.hasSelectedSa = (list) => {
       let allHasSa = true;
-      list.forEach(x => {
+      list.forEach((x) => {
         if (!x.sa) {
           if (
             !($ctrl.unidentifiedIpSas[x.id] && $ctrl.unidentifiedIpSas[x.id].submission_agreement) ||
@@ -133,10 +133,10 @@ export default class ReceiveModalInstanceCtrl {
       return allHasSa;
     };
 
-    $ctrl.receive = ips => {
+    $ctrl.receive = (ips) => {
       $ctrl.receiving = true;
       const promises = [];
-      ips.forEach(ip => {
+      ips.forEach((ip) => {
         ip.receiving = true;
         let data = {id: ip.id};
         if ($ctrl.unidentifiedIpSas[ip.id]) {
@@ -144,12 +144,12 @@ export default class ReceiveModalInstanceCtrl {
         }
         promises.push(
           IPReception.receive(data)
-            .$promise.then(response => {
+            .$promise.then((response) => {
               ip.receiving = false;
               ip.received = true;
               return response;
             })
-            .catch(response => {
+            .catch((response) => {
               ip.receiving = false;
               ip.received = false;
               if (response.data) {
@@ -159,12 +159,12 @@ export default class ReceiveModalInstanceCtrl {
             })
         );
         $q.all(promises)
-          .then(responses => {
+          .then((responses) => {
             $ctrl.receiving = false;
             EditMode.disable();
             $uibModalInstance.close();
           })
-          .catch(e => {
+          .catch((e) => {
             $ctrl.receiving = false;
           });
       });
@@ -175,7 +175,7 @@ export default class ReceiveModalInstanceCtrl {
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

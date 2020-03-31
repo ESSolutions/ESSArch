@@ -3,7 +3,7 @@ export default class DeliveryModalInstanceCtrl {
     const $ctrl = this;
     $ctrl.delivery = {};
     $ctrl.options = {};
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (!data.remove) {
         if (data.delivery) {
           $ctrl.delivery = angular.copy(data.delivery);
@@ -14,7 +14,7 @@ export default class DeliveryModalInstanceCtrl {
             ).full_name;
           }
         }
-        $ctrl.getDeliveryTypes().then(function(response) {
+        $ctrl.getDeliveryTypes().then(function (response) {
           EditMode.enable();
           $ctrl.buildForm();
         });
@@ -25,20 +25,20 @@ export default class DeliveryModalInstanceCtrl {
       }
     };
 
-    $ctrl.getDeliveryTypes = function(search) {
-      return $http.get(appConfig.djangoUrl + 'delivery-types/').then(function(response) {
+    $ctrl.getDeliveryTypes = function (search) {
+      return $http.get(appConfig.djangoUrl + 'delivery-types/').then(function (response) {
         $ctrl.deliveryTypes = response.data;
         return response.data;
       });
     };
 
-    $ctrl.getAgents = function(search) {
+    $ctrl.getAgents = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search},
-      }).then(function(response) {
-        response.data.forEach(function(agent) {
+      }).then(function (response) {
+        response.data.forEach(function (agent) {
           AgentName.parseAgentNames(agent);
         });
         $ctrl.options.agents = response.data;
@@ -46,18 +46,18 @@ export default class DeliveryModalInstanceCtrl {
       });
     };
 
-    $ctrl.getSas = function(search) {
+    $ctrl.getSas = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'submission-agreements/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, published: true},
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.sas = response.data;
         return $ctrl.options.sas;
       });
     };
 
-    $ctrl.buildForm = function() {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
           type: 'input',
@@ -93,7 +93,7 @@ export default class DeliveryModalInstanceCtrl {
           type: 'uiselect',
           key: 'producer_organization',
           templateOptions: {
-            options: function() {
+            options: function () {
               return $ctrl.options.agents;
             },
             valueProp: 'id',
@@ -102,7 +102,7 @@ export default class DeliveryModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.PRODUCER_ORGANIZATION'),
             label: $translate.instant('ACCESS.PRODUCER_ORGANIZATION'),
             appendToBody: false,
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initAgentSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initAgentSearch);
                 $ctrl.initAgentSearch = null;
@@ -116,7 +116,7 @@ export default class DeliveryModalInstanceCtrl {
           type: 'uiselect',
           key: 'submission_agreement',
           templateOptions: {
-            options: function() {
+            options: function () {
               return $ctrl.options.sas;
             },
             valueProp: 'id',
@@ -125,7 +125,7 @@ export default class DeliveryModalInstanceCtrl {
             placeholder: $translate.instant('SUBMISSION_AGREEMENT'),
             label: $translate.instant('SUBMISSION_AGREEMENT'),
             appendToBody: false,
-            refresh: function(search) {
+            refresh: function (search) {
               if ($ctrl.initSaSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initSaSearch);
                 $ctrl.initSaSearch = null;
@@ -145,11 +145,11 @@ export default class DeliveryModalInstanceCtrl {
       ];
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-    $ctrl.create = function() {
+    $ctrl.create = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -161,17 +161,17 @@ export default class DeliveryModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.delivery,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.creating = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.creating = false;
         });
     };
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -183,34 +183,34 @@ export default class DeliveryModalInstanceCtrl {
         method: 'PATCH',
         data: Utils.getDiff(data.delivery, $ctrl.delivery, {map: {type: 'id'}}),
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
         .delete(appConfig.djangoUrl + 'deliveries/' + $ctrl.delivery.id)
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

@@ -49,7 +49,7 @@ export default class ReceptionCtrl {
     $scope.includedIps = [];
     $scope.profileEditor = false;
     //Request form data
-    $scope.initRequestData = function() {
+    $scope.initRequestData = function () {
       vm.request = {
         type: 'receive',
         purpose: '',
@@ -67,17 +67,17 @@ export default class ReceptionCtrl {
       };
     };
     $scope.initRequestData();
-    $transitions.onSuccess({}, function($transition) {
-      watchers.forEach(function(watcher) {
+    $transitions.onSuccess({}, function ($transition) {
+      watchers.forEach(function (watcher) {
         watcher();
       });
     });
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       if (row.state === 'Prepared') {
         methods.push(
-          ContextMenuBase.changeOrganization(function() {
+          ContextMenuBase.changeOrganization(function () {
             $scope.ip = row;
             $rootScope.ip = row;
             vm.changeOrganizationModal($scope.ip);
@@ -110,14 +110,14 @@ export default class ReceptionCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getReceptionPage(paginationParams, tableState, sorting, search, ipSortString, vm.columnFilters)
-          .then(function(result) {
+          .then(function (result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -126,7 +126,7 @@ export default class ReceptionCtrl {
                 vm.columnFilters
               );
 
-              listViewService.checkPages('reception', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('reception', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
@@ -137,7 +137,7 @@ export default class ReceptionCtrl {
     };
 
     //Click function for Ip table
-    vm.selectSingleRow = function(row, options) {
+    vm.selectSingleRow = function (row, options) {
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.ip = null;
         $rootScope.ip = null;
@@ -159,17 +159,17 @@ export default class ReceptionCtrl {
       }
     };
 
-    vm.formatSdLabel = key => {
+    vm.formatSdLabel = (key) => {
       return key
         .toLowerCase()
         .split('_')
-        .map(x => {
+        .map((x) => {
           return x.charAt(0).toUpperCase() + x.slice(1);
         })
         .join(' ');
     };
 
-    vm.parseAltrecordIds = obj => {
+    vm.parseAltrecordIds = (obj) => {
       let parsed = {};
       angular.forEach(obj, (val, key) => {
         if (
@@ -184,7 +184,7 @@ export default class ReceptionCtrl {
       return parsed;
     };
 
-    $scope.getFileList = function(ip) {
+    $scope.getFileList = function (ip) {
       const array = [];
       const tempElement = {
         filename: ip.object_path,
@@ -196,23 +196,23 @@ export default class ReceptionCtrl {
     };
 
     //Reload current view
-    $scope.reloadPage = function() {
+    $scope.reloadPage = function () {
       $state.reload();
     };
     $scope.yes = $translate.instant('YES');
     $scope.no = $translate.instant('NO');
 
-    $scope.getStoragePolicies = function() {
-      return StoragePolicy.query().$promise.then(function(data) {
+    $scope.getStoragePolicies = function () {
+      return StoragePolicy.query().$promise.then(function (data) {
         return data;
       });
     };
 
     // Remove ip
-    $scope.removeIp = function(ipObject) {
+    $scope.removeIp = function (ipObject) {
       IP.delete({
         id: ipObject.id,
-      }).$promise.then(function() {
+      }).$promise.then(function () {
         $scope.edit = false;
         $scope.select = false;
         $scope.eventlog = false;
@@ -229,7 +229,7 @@ export default class ReceptionCtrl {
     };
 
     //Create and show modal for receive ip
-    $scope.receiveModal = function(ips) {
+    $scope.receiveModal = function (ips) {
       if (ips.length === 0 && $scope.ip) {
         ips = [$scope.ip];
       }
@@ -242,7 +242,7 @@ export default class ReceptionCtrl {
         size: 'lg',
         controllerAs: '$ctrl',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ips: angular.copy(ips),
             };
@@ -250,13 +250,13 @@ export default class ReceptionCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.getListViewData();
           if ($scope.ips.length > 0) {
             $scope.ips.shift();
           }
         },
-        function() {
+        function () {
           $scope.getListViewData();
           $log.info('modal-component dismissed at: ' + new Date());
         }
@@ -267,18 +267,18 @@ export default class ReceptionCtrl {
     $scope.alerts = {
       matchError: {type: 'danger', msg: $translate.instant('MATCH_ERROR')},
     };
-    $scope.closeAlert = function() {
+    $scope.closeAlert = function () {
       $scope.informationClassAlert = null;
     };
 
-    vm.uncheckAll = function() {
+    vm.uncheckAll = function () {
       $scope.includedIps = [];
-      vm.displayedIps.forEach(function(row) {
+      vm.displayedIps.forEach(function (row) {
         row.checked = false;
       });
     };
 
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       if (vm.requestForm.$valid) {
         $scope.receive($scope.ips);
       }

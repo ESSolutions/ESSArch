@@ -1,10 +1,11 @@
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
-RUN apk update && apk add g++ make python
+RUN apk update && apk add g++ git make python
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
+COPY ./.git .git
 RUN yarn build:dev
 
 FROM python:3.7-buster as base
@@ -41,6 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libreoffice
 
 ADD requirements /code/requirements
 ADD setup.py /code/setup.py
+ADD setup.cfg /code/setup.cfg
 ADD versioneer.py /code/versioneer.py
 ADD README.md /code/README.md
 

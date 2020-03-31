@@ -2,6 +2,7 @@ status = [
     "linting",
     "build-frontend",
     "build-docs",
+    "build-docker",
     "test-windows",
     "test-linux (sqlite)",
     "test-linux (mariadb)",
@@ -11,3 +12,4 @@ status = [
 ]
 delete_merged_branches = true
 use_squash_merge = true
+timeout-sec = 14400

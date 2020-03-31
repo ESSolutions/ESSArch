@@ -6,7 +6,7 @@ const Task = ($resource, appConfig) => {
       get: {
         method: 'GET',
         params: {id: '@id'},
-        transformResponse: function(response) {
+        transformResponse: function (response) {
           response = angular.fromJson(response);
           response['flow_type'] = 'task';
           return response;
@@ -25,7 +25,7 @@ const Task = ($resource, appConfig) => {
         params: {action: 'validations', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },

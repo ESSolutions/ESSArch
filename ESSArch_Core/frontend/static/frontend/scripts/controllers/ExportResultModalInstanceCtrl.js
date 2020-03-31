@@ -5,12 +5,12 @@ export default class ExportResultModalInstanceCtrl {
     $ctrl.formats = ['pdf', 'csv'];
     $ctrl.format = 'pdf';
     $ctrl.exporting = false;
-    $ctrl.export = function() {
+    $ctrl.export = function () {
       const file = $sce.trustAsResourceUrl(vm.getExportResultUrl(vm.tableState, $ctrl.format));
       $window.open(file, '_blank');
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

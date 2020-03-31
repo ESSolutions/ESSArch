@@ -1,5 +1,6 @@
 from django.db.models import OuterRef, Subquery
 from django_filters import rest_framework as filters
+from django_filters.constants import EMPTY_VALUES
 
 from ESSArch_Core.tags.models import Structure, StructureUnit, Tag
 
@@ -26,8 +27,28 @@ class StructureFilter(filters.FilterSet):
         fields = ['type', 'is_template', 'published', 'archive']
 
 
+class StructureUnitOrderingFilter(filters.OrderingFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+
+        if 'reference_code' in value:
+            return qs.natural_sort()
+        elif '-reference_code' in value:
+            return qs.natural_sort().reverse()
+
+        return super().filter(qs, value)
+
+
 class StructureUnitFilter(filters.FilterSet):
     has_parent = filters.BooleanFilter(field_name='parent', lookup_expr='isnull', exclude=True)
+
+    ordering = StructureUnitOrderingFilter(
+        fields=(
+            ('reference_code', 'reference_code'),
+            ('name', 'name'),
+        ),
+    )
 
     class Meta:
         model = StructureUnit

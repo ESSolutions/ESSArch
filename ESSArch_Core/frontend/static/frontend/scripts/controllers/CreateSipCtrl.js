@@ -31,11 +31,11 @@ export default class CreateSipCtrl {
     };
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params});
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-        click: function($itemScope, $event, modelValue, text, $li) {
+        click: function ($itemScope, $event, modelValue, text, $li) {
           vm.ipInformationModal(row);
         },
       });
@@ -48,7 +48,7 @@ export default class CreateSipCtrl {
     vm.profileModel = {};
     vm.profileFields = [];
     //Click function for profile pbject
-    $scope.profileClick = function(row) {
+    $scope.profileClick = function (row) {
       if ($scope.selectProfile == row && $scope.edit) {
         $scope.edit = false;
       } else {
@@ -56,15 +56,15 @@ export default class CreateSipCtrl {
           Profile.get({
             id: row.active.profile,
             ip: $scope.ip.id,
-          }).$promise.then(function(resource) {
+          }).$promise.then(function (resource) {
             $scope.profileToSave = row.active;
             $scope.selectProfile = row;
             vm.profileModel = resource.specification_data;
             vm.profileFields = resource.template;
-            vm.profileFields.forEach(function(field) {
+            vm.profileFields.forEach(function (field) {
               if (field.fieldGroup != null) {
-                field.fieldGroup.forEach(function(subGroup) {
-                  subGroup.fieldGroup.forEach(function(item) {
+                field.fieldGroup.forEach(function (subGroup) {
+                  subGroup.fieldGroup.forEach(function (item) {
                     item.type = 'input';
                     item.templateOptions.disabled = true;
                   });
@@ -82,7 +82,7 @@ export default class CreateSipCtrl {
       }
     };
 
-    vm.createSipModal = function(ip) {
+    vm.createSipModal = function (ip) {
       const ips = $scope.ips.length > 0 ? $scope.ips : null;
       const modalInstance = $uibModal.open({
         animation: true,
@@ -101,7 +101,7 @@ export default class CreateSipCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $scope.ips = [];
           $scope.ip = null;
           $rootScope.ip = null;
@@ -109,7 +109,7 @@ export default class CreateSipCtrl {
           vm.updateListViewConditional();
           $anchorScroll();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

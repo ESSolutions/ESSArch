@@ -28,9 +28,9 @@ export default class TransferSipModalInstanceCtrl {
       return ip;
     };
 
-    $ctrl.checkInitialSas = ips => {
+    $ctrl.checkInitialSas = (ips) => {
       let ipSaMap = {};
-      ips.forEach(ip => {
+      ips.forEach((ip) => {
         if (ip.altrecordids && ip.altrecordids.SUBMISSIONAGREEMENT && ip.altrecordids.SUBMISSIONAGREEMENT.length > 0) {
           if (ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]]) {
             ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]].push(ip.id);
@@ -49,11 +49,11 @@ export default class TransferSipModalInstanceCtrl {
           ip.saLoading = false;
         }
       });
-      Object.keys(ipSaMap).forEach(key => {
+      Object.keys(ipSaMap).forEach((key) => {
         $http
           .get(appConfig.djangoUrl + 'submission-agreements/' + key + '/')
-          .then(response => {
-            ipSaMap[key].forEach(x => {
+          .then((response) => {
+            ipSaMap[key].forEach((x) => {
               let ip = $ctrl.getIpById(ips, x);
               ip.sa = response.data;
               ip.saLoading = false;
@@ -61,9 +61,9 @@ export default class TransferSipModalInstanceCtrl {
             });
             return response.data;
           })
-          .catch(error => {
+          .catch((error) => {
             if (error.status === 404) {
-              ipSaMap[key].forEach(x => {
+              ipSaMap[key].forEach((x) => {
                 let ip = $ctrl.getIpById(ips, x);
                 ip.sa = null;
                 ip.saLoading = false;
@@ -75,12 +75,12 @@ export default class TransferSipModalInstanceCtrl {
     };
 
     $ctrl.unidentifiedIpSas = {};
-    $ctrl.getSas = function(search) {
+    $ctrl.getSas = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'submission-agreements/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, published: true},
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.sas = response.data;
         return $ctrl.options.sas;
       });
@@ -91,7 +91,7 @@ export default class TransferSipModalInstanceCtrl {
         type: 'uiselect',
         key: 'submission_agreement',
         templateOptions: {
-          options: function() {
+          options: function () {
             return $ctrl.options.sas;
           },
           valueProp: 'id',
@@ -99,7 +99,7 @@ export default class TransferSipModalInstanceCtrl {
           multiple: false,
           placeholder: $translate.instant('SUBMISSION_AGREEMENT'),
           appendToBody: true,
-          refresh: function(search) {
+          refresh: function (search) {
             if ($ctrl.initSaSearch && (angular.isUndefined(search) || search === null || search === '')) {
               search = angular.copy($ctrl.initSaSearch);
               $ctrl.initSaSearch = null;
@@ -111,9 +111,9 @@ export default class TransferSipModalInstanceCtrl {
       },
     ];
 
-    $ctrl.hasSelectedSa = list => {
+    $ctrl.hasSelectedSa = (list) => {
       let allHasSa = true;
-      list.forEach(x => {
+      list.forEach((x) => {
         if (!x.sa) {
           if (
             !($ctrl.unidentifiedIpSas[x.id] && $ctrl.unidentifiedIpSas[x.id].submission_agreement) ||
@@ -128,10 +128,10 @@ export default class TransferSipModalInstanceCtrl {
     };
 
     // Transfer IP
-    $ctrl.transfer = ips => {
+    $ctrl.transfer = (ips) => {
       $ctrl.transferring = true;
       const promises = [];
-      $ctrl.data.ips.forEach(function(ip) {
+      $ctrl.data.ips.forEach(function (ip) {
         ip.transferring = true;
         let data = {id: ip.id};
         if ($ctrl.unidentifiedIpSas[ip.id]) {
@@ -139,12 +139,12 @@ export default class TransferSipModalInstanceCtrl {
         }
         promises.push(
           IPReception.transfer(data)
-            .$promise.then(function(response) {
+            .$promise.then(function (response) {
               ip.transferring = false;
               ip.transferred = true;
               return response;
             })
-            .catch(function(response) {
+            .catch(function (response) {
               ip.transferring = false;
               ip.transferred = false;
               return $q.reject(response);
@@ -162,12 +162,12 @@ export default class TransferSipModalInstanceCtrl {
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')
