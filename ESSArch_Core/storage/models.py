@@ -781,30 +781,6 @@ class StorageObject(models.Model):
             status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
         ).exists()
 
-    def extract(self):
-        if not self.container:
-            raise ValueError("Not a container")
-
-        policy = self.ip.policy
-        target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
-            storage_target__methods__storage_policies=policy).first()
-
-        if target_medium is None:
-            target = StorageTarget.objects.archival_storage().fastest().filter(
-                methods__storage_policies=policy,
-            ).first()
-            if target is None:
-                raise NoWriteableStorage()
-            qs = StorageMedium.objects.archival_storage().writeable().fastest()
-            target_medium, _ = target.get_or_create_storage_medium(qs=qs)
-
-        backend = self.get_storage_backend()
-        target_path = backend.read(self, target_medium.storage_target.target, extract=True, include_xml=False)
-        medium_type = target_medium.get_type()
-        new_obj = StorageObject.objects.create(ip=self.ip, storage_medium=target_medium, container=False,
-                                               content_location_type=medium_type, content_location_value=target_path)
-        return new_obj
-
     def open(self, path, *args, **kwargs):
         backend = self.get_storage_backend()
         return backend.open(self, path, *args, **kwargs)
