@@ -11,9 +11,12 @@ from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.querysets import TreeQuerySet
+from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -403,8 +406,16 @@ class StructureUnitRelation(models.Model):
         unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
 
 
+class StructureUnitQueryset(TreeQuerySet):
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
+
+
 class StructureUnitManager(TreeManager, OrganizationManager):
-    pass
+    def get_queryset(self, *args, **kwargs):
+        return StructureUnitQueryset(self.model, using=self._db).order_by(
+            self.tree_id_attr, self.left_attr
+        )
 
 
 class StructureUnit(MPTTModel):
@@ -689,6 +700,7 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+    appraisal_date = models.DateTimeField(null=True)
 
     objects = OrganizationManager()
 
@@ -902,6 +914,9 @@ class TagVersionQuerySet(models.QuerySet):
             return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
         else:
             return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
+
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
 
 
 class TagVersionManager(OrganizationManager):
@@ -1153,6 +1168,7 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+    subtree = MPTTSubtree()
 
     def copy_to_new_structure(self, new_structure, new_unit=None):
         new_parent_tag = None

@@ -10,13 +10,13 @@
   <button
     class="btn btn-primary"
     type="button"
-    ng-disabled="$ctrl.removingRule"
+    ng-disabled="$ctrl.removingTemplate"
     ng-click="$ctrl.removeConversion()"
     focused="true"
   >
-    {{'OK' | translate}} <i ng-if="$ctrl.removingRule" class="fas fa-spinner fa-spin"></i>
+    {{'OK' | translate}} <i ng-if="$ctrl.removingTemplate" class="fas fa-spinner fa-spin"></i>
   </button>
-  <button class="btn btn-default" type="button" ng-disabled="$ctrl.removingRule" ng-click="$ctrl.cancel()">
+  <button class="btn btn-default" type="button" ng-disabled="$ctrl.removingTemplate" ng-click="$ctrl.cancel()">
     {{'CANCEL' | translate}}
   </button>
 </div>

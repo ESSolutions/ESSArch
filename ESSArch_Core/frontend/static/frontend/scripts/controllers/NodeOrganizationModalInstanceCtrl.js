@@ -8,7 +8,7 @@ export default class NodeOrganizationModalInstanceCtrl {
     };
     $ctrl.model = {};
     $ctrl.fields = [];
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.node) {
         $ctrl.currentOrganization = angular.copy(data.node.organization);
         $ctrl.model.organization = angular.copy(data.node.organization.id);
@@ -17,8 +17,8 @@ export default class NodeOrganizationModalInstanceCtrl {
       $ctrl.buildForm();
     };
 
-    $ctrl.getOrganizations = search => {
-      return $http.get(appConfig.djangoUrl + 'organizations/', {params: {search: search}}).then(response => {
+    $ctrl.getOrganizations = (search) => {
+      return $http.get(appConfig.djangoUrl + 'organizations/', {params: {search: search}}).then((response) => {
         $ctrl.options.organizations = angular.copy(response.data);
         return response.data;
       });
@@ -32,18 +32,18 @@ export default class NodeOrganizationModalInstanceCtrl {
           templateOptions: {
             required: true,
             label: $translate.instant('ORGANIZATION'),
-            options: function() {
+            options: function () {
               return $ctrl.options.organizations;
             },
             valueProp: 'id',
             labelProp: 'name',
             placeholder: $translate.instant('ORGANIZATION'),
             appendToBody: false,
-            optionsFunction: function(search) {
+            optionsFunction: function (search) {
               return $ctrl.options.organizations;
             },
-            refresh: function(search) {
-              return $ctrl.getOrganizations(search).then(function() {
+            refresh: function (search) {
+              return $ctrl.getOrganizations(search).then(function () {
                 this.options = $ctrl.options.organizations;
                 return $ctrl.options.organizations;
               });
@@ -53,7 +53,7 @@ export default class NodeOrganizationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       $ctrl.saving = true;
       $http({
         method: 'POST',
@@ -62,16 +62,16 @@ export default class NodeOrganizationModalInstanceCtrl {
           organization: $ctrl.model.organization,
         },
       })
-        .then(function() {
+        .then(function () {
           Notifications.add($translate.instant('ORGANIZATION.ORGANIZATION_CHANGED'), 'success');
           $uibModalInstance.close('changed');
           $ctrl.saving = false;
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.saving = false;
         });
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

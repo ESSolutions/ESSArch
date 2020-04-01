@@ -7,27 +7,27 @@ export default class MoveToApprovalModalInstanceCtrl {
     $ctrl.request = data.request;
     $ctrl.moving = false;
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null) {
         $ctrl.data.ips = [$ctrl.data.ip];
       }
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
 
     // Preserve IP
-    $ctrl.moveToApproval = function() {
+    $ctrl.moveToApproval = function () {
       $ctrl.moving = true;
       const data = {purpose: $ctrl.data.request.purpose};
       const promises = [];
-      $ctrl.data.ips.forEach(function(ip) {
-        promises.push(Requests.moveToApproval(ip, data).then(function(response) {}));
+      $ctrl.data.ips.forEach(function (ip) {
+        promises.push(Requests.moveToApproval(ip, data).then(function (response) {}));
       });
-      $q.all(promises).then(function(data) {
+      $q.all(promises).then(function (data) {
         $uibModalInstance.close(data);
         $ctrl.moving = false;
       });

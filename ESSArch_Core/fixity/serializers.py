@@ -1,6 +1,14 @@
 from rest_framework import serializers
 
-from ESSArch_Core.fixity.models import Validation
+from ESSArch_Core.fixity.models import ConversionTool, Validation
+
+
+class ConversionToolSerializer(serializers.ModelSerializer):
+    form = serializers.JSONField(read_only=True)
+
+    class Meta:
+        model = ConversionTool
+        fields = ('name', 'form',)
 
 
 class ValidationSerializer(serializers.ModelSerializer):

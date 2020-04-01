@@ -40,13 +40,13 @@ export default class UtilCtrl {
   ) {
     $scope.angular = angular;
     $scope.$state = $state;
-    $scope.reloadPage = function() {
+    $scope.reloadPage = function () {
       $state.reload();
     };
-    $scope.infoPage = function() {
+    $scope.infoPage = function () {
       $state.go('home.info');
     };
-    $scope.checkPermissions = function(page) {
+    $scope.checkPermissions = function (page) {
       // Check if there is a sub state that does not require permissions
       if (nestedEmptyPermissions(resolve(page, permissionConfig))) {
         return true;
@@ -54,15 +54,15 @@ export default class UtilCtrl {
       const permissions = nestedPermissions(resolve(page, permissionConfig));
       return myService.checkPermissions(permissions);
     };
-    $scope.showAlert = function() {
+    $scope.showAlert = function () {
       Notifications.toggle();
     };
 
-    $scope.navigateToState = function(state) {
+    $scope.navigateToState = function (state) {
       $state.go(state);
     };
 
-    $scope.gotoDocs = function() {
+    $scope.gotoDocs = function () {
       $window.open('/docs/' + $translate.use() + '/user_guide/index.html', '_blank');
     };
 
@@ -71,7 +71,7 @@ export default class UtilCtrl {
 
     let stateChangeListeners = [];
     function resetStateListeners() {
-      stateChangeListeners.forEach(function(listener) {
+      stateChangeListeners.forEach(function (listener) {
         listener();
       });
       stateChangeListeners = [];
@@ -80,13 +80,13 @@ export default class UtilCtrl {
      * Handle keydown events navigation
      * @param {Event} e
      */
-    $scope.navKeydownListener = function(e, state) {
+    $scope.navKeydownListener = function (e, state) {
       switch (e.keyCode) {
         case space:
         case enter:
           e.preventDefault();
           stateChangeListeners.push(
-            $transitions.onSuccess({}, function($transition) {
+            $transitions.onSuccess({}, function ($transition) {
               $transition.abort();
               if (
                 state == 'home.ingest' ||
@@ -109,29 +109,29 @@ export default class UtilCtrl {
           break;
       }
     };
-    $scope.focusRouterView = function() {
-      $timeout(function() {
+    $scope.focusRouterView = function () {
+      $timeout(function () {
         const elm = document.getElementsByClassName('dynamic-part')[0];
         elm.focus();
         $anchorScroll();
       });
     };
-    $scope.focusSubmenu = function() {
-      $timeout(function() {
+    $scope.focusSubmenu = function () {
+      $timeout(function () {
         const elm = document.getElementsByClassName('sub-menu')[0];
         angular.element(elm)[0].children[0].focus();
         $anchorScroll();
       });
     };
-    $scope.focusProfileManagerSubmenu = function() {
-      $timeout(function() {
+    $scope.focusProfileManagerSubmenu = function () {
+      $timeout(function () {
         const elm = document.getElementsByClassName('profile-manager-sub-menu')[0];
         angular.element(elm)[0].children[0].focus();
         $anchorScroll();
       });
     };
-    $scope.focusProfileManagerRouterView = function() {
-      $timeout(function() {
+    $scope.focusProfileManagerRouterView = function () {
+      $timeout(function () {
         const elm = document.getElementsByClassName('profile-manager-route')[0];
         angular.element(elm)[0].focus();
         $anchorScroll();

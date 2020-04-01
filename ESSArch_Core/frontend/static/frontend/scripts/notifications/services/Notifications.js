@@ -9,15 +9,15 @@ const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) =>
     reconnectIfNotNormalClose: true,
   });
 
-  ws.onOpen(function() {
+  ws.onOpen(function () {
     $rootScope.useWebsocket = true;
   });
 
-  ws.onClose(function() {
+  ws.onClose(function () {
     $rootScope.useWebsocket = false;
   });
 
-  ws.onMessage(function(message) {
+  ws.onMessage(function (message) {
     listener(message.data);
   });
 
@@ -55,63 +55,65 @@ const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) =>
      * @param level - level of alert, applies a class to the alert
      * @param time - Adds a duration to the alert
      */
-    add: function(message, level, time, options) {
+    add: function (message, level, time, options) {
       $rootScope.$broadcast('add_notification', {message: message, level: level, time: time, options: options});
     },
     /**
      * Show alert
      */
-    show: function() {
+    show: function () {
       $rootScope.$broadcast('show_notifications', {});
     },
     /**
      * Hide notifications
      */
-    hide: function() {
+    hide: function () {
       $rootScope.$broadcast('hide_notifications', {});
     },
-    toggle: function() {
+    toggle: function () {
       $rootScope.$broadcast('toggle_notifications', {});
     },
-    getNotifications: function(pageSize) {
+    getNotifications: function (pageSize) {
       return $http
         .get(appConfig.djangoUrl + 'notifications/', {params: {page_size: pageSize}})
-        .then(function(response) {
+        .then(function (response) {
           return response.data;
         });
     },
-    getNextPage: function(pageSize, id) {
+    getNextPage: function (pageSize, id) {
       return $http
         .get(appConfig.djangoUrl + 'notifications/', {params: {page_size: pageSize, after: id, after_field: 'id'}})
-        .then(function(response) {
+        .then(function (response) {
           return {
             data: response.data,
             count: response.headers('Count'),
           };
         })
-        .catch(function(response) {
+        .catch(function (response) {
           return [];
         });
     },
-    getNextNotification: function() {
+    getNextNotification: function () {
       return $http
         .get(appConfig.djangoUrl + 'notifications/', {params: {page_size: 1, page: 7}})
-        .then(function(response) {
+        .then(function (response) {
           return response.data;
         });
     },
-    getUnseenNotifications: function(date) {
-      return $http.get(appConfig.djangoUrl + 'notifications/', {params: {create_date: date}}).then(function(response) {
-        return response.data;
-      });
+    getUnseenNotifications: function (date) {
+      return $http
+        .get(appConfig.djangoUrl + 'notifications/', {params: {create_date: date}})
+        .then(function (response) {
+          return response.data;
+        });
     },
-    delete: function(id) {
-      return $http.delete(appConfig.djangoUrl + 'notifications/' + id + '/').then(function(response) {
+    delete: function (id) {
+      return $http.delete(appConfig.djangoUrl + 'notifications/' + id + '/').then(function (response) {
         return response;
       });
     },
-    deleteAll: function() {
-      return $http.delete(appConfig.djangoUrl + 'notifications/').then(function(response) {
+    deleteAll: function () {
+      return $http.delete(appConfig.djangoUrl + 'notifications/').then(function (response) {
         return response;
       });
     },

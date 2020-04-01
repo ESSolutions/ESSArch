@@ -7,8 +7,8 @@ const tag = (IP, $resource, appConfig) => {
         method: 'GET',
         params: {id: '@id'},
         interceptor: {
-          response: function(response) {
-            response.resource.children.forEach(function(child, idx, array) {
+          response: function (response) {
+            response.resource.children.forEach(function (child, idx, array) {
               array[idx] = new Tag(child);
             });
             response.resource.$httpHeaders = response.headers;
@@ -21,9 +21,9 @@ const tag = (IP, $resource, appConfig) => {
         params: {id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.resource.forEach(function(res) {
-              res.children.forEach(function(child, idx, array) {
+          response: function (response) {
+            response.resource.forEach(function (res) {
+              res.children.forEach(function (child, idx, array) {
                 array[idx] = new Tag(child);
               });
             });
@@ -41,8 +41,8 @@ const tag = (IP, $resource, appConfig) => {
         params: {id: '@id', action: 'information-packages'},
         isArray: true,
         interceptor: {
-          response: function(response) {
-            response.data.forEach(function(child, idx, array) {
+          response: function (response) {
+            response.data.forEach(function (child, idx, array) {
               array[idx] = new IP(child);
             });
             response.resource.concat(response.data);

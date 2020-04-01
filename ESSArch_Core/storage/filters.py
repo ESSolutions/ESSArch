@@ -23,6 +23,7 @@
 """
 
 from django_filters import rest_framework as filters
+from django_filters.constants import EMPTY_VALUES
 
 from ESSArch_Core.api.filters import CharSuffixRangeFilter, ListFilter
 from ESSArch_Core.configuration.models import StoragePolicy
@@ -34,6 +35,16 @@ from ESSArch_Core.storage.models import (
     medium_type_CHOICES,
     storage_type_CHOICES,
 )
+
+
+class StorageMediumOrderingFilter(filters.OrderingFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES or 'medium_id' in value:
+            return qs.natural_sort()
+        elif '-medium_id' in value:
+            return qs.natural_sort().reverse()
+
+        return super().filter(qs, value)
 
 
 class StorageMediumFilter(filters.FilterSet):
@@ -68,11 +79,12 @@ class StorageMediumFilter(filters.FilterSet):
         else:
             return queryset.non_migratable()
 
-    ordering = filters.OrderingFilter(
+    ordering = StorageMediumOrderingFilter(
         fields=(
             ('id', 'id'),
             ('medium_id', 'medium_id'),
             ('storage_target__name', 'storage_target'),
+            ('storage_target__max_capacity', 'max_capacity'),
             ('status', 'status'),
             ('location', 'location'),
             ('location_status', 'location_status'),

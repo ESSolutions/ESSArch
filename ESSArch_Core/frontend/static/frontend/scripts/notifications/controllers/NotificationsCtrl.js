@@ -20,7 +20,7 @@ export default class NotificationsCtrl {
     vm.frontendAlerts = [];
     vm.backendAlerts = [];
     let interval;
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       vm.notificationsEnabled = $rootScope.auth.notifications_enabled;
       Messenger.options = {
         extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',
@@ -28,7 +28,7 @@ export default class NotificationsCtrl {
       };
       vm.updateUnseen();
       if (!$rootScope.useWebsocket) {
-        interval = $interval(function() {
+        interval = $interval(function () {
           vm.getNotifications();
           vm.updateUnseen();
         }, appConfig.notificationInterval);
@@ -36,15 +36,15 @@ export default class NotificationsCtrl {
     };
 
     $scope.$watch(
-      function() {
+      function () {
         return $rootScope.useWebsocket;
       },
-      function(newValue, oldValue) {
+      function (newValue, oldValue) {
         if (newValue != oldValue) {
           if ($rootScope.useWebsocket) {
             $interval.cancel(interval);
           } else {
-            interval = $interval(function() {
+            interval = $interval(function () {
               vm.getNotifications();
               vm.updateUnseen();
             }, appConfig.notificationInterval);
@@ -53,13 +53,13 @@ export default class NotificationsCtrl {
       }
     );
 
-    vm.getNotifications = function(show) {
+    vm.getNotifications = function (show) {
       if (angular.isUndefined(show)) {
         show = true;
       }
       vm.nextPageLoading = true;
       const pageSize = Math.ceil(($(window).height() * 0.6) / 38) + 2;
-      return Notifications.getNotifications(pageSize).then(function(data) {
+      return Notifications.getNotifications(pageSize).then(function (data) {
         vm.nextPageLoading = false;
         vm.backendAlerts = data;
         vm.alerts = vm.backendAlerts;
@@ -67,77 +67,77 @@ export default class NotificationsCtrl {
       });
     };
 
-    vm.updateEnabledStatus = function(val) {
+    vm.updateEnabledStatus = function (val) {
       return $http({
         method: 'PATCH',
         url: appConfig.djangoUrl + 'me/',
         data: {
           notifications_enabled: val,
         },
-      }).then(function(response) {
+      }).then(function (response) {
         $rootScope.auth = response.data;
         vm.notificationsEnabled = response.data.notifications_enabled;
         return response;
       });
     };
 
-    vm.updateUnseen = function(count) {
+    vm.updateUnseen = function (count) {
       if (count) {
         $rootScope.unseenNotifications = count;
       } else {
-        $http.head(appConfig.djangoUrl + 'notifications/', {params: {seen: false}}).then(function(response) {
+        $http.head(appConfig.djangoUrl + 'notifications/', {params: {seen: false}}).then(function (response) {
           $rootScope.unseenNotifications = response.headers().count;
         });
       }
     };
 
-    vm.showAlert = function() {
+    vm.showAlert = function () {
       Messenger().hideAll();
       vm.setAllSeen();
       vm.getNotifications();
       vm.visible = true;
     };
 
-    vm.setSeen = function(alerts) {
-      alerts.forEach(function(alert) {
+    vm.setSeen = function (alerts) {
+      alerts.forEach(function (alert) {
         if (alert.id && !alert.seen) {
           $http({
             method: 'PATCH',
             url: appConfig.djangoUrl + 'notifications/' + alert.id + '/',
             data: {seen: true},
           })
-            .then(function(response) {
+            .then(function (response) {
               alert.seen = true;
               if ($rootScope.unseenNotifications > 0) {
                 $rootScope.unseenNotifications -= 1;
               }
             })
-            .catch(function(response) {});
+            .catch(function (response) {});
         } else if (!alert.id) {
           alert.seen = true;
         }
       });
     };
 
-    vm.setAllSeen = function() {
+    vm.setAllSeen = function () {
       $http({
         method: 'POST',
         url: appConfig.djangoUrl + 'notifications/set-all-seen/',
       })
-        .then(function(response) {
+        .then(function (response) {
           vm.updateUnseen(0);
         })
-        .catch(function(response) {});
+        .catch(function (response) {});
     };
 
-    vm.hideAlert = function() {
+    vm.hideAlert = function () {
       vm.visible = false;
       $window.onclick = null;
       vm.setAllSeen();
     };
 
-    vm.removeAlert = function(alert, index) {
-      Notifications.delete(alert.id).then(function(response) {
+    vm.removeAlert = function (alert, index) {
+      Notifications.delete(alert.id).then(function (response) {
         vm.backendAlerts.splice(index, 1);
         vm.alerts = vm.backendAlerts;
       });
@@ -145,7 +145,7 @@ export default class NotificationsCtrl {
 
     function getNext() {
       return Notifications.getNextNotification()
-        .then(function(data) {
+        .then(function (data) {
           vm.backendAlerts.push(data[0]);
           vm.alerts = vm.backendAlerts;
           if (!vm.alerts.length == 0) {
@@ -153,15 +153,15 @@ export default class NotificationsCtrl {
           }
           return vm.alerts;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (!vm.alerts.length == 0) {
             vm.visible = false;
           }
           return vm.alerts;
         });
     }
-    vm.clearAll = function() {
-      Notifications.deleteAll().then(function(response) {
+    vm.clearAll = function () {
+      Notifications.deleteAll().then(function (response) {
         vm.visible = false;
         vm.alerts = [];
         vm.backendAlerts = [];
@@ -169,12 +169,12 @@ export default class NotificationsCtrl {
         vm.updateUnseen();
       });
     };
-    vm.nextPage = function() {
+    vm.nextPage = function () {
       if (!vm.nextPageLoading) {
         vm.nextPageLoading = true;
-        Notifications.getNextPage(10, vm.alerts[vm.alerts.length - 1].id).then(function(response) {
+        Notifications.getNextPage(10, vm.alerts[vm.alerts.length - 1].id).then(function (response) {
           vm.nextPageLoading = false;
-          response.data.forEach(function(x) {
+          response.data.forEach(function (x) {
             vm.backendAlerts.push(x);
           });
           vm.alerts = vm.backendAlerts;
@@ -189,7 +189,7 @@ export default class NotificationsCtrl {
      * @param time - Adds a duration to the alert
      */
 
-    vm.addAlert = function(id, message, level, time, options) {
+    vm.addAlert = function (id, message, level, time, options) {
       const alert = {message: message, level: level, time_created: new Date()};
       if (id) {
         alert.id = id;
@@ -205,7 +205,7 @@ export default class NotificationsCtrl {
           type: level,
           hideAfter: time ? time / 1000 : 10,
           showCloseButton: true,
-          onClickClose: function() {
+          onClickClose: function () {
             vm.setSeen([{id: id}]);
           },
           actions: actions,
@@ -213,12 +213,12 @@ export default class NotificationsCtrl {
         Messenger().post(post);
       }
     };
-    vm.toggleAlert = function() {
+    vm.toggleAlert = function () {
       if (vm.visible) {
         vm.hideAlert();
       } else {
         vm.showAlert();
-        $window.onclick = function(event) {
+        $window.onclick = function (event) {
           const clickedElement = $(event.target);
           if (!clickedElement) return;
           const elementClasses = event.target.classList;
@@ -236,7 +236,7 @@ export default class NotificationsCtrl {
     };
 
     $rootScope.disconnectedAlert = null;
-    $rootScope.$on('disconnected', function(event, data) {
+    $rootScope.$on('disconnected', function (event, data) {
       if (!$rootScope.disconnected) {
         $rootScope.disconnected = true;
         $rootScope.disconnectedAlert = Messenger().post({
@@ -246,21 +246,21 @@ export default class NotificationsCtrl {
           actions: {
             retry: {
               label: $translate.instant('RETRY'),
-              action: function() {
+              action: function () {
                 $http
                   .head(appConfig.djangoUrl + 'me/')
-                  .then(function(response) {
+                  .then(function (response) {
                     $rootScope.disconnected = null;
                     $rootScope.$broadcast('reconnected', {detail: $translate.instant('ERROR.CONNECTION_RESTORED')});
                   })
-                  .catch(function() {});
+                  .catch(function () {});
               },
             },
           },
         });
       }
     });
-    $rootScope.$on('reconnected', function(event, data) {
+    $rootScope.$on('reconnected', function (event, data) {
       $rootScope.disconnected = false;
       $rootScope.disconnectedAlert.update({
         message: data.detail,
@@ -272,32 +272,32 @@ export default class NotificationsCtrl {
     });
 
     // Listen for show/hide events
-    $scope.$on('add_notification', function(event, data, actions) {
+    $scope.$on('add_notification', function (event, data, actions) {
       vm.addAlert(data.id, data.message, data.level, data.time, data.options);
     });
-    $scope.$on('add_unseen_notification', function(event, data) {
+    $scope.$on('add_unseen_notification', function (event, data) {
       vm.updateUnseen(data.count);
       vm.addAlert(data.id, data.message, data.level, data.time, false);
       if (vm.showAlerts) {
         vm.setSeen(vm.alerts.slice(0, 5));
       }
     });
-    $scope.$on('show_notification', function(event, data) {
+    $scope.$on('show_notification', function (event, data) {
       if (vm.alerts.length > 0) {
         vm.showAlert();
-        $timeout(function() {
+        $timeout(function () {
           vm.showAlerts = true;
           vm.setSeen(vm.alerts.slice(0, 5));
         }, 300);
       }
     });
-    $scope.$on('toggle_notifications', function(event, data) {
+    $scope.$on('toggle_notifications', function (event, data) {
       vm.toggleAlert();
     });
-    $scope.$on('hide_notifications', function(event, data) {
+    $scope.$on('hide_notifications', function (event, data) {
       vm.hideAlert();
     });
-    $scope.$on('get_notifications', function(event, data) {
+    $scope.$on('get_notifications', function (event, data) {
       vm.getNotifications();
     });
   }

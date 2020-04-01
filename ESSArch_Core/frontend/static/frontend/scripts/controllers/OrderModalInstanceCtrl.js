@@ -33,20 +33,20 @@ export default class OrderModalInstanceCtrl {
       let promises = [];
 
       promises.push(
-        $http.get(appConfig.djangoUrl + 'consign-methods/').then(response => {
+        $http.get(appConfig.djangoUrl + 'consign-methods/').then((response) => {
           $ctrl.options.consign_method = angular.copy(response.data);
           return response.data;
         })
       );
 
       promises.push(
-        $http.get(appConfig.djangoUrl + 'order-types/').then(response => {
+        $http.get(appConfig.djangoUrl + 'order-types/').then((response) => {
           $ctrl.options.type = angular.copy(response.data);
           return response.data;
         })
       );
 
-      $q.all(promises).then(responses => {
+      $q.all(promises).then((responses) => {
         if (!data.allow_close) {
           EditMode.enable();
         }
@@ -147,16 +147,16 @@ export default class OrderModalInstanceCtrl {
       ];
     };
 
-    $ctrl.newOrder = function(order) {
+    $ctrl.newOrder = function (order) {
       $ctrl.creatingOrder = true;
       listViewService
         .prepareOrder(order)
-        .then(function(result) {
+        .then(function (result) {
           EditMode.disable();
           $ctrl.creatingOrder = false;
           $uibModalInstance.close();
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.creatingOrder = false;
         });
     };
@@ -167,12 +167,12 @@ export default class OrderModalInstanceCtrl {
         url: appConfig.djangoUrl + 'orders/' + data.order.id + '/',
         data: Utils.getDiff(data.order, $ctrl.order, {map: {type: 'id'}}),
       })
-        .then(response => {
+        .then((response) => {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(response => {
+        .catch((response) => {
           $ctrl.saving = false;
         });
     };
@@ -183,29 +183,29 @@ export default class OrderModalInstanceCtrl {
       $uibModalInstance.close();
     };
 
-    $ctrl.remove = function(order) {
+    $ctrl.remove = function (order) {
       $ctrl.removing = true;
       $http({
         method: 'DELETE',
         url: appConfig.djangoUrl + 'orders/' + order.id + '/',
       })
-        .then(function() {
+        .then(function () {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close();
         })
-        .catch(function() {
+        .catch(function () {
           $ctrl.removing = false;
         });
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

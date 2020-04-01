@@ -7,7 +7,7 @@ export default class DeacivateMediumModalInstanceCtrl {
     $ctrl.deactivate = () => {
       $ctrl.deactivating = true;
       let promises = [];
-      data.mediums.forEach(medium => {
+      data.mediums.forEach((medium) => {
         promises.push(
           $http({
             url: appConfig.djangoUrl + 'storage-mediums/' + medium.id + '/deactivate/',
@@ -17,11 +17,11 @@ export default class DeacivateMediumModalInstanceCtrl {
       });
 
       $q.all(promises)
-        .then(response => {
+        .then((response) => {
           $ctrl.deactivating = false;
           $uibModalInstance.close(response);
         })
-        .catch(response => {
+        .catch((response) => {
           $ctrl.deactivating = false;
         });
     };

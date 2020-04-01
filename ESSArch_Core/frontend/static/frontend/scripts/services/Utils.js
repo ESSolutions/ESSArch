@@ -1,6 +1,6 @@
 const Utils = () => {
   const service = {
-    getDiff: function(obja, objb, options) {
+    getDiff: function (obja, objb, options) {
       const diff = {};
       for (var key in objb) {
         if (
@@ -20,7 +20,7 @@ const Utils = () => {
         if (
           typeof obja[key] !== 'object' &&
           obja[key] !== objb[key] &&
-          !diff[key] &&
+          angular.isUndefined(diff[key]) &&
           (angular.isUndefined(options.map[key]) || obja[key][options.map[key]] !== objb[key])
         ) {
           if (diff[key]) {

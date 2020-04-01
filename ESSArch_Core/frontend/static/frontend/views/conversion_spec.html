@@ -1,0 +1,60 @@
+<div class="specification">
+  <h4>
+    {{'ARCHIVE_MAINTENANCE.CONVERSION_RULES' | translate}}
+  </h4>
+  <div class="w-100">
+    <formly-form model="vm.newSpec" fields="vm.baseSpecFields" options="{}"></formly-form>
+  </div>
+  <div ng-if="vm.toolDataForm" class="w-100">
+    <formly-form model="vm.toolData" fields="vm.toolDataForm"></formly-form>
+  </div>
+  <div>
+    <button
+      type="button"
+      class="btn btn-primary"
+      ng-disabled="!vm.newSpec.path || !vm.newSpec.tool"
+      ng-click="vm.addSpecification()"
+    >
+      {{'ADD' | translate}}
+    </button>
+  </div>
+  <hr class="small" />
+  <div class="table-x-overflow">
+    <table class="table table-striped table-container">
+      <thead>
+        <tr>
+          <th>{{'ARCHIVE_MAINTENANCE.TOOL' | translate}}</th>
+          <th>{{'PATH' | translate}}</th>
+          <th class="shrink">{{'REMOVE' | translate}}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class="selectable"
+          ng-repeat="(key, value) in vm.specification"
+          ng-click="vm.specificationItemModal(key, value)"
+        >
+          <td>{{value.tool}}</td>
+          <td>{{key}}</td>
+          <td class="shrink">
+            <button
+              class="btn btn-default fas fa-trash-alt btn-sm"
+              ng-click="vm.removeSpecificationItemModal(key, value); $event.stopPropagation();"
+              uib-tooltip="{{'REMOVE' | translate}}"
+              tooltip-placement="auto top"
+              tooltip-append-to-body="true"
+            ></button>
+          </td>
+        </tr>
+        <tr ng-if="angular.equals(vm.specification, {}) || vm.specification == null">
+          <td class="empty-table-indicator" colspan="3">
+            {{'ARCHIVE_MAINTENANCE.NO_SPECIFICATIONS_CHOSEN' | translate}}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div uib-alert class="alert-danger" ng-if="vm.showWarning">
+    {{'ARCHIVE_MAINTENANCE.ONE_SPECIFICATION_REQUIRED' | translate}}
+  </div>
+</div>

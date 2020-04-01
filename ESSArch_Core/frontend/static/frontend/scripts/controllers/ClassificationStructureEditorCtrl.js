@@ -32,9 +32,9 @@ export default class ClassificationStructureEditorCtrl {
 
     let watchers = [];
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
@@ -49,8 +49,8 @@ export default class ClassificationStructureEditorCtrl {
       })
     );
 
-    vm.$onInit = function() {
-      $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function(response) {
+    vm.$onInit = function () {
+      $http.get(appConfig.djangoUrl + 'structure-types/', {params: {pager: 'none'}}).then(function (response) {
         vm.structureTypes = [{name: $translate.instant('ACCESS.SEE_ALL'), id: null}].concat(response.data);
       });
       if ($stateParams != null && $stateParams.id) {
@@ -59,21 +59,16 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.structureClick = function(row) {
+    vm.structureClick = function (row) {
       if (vm.structure && vm.structure.id === row.id) {
         vm.structure = null;
         $state.go($state.current.name, {id: null});
         $rootScope.$broadcast('UPDATE_TITLE', {
-          title: $translate.instant(
-            $state.current.name
-              .split('.')
-              .pop()
-              .toUpperCase()
-          ),
+          title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
         });
       } else {
         vm.structuresLoading = true;
-        Structure.get({id: row.id}).$promise.then(function(resource) {
+        Structure.get({id: row.id}).$promise.then(function (resource) {
           vm.structuresLoading = false;
           vm.structure = resource;
           $state.go($state.current.name, {id: vm.structure.id});
@@ -84,7 +79,7 @@ export default class ClassificationStructureEditorCtrl {
           typePromises.push(
             $http
               .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
-              .then(function(response) {
+              .then(function (response) {
                 return response.data;
               })
           );
@@ -93,24 +88,24 @@ export default class ClassificationStructureEditorCtrl {
               .get(appConfig.djangoUrl + 'structure-unit-types/', {
                 params: {structure_type: vm.structure.type.id, pager: 'none'},
               })
-              .then(function(response) {
+              .then(function (response) {
                 return response.data;
               })
           );
-          $q.all(typePromises).then(function(data) {
+          $q.all(typePromises).then(function (data) {
             vm.typeOptions = [].concat.apply([], data);
             if (vm.typeOptions.length > 0) {
               vm.newRule = vm.typeOptions.length > 0 ? vm.typeOptions[0].name : null;
             }
           });
-          vm.getTree(vm.structure).then(function(tree) {
+          vm.getTree(vm.structure).then(function (tree) {
             vm.recreateTree(tree);
           });
         });
       }
     };
 
-    vm.getStructureListColspan = function() {
+    vm.getStructureListColspan = function () {
       if (myService.checkPermission('tags.delete_structure')) {
         return 6;
       } else {
@@ -118,7 +113,7 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.getStructureUnitRelationColspan = function() {
+    vm.getStructureUnitRelationColspan = function () {
       if (
         myService.checkPermission('tags.change_structureunitrelation') &&
         myService.checkPermission('tags.delete_structureunitrelation')
@@ -134,7 +129,7 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.getRuleListColspan = function() {
+    vm.getRuleListColspan = function () {
       if (myService.checkPermission('tags.change_structure') && vm.node.published == false) {
         return 3;
       } else {
@@ -142,13 +137,13 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.treeReady = function() {};
+    vm.treeReady = function () {};
 
-    vm.updateStructures = function() {
+    vm.updateStructures = function () {
       return vm.getStructures($scope.tableState);
     };
 
-    vm.getStructures = function(tableState) {
+    vm.getStructures = function (tableState) {
       vm.structuresLoading = true;
       if (vm.structures.length == 0) {
         $scope.initLoad = true;
@@ -181,7 +176,7 @@ export default class ClassificationStructureEditorCtrl {
           search: search,
           is_template: true,
           type: vm.structureType,
-        }).$promise.then(function(resource) {
+        }).$promise.then(function (resource) {
           vm.structures = resource;
           tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
@@ -198,7 +193,7 @@ export default class ClassificationStructureEditorCtrl {
     vm.ignoreStructureChanges = false;
     vm.newNode = {};
 
-    vm.getTree = function(structure) {
+    vm.getTree = function (structure) {
       if (!structure.structureType) {
         structure.structureType = angular.copy(structure.type);
       }
@@ -212,20 +207,20 @@ export default class ClassificationStructureEditorCtrl {
       });
       return $http
         .get(appConfig.djangoUrl + 'structures/' + structure.id + '/tree/')
-        .then(function(response) {
+        .then(function (response) {
           const tree = response.data;
           if (tree.length <= 0) {
             return [rootNode];
           }
-          tree.forEach(function(x) {
+          tree.forEach(function (x) {
             prepareTree(x);
           });
           rootNode.children = tree;
-          rootNode.state = {opened: true};
+          rootNode.state = {opened: false};
           const finalTree = [rootNode];
           return finalTree;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           return [rootNode];
         });
     };
@@ -239,7 +234,7 @@ export default class ClassificationStructureEditorCtrl {
       }
     }
 
-    const createChild = function(child) {
+    const createChild = function (child) {
       if (angular.isUndefined(child.name)) {
         child.name = '';
       }
@@ -253,12 +248,12 @@ export default class ClassificationStructureEditorCtrl {
       return child;
     };
 
-    vm.selectRoot = function() {
+    vm.selectRoot = function () {
       if (vm.manuallyReload) {
         const node = vm.structureTreeInstance
           .jstree(true)
           .get_json('#', {flat: true})
-          .filter(function(item) {
+          .filter(function (item) {
             return item.id == vm.manuallyReload.id;
           })[0];
         vm.structureTreeInstance.jstree(true).select_node(node);
@@ -270,21 +265,21 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.getStructureUnit = function(id) {
+    vm.getStructureUnit = function (id) {
       return $http
         .get(appConfig.djangoUrl + 'structure-units/' + id + '/', {
           params: {
             structure: vm.structure.id,
           },
         })
-        .then(function(response) {
+        .then(function (response) {
           return response.data;
         });
     };
 
-    vm.updateStructureUnit = function() {
+    vm.updateStructureUnit = function () {
       if (!vm.node.root) {
-        vm.getStructureUnit(vm.node.id).then(function(node) {
+        vm.getStructureUnit(vm.node.id).then(function (node) {
           vm.node = node;
         });
       } else {
@@ -292,11 +287,11 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.structureTreeChange = function(jqueryobj, e) {
+    vm.structureTreeChange = function (jqueryobj, e) {
       if (e.action === 'select_node') {
         vm.nodeLoading = true;
         if (!e.node.original.root) {
-          vm.getStructureUnit(e.node.original.id).then(function(node) {
+          vm.getStructureUnit(e.node.original.id).then(function (node) {
             vm.nodeLoading = false;
             vm.node = node;
           });
@@ -306,7 +301,7 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
 
-    vm.expandChildren = function(jqueryobj, e, reload) {
+    vm.expandChildren = function (jqueryobj, e, reload) {
       if (e.action === 'select node') {
         vm.node = e.node.original;
       }
@@ -332,7 +327,7 @@ export default class ClassificationStructureEditorCtrl {
       core: {
         multiple: false,
         animation: 50,
-        error: function(error) {
+        error: function (error) {
           $log.error('treeCtrl: error from js tree - ' + angular.toJson(error));
         },
         check_callback: true,
@@ -353,12 +348,12 @@ export default class ClassificationStructureEditorCtrl {
         },
       },
       dnd: {
-        is_draggable: function(nodes) {
+        is_draggable: function (nodes) {
           return !vm.structure.published;
         },
       },
       contextmenu: {
-        items: function(node, callback) {
+        items: function (node, callback) {
           const update = {
             label: $translate.instant('EDIT'),
             _disabled:
@@ -375,21 +370,21 @@ export default class ClassificationStructureEditorCtrl {
           const add = {
             label: $translate.instant('ADD'),
             _disabled: !myService.checkPermission('tags.add_structureunit'),
-            action: function() {
+            action: function () {
               vm.addNodeModal(node.original);
             },
           };
           const addRelation = {
             label: $translate.instant('ACCESS.ADD_RELATION'),
             _disabled: node.original.root || !myService.checkPermission('tags.change_structureunit'),
-            action: function() {
+            action: function () {
               vm.addNodeRelationModal(node.original);
             },
           };
           const remove = {
             label: $translate.instant('REMOVE'),
             _disabled: node.original.root || !myService.checkPermission('tags.delete_structureunit'),
-            action: function() {
+            action: function () {
               vm.removeNodeModal(node, vm.structure);
             },
           };
@@ -407,7 +402,7 @@ export default class ClassificationStructureEditorCtrl {
       plugins: ['types', 'contextmenu', 'dnd'],
     };
 
-    vm.dropNode = function(jqueryObj, data) {
+    vm.dropNode = function (jqueryObj, data) {
       const node = data.node.original;
       const parent = vm.structureTreeInstance.jstree(true).get_node(data.parent);
       $http({
@@ -417,17 +412,17 @@ export default class ClassificationStructureEditorCtrl {
           parent: parent.original.root ? null : parent.original.id,
         },
       })
-        .then(function(response) {})
-        .catch(function(response) {
+        .then(function (response) {})
+        .catch(function (response) {
           Notifications.add('Could not be moved', 'error');
         });
     };
 
-    vm.applyStructureModelChanges = function() {
+    vm.applyStructureModelChanges = function () {
       return !vm.ignoreStructureChanges;
     };
 
-    vm.recreateTree = function(tags) {
+    vm.recreateTree = function (tags) {
       vm.ignoreStructureChanges = true;
       if (angular.equals(tags, vm.structureTreeData)) {
         vm.structureTreeConfig.version++;
@@ -439,7 +434,7 @@ export default class ClassificationStructureEditorCtrl {
 
     // Rules
     vm.newRule = null;
-    vm.addRule = function(name) {
+    vm.addRule = function (name) {
       if (name !== null) {
         vm.rules[name] = {
           movable: true,
@@ -448,7 +443,7 @@ export default class ClassificationStructureEditorCtrl {
       }
     };
     vm.savingRules = false;
-    vm.saveRules = function(rules, structure) {
+    vm.saveRules = function (rules, structure) {
       vm.savingRules = true;
       Structure.update(
         {
@@ -459,7 +454,7 @@ export default class ClassificationStructureEditorCtrl {
             rules: rules,
           },
         }
-      ).$promise.then(function(resource) {
+      ).$promise.then(function (resource) {
         vm.structure = resource;
         vm.rules = resource.specification.rules ? angular.copy(resource.specification.rules) : {};
         vm.savingRules = false;
@@ -467,7 +462,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
     vm.savingSettings = false;
-    vm.saveSettings = function(structure) {
+    vm.saveSettings = function (structure) {
       vm.savingSettings = true;
       Structure.update(
         {
@@ -478,7 +473,7 @@ export default class ClassificationStructureEditorCtrl {
           end_date: vm.structure.end_date,
           level: vm.structure.level,
         }
-      ).$promise.then(function(resource) {
+      ).$promise.then(function (resource) {
         vm.structure = resource;
         vm.oldStructure = angular.copy(resource);
         vm.rules = resource.specification.rules ? angular.copy(resource.specification.rules) : {};
@@ -487,14 +482,14 @@ export default class ClassificationStructureEditorCtrl {
       });
     };
 
-    vm.removeRule = function(rule) {
+    vm.removeRule = function (rule) {
       if (vm.rules[rule]) {
         delete vm.rules[rule];
       }
     };
 
     // Modals
-    vm.publishModal = function(node) {
+    vm.publishModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -512,20 +507,20 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.updateStructures().then(function() {
+        function (data, $ctrl) {
+          vm.updateStructures().then(function () {
             vm.structure = null;
-            $timeout(function() {
+            $timeout(function () {
               vm.structureClick(node);
             });
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.unpublishModal = function(node) {
+    vm.unpublishModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -543,20 +538,20 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.updateStructures().then(function() {
+        function (data, $ctrl) {
+          vm.updateStructures().then(function () {
             vm.structure = null;
-            $timeout(function() {
+            $timeout(function () {
               vm.structureClick(node);
             });
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.editNodeModal = function(node) {
+    vm.editNodeModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -573,18 +568,18 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.getTree(vm.structure).then(function(tree) {
+        function (data, $ctrl) {
+          vm.getTree(vm.structure).then(function (tree) {
             vm.manuallyReload = vm.node;
             vm.recreateTree(tree);
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.addNodeModal = function(node) {
+    vm.addNodeModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -602,19 +597,19 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.getTree(vm.structure).then(function(tree) {
+        function (data, $ctrl) {
+          vm.getTree(vm.structure).then(function (tree) {
             vm.manuallyReload = data;
             vm.recreateTree(tree);
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeNodeModal = function(node, structure) {
+    vm.removeNodeModal = function (node, structure) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -631,17 +626,17 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.structureTreeInstance.jstree(true).delete_node(node.id);
           vm.structureTreeInstance.jstree(true).select_node(node.parent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeStructureModal = function(structure) {
+    vm.removeStructureModal = function (structure) {
       if (!structure.structureType) {
         structure.structureType = angular.copy(structure.type);
       }
@@ -660,25 +655,20 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
+        function (data, $ctrl) {
           vm.structure = null;
           $rootScope.$broadcast('UPDATE_TITLE', {
-            title: $translate.instant(
-              $state.current.name
-                .split('.')
-                .pop()
-                .toUpperCase()
-            ),
+            title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
           });
           vm.updateStructures();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.newStructureModal = function() {
+    vm.newStructureModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -694,18 +684,18 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
-          vm.updateStructures().then(function() {
+        function (data) {
+          vm.updateStructures().then(function () {
             vm.structureClick(data);
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editStructureModal = function(structure) {
+    vm.editStructureModal = function (structure) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -721,19 +711,19 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.structure = null;
           vm.updateStructures().then(() => {
             vm.structureClick(structure);
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addNodeRelationModal = function(node) {
+    vm.addNodeRelationModal = function (node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -750,7 +740,7 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (node.id === vm.node.id) {
             vm.updateStructureUnit();
           } else {
@@ -759,13 +749,13 @@ export default class ClassificationStructureEditorCtrl {
           }
           vm.updateStructures();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editNodeRelationModal = function(relation, node) {
+    vm.editNodeRelationModal = function (relation, node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -783,7 +773,7 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (node.id === vm.node.id) {
             vm.updateStructureUnit();
           } else {
@@ -792,13 +782,13 @@ export default class ClassificationStructureEditorCtrl {
           }
           vm.updateStructures();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeNodeRelationModal = function(relation, node) {
+    vm.removeNodeRelationModal = function (relation, node) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -816,7 +806,7 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           if (node.id === vm.node.id) {
             vm.updateStructureUnit();
           } else {
@@ -825,13 +815,13 @@ export default class ClassificationStructureEditorCtrl {
           }
           vm.updateStructures();
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeStructureRuleModal = function(type, value, structure) {
+    vm.removeStructureRuleModal = function (type, value, structure) {
       const rule = {
         key: type,
         value: value,
@@ -854,8 +844,8 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
-          vm.updateStructures().then(function() {
+        function (data) {
+          vm.updateStructures().then(function () {
             vm.structure.specification = data.specification;
             vm.node.specification = data.specification;
             if (data.specification.rules) {
@@ -863,12 +853,12 @@ export default class ClassificationStructureEditorCtrl {
             }
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.addStructureRuleModal = function(structure) {
+    vm.addStructureRuleModal = function (structure) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -885,8 +875,8 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
-          vm.updateStructures().then(function() {
+        function (data) {
+          vm.updateStructures().then(function () {
             vm.structure.specification = data.specification;
             vm.node.specification = data.specification;
             if (data.specification.rules) {
@@ -894,12 +884,12 @@ export default class ClassificationStructureEditorCtrl {
             }
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.newStructureVersionModal = function(structure) {
+    vm.newStructureVersionModal = function (structure) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -915,13 +905,13 @@ export default class ClassificationStructureEditorCtrl {
         },
       });
       modalInstance.result.then(
-        function(newVersion) {
+        function (newVersion) {
           vm.structure = null;
           vm.updateStructures().then(() => {
             vm.structureClick(newVersion);
           });
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

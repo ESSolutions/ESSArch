@@ -112,7 +112,6 @@ from ESSArch_Core.ip.serializers import (
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
-from ESSArch_Core.maintenance.models import AppraisalRule, ConversionRule
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -332,6 +331,8 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         workarea = self.get_object()
 
         if not workarea.read_only:
+            workarea.delete_files()
+            workarea.ip.delete_files()
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -822,6 +823,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
+        # delete temp files
+        try:
+            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            shutil.rmtree(temp_path)
+        except FileNotFoundError:
+            pass
+
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
             eager=False,
@@ -1288,17 +1296,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if workarea is None:
             raise exceptions.ParseError(detail='IP not in writeable workarea')
 
-        generate_premis = ip.profile_locked('preservation_metadata')
         workflow = [
-            {
-                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                "label": "Generate premis",
-                "if": generate_premis,
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                "label": "Generate content-mets",
-            },
             {
                 "name": "ESSArch_Core.workflow.tasks.ReceiveAIP",
                 "label": "Receive AIP",
@@ -1357,6 +1355,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 os.remove(mets_path)
             except FileNotFoundError:
                 pass
+
+            ip.update_sip_data()
 
             if generate_premis:
                 premis_profile_data = ip.get_profile_data('preservation_metadata')
@@ -1567,10 +1567,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if dip.state != 'Prepared':
             raise exceptions.ParseError('"%s" is not in the "Prepared" state' % dip)
 
-        with transaction.atomic():
-            dip.state = 'Creating'
-            dip.save()
-
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', True)
         validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
@@ -1647,7 +1643,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     },
                     {
                         "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                        "if": generate_premis,
+                        "if": generate_premis and validate_xml_file,
                         "label": "Compare premis and content-mets",
                         "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
                         "params": {'recursive': False},
@@ -1695,7 +1691,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "args": ["Created"],
             },
         ]
+
         with transaction.atomic():
+            dip.state = 'Creating'
+            dip.save()
+
             workflow = create_workflow(workflow_spec, dip)
             workflow.name = "Create DIP"
             workflow.information_package = dip
@@ -1923,80 +1923,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 ptype, ip.pk
             )
         })
-
-    @action(detail=True, methods=['post'], url_path='add-appraisal-rule')
-    def add_appraisal_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        if ip.package_type == InformationPackage.AIC:
-            raise exceptions.ParseError('Cannot add appraisal rule to AIC')
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.add(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='remove-appraisal-rule')
-    def remove_appraisal_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = AppraisalRule.objects.get(pk=rule_id)
-        except AppraisalRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.remove(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='add-conversion-rule')
-    def add_conversion_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        if ip.package_type == InformationPackage.AIC:
-            raise exceptions.ParseError('Cannot add conversion rule to AIC')
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.add(ip)
-        return Response()
-
-    @action(detail=True, methods=['post'], url_path='remove-conversion-rule')
-    def remove_conversion_rule(self, request, pk=None):
-        ip = self.get_object()
-
-        try:
-            rule_id = request.data['id']
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            rule = ConversionRule.objects.get(pk=rule_id)
-        except ConversionRule.DoesNotExist:
-            raise exceptions.ParseError('No rule with id "%s"' % rule_id)
-
-        rule.information_packages.remove(ip)
-        return Response()
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='validate')

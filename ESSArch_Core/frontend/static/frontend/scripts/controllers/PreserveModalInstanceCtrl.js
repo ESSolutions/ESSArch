@@ -11,39 +11,39 @@ export default class PreserveModalInstanceCtrl {
     vm.request = data.request;
     vm.preserving = false;
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if (!vm.data.ips) {
         vm.data.ips = [vm.data.ip];
       }
     };
 
-    vm.ok = function() {
+    vm.ok = function () {
       $uibModalInstance.close();
     };
-    vm.cancel = function() {
+    vm.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
 
     // Preserve IP
-    vm.preserve = function() {
+    vm.preserve = function () {
       vm.preserving = true;
       let data = {
         purpose: vm.request.purpose,
       };
 
       const promises = [];
-      vm.data.ips.forEach(function(ip) {
+      vm.data.ips.forEach(function (ip) {
         promises.push(
           Requests.preserve(ip, data)
-            .then(function(result) {
+            .then(function (result) {
               return result;
             })
-            .catch(function(response) {
+            .catch(function (response) {
               return response;
             })
         );
       });
-      $q.all(promises).then(function(data) {
+      $q.all(promises).then(function (data) {
         $uibModalInstance.close(data);
         vm.preserving = false;
       });

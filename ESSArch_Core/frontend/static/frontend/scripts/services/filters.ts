@@ -27,14 +27,14 @@ export default (
       .get(appConfig.djangoUrl + 'storage-policies/', {
         params: {page: 1, page_size: 10, search},
       })
-      .then(response => {
+      .then((response) => {
         policies = response.data;
         return response.data;
       });
   };
 
   let getUsers = (search: string) => {
-    return $http.get(appConfig.djangoUrl + 'users/', {params: {page: 1, page_size: 10, search}}).then(response => {
+    return $http.get(appConfig.djangoUrl + 'users/', {params: {page: 1, page_size: 10, search}}).then((response) => {
       users = response.data;
       return response.data;
     });
@@ -43,7 +43,7 @@ export default (
   let getEventTypes = (search: string) => {
     return $http
       .get(appConfig.djangoUrl + 'event-types/', {params: {page: 1, page_size: 10, search}})
-      .then(response => {
+      .then((response) => {
         eventTypes = response.data;
         return response.data;
       });
@@ -57,11 +57,11 @@ export default (
       .get(appConfig.djangoUrl + 'storage-mediums/', {
         params: angular.extend({page: 1, page_size: 10, ordering: 'medium_id', search}, params),
       })
-      .then(response => {
+      .then((response) => {
         mediums = response.data;
         return response.data;
       })
-      .catch(response => {
+      .catch((response) => {
         if (response.data && response.data.medium_id_range) {
           Notifications.add(response.data.medium_id_range, 'error');
         }
@@ -169,12 +169,12 @@ export default (
         label: $translate.instant('RESPONSIBLE'),
         labelProp: 'username',
         valueProp: 'username',
-        optionsFunction: function() {
+        optionsFunction: function () {
           return users;
         },
         clearEnabled: true,
         appendToBody: true,
-        refresh: function(search) {
+        refresh: function (search) {
           return getUsers(search);
         },
       },
@@ -216,20 +216,20 @@ export default (
       labelProp: 'policy_name',
       valueProp: 'id',
       required: true,
-      optionsFunction: function() {
+      optionsFunction: function () {
         return policies;
       },
       appendToBody: true,
-      refresh: function(search) {
+      refresh: function (search) {
         getStoragePolicies(search);
       },
-      addDefault: x => {
+      addDefault: (x) => {
         policies.unshift(x);
         mediumPolicyFilterValue = x.id;
       },
     },
     expressionProperties: {
-      'templateOptions.onChange': function($modelValue) {
+      'templateOptions.onChange': function ($modelValue) {
         mediumPolicyFilterValue = $modelValue;
       },
     },
@@ -246,12 +246,12 @@ export default (
               label: $translate.instant('MEDIUMID'),
               labelProp: 'medium_id',
               valueProp: 'medium_id',
-              optionsFunction: function() {
+              optionsFunction: function () {
                 return mediums;
               },
               clearEnabled: true,
               appendToBody: true,
-              refresh: function(search) {
+              refresh: function (search) {
                 return getMediums(search, {policy: mediumPolicyFilterValue});
               },
             },
@@ -266,12 +266,12 @@ export default (
               label: $translate.instant('MEDIUMID_MIN'),
               labelProp: 'medium_id',
               valueProp: 'medium_id',
-              optionsFunction: function() {
+              optionsFunction: function () {
                 return mediums;
               },
               clearEnabled: true,
               appendToBody: true,
-              refresh: function(search) {
+              refresh: function (search) {
                 return getMediums(search, {
                   medium_id_range_max: minMediumFilterValue,
                   policy: mediumPolicyFilterValue,
@@ -279,7 +279,7 @@ export default (
               },
             },
             expressionProperties: {
-              'templateOptions.onChange': function($modelValue) {
+              'templateOptions.onChange': function ($modelValue) {
                 maxMediumFilterValue = $modelValue;
               },
             },
@@ -294,12 +294,12 @@ export default (
               label: $translate.instant('MEDIUMID_MAX'),
               labelProp: 'medium_id',
               valueProp: 'medium_id',
-              optionsFunction: function() {
+              optionsFunction: function () {
                 return mediums;
               },
               clearEnabled: true,
               appendToBody: true,
-              refresh: function(search) {
+              refresh: function (search) {
                 return getMediums(search, {
                   medium_id_range_min: maxMediumFilterValue,
                   policy: mediumPolicyFilterValue,
@@ -307,7 +307,7 @@ export default (
               },
             },
             expressionProperties: {
-              'templateOptions.onChange': function($modelValue) {
+              'templateOptions.onChange': function ($modelValue) {
                 minMediumFilterValue = $modelValue;
               },
             },
@@ -325,7 +325,7 @@ export default (
         },
         defaultValue: false,
         expressionProperties: {
-          'templateOptions.onChange': function($viewValue, $modelValue, scope) {
+          'templateOptions.onChange': function ($viewValue, $modelValue, scope) {
             if ($modelValue === true) {
               scope.model.medium_id = null;
             } else {
@@ -398,12 +398,12 @@ export default (
         labelProp: 'eventDetail',
         valueProp: 'eventType',
         options: eventTypes,
-        optionsFunction: function() {
+        optionsFunction: function () {
           return eventTypes;
         },
         clearEnabled: true,
         appendToBody: true,
-        refresh: function(search) {
+        refresh: function (search) {
           getEventTypes(search);
         },
       },

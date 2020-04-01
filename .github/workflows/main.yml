@@ -1,11 +1,11 @@
 name: Tests
 
 on:
+  pull_request:
   push:
     branches:
-      - master
-  pull_request:
-    branches:
+      - staging
+      - trying
       - master
 
 jobs:
@@ -52,6 +52,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements/docs.txt -r requirements/lint.txt
+          pip check
           yarn install --frozen-lockfile
 
       - name: doc8
@@ -133,13 +134,23 @@ jobs:
           # see https://github.com/pypa/pip/issues/4887
           pip install --upgrade six>=1.12.0
 
-          pip install .[docs]
+          pip install -e .[docs]
           essarch settings generate -qp local_essarch_settings.py
 
       - name: Build
         run: |
           cd ESSArch_Core/docs
           make html SPHINXOPTS="-W"
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build
+        run: |
+          cd docker
+          docker-compose build essarch
 
   test-windows:
     runs-on: windows-latest
@@ -266,6 +277,7 @@ jobs:
           - 19200:9200
         options: >-
           -e="discovery.type=single-node"
+          --name="elasticsearch"
           --health-cmd="curl http://localhost:9200/_cluster/health"
           --health-interval=10s
           --health-timeout=5s
@@ -347,6 +359,9 @@ jobs:
 
       - name: Install
         run: |
+          docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
+          docker restart elasticsearch
+
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
