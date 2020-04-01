@@ -3,7 +3,6 @@ import logging
 import os
 import shutil
 import tarfile
-import tempfile
 from os import walk
 
 from glob2 import iglob
@@ -11,7 +10,7 @@ from glob2 import iglob
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
-from ESSArch_Core.util import normalize_path
+from ESSArch_Core.util import normalize_path, open_file
 
 logger = logging.getLogger('essarch.storage.backends.disk')
 
@@ -29,17 +28,12 @@ class DiskStorageBackend(BaseStorageBackend):
 
         return os.path.join(dst, root)
 
-    def open(self, storage_object, file, mode='r', *args, **kwargs):
+    def open(self, storage_object: StorageObject, file, mode='r', *args, **kwargs):
         if storage_object.container:
-            tmp = tempfile.NamedTemporaryFile(mode='w+b' if 'b' in mode else 'w+')
-            with tarfile.open(storage_object.get_full_path()) as t:
-                f = t.extractfile(file)
-                if 'b' in mode:
-                    tmp.write(f.read())
-                else:
-                    tmp.write(f.read().decode('utf-8'))
-                tmp.seek(0)
-            return tmp
+            return open_file(
+                file, *args, container=storage_object.get_full_path(),
+                container_prefix=storage_object.ip.object_identifier_value, **kwargs
+            )
 
         path = os.path.join(storage_object.get_full_path(), file)
         return open(path, mode, *args, **kwargs)

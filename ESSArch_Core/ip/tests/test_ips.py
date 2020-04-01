@@ -3846,16 +3846,29 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         with open(test_file, 'w') as f:
             f.write('hello world')
 
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        test_nested_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(test_nested_file, 'w') as f:
+            f.write('hello nested world')
+
         index_path(self.ip, test_file)
+        index_path(self.ip, test_nested_file)
         File._index.refresh()
 
-        os.makedirs(short_term_obj.get_full_path())
+        os.makedirs(os.path.join(short_term_obj.get_full_path(), 'nested'))
         copy(test_file, short_term_obj.get_full_path())
+        copy(test_nested_file, os.path.join(short_term_obj.get_full_path(), 'nested'))
 
         params = {'path': 'foo.txt'}
         res = self.client.get(self.url, params)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
         res.close()
 
     def test_get_archived_file_from_long_term(self):
@@ -3879,14 +3892,27 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         with open(test_file, 'w') as f:
             f.write('hello world')
 
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        nested_test_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(nested_test_file, 'w') as f:
+            f.write('hello nested world')
+
         index_path(self.ip, test_file)
+        index_path(self.ip, nested_test_file)
         File._index.refresh()
 
         with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
             t.add(test_file, arcname='foo.txt')
+            t.add(nested_test_file, arcname='nested/bar.txt')
 
         params = {'path': 'foo.txt'}
         res: FileResponse = self.client.get(self.url, params)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
         res.close()

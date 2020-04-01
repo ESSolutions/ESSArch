@@ -42,7 +42,6 @@ from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
-from ESSArch_Core.storage.exceptions import NoWriteableStorage
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 
 logger = logging.getLogger('essarch.storage.models')

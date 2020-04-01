@@ -33,10 +33,6 @@ class NoReadableStorage(ESSArchException):
     pass
 
 
-class NoWriteableStorage(ESSArchException):
-    pass
-
-
 class StorageMediumFull(ESSArchException):
     pass
 
