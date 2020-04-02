@@ -19,7 +19,7 @@ from elasticsearch_dsl.connections import (
 )
 from languages_plus.models import Language
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APITransactionTestCase
 
 from ESSArch_Core.agents.models import (
     Agent,
@@ -69,9 +69,7 @@ def get_test_client(nowait=False):
         raise SkipTest("Elasticsearch failed to start")
 
 
-@override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
-@tag('requires-elasticsearch')
-class ESSArchSearchBaseTestCase(APITestCase):
+class ESSArchSearchBaseTestCaseMixin:
     @staticmethod
     def _get_client():
         return get_test_client()
@@ -110,6 +108,18 @@ class ESSArchSearchBaseTestCase(APITestCase):
     def tearDown(self):
         self.es_client.indices.delete(index="*", ignore=404)
         self.es_client.indices.delete_template(name="*", ignore=404)
+
+
+@override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
+@tag('requires-elasticsearch')
+class ESSArchSearchBaseTestCase(ESSArchSearchBaseTestCaseMixin, APITestCase):
+    pass
+
+
+@override_settings(ELASTICSEARCH_CONNECTIONS=settings.ELASTICSEARCH_TEST_CONNECTIONS)
+@tag('requires-elasticsearch')
+class ESSArchSearchBaseTransactionTestCase(ESSArchSearchBaseTestCaseMixin, APITransactionTestCase):
+    pass
 
 
 class ComponentSearchTestCase(ESSArchSearchBaseTestCase):

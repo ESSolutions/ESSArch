@@ -38,6 +38,7 @@ import requests
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import FileResponse
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
@@ -70,6 +71,8 @@ from ESSArch_Core.profiles.models import (
     SubmissionAgreement,
     SubmissionAgreementIPData,
 )
+from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
@@ -79,12 +82,22 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
-from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_method_rel,
+    add_storage_obj,
+)
+from ESSArch_Core.tags.documents import File
+from ESSArch_Core.tags.tests.test_search import (
+    ESSArchSearchBaseTestCase,
+    ESSArchSearchBaseTransactionTestCase,
+)
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.testing.test_helpers import (
     create_mets_spec,
     create_premis_spec,
 )
+from ESSArch_Core.util import timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
@@ -3308,7 +3321,7 @@ class UploadTestCase(TestCase):
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
 
-class FilesActionTests(TestCase):
+class FilesActionTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -3321,7 +3334,6 @@ class FilesActionTests(TestCase):
         self.datadir2 = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir2)
 
-        self.client = APIClient()
         self.user = User.objects.create(username="admin")
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.SIP,
@@ -3340,12 +3352,6 @@ class FilesActionTests(TestCase):
         membership.roles.add(self.user_role)
 
         self.org.add_object(self.ip)
-
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
 
     def test_get_method_with_no_params(self):
         self.client.force_authenticate(user=self.user)
@@ -3790,3 +3796,159 @@ class FilesActionTests(TestCase):
         expected_error_message = "Cannot delete or add content of an IP that is not in 'Prepared' or 'Uploading' state"
         self.assertEqual(resp.data['detail'], expected_error_message)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.user = User.objects.create(username="admin")
+
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy,)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            archived=True, responsible=self.user,
+            submission_agreement=sa, object_path=self.datadir,
+        )
+        self.url = reverse('informationpackage-files', args=(self.ip.pk,))
+        sa.lock_to_information_package(self.ip, self.user)
+
+    def test_get_archived_dir_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        index_path(self.ip, test_file)
+        File._index.refresh()
+
+        os.makedirs(short_term_obj.get_full_path())
+        copy(test_file, short_term_obj.get_full_path())
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data,
+            [
+                {
+                    'name': 'foo.txt',
+                    'size': 11,
+                    'type': 'file',
+                    'modified': timestamp_to_datetime(os.stat(test_file).st_mtime).isoformat(),
+                }
+            ]
+        )
+
+    def test_get_archived_file_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        test_nested_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(test_nested_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, test_nested_file)
+        File._index.refresh()
+
+        os.makedirs(os.path.join(short_term_obj.get_full_path(), 'nested'))
+        copy(test_file, short_term_obj.get_full_path())
+        copy(test_nested_file, os.path.join(short_term_obj.get_full_path(), 'nested'))
+
+        params = {'path': 'foo.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()
+
+    def test_get_archived_file_from_long_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        long_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        long_term.storage_method.containers = True
+        long_term.storage_method.save()
+        long_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        long_term.storage_target.save()
+        long_term_medium = add_storage_medium(long_term.storage_target, 20, 'm1')
+        long_term_obj = add_storage_obj(
+            self.ip, long_term_medium, DISK, self.ip.object_identifier_value + '.tar',
+        )
+        long_term_obj.container = True
+        long_term_obj.save()
+
+        self.ip.policy.storage_methods.add(long_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        nested_test_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(nested_test_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, nested_test_file)
+        File._index.refresh()
+
+        with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
+            t.add(test_file, arcname='foo.txt')
+            t.add(nested_test_file, arcname='nested/bar.txt')
+
+        params = {'path': 'foo.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()
