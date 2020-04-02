@@ -1005,15 +1005,9 @@ class InformationPackage(models.Model):
         except Workarea.DoesNotExist:
             workarea_id = None
 
-        container_methods = self.policy.storage_methods.secure_storage().filter(
-            remote=False, enabled=True,
-        )
-        non_container_methods = self.policy.storage_methods.archival_storage().filter(
-            remote=False, enabled=True,
-        )
-        remote_methods = self.policy.storage_methods.filter(
-            remote=True, enabled=True,
-        )
+        container_methods = self.policy.storage_methods.secure_storage().filter(remote=False)
+        non_container_methods = self.policy.storage_methods.archival_storage().filter(remote=False)
+        remote_methods = self.policy.storage_methods.filter(remote=True)
 
         remote_servers = set([
             method.enabled_target.remote_server

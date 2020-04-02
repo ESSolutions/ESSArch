@@ -463,6 +463,9 @@ class PreserveInformationPackage(DBTask):
         if storage_method not in policy_methods:
             raise ValueError('{} not part of {}'.format(storage_method, policy))
 
+        if not storage_method.enabled:
+            raise ValueError('Storage method "{}" is disabled'.format(storage_method.name))
+
         try:
             storage_target = storage_method.enabled_target
         except StorageTarget.DoesNotExist:
