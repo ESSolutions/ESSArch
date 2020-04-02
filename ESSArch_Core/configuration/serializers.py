@@ -133,7 +133,7 @@ class StorageMethodSerializer(serializers.ModelSerializer):
 
 
 class StoragePolicySerializer(serializers.ModelSerializer):
-    cache_storage = PathSerializer()
+    cache_storage = StorageMethodSerializer()
     storage_methods = StorageMethodSerializer(many=True)
     ingest_path = PathSerializer()
 
