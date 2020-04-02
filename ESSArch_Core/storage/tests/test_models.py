@@ -359,7 +359,7 @@ class StorageObjectOpenTests(TestCase):
             t.add(file_name, arcname='foo.txt')
 
         with storage_object.open('foo.txt') as f:
-            self.assertEqual(f.read(), 'hello world')
+            self.assertEqual(f.read(), b'hello world')
 
 
 class StorageObjectReadTests(TestCase):
