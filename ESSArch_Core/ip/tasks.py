@@ -24,6 +24,7 @@ from tenacity import (
 )
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
+from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
@@ -349,6 +350,7 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
 
 class CreatePhysicalModel(DBTask):
     event_type = 10300
+    name = 'ESSArch_Core.ip.tasks.CreatePhysicalModel'
 
     def run(self, structure=None, root=""):
         """
@@ -368,6 +370,7 @@ class CreatePhysicalModel(DBTask):
         ip = self.get_information_package()
         return "Created physical model for %s" % ip.object_identifier_value
 
+app.tasks.register(CreatePhysicalModel())
 
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
@@ -527,6 +530,7 @@ class PostPreservationCleanup(DBTask):
 
 class DeleteInformationPackage(DBTask):
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
+    name = 'ESSArch_Core.ip.tasks.DeleteInformationPackage'
 
     def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()
@@ -565,6 +569,8 @@ class DeleteInformationPackage(DBTask):
 
         Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
+
+app.tasks.register(DeleteInformationPackage())
 
 
 class CreateWorkarea(DBTask):

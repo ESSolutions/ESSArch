@@ -31,6 +31,7 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
 
+from ESSArch_Core.config.celery import app
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -42,21 +43,21 @@ User = get_user_model()
 logger = logging.getLogger('essarch')
 
 
-class DBTask(Task):
+class DBTask(app.Task):
     abstract = True
     args = []
     event_type = None
     queue = 'celery'
     hidden = False
     undo_type = False
-    responsible = None
-    ip = None
     step = None
     step_pos = None
     track = True
     allow_failure = False
 
     def __call__(self, *args, **kwargs):
+        print('got task!', self.request.id)
+        return self._run(*args, **kwargs)
         options = kwargs.pop('_options', {})
 
         self.args = options.get('args', [])
@@ -91,6 +92,29 @@ class DBTask(Task):
             pass
 
         return self._run(*args, **kwargs)
+
+    @property
+    def headers(self):
+        if self.eager:
+            return self.request.headers['headers']
+
+        return self.request.headers
+
+    @property
+    def responsible(self):
+        return self.headers.get('responsible')
+
+    @property
+    def ip(self):
+        return self.headers.get('ip')
+
+    @property
+    def task_id(self):
+        return self.request.id
+
+    @property
+    def eager(self):
+        return self.request.is_eager
 
     def _run(self, *args, **kwargs):
         self.extra_data = {}
@@ -166,6 +190,7 @@ class DBTask(Task):
             step.clear_cache()
 
     def create_event(self, task_id, status, args, kwargs, retval, einfo):
+        return
         if status == celery_states.SUCCESS:
             outcome = EventIP.SUCCESS
             level = logging.INFO
@@ -201,7 +226,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if getattr(self, 'eager', True):
+        if self.eager:
             self.update_state(task_id=task_id, state=celery_states.FAILURE)
             self.backend._store_result(
                 task_id, self.backend.prepare_exception(exc),
@@ -219,7 +244,7 @@ class DBTask(Task):
         timestamps
         '''
 
-        if getattr(self, 'eager', True):
+        if self.eager:
             self.update_state(task_id=task_id, state=celery_states.SUCCESS)
             self.backend.store_result(task_id, retval, celery_states.SUCCESS)
 

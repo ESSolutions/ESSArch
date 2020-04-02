@@ -756,7 +756,7 @@ class ProcessTask(Process):
 
         ip_id = str(self.information_package_id) if self.information_package_id is not None else None
         step_id = str(self.processstep_id) if self.processstep_id is not None else None
-        self.params['_options'] = {
+        headers = {
             'responsible': self.responsible_id, 'ip':
             ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
@@ -770,17 +770,20 @@ class ProcessTask(Process):
             on_error_group = None
 
         if self.eager:
-            self.params['_options']['result_params'] = self.result_params
+            headers['result_params'] = self.result_params
+            headers_hack = {'headers': headers}
             logger.debug('Running task eagerly ({})'.format(self.pk))
-            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.celery_id), link_error=on_error_group)
+            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.celery_id), link_error=on_error_group, headers=headers_hack)
         else:
+            headers_hack = {'headers': headers}
             logger.debug('Running task non-eagerly ({})'.format(self.pk))
             res = t.apply_async(
                 args=self.args,
                 kwargs=self.params,
                 task_id=str(self.celery_id),
                 link_error=on_error_group,
-                queue=t.queue
+                queue=t.queue,
+                headers=headers_hack,
             )
 
         return res
