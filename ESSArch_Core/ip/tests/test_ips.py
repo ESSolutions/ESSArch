@@ -73,6 +73,7 @@ from ESSArch_Core.profiles.models import (
 )
 from ESSArch_Core.search.ingest import index_path
 from ESSArch_Core.storage.copy import copy
+from ESSArch_Core.storage.exceptions import NoWriteableStorage
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
@@ -1744,6 +1745,44 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
 
         self.policy = StoragePolicy.objects.create(ingest_path=ingest)
 
+        self.sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
+            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
+        )
+        self.sa.profile_aip = Profile.objects.create(
+            profile_type='aip', specification=create_mets_spec(False, self.sa),
+            structure=[
+                {
+                    'type': 'file',
+                    'name': 'this_is_mets.xml',
+                    'use': 'mets_file',
+                },
+                {
+                    'type': 'file',
+                    'name': 'premis.xml',
+                    'use': 'preservation_description_file',
+                },
+                {
+                    'type': 'dir',
+                    'name': 'schemas',
+                    'use': 'xsd_files',
+                },
+            ]
+        )
+        self.sa.profile_aic_description = Profile.objects.create(
+            profile_type='aic_description',
+            specification=create_mets_spec(True, self.sa),
+        )
+        self.sa.profile_aip_description = Profile.objects.create(
+            profile_type='aip_description',
+            specification=create_mets_spec(True, self.sa),
+        )
+        self.sa.profile_preservation_metadata = Profile.objects.create(
+            profile_type='preservation_metadata',
+            specification=create_premis_spec(self.sa),
+        )
+        self.sa.save()
+
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     def test_preserve_aip(self, mock_validate_schema):
@@ -1766,54 +1805,16 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         )
         self.policy.storage_methods.add(container_storage_method, storage_method)
 
-        sa = SubmissionAgreement.objects.create(
-            policy=self.policy,
-            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
-        )
-        sa.profile_aip = Profile.objects.create(
-            profile_type='aip', specification=create_mets_spec(False, sa),
-            structure=[
-                {
-                    'type': 'file',
-                    'name': 'this_is_mets.xml',
-                    'use': 'mets_file',
-                },
-                {
-                    'type': 'file',
-                    'name': 'premis.xml',
-                    'use': 'preservation_description_file',
-                },
-                {
-                    'type': 'dir',
-                    'name': 'schemas',
-                    'use': 'xsd_files',
-                },
-            ]
-        )
-        sa.profile_aic_description = Profile.objects.create(
-            profile_type='aic_description',
-            specification=create_mets_spec(True, sa),
-        )
-        sa.profile_aip_description = Profile.objects.create(
-            profile_type='aip_description',
-            specification=create_mets_spec(True, sa),
-        )
-        sa.profile_preservation_metadata = Profile.objects.create(
-            profile_type='preservation_metadata',
-            specification=create_premis_spec(sa),
-        )
-        sa.save()
-
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         ip = InformationPackage.objects.create(
-            package_type=InformationPackage.AIP, submission_agreement=sa,
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
             object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
             generation=0, aic=aic,
         )
         with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
             f.write('bar')
 
-        sa.lock_to_information_package(ip, self.user)
+        self.sa.lock_to_information_package(ip, self.user)
         url = reverse('informationpackage-preserve', args=(ip.pk,))
 
         perms = {'group': ['view_informationpackage']}
@@ -1823,6 +1824,7 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         ip.refresh_from_db()
+        self.assertTrue(ip.archived)
         container_target_dir = os.listdir(container_storage_target.target)
         self.assertNotIn(str(ip.pk), container_target_dir)
         self.assertIn('{}.tar'.format(ip.pk), container_target_dir)
@@ -1857,6 +1859,94 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
 
         tempdir = Path.objects.get(entity="temp").value
         self.assertEqual(os.listdir(tempdir), [])
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_preserve_aip_to_disabled_method(self, _):
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False, enabled=False)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir), status=True)
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(container_storage_method, storage_method)
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        self.sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, ip, custom_permissions=perms)
+
+        expected_message = 'Storage method "{}" is disabled'.format(storage_method.name)
+        with self.assertRaisesMessage(NoWriteableStorage, expected_message):
+            self.client.post(url)
+
+        ip.refresh_from_db()
+        self.assertFalse(ip.archived)
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_preserve_aip_to_disabled_target(self, _):
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir), status=False)
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(container_storage_method, storage_method)
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        self.sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, ip, custom_permissions=perms)
+
+        expected_message = 'No writeable target available for "{}"'.format(storage_method.name)
+        with self.assertRaisesMessage(NoWriteableStorage, expected_message):
+            self.client.post(url)
+
+        ip.refresh_from_db()
+        self.assertFalse(ip.archived)
 
     @TaskRunner()
     def test_preserve_dip(self):

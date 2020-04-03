@@ -240,6 +240,7 @@ class StorageMethod(models.Model):
     @property
     def enabled_target(self):
         return StorageTarget.objects.get(
+            status=True,
             storage_method_target_relations__storage_method=self,
             storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
         )
