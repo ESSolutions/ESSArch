@@ -394,7 +394,8 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                 _('Cannot delete units in instances of type {}').format(structure.type)
             )
 
-        return super().destroy(request, *args, **kwargs)
+        with transaction.atomic():
+            return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['get'])
     def nodes(self, request, pk=None, parent_lookup_structure=None):
