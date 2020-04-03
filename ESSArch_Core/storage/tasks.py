@@ -30,21 +30,25 @@ class StorageMigration(DBTask):
         except StorageTarget.DoesNotExist:
             raise ValueError('No writeable target available for {}'.format(storage_method))
 
+        dir_path = os.path.join(temp_path, ip.object_identifier_value)
+        container_path = os.path.join(temp_path, ip.object_identifier_value + '.{}'.format(container_format))
+        aip_xml_path = os.path.join(temp_path, ip.object_identifier_value + '.xml')
+        aic_xml_path = os.path.join(temp_path, ip.aic.object_identifier_value + '.xml')
+
         if storage_target.master_server and not storage_target.remote_server:
             # we are on remote host
             src_container = True
         else:
             # we are not on master, access from existing storage object
             storage_object = ip.get_fastest_readable_storage_object()
-            storage_object.read(os.path.join(temp_path, ip.object_identifier_value), self.get_processtask())
+            if storage_object.container:
+                storage_object.read(container_path, self.get_processtask())
+            else:
+                storage_object.read(dir_path, self.get_processtask())
+
             src_container = storage_object.container
 
         dst_container = storage_method.containers
-
-        dir_path = os.path.join(temp_path, ip.object_identifier_value)
-        container_path = os.path.join(temp_path, ip.object_identifier_value + '.{}'.format(container_format))
-        aip_xml_path = os.path.join(temp_path, ip.object_identifier_value + '.xml')
-        aic_xml_path = os.path.join(temp_path, ip.aic.object_identifier_value + '.xml')
 
         # If storage_object is "long term" and storage_method is not (or vice versa),
         # then we have to do some "conversion" before we go any further
@@ -53,10 +57,10 @@ class StorageMigration(DBTask):
             # extract container
             if container_format == 'tar':
                 with tarfile.open(container_path) as tar:
-                    tar.extractall(temp_path)
+                    tar.extractall(dir_path)
             elif container_format == 'zip':
                 with zipfile.ZipFile(container_path) as zipf:
-                    zipf.extractall(temp_path)
+                    zipf.extractall(dir_path)
             else:
                 raise ValueError('Invalid container format: {}'.format(container_format))
 
@@ -73,7 +77,7 @@ class StorageMigration(DBTask):
             generate_package_mets(ip, container_path, aip_xml_path)
             generate_aic_mets(ip, aic_xml_path)
 
-        if storage_method.containers or storage_target.remote_server:
+        if dst_container or storage_target.remote_server:
             src = [
                 container_path,
                 aip_xml_path,
@@ -94,7 +98,7 @@ class StorageMigration(DBTask):
             for s in src:
                 copy_file(s, dst, requests_session=requests_session)
 
-        obj_id = ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+        obj_id = ip.preserve(src, storage_target, dst_container, self.get_processtask())
 
         Notification.objects.create(
             message="Migrated {} to {}".format(ip.object_identifier_value, storage_method.name),
