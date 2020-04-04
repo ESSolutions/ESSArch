@@ -57,10 +57,10 @@ class StorageMigration(DBTask):
             # extract container
             if container_format == 'tar':
                 with tarfile.open(container_path) as tar:
-                    tar.extractall(dir_path)
+                    tar.extractall(temp_path)
             elif container_format == 'zip':
                 with zipfile.ZipFile(container_path) as zipf:
-                    zipf.extractall(dir_path)
+                    zipf.extractall(temp_path)
             else:
                 raise ValueError('Invalid container format: {}'.format(container_format))
 
