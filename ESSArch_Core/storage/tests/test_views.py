@@ -781,7 +781,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         f, fpath = tempfile.mkstemp(dir=self.datadir)
         os.close(f)
         with tarfile.open(old_storage_obj.get_full_path(), 'w') as tar:
-            tar.add(fpath)
+            tar.add(fpath, os.path.join(self.ip.object_identifier_value, 'dummyfile'))
 
         open(os.path.splitext(old_storage_obj.get_full_path())[0] + '.xml', 'a').close()
         target = old.storage_target.target
