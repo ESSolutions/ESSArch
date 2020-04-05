@@ -1,3 +1,7 @@
+import os
+import shutil
+import tarfile
+import tempfile
 from unittest import mock
 
 from celery import states as celery_states
@@ -7,9 +11,9 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.models import Profile, SubmissionAgreement
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_DISABLED,
@@ -32,6 +36,10 @@ from ESSArch_Core.storage.tests.helpers import (
     add_storage_obj,
 )
 from ESSArch_Core.testing.runner import TaskRunner
+from ESSArch_Core.testing.test_helpers import (
+    create_mets_spec,
+    create_premis_spec,
+)
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
@@ -692,20 +700,28 @@ class StorageMethodListTests(TestCase):
         self.assertEqual(response.data[0]['id'], str(storage_method1.pk))
 
 
-class StorageMigrationTestsBase(TestCase):
+class StorageMigrationTestsBase(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create(username='user', is_superuser=True)
 
-        cls.policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(entity='test', value='foo')
-        )
-        cls.sa = SubmissionAgreement.objects.create(policy=cls.policy)
-        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=cls.sa)
-
     def setUp(self):
-        self.client = APIClient()
         self.client.force_authenticate(user=self.user)
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.tempdir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir)).value
+        self.policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        )
+        self.sa = SubmissionAgreement.objects.create(policy=self.policy)
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        self.ip = InformationPackage.objects.create(
+            archived=True, submission_agreement=self.sa,
+            package_type=InformationPackage.AIP, aic=aic,
+            generation=0,
+        )
 
 
 class StorageMigrationTests(StorageMigrationTestsBase):
@@ -714,15 +730,26 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         super().setUpTestData()
         cls.url = reverse('storage-migrations-list')
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
-    def test_migrate(self, mock_task):
+        Parameter.objects.create(entity='agent_identifier_value', value='ESS')
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+        Parameter.objects.create(entity='medium_location', value='Media')
+
+    @TaskRunner()
+    def test_migrate(self):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        old.storage_target.save()
+
         self.policy.storage_methods.add(old.storage_method)
         old_medium = add_storage_medium(old.storage_target, 20)
-        add_storage_obj(self.ip, old_medium, DISK, '')
+        add_storage_obj(self.ip, old_medium, DISK, '', create_dir=True)
 
         StorageMethodTargetRelation.objects.create(
-            storage_target=StorageTarget.objects.create(),
+            storage_target=StorageTarget.objects.create(
+                target=tempfile.mkdtemp(dir=self.datadir),
+            ),
             storage_method=old.storage_method,
             status=STORAGE_TARGET_STATUS_ENABLED,
         )
@@ -730,11 +757,90 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         data = {
             'information_packages': [str(self.ip.pk)],
             'policy': str(self.policy.pk),
-            'temp_path': 'temp',
+            'temp_path': self.tempdir,
         }
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_task.assert_called_once()
+
+    @TaskRunner()
+    def test_migrate_container_to_non_container(self):
+        old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        old.storage_target.save()
+
+        self.policy.storage_methods.add(old.storage_method)
+        old_medium = add_storage_medium(old.storage_target, 20)
+        old_storage_obj = add_storage_obj(self.ip, old_medium, DISK, '', create_dir=False)
+        old_storage_obj.container = True
+        old_storage_obj.save()
+
+        f, fpath = tempfile.mkstemp(dir=self.datadir)
+        os.close(f)
+        with tarfile.open(old_storage_obj.get_full_path(), 'w') as tar:
+            tar.add(fpath, os.path.join(self.ip.object_identifier_value, 'dummyfile'))
+
+        open(os.path.splitext(old_storage_obj.get_full_path())[0] + '.xml', 'a').close()
+        target = old.storage_target.target
+        open(os.path.join(target, str(self.ip.aic.pk)) + '.xml', 'a').close()
+
+        StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(
+                target=tempfile.mkdtemp(dir=self.datadir),
+            ),
+            storage_method=old.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': self.tempdir,
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @TaskRunner()
+    def test_migrate_non_container_to_container(self):
+        self.sa.profile_aic_description = Profile.objects.create(
+            profile_type='aic_description',
+            specification=create_mets_spec(True, self.sa),
+        )
+        self.sa.profile_aip_description = Profile.objects.create(
+            profile_type='aip_description',
+            specification=create_mets_spec(True, self.sa),
+        )
+        self.sa.profile_preservation_metadata = Profile.objects.create(
+            profile_type='preservation_metadata',
+            specification=create_premis_spec(self.sa),
+        )
+        self.sa.lock_to_information_package(self.ip, self.user)
+
+        old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        old.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        old.storage_target.save()
+
+        self.policy.storage_methods.add(old.storage_method)
+        old_medium = add_storage_medium(old.storage_target, 20)
+        old_storage_obj = add_storage_obj(self.ip, old_medium, DISK, '', create_dir=True)
+        old_storage_obj.save()
+
+        new_storage_method = StorageMethod.objects.create(containers=True)
+        StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(
+                target=tempfile.mkdtemp(dir=self.datadir),
+            ),
+            storage_method=new_storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        self.policy.storage_methods.add(new_storage_method)
+
+        data = {
+            'information_packages': [str(self.ip.pk)],
+            'policy': str(self.policy.pk),
+            'temp_path': self.tempdir,
+        }
+        response = self.client.post(self.url, data=data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_method_rel_states(self, mock_task):

@@ -673,7 +673,8 @@ class StorageObjectQueryset(models.QuerySet):
             storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
-                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY
+                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
+                STORAGE_TARGET_STATUS_MIGRATE,
             ],
             storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
             storage_medium__status__in=[20, 30], storage_medium__location_status=50
@@ -769,7 +770,10 @@ class StorageObject(models.Model):
         return all((
             self.storage_medium.storage_target.status,
             self.storage_medium.storage_target.storage_method_target_relations.filter(
-                status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+                status__in=[
+                    STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
+                    STORAGE_TARGET_STATUS_MIGRATE,
+                ],
                 storage_method__enabled=True,
             ),
             self.storage_medium.status in [20, 30],
