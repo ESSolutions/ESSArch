@@ -247,7 +247,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             workflow_spec[0]['children'].append({
                 "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
                 "label": tool_name,
-                "args": [tool_name, pattern, workarea.path, options]
+                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
             })
 
         workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
@@ -889,7 +889,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "step": True,
                 "name": "Convert files",
-                "children": [],
+                "children": []
             }
         ]
 
@@ -905,7 +905,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workflow_spec[0]['children'].append({
                 "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
                 "label": tool_name,
-                "args": [tool_name, pattern, ip.object_path, options]
+                "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
             })
 
         workflow = create_workflow(workflow_spec, eager=False, ip=ip)

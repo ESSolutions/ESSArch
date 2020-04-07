@@ -14,6 +14,7 @@ from ESSArch_Core.auth.models import Notification
 
 User = get_user_model()
 
+
 class Convert(DBTask):
     def _convert(self, path, rootdir, tool, options, delete_original=True):
         tool.run(path, rootdir, options)
@@ -30,7 +31,7 @@ class Convert(DBTask):
         if delete_original:
             os.remove(path)
 
-    def create_notification(self, ip):
+    def create_notification(self, ip, purpose):
         Notification.objects.create(
             message='"{ip}" was successfully converted'.format(
                 ip=ip.object_identifier_value
@@ -39,8 +40,15 @@ class Convert(DBTask):
             user_id=self.responsible,
             refresh=True
         )
+        EventIP.objects.create(
+            eventType_id=50750,
+            eventOutcome=EventIP.SUCCESS,
+            eventOutcomeDetailNote='Convertions job started, purpose: {}'.format(purpose),
+            linkingObjectIdentifierValue=str(self.get_information_package().pk),
+            linkingAgentIdentifierValue=User.objects.get(pk=self.responsible)
+        )
 
-    def run(self, tool, pattern, rootdir, options, delete_original=True):
+    def run(self, tool, pattern, rootdir, options, purpose=None, delete_original=True):
         ip = self.get_information_package()
         tool = ConversionTool.objects.get(name=tool)
 
@@ -56,4 +64,4 @@ class Convert(DBTask):
             else:
                 self._convert(path, rootdir, tool, options)
 
-        self.create_notification(ip)
+        self.create_notification(ip, purpose)
