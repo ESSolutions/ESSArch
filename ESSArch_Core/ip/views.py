@@ -110,7 +110,7 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     OrderTypeSerializer,
     OrderWriteSerializer,
-    WorkareaEntryConversionSerializer,
+    ConversionSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
@@ -224,7 +224,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
     def convert(self, request, pk=None):
         workarea: Workarea = self.get_object()
 
-        serializer = WorkareaEntryConversionSerializer(data=request.data)
+        serializer = ConversionSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         workflow_spec = [
@@ -874,6 +874,42 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         ip.state = "Uploaded"
         ip.save()
+        return Response()
+
+    @action(detail=True, methods=['post'], url_path='convert')
+    def convert(self, request, pk=None):
+        ip = self.get_object()
+        if ip.state not in ['Prepared', 'Uploading']:
+            raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+
+        serializer = ConversionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [
+            {
+                "step": True,
+                "name": "Convert files",
+                "children": [],
+            }
+        ]
+
+        for converter in serializer.validated_data['converters']:
+            tool_name = converter['name']
+
+            # ensure that tool exists
+            ConversionTool.objects.get(name=tool_name)
+
+            pattern = converter['path']
+            options = converter['options']
+
+            workflow_spec[0]['children'].append({
+                "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
+                "label": tool_name,
+                "args": [tool_name, pattern, ip.object_path, options]
+            })
+
+        workflow = create_workflow(workflow_spec, eager=False, ip=ip)
+        workflow.run()
         return Response()
 
     @lock_obj(blocking_timeout=0.1)
