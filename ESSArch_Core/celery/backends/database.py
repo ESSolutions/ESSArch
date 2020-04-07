@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class DatabaseBackend(BaseDictBackend):
@@ -56,15 +56,18 @@ class DatabaseBackend(BaseDictBackend):
         ProcessTask.objects.filter(celery_id=task_id).update(**updated)
 
         if status in EXCEPTION_STATES:
-            t = ProcessTask.objects.get(celery_id=task_id)
-            if t.responsible is not None:
-                t_name = t.label or t.name
-                Notification.objects.create(
-                    message=_('"%(task)s" failed' % {'task': t_name}),
-                    level=logging.ERROR,
-                    user=t.responsible,
-                    refresh=True,
-                )
+            try:
+                t = ProcessTask.objects.get(celery_id=task_id)
+                if t.responsible is not None:
+                    t_name = t.label or t.name
+                    Notification.objects.create(
+                        message=_('"%(task)s" failed' % {'task': t_name}),
+                        level=logging.ERROR,
+                        user=t.responsible,
+                        refresh=True,
+                    )
+            except ProcessTask.DoesNotExist:
+                pass
         return result
 
     def update_state(self, task_id, meta, status, request=None):
@@ -81,7 +84,12 @@ class DatabaseBackend(BaseDictBackend):
         return status
 
     def _get_task_meta_for(self, task_id):
-        obj = ProcessTask.objects.get(celery_id=task_id)
+        try:
+            obj = ProcessTask.objects.get(celery_id=task_id)
+        except ProcessTask.DoesNotExist:
+            return {
+                'status': 'PENDING'
+            }
         meta = obj.meta or {}
         meta.update({
             'exception': obj.exception,

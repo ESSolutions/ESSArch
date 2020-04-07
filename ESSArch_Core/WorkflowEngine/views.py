@@ -165,8 +165,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         root = obj.get_root_step()
         if root is not None:
-            obj.reset()
-            root.resume()
+            root.retry()
         else:
             obj.retry()
 
