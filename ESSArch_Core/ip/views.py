@@ -99,6 +99,7 @@ from ESSArch_Core.ip.permissions import (
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     ConsignMethodSerializer,
+    ConversionSerializer,
     EventIPSerializer,
     EventIPWriteSerializer,
     InformationPackageCreateSerializer,
@@ -110,7 +111,6 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     OrderTypeSerializer,
     OrderWriteSerializer,
-    ConversionSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip

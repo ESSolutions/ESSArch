@@ -1,16 +1,15 @@
-import os
 import logging
+import os
 from pathlib import PurePath
 
+from django.contrib.auth import get_user_model
 from glob2 import iglob
 
-from django.contrib.auth import get_user_model
-
+from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.fixity.models import ConversionTool
 from ESSArch_Core.ip.models import EventIP
 from ESSArch_Core.util import in_directory
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
-from ESSArch_Core.auth.models import Notification
 
 User = get_user_model()
 
