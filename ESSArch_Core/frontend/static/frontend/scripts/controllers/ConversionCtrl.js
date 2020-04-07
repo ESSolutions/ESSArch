@@ -109,7 +109,7 @@ export default class ConversionCtrl {
         return;
       }
       let conversions = vm.conversions.filter((a) => {
-        return a.validator !== null;
+        return a.conversion !== null;
       });
       if (conversions.length > 0) {
         vm.conversions = conversions;
