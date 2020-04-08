@@ -127,7 +127,6 @@ class StorageMediumDeactivatableTests(TestCase):
         )
 
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         cls.policy.storage_methods.add(cls.storage_method)
@@ -313,7 +312,6 @@ class StorageMediumMigratableTests(TestCase):
         self.url = reverse('storagemedium-list')
 
         self.policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         self.sa = SubmissionAgreement.objects.create(policy=self.policy)
@@ -448,7 +446,6 @@ class StorageMediumMigratableTests(TestCase):
     def test_multiple_storage_policies(self):
         other_policy = StoragePolicy.objects.create(
             policy_id='other',
-            cache_storage=self.policy.cache_storage,
             ingest_path=self.policy.ingest_path,
         )
         ip = InformationPackage.objects.create(archived=True, submission_agreement=self.sa)
@@ -566,7 +563,6 @@ class StorageMediumDeactivateTests(TestCase):
             status=20, location_status=50, block_size=1024, format=103,
         )
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         cls.policy.storage_methods.add(cls.storage_method)
