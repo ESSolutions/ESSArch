@@ -336,29 +336,25 @@ class AddPremisIPObjectElementToEventsFile(DBTask):
         generator.write(xmlfile)
 
 
-class CreatePhysicalModel(DBTask):
-    event_type = 10300
-    name = 'ESSArch_Core.ip.tasks.CreatePhysicalModel'
+@app.task(bind=True)
+def CreatePhysicalModel(self, structure=None, root=""):
+    """
+    Creates the IP physical model based on a logical model.
 
-    def run(self, structure=None, root=""):
-        """
-        Creates the IP physical model based on a logical model.
+    Args:
+        structure: A dict specifying the logical model.
+        root: The root directory to be used
+    """
 
-        Args:
-            structure: A dict specifying the logical model.
-            root: The root directory to be used
-        """
+    self.event_type = 10300
 
-        ip = self.get_information_package()
-        ip.create_physical_model(structure, root)
+    ip = self.get_information_package()
+    ip.create_physical_model(structure, root)
 
-        self.set_progress(1, total=1)
+    self.set_progress(1, total=1)
 
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return "Created physical model for %s" % ip.object_identifier_value
-
-app.tasks.register(CreatePhysicalModel())
+    msg = "Created physical model for %s" % ip.object_identifier_value
+    self.create_success_event(msg)
 
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
@@ -516,49 +512,45 @@ class PostPreservationCleanup(DBTask):
             delete_path(os.path.join(p, ip.object_identifier_value) + '.xml')
 
 
-class DeleteInformationPackage(DBTask):
+@app.task(bind=True)
+def DeleteInformationPackage(self, from_db=False, delete_files=True):
+    ip = self.get_information_package()
+
+    old_state = ip.state
+    ip.state = 'Deleting'
+    ip.save()
+
+    ip.delete_temp_files()
+
+    try:
+        ip.delete_workareas()
+        if delete_files:
+            ip.delete_files()
+    except BaseException:
+        ip.state = old_state
+        ip.save()
+        raise
+
+    self.set_progress(99, 100)
+
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
-    name = 'ESSArch_Core.ip.tasks.DeleteInformationPackage'
+    try:
+        ip.get_doc().delete()
+    except NotFoundError:
+        if ip.archived:
+            logger.warning('Information package document not found: {}'.format(ip.pk))
 
-    def run(self, from_db=False, delete_files=True):
-        ip = self.get_information_package()
-
-        old_state = ip.state
-        ip.state = 'Deleting'
+    if from_db:
+        with transaction.atomic():
+            ip_content_type = ContentType.objects.get_for_model(ip)
+            GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+            ip.delete()
+    else:
+        ip.state = 'deleted'
         ip.save()
 
-        ip.delete_temp_files()
-
-        try:
-            ip.delete_workareas()
-            if delete_files:
-                ip.delete_files()
-        except BaseException:
-            ip.state = old_state
-            ip.save()
-            raise
-
-        self.set_progress(99, 100)
-
-        try:
-            ip.get_doc().delete()
-        except NotFoundError:
-            if ip.archived:
-                self.logger.warning('Information package document not found: {}'.format(ip.pk))
-
-        if from_db:
-            with transaction.atomic():
-                ip_content_type = ContentType.objects.get_for_model(ip)
-                GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
-                ip.delete()
-        else:
-            ip.state = 'deleted'
-            ip.save()
-
-        Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
-                                    level=logging.INFO, user_id=self.responsible, refresh=True)
-
-app.tasks.register(DeleteInformationPackage())
+    Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
+                                level=logging.INFO, user_id=self.responsible, refresh=True)
 
 
 class CreateWorkarea(DBTask):
