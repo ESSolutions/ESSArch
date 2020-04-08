@@ -64,7 +64,7 @@ def create_task(name):
     """
     [module, task] = name.rsplit('.', 1)
     logger.debug('Importing task {} from module {}'.format(task, module))
-    return getattr(importlib.import_module(module), task)()
+    return getattr(importlib.import_module(module), task)
 
 
 def create_sub_task(t, step=None, immutable=True, link_error=None):

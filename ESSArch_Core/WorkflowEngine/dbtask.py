@@ -25,12 +25,11 @@
 import logging
 
 from billiard.einfo import ExceptionInfo
-from celery import exceptions, states as celery_states
+from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
 
-from ESSArch_Core.config.celery import app
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -42,9 +41,8 @@ User = get_user_model()
 logger = logging.getLogger('essarch')
 
 
-class DBTask(app.Task):
+class DBTask(Task):
     abstract = True
-    args = []
     event_type = None
     queue = 'celery'
     hidden = False
@@ -137,6 +135,11 @@ class DBTask(app.Task):
                 self.extra_data.update(ancestor.context)
 
         try:
+            if self.eager:
+                self.backend._store_result(
+                    self.task_id, None, celery_states.STARTED,
+                    request=self.request,
+                )
             res = self.run(*args, **kwargs)
         except exceptions.Ignore:
             raise
