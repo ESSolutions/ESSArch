@@ -8,7 +8,7 @@ from celery.states import (
     FAILURE,
     READY_STATES,
     STARTED,
-    SUCCESS
+    SUCCESS,
 )
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
