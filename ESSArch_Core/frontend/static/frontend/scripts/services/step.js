@@ -25,10 +25,6 @@ const Step = ($resource, appConfig, Task) => {
           },
         },
       },
-      undo: {
-        method: 'POST',
-        params: {action: 'undo', id: '@id'},
-      },
       retry: {
         method: 'POST',
         params: {action: 'retry', id: '@id'},

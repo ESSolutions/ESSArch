@@ -22,11 +22,9 @@
     Email - essarch@essolutions.se
 """
 
-import errno
 import logging
 import os
 import tarfile
-import zipfile
 from os import walk
 from pathlib import PurePath
 
@@ -48,10 +46,7 @@ from tenacity import (
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.crypto import decrypt_remote_credentials
-from ESSArch_Core.essxml.Generator.xmlGenerator import (
-    XMLGenerator,
-    findElementWithoutNamespace,
-)
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
 from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
@@ -152,19 +147,6 @@ class GenerateXML(DBTask):
             parsed_files=parsed_files, algorithm=algorithm,
         )
 
-    def undo(self, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
-             parsed_files=None, algorithm='SHA-256'):
-
-        if filesToCreate is None:
-            filesToCreate = {}
-
-        for f, _template in filesToCreate.items():
-            try:
-                os.remove(f)
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise
-
     def event_outcome_success(self, result, filesToCreate=None, folderToParse=None, extra_paths_to_parse=None,
                               parsed_files=None, algorithm='SHA-256'):
 
@@ -190,22 +172,6 @@ class InsertXML(DBTask):
         target = generator.find_element(elementToAppendTo)
         generator.insert_from_specification(target, spec, data=info, index=index)
         generator.write(filename)
-
-    def undo(self, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
-        if spec is None:
-            spec = {}
-
-        tree = etree.parse(filename)
-        parent = findElementWithoutNamespace(tree, elementToAppendTo)
-
-        found = parent.findall('.//{*}%s' % spec['-name'])
-
-        if index is None or index >= len(parent):
-            parent.remove(found[-1])
-        else:
-            parent.remove(parent[index])
-
-        tree.write(filename, pretty_print=True, xml_declaration=True, encoding='UTF-8')
 
     def event_outcome_success(self, result, filename=None, elementToAppendTo=None, spec=None, info=None, index=None):
         return "Inserted XML to element %s in %s" % (elementToAppendTo, filename)
@@ -245,14 +211,6 @@ class CreateTAR(DBTask):
         self.set_progress(100, total=100)
         return tarname
 
-    def undo(self, dirname=None, tarname=None, compress=False):
-        parent_dir = os.path.dirname((os.path.normpath(dirname)))
-
-        with tarfile.open(tarname, 'r') as tar:
-            tar.extractall(parent_dir)
-
-        os.remove(tarname)
-
     def event_outcome_success(self, result, dirname=None, tarname=None, compress=False):
         return "Created %s from %s" % (tarname, dirname)
 
@@ -284,12 +242,6 @@ class CreateZIP(DBTask):
 
         self.set_progress(100, total=100)
         return zipname
-
-    def undo(self, dirname=None, zipname=None, compress=False):
-        with zipfile.ZipFile(zipname, 'r') as z:
-            z.extractall(dirname)
-
-        os.remove(zipname)
 
     def event_outcome_success(self, result, dirname=None, zipname=None, compress=False):
         return "Created %s from %s" % (zipname, dirname)
@@ -534,9 +486,6 @@ class UpdateIPStatus(DBTask):
         Notification.objects.create(message='{} {}'.format(status.capitalize(), ip.object_identifier_value),
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
-    def undo(self, status, prev=None):
-        InformationPackage.objects.filter(pk=self.ip).update(state=prev)
-
     def event_outcome_success(self, result, status, prev=None):
         ip = self.get_information_package()
         status, = self.parse_params(status)
@@ -556,9 +505,6 @@ class UpdateIPPath(DBTask):
             t.save()
         ip.object_path = path
         ip.save()
-
-    def undo(self, status, prev=None):
-        InformationPackage.objects.filter(pk=self.ip).update(path=prev)
 
     def event_outcome_success(self, result, path, prev=None):
         ip = self.get_information_package()

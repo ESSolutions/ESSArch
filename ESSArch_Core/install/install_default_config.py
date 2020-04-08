@@ -271,14 +271,10 @@ def installDefaultUsers():
         ['preserve_from_access_workarea', 'ip', 'workarea'],           # Can preserve IP from access workarea (Access)
         # ---- app: ip ---- model: order
         ['prepare_order', 'ip', 'order'],                              # Can prepare order (Access)
-        # ---- app: WorkflowEngine ---- model: processtask
-        # ['can_undo','WorkflowEngine','processtask'],                 # Can undo tasks (other)
-        # ['can_retry','WorkflowEngine','processtask'],                # Can retry tasks (other)
         # ---- app: tags ---- model: Tag
         ['search', 'tags', 'tag'],  # Can search
         ['transfer_sip', 'ip', 'informationpackage'],                  # Can transfer SIP
         # ---- app: WorkflowEngine ---- model: processtask
-        # ['can_undo','WorkflowEngine','processtask'],                 # Can undo tasks (other)
         # ['can_retry','WorkflowEngine','processtask'],                # Can retry tasks (other)
     ]
 
@@ -298,7 +294,6 @@ def installDefaultUsers():
         ['add_profile', 'profiles', 'profile'],  # Can add Profile (Import/Administration)
         ['change_profile', 'profiles', 'profile'],  # Can change Profile
         # ---- app: WorkflowEngine ---- model: processtask
-        # ['can_undo','WorkflowEngine','processtask'],             # Can undo tasks (other)
         # ['can_retry','WorkflowEngine','processtask'],             # Can retry tasks (other)
         # ---- app: ip ---- model: informationpackage
         ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage (Access)

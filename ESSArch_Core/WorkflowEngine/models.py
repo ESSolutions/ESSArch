@@ -35,7 +35,7 @@ from celery.result import EagerResult
 from celery.task.control import revoke
 from django.core.cache import cache
 from django.db import models
-from django.db.models import Case, Count, Sum, When
+from django.db.models import Count, Sum
 from django.urls import reverse
 from django.utils.translation import gettext as _
 from mptt.models import MPTTModel, TreeForeignKey
@@ -71,13 +71,14 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
     logger.debug('Creating sub task')
     ip_id = str(t.information_package_id) if t.information_package_id is not None else None
     step_id = str(step.id) if step is not None else None
-    t.params['_options'] = {
-        'args': t.args,
-        'responsible': t.responsible_id, 'ip': ip_id,
-        'step': step_id, 'step_pos': t.processstep_pos, 'hidden': t.hidden,
-        'undo': t.undo_type, 'result_params': t.result_params,
+    headers = {
+        'responsible': t.responsible_id,
+        'ip': ip_id, 'step': step_id,
+        'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'allow_failure': t.allow_failure,
+        'result_params': t.result_params,
     }
+    headers_hack = {'headers': headers}
 
     created = create_task(t.name)
 
@@ -86,7 +87,8 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
     repr(link_error)
 
     res = created.signature(t.args, t.params, immutable=immutable).set(
-        task_id=str(t.celery_id), link_error=link_error, queue=created.queue
+        task_id=str(t.celery_id), link_error=link_error, queue=created.queue,
+        headers=headers_hack,
     )
     logger.info('Created {} sub task signature'.format('immutable' if immutable else ''))
 
@@ -192,16 +194,12 @@ class ProcessStep(MPTTModel, Process):
 
     def task_set(self):
         """
-        Gets the unique tasks connected to the process, ignoring retries and
-        undos.
+        Gets the unique tasks connected to the process, ignoring retries
 
         Returns:
-            Unique tasks connected to the process, ignoring retries and undos
+            Unique tasks connected to the process, ignoring retries
         """
-        return self.tasks.filter(
-            undo_type=False,
-            retried__isnull=True
-        ).order_by("processstep_pos")
+        return self.tasks.filter(retried__isnull=True).order_by("processstep_pos")
 
     def clear_cache(self):
         """
@@ -276,56 +274,6 @@ class ProcessStep(MPTTModel, Process):
 
         return self.run_children(tasks, child_steps, direct)
 
-    def undo(self, only_failed=False, direct=True):
-        """
-        Undos the process step by first undoing all tasks and then the
-        child steps.
-
-        Args:
-            only_failed: If true, only undo the failed tasks,
-                undo all tasks otherwise
-
-        Returns:
-            AsyncResult/EagerResult if there is atleast one task or child
-            steps, otherwise None
-        """
-
-        child_steps = self.child_steps.all()
-        tasks = self.tasks(manager='by_step_pos').all()
-
-        if only_failed:
-            tasks = tasks.filter(status=celery_states.FAILURE)
-
-        tasks = tasks.filter(
-            undo_type=False,
-            undone__isnull=True
-        )
-
-        if not tasks.exists() and not child_steps.exists():
-            if direct:
-                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
-
-            return group()
-
-        func = group if self.parallel else chain
-
-        result_list = sorted(
-            itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created), reverse=True
-        )
-        workflow = func(
-            x.undo(only_failed=only_failed, direct=False) if isinstance(x, ProcessStep) else create_sub_task(
-                x.create_undo_obj(), self
-            ) for x in result_list
-        )
-
-        if direct:
-            if self.eager:
-                return workflow.apply()
-            else:
-                return workflow.apply_async()
-        else:
-            return workflow
-
     def retry(self, direct=True):
         """
         Retries the process step by first retrying all child steps and then all
@@ -342,7 +290,6 @@ class ProcessStep(MPTTModel, Process):
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
-            undone__isnull=False,
             retried__isnull=True
         ).order_by('processstep_pos')
 
@@ -388,7 +335,6 @@ class ProcessStep(MPTTModel, Process):
         step_descendants = self.get_descendants(include_self=True)
         recursive_tasks = ProcessTask.objects.filter(
             processstep__in=step_descendants,
-            undone__isnull=True, undo_type=False,
             status=celery_states.PENDING,
         )
 
@@ -399,7 +345,7 @@ class ProcessStep(MPTTModel, Process):
             return group()
 
         tasks = self.tasks(manager='by_step_pos').filter(
-            undone__isnull=True, undo_type=False, status=celery_states.PENDING
+            status=celery_states.PENDING
         )
 
         return self.run_children(tasks, child_steps, direct)
@@ -468,8 +414,8 @@ class ProcessStep(MPTTModel, Process):
 
             child_steps = self.child_steps.all()
             progress = 0
-            task_data = self.tasks.filter(undo_type=False, retried__isnull=True).aggregate(
-                progress=Sum(Case(When(undone__isnull=False, then=0), default='progress')),
+            task_data = self.tasks.filter(retried__isnull=True).aggregate(
+                progress=Sum('progress'),
                 task_count=Count('id')
             )
 
@@ -522,7 +468,7 @@ class ProcessStep(MPTTModel, Process):
                 return cached
 
             child_steps = self.child_steps.all()
-            tasks = self.tasks.filter(undo_type=False, undone__isnull=True, retried__isnull=True)
+            tasks = self.tasks.filter(retried__isnull=True)
             status = celery_states.SUCCESS
 
             if not child_steps.exists() and not tasks.exists():
@@ -556,27 +502,6 @@ class ProcessStep(MPTTModel, Process):
 
             cache.set(self.cache_status_key, status)
             return status
-
-    @property
-    def undone(self):
-        """
-        Gets the undone state of the step based on its tasks and child steps
-
-        Args:
-
-        Returns:
-            True if one or more child steps and/or tasks have undone set to
-            true, false otherwise
-        """
-
-        for c in self.child_steps.iterator():
-            if c.undone:
-                return True
-
-        if self.tasks.filter(undone__isnull=False, retried__isnull=True).exists():
-            return True
-
-        return False
 
     class Meta:
         db_table = 'ProcessStep'
@@ -623,8 +548,6 @@ class ProcessTask(Process):
     )
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     progress = models.IntegerField(default=0)
-    undone = models.OneToOneField('self', on_delete=models.SET_NULL, related_name='undone_task', null=True, blank=True)
-    undo_type = models.BooleanField(editable=False, default=False)
     retried = models.OneToOneField(
         'self',
         on_delete=models.SET_NULL,
@@ -773,7 +696,11 @@ class ProcessTask(Process):
             headers['result_params'] = self.result_params
             headers_hack = {'headers': headers}
             logger.debug('Running task eagerly ({})'.format(self.pk))
-            res = t.apply(args=self.args, kwargs=self.params, task_id=str(self.celery_id), link_error=on_error_group, headers=headers_hack)
+            res = t.apply(
+                args=self.args, kwargs=self.params,
+                task_id=str(self.celery_id),
+                link_error=on_error_group, headers=headers_hack,
+            )
         else:
             headers_hack = {'headers': headers}
             logger.debug('Running task non-eagerly ({})'.format(self.pk))
@@ -785,34 +712,6 @@ class ProcessTask(Process):
                 queue=t.queue,
                 headers=headers_hack,
             )
-
-        return res
-
-    def undo(self):
-        """
-        Undos the task
-        """
-
-        t = create_task(self.name)
-
-        undoobj = self.create_undo_obj()
-        ip_id = str(self.information_package_id) if self.information_package_id is not None else None
-        step_id = str(self.processstep_id) if self.processstep_id is not None else None
-        self.params['_options'] = {
-            'responsible': self.responsible_id, 'ip':
-            ip_id, 'step': step_id, 'step_pos': self.processstep_pos,
-            'hidden': self.hidden, 'undo': True,
-            'allow_failure': self.allow_failure,
-        }
-
-        if undoobj.eager:
-            undoobj.params['_options']['result_params'] = undoobj.result_params
-            logger.debug('Undoing task eagerly ({})'.format(self.pk))
-            res = t.apply(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id))
-        else:
-            logger.debug('Undoing task non-eagerly ({})'.format(self.pk))
-            res = t.apply_async(args=undoobj.args, kwargs=undoobj.params, task_id=str(undoobj.celery_id),
-                                queue=t.queue)
 
         return res
 
@@ -829,26 +728,6 @@ class ProcessTask(Process):
         logger.debug('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()
-
-    def create_undo_obj(self):
-        """
-        Create a new task that will be used to undo this task,
-        also marks this task as undone
-        """
-
-        undo_obj = ProcessTask.objects.create(
-            processstep=self.processstep, name=self.name, args=self.args,
-            params=self.params, result_params=self.result_params,
-            processstep_pos=self.processstep_pos,
-            undo_type=True, status="PREPARED",
-            information_package=self.information_package,
-            eager=self.eager, responsible=self.responsible,
-        )
-
-        self.undone = undo_obj
-        self.save(update_fields=['undone'])
-
-        return undo_obj
 
     def create_retry_obj(self):
         """
@@ -877,12 +756,11 @@ class ProcessTask(Process):
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
         index_together = (
-            ('undo_type', 'undone', 'retried', 'processstep', 'information_package'),
+            ('retried', 'processstep', 'information_package'),
         )
 
         permissions = (
             ('can_run', 'Can run tasks'),
-            ('can_undo', 'Can undo tasks'),
             ('can_revoke', 'Can revoke tasks'),
             ('can_retry', 'Can retry tasks'),
         )

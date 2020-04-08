@@ -47,15 +47,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     step_position = serializers.SerializerMethodField()
     time_started = serializers.DateTimeField()
     time_done = serializers.DateTimeField()
-    undo_type = serializers.SerializerMethodField()
-    undone = serializers.SerializerMethodField()
     retried = serializers.SerializerMethodField()
-
-    def get_undo_type(self, obj):
-        return getattr(obj, 'undo_type', None)
-
-    def get_undone(self, obj):
-        return getattr(obj.undone, 'pk', obj.undone)
 
     def get_retried(self, obj):
         try:
@@ -121,13 +113,13 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
         fields = (
             'url', 'id', 'name', 'label', 'status', 'progress',
             'processstep', 'processstep_pos', 'time_created', 'time_started',
-            'time_done', 'undone', 'undo_type', 'retried',
+            'time_done', 'retried',
             'responsible', 'hidden', 'args', 'params', 'information_package',
             'eager',
         )
         read_only_fields = (
-            'status', 'progress', 'time_created', 'time_started', 'time_done', 'undone',
-            'undo_type', 'retried', 'hidden',
+            'status', 'progress', 'time_created', 'time_started', 'time_done',
+            'retried', 'hidden',
         )
         extra_kwargs = {
             'id': {
@@ -184,11 +176,11 @@ class ProcessStepSerializer(serializers.ModelSerializer):
         model = ProcessStep
         fields = (
             'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'undone', 'time_created', 'parent_step',
+            'status', 'progress', 'time_created', 'parent_step',
             'parent_step_pos', 'information_package',
         )
         read_only_fields = (
-            'status', 'progress', 'time_created', 'time_done', 'undone',
+            'status', 'progress', 'time_created', 'time_done',
         )
 
 
@@ -202,7 +194,7 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
         return obj.tasks.count()
 
     def get_failed_tasks(self, obj):
-        return obj.get_descendants_tasks().filter(status=celery_states.FAILURE, undone__isnull=True)
+        return obj.get_descendants_tasks().filter(status=celery_states.FAILURE)
 
     def get_failed_task_count(self, obj):
         return self.get_failed_tasks(obj).count()

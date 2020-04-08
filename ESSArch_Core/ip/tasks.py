@@ -110,18 +110,6 @@ class SubmitSIP(DBTask):
 
         self.set_progress(100, total=100)
 
-    def undo(self, delete_source=False, update_path=True):
-        ip = InformationPackage.objects.get(pk=self.ip)
-
-        reception = Path.objects.get(entity="ingest_reception").value
-        container_format = ip.get_container_format()
-
-        tar = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
-        xml = os.path.join(reception, ip.object_identifier_value + ".xml")
-
-        os.remove(tar)
-        os.remove(xml)
-
     def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Submitted %s" % ip.object_identifier_value

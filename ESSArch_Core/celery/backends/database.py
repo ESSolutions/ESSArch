@@ -53,7 +53,6 @@ class DatabaseBackend(BaseDictBackend):
             updated.pop('traceback')
             updated.pop('status')
 
-        print('updating {} with:'.format(task_id), updated)
         ProcessTask.objects.filter(celery_id=task_id).update(**updated)
 
         if status in EXCEPTION_STATES:

@@ -8,13 +8,6 @@ class CanRun(permissions.IsAuthenticated):
         return request.user.has_perm('WorkflowEngine.can_run')
 
 
-class CanUndo(permissions.IsAuthenticated):
-    message = "You are not allowed to undo tasks"
-
-    def has_object_permission(self, request, view, obj):
-        return request.user.has_perm('WorkflowEngine.can_undo')
-
-
 class CanRevoke(permissions.IsAuthenticated):
     message = "You are not allowed to revoke tasks"
 

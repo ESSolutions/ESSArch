@@ -26,7 +26,6 @@ import logging
 
 from billiard.einfo import ExceptionInfo
 from celery import exceptions, states as celery_states
-from celery.task.base import Task
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
@@ -49,39 +48,12 @@ class DBTask(app.Task):
     event_type = None
     queue = 'celery'
     hidden = False
-    undo_type = False
-    step = None
-    step_pos = None
     track = True
     allow_failure = False
 
     def __call__(self, *args, **kwargs):
-        print('got task!', self.request.id)
-        return self._run(*args, **kwargs)
-        options = kwargs.pop('_options', {})
-
-        self.args = options.get('args', [])
-        self.responsible = options.get('responsible')
-        self.ip = options.get('ip')
-        self.step = options.get('step')
-        self.step_pos = options.get('step_pos')
-        self.hidden = options.get('hidden', False) or self.hidden
-        if options.get('hidden') is not None:
-            self.hidden = options['hidden']
-
-        self.undo_type = options.get('undo', False)
-        self.result_params = options.get('result_params', {}) or {}
-        self.task_id = options.get('task_id') or self.request.id
-        self.eager = options.get('eager') or self.request.is_eager
-        self.allow_failure = options.get('allow_failure') or self.allow_failure
-
         for k, v in self.result_params.items():
             kwargs[k] = get_result(self.step, v)
-
-        if self.track:
-            ProcessTask.objects.filter(celery_id=self.task_id).update(
-                hidden=self.hidden,
-            )
 
         try:
             user = User.objects.get(pk=self.responsible)
@@ -101,12 +73,32 @@ class DBTask(app.Task):
         return self.request.headers
 
     @property
+    def result_params(self):
+        return self.headers.get('result_params', {})
+
+    @property
+    def allow_failure(self):
+        return self.headers.get('allow_failure', False)
+
+    @property
+    def hidden(self):
+        return self.headers.get('hidden', False)
+
+    @property
     def responsible(self):
         return self.headers.get('responsible')
 
     @property
     def ip(self):
         return self.headers.get('ip')
+
+    @property
+    def step(self):
+        return self.headers.get('step')
+
+    @property
+    def step_pos(self):
+        return self.headers.get('step_pos')
 
     @property
     def task_id(self):
@@ -145,15 +137,12 @@ class DBTask(app.Task):
                 self.extra_data.update(ancestor.context)
 
         try:
-            if self.undo_type:
-                res = self.undo(*args, **kwargs)
-            else:
-                res = self.run(*args, **kwargs)
+            res = self.run(*args, **kwargs)
         except exceptions.Ignore:
             raise
         except Exception as e:
             einfo = ExceptionInfo()
-            self.failure(e, self.task_id, args, kwargs, einfo)
+            self.failure(e, einfo)
             if self.eager:
                 self.after_return(celery_states.FAILURE, e, self.task_id, args, kwargs, einfo)
 
@@ -167,7 +156,7 @@ class DBTask(app.Task):
 
             raise
         else:
-            self.success(res, self.task_id, args, kwargs)
+            self.success(res, args, kwargs)
 
         return res
 
@@ -189,17 +178,15 @@ class DBTask(app.Task):
         with cache.lock(step.cache_lock_key, timeout=60):
             step.clear_cache()
 
-    def create_event(self, task_id, status, args, kwargs, retval, einfo):
-        return
+    def create_event(self, status, msg, retval, einfo):
         if status == celery_states.SUCCESS:
             outcome = EventIP.SUCCESS
             level = logging.INFO
-            kwargs.pop('_options', {})
-            outcome_detail_note = self.event_outcome_success(retval, *args, **kwargs)
         else:
             outcome = EventIP.FAILURE
             level = logging.ERROR
-            outcome_detail_note = einfo.traceback
+
+        outcome_detail_note = msg
 
         if outcome_detail_note is None:
             outcome_detail_note = ''
@@ -213,12 +200,12 @@ class DBTask(app.Task):
             'event_type': self.event_type,
             'object': self.ip,
             'agent': agent,
-            'task': ProcessTask.objects.get(celery_id=task_id).pk,
+            'task': ProcessTask.objects.get(celery_id=self.task_id).pk,
             'outcome': outcome
         }
         logger.log(level, outcome_detail_note, extra=extra)
 
-    def failure(self, exc, task_id, args, kwargs, einfo):
+    def failure(self, exc, einfo):
         '''
         We use our own version of on_failure so that we can call it at the end
         of the current task but before the next task has started. This is
@@ -227,29 +214,28 @@ class DBTask(app.Task):
         '''
 
         if self.eager:
-            self.update_state(task_id=task_id, state=celery_states.FAILURE)
+            self.update_state(task_id=self.task_id, state=celery_states.FAILURE)
             self.backend._store_result(
-                task_id, self.backend.prepare_exception(exc),
+                self.task_id, self.backend.prepare_exception(exc),
                 celery_states.FAILURE, traceback=einfo.traceback,
             )
 
         if self.event_type:
-            self.create_event(task_id, celery_states.FAILURE, args, kwargs, None, einfo)
+            msg = einfo.traceback
+            self.create_event(celery_states.FAILURE, msg, None, einfo)
 
-    def success(self, retval, task_id, args, kwargs):
+    def create_success_event(self, msg, retval=None):
+        return self.create_event(celery_states.SUCCESS, msg, retval, None)
+
+    def success(self, retval, args, kwargs):
         '''
         We use our own version of on_success so that we can call it at the end
-        of the current task but before the next task has started. This is
-        needed to give objects created here (e.g. events) the correct
-        timestamps
+        of the current task but before the next task has started.
         '''
 
         if self.eager:
-            self.update_state(task_id=task_id, state=celery_states.SUCCESS)
-            self.backend.store_result(task_id, retval, celery_states.SUCCESS)
-
-        if self.event_type:
-            self.create_event(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
+            self.update_state(task_id=self.task_id, state=celery_states.SUCCESS)
+            self.backend.store_result(self.task_id, retval, celery_states.SUCCESS)
 
     def set_progress(self, progress, total=None):
         if not self.track:
@@ -261,21 +247,10 @@ class DBTask(app.Task):
         return tuple([parseContent(param, self.extra_data) for param in params])
 
     def get_processtask(self):
-        try:
-            celery_id = self.request.id
-        except AttributeError:
-            celery_id = self.task_id
-
-        return ProcessTask.objects.get(celery_id=celery_id)
+        return ProcessTask.objects.get(celery_id=self.task_id)
 
     def get_information_package(self):
         return InformationPackage.objects.get(pk=self.ip)
 
-    def event_outcome_success(self, result, *args, **kwargs):
-        pass
-
     def run(self, *args, **kwargs):
         raise NotImplementedError()
-
-    def undo(self, *args, **kwargs):
-        pass
