@@ -671,7 +671,8 @@ class StorageObjectQueryset(models.QuerySet):
             storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
-                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY
+                STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
+                STORAGE_TARGET_STATUS_MIGRATE,
             ],
             storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
             storage_medium__status__in=[20, 30], storage_medium__location_status=50
@@ -767,7 +768,10 @@ class StorageObject(models.Model):
         return all((
             self.storage_medium.storage_target.status,
             self.storage_medium.storage_target.storage_method_target_relations.filter(
-                status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
+                status__in=[
+                    STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
+                    STORAGE_TARGET_STATUS_MIGRATE,
+                ],
                 storage_method__enabled=True,
             ),
             self.storage_medium.status in [20, 30],
@@ -780,33 +784,9 @@ class StorageObject(models.Model):
             status__in=[STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY],
         ).exists()
 
-    def extract(self):
-        if not self.container:
-            raise ValueError("Not a container")
-
-        policy = self.ip.policy
-        target_medium = StorageMedium.objects.archival_storage().writeable().fastest().filter(
-            storage_target__methods__storage_policy=policy).first()
-
-        if target_medium is None:
-            target = StorageTarget.objects.archival_storage().fastest().filter(methods__storage_policy=policy).first()
-            qs = StorageMedium.objects.archival_storage().writeable().fastest()
-            target_medium, _ = target.get_or_create_storage_medium(qs=qs)
-
-        backend = self.get_storage_backend()
-        target_path = backend.read(self, target_medium.storage_target.target, extract=True, include_xml=False)
-        medium_type = target_medium.get_type()
-        new_obj = StorageObject.objects.create(ip=self.ip, storage_medium=target_medium, container=False,
-                                               content_location_type=medium_type, content_location_value=target_path)
-        return new_obj
-
     def open(self, path, *args, **kwargs):
-        if not self.container:
-            backend = self.get_storage_backend()
-            return backend.open(self, path, *args, **kwargs)
-
-        extracted = self.extract()
-        return extracted.open(path, *args, **kwargs)
+        backend = self.get_storage_backend()
+        return backend.open(self, path, *args, **kwargs)
 
     def read(self, dst, task, extract=False):
         ip = self.ip
