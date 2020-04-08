@@ -8,7 +8,7 @@ from celery.states import (
     FAILURE,
     READY_STATES,
     STARTED,
-    SUCCESS,
+    SUCCESS
 )
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
@@ -17,7 +17,7 @@ from django.utils.translation import gettext as _
 from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class DatabaseBackend(BaseDictBackend):
@@ -25,7 +25,6 @@ class DatabaseBackend(BaseDictBackend):
 
     def _store_result(self, task_id, result, status,
                       traceback=None, request=None, using=None):
-
         """Store return value and status of an executed task."""
 
         if traceback is None:
