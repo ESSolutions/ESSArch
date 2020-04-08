@@ -156,7 +156,6 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         obj.revoke()
         return Response({'status': 'revoked task'})
 
-    @transaction.atomic
     @action(detail=True, methods=['post'], permission_classes=[CanRetry])
     def retry(self, request, pk=None):
         obj = self.get_object()
@@ -165,7 +164,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         root = obj.get_root_step()
         if root is not None:
-            root.retry()
+            root.resume()
         else:
             obj.retry()
 

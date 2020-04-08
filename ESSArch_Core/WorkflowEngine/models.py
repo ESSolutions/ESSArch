@@ -50,7 +50,6 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.config.celery import app
 from ESSArch_Core.fields import JSONField
 
 logger = logging.getLogger('essarch.WorkflowEngine')
@@ -216,7 +215,6 @@ class ProcessStep(MPTTModel, Process):
             self.parent_step.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
-        root_id = str(self.get_root().celery_id)
         tasks = tasks.filter(status=celery_states.PENDING,)
 
         if not tasks.exists() and not steps.exists():
@@ -252,10 +250,10 @@ class ProcessStep(MPTTModel, Process):
         if direct:
             if self.eager:
                 logger.info('Running workflow eagerly')
-                return workflow.apply(link_error=on_error_group, task_id=str(self.celery_id), root_id=root_id)
+                return workflow.apply(link_error=on_error_group)
             else:
                 logger.info('Running workflow non-eagerly')
-                return workflow.apply_async(link_error=on_error_group, task_id=str(self.celery_id), root_id=root_id)
+                return workflow.apply_async(link_error=on_error_group)
         else:
             return workflow
 
@@ -342,27 +340,35 @@ class ProcessStep(MPTTModel, Process):
             none
         """
 
-        step_descendants = self.get_descendants(include_self=True)
-        ProcessTask.objects.filter(
-            processstep__in=step_descendants,
-            status=celery_states.FAILURE,
-        ).update(status=celery_states.PENDING)
+        child_steps = self.child_steps.all()
 
-        app.control.revoke([str(t.celery_id) for t in step_descendants])
-        for s in step_descendants:
-            s.celery_id = uuid.uuid4()
-            s.save()
+        tasks = self.tasks(manager='by_step_pos').filter(
+            undone__isnull=False,
+            retried__isnull=True
+        ).order_by('processstep_pos')
 
-        pending_tasks = ProcessTask.objects.filter(
-            processstep__in=step_descendants,
-            status=celery_states.PENDING,
+        if not tasks.exists() and not child_steps.exists():
+            if direct:
+                return EagerResult(self.celery_id, [], celery_states.SUCCESS)
+
+            return group()
+
+        func = group if self.parallel else chain
+
+        result_list = sorted(itertools.chain(child_steps, tasks), key=lambda x: (x.get_pos(), x.time_created))
+        workflow = func(
+            x.retry(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
+                x.create_retry_obj(), self
+            ) for x in result_list
         )
-        app.control.revoke([str(t.celery_id) for t in pending_tasks])
-        for t in pending_tasks:
-            t.celery_id = uuid.uuid4()
-            t.save()
 
-        return self.run(direct=direct)
+        if direct:
+            if self.eager:
+                return workflow.apply()
+            else:
+                return workflow.apply_async()
+        else:
+            return workflow
 
     def resume(self, direct=True):
         """
@@ -378,6 +384,18 @@ class ProcessStep(MPTTModel, Process):
         """
 
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
+        ProcessTask.objects.filter(
+            processstep__in=self.get_descendants(include_self=True),
+            status__in=[celery_states.PENDING, celery_states.FAILURE],
+        ).update(
+            status=celery_states.PENDING,
+            time_started=None,
+            time_done=None,
+            traceback='',
+            exception='',
+            progress=0,
+            result=None,
+        )
         child_steps = self.get_children()
 
         step_descendants = self.get_descendants(include_self=True)

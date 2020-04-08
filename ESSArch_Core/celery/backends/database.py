@@ -87,7 +87,8 @@ class DatabaseBackend(BaseDictBackend):
             obj = ProcessTask.objects.get(celery_id=task_id)
         except ProcessTask.DoesNotExist:
             return {
-                'status': 'PENDING'
+                'status': 'PENDING',
+                'result': None,
             }
         meta = obj.meta or {}
         meta.update({
