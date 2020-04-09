@@ -168,85 +168,85 @@ class TransferIP(DBTask):
         return "Transferred IP"
 
 
-class PrepareAIP(DBTask):
-    def run(self, sip_path):
-        sip_path, = self.parse_params(sip_path)
-        sip_path = pathlib.Path(sip_path)
-        user = User.objects.get(pk=self.responsible)
-        perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
-        organization = user.user_profile.current_organization
+@app.task(bind=True)
+def PrepareAIP(self, sip_path):
+    sip_path, = self.parse_params(sip_path)
+    sip_path = pathlib.Path(sip_path)
+    user = User.objects.get(pk=self.responsible)
+    perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+    organization = user.user_profile.current_organization
 
-        object_identifier_value = sip_path.stem
-        existing_sip = InformationPackage.objects.filter(
-            Q(
-                Q(object_path=sip_path) |
-                Q(object_identifier_value=object_identifier_value),
-            ),
-            package_type=InformationPackage.SIP
-        ).first()
-        xmlfile = sip_path.with_suffix('.xml')
+    object_identifier_value = sip_path.stem
+    existing_sip = InformationPackage.objects.filter(
+        Q(
+            Q(object_path=sip_path) |
+            Q(object_identifier_value=object_identifier_value),
+        ),
+        package_type=InformationPackage.SIP
+    ).first()
+    xmlfile = sip_path.with_suffix('.xml')
 
-        if existing_sip is None:
-            parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
-            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+    if existing_sip is None:
+        parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
+        parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
 
-            if parsed_sa is not None:
-                raise ValueError('No submission agreement found in xml')
+        if parsed_sa is not None:
+            raise ValueError('No submission agreement found in xml')
 
-            sa = SubmissionAgreement.objects.get(pk=parsed_sa)
+        sa = SubmissionAgreement.objects.get(pk=parsed_sa)
 
-            with transaction.atomic():
-                ip = InformationPackage.objects.create(
-                    object_identifier_value=object_identifier_value,
-                    sip_objid=object_identifier_value,
-                    sip_path=sip_path.as_posix(),
-                    package_type=InformationPackage.AIP,
-                    state='Prepared',
-                    responsible=user,
-                    submission_agreement=sa,
-                    submission_agreement_locked=True,
-                    object_path=sip_path.as_posix(),
-                    package_mets_path=xmlfile.as_posix(),
-                )
+        with transaction.atomic():
+            ip = InformationPackage.objects.create(
+                object_identifier_value=object_identifier_value,
+                sip_objid=object_identifier_value,
+                sip_path=sip_path.as_posix(),
+                package_type=InformationPackage.AIP,
+                state='Prepared',
+                responsible=user,
+                submission_agreement=sa,
+                submission_agreement_locked=True,
+                object_path=sip_path.as_posix(),
+                package_mets_path=xmlfile.as_posix(),
+            )
 
-                member = Member.objects.get(django_user=user)
-                user_perms = perms.pop('owner', [])
+            member = Member.objects.get(django_user=user)
+            user_perms = perms.pop('owner', [])
 
-                organization.assign_object(ip, custom_permissions=perms)
-                organization.add_object(ip)
+            organization.assign_object(ip, custom_permissions=perms)
+            organization.add_object(ip)
 
-                for perm in user_perms:
-                    perm_name = get_permission_name(perm, ip)
-                    assign_perm(perm_name, member.django_user, ip)
+            for perm in user_perms:
+                perm_name = get_permission_name(perm, ip)
+                assign_perm(perm_name, member.django_user, ip)
 
-                # refresh date fields to convert them to datetime instances instead of
-                # strings to allow further datetime manipulation
-                ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-        else:
-            with transaction.atomic():
-                ip = existing_sip
-                ip.sip_objid = object_identifier_value
-                ip.sip_path = sip_path.as_posix()
-                ip.package_type = InformationPackage.AIP
-                ip.responsible = user
-                ip.state = 'Prepared'
-                ip.object_path = sip_path.as_posix()
-                ip.package_mets_path = xmlfile.as_posix()
+            # refresh date fields to convert them to datetime instances instead of
+            # strings to allow further datetime manipulation
+            ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+    else:
+        with transaction.atomic():
+            ip = existing_sip
+            ip.sip_objid = object_identifier_value
+            ip.sip_path = sip_path.as_posix()
+            ip.package_type = InformationPackage.AIP
+            ip.responsible = user
+            ip.state = 'Prepared'
+            ip.object_path = sip_path.as_posix()
+            ip.package_mets_path = xmlfile.as_posix()
 
-        ip.generation = 0
-        ip.aic = InformationPackage.objects.create(
-            package_type=InformationPackage.AIC,
-            responsible=ip.responsible,
-            label=ip.label,
-            start_date=ip.start_date,
-            end_date=ip.end_date,
-        )
-        ip.save()
+    ip.generation = 0
+    ip.aic = InformationPackage.objects.create(
+        package_type=InformationPackage.AIC,
+        responsible=ip.responsible,
+        label=ip.label,
+        start_date=ip.start_date,
+        end_date=ip.end_date,
+    )
+    ip.save()
 
-        ProfileIP.objects.filter(ip=ip).delete()
-        ip.submission_agreement.lock_to_information_package(ip, user)
+    ProfileIP.objects.filter(ip=ip).delete()
+    ip.submission_agreement.lock_to_information_package(ip, user)
 
-        return str(ip.pk)
+    return str(ip.pk)
 
 
 class GenerateContentMets(DBTask):
@@ -312,31 +312,30 @@ class GenerateEventsXML(DBTask):
         return 'Generated {xml}'.format(xml=ip.get_events_file_path())
 
 
-class DownloadSchemas(DBTask):
+@app.task(bind=True)
+def DownloadSchemas(self, verify=settings.REQUESTS_VERIFY):
     logger = logging.getLogger('essarch.core.ip.tasks.DownloadSchemas')
-
-    def run(self, verify=settings.REQUESTS_VERIFY):
-        download_schemas(self.get_information_package(), self.logger, verify)
+    download_schemas(self.get_information_package(), logger, verify)
 
 
-class AddPremisIPObjectElementToEventsFile(DBTask):
-    def run(self):
-        ip = self.get_information_package()
-        info = {
-            'FIDType': "UUID",
-            'FID': ip.object_identifier_value,
-            'FFormatName': ip.get_container_format().upper(),
-            'FLocationType': 'URI',
-            'FName': ip.object_path,
-        }
-        spec = get_premis_ip_object_element_spec()
-        info = fill_specification_data(info, ip=ip)
-        xmlfile = os.path.join(ip.object_path, ip.get_events_file_path())
+@app.task(bind=True)
+def AddPremisIPObjectElementToEventsFile(self):
+    ip = self.get_information_package()
+    info = {
+        'FIDType': "UUID",
+        'FID': ip.object_identifier_value,
+        'FFormatName': ip.get_container_format().upper(),
+        'FLocationType': 'URI',
+        'FName': ip.object_path,
+    }
+    spec = get_premis_ip_object_element_spec()
+    info = fill_specification_data(info, ip=ip)
+    xmlfile = os.path.join(ip.object_path, ip.get_events_file_path())
 
-        generator = XMLGenerator(filepath=xmlfile)
-        target = generator.find_element('premis')
-        generator.insert_from_specification(target, spec, data=info, index=0)
-        generator.write(xmlfile)
+    generator = XMLGenerator(filepath=xmlfile)
+    target = generator.find_element('premis')
+    generator.insert_from_specification(target, spec, data=info, index=0)
+    generator.write(xmlfile)
 
 
 @app.task(bind=True)
@@ -429,93 +428,93 @@ class ParseEvents(DBTask):
         return "Parsed events from %s" % self.get_path(ip)
 
 
-class Transform(DBTask):
-    def run(self, backend, path=None):
-        ip = self.get_information_package()
-        user = User.objects.filter(pk=self.responsible).first()
-        backend = get_transformer(backend, ip, user)
-        if path is None and ip is not None:
-            path = ip.object_path
-        backend.transform(path)
+@app.task(bind=True)
+def Transform(self, backend, path=None):
+    ip = self.get_information_package()
+    user = User.objects.filter(pk=self.responsible).first()
+    backend = get_transformer(backend, ip, user)
+    if path is None and ip is not None:
+        path = ip.object_path
+    backend.transform(path)
 
 
-class PreserveInformationPackage(DBTask):
-    def run(self, storage_method_pk):
-        ip = self.get_information_package()
-        policy = ip.policy
+@app.task(bind=True)
+def PreserveInformationPackage(self, storage_method_pk):
+    ip = self.get_information_package()
+    policy = ip.policy
 
-        if policy is None:
-            raise ValueError('{} has no policy'.format(ip))
+    if policy is None:
+        raise ValueError('{} has no policy'.format(ip))
 
-        storage_method = StorageMethod.objects.get(pk=storage_method_pk)
-        policy_methods = policy.storage_methods.all()
+    storage_method = StorageMethod.objects.get(pk=storage_method_pk)
+    policy_methods = policy.storage_methods.all()
 
-        if storage_method not in policy_methods:
-            raise ValueError('{} not part of {}'.format(storage_method, policy))
+    if storage_method not in policy_methods:
+        raise ValueError('{} not part of {}'.format(storage_method, policy))
 
-        if not storage_method.enabled:
-            raise NoWriteableStorage('Storage method "{}" is disabled'.format(storage_method.name))
+    if not storage_method.enabled:
+        raise NoWriteableStorage('Storage method "{}" is disabled'.format(storage_method.name))
 
-        try:
-            storage_target = storage_method.enabled_target
-        except StorageTarget.DoesNotExist:
-            raise NoWriteableStorage('No writeable target available for "{}"'.format(storage_method.name))
+    try:
+        storage_target = storage_method.enabled_target
+    except StorageTarget.DoesNotExist:
+        raise NoWriteableStorage('No writeable target available for "{}"'.format(storage_method.name))
 
-        if storage_method.containers or storage_target.remote_server:
-            src = [
-                ip.get_temp_container_path(),
-                ip.get_temp_container_xml_path(),
-                ip.get_temp_container_aic_xml_path(),
-            ]
-        else:
-            src = [ip.object_path]
+    if storage_method.containers or storage_target.remote_server:
+        src = [
+            ip.get_temp_container_path(),
+            ip.get_temp_container_xml_path(),
+            ip.get_temp_container_aic_xml_path(),
+        ]
+    else:
+        src = [ip.object_path]
 
-        return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
-
-
-class WriteInformationPackageToSearchIndex(DBTask):
-    def run(self):
-        ip = self.get_information_package()
-        ip.write_to_search_index(self.get_processtask())
+    return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
 
 
-class CreateReceipt(DBTask):
-    def run(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
-        ip = self.get_information_package()
-        template, destination, outcome, short_message, message, date = self.parse_params(
-            template, destination, outcome, short_message, message, date
-        )
-        if date is None:
-            date = timezone.now()
-
-        backend = get_receipt_backend(backend)
-        if task_id is None:
-            task = self.get_processtask()
-        else:
-            task = ProcessTask.objects.get(celery_id=task_id)
-        return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
+@app.task(bind=True)
+def WriteInformationPackageToSearchIndex(self):
+    ip = self.get_information_package()
+    ip.write_to_search_index(self.get_processtask())
 
 
-class MarkArchived(DBTask):
-    def run(self):
-        ip = self.get_information_package()
-        ip.archived = True
-        ip.state = 'Preserved'
-        ip.save()
+@app.task(bind=True)
+def CreateReceipt(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
+    ip = self.get_information_package()
+    template, destination, outcome, short_message, message, date = self.parse_params(
+        template, destination, outcome, short_message, message, date
+    )
+    if date is None:
+        date = timezone.now()
+
+    backend = get_receipt_backend(backend)
+    if task_id is None:
+        task = self.get_processtask()
+    else:
+        task = ProcessTask.objects.get(celery_id=task_id)
+    return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
 
 
-class PostPreservationCleanup(DBTask):
-    def run(self):
-        ip = self.get_information_package()
+@app.task(bind=True)
+def MarkArchived(self):
+    ip = self.get_information_package()
+    ip.archived = True
+    ip.state = 'Preserved'
+    ip.save()
 
-        paths = Path.objects.filter(entity__in=[
-            'preingest_reception', 'preingest', 'ingest_reception',
-        ]).values_list('value', flat=True)
 
-        for p in paths:
-            delete_path(os.path.join(p, ip.object_identifier_value))
-            delete_path(os.path.join(p, ip.object_identifier_value) + '.tar')
-            delete_path(os.path.join(p, ip.object_identifier_value) + '.xml')
+@app.task(bind=True)
+def PostPreservationCleanup(self):
+    ip = self.get_information_package()
+
+    paths = Path.objects.filter(entity__in=[
+        'preingest_reception', 'preingest', 'ingest_reception',
+    ]).values_list('value', flat=True)
+
+    for p in paths:
+        delete_path(os.path.join(p, ip.object_identifier_value))
+        delete_path(os.path.join(p, ip.object_identifier_value) + '.tar')
+        delete_path(os.path.join(p, ip.object_identifier_value) + '.xml')
 
 
 @app.task(bind=True)
@@ -559,19 +558,19 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
                                 level=logging.INFO, user_id=self.responsible, refresh=True)
 
 
-class CreateWorkarea(DBTask):
-    def run(self, ip, user, type, read_only):
-        ip = InformationPackage.objects.get(pk=ip)
-        user = User.objects.get(pk=user)
-        Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
-        Notification.objects.create(
-            message="%s is now in workspace" % ip.object_identifier_value,
-            level=logging.INFO, user=user, refresh=True
-        )
+@app.task(bind=True)
+class CreateWorkarea(self, ip, user, type, read_only):
+    ip = InformationPackage.objects.get(pk=ip)
+    user = User.objects.get(pk=user)
+    Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+    Notification.objects.create(
+        message="%s is now in workspace" % ip.object_identifier_value,
+        level=logging.INFO, user=user, refresh=True
+    )
 
 
-class DeleteWorkarea(DBTask):
-    def run(self, pk):
-        workarea = Workarea.objects.get(pk=pk)
-        workarea.delete_files()
-        workarea.delete()
+@app.task(bind=True)
+def DeleteWorkarea(self, pk):
+    workarea = Workarea.objects.get(pk=pk)
+    workarea.delete_files()
+    workarea.delete()

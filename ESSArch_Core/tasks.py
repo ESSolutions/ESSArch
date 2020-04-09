@@ -45,6 +45,7 @@ from tenacity import (
 )
 
 from ESSArch_Core.auth.models import Notification
+from ESSArch_Core.config.celery import app
 from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
@@ -92,19 +93,18 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 User = get_user_model()
 redis = get_redis_connection()
 
+@app.task(bind=True)
+def Notify(self, message, level, refresh, recipient=None):
+    message, = self.parse_params(message)
+    if recipient is None:
+        recipient = User.objects.get(pk=self.responsible)
 
-class Notify(DBTask):
-    def run(self, message, level, refresh, recipient=None):
-        message, = self.parse_params(message)
-        if recipient is None:
-            recipient = User.objects.get(pk=self.responsible)
-
-        Notification.objects.create(
-            message=message,
-            level=level,
-            user=recipient,
-            refresh=refresh
-        )
+    Notification.objects.create(
+        message=message,
+        level=level,
+        user=recipient,
+        refresh=refresh
+    )
 
 
 class GenerateXML(DBTask):
@@ -215,14 +215,14 @@ class CreateTAR(DBTask):
         return "Created %s from %s" % (tarname, dirname)
 
 
-class ExtractTAR(DBTask):
-    def run(self, path, dst, compression=False):
-        compression = ':gz' if compression else ''
-        with tarfile.open(path, 'r%s' % compression) as tar:
-            tar.extractall(dst)
+@app.task(bind=True)
+def ExtractTAR(self, path, dst, compression=False):
+    compression = ':gz' if compression else ''
+    with tarfile.open(path, 'r%s' % compression) as tar:
+        tar.extractall(dst)
 
-        self.set_progress(100, total=100)
-        return dst
+    self.set_progress(100, total=100)
+    return dst
 
 
 class CreateZIP(DBTask):
@@ -328,13 +328,13 @@ class ValidateWorkarea(DBTask):
             workarea.save(update_fields=['successfully_validated'])
 
 
-class TransformWorkarea(DBTask):
-    def run(self, backend, workarea):
-        workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
-        ip = workarea.ip
-        user = User.objects.filter(pk=self.responsible).first()
-        backend = get_transformer(backend, ip, user)
-        backend.transform(workarea.path)
+@app.task(bind=True)
+def TransformWorkarea(self, backend, workarea):
+    workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
+    ip = workarea.ip
+    user = User.objects.filter(pk=self.responsible).first()
+    backend = get_transformer(backend, ip, user)
+    backend.transform(workarea.path)
 
 
 class ValidateXMLFile(DBTask):
@@ -590,35 +590,35 @@ class CopyFile(DBTask):
         return "Copied %s to %s" % (src, dst)
 
 
-class SendEmail(DBTask):
-    def run(self, sender=None, recipients=None, subject=None, body=None, attachments=None):
-        sender, subject, body = self.parse_params(sender, subject, body)
-        if recipients is None:
-            recipients = []
-        else:
-            recipients = self.parse_params(*recipients)
+@app.task(bind=True)
+def SendEmail(self, sender=None, recipients=None, subject=None, body=None, attachments=None):
+    sender, subject, body = self.parse_params(sender, subject, body)
+    if recipients is None:
+        recipients = []
+    else:
+        recipients = self.parse_params(*recipients)
 
-        if attachments is None:
-            attachments = []
-        else:
-            attachments = self.parse_params(*attachments)
+    if attachments is None:
+        attachments = []
+    else:
+        attachments = self.parse_params(*attachments)
 
-        email = EmailMessage(subject, body, sender, recipients)
+    email = EmailMessage(subject, body, sender, recipients)
 
-        for a in attachments:
-            email.attach_file(a)
+    for a in attachments:
+        email.attach_file(a)
 
-        email.send()
+    email.send()
 
 
-class DownloadFile(DBTask):
-    def run(self, src=None, dst=None):
-        r = requests.get(src, stream=True, verify=False)
-        r.raise_for_status()
-        if r.status_code == 200:
-            with open(dst, 'wb') as f:
-                for chunk in r:
-                    f.write(chunk)
+@app.task(bind=True)
+def DownloadFile(self, src=None, dst=None):
+    r = requests.get(src, stream=True, verify=False)
+    r.raise_for_status()
+    if r.status_code == 200:
+        with open(dst, 'wb') as f:
+            for chunk in r:
+                f.write(chunk)
 
 
 class MountTape(DBTask):
@@ -647,114 +647,114 @@ class UnmountTape(DBTask):
         return unmount_tape_from_drive(drive_id)
 
 
-class RewindTape(DBTask):
-    def run(self, medium=None):
-        """
-        Rewinds the given tape
-        """
+@app.task(bind=True)
+def RewindTape(self, medium=None):
+    """
+    Rewinds the given tape
+    """
 
-        try:
-            drive = TapeDrive.objects.get(storage_medium__pk=medium)
-        except TapeDrive.DoesNotExist:
-            raise ValueError("Tape not mounted")
+    try:
+        drive = TapeDrive.objects.get(storage_medium__pk=medium)
+    except TapeDrive.DoesNotExist:
+        raise ValueError("Tape not mounted")
 
-        return rewind_tape(drive.device)
-
-
-class IsTapeDriveOnline(DBTask):
-    def run(self, drive=None):
-        """
-        Checks if the given tape drive is online
-
-        Args:
-            drive: Which drive to check
-
-        Returns:
-            True if the drive is online, false otherwise
-        """
-
-        return is_tape_drive_online(drive)
+    return rewind_tape(drive.device)
 
 
-class ReadTape(DBTask):
-    def run(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        """
-        Reads the tape in the given drive
-        """
+@app.task(bind=True)
+def IsTapeDriveOnline(self, drive=None):
+    """
+    Checks if the given tape drive is online
 
-        try:
-            drive = TapeDrive.objects.get(storage_medium__pk=medium)
-        except TapeDrive.DoesNotExist:
-            raise ValueError("Tape not mounted")
+    Args:
+        drive: Which drive to check
 
-        res = read_tape(drive.device, path=path, block_size=block_size)
+    Returns:
+        True if the drive is online, false otherwise
+    """
 
-        drive.last_change = timezone.now()
-        drive.save(update_fields=['last_change'])
-
-        return res
+    return is_tape_drive_online(drive)
 
 
-class WriteToTape(DBTask):
-    def run(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
-        """
-        Writes content to a tape drive
-        """
+@app.task(bind=True)
+def ReadTape(self, medium=None, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    """
+    Reads the tape in the given drive
+    """
 
-        try:
-            drive = TapeDrive.objects.get(storage_medium__pk=medium)
-        except TapeDrive.DoesNotExist:
-            raise ValueError("Tape not mounted")
+    try:
+        drive = TapeDrive.objects.get(storage_medium__pk=medium)
+    except TapeDrive.DoesNotExist:
+        raise ValueError("Tape not mounted")
 
-        res = write_to_tape(drive.device, path, block_size=block_size)
+    res = read_tape(drive.device, path=path, block_size=block_size)
 
-        drive.last_change = timezone.now()
-        drive.save(update_fields=['last_change'])
+    drive.last_change = timezone.now()
+    drive.save(update_fields=['last_change'])
 
-        return res
-
-
-class GetTapeFileNumber(DBTask):
-    def run(self, medium=None):
-        """
-        Gets the current file number (position) of the given tape
-        """
-
-        try:
-            drive = TapeDrive.objects.get(storage_medium__pk=medium)
-        except TapeDrive.DoesNotExist:
-            raise ValueError("Tape not mounted")
-
-        return get_tape_file_number(drive.device)
+    return res
 
 
-class SetTapeFileNumber(DBTask):
-    def run(self, medium=None, num=0):
-        """
-        Sets the current file number (position) of the given tape
-        """
+@app.task(bind=True)
+def WriteToTape(self, medium, path, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+    """
+    Writes content to a tape drive
+    """
 
-        try:
-            drive = TapeDrive.objects.get(storage_medium__pk=medium)
-        except TapeDrive.DoesNotExist:
-            raise ValueError("Tape not mounted")
+    try:
+        drive = TapeDrive.objects.get(storage_medium__pk=medium)
+    except TapeDrive.DoesNotExist:
+        raise ValueError("Tape not mounted")
 
-        return set_tape_file_number(drive.device, num)
+    res = write_to_tape(drive.device, path, block_size=block_size)
+
+    drive.last_change = timezone.now()
+    drive.save(update_fields=['last_change'])
+
+    return res
 
 
-class RobotInventory(DBTask):
-    def run(self, robot):
-        """
-        Updates the slots and drives in the robot
+@app.task(bind=True)
+def GetTapeFileNumber(self, medium=None):
+    """
+    Gets the current file number (position) of the given tape
+    """
 
-        Args:
-            robot: Which robot to get the data from
+    try:
+        drive = TapeDrive.objects.get(storage_medium__pk=medium)
+    except TapeDrive.DoesNotExist:
+        raise ValueError("Tape not mounted")
 
-        Returns:
-            None
-        """
+    return get_tape_file_number(drive.device)
 
-        robot_inventory(robot)
+
+@app.task(bind=True)
+def SetTapeFileNumber(self, medium=None, num=0):
+    """
+    Sets the current file number (position) of the given tape
+    """
+
+    try:
+        drive = TapeDrive.objects.get(storage_medium__pk=medium)
+    except TapeDrive.DoesNotExist:
+        raise ValueError("Tape not mounted")
+
+    return set_tape_file_number(drive.device, num)
+
+
+@app.task(bind=True)
+def RobotInventory(self, robot):
+    """
+    Updates the slots and drives in the robot
+
+    Args:
+        robot: Which robot to get the data from
+
+    Returns:
+        None
+    """
+
+    robot_inventory(robot)
 
 
 class ConvertFile(DBTask):
@@ -826,10 +826,10 @@ class RunWorkflowPollers(DBTask):
             workflow.run()
 
 
-class DeletePollingSource(DBTask):
-    def run(self, backend_name, poll_path):
-        backend_name, poll_path = self.parse_params(backend_name, poll_path)
-        backend = get_backend(backend_name)
+@app.task(bind=True)
+def DeletePollingSource(self, backend_name, poll_path):
+    backend_name, poll_path = self.parse_params(backend_name, poll_path)
+    backend = get_backend(backend_name)
 
-        ip = self.get_information_package()
-        backend.delete_source(poll_path, ip)
+    ip = self.get_information_package()
+    backend.delete_source(poll_path, ip)
