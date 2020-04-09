@@ -181,6 +181,8 @@ class DBTask(Task):
         with cache.lock(step.cache_lock_key, timeout=60):
             step.clear_cache()
 
+        return super().after_return(status, retval, task_id, args, kwargs, einfo)
+
     def create_event(self, status, msg, retval, einfo):
         if status == celery_states.SUCCESS:
             outcome = EventIP.SUCCESS

@@ -213,6 +213,7 @@ class ProcessStep(MPTTModel, Process):
             self.parent_step.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
+        tasks = tasks.filter(status=celery_states.PENDING,)
 
         if not tasks.exists() and not steps.exists():
             if direct:
@@ -330,6 +331,18 @@ class ProcessStep(MPTTModel, Process):
         """
 
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
+        ProcessTask.objects.filter(
+            processstep__in=self.get_descendants(include_self=True),
+            status__in=[celery_states.PENDING, celery_states.FAILURE],
+        ).update(
+            status=celery_states.PENDING,
+            time_started=None,
+            time_done=None,
+            traceback='',
+            exception='',
+            progress=0,
+            result=None,
+        )
         child_steps = self.get_children()
 
         step_descendants = self.get_descendants(include_self=True)
@@ -575,10 +588,7 @@ class ProcessTask(Process):
             return None
 
         parent = self.processstep
-        while parent.parent_step is not None:
-            parent = parent.parent_step
-
-        return parent
+        return parent.get_root()
 
     def create_traceback(self):
         return tblib.Traceback.from_string(self.traceback).as_traceback()
@@ -660,7 +670,6 @@ class ProcessTask(Process):
         return r
 
     def reset(self):
-        self.celery_id = uuid.uuid4()
         self.status = celery_states.PENDING
         self.time_started = None
         self.time_done = None
@@ -718,6 +727,8 @@ class ProcessTask(Process):
     def revoke(self):
         logger.debug('Revoking task ({})'.format(self.pk))
         revoke(self.celery_id, terminate=True)
+        self.celery_id = uuid.uuid4()
+        self.save()
         logger.info('Revoked task ({})'.format(self.pk))
 
     def retry(self):
