@@ -338,7 +338,7 @@ def AddPremisIPObjectElementToEventsFile(self):
     generator.write(xmlfile)
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=10300)
 def CreatePhysicalModel(self, structure=None, root=""):
     """
     Creates the IP physical model based on a logical model.
@@ -347,8 +347,6 @@ def CreatePhysicalModel(self, structure=None, root=""):
         structure: A dict specifying the logical model.
         root: The root directory to be used
     """
-
-    self.event_type = 10300
 
     ip = self.get_information_package()
     ip.create_physical_model(structure, root)
@@ -403,29 +401,24 @@ class ParseSubmitDescription(DBTask):
         return "Parsed submit description at {}".format(ip.package_mets_path)
 
 
-class ParseEvents(DBTask):
-    event_type = 50630
+@app.task(bind=True, event_type=50630)
+@transaction.atomic
+def ParseEvents(self):
     logger = logging.getLogger('essarch.core.ip.tasks.ParseEvents')
 
-    def get_path(self, ip):
-        return ip.get_events_file_path(from_container=True)
+    ip = self.get_information_package()
+    xmlfile_path = self.get_path(ip)
+    try:
+        xmlfile = ip.open_file(xmlfile_path, 'rb')
+    except (FileNotFoundError, KeyError):
+        logger.debug('No events file found at "{}"'.format(xmlfile_path))
+        return
 
-    @transaction.atomic
-    def run(self):
-        ip = self.get_information_package()
-        xmlfile_path = self.get_path(ip)
-        try:
-            xmlfile = ip.open_file(xmlfile_path, 'rb')
-        except (FileNotFoundError, KeyError):
-            self.logger.debug('No events file found at "{}"'.format(xmlfile_path))
-            return
+    events = EventIP.objects.from_premis_file(xmlfile, save=False)
+    EventIP.objects.bulk_create(events, 100)
 
-        events = EventIP.objects.from_premis_file(xmlfile, save=False)
-        EventIP.objects.bulk_create(events, 100)
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return "Parsed events from %s" % self.get_path(ip)
+    ip = self.get_information_package()
+    return "Parsed events from %s" % ip.get_events_file_path(from_container=True)
 
 
 @app.task(bind=True)
