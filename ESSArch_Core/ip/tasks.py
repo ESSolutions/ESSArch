@@ -559,7 +559,7 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 
 
 @app.task(bind=True)
-class CreateWorkarea(self, ip, user, type, read_only):
+def CreateWorkarea(self, ip, user, type, read_only):
     ip = InformationPackage.objects.get(pk=ip)
     user = User.objects.get(pk=user)
     Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
