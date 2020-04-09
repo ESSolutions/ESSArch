@@ -64,8 +64,12 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.fixity.serializers import ValidatorWorkflowSerializer
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
-from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
+from ESSArch_Core.fixity.validation import (
+    AVAILABLE_VALIDATORS,
+    get_backend as get_validator,
+)
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.filters import (
     AgentFilter,
@@ -1924,46 +1928,48 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
         })
 
-    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='validate')
     def validate(self, request, pk=None):
         ip = self.get_object()
 
-        prepare = Path.objects.get(entity="ingest_workarea").value
-        xmlfile = os.path.join(prepare, "%s.xml" % pk)
+        request.data['information_package'] = str(ip.pk)
+        serializer = ValidatorWorkflowSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        workflow_spec = []
+        ip = serializer.validated_data['information_package']
 
-        step = ProcessStep.objects.create(
-            name="Validation",
-            information_package=ip
-        )
+        for validator in serializer.validated_data['validators']:
+            name = validator['name']
+            klass = get_validator(name)
 
-        step.add_tasks(
-            ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ValidateXMLFile",
-                params={
-                    "xml_filename": xmlfile
-                },
-                log=EventIP,
-                information_package=ip,
-                responsible=self.request.user,
-            ),
-            ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ValidateFiles",
-                params={
-                    "mets_path": xmlfile,
-                    "validate_fileformat": True,
-                    "validate_integrity": True,
-                },
-                log=EventIP,
-                processstep_pos=0,
-                information_package=ip,
-                responsible=self.request.user,
-            )
-        )
+            options = validator['options']
+            if validator['path']:
+                path = os.path.join(ip.object_path, validator['path'])
+            else:
+                path = ip.object_path
 
-        step.run()
+            task_spec = {
+                'name': 'ESSArch_Core.fixity.validation.tasks.Validate',
+                'label': 'Validate using {}'.format(klass.label),
+                'args': [name, path],
+                'params': {'context': validator['context'], 'options': options},
+            }
 
-        return Response("Validating IP")
+            workflow_spec.append(task_spec)
+
+        with transaction.atomic():
+            step = {
+                'step': True,
+                'name': serializer.validated_data['purpose'],
+                'parallel': True,
+                'children': workflow_spec
+            }
+            workflow = create_workflow([step], ip=ip, name='Validation')
+
+        workflow.run()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         ip = self.get_object()

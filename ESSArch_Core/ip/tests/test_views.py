@@ -2,12 +2,13 @@ import os
 import shutil
 import tempfile
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import (
     Group,
@@ -16,6 +17,8 @@ from ESSArch_Core.auth.models import (
     GroupType,
 )
 from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.exceptions import ValidationError
+from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
@@ -28,6 +31,8 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.testing.runner import TaskRunner
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
@@ -315,3 +320,165 @@ class InformationPackageMigratableTests(TestCase):
 
         ip_exists = InformationPackage.objects.migratable().exists()
         self.assertFalse(ip_exists)
+
+
+class InformationPackageValidationTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create(username='superuser', is_superuser=True)
+
+    def setUp(self):
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
+
+        self.ip = InformationPackage.objects.create(
+            object_path=tempfile.mkdtemp(dir=self.datadir),
+        )
+
+    @TaskRunner()
+    def test_validate(self):
+        self.client.force_authenticate(self.user)
+        url = reverse('informationpackage-validate', args=(str(self.ip.pk),))
+
+        os.makedirs(os.path.join(self.ip.object_path, 'content'))
+
+        with open(os.path.join(self.ip.object_path, 'content', 'foo.txt'), 'w') as f:
+            f.write('hello')
+
+        chksum = calculate_checksum(os.path.join(self.ip.object_path, 'content', 'foo.txt'), 'SHA-224')
+        with open(os.path.join(self.ip.object_path, 'metadata.xml'), 'w') as f:
+            f.write('<files></files>')
+
+        with self.subTest('invalid file path'):
+            response = self.client.post(url, {
+                'validators': [
+                    {
+                        'name': 'checksum',
+                        'path': 'foo.txt',
+                        'context': 'checksum_str',
+                        'options': {
+                            'expected': chksum,
+                            'algorithm': 'SHA-224',
+                        }
+                    },
+                ],
+            })
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertFalse(ProcessTask.objects.exists())
+
+        with self.subTest('valid path and expected value'):
+            response = self.client.post(url, {
+                'validators': [
+                    {
+                        'name': 'checksum',
+                        'path': 'content/foo.txt',
+                        'context': 'checksum_str',
+                        'options': {
+                            'expected': chksum,
+                            'algorithm': 'SHA-224',
+                        }
+                    },
+                ],
+            })
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 1)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 0)
+
+        with self.subTest('valid path and unexpected value'):
+            with self.assertRaises(ValidationError):
+                response = self.client.post(url, {
+                    'validators': [
+                        {
+                            'name': 'checksum',
+                            'path': 'content/foo.txt',
+                            'context': 'checksum_str',
+                            'options': {
+                                'expected': 'incorrect',
+                                'algorithm': 'SHA-224',
+                            }
+                        },
+                    ],
+                })
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 1)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 1)
+
+        with self.subTest('multiple validators'):
+            with self.assertRaises(ValidationError):
+                response = self.client.post(url, {
+                    'information_package': str(self.ip.pk),
+                    'validators': [
+                        {
+                            'name': 'checksum',
+                            'path': 'content/foo.txt',
+                            'context': 'checksum_str',
+                            'options': {
+                                'expected': chksum,
+                                'algorithm': 'SHA-224',
+                            }
+                        },
+                        {
+                            'name': 'diff_check',
+                            'path': '',
+                            'context': 'metadata.xml',
+                            'options': {
+                                'recursive': True,
+                                'default_algorithm': 'SHA-224',
+                            }
+                        },
+                    ],
+                })
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 2)
+            self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 2)
+
+        with open(os.path.join(self.ip.object_path, 'metadata.xml'), 'w') as f:
+            f.write(f'<files><file CHECKSUM="{chksum}"><FLocat href="content/foo.txt"/></file></files>')
+
+        response = self.client.post(url, {
+            'validators': [
+                {
+                    'name': 'checksum',
+                    'path': 'content/foo.txt',
+                    'context': 'checksum_str',
+                    'options': {
+                        'expected': chksum,
+                        'algorithm': 'SHA-224',
+                    }
+                },
+                {
+                    'name': 'diff_check',
+                    'path': '',
+                    'context': 'metadata.xml',
+                    'options': {
+                        'recursive': True,
+                        'default_algorithm': 'SHA-224',
+                    }
+                },
+            ],
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 4)
+        self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 2)
+
+        with open(os.path.join(self.ip.object_path, 'metadata.xml'), 'w') as f:
+            f.write(f'<files><file CHECKSUM="{chksum}"><FLocat href="foo.txt"/></file></files>')
+
+        response = self.client.post(url, {
+            'validators': [
+                {
+                    'name': 'diff_check',
+                    'path': 'content',
+                    'context': 'metadata.xml',
+                    'options': {
+                        'recursive': True,
+                        'default_algorithm': 'SHA-224',
+                    }
+                },
+            ],
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(ProcessTask.objects.filter(status=celery_states.SUCCESS).count(), 5)
+        self.assertEqual(ProcessTask.objects.filter(status=celery_states.FAILURE).count(), 2)

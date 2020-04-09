@@ -17,6 +17,7 @@ import stateTree from './stateTree';
 import sysInfo from './sysinfo';
 import upload from './upload';
 import userSettings from './userSettings';
+import validation from './validation';
 
 export default [
   access,
@@ -38,4 +39,5 @@ export default [
   sysInfo,
   upload,
   userSettings,
+  validation,
 ];

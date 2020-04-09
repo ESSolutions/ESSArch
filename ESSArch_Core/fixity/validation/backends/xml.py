@@ -6,7 +6,9 @@ from os import walk
 import click
 from django.utils import timezone
 from lxml import etree, isoschematron
+from rest_framework import serializers
 
+from ESSArch_Core.api.fields import FilePathField
 from ESSArch_Core.essxml.util import (
     find_files,
     find_pointers,
@@ -31,6 +33,86 @@ class DiffCheckValidator(BaseValidator):
     """
 
     file_validator = False
+    label = "Diff-check validator"
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Path to validate',
+                }
+            },
+            {
+                'key': 'context',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Metadata file',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.recursive',
+                'defaultValue': True,
+                'type': 'checkbox',
+                'templateOptions': {
+                    'label': 'Recursive',
+                }
+            },
+            {
+                'key': 'options.default_algorithm',
+                'type': 'select',
+                'defaultValue': 'SHA-256',
+                'templateOptions': {
+                    'label': 'Default checksum algorithm',
+                    'required': True,
+                    'labelProp': 'name',
+                    'valueProp': 'value',
+                    'options': [
+                        {'name': 'MD5', 'value': 'MD5'},
+                        {'name': 'SHA-1', 'value': 'SHA-1'},
+                        {'name': 'SHA-224', 'value': 'SHA-224'},
+                        {'name': 'SHA-256', 'value': 'SHA-256'},
+                        {'name': 'SHA-384', 'value': 'SHA-384'},
+                        {'name': 'SHA-512', 'value': 'SHA-512'},
+                    ]
+                }
+            },
+        ]
+
+    class Serializer(BaseValidator.Serializer):
+        context = serializers.CharField()
+
+        def __init__(self, *args, **kwargs):
+            from ESSArch_Core.ip.models import InformationPackage
+
+            super().__init__(*args, **kwargs)
+            ip_pk = kwargs['context']['information_package']
+            ip = InformationPackage.objects.get(pk=ip_pk)
+            self.fields['context'] = FilePathField(ip.object_path, allow_blank=True, default='')
+
+    class OptionsSerializer(BaseValidator.OptionsSerializer):
+        rootdir = serializers.CharField(required=False)
+        recursive = serializers.BooleanField(default=True)
+        default_algorithm = serializers.ChoiceField(
+            choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
+            default='SHA-256',
+        )
+
+        def validate(self, data):
+            if 'rootdir' not in data:
+                if self.context['base_data']['path']:
+                    data['rootdir'] = self.context['base_data']['path']
+                else:
+                    from ESSArch_Core.ip.models import InformationPackage
+
+                    ip_pk = self.context['information_package']
+                    ip = InformationPackage.objects.get(pk=ip_pk)
+                    data['rootdir'] = ip.object_path
+
+            return data
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -90,7 +172,7 @@ class DiffCheckValidator(BaseValidator):
             validator=self.__class__.__name__,
             required=self.required,
             task=self.task,
-            information_package_id=self.ip,
+            information_package=self.ip,
             responsible=self.responsible,
             message=msg,
             passed=passed,
@@ -242,6 +324,56 @@ class DiffCheckValidator(BaseValidator):
 
 
 class XMLComparisonValidator(DiffCheckValidator):
+    label = "XML Comparison validator"
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'First XML',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'context',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Second XML',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.recursive',
+                'defaultValue': True,
+                'type': 'checkbox',
+                'templateOptions': {
+                    'label': 'Recursive',
+                }
+            },
+            {
+                'key': 'options.default_algorithm',
+                'type': 'select',
+                'defaultValue': 'SHA-256',
+                'templateOptions': {
+                    'label': 'Default checksum algorithm',
+                    'required': True,
+                    'labelProp': 'name',
+                    'valueProp': 'value',
+                    'options': [
+                        {'name': 'MD5', 'value': 'MD5'},
+                        {'name': 'SHA-1', 'value': 'SHA-1'},
+                        {'name': 'SHA-224', 'value': 'SHA-224'},
+                        {'name': 'SHA-256', 'value': 'SHA-256'},
+                        {'name': 'SHA-384', 'value': 'SHA-384'},
+                        {'name': 'SHA-512', 'value': 'SHA-512'},
+                    ]
+                }
+            },
+        ]
+
     def _get_files(self):
         skip_files = [p.path for p in find_pointers(self.context)]
         self.logical_files = find_files(
@@ -387,6 +519,20 @@ class XMLSchemaValidator(BaseValidator):
 
 
 class XMLSyntaxValidator(BaseValidator):
+    label = "XML syntax validator"
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Path to validate',
+                }
+            },
+        ]
+
     def validate(self, filepath, expected=None):
         logger.debug('Validating syntax of {xml}'.format(xml=filepath))
 

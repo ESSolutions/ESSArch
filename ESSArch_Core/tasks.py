@@ -33,7 +33,6 @@ from pathlib import PurePath
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
@@ -53,7 +52,6 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     findElementWithoutNamespace,
 )
 from ESSArch_Core.essxml.util import find_pointers, get_premis_ref
-from ESSArch_Core.fixity import validation
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
 from ESSArch_Core.fixity.validation.backends.xml import (
@@ -316,66 +314,6 @@ class ValidateFileFormat(DBTask):
         )
 
 
-class ValidateWorkarea(DBTask):
-    queue = 'validation'
-
-    def create_notification(self, ip):
-        errcount = Validation.objects.filter(information_package=ip, passed=False, required=True).count()
-
-        if errcount:
-            Notification.objects.create(
-                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
-                    ip=ip.object_identifier_value, errcount=errcount
-                ),
-                level=logging.ERROR,
-                user_id=self.responsible,
-                refresh=True
-            )
-        else:
-            Notification.objects.create(
-                message='"{ip}" was successfully validated'.format(
-                    ip=ip.object_identifier_value
-                ),
-                level=logging.INFO,
-                user_id=self.responsible,
-                refresh=True
-            )
-
-    def run(self, workarea, validators, stop_at_failure=True):
-        workarea = Workarea.objects.get(pk=workarea)
-        workarea.successfully_validated = {}
-
-        for validator in validators:
-            workarea.successfully_validated[validator] = None
-
-        workarea.save(update_fields=['successfully_validated'])
-        ip = workarea.ip
-        sa = ip.submission_agreement
-        validation_profile = ip.get_profile('validation')
-        profile_data = fill_specification_data(data=ip.get_profile_data('validation'), sa=sa, ip=ip)
-        responsible = User.objects.get(pk=self.responsible)
-
-        try:
-            validation.validate_path(workarea.path, validators, validation_profile, data=profile_data, ip=ip,
-                                     task=self.get_processtask(), stop_at_failure=stop_at_failure,
-                                     responsible=responsible)
-        except ValidationError:
-            self.create_notification(ip)
-        else:
-            self.create_notification(ip)
-        finally:
-            validations = ip.validation_set.all()
-            failed_validators = validations.values('validator').filter(
-                passed=False, required=True
-            ).values_list('validator', flat=True)
-
-            for k, _v in workarea.successfully_validated.items():
-                class_name = validation.AVAILABLE_VALIDATORS[k].split('.')[-1]
-                workarea.successfully_validated[k] = class_name not in failed_validators
-
-            workarea.save(update_fields=['successfully_validated'])
-
-
 class TransformWorkarea(DBTask):
     def run(self, backend, workarea):
         workarea = Workarea.objects.select_related('ip__submission_agreement').get(pk=workarea)
@@ -440,9 +378,9 @@ class ValidateLogicalPhysicalRepresentation(DBTask):
             else:
                 rootdir = os.path.dirname(path)
 
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
-                                       task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
+                                       task=self.get_processtask(), ip=ip, responsible=ip.responsible)
         validator.validate(path)
 
     def event_outcome_success(self, result, path, xmlfile, skip_files=None, relpath=None):
@@ -459,7 +397,7 @@ class CompareXMLFiles(DBTask):
     def run(self, first, second, rootdir=None, recursive=True):
         Validation.objects.filter(task=self.get_processtask()).delete()
         first, second = self.parse_params(first, second)
-        ip = InformationPackage.objects.get(pk=self.ip)
+        ip = self.get_information_package()
         if rootdir is None:
             rootdir = ip.object_path
         else:
@@ -469,7 +407,7 @@ class CompareXMLFiles(DBTask):
             context=first,
             options={'rootdir': rootdir, 'recursive': recursive},
             task=self.get_processtask(),
-            ip=self.ip,
+            ip=ip,
             responsible=ip.responsible,
         )
         validator.validate(second)

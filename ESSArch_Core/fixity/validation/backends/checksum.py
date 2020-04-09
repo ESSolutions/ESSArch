@@ -1,7 +1,8 @@
 import logging
-import traceback
+import os
 
 from django.utils import timezone
+from rest_framework import serializers
 
 from ESSArch_Core.essxml.util import find_file
 from ESSArch_Core.exceptions import ValidationError
@@ -25,6 +26,59 @@ class ChecksumValidator(BaseValidator):
        * ``block_size``: Defaults to 65536
     """
 
+    label = 'Checksum Validator'
+
+    @classmethod
+    def get_form(cls):
+        return [
+            {
+                'key': 'path',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Path to validate',
+                    'required': True,
+                }
+            },
+            {
+                'key': 'options.algorithm',
+                'type': 'select',
+                'defaultValue': 'SHA-256',
+                'templateOptions': {
+                    'label': 'Checksum algorithm',
+                    'required': True,
+                    'labelProp': 'name',
+                    'valueProp': 'value',
+                    'options': [
+                        {'name': 'MD5', 'value': 'MD5'},
+                        {'name': 'SHA-1', 'value': 'SHA-1'},
+                        {'name': 'SHA-224', 'value': 'SHA-224'},
+                        {'name': 'SHA-256', 'value': 'SHA-256'},
+                        {'name': 'SHA-384', 'value': 'SHA-384'},
+                        {'name': 'SHA-512', 'value': 'SHA-512'},
+                    ]
+                }
+            },
+            {
+                'key': 'options.expected',
+                'type': 'input',
+                'templateOptions': {
+                    'label': 'Checksum',
+                    'required': True,
+                }
+            },
+        ]
+
+    class Serializer(BaseValidator.Serializer):
+        context = serializers.CharField(default='checksum_str')
+        block_size = serializers.IntegerField(default=65536)
+
+    class OptionsSerializer(BaseValidator.OptionsSerializer):
+        expected = serializers.CharField()
+        algorithm = serializers.ChoiceField(
+            choices=['MD5', 'SHA-1', 'SHA-224', 'SHA-256', 'SHA-384', 'SHA-512'],
+            default='SHA-256',
+        )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -36,8 +90,14 @@ class ChecksumValidator(BaseValidator):
 
     def validate(self, filepath, expected=None):
         logger.debug('Validating checksum of %s' % filepath)
+
+        if self.ip is not None:
+            relpath = os.path.relpath(filepath, self.ip.object_path)
+        else:
+            relpath = filepath
+
         val_obj = Validation.objects.create(
-            filename=filepath,
+            filename=relpath,
             time_started=timezone.now(),
             validator=self.__class__.__name__,
             required=self.required,
@@ -66,14 +126,14 @@ class ChecksumValidator(BaseValidator):
             actual_checksum = calculate_checksum(filepath, algorithm=self.algorithm, block_size=self.block_size)
             if actual_checksum != checksum:
                 raise ValidationError("checksum for %s is not valid (%s != %s)" % (
-                    filepath, checksum, actual_checksum
+                    relpath, checksum, actual_checksum
                 ))
             passed = True
-        except Exception:
-            val_obj.message = traceback.format_exc()
+        except Exception as e:
+            val_obj.message = str(e)
             raise
         else:
-            message = 'Successfully validated checksum of %s' % filepath
+            message = 'Successfully validated checksum of %s' % relpath
             val_obj.message = message
             logger.info(message)
         finally:
