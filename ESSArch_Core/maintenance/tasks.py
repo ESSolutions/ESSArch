@@ -4,23 +4,22 @@ from django.utils import timezone
 
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
+from ESSArch_Core.config.celery import app
 from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
+@app.task(bind=True)
+def RunAppraisalJob(self, pk):
+    job = AppraisalJob.objects.get(pk=pk)
+    return job.run()
 
-class RunAppraisalJob(DBTask):
-    def run(self, pk):
-        job = AppraisalJob.objects.get(pk=pk)
-        return job.run()
-
-
-class RunConversionJob(DBTask):
-    def run(self, pk):
-        job = ConversionJob.objects.get(pk=pk)
-        return job.run()
+@app.task(bind=True)
+def RunConversionJob(self, pk):
+    job = ConversionJob.objects.get(pk=pk)
+    return job.run()
 
 
 class PollAppraisalJobs(DBTask):
