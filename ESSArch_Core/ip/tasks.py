@@ -400,14 +400,13 @@ class ParseSubmitDescription(DBTask):
         ip = self.get_information_package()
         return "Parsed submit description at {}".format(ip.package_mets_path)
 
-
 @app.task(bind=True, event_type=50630)
 @transaction.atomic
 def ParseEvents(self):
     logger = logging.getLogger('essarch.core.ip.tasks.ParseEvents')
 
     ip = self.get_information_package()
-    xmlfile_path = self.get_path(ip)
+    xmlfile_path = ip.get_events_file_path(from_container=True)
     try:
         xmlfile = ip.open_file(xmlfile_path, 'rb')
     except (FileNotFoundError, KeyError):
@@ -417,9 +416,8 @@ def ParseEvents(self):
     events = EventIP.objects.from_premis_file(xmlfile, save=False)
     EventIP.objects.bulk_create(events, 100)
 
-    ip = self.get_information_package()
-    return "Parsed events from %s" % ip.get_events_file_path(from_container=True)
-
+    msg = "Parsed events from %s" % xmlfile_path
+    self.create_success_event(msg)
 
 @app.task(bind=True)
 def Transform(self, backend, path=None):
