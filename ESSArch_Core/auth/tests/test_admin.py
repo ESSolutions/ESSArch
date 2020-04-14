@@ -23,7 +23,7 @@ class UserAdminTestCase(TestCase):
 
     def test_change_view(self):
         response = self.client.get(reverse('admin:essauth_proxyuser_change', args=(self.user.pk,)))
-        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Assigned roles', status_code=200)
 
 
 class GroupAdminTestCase(TestCase):

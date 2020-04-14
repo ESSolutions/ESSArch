@@ -27,7 +27,7 @@ import uuid
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class CachedManagerMixin:
@@ -264,3 +264,17 @@ class DefaultValue(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     field = models.CharField(max_length=255)
     value = models.CharField(max_length=255, blank=True)
+
+
+class Feature(models.Model):
+    name = models.CharField(_('name'), max_length=100, blank=False, unique=True)
+    description = models.TextField(_('description'), blank=True)
+    enabled = models.BooleanField(_('enabled'))
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = _('feature')
+        verbose_name_plural = _('features')

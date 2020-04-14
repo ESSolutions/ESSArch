@@ -1,4 +1,5 @@
 import agentName from '../services/agentName';
+import archiveName from '../services/archiveName';
 import myService from '../services/myService';
 import appraisal from '../services/appraisal';
 import storagePolicy from '../services/storagePolicy';
@@ -46,11 +47,12 @@ import {workarea, workareaFiles} from '../services/workarea';
 export default angular
   .module('essarch.services', [])
   .factory('AgentName', ['$filter', agentName])
+  .factory('ArchiveName', ['$filter', archiveName])
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
-  .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', filters])
+  .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', 'Notifications', filters])
   .factory('StoragePolicy', ['$resource', 'appConfig', storagePolicy])
-  .factory('ContentTabs', contentTabs)
+  .factory('ContentTabs', ['$rootScope', contentTabs])
   .factory('ContextMenuBase', ['$translate', contextMenuBase])
   .factory('Conversion', ['$http', 'appConfig', conversion])
   .factory('EditMode', [EditMode])

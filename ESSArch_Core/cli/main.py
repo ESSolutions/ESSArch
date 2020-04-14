@@ -71,6 +71,7 @@ def create_data_directories(path):
         'disseminations',
         'ingest/packages',
         'ingest/reception',
+        'ingest/transfer',
         'ingest/uip',
         'orders',
         'preingest/packages',
@@ -111,31 +112,46 @@ def install(ctx, data_directory):
     installDefaultConfiguration()
 
 
+@click.option('-P', '--pool', default='prefork',
+              type=click.Choice(('prefork', 'eventlet', 'gevent', 'threads', 'solo'), case_sensitive=False))
+@click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
+@click.option('-n', '--hostname', default=None)
 @click.option('-c', '--concurrency', default=None, type=int)
-@click.option('-q', '--queues', default='celery,file_operation,validation')
+@click.option('-Q', '--queues', default='celery,file_operation,validation')
 @cli.command()
 @initialize
-def worker(queues, concurrency, loglevel):
+def worker(queues, concurrency, hostname, loglevel, logfile, pidfile, pool):
     from ESSArch_Core.config.celery import app
 
     worker = app.Worker(
+        logfile=logfile,
         loglevel=loglevel,
         concurrency=concurrency,
         queues=queues,
         optimization='fair',
         prefetch_multiplier=1,
+        hostname=hostname,
+        pidfile=pidfile,
+        pool=pool,
     )
     worker.start()
     sys.exit(worker.exitcode)
 
 
+@click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
 @cli.command()
 @initialize
-def beat(loglevel):
+def beat(loglevel, logfile, pidfile):
     from ESSArch_Core.config.celery import app
-    app.Beat(loglevel=loglevel).run()
+    app.Beat(
+        logfile=logfile,
+        loglevel=loglevel,
+        pidfile=pidfile,
+    ).run()
 
 
 list(

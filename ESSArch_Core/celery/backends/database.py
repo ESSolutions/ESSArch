@@ -13,7 +13,7 @@ from celery.states import (
 from celery.utils.serialization import create_exception_cls
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
@@ -68,12 +68,15 @@ class DatabaseBackend(BaseDictBackend):
         return result
 
     def update_state(self, task_id, meta, status, request=None):
-        progress = (meta['current'] / meta['total']) * 100
+        if meta is not None:
+            progress = (meta['current'] / meta['total']) * 100
+        else:
+            progress = None
 
         ProcessTask.objects.filter(celery_id=task_id).update(
             status=status if status is not None else F('status'),
-            meta=meta,
-            progress=progress,
+            meta=meta if meta is not None else F('meta'),
+            progress=progress if progress is not None else F('progress'),
         )
         return status
 

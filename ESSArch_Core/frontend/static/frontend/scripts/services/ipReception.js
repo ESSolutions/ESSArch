@@ -7,7 +7,7 @@ const ipReception = ($resource, appConfig) => {
         method: 'GET',
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -31,7 +31,7 @@ const ipReception = ($resource, appConfig) => {
         params: {action: 'files', id: '@id'},
         isArray: true,
         interceptor: {
-          response: function(response) {
+          response: function (response) {
             response.resource.$httpHeaders = response.headers;
             return response.resource;
           },
@@ -40,6 +40,10 @@ const ipReception = ($resource, appConfig) => {
       prepare: {
         method: 'POST',
         params: {action: 'prepare', id: '@id'},
+      },
+      transfer: {
+        method: 'POST',
+        params: {action: 'transfer', id: '@id'},
       },
     }
   );

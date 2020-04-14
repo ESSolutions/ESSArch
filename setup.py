@@ -2,7 +2,7 @@
     ESSArch is an open source archiving and digital preservation system
 
     ESSArch
-    Copyright (C) 2005-2019 ES Solutions AB
+    Copyright (C) 2005-2020 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,12 +27,6 @@ import os
 import versioneer
 from setuptools import find_packages, setup
 
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'ESSArch_Core/_version.py'
-versioneer.versionfile_build = None
-versioneer.tag_prefix = ''  # tags are like 1.2.0
-versioneer.parentdir_prefix = 'ESSArch_Core-'
-
 
 def get_requirements(env):
     path = os.path.join('requirements/{}.txt').format(env)
@@ -40,11 +34,20 @@ def get_requirements(env):
         return [x.strip() for x in fp.read().split('\n') if not x.startswith('#')]
 
 
+def get_optional(name):
+    for req in get_requirements('optional'):
+        if req.startswith(name):
+            return req
+
+    raise ValueError('Could not find optional requirement: "{}"'.format(name))
+
+
 if __name__ == '__main__':
+    versions_dict = versioneer.get_versions()
     cmdclass = versioneer.get_cmdclass()
     setup(
         name='ESSArch',
-        version=versioneer.get_version(),
+        version=versions_dict['version'],
         description='ESSArch',
         long_description=open("README.md").read(),
         long_description_content_type='text/markdown',
@@ -61,7 +64,7 @@ if __name__ == '__main__':
         },
         project_urls={
             'Documentation': 'http://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versioneer.get_versions()['full'],
+            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versions_dict['full-revisionid'],
             'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
         classifiers=[
@@ -78,15 +81,15 @@ if __name__ == '__main__':
         extras_require={
             "docs": get_requirements('docs'),
             "tests": get_requirements('tests'),
-            "ldap": ["django-auth-ldap==2.0.0"],
-            "saml2": ["djangosaml2==0.17.2"],
-            "libreoffice_file_conversion": ["unoconv==0.8.2"],
-            "ms_office_file_conversion": ["comtypes==1.1.7;platform_system=='Windows'"],
-            "iis": ["wfastcgi==3.0.0"],
-            "mssql": ["django-mssql-backend==2.5.0"],
-            "mysql": ["mysqlclient==1.4.4"],
-            "postgres": ["psycopg2==2.8.3"],
-            "logstash": ["python-logstash-async==1.5.1"],
+            "ldap": [get_optional("django-auth-ldap")],
+            "saml2": [get_optional("djangosaml2")],
+            "libreoffice_file_conversion": [get_optional("unoconv")],
+            "ms_office_file_conversion": [get_optional("comtypes")],
+            "iis": [get_optional("wfastcgi")],
+            "mssql": [get_optional("django-mssql-backend")],
+            "mysql": [get_optional("mysqlclient")],
+            "postgres": [get_optional("psycopg2")],
+            "logstash": [get_optional("python-logstash-async")],
         },
         packages=find_packages(),
         include_package_data=True,

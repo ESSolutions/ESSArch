@@ -361,3 +361,11 @@ th {
     white-space: nowrap;
   }
 }
+
+.cross-failure {
+  color: $task-validation-text-red;
+}
+
+.check-success {
+  color: $task-validation-text-green;
+}

@@ -31,6 +31,7 @@ django.setup()
 
 from django.conf import settings  # noqa isort:skip
 
+from ESSArch_Core.configuration.models import StoragePolicy  # noqa isort:skip
 from ESSArch_Core.profiles.models import (  # noqa isort:skip
     SubmissionAgreement,
     Profile,
@@ -54,12 +55,19 @@ def installProfiles():
 
 
 def installSubmissionAgreement():
+    try:
+        policy = StoragePolicy.objects.get(policy_name="default")
+    except StoragePolicy.DoesNotExist:
+        policy = StoragePolicy.objects.first()
+        if policy is None:
+            raise
 
     dct = {
         'name': 'SA National Archive and Government NO',
         'type': 'Standard',
         'status': 'Agreed',
         'label': 'Submission Agreement National Archive x and Government x',
+        'policy': policy,
         'archivist_organization': 'National Archive xx',
         'template': [
             {
@@ -144,6 +152,14 @@ def installProfileTransferProject(sa):
                 },
                 "type": "input",
                 "key": "preservation_organization_receiver_url"
+            }, {
+                "templateOptions": {
+                    "type": "text",
+                    "remote": "",
+                    "label": "Transfer destination url (empty for local)",
+                },
+                "type": "input",
+                "key": "transfer_destination_url"
             }
         ],
     }
@@ -1199,6 +1215,45 @@ def installProfileDIP(sa):
         'submission_method': 'Electronically',
         'submission_schedule': 'Once',
         'submission_data_inventory': 'According to submit description',
+        'structure': [
+            {
+                'type': 'file',
+                'name': 'mets.xml',
+                'use': 'mets_file',
+            },
+            {
+                'type': 'folder',
+                'name': 'content',
+                'use': 'content',
+            },
+            {
+                'type': 'folder',
+                'name': 'administrative_metadata',
+                'use': 'metadata',
+                'children': [
+                    {
+                        'type': 'file',
+                        'use': 'xsd_files',
+                        'name': 'xsd_files'
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'premis.xml',
+                        'use': 'preservation_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'ead.xml',
+                        'use': 'archival_description_file',
+                    },
+                    {
+                        'type': 'file',
+                        'name': 'eac.xml',
+                        'use': 'authoritive_information_file',
+                    },
+                ]
+            },
+        ],
         'template': [
             {
                 "key": "mets_type",

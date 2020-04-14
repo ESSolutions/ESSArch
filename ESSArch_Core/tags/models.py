@@ -5,14 +5,18 @@ from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
-from django.db.models import F, OuterRef, Subquery
+from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
+from mptt.querysets import TreeQuerySet
+from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -402,8 +406,16 @@ class StructureUnitRelation(models.Model):
         unique_together = ('structure_unit_a', 'structure_unit_b', 'type')  # Avoid duplicates within same type
 
 
+class StructureUnitQueryset(TreeQuerySet):
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
+
+
 class StructureUnitManager(TreeManager, OrganizationManager):
-    pass
+    def get_queryset(self, *args, **kwargs):
+        return StructureUnitQueryset(self.model, using=self._db).order_by(
+            self.tree_id_attr, self.left_attr
+        )
 
 
 class StructureUnit(MPTTModel):
@@ -688,6 +700,7 @@ class Tag(models.Model):
         related_name='tags'
     )
     task = models.ForeignKey('WorkflowEngine.ProcessTask', on_delete=models.SET_NULL, null=True, related_name='tags')
+    appraisal_date = models.DateTimeField(null=True)
 
     objects = OrganizationManager()
 
@@ -727,13 +740,23 @@ class Tag(models.Model):
             structure_descendants = self.get_structures(structure).latest().get_descendants(include_self=include_self)
             return Tag.objects.filter(structures__in=structure_descendants)
         except TagStructure.DoesNotExist:
+            if include_self:
+                return Tag.objects.filter(pk=self.pk)
+
             return Tag.objects.none()
 
-    def is_leaf_node(self, structure=None):
+    def is_leaf_node(self, user, structure=None):
         try:
-            return self.get_structures(structure).latest().is_leaf_node()
+            tag_structure = self.get_structures(structure).latest()
         except TagStructure.DoesNotExist:
             return True
+
+        if user.is_superuser:
+            return tag_structure.is_leaf_node()
+
+        return not tag_structure.get_descendants().filter(
+            Exists(TagVersion.objects.for_user(user, None).filter(tag=OuterRef('tag')))
+        ).exists()
 
     def __str__(self):
         try:
@@ -748,6 +771,11 @@ class Tag(models.Model):
             ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
+            ('security_level_1', 'Can see security level 1'),
+            ('security_level_2', 'Can see security level 2'),
+            ('security_level_3', 'Can see security level 3'),
+            ('security_level_4', 'Can see security level 4'),
+            ('security_level_5', 'Can see security level 5'),
         )
 
 
@@ -872,6 +900,33 @@ class TagVersionType(models.Model):
         verbose_name_plural = _('node types')
 
 
+class TagVersionQuerySet(models.QuerySet):
+    def for_user(self, user, perms=None):
+        qs = get_objects_for_user(user, self, perms)
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+            return qs.filter(Q(Q(security_level__in=user_security_levels) | Q(security_level__isnull=True)))
+        else:
+            return qs.filter(Q(Q(security_level=0) | Q(security_level__isnull=True)))
+
+    def natural_sort(self):
+        return natural_sort(self, 'reference_code')
+
+
+class TagVersionManager(OrganizationManager):
+    def get_queryset(self):
+        return TagVersionQuerySet(self.model, using=self._db)
+
+    def for_user(self, user, perms):
+        return super().for_user(user, perms).for_user(user, perms)
+
+
 class TagVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     tag = models.ForeignKey('tags.Tag', on_delete=models.CASCADE, related_name='versions')
@@ -896,6 +951,7 @@ class TagVersion(models.Model):
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
     custom_fields = JSONField(default={})
+    security_level = models.IntegerField(_('security level'), null=True)
 
     def to_search_doc(self):
         try:
@@ -946,7 +1002,7 @@ class TagVersion(models.Model):
             index=self.elastic_index,
             doc_type='_all',
             id=str(self.pk),
-            params={'_source_exclude': 'attachment.content'}
+            params={'_source_excludes': 'attachment.content'}
         )
 
     def get_doc(self):
@@ -968,7 +1024,7 @@ class TagVersion(models.Model):
         elif self.elastic_index == 'directory':
             cls = Directory
         elif self.elastic_index == 'document':
-            kwargs['params']['_source_exclude'] = 'attachment.content'
+            kwargs['params']['_source_excludes'] = 'attachment.content'
             cls = File
         else:
             cls = DocumentBase
@@ -1085,13 +1141,13 @@ class TagVersion(models.Model):
         tag_descendants = self.tag.get_descendants(structure, include_self=include_self)
         return TagVersion.objects.filter(tag__current_version=F('pk'), tag__in=tag_descendants).select_related('tag')
 
-    def is_leaf_node(self, structure=None):
-        return self.tag.is_leaf_node(structure)
+    def is_leaf_node(self, user, structure=None):
+        return self.tag.is_leaf_node(user, structure)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
 
-    objects = OrganizationManager()
+    objects = TagVersionManager()
 
     class Meta:
         get_latest_by = 'create_date'
@@ -1112,6 +1168,7 @@ class TagStructure(MPTTModel):
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, related_name='children', db_index=True)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
+    subtree = MPTTSubtree()
 
     def copy_to_new_structure(self, new_structure, new_unit=None):
         new_parent_tag = None

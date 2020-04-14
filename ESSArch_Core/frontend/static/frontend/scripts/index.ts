@@ -40,13 +40,11 @@ import 'angular-bootstrap-contextmenu';
 import 'angular-bootstrap-grid-tree';
 import 'angular-clipboard';
 import 'angular-cookies';
-import 'angular-cron-jobs';
 import 'angular-date-time-input';
 import 'angular-filesize-filter';
 import 'angular-formly';
 import 'angular-formly-templates-bootstrap';
 import 'angular-link-header-parser';
-import 'angular-marked';
 import 'angular-messages';
 import 'angular-mocks';
 import 'angular-pretty-xml';
@@ -78,9 +76,11 @@ import essarchDirectivesModule from './modules/essarch.directives.module';
 
 import '../styles/styles.scss';
 import {IFormlyConfig, IValidationMessages} from 'AngularFormly';
+import {Feature} from './features/types';
+import {isEnabled} from './features/utils';
 
 export const resolve = (path: string, obj: object) => {
-  return path.split('.').reduce(function(prev, curr) {
+  return path.split('.').reduce(function (prev, curr) {
     return prev ? prev[curr] : undefined;
   }, obj || self);
 };
@@ -118,10 +118,25 @@ export const nestedEmptyPermissions = (page: object[] | object): boolean => {
 
 const resolveAuthenticated = [
   'djangoAuth',
-  function(djangoAuth) {
+  function (djangoAuth) {
     return djangoAuth.authenticationStatus();
   },
 ];
+
+const hasActiveFeature = (feature) => {
+  return [
+    '$rootScope',
+    '$q',
+    '$state',
+    ($rootScope, $q, $state) => {
+      if ($rootScope.features && isEnabled($rootScope.features, feature)) {
+        return $q.resolve();
+      } else {
+        return $state.go('home.info');
+      }
+    },
+  ];
+};
 
 angular
   .module('essarch', [
@@ -151,7 +166,7 @@ angular
     '$stateProvider',
     '$urlServiceProvider',
     'permissionConfig',
-    function(
+    function (
       $urlMatcherFactoryProvider,
       $stateProvider: StateProvider,
       $urlServiceProvider: UrlService,
@@ -396,6 +411,7 @@ angular
           templateUrl: '/static/frontend/views/archival_descriptions.html',
           resolve: {
             authenticated: resolveAuthenticated,
+            hasActiveFeature: hasActiveFeature('archival descriptions'),
           },
           data: {
             permissions: {
@@ -422,7 +438,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.information_package', {
-          url: '/information_package/:id',
+          url: '/information_package/:id?{structure}',
           templateUrl: '/static/frontend/views/search_ip_detail.html',
           controller: 'SearchIpCtrl as vm',
           resolve: {
@@ -436,7 +452,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.component', {
-          url: '/component/:id',
+          url: '/component/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -450,7 +466,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.structure_unit', {
-          url: '/structure-unit/:id?{archive}',
+          url: '/structure-unit/:id?{structure}&{archive}',
           templateUrl: '/static/frontend/views/search_structure_unit_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -464,7 +480,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.directory', {
-          url: '/directory/:id',
+          url: '/directory/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -478,7 +494,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.document', {
-          url: '/document/:id',
+          url: '/document/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -492,7 +508,7 @@ angular
           },
         })
         .state('home.archivalDescriptions.search.archive', {
-          url: '/archive/:id',
+          url: '/archive/:id?{structure}',
           templateUrl: '/static/frontend/views/search_detail.html',
           controller: 'SearchDetailCtrl as vm',
           resolve: {
@@ -804,19 +820,6 @@ angular
             },
           },
         })
-        .state('home.administration.profileManager.profileMaker', {
-          url: '/profile-maker',
-          template: '<profile-maker></profile-maker>',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.administration.profileManager.profileMaker', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
         .state('home.administration.profileManager.import', {
           url: '/import',
           template: '<import></import>',
@@ -884,40 +887,14 @@ angular
   ])
   .config([
     '$animateProvider',
-    function($animateProvider) {
+    function ($animateProvider) {
       // Only animate elements with the 'angular-animate' class
       $animateProvider.classNameFilter(/angular-animate|ui-select-/);
     },
   ])
   .config([
-    'markedProvider',
-    function(markedProvider) {
-      function isURL(str) {
-        const urlRegex =
-          '^(?!mailto:)(?:(?:http|https|ftp)://)(?:\\S+(?::\\S*)?@)?(?:(?:(?:[1-9]\\d?|1\\d\\d|2[01]\\d|22[0-3])(?:\\.(?:1?\\d{1,2}|2[0-4]\\d|25[0-5])){2}(?:\\.(?:[0-9]\\d?|1\\d\\d|2[0-4]\\d|25[0-4]))|(?:(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)(?:\\.(?:[a-z\\u00a1-\\uffff0-9]+-?)*[a-z\\u00a1-\\uffff0-9]+)*(?:\\.(?:[a-z\\u00a1-\\uffff]{2,})))|localhost)(?::\\d{2,5})?(?:(/|\\?|#)[^\\s]*)?$';
-        const url = new RegExp(urlRegex, 'i');
-        return str.length < 2083 && url.test(str);
-      }
-      markedProvider.setOptions({
-        gfm: true,
-        tables: true,
-      });
-      markedProvider.setRenderer({
-        link: function(href, title, text) {
-          if (!isURL(href)) {
-            return '<a ng-click=\'scrollToLink("' + href + '")\'' + '>' + text + '</a>';
-          } else {
-            return (
-              "<a href='" + href + "'" + (title ? " title='" + title + "'" : '') + " target='_blank'>" + text + '</a>'
-            );
-          }
-        },
-      });
-    },
-  ])
-  .config([
     '$uibTooltipProvider',
-    function($uibTooltipProvider) {
+    function ($uibTooltipProvider) {
       const parser = new UAParser();
       const result = parser.getResult();
       const touch = result.device && (result.device.type === 'tablet' || result.device.type === 'mobile');
@@ -930,7 +907,7 @@ angular
   ])
   .config([
     '$resourceProvider',
-    function($resourceProvider) {
+    function ($resourceProvider) {
       // Don't strip trailing slashes from calculated URLs
       $resourceProvider.defaults.stripTrailingSlashes = false;
     },
@@ -939,7 +916,7 @@ angular
     '$compileProvider',
     'appConfig',
     '$logProvider',
-    function($compileProvider, appConfig, $logProvider) {
+    function ($compileProvider, appConfig, $logProvider) {
       $compileProvider.debugInfoEnabled(appConfig.debugInfo);
       $compileProvider.commentDirectivesEnabled(appConfig.commentDirectives);
       $compileProvider.cssClassDirectivesEnabled(appConfig.cssClassDirectives);
@@ -948,19 +925,19 @@ angular
   ])
   .config([
     '$permissionProvider',
-    function($permissionProvider) {
+    function ($permissionProvider) {
       $permissionProvider.suppressUndefinedPermissionWarning(true);
     },
   ])
   .config([
     'stConfig',
-    function(stConfig) {
+    function (stConfig) {
       stConfig.sort.delay = -1;
     },
   ])
   .config([
     '$compileProvider',
-    function($compileProvider) {
+    function ($compileProvider) {
       $compileProvider.aHrefSanitizationWhitelist(/^\s*(https?|ftp|mailto|tel|file|blob|data):/);
     },
   ])
@@ -968,12 +945,12 @@ angular
     return {
       restrict: 'A', // only activate on element attribute
       require: '?ngModel', // get a hold of NgModelController
-      link: function(scope, element, attrs, ngModel) {
+      link: function (scope, element, attrs, ngModel) {
         if (!ngModel) return; // do nothing if no ng-model
-        element.on('blur', function() {
+        element.on('blur', function () {
           const modelControllers = scope.$eval(attrs.setTouched);
           if (angular.isArray(modelControllers)) {
-            angular.forEach(modelControllers, function(modelCntrl) {
+            angular.forEach(modelControllers, function (modelCntrl) {
               modelCntrl.$setTouched();
             });
           }
@@ -994,7 +971,8 @@ angular
     'permissionConfig',
     'appConfig',
     '$transitions',
-    function(
+    '$q',
+    function (
       djangoAuth,
       $rootScope,
       $state: StateService,
@@ -1006,7 +984,8 @@ angular
       $urlService: UrlService,
       permissionConfig,
       appConfig,
-      $transitions: TransitionService
+      $transitions: TransitionService,
+      $q
     ) {
       formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
       formlyValidationMessages.addStringMessage('required', 'This field is required');
@@ -1014,23 +993,42 @@ angular
       $rootScope.flowObjects = {};
       djangoAuth
         .initialize('/api/auth', false)
-        .then(function(response) {
+        .then(function (response) {
           $rootScope.auth = response.data;
           myService.getPermissions(response.data.permissions);
-          // kick-off router and start the application rendering
-          $urlService.sync();
-          // Also enable router to listen to url changes
-          $urlService.listen();
           $rootScope.listViewColumns = myService.generateColumns(response.data.ip_list_columns).activeColumns;
-          $http
-            .get(appConfig.djangoUrl + 'site/')
-            .then(function(response) {
-              $rootScope.site = response.data;
-            })
-            .catch(function() {
-              $rootScope.site = null;
-            });
-          $transitions.onStart({}, function($transition) {
+          let promises = [];
+          promises.push(
+            $http
+              .get<Feature[]>(appConfig.djangoUrl + 'features/')
+              .then((response) => {
+                $rootScope.features = response.data;
+                return response.data;
+              })
+              .catch((response) => {
+                $rootScope.features = [];
+                return response;
+              })
+          );
+          promises.push(
+            $http
+              .get(appConfig.djangoUrl + 'site/')
+              .then(function (response) {
+                $rootScope.site = response.data;
+                return response.data;
+              })
+              .catch(function (response) {
+                $rootScope.site = null;
+                return response;
+              })
+          );
+          $q.all(promises).then(() => {
+            // kick-off router and start the application rendering
+            $urlService.sync();
+            // Also enable router to listen to url changes
+            $urlService.listen();
+          });
+          $transitions.onStart({}, function ($transition) {
             const to = $transition.to();
             if (to.name === 'login') {
               return;
@@ -1042,12 +1040,12 @@ angular
             }
           });
         })
-        .catch(function() {
+        .catch(function () {
           console.log('Got error response from auth api, redirecting to login with requested page:', $location.path());
           $state.go('login', {requestedPage: $location.path()});
         });
 
-      $transitions.onStart({}, function($transition) {
+      $transitions.onStart({}, function ($transition) {
         const to = $transition.to();
         const from = $transition.from();
         const params = $transition.params();

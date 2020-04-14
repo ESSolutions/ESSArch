@@ -1,9 +1,12 @@
 import collections
+import os
 from collections.abc import Mapping
+from pathlib import PurePath
 
 from django.core.exceptions import ObjectDoesNotExist
 
 from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.util import find_destination
 
 profile_types = [
     "Transfer Project",
@@ -23,6 +26,8 @@ profile_types = [
     "Event",
     "Validation",
 ]
+
+lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
 
 
 class LazyDict(Mapping):
@@ -47,7 +52,12 @@ class LazyDict(Mapping):
     def to_dict(self):
         d = {}
         for k, v in self._raw_dict.items():
-            d[k] = v
+            if isinstance(v, tuple) and callable(v[0]):
+                func, *args = v
+                d[k] = func(*args)
+            else:
+                d[k] = v
+
         return d
 
     def copy(self):
@@ -120,6 +130,8 @@ def _get_agents(ip):
 
 
 def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
+    from ESSArch_Core.profiles.models import ProfileIP
+
     data = data or {}
     ignore = ignore or []
 
@@ -141,6 +153,14 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_OBJUUID'] = str(ip.pk)
         data['_OBJLABEL'] = ip.label
         data['_OBJPATH'] = ip.object_path
+
+        try:
+            structure = ip.get_structure()
+            content_dir, content_name = find_destination('content', structure)
+            data['_CONTENTPATH'] = PurePath(ip.object_path).joinpath(content_dir, content_name).as_posix()
+        except (ProfileIP.DoesNotExist, TypeError):
+            data['_CONTENTPATH'] = ip.object_path
+
         data['_INNER_IP_OBJID'] = ip.sip_objid
         data['_INNER_IP_PATH'] = ip.sip_path
         data['_STARTDATE'] = ip.start_date
@@ -152,7 +172,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         if '_CTS_SCHEMA_PATH' not in ignore:
             data['_CTS_SCHEMA_PATH'] = (ip.get_content_type_schema_file,)
 
-        data['_CONTENT_METS_PATH'] = ip.content_mets_path
+        data['_CONTENT_METS_PATH'] = os.path.join(ip.object_path, ip.content_mets_path)
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
         data['_CONTENT_METS_SIZE'] = ip.content_mets_size
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
@@ -192,7 +212,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_AGENTS'] = (_get_agents, ip,)
 
         profile_ids = zip(
-            [x.lower().replace(' ', '_') for x in profile_types],
+            lowercase_profile_types,
             ["_PROFILE_" + x.upper().replace(' ', '_') + "_ID" for x in profile_types]
         )
 

@@ -22,12 +22,14 @@
     Email - essarch@essolutions.se
 """
 
+from dj_rest_auth.serializers import (
+    LoginSerializer as rest_auth_LoginSerializer,
+)
 from django.conf import settings
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.models import ContentType, Permission
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
-from rest_auth.serializers import LoginSerializer as rest_auth_LoginSerializer
+from django.utils.translation import gettext_lazy as _
 from rest_framework import exceptions, serializers
 
 from ESSArch_Core.auth.models import Group, Notification, UserProfile
@@ -234,7 +236,7 @@ class LoginSerializer(rest_auth_LoginSerializer):
             raise exceptions.ValidationError(msg)
 
         # If required, is the email verified?
-        if 'rest_auth.registration' in settings.INSTALLED_APPS:
+        if 'dj_rest_auth.registration' in settings.INSTALLED_APPS:
             from allauth.account import app_settings
             if app_settings.EMAIL_VERIFICATION == app_settings.EmailVerificationMethod.MANDATORY:
                 email_address = user.emailaddress_set.get(email=user.email)

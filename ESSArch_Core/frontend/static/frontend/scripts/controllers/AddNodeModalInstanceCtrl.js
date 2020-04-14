@@ -25,17 +25,17 @@ export default class AddNodeModalInstanceCtrl {
     $ctrl.types = [];
     $ctrl.custom_fields_template = [];
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       $http
         .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
-        .then(function(response) {
+        .then(function (response) {
           let url = appConfig.djangoUrl;
           if (data.node.original._is_structure_unit) {
             url = angular.copy(url) + 'structure-units/';
           } else {
             url = angular.copy(url) + 'search/';
           }
-          $http.head(url + data.node.original.id + '/children/').then(function(childrenResponse) {
+          $http.head(url + data.node.original.id + '/children/').then(function (childrenResponse) {
             const count = parseInt(childrenResponse.headers('Count'));
             if (!isNaN(count)) {
               $ctrl.newNode.reference_code = (count + 1).toString();
@@ -47,9 +47,9 @@ export default class AddNodeModalInstanceCtrl {
         });
     };
 
-    $ctrl.getType = id => {
+    $ctrl.getType = (id) => {
       let type = null;
-      $ctrl.typeOptions.forEach(x => {
+      $ctrl.typeOptions.forEach((x) => {
         if (id === x.pk) {
           type = x;
         }
@@ -57,20 +57,20 @@ export default class AddNodeModalInstanceCtrl {
       return type;
     };
 
-    $ctrl.getInformationPackages = function(search) {
+    $ctrl.getInformationPackages = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'information-packages/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, search: search, archived: true, view_type: 'flat'},
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.ips = response.data;
         return $ctrl.options.ips;
       });
     };
 
-    let isIpType = type => {
+    let isIpType = (type) => {
       let ipType = false;
-      $ctrl.typeOptions.forEach(x => {
+      $ctrl.typeOptions.forEach((x) => {
         if (x.pk === type && x.information_package_type) {
           ipType = true;
         }
@@ -78,7 +78,7 @@ export default class AddNodeModalInstanceCtrl {
       return ipType;
     };
 
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.nodeFields = [
         {
           templateOptions: {
@@ -103,10 +103,21 @@ export default class AddNodeModalInstanceCtrl {
           type: 'select',
           key: 'type',
           expressionProperties: {
-            'templateOptions.onChange': function($modelValue) {
+            'templateOptions.onChange': function ($modelValue) {
               $ctrl.custom_fields_template = $ctrl.getType($modelValue).custom_fields_template;
             },
           },
+        },
+        {
+          templateOptions: {
+            label: $translate.instant('ACCESS.SECURITY_LEVEL'),
+            type: 'number',
+            required: false,
+            min: 1,
+            max: 5,
+          },
+          type: 'input',
+          key: 'security_level',
         },
         {
           templateOptions: {
@@ -149,13 +160,21 @@ export default class AddNodeModalInstanceCtrl {
           ],
         },
         {
+          type: 'datepicker',
+          key: 'appraisal_date',
+          templateOptions: {
+            label: $translate.instant('ACCESS.APPRAISAL_DATE'),
+            appendToBody: false,
+          },
+        },
+        {
           type: 'uiselect',
           key: 'information_package',
           hideExpression: () => {
             return !isIpType($ctrl.newNode.type);
           },
           templateOptions: {
-            options: function() {
+            options: function () {
               return $ctrl.options.ips;
             },
             valueProp: 'id',
@@ -163,11 +182,11 @@ export default class AddNodeModalInstanceCtrl {
             placeholder: $translate.instant('INFORMATION_PACKAGE'),
             label: $translate.instant('INFORMATION_PACKAGE'),
             appendToBody: false,
-            refresh: function(search) {
+            refresh: function (search) {
               if (angular.isUndefined(search) || search === null || search === '') {
                 search = '';
               }
-              return $ctrl.getInformationPackages(search).then(function() {
+              return $ctrl.getInformationPackages(search).then(function () {
                 this.options = $ctrl.options.ips;
                 return $ctrl.options.ips;
               });
@@ -177,11 +196,11 @@ export default class AddNodeModalInstanceCtrl {
       ];
     };
 
-    $ctrl.changed = function() {
+    $ctrl.changed = function () {
       return !angular.equals($ctrl.newNode, {});
     };
 
-    $ctrl.submit = function() {
+    $ctrl.submit = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -200,22 +219,22 @@ export default class AddNodeModalInstanceCtrl {
 
         $rootScope.skipErrorNotification = true;
         Search.addNode(params)
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.submitting = false;
             Notifications.add($translate.instant('ACCESS.NODE_ADDED'), 'success');
             EditMode.disable();
             $uibModalInstance.close(response.data);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.submitting = false;
           });
       }
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

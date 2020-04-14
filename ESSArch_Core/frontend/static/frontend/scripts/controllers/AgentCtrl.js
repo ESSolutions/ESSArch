@@ -61,16 +61,16 @@ export default class AgentCtrl {
 
     let watchers = [];
     watchers.push(
-      $transitions.onSuccess({}, function($transition) {
+      $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
-          watchers.forEach(function(watcher) {
+          watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
           let params = $transition.params();
           if (params.id !== null && (vm.agent === null || params.id !== vm.agent.id)) {
             vm.initialSearch = angular.copy($stateParams.id);
-            vm.getAgent($stateParams).then(function() {
+            vm.getAgent($stateParams).then(function () {
               $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
             });
           } else if (params.id === null && vm.agent !== null) {
@@ -80,7 +80,7 @@ export default class AgentCtrl {
       })
     );
 
-    vm.getAgentListColspan = function() {
+    vm.getAgentListColspan = function () {
       if (myService.checkPermission('agents.change_agent') && myService.checkPermission('agents.delete_agent')) {
         return 6;
       } else if (
@@ -93,7 +93,7 @@ export default class AgentCtrl {
       }
     };
 
-    vm.getRelatedArchiveColspan = function() {
+    vm.getRelatedArchiveColspan = function () {
       if (myService.checkPermission('agents.change_agent')) {
         return 6;
       } else {
@@ -101,8 +101,8 @@ export default class AgentCtrl {
       }
     };
 
-    vm.getAgent = function(agent) {
-      return $http.get(appConfig.djangoUrl + 'agents/' + agent.id + '/').then(function(response) {
+    vm.getAgent = function (agent) {
+      return $http.get(appConfig.djangoUrl + 'agents/' + agent.id + '/').then(function (response) {
         vm.initAccordion();
         vm.sortNotes(response.data);
         vm.sortNames(response.data);
@@ -114,10 +114,10 @@ export default class AgentCtrl {
       });
     };
 
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if ($stateParams.id) {
         vm.initialSearch = angular.copy($stateParams.id);
-        vm.getAgent($stateParams).then(function() {
+        vm.getAgent($stateParams).then(function () {
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
         });
       } else {
@@ -125,15 +125,15 @@ export default class AgentCtrl {
       }
     };
 
-    vm.initAccordion = function() {
-      angular.forEach(vm.accordion, function(value) {
+    vm.initAccordion = function () {
+      angular.forEach(vm.accordion, function (value) {
         value.open = true;
       });
     };
 
-    vm.agentClick = function(agent) {
+    vm.agentClick = function (agent) {
       if (vm.agent === null || (vm.agent !== null && agent.id !== vm.agent.id)) {
-        $http.get(appConfig.djangoUrl + 'agents/' + agent.id + '/').then(function(response) {
+        $http.get(appConfig.djangoUrl + 'agents/' + agent.id + '/').then(function (response) {
           vm.agent = response.data;
           vm.initAccordion();
           vm.sortNotes(agent);
@@ -146,45 +146,35 @@ export default class AgentCtrl {
       } else if (vm.agent !== null && vm.agent.id === agent.id) {
         vm.agent = null;
         $state.go($state.current.name, {id: null});
-        $translate.instant(
-          $state.current.name
-            .split('.')
-            .pop()
-            .toUpperCase()
-        );
+        $translate.instant($state.current.name.split('.').pop().toUpperCase());
         $rootScope.$broadcast('UPDATE_TITLE', {
-          title: $translate.instant(
-            $state.current.name
-              .split('.')
-              .pop()
-              .toUpperCase()
-          ),
+          title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
         });
       }
     };
 
-    vm.sortNames = function(agent) {
-      agent.names.sort(function(a, b) {
+    vm.sortNames = function (agent) {
+      agent.names.sort(function (a, b) {
         return new Date(b.start_date) - new Date(a.start_date);
       });
       const authorized = [];
-      agent.names.forEach(function(x, index) {
+      agent.names.forEach(function (x, index) {
         if (x.authority) {
           const name = x;
           agent.names.splice(index, 1);
           authorized.unshift(name);
         }
       });
-      authorized.forEach(function(x) {
+      authorized.forEach(function (x) {
         agent.names.unshift(x);
       });
     };
 
-    vm.archiveClick = function(agentArchive) {
+    vm.archiveClick = function (agentArchive) {
       $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
     };
 
-    vm.agentPipe = function(tableState) {
+    vm.agentPipe = function (tableState) {
       vm.agentsLoading = true;
       if (vm.agents.length == 0) {
         $scope.initLoad = true;
@@ -216,7 +206,7 @@ export default class AgentCtrl {
           pager: paginationParams.pager,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.agentsLoading = false;
@@ -226,24 +216,24 @@ export default class AgentCtrl {
       }
     };
 
-    vm.getAgents = function(params) {
+    vm.getAgents = function (params) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         method: 'GET',
         params: params,
-      }).then(function(response) {
+      }).then(function (response) {
         return response;
       });
     };
 
-    vm.parseAgents = function(list) {
-      list.forEach(function(agent) {
+    vm.parseAgents = function (list) {
+      list.forEach(function (agent) {
         AgentName.parseAgentNames(agent);
         agent.auth_name = AgentName.getAuthorizedName(agent, {includeDates: false});
       });
     };
 
-    vm.agentArchivePipe = function(tableState) {
+    vm.agentArchivePipe = function (tableState) {
       vm.archivesLoading = true;
       if (angular.isUndefined(vm.agent.archives) || vm.agent.archives.length == 0) {
         $scope.initLoad = true;
@@ -268,7 +258,7 @@ export default class AgentCtrl {
           pager: paginationParams.pager,
           ordering: sortString,
           search: search,
-        }).then(function(response) {
+        }).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
           $scope.initLoad = false;
           vm.archivesLoading = false;
@@ -277,22 +267,22 @@ export default class AgentCtrl {
       }
     };
 
-    vm.getAgentArchives = function(agent, params) {
+    vm.getAgentArchives = function (agent, params) {
       return $http({
         url: appConfig.djangoUrl + 'agents/' + agent.id + '/archives/',
         method: 'GET',
         params: params,
-      }).then(function(response) {
+      }).then(function (response) {
         return response;
       });
     };
 
-    vm.sortNotes = function(agent) {
+    vm.sortNotes = function (agent) {
       const obj = {
         history: [],
         remarks: [],
       };
-      agent.notes.forEach(function(note) {
+      agent.notes.forEach(function (note) {
         if (note.type.history) {
           obj.history.push(note);
         } else {
@@ -302,7 +292,7 @@ export default class AgentCtrl {
       angular.extend(agent, obj);
     };
 
-    vm.createModal = function() {
+    vm.createModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -312,23 +302,23 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {};
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           $state.go($state.current.name, {id: data.id});
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editModal = function(agent) {
+    vm.editModal = function (agent) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -338,7 +328,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: agent,
             };
@@ -346,19 +336,19 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           if (vm.agent) {
             vm.getAgent(vm.agent);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeAgentModal = function(agent) {
+    vm.removeAgentModal = function (agent) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -368,7 +358,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: agent,
               allow_close: true,
@@ -378,25 +368,20 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agent = null;
           $state.go($state.current.name, {id: null});
           $rootScope.$broadcast('UPDATE_TITLE', {
-            title: $translate.instant(
-              $state.current.name
-                .split('.')
-                .pop()
-                .toUpperCase()
-            ),
+            title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
           });
           vm.agentPipe($scope.tableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.addNoteModal = function() {
+    vm.addNoteModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -406,7 +391,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -414,16 +399,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addHistoryModal = function() {
+    vm.addHistoryModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -433,7 +418,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               history: true,
@@ -442,16 +427,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editNoteModal = function(note) {
+    vm.editNoteModal = function (note) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -461,7 +446,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               note: note,
@@ -470,16 +455,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editHistoryModal = function(note) {
+    vm.editHistoryModal = function (note) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -489,7 +474,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               note: note,
@@ -498,16 +483,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeNoteModal = function(note) {
+    vm.removeNoteModal = function (note) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -517,7 +502,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               note: note,
@@ -527,17 +512,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeHistoryModal = function(note) {
+    vm.removeHistoryModal = function (note) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -547,7 +532,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               note: note,
@@ -557,17 +542,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addNameModal = function() {
+    vm.addNameModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -577,7 +562,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -585,18 +570,18 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editNameModal = function(name) {
+    vm.editNameModal = function (name) {
       const typeDisabled = !vm.agent.names
-        .map(function(x) {
+        .map(function (x) {
           if (x.id !== name.id) {
             return x.type.id;
           }
@@ -611,7 +596,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               name: name,
@@ -621,19 +606,19 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           if (vm.agent) {
             vm.getAgent(vm.agent);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeNameModal = function(name) {
+    vm.removeNameModal = function (name) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -643,7 +628,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               name: name,
@@ -653,19 +638,19 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           if (vm.agent) {
             vm.getAgent(vm.agent);
           }
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addMandateModal = function() {
+    vm.addMandateModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -675,7 +660,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -683,16 +668,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editMandateModal = function(mandate) {
+    vm.editMandateModal = function (mandate) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -702,7 +687,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               mandate: mandate,
@@ -711,16 +696,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeMandateModal = function(mandate) {
+    vm.removeMandateModal = function (mandate) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -730,7 +715,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               mandate: mandate,
@@ -740,17 +725,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addAgentRelationModal = function() {
+    vm.addAgentRelationModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -760,7 +745,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -768,17 +753,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editAgentRelationModal = function(relation) {
+    vm.editAgentRelationModal = function (relation) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -788,7 +773,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               relation: relation,
@@ -797,17 +782,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeAgentRelationModal = function(relation) {
+    vm.removeAgentRelationModal = function (relation) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -817,7 +802,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               relation: relation,
@@ -827,17 +812,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.agentPipe($scope.tableState);
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addArchiveRelationModal = function() {
+    vm.addArchiveRelationModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -847,7 +832,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -855,17 +840,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
           vm.agentArchivePipe($scope.archiveTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editArchiveRelationModal = function(relation) {
+    vm.editArchiveRelationModal = function (relation) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -875,7 +860,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               relation: relation,
@@ -884,17 +869,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
           vm.agentArchivePipe($scope.archiveTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeArchiveRelationModal = function(relation) {
+    vm.removeArchiveRelationModal = function (relation) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -904,7 +889,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               relation: relation,
@@ -914,17 +899,17 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
           vm.agentArchivePipe($scope.archiveTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addIdentifierModal = function() {
+    vm.addIdentifierModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -934,7 +919,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -942,16 +927,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editIdentifierModal = function(identifier) {
+    vm.editIdentifierModal = function (identifier) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -961,7 +946,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               identifier: identifier,
@@ -970,16 +955,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removeIdentifierModal = function(identifier) {
+    vm.removeIdentifierModal = function (identifier) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -989,7 +974,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               identifier: identifier,
@@ -1000,16 +985,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.addPlaceModal = function() {
+    vm.addPlaceModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1019,7 +1004,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
             };
@@ -1027,16 +1012,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.editPlaceModal = function(place) {
+    vm.editPlaceModal = function (place) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1046,7 +1031,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               place: place,
@@ -1055,16 +1040,16 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.removePlaceModal = function(place) {
+    vm.removePlaceModal = function (place) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1074,7 +1059,7 @@ export default class AgentCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               agent: vm.agent,
               place: place,
@@ -1085,10 +1070,10 @@ export default class AgentCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           vm.getAgent(vm.agent);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

@@ -3,7 +3,7 @@ export default class SearchFilterCtrl {
     const vm = this;
     let onclickSet = false;
     vm.q = '';
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       if (vm.ngModel === '' || vm.ngModel === null || angular.isUndefined(vm.ngModel)) {
         vm.selected = [];
       } else {
@@ -14,7 +14,7 @@ export default class SearchFilterCtrl {
       }
     };
 
-    $rootScope.$on('CLOSE_FILTERS', function(e, data) {
+    $rootScope.$on('CLOSE_FILTERS', function (e, data) {
       if (data.except !== $scope.$id) {
         vm.resultListVisible = false;
         onclickSet = false;
@@ -22,10 +22,10 @@ export default class SearchFilterCtrl {
     });
 
     $scope.$watch(
-      function() {
+      function () {
         return vm.ngModel;
       },
-      function(newval, oldval) {
+      function (newval, oldval) {
         if (newval === '' || newval === null || angular.isUndefined(newval)) {
           vm.selected = [];
         } else {
@@ -34,12 +34,12 @@ export default class SearchFilterCtrl {
       }
     );
 
-    vm.search = function() {
+    vm.search = function () {
       vm.update({
         search: vm.q,
       });
     };
-    vm.updateModel = function() {
+    vm.updateModel = function () {
       if (vm.selected.length <= 0) {
         vm.ngModel = null;
       } else {
@@ -50,23 +50,23 @@ export default class SearchFilterCtrl {
       }
     };
 
-    vm.select = function(item) {
+    vm.select = function (item) {
       vm.selected.push(item);
       vm.updateModel();
       vm.resultListVisible = false;
     };
 
-    vm.deselect = function(item) {
-      vm.selected.forEach(function(x, idx, array) {
+    vm.deselect = function (item) {
+      vm.selected.forEach(function (x, idx, array) {
         if (x[vm.valueProp] === item[vm.valueProp]) {
           array.splice(idx, 1);
         }
       });
       vm.updateModel();
     };
-    vm.notSelected = function(item) {
+    vm.notSelected = function (item) {
       let notSelected = true;
-      vm.selected.forEach(function(x) {
+      vm.selected.forEach(function (x) {
         if (x[vm.valueProp] === item[vm.valueProp]) {
           notSelected = false;
         }
@@ -74,10 +74,10 @@ export default class SearchFilterCtrl {
       return notSelected;
     };
 
-    vm.optionsEmpty = function() {
+    vm.optionsEmpty = function () {
       const list = angular.copy(vm.options);
       const toDelete = [];
-      list.forEach(function(x, idx, array) {
+      list.forEach(function (x, idx, array) {
         if (!vm.notSelected(x)) {
           toDelete.push(idx);
         }
@@ -87,14 +87,14 @@ export default class SearchFilterCtrl {
       }
       return list.length <= 0;
     };
-    vm.openOptions = function(evt) {
+    vm.openOptions = function (evt) {
       vm.resultListVisible = true;
       vm.search();
       if ($window.onclick && !onclickSet) {
         $rootScope.$broadcast('CLOSE_FILTERS', {except: $scope.$id});
       }
       onclickSet = true;
-      $window.onclick = function(event) {
+      $window.onclick = function (event) {
         const clickedElement = $(event.target);
         if (!clickedElement) return;
         const elementClasses = event.target.classList;

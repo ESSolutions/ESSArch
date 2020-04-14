@@ -12,10 +12,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
-from django.db import transaction
+from django.db import models, transaction
 from django.db.models import Prefetch
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
 from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
@@ -32,11 +33,13 @@ from ESSArch_Core.agents.models import AgentTagLink
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.tags.documents import Archive, VersionedDocType
-from ESSArch_Core.tags.models import Structure, TagStructure, TagVersion
+from ESSArch_Core.tags.models import Structure, Tag, TagStructure, TagVersion
 from ESSArch_Core.tags.permissions import SearchPermissions
 from ESSArch_Core.tags.serializers import (
     ArchiveWriteSerializer,
@@ -74,18 +77,25 @@ class ComponentSearch(FacetedSearch):
         'start_date': {},
         'end_date': {},
         'type': {'many': True},
+        'appraisal_date_before': {},
+        'appraisal_date_after': {},
     }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, exclude_indices=None, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date = self.query_params_filter.pop('start_date', None)
         self.end_date = self.query_params_filter.pop('end_date', None)
+        self.appraisal_date_before = self.query_params_filter.pop('appraisal_date_before', None)
+        self.appraisal_date_after = self.query_params_filter.pop('appraisal_date_after', None)
         self.archives = self.query_params_filter.pop('archives', None)
         self.personal_identification_number = self.query_params_filter.pop('personal_identification_number', None)
         self.user = kwargs.pop('user')
         self.filter_values = {
             'indices': self.query_params_filter.pop('indices', [])
         }
+
+        if exclude_indices is not None:
+            self.index = [i for i in self.index if i not in exclude_indices]
 
         def validate_date(d):
             try:
@@ -122,7 +132,7 @@ class ComponentSearch(FacetedSearch):
         components and `_id` on archives.
         """
 
-        organization_archives = TagVersion.objects.for_user(self.user, []).filter(elastic_index='archive')
+        organization_archives = TagVersion.objects.filter(elastic_index='archive').for_user(self.user, [])
         organization_archives = [str(x) for x in list(organization_archives.values_list('pk', flat=True))]
 
         s = super().search()
@@ -139,16 +149,56 @@ class ComponentSearch(FacetedSearch):
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
             Q('nested', path='archive', ignore_unmapped=True, query=Q('terms', archive__id=organization_archives)),
+            Q('bool', must_not=[
+                Q('nested', path='archive', ignore_unmapped=True, query=Q('bool', filter=Q('exists', field='archive')))
+            ]),
             Q('bool', **{'must_not': {'terms': {'_index': ['component-*', 'structure_unit-*']}}}),
         ]))
 
-        organization_ips = InformationPackage.objects.for_user(self.user, [])
-        organization_ips = [str(x) for x in list(organization_ips.values_list('pk', flat=True))]
+        # * get everything except documents connected to IPs available to the user
+        #
+        # * get documents connected to any IP available to the user if the user has the
+        #   permission to see files in other user's IPs. Otherwise, only get documents
+        #   from IPs that the user is responsible for
+
+        organization_ips = InformationPackage.objects.for_user(self.user, []).values_list('pk', flat=True)
+
+        if self.user.has_perm('ip.see_other_user_ip_files'):
+            document_ips = organization_ips
+        else:
+            document_ips = self.user.information_packages.values_list('pk', flat=True)
 
         s = s.filter(Q('bool', minimum_should_match=1, should=[
-            Q('terms', ip=organization_ips),
-            Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            Q('bool', must=[
+                Q('bool', minimum_should_match=1, should=[
+                    ~Q('exists', field='ip'),
+                    Q('terms', ip=list(organization_ips))
+                ]),
+                Q('bool', **{'must_not': {'terms': {'_index': ['document-*']}}}),
+            ]),
+            Q('bool', must=[
+                Q('terms', _index=['document-*']),
+                Q('bool', minimum_should_match=1, should=[~Q('exists', field='ip'), Q('terms', ip=list(document_ips))])
+            ]),
         ]))
+
+        user_security_level_perms = list(filter(
+            lambda x: x.startswith('tags.security_level_'),
+            self.user.get_all_permissions(),
+        ))
+
+        if len(user_security_level_perms) > 0:
+            user_security_levels = list(map(lambda x: int(x[-1]), user_security_level_perms))
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('terms', security_level=user_security_levels),
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
+        else:
+            s = s.filter(Q('bool', minimum_should_match=1, should=[
+                Q('bool', must_not=Q('exists', field='security_level')),
+                Q('term', security_level=0),
+            ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
             s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
@@ -158,6 +208,12 @@ class ComponentSearch(FacetedSearch):
 
         if self.end_date not in EMPTY_VALUES:
             s = s.filter('range', start_date={'lte': self.end_date})
+
+        if self.appraisal_date_after not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after})
+
+        if self.appraisal_date_before not in EMPTY_VALUES:
+            s = s.filter('range', appraisal_date={'lte': self.appraisal_date_before})
 
         if self.archives is not None:
             s = s.filter(Q('bool', minimum_should_match=1, should=[
@@ -239,10 +295,25 @@ def get_archive(id):
     return archive_data
 
 
+class ComponentSearchSerializer(serializers.Serializer):
+    appraisal_date_before = serializers.DateField(required=False, allow_null=True, default=None)
+    appraisal_date_after = serializers.DateField(required=False, allow_null=True, default=None)
+
+    def validate(self, data):
+        if (data['appraisal_date_after'] and data['appraisal_date_before'] and
+                data['appraisal_date_after'] > data['appraisal_date_before']):
+
+            raise serializers.ValidationError("appraisal_date_after must occur before appraisal_date_before")
+
+        return data
+
+
+@method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
 class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     index = ComponentSearch.index
     lookup_field = 'pk'
     lookup_url_kwarg = None
+    serializer_class = ComponentSearchSerializer
 
     def __init__(self, *args, **kwargs):
         self.client = get_connection()
@@ -257,6 +328,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     def get_view_name(self):
         return 'Search {}'.format(getattr(self, 'suffix', None))
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        return serializer_class(*args, **kwargs)
+
+    def get_serializer_class(self):
+        return self.serializer_class
 
     def get_object(self, index=None):
         """
@@ -304,6 +382,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             'tag__current_version', 'parent__tag__current_version'
         )
         tag_version = qs.select_related('tag').prefetch_related(Prefetch('tag__structures', prefetched_structures))
+
+        if not self.request.user.has_perm('ip.see_other_user_ip_files'):
+            tag_version = tag_version.exclude(
+                ~models.Q(tag__information_package__responsible=self.request.user),
+                elastic_index='document',
+            )
 
         obj = get_object_or_404(tag_version, pk=id)
         root = obj.get_root()
@@ -368,12 +452,24 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         params = {key: value[0] for (key, value) in dict(request.query_params).items()}
         query = params.pop('q', '')
         export = params.pop('export', None)
+        add_to_appraisal = params.pop('add_to_appraisal', None)
         params.pop('pager', None)
 
         logger.info(f"User '{request.user}' queried for '{query}'")
 
+        if export is not None and add_to_appraisal is not None:
+            raise exceptions.ParseError('Cannot both export results and add to appraisal')
+
         if export is not None and export not in EXPORT_FORMATS:
             raise exceptions.ParseError('Invalid export format "{}"'.format(export))
+
+        if add_to_appraisal is not None:
+            try:
+                appraisal_job = AppraisalJob.objects.get(pk=add_to_appraisal)
+            except AppraisalJob.DoesNotExist:
+                raise exceptions.ParseError('Appraisal job with id "{}" does not exist'.format(add_to_appraisal))
+        else:
+            appraisal_job = None
 
         filters = {
             'extension': params.pop('extension', None),
@@ -387,8 +483,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         for f in ('page', 'page_size', 'ordering'):
             filter_values.pop(f, None)
 
+        serializer = self.get_serializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        filter_values.update(serializer.validated_data)
+
         sort = self.get_sorting(request)
-        s = ComponentSearch(query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user)
+        exclude_indices = None
+
+        if appraisal_job is not None:
+            exclude_indices = ['structure_unit']
+
+        s = ComponentSearch(
+            query, filters=filters, filter_values=filter_values, sort=sort, user=self.request.user,
+            exclude_indices=exclude_indices,
+        )
 
         if self.paginator is not None:
             # Paginate in search engine
@@ -420,7 +528,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             raise
 
         if self.paginator is not None:
-            if size > 0 and results.hits.total > 0 and number > math.ceil(results.hits.total / size):
+            if size > 0 and results.hits.total['value'] > 0 and number > math.ceil(results.hits.total['value'] / size):
                 raise exceptions.NotFound('Invalid page.')
 
         results_dict = results.to_dict()
@@ -436,7 +544,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if export is not None:
             return self.generate_report(results_dict['hits']['hits'], export, request.user)
 
-        return Response(r, headers={'Count': results.hits.total})
+        if appraisal_job is not None:
+            ids = [hit['_id'] for hit in results_dict['hits']['hits']]
+            tags = Tag.objects.filter(versions__in=ids)
+            appraisal_job.tags.add(*tags)
+            return Response()
+
+        return Response(r, headers={'Count': results.hits.total['value']})
 
     def generate_report(self, hits, format, user):
         try:
@@ -544,7 +658,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(tag, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         serialized = TagVersionSerializerWithVersions(tag, context=context).data
 
         return Response(serialized)
@@ -622,12 +736,12 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         parent = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(parent, structure)
-        context = {'structure': structure, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user}
         children = parent.get_children(structure).select_related(
             'tag__information_package', 'type',
         ).prefetch_related(
             'agent_links', 'identifiers', 'notes', 'tag_version_relations_a',
-        )
+        ).for_user(request.user)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
@@ -732,7 +846,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         serializer.is_valid(raise_exception=True)
         tag = serializer.save()
-        return Response(TagVersionNestedSerializer(instance=tag.current_version).data, status=status.HTTP_201_CREATED)
+        return Response(
+            TagVersionNestedSerializer(instance=tag.current_version, context={'request': request}).data,
+            status=status.HTTP_201_CREATED,
+        )
 
     def _update_tag_metadata(self, tag_version, data):
         if 'structure_unit' in data:
@@ -910,9 +1027,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if not request.user.has_perm(perm):
             raise exceptions.PermissionDenied('You do not have permission to delete this node')
 
-        if request.query_params.get('delete_descendants', False):
+        if obj.elastic_index == 'archive' and obj.tag.versions.count() == 1:
+            structures = Structure.objects.filter(
+                tagstructure__tag=obj.tag,
+                is_template=False,
+            ).values_list('pk', flat=True)
+            structures = list(structures)
+            Tag.objects.filter(structures__structure__tagstructure__tag=obj.tag).delete()
+            Structure.objects.filter(pk__in=structures).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if obj.tag.versions.count() == 1 or request.query_params.get('delete_descendants', False):
             structure = request.query_params.get('structure')
             obj.get_descendants(structure=structure, include_self=True).delete()
         else:
             obj.delete()
+
         return Response(status=status.HTTP_204_NO_CONTENT)

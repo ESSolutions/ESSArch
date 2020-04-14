@@ -41,12 +41,14 @@ from redis.exceptions import RedisError
 from rest_framework import filters, permissions, viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.configuration.filters import EventTypeFilter
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     Site,
@@ -54,6 +56,7 @@ from ESSArch_Core.configuration.models import (
 )
 from ESSArch_Core.configuration.serializers import (
     EventTypeSerializer,
+    FeatureSerializer,
     ParameterSerializer,
     PathSerializer,
     SiteSerializer,
@@ -127,7 +130,7 @@ def get_rabbitmq_info(full=False):
         if full:
             return props
         return {'version': props['version']}
-    except (ConnectionError, OSError):
+    except OSError:
         logger.exception("Could not connect to RabbitMQ.")
         return {
             'version': 'unknown',
@@ -162,7 +165,9 @@ class SysInfoView(APIView):
             'linux_dist': distro.linux_distribution(),
         }
         context['hostname'] = socket.gethostname()
-        context['version'] = get_versions()
+        versions_dict = get_versions()
+        versions_dict.update({'full': versions_dict['full-revisionid']})
+        context['version'] = versions_dict
         context['time_checked'] = timezone.now()
         context['database'] = get_database_info()
 
@@ -200,6 +205,12 @@ class EventTypeViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
     )
     search_fields = ('eventDetail',)
+
+
+class FeatureViewSet(ReadOnlyModelViewSet):
+    queryset = Feature.objects.all()
+    serializer_class = FeatureSerializer
+    permission_classes = ()
 
 
 class ParameterViewSet(viewsets.ModelViewSet):

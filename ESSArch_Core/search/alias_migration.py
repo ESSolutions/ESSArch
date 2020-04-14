@@ -5,7 +5,6 @@ https://github.com/elastic/elasticsearch-dsl-py/blob/fcd8988d0b0fccf92e5b67f4ecf
 """
 from datetime import datetime
 
-from elasticsearch_dsl import IndexTemplate
 from elasticsearch_dsl.connections import get_connection
 
 
@@ -65,9 +64,7 @@ def migrate(doctype, move_data=True, update_alias=True, delete_old_index=False):
     next_index = get_next_index(pattern)
 
     # create an index template
-    index_template = IndexTemplate(alias, pattern)
-    # add the DocType mappings
-    index_template.doc_type(doctype)
+    index_template = doctype._index.as_template(alias, pattern)
     # upload the template into elasticsearch
     # potentially overriding the one already there
     index_template.save()

@@ -1,6 +1,10 @@
 from ESSArch_Core.exceptions import ESSArchException
 
 
+class NoSpaceLeftError(ESSArchException):
+    pass
+
+
 class RobotException(ESSArchException):
     pass
 
@@ -22,6 +26,10 @@ class MTInvalidOperationOrDeviceNameException(ESSArchException):
 
 
 class MTFailedOperationException(ESSArchException):
+    pass
+
+
+class NoReadableStorage(ESSArchException):
     pass
 
 

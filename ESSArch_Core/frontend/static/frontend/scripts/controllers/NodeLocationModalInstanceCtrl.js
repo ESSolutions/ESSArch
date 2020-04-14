@@ -3,7 +3,7 @@ export default class NodeLocationModalInstanceCtrl {
     const $ctrl = this;
     $ctrl.location = null;
 
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       EditMode.enable();
       if (!angular.isUndefined(data.node)) {
         $ctrl.node = angular.copy(data.node);
@@ -20,9 +20,9 @@ export default class NodeLocationModalInstanceCtrl {
       }
     };
 
-    $ctrl.filterNodes = function(nodes) {
+    $ctrl.filterNodes = function (nodes) {
       const filtered = [];
-      nodes.forEach(function(x) {
+      nodes.forEach(function (x) {
         if (
           !angular.isUndefined(x) &&
           x._is_structure_unit !== true &&
@@ -36,29 +36,29 @@ export default class NodeLocationModalInstanceCtrl {
       return filtered;
     };
 
-    $ctrl.clearLocation = function() {
+    $ctrl.clearLocation = function () {
       $ctrl.location = null;
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       $ctrl.saving = true;
       if (data.node) {
         Search.updateNode(data.node, {location: $ctrl.location !== null ? $ctrl.location.id : null})
-          .then(function(response) {
+          .then(function (response) {
             $ctrl.saving = false;
             EditMode.disable();
             Notifications.add($translate.instant('ACCESS.LOCATION_LINK_SUCCESS'), 'success');
             $uibModalInstance.close('edited');
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
             $ctrl.saving = false;
           });
       } else if (data.nodes) {
         const promises = [];
-        $ctrl.nodes.forEach(function(node) {
+        $ctrl.nodes.forEach(function (node) {
           promises.push(
-            Search.updateNode(node, {location: $ctrl.location !== null ? $ctrl.location.id : null}).then(function(
+            Search.updateNode(node, {location: $ctrl.location !== null ? $ctrl.location.id : null}).then(function (
               response
             ) {
               return response;
@@ -66,14 +66,14 @@ export default class NodeLocationModalInstanceCtrl {
           );
         });
         $q.all(promises)
-          .then(function(responses) {
+          .then(function (responses) {
             $ctrl.saving = false;
             EditMode.disable();
             Notifications.add($translate.instant('ACCESS.LOCATION_LINK_SUCCESS'), 'success');
             $uibModalInstance.close('edited');
           })
-          .catch(function(responses) {
-            responses.forEach(function(response) {
+          .catch(function (responses) {
+            responses.forEach(function (response) {
               $ctrl.nonFieldErrors = response.data.non_field_errors;
               $ctrl.saving = false;
             });
@@ -82,12 +82,12 @@ export default class NodeLocationModalInstanceCtrl {
       }
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss();
     };
 
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

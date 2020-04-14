@@ -1,5 +1,6 @@
 import os
 import shutil
+import tarfile
 import tempfile
 import uuid
 from unittest import mock
@@ -72,7 +73,7 @@ class StorageTargetCreateStorageMediumTests(TestCase):
         self.assertEqual(medium.location, 'dummy_medium_location')
         self.assertEqual(medium.agent, 'dummy_agent_id')
         self.assertIsNone(medium.tape_slot)
-        self.assertEqual(medium.medium_id, storage_target_name)
+        self.assertEqual(medium.medium_id, 'DISK_{}'.format(storage_target_name))
 
     def test_when_no_storage_medium_exists_should_create_new_StorageMedium_for_TAPE(self):
         robot = Robot.objects.create(device='slot_robot_device')
@@ -314,7 +315,7 @@ class StorageObjectOpenTests(TestCase):
         self.storage_target = StorageTarget.objects.create(
             type=DISK,
             name=f'dummy_st_name_{uuid.uuid4()}',
-            target="my_storage_target",
+            target=self.datadir
         )
         self.storage_medium = StorageMedium.objects.create(
             medium_id=f"some_name_{uuid.uuid4()}",
@@ -328,38 +329,37 @@ class StorageObjectOpenTests(TestCase):
         )
 
     def create_storage_object(self, is_container):
+        loc_val = 'foo.tar' if is_container else 'foo'
         return StorageObject.objects.create(
             content_location_type=DISK,
             ip=self.ip,
             storage_medium=self.storage_medium,
-            content_location_value=self.datadir,
+            content_location_value=loc_val,
             container=is_container,
         )
 
-    def create_file_with_content(self, file_name, content):
-        with open(os.path.join(self.datadir, file_name), 'w') as f:
-            f.write(content)
-        return f.name
-
-    def test_open_if_its_not_a_container_then_open_from_backend(self):
-        file_name = self.create_file_with_content("some_file_to_read", "the content")
+    def test_open_if_its_not_a_container(self):
         storage_object = self.create_storage_object(False)
+        os.makedirs(storage_object.get_full_path())
+        file_name = os.path.join(storage_object.get_full_path(), 'foo.txt')
+        with open(file_name, 'w') as f:
+            f.write('hello world')
 
-        res = storage_object.open(file_name)
+        with storage_object.open('foo.txt') as f:
+            self.assertEqual(f.read(), 'hello world')
 
-        self.assertEqual(res.name, file_name)
+    def test_open_if_its_a_container(self):
+        storage_object = self.create_storage_object(True)
 
-    @mock.patch("ESSArch_Core.storage.models.StorageObject.extract")
-    def test_open_if_its_a_container_then_extract_and_open(self, mock_extract):
-        file_name = self.create_file_with_content("some_file_to_read", "the content")
-        storage_object_container = self.create_storage_object(True)
-        storage_object = self.create_storage_object(False)
-        storage_object_container.extract.return_value = storage_object
+        file_name = os.path.join(self.datadir, 'foo.txt')
+        with open(file_name, 'w') as f:
+            f.write('hello world')
 
-        res = storage_object_container.open(file_name)
+        with tarfile.open(storage_object.get_full_path(), 'w') as t:
+            t.add(file_name, arcname='foo.txt')
 
-        self.assertEqual(res.name, file_name)
-        mock_extract.assert_called_once()
+        with storage_object.open('foo.txt') as f:
+            self.assertEqual(f.read(), b'hello world')
 
 
 class StorageObjectReadTests(TestCase):
@@ -404,17 +404,12 @@ class StorageObjectReadTests(TestCase):
 
 
 class StorageObjectDeleteFilesTests(TestCase):
-
     def setUp(self):
         self.datadir = normalize_path(tempfile.mkdtemp())
-        self.subdir = os.path.join(self.datadir, "subdir")
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.subdir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
+        self.subdir = os.path.join(self.datadir, "subdir")
+        os.makedirs(self.subdir)
 
         self.medium_location_param = Parameter.objects.create(entity=str(uuid.uuid4()), value="dummy_medium_location")
         self.agent_id_param = Parameter.objects.create(entity=str(uuid.uuid4()), value="dummy_agent_id")

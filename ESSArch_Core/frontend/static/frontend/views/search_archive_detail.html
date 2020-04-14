@@ -1,17 +1,25 @@
 <div class="archive-result" ng-if="vm.record">
   <div class="d-flex justify-content-between align-items-center w-100">
     <h3 title="Namn">
-      <strong title="Namn" ng-if="vm.record._source.name">
-        {{vm.record._source.name}}
+      <strong title="Namn" ng-if="vm.record._source.name || vm.record.name">
+        {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
-    <div>
-      <button class="btn btn-primary" ng-click="vm.exportArchive(vm.record)">
-        {{'EXPORT' | translate}}
-      </button>
-      <button class="btn btn-primary" ng-click="vm.archiveLabels(vm.record)">
-        {{'ACCESS.CREATE_LABELS' |translate}}
-      </button>
+    <div class="flex-row justify-content-end align-items-center position-relative">
+      <button
+        class="btn btn-default fas fa-print"
+        tooltip-placement="auto-top"
+        tooltip-append-to-body="false"
+        uib-tooltip="{{'EXPORT' | translate}}"
+        ng-click="vm.exportNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-edit"
+        ng-if="checkPermission('tags.change_tagversion')"
+        tooltip-placement="auto-top"
+        uib-tooltip="{{'EDIT' | translate}}"
+        ng-click="vm.editArchiveModal(vm.record)"
+      ></button>
     </div>
   </div>
   <h4 title="Informationsobjekt">{{vm.record._source.type}}</h4>
@@ -51,6 +59,18 @@
       </button>
     </div>
   </div>
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
+  <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
+    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+  </div>
+  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
   <div class="pb-base">
     <div class="d-flex align-items-center justify-content-between">
       <h4>
@@ -178,6 +198,9 @@
         ></button>
       </div>
       <div class="flex-row">
+        <b>
+          {{x.type.name}}&nbsp;
+        </b>
         <b
           ><span
             uib-tooltip="{{ 'CREATE_DATE' | translate }}"
@@ -250,6 +273,9 @@
         ></button>
       </div>
       <div class="flex-row">
+        <b>
+          {{x.type.name}}&nbsp;
+        </b>
         <b
           ><span
             uib-tooltip="{{ 'CREATE_DATE' | translate }}"
@@ -326,7 +352,7 @@
   </div>
   <result-field
     label="{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}"
-    data="StructureName.getNameWithVersion(vm.getStructureById(vm.record.structures, vm.structure))"
+    data="StructureName.getNameWithVersion(vm.structure)"
     stronglabel="true"
   ></result-field>
   <result-field
@@ -346,9 +372,9 @@
     </p>
   </div>
   <div
-    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
+    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date"
   >
-    <strong>{{'DATES' | translate}}:</strong>
+    <strong>{{'ACCESS.ADMINISTRATIVE_DATES' | translate}}:</strong>
     <result-field
       label="{{'CREATE_DATE'| translate}}"
       data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
@@ -360,14 +386,15 @@
       data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
       type="date"
     ></result-field>
+    <result-field
+      label="{{'ACCESS.APPRAISAL_DATE' | translate}}"
+      data="vm.record.appraisal_date ? vm.record.appraisal_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
     <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
     <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
     <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
     <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
     <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
-    <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
-    <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
-    <br />
   </div>
-  <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
 </div>

@@ -6,8 +6,8 @@ import tarfile
 import time
 from subprocess import PIPE, Popen
 
+from django.conf import settings
 from django.utils import timezone
-from django.utils.timezone import localtime
 from lxml import etree
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -20,6 +20,9 @@ from ESSArch_Core.storage.exceptions import (
     RobotUnmountException,
     TapeMountedError,
     TapeUnmountedError,
+)
+from ESSArch_Core.storage.tape_identification import (
+    get_backend as get_tape_identification_backend,
 )
 
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
@@ -38,7 +41,7 @@ def mount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
             slot=slot, drive=drive, robot=robot, cmd=cmd
@@ -78,7 +81,7 @@ def unmount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
             drive=drive, slot=slot, robot=robot, cmd=cmd
@@ -112,7 +115,7 @@ def rewind_tape(drive):
     """
 
     cmd = 'mt -f %s rewind' % (drive)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Rewinding tape in {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -144,7 +147,7 @@ def is_tape_drive_online(drive):
     """
 
     cmd = 'mt -f %s status' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Checking if {drive} is online: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -183,7 +186,7 @@ def tape_empty(drive):
     try:
         logger.debug('Opening tape in {drive}'.format(drive=drive))
         tar = tarfile.open(drive, 'r|')
-    except (IOError, OSError) as e:
+    except OSError as e:
         if e.errno == errno.EIO:
             logger.debug('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
             rewind_tape(drive)
@@ -210,7 +213,7 @@ def create_tape_label(medium, xmlpath):
     label_tape = etree.SubElement(root, 'tape')
     label_tape.set('id', medium.medium_id)
 
-    local_create_date = localtime(medium.create_date)
+    local_create_date = timezone.localtime(medium.create_date)
     label_tape.set('date', local_create_date.replace(microsecond=0).isoformat())
 
     label_format = etree.SubElement(root, 'format')
@@ -293,7 +296,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
 
 def get_tape_file_number(drive):
     cmd = 'mt -f %s status | grep -i "file number"' % drive
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Getting tape file number of {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -319,7 +322,7 @@ def set_tape_file_number(drive, num=0):
     new_num, op = get_tape_op_and_count(current_num, num)
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=num, drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -369,8 +372,11 @@ def robot_inventory(robot):
         TapeSlot,
     )
 
+    backend_name = settings.ESSARCH_TAPE_IDENTIFICATION_BACKEND
+    backend = get_tape_identification_backend(backend_name)
+
     cmd = 'mtx -f %s status' % robot
-    p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 
@@ -403,9 +409,11 @@ def robot_inventory(robot):
 
                 if status == 'Full':
                     slot_id = dt_el[7]
-                    volume_id = dt_el[10][:6]
+                    medium_id = dt_el[10][:6]
+                    backend.identify_tape(medium_id)
+
                     StorageMedium.objects.filter(
-                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=volume_id
+                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=medium_id
                     ).update(tape_drive=drive)
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(
@@ -427,25 +435,26 @@ def robot_inventory(robot):
                 status = s_el[4]
 
                 if status == 'Full':
-                    volume_id = s_el[6][:6]
+                    medium_id = s_el[6][:6]
+                    backend.identify_tape(medium_id)
 
                     slot, created = TapeSlot.objects.update_or_create(
-                        robot=robot, slot_id=slot_id, defaults={'medium_id': volume_id}
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id}
                     )
                     if created:
                         logger.debug(
                             'Created tape slot with slot_id={slot}, medium_id={medium}'.format(
-                                slot=slot_id, medium=volume_id
+                                slot=slot_id, medium=medium_id
                             )
                         )
                     else:
                         logger.debug(
                             'Updated tape slot with slot_id={slot}, medium_id={medium}'.format(
-                                slot=slot_id, medium=volume_id
+                                slot=slot_id, medium=medium_id
                             )
                         )
 
-                    StorageMedium.objects.filter(medium_id=volume_id).update(
+                    StorageMedium.objects.filter(medium_id=medium_id).update(
                         tape_slot=slot, last_changed_local=timezone.now(),
                     )
                 else:

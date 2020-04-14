@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from languages_plus.models import Language
 
 from ESSArch_Core.managers import OrganizationManager
@@ -81,7 +81,7 @@ class Agent(models.Model):
     language = models.ForeignKey(Language, on_delete=models.PROTECT, null=False, verbose_name=_('language'))
     mandates = models.ManyToManyField('agents.SourcesOfAuthority', related_name='agents', verbose_name=_('mandates'))
 
-    create_date = models.DateTimeField(_('create date'), null=False)
+    create_date = models.DateTimeField(_('create date'), null=False, default=timezone.now)
     revise_date = models.DateTimeField(_('revise date'), null=True)
 
     start_date = models.DateField(_('start date'), null=True)

@@ -14,7 +14,12 @@
             <button type="submit" class="btn btn-primary">
               {{'SEARCH' | translate}} <i class="fas fa-search"></i>
             </button>
-            <button type="button" ng-disabled="vm.clearDisabled()" class="btn btn-default" ng-click="vm.clearSearch()">
+            <button
+              type="button"
+              ng-disabled="vm.clearDisabled()"
+              class="btn btn-default"
+              ng-click="vm.clearSearch();vm.searchSubmit();"
+            >
               {{'CLEAR' | translate}}
             </button>
           </div>
@@ -197,6 +202,7 @@
                     <th st-sort="name" class="clickable">{{'ACCESS.TITLE' |translate}}</th>
                     <th>{{'DATE' |translate}}</th>
                     <th>{{'DESCRIPTION' | translate}}</th>
+                    <th class="shrink">{{'ACCESS.FLAGGED_FOR_APPRAISAL' | translate}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,12 +228,13 @@
                     <td ng-bind-html="x.name" class="search-name-column"></td>
                     <td class="search-td-nowrap">{{x.unit_dates.date}}</td>
                     <td ng-bind-html="x.desc"></td>
+                    <td class="shrink">{{x.appraisal_date ? 'YES' : 'NO' | translate}}</td>
                   </tr>
                   <tr ng-if="!vm.searchResult.length && !ipLoading" class="empty-table-indicator">
-                    <td colspan="7">{{'NO_RESULTS_FOUND' | translate}}</td>
+                    <td colspan="8">{{'NO_RESULTS_FOUND' | translate}}</td>
                   </tr>
                   <tr ng-if="!vm.searchResult.length && ipLoading" class="empty-table-indicator">
-                    <td class="loading-column" colspan="7">{{'LOADING' | translate}}</td>
+                    <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
                   </tr>
                 </tbody>
               </table>

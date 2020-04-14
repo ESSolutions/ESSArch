@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+import tempfile
 from unittest import mock
 
 from django.contrib.auth import get_user_model
@@ -88,6 +89,7 @@ class EmailReceiptBackendTests(TestCase):
     def test_information_package(self, MockEmailMessage):
         self.backend = email.EmailReceiptBackend()
         ip = InformationPackage.objects.create()
+        Path.objects.create(entity='temp')
 
         self.backend.create(
             'receipts/email.txt',
@@ -129,17 +131,9 @@ class EmailReceiptBackendTests(TestCase):
 
 
 class XMLReceiptBackendTests(TestCase):
-
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
-
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
 
     def create_validation(self):
         return Validation.objects.create()

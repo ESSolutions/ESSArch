@@ -28,6 +28,7 @@ from ESSArch_Core.agents.models import (
     SourcesOfAuthority,
 )
 from ESSArch_Core.auth.models import Group, GroupType
+from ESSArch_Core.configuration.models import Feature
 
 User = get_user_model()
 
@@ -43,6 +44,7 @@ class ListAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.user = User.objects.create(username='user')
@@ -105,6 +107,7 @@ class CreateAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
@@ -333,6 +336,7 @@ class UpdateAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.main_agent_type = MainAgentType.objects.create()
@@ -386,6 +390,28 @@ class UpdateAgentTests(TestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        agent.refresh_from_db()
+        self.assertIsNone(agent.revise_date)
+
+    def test_revise_date(self):
+        add_permission(self.user, 'change_agent')
+
+        agent = self.create_agent()
+        url = reverse('agent-detail', args=[agent.pk])
+
+        response = self.client.patch(url, data={'level_of_detail': Agent.PARTIAL})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        agent.refresh_from_db()
+        self.assertIsNotNone(agent.revise_date)
+
+        revise_date = agent.revise_date
+
+        response = self.client.patch(url, data={'level_of_detail': Agent.FULL})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        agent.refresh_from_db()
+        self.assertNotEqual(agent.revise_date, revise_date)
 
     def test_update_names(self):
         add_permission(self.user, 'change_agent')
@@ -633,6 +659,7 @@ class DeleteAgentTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
         cls.main_agent_type = MainAgentType.objects.create()

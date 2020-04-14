@@ -13,7 +13,7 @@
         "https://earkcsip.dilcis.eu/schema/DILCISExtensionMETS.xsd",
         "https://earksip.dilcis.eu/schema/DILCISExtensionSIPMETS.xsd",
         "http://www.loc.gov/standards/mets/xlink.xsd",
-        "https://www.loc.gov/standards/premis/premis.xsd"
+        "http://www.loc.gov/standards/premis/premis.xsd"
     ],
     "-schemaPreservationLocation": "xsd_files",
     "-attr": [

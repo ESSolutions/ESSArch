@@ -21,7 +21,7 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-
+import click
 import django
 
 django.setup()
@@ -37,8 +37,14 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
-from ESSArch_Core.configuration.models import EventType, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
-from ESSArch_Core.storage.models import StorageMethod, DISK, StorageTarget, StorageMethodTargetRelation  # noqa isort:skip
+from ESSArch_Core.configuration.models import EventType, Feature, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
+from ESSArch_Core.storage.models import (  # noqa isort:skip
+    DISK,
+    StorageMedium,
+    StorageMethod,
+    StorageMethodTargetRelation,
+    StorageTarget,
+)
 
 User = get_user_model()
 
@@ -46,6 +52,8 @@ User = get_user_model()
 def installDefaultConfiguration():
     print("Installing event types...")
     installDefaultEventTypes()
+
+    installDefaultFeatures()
 
     print("Installing parameters...")
     installDefaultParameters()
@@ -78,6 +86,38 @@ def installDefaultConfiguration():
     installSearchIndices()
 
     return 0
+
+
+def installDefaultFeatures():
+    click.echo('Installing default features:')
+
+    features = [
+        {
+            'name': 'archival descriptions',
+            'enabled': True,
+        },
+        {
+            'name': 'receive',
+            'enabled': True,
+        },
+        {
+            'name': 'transfer',
+            'enabled': False,
+        },
+    ]
+
+    for feature in features:
+        click.secho('- {}... '.format(feature['name']), nl=False)
+        f, _ = Feature.objects.get_or_create(
+            name=feature['name'],
+            defaults={
+                'enabled': feature['enabled'],
+                'description': feature.get('description', ''),
+            }
+        )
+        click.secho('enabled' if f.enabled else 'disabled', fg='green' if f.enabled else 'red')
+
+    return
 
 
 def installDefaultEventTypes():
@@ -270,10 +310,12 @@ def installDefaultUsers():
         ['storage_migration', 'storage', 'storageobject'],  # Storage migration (Administration)
         ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance (Administration)
         ['storage_management', 'storage', 'storageobject'],  # Storage management (Administration)
-        # ---- app: maintenance ---- model: AppraisalRule
-        ['add_appraisalrule', 'maintenance', 'appraisalrule'],  # Can add appraisal rule (Administration)
+        # ---- app: maintenance ---- model: AppraisalTemplate
+        ['add_appraisaltemplate', 'maintenance', 'appraisaltemplate'],  # Can add appraisal template (Admin)
+        ['change_appraisaltemplate', 'maintenance', 'appraisaltemplate'],  # Can change appraisal template (Admin)
         # ---- app: maintenance ---- model: ConversionRule
-        ['add_conversionrule', 'maintenance', 'conversionrule'],  # Can add conversion rule (Administration)
+        ['add_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can add conversion template (Admin)
+        ['change_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can change conversion template (Admin)
         # ---- app: tags ---- model: Tag
         ['create_archive', 'tags', 'tag'],  # Can create archives
     ]
@@ -291,10 +333,12 @@ def installDefaultUsers():
         ['add_group', 'auth', 'group'],                    # Can add group
         ['change_group', 'auth', 'group'],                    # Can change group
         ['delete_group', 'auth', 'group'],                    # Can delete group
+        ['view_group', 'auth', 'group'],                    # Can view group
         # ---- app: auth ---- model: user
         ['add_user', 'auth', 'user'],                    # Can add user
         ['change_user', 'auth', 'user'],                    # Can change user
         ['delete_user', 'auth', 'user'],                    # Can delete user
+        ['view_user', 'auth', 'user'],                    # Can view user
         # ---- app: essauth ---- model: grouomemberrole
         ['add_groupmemberrole', 'essauth', 'groupmemberrole'],         # Can add role
         ['change_groupmemberrole', 'essauth', 'groupmemberrole'],      # Can change role
@@ -431,6 +475,7 @@ def installDefaultPaths():
         'preingest_reception': '/ESSArch/data/preingest/reception',
         'ingest': '/ESSArch/data/ingest/packages',
         'ingest_reception': '/ESSArch/data/ingest/reception',
+        'ingest_transfer': '/ESSArch/data/ingest/transfer',
         'ingest_unidentified': '/ESSArch/data/ingest/uip',
         'access_workarea': '/ESSArch/data/workspace',
         'ingest_workarea': '/ESSArch/data/workspace',
@@ -461,12 +506,28 @@ def installDefaultStoragePolicies():
     )
 
     if created_cache_method:
-        cache_target = StorageTarget.objects.create(
+        cache_target, created_cache_target = StorageTarget.objects.get_or_create(
             name='Default Cache Storage Target 1',
-            status=True,
-            type=DISK,
-            target='/ESSArch/data/store/cache',
+            defaults={
+                'status': True,
+                'type': DISK,
+                'target': '/ESSArch/data/store/cache',
+            }
         )
+
+        if created_cache_target:
+            StorageMedium.objects.get_or_create(
+                medium_id='Default Cache Disk 1',
+                defaults={
+                    'storage_target': cache_target,
+                    'status': 20,
+                    'location': Parameter.objects.get(entity='medium_location').value,
+                    'location_status': 50,
+                    'block_size': cache_target.default_block_size,
+                    'format': cache_target.default_format,
+                    'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+                }
+            )
 
         StorageMethodTargetRelation.objects.create(
             name='Default Cache Storage Method Target Relation 1',
@@ -521,7 +582,7 @@ def installDefaultStorageMethods():
 
 
 def installDefaultStorageTargets():
-    StorageTarget.objects.get_or_create(
+    target, created = StorageTarget.objects.get_or_create(
         name='Default Storage Target 1',
         defaults={
             'status': True,
@@ -530,7 +591,21 @@ def installDefaultStorageTargets():
         }
     )
 
-    StorageTarget.objects.get_or_create(
+    if created:
+        StorageMedium.objects.get_or_create(
+            medium_id='Default Storage Disk 1',
+            defaults={
+                'storage_target': target,
+                'status': 20,
+                'location': Parameter.objects.get(entity='medium_location').value,
+                'location_status': 50,
+                'block_size': target.default_block_size,
+                'format': target.default_format,
+                'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+            }
+        )
+
+    target, created = StorageTarget.objects.get_or_create(
         name='Default Long-term Storage Target 1',
         defaults={
             'status': True,
@@ -538,6 +613,20 @@ def installDefaultStorageTargets():
             'target': '/ESSArch/data/store/longterm_disk1',
         }
     )
+
+    if created:
+        StorageMedium.objects.get_or_create(
+            medium_id='Default Long-term Storage Disk 1',
+            defaults={
+                'storage_target': target,
+                'status': 20,
+                'location': Parameter.objects.get(entity='medium_location').value,
+                'location_status': 50,
+                'block_size': target.default_block_size,
+                'format': target.default_format,
+                'agent': Parameter.objects.get(entity='agent_identifier_value').value,
+            }
+        )
 
     return 0
 

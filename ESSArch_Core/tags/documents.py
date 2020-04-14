@@ -62,6 +62,7 @@ class VersionedDocType(DocumentBase):
     ip = Keyword()
     agents = Keyword()
     task_id = Keyword()
+    appraisal_date = Date()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -183,6 +184,7 @@ class Component(VersionedDocType):
     structure_units = Nested(ComponentStructureUnitDocument)
     institution = Keyword()
     organization = Keyword()
+    security_level = Integer()
 
     @classmethod
     def get_model(cls):
@@ -195,13 +197,14 @@ class Component(VersionedDocType):
     @classmethod
     def from_obj(cls, obj, archive=None):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
+        archive = archive or obj.get_root()
 
         if archive is not None:
             archive_doc = InnerArchiveDocument.from_obj(archive)
-        elif obj.get_root() is not None:
-            archive_doc = InnerArchiveDocument.from_obj(obj.get_root())
+            archive_agents = [str(pk) for pk in archive.agents.values_list('pk', flat=True)]
         else:
             archive_doc = None
+            archive_agents = []
 
         if obj.tag.task is None:
             task_id = None
@@ -212,6 +215,7 @@ class Component(VersionedDocType):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            appraisal_date=obj.tag.appraisal_date,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -219,7 +223,8 @@ class Component(VersionedDocType):
             desc=obj.description,
             reference_code=obj.reference_code,
             type=obj.type.name,
-            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)] + archive_agents,
+            security_level=obj.security_level,
             **obj.custom_fields,
         )
         return doc
@@ -242,6 +247,7 @@ class Archive(VersionedDocType):
     institution = Keyword()
     organization = Keyword()
     organization_group = Integer()
+    security_level = Integer()
 
     @classmethod
     def get_model(cls):
@@ -262,11 +268,13 @@ class Archive(VersionedDocType):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            appraisal_date=obj.tag.appraisal_date,
             current_version=obj.tag.current_version == obj,
             name=obj.name,
             type=obj.type.name,
             reference_code=obj.reference_code,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            security_level=obj.security_level,
             **obj.custom_fields,
         )
         return doc
@@ -358,6 +366,7 @@ class File(Component):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            appraisal_date=obj.tag.appraisal_date,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -408,6 +417,7 @@ class Directory(Component):
             _id=str(obj.pk),
             id=str(obj.pk),
             task_id=task_id,
+            appraisal_date=obj.tag.appraisal_date,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,

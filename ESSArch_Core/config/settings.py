@@ -36,7 +36,7 @@ ESSARCH_WORKFLOW_POLLERS = {
 
 
 # Set test runner
-TEST_RUNNER = "ESSArch_Core.testing.runner.QuietTestRunner"
+TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
@@ -94,8 +94,8 @@ INSTALLED_APPS = [
     'guardian',
     'mptt',
     'nested_inline',
-    'rest_auth',
-    'rest_auth.registration',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
     'rest_framework',
     'rest_framework.authtoken',
     'ESSArch_Core.admin',
@@ -224,6 +224,7 @@ try:
 except ImportError:
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9200')
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
+
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -233,6 +234,25 @@ ELASTICSEARCH_CONNECTIONS = {
             },
         ],
         'timeout': 60,
+        'max_retries': 1,
+    }
+}
+
+try:
+    from local_essarch_settings import ELASTICSEARCH_TEST_URL
+except ImportError:
+    ELASTICSEARCH_TEST_URL = os.environ.get('ELASTICSEARCH_TEST_URL', 'http://localhost:19200')
+elasticsearch_test_url = urlparse(ELASTICSEARCH_TEST_URL)
+
+ELASTICSEARCH_TEST_CONNECTIONS = {
+    'default': {
+        'hosts': [
+            {
+                'host': elasticsearch_test_url.hostname,
+                'port': elasticsearch_test_url.port,
+            },
+        ],
+        'timeout': 10,
         'max_retries': 1,
     }
 }
@@ -250,6 +270,10 @@ ELASTICSEARCH_INDEXES = {
 }
 
 ELASTICSEARCH_BATCH_SIZE = 1000
+
+# Storage
+
+ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
 
 # Logging
 LOGGING = {
@@ -389,6 +413,7 @@ except ImportError:
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.ip.tasks",
+    "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.storage.tasks",
     "ESSArch_Core.tasks",
@@ -414,19 +439,11 @@ CELERY_BEAT_SCHEDULE = {
         'schedule': timedelta(minutes=10),
     },
     'PollAppraisalJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollAppraisalJobs',
-        'schedule': timedelta(minutes=10),
-    },
-    'ScheduleAppraisalJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.ScheduleAppraisalJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollAppraisalJobs',
         'schedule': timedelta(minutes=10),
     },
     'PollConversionJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.PollConversionJobs',
-        'schedule': timedelta(minutes=10),
-    },
-    'ScheduleConversionJobs-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.ScheduleConversionJobs',
+        'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
     },
 }

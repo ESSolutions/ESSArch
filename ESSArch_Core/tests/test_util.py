@@ -27,7 +27,7 @@ from ESSArch_Core.util import (
 )
 
 
-class ConvertFileTests(TestCase):
+class ConvertFileTests(SimpleTestCase):
     @mock.patch('ESSArch_Core.util.Popen')
     def test_non_zero_returncode(self, mock_popen):
         process_mock = mock.Mock()
@@ -38,8 +38,8 @@ class ConvertFileTests(TestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
     @mock.patch('ESSArch_Core.util.Popen')
@@ -52,8 +52,8 @@ class ConvertFileTests(TestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
     @mock.patch('ESSArch_Core.util.Popen')
@@ -65,8 +65,8 @@ class ConvertFileTests(TestCase):
 
         self.assertEqual(convert_file("test.docx", "pdf"), 'test.pdf')
 
-        cmd = 'unoconv -f %s -eSelectPdfVersion=1 "%s"' % ('pdf', 'test.docx')
-        mock_popen.assert_called_once_with(cmd, shell=True, stderr=PIPE, stdout=PIPE)
+        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
 
 class GetValueFromPathTest(TestCase):
@@ -245,18 +245,12 @@ class NestedLookupTest(TestCase):
 
 
 class ListFilesTest(TestCase):
-
     def setUp(self):
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, "datadir")
-        self.textdir = os.path.join(self.datadir, "textdir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        try:
-            os.makedirs(self.textdir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
+        self.textdir = os.path.join(self.datadir, "textdir")
+        os.makedirs(self.textdir)
 
     def create_files(self):
         files = []
@@ -358,7 +352,7 @@ class ListFilesTest(TestCase):
         generate_file_response.assert_called_once_with(mock.ANY, 'text/plain', False, name=sub_path_file)
 
 
-class GenerateFileResponseTests(TestCase):
+class GenerateFileResponseTests(SimpleTestCase):
 
     def get_headers_from_response(self, response):
         if isinstance(response, FileResponse):
@@ -394,7 +388,7 @@ class GenerateFileResponseTests(TestCase):
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
-    def test_when_utf8_and_no_filename_then_return_without_content_dispo(self, get_charset, get_filename):
+    def test_when_utf8_and_no_filename(self, get_charset, get_filename):
         content_type = 'text/plain'
 
         resp = generate_file_response(open(__file__, 'rb'), content_type)
@@ -407,6 +401,7 @@ class GenerateFileResponseTests(TestCase):
                 'Expires': '0',
                 'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=utf-8',
+                'Content-Disposition': 'inline; filename="{}"'.format(os.path.basename(__file__)),
             }
         )
 
@@ -436,7 +431,7 @@ class GenerateFileResponseTests(TestCase):
 
     @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
     @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
-    def test_win1252_and_no_filename_then_return_without_content_dispo(self, mock_get_charset, mock_get_filename):
+    def test_win1252_and_no_filename(self, mock_get_charset, mock_get_filename):
         content_type = 'text/plain'
 
         resp = generate_file_response(open(__file__, 'rb'), content_type)
@@ -449,6 +444,7 @@ class GenerateFileResponseTests(TestCase):
                 'Expires': '0',
                 'Content-Length': str(os.path.getsize(__file__)),
                 'Content-Type': 'text/plain; charset=windows-1252',
+                'Content-Disposition': 'inline; filename="{}"'.format(os.path.basename(__file__)),
             }
         )
 

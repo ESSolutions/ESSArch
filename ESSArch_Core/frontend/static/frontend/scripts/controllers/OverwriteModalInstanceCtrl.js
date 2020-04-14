@@ -10,8 +10,8 @@ export default class OverwriteModalInstanceCtrl {
     if (data.profile) {
       $ctrl.profile = data.profile;
     }
-    $ctrl.overwriteProfile = function() {
-      return Profile.update($ctrl.profile).$promise.then(function(resource) {
+    $ctrl.overwriteProfile = function () {
+      return Profile.update($ctrl.profile).$promise.then(function (resource) {
         Notifications.add($translate.instant('IMPORT.PROFILE_IMPORTED', resource), 'success', 5000, {isHtml: true});
         $ctrl.data = {
           status: 'overwritten',
@@ -20,9 +20,9 @@ export default class OverwriteModalInstanceCtrl {
         return resource;
       });
     };
-    $ctrl.overwriteSa = function() {
+    $ctrl.overwriteSa = function () {
       return SA.update($ctrl.profile)
-        .$promise.then(function(resource) {
+        .$promise.then(function (resource) {
           Notifications.add($translate.instant('IMPORT.SA_IMPORTED', resource), 'success', 5000, {isHtml: true});
           $ctrl.data = {
             status: 'overwritten',
@@ -30,7 +30,7 @@ export default class OverwriteModalInstanceCtrl {
           $uibModalInstance.close($ctrl.data);
           return resource;
         })
-        .catch(function(response) {
+        .catch(function (response) {
           if (response.status === 405) {
             Notifications.add(
               $translate.instant('IMPORT.SA_IS_PUBLISHED_CANNOT_BE_OVERWRITTEN', $ctrl.profile),
@@ -39,13 +39,13 @@ export default class OverwriteModalInstanceCtrl {
           }
         });
     };
-    $ctrl.overwrite = function() {
+    $ctrl.overwrite = function () {
       $ctrl.data = {
         status: 'overwritten',
       };
       $uibModalInstance.close($ctrl.data);
     };
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
   }

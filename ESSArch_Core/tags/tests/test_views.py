@@ -1,3 +1,4 @@
+from datetime import datetime
 from unittest import mock
 
 from countries_plus.models import Country
@@ -6,6 +7,8 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.timezone import make_aware
+from elasticsearch import NotFoundError
 from languages_plus.models import Language
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
@@ -19,13 +22,16 @@ from ESSArch_Core.agents.models import (
     RefCode,
 )
 from ESSArch_Core.auth.models import Group, GroupType
-from ESSArch_Core.configuration.models import EventType
+from ESSArch_Core.configuration.models import EventType, Feature
+from ESSArch_Core.tags.documents import Archive, Component
 from ESSArch_Core.tags.models import (
     Delivery,
     DeliveryType,
     Location,
     LocationFunctionType,
     LocationLevelType,
+    NodeIdentifierType,
+    NodeNoteType,
     NodeRelationType,
     Structure,
     StructureRelation,
@@ -45,6 +51,7 @@ from ESSArch_Core.tags.serializers import (
     PUBLISHED_STRUCTURE_CHANGE_ERROR,
     STRUCTURE_INSTANCE_RELATION_ERROR,
 )
+from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
 
 User = get_user_model()
 
@@ -68,6 +75,8 @@ def create_structure_unit(structure_unit_type, structure, ref_code):
 class ListStructureTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.client = APIClient()
         cls.url = reverse('structure-list')
         cls.user = User.objects.create(username='user')
@@ -97,8 +106,24 @@ class ListStructureTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
 
+    def test_tree(self):
+        self.client.force_authenticate(user=self.user)
+        structure = create_structure(self.structure_type)
+        unit_type = StructureUnitType.objects.create(structure_type=self.structure_type)
+        u1 = create_structure_unit(unit_type, structure, 'a')
+        u2 = create_structure_unit(unit_type, structure, 'b')
+        u2.parent = u1
+        u2.save()
+
+        response = self.client.get(reverse('structure-tree', args=(structure.pk,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class CreateStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
         self.url = reverse('structure-list')
@@ -217,6 +242,10 @@ class CreateStructureTests(TestCase):
 
 
 class UpdateStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -423,6 +452,10 @@ class UpdateStructureTests(TestCase):
 
 
 class PublishStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -473,6 +506,10 @@ class PublishStructureTests(TestCase):
 
 
 class UnpublishStructureTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -506,7 +543,211 @@ class UnpublishStructureTests(TestCase):
         self.assertFalse(self.structure.published)
 
 
+class ListStructureUnitTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
+        cls.url = reverse('structureunit-list')
+
+        cls.structure_type = StructureType.objects.create(name='test')
+        cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
+
+    def setUp(self):
+        self.user = User.objects.create(username='user', is_superuser=True)
+        self.client.force_authenticate(user=self.user)
+
+    def test_sort_reference_code(self):
+        structure = create_structure(self.structure_type)
+
+        ref_codes = [
+            'BA 100',
+            'ABC',
+            'X 1',
+            'BA 1001',
+            'XY 1',
+            'XYZ 1',
+            'BA 1',
+            'BA 10',
+            'BA 2',
+            'BA 1002',
+            'BA 1000',
+            'BA 003',
+            'QWE1',
+            'QWE10',
+            'QWE2',
+            'A B 2',
+            'A B 10',
+            'DEF',
+            'A B 1',
+        ]
+
+        for ref_code in ref_codes:
+            StructureUnit.objects.create(
+                reference_code=ref_code, type=self.unit_type,
+                structure=structure,
+            )
+
+        res = self.client.get(self.url, {'ordering': 'reference_code', 'pager': 'none'})
+
+        expected = [
+            'ABC',
+            'DEF',
+            'QWE1',
+            'QWE2',
+            'QWE10',
+            'A B 1',
+            'A B 2',
+            'A B 10',
+            'BA 1',
+            'BA 2',
+            'BA 003',
+            'BA 10',
+            'BA 100',
+            'BA 1000',
+            'BA 1001',
+            'BA 1002',
+            'X 1',
+            'XY 1',
+            'XYZ 1',
+        ]
+        actual = [sm['reference_code'] for sm in res.data]
+
+        self.assertEqual(expected, actual)
+
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_leaf_unit(self, mock_doc):
+        structure = create_structure(self.structure_type)
+
+        a = create_structure_unit(self.unit_type, structure, 'a')
+        a1 = create_structure_unit(self.unit_type, structure, 'a1')
+        a1.parent = a
+        a1.save()
+
+        b = create_structure_unit(self.unit_type, structure, 'b')
+        b1 = create_structure_unit(self.unit_type, structure, 'b1')
+        b2 = create_structure_unit(self.unit_type, structure, 'b2')
+        b1.parent = b
+        b1.save()
+        b2.parent = b
+        b2.save()
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=b1)
+
+        response = self.client.get(self.url)
+        data = response.data
+
+        def find_unit(ref_code):
+            return next(u for u in data if u["reference_code"] == ref_code)
+
+        with self.subTest('a'):
+            unit = find_unit('a')
+            self.assertFalse(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('a1'):
+            unit = find_unit('a1')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertTrue(unit['is_leaf_node'])
+
+        with self.subTest('b'):
+            unit = find_unit('b')
+            self.assertFalse(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('b1'):
+            unit = find_unit('b1')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertFalse(unit['is_tag_leaf_node'])
+            self.assertFalse(unit['is_leaf_node'])
+
+        with self.subTest('b2'):
+            unit = find_unit('b2')
+            self.assertTrue(unit['is_unit_leaf_node'])
+            self.assertTrue(unit['is_tag_leaf_node'])
+            self.assertTrue(unit['is_leaf_node'])
+
+        # delete TagVersion, keep structure
+        tv.delete()
+
+        response = self.client.get(self.url, {'ordering': 'name'})
+        data = response.data
+
+        with self.subTest('b1'):
+            self.assertTrue(data[3]['is_unit_leaf_node'])
+            self.assertTrue(data[3]['is_tag_leaf_node'])
+            self.assertTrue(data[3]['is_leaf_node'])
+
+    @mock.patch('ESSArch_Core.tags.serializers.TagVersionNestedSerializer.get_masked_fields', return_value={})
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_nodes(self, mock_doc, mock_masked):
+        structure = create_structure(self.structure_type)
+        unit = create_structure_unit(self.unit_type, structure, 'a')
+
+        archive_tag = Tag.objects.create()
+        archive_tv_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        TagVersion.objects.create(tag=archive_tag, type=archive_tv_type, elastic_index='archive')
+        archive_ts = TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=unit, parent=archive_ts)
+
+        url = reverse('structureunit-nodes', args=(str(unit.pk),))
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tv.pk))
+
+        self.user.is_superuser = False
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 3
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_2'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 1
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+
 class CreateStructureUnitTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -745,6 +986,10 @@ class CreateStructureUnitTests(TestCase):
 
 
 class UpdateStructureUnitTemplateTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -873,6 +1118,10 @@ class UpdateStructureUnitTemplateTests(TestCase):
 
 
 class UpdateStructureUnitInstanceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -1010,10 +1259,59 @@ class UpdateStructureUnitInstanceTests(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_move_to_structure_unit_with_tag(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+        parent = create_structure_unit(self.structure_unit_type, instance, "A")
+
+        tag = Tag.objects.create()
+        tv_type = TagVersionType.objects.create(name='volume')
+        TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=parent.structure, structure_unit=parent)
+
+        response = self.client.patch(
+            url,
+            data={
+                'parent': parent.pk,
+            }
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_move_to_root(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.movable_instance_units = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+        url = reverse('structure-units-detail', args=[instance.pk, structure_unit.pk])
+
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.patch(url, data={'parent': None})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 class RelatedStructureUnitTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.client = APIClient()
 
         cls.user = User.objects.create(username='user')
@@ -1258,6 +1556,10 @@ class RelatedStructureUnitTests(APITestCase):
 
 
 class DeleteStructureUnitInstanceTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
     def setUp(self):
         self.client = APIClient()
 
@@ -1315,6 +1617,10 @@ class DeleteStructureUnitInstanceTests(TestCase):
 
 class AgentArchiveRelationTests(TestCase):
     fixtures = ['countries_data', 'languages_data']
+
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
 
     def setUp(self):
         self.client = APIClient()
@@ -1444,18 +1750,96 @@ class AgentArchiveRelationTests(TestCase):
         self.assertEqual(AgentTagLink.objects.count(), 0)
 
 
-class CreateArchiveTests(TestCase):
+class ListTagsTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
+        cls.structure_type = StructureType.objects.create(name='test')
+        cls.unit_type = StructureUnitType.objects.create(name="test", structure_type=cls.structure_type)
+
+    def setUp(self):
+        self.user = User.objects.create(username='user', is_superuser=True)
+        self.client.force_authenticate(user=self.user)
+
+    @mock.patch('ESSArch_Core.tags.serializers.TagVersionNestedSerializer.get_masked_fields', return_value={})
+    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
+    def test_children(self, mock_doc, mock_masked):
+        structure = create_structure(self.structure_type)
+        unit = create_structure_unit(self.unit_type, structure, 'a')
+
+        archive_tag = Tag.objects.create()
+        archive_tv_type = TagVersionType.objects.create(name='archive', archive_type=True)
+        TagVersion.objects.create(tag=archive_tag, type=archive_tv_type, elastic_index='archive')
+        archive_ts = TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tv_type = TagVersionType.objects.create(name='volume')
+        parent_tag = Tag.objects.create()
+        parent_tv = TagVersion.objects.create(tag=parent_tag, type=tv_type, elastic_index='component')
+        parent_ts = TagStructure.objects.create(
+            tag=parent_tag, structure=structure, structure_unit=unit, parent=archive_ts,
+        )
+
+        tag = Tag.objects.create()
+        tv = TagVersion.objects.create(tag=tag, type=tv_type, elastic_index='component')
+        TagStructure.objects.create(tag=tag, structure=structure, structure_unit=unit, parent=parent_ts)
+
+        url = reverse('search-children', args=(str(parent_tv.pk),))
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tv.pk))
+
+        self.user.is_superuser = False
+        self.user.user_permissions.add(Permission.objects.get(codename='search'))
+        self.user.save()
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 3
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_2'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        self.user.user_permissions.add(Permission.objects.get(codename='security_level_3'))
+        self.user = User.objects.get(pk=self.user.pk)
+        self.client.force_authenticate(self.user)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+
+        tv.security_level = 1
+        tv.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+
+class CreateArchiveTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         cls.url = reverse('search-list')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1474,38 +1858,68 @@ class CreateArchiveTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.search.TagVersionNestedSerializer')
-    @mock.patch('ESSArch_Core.tags.search.ArchiveWriteSerializer')
-    def test_with_permission(self, mock_write_serializer, mock_tag_serializer):
+    def test_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="create_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        mock_tag_serializer().data = {}
+        archive_creator = Agent.objects.create(
+            type=AgentType.objects.create(main_type=MainAgentType.objects.create()),
+            ref_code=RefCode.objects.create(
+                country=Country.objects.get(iso='SE'),
+                repository_code='repo',
+            ),
+            level_of_detail=Agent.MINIMAL,
+            script=Agent.LATIN,
+            language=Language.objects.get(iso_639_1='sv'),
+            record_status=Agent.DRAFT,
+            create_date=timezone.now(),
+        )
+        structure = Structure.objects.create(is_template=True, published=True, type=StructureType.objects.create())
 
-        response = self.client.post(
+        tag_version_type = TagVersionType.objects.create(archive_type=True)
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        res = self.client.post(
             self.url,
             data={
                 'index': 'archive',
+                'name': 'Volume 1',
+                'type': str(tag_version_type.pk),
+                'archive_creator': str(archive_creator.pk),
+                'structures': [str(structure.pk)],
+                'reference_code': 'A1',
+                'location': None,
+                'notes': [
+                    {
+                        'text': 'test note',
+                        'type': str(note_type.pk),
+                    }
+                ],
+                'identifiers': [
+                    {
+                        'identifier': 'test identifier',
+                        'type': str(identifier_type.pk),
+                    }
+                ],
             }
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_write_serializer.assert_called_once()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
 
 
-class CreateComponentTests(TestCase):
+class CreateComponentTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
         cls.url = reverse('search-list')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1524,36 +1938,68 @@ class CreateComponentTests(TestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.search.TagVersionNestedSerializer')
-    @mock.patch('ESSArch_Core.tags.search.ComponentWriteSerializer')
-    def test_with_permission(self, mock_write_serializer, mock_tag_serializer):
+    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
+    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
+    def test_with_permission(self, mock_archive_save, mock_component_save):
         self.user.user_permissions.add(Permission.objects.get(codename="add_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        mock_tag_serializer().data = {}
+        structure = Structure.objects.create(is_template=False, type=StructureType.objects.create())
+        structure_unit = StructureUnit.objects.create(
+            type=StructureUnitType.objects.create(structure_type=structure.type),
+            structure=structure,
+        )
 
-        response = self.client.post(
+        archive_tag = Tag.objects.create()
+        TagVersion.objects.create(
+            tag=archive_tag, type=TagVersionType.objects.create(name='archive', archive_type=True),
+            elastic_index='archive',
+        )
+        TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        tag_version_type = TagVersionType.objects.create(archive_type=False)
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        res = self.client.post(
             self.url,
             data={
                 'index': 'component',
+                'name': 'Volume 1',
+                'type': str(tag_version_type.pk),
+                'structure_unit': str(structure_unit.pk),
+                'reference_code': 'A1',
+                'location': None,
+                'notes': [
+                    {
+                        'text': 'test note',
+                        'type': str(note_type.pk),
+                    }
+                ],
+                'identifiers': [
+                    {
+                        'identifier': 'test identifier',
+                        'type': str(identifier_type.pk),
+                    }
+                ],
             }
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        mock_write_serializer.assert_called_once()
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        mock_component_save.assert_called_once()
+        mock_archive_save.assert_not_called()
 
 
-class ChangeTagTests(TestCase):
+class ChangeTagTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
-        self.client = APIClient()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
@@ -1572,13 +2018,12 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
-    def test_change_archive_with_permission(self, mock_save):
+    def test_change_archive_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        archive_tag = Tag.objects.create()
+        archive_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=27)))
         archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
 
@@ -1587,8 +2032,50 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Archive.save')
-    def test_change_archive_delete_structure(self, mock_save):
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2010, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2020, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2030, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': None,
+            'end_date': None,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        response = self.client.patch(url, {
+            'appraisal_date': None,
+            'notes': [
+                {
+                    'text': 'test note',
+                    'type': str(note_type.pk),
+                }
+            ],
+            'identifiers': [
+                {
+                    'identifier': 'test identifier',
+                    'type': str(identifier_type.pk),
+                }
+            ],
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_change_archive_delete_structure(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
@@ -1651,13 +2138,12 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @mock.patch('ESSArch_Core.tags.serializers.Component.save')
-    def test_change_component_with_permission(self, mock_save):
+    def test_change_component_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="change_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create()
+        tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=27)))
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
         tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
@@ -1666,16 +2152,61 @@ class ChangeTagTests(TestCase):
         response = self.client.patch(url, {'name': 'new name'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2010, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-class DeleteTagTests(TestCase):
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2020, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': datetime(year=2020, month=1, day=1),
+            'end_date': datetime(year=2030, month=1, day=1),
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        response = self.client.patch(url, {
+            'start_date': None,
+            'end_date': None,
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        note_type = NodeNoteType.objects.create()
+        identifier_type = NodeIdentifierType.objects.create()
+        response = self.client.patch(url, {
+            'appraisal_date': None,
+            'notes': [
+                {
+                    'text': 'test note',
+                    'type': str(note_type.pk),
+                }
+            ],
+            'identifiers': [
+                {
+                    'identifier': 'test identifier',
+                    'type': str(identifier_type.pk),
+                }
+            ],
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class DeleteTagTests(ESSArchSearchBaseTestCase):
     fixtures = ['countries_data', 'languages_data']
 
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
-        self.client = APIClient()
+        super().setUp()
 
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
@@ -1694,21 +2225,53 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        archive_tag_version.refresh_from_db()
 
-    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
-    def test_delete_archive_with_permission(self, mock_signal):
+    def test_delete_archive_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_archive"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
+        structure = create_structure(structure_type=StructureType.objects.create(), template=False)
+        unit = create_structure_unit(StructureUnitType.objects.create(structure_type=structure.type), structure, '1')
+
         archive_tag = Tag.objects.create()
         archive_type = TagVersionType.objects.create(name='archive', archive_type=True)
         archive_tag_version = TagVersion.objects.create(tag=archive_tag, type=archive_type, elastic_index='archive')
+        TagStructure.objects.create(tag=archive_tag, structure=structure)
+
+        component_tag = Tag.objects.create()
+        component_type = TagVersionType.objects.create(name='component', archive_type=False)
+        TagVersion.objects.create(tag=component_tag, type=component_type, elastic_index='component')
+        TagStructure.objects.create(tag=component_tag, structure=structure, structure_unit=unit)
 
         url = reverse('search-detail', args=(archive_tag_version.pk,))
 
+        Archive.index_documents()
+        Component.index_documents()
+        Archive.get(str(archive_tag.current_version.pk))
+        Component.get(str(component_tag.current_version.pk))
+
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        with self.assertRaises(TagVersion.DoesNotExist):
+            archive_tag_version.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            archive_tag.refresh_from_db()
+
+        with self.assertRaises(Tag.DoesNotExist):
+            component_tag.refresh_from_db()
+
+        with self.assertRaises(Structure.DoesNotExist):
+            structure.refresh_from_db()
+
+        with self.assertRaises(NotFoundError):
+            Archive.get(str(archive_tag.current_version.pk))
+
+        with self.assertRaises(NotFoundError):
+            Component.get(str(component_tag.current_version.pk))
 
     def test_delete_component_without_permission(self):
         tag = Tag.objects.create()
@@ -1719,26 +2282,79 @@ class DeleteTagTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        tag_version.refresh_from_db()
 
-    @mock.patch('ESSArch_Core.tags.signals.TagVersion.get_doc')
-    def test_delete_component_with_permission(self, mock_signal):
+    def test_delete_component_with_permission(self):
         self.user.user_permissions.add(Permission.objects.get(codename="delete_tag"))
         self.user = User.objects.get(username="user")
         self.client.force_authenticate(user=self.user)
 
-        tag = Tag.objects.create()
         tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
-        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        url = reverse('search-detail', args=(tag_version.pk,))
+        with self.subTest('single version'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
 
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+            Component.index_documents()
+            Component.get(str(tag_version.pk))
+
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            with self.assertRaises(Tag.DoesNotExist):
+                tag.refresh_from_db()
+
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version.pk))
+
+        with self.subTest('multiple versions'):
+            tag = Tag.objects.create()
+            tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+            tag_version2 = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+            tag.current_version = tag_version2
+            tag.save()
+
+            Component.index_documents()
+            Component.get(str(tag_version.pk))
+            Component.get(str(tag_version2.pk))
+
+            url = reverse('search-detail', args=(tag_version.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version.refresh_from_db()
+
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version.pk))
+
+            tag_version2.refresh_from_db()
+            tag.refresh_from_db()
+            Component.get(str(tag_version2.pk))
+
+            url = reverse('search-detail', args=(tag_version2.pk,))
+            response = self.client.delete(url)
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+            with self.assertRaises(TagVersion.DoesNotExist):
+                tag_version2.refresh_from_db()
+
+            with self.assertRaises(Tag.DoesNotExist):
+                tag.refresh_from_db()
+
+            with self.assertRaises(NotFoundError):
+                Component.get(str(tag_version2.pk))
 
 
 class CreateDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
         cls.url = reverse('delivery-list')
@@ -1788,6 +2404,8 @@ class CreateDeliveryTests(TestCase):
 class ChangeDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -1843,6 +2461,8 @@ class ChangeDeliveryTests(TestCase):
 class DeleteDeliveryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -1888,6 +2508,8 @@ class DeleteDeliveryTests(TestCase):
 class CreateTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
         cls.url = reverse('transfer-list')
@@ -1947,6 +2569,8 @@ class CreateTransferTests(TestCase):
 class ChangeTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2013,6 +2637,8 @@ class ChangeTransferTests(TestCase):
 class DeleteTransferTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.delivery_type = DeliveryType.objects.create(name='test')
 
@@ -2069,6 +2695,8 @@ class DeleteTransferTests(TestCase):
 class CreateLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2120,6 +2748,8 @@ class CreateLocationTests(TestCase):
 class ChangeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2177,6 +2807,8 @@ class ChangeLocationTests(TestCase):
 class DeleteLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2221,9 +2853,48 @@ class DeleteLocationTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
+class ListLocationNodesTests(ESSArchSearchBaseTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+        cls.location_function_type = LocationFunctionType.objects.create(name='test')
+        cls.location_level_type = LocationLevelType.objects.create(name='test')
+
+    def setUp(self):
+        self.user = User.objects.create(username='user')
+        self.member = self.user.essauth_member
+
+    def test_list(self):
+        self.client.force_authenticate(user=self.user)
+        location = Location.objects.create(
+            name='test',
+            function=self.location_function_type,
+            level_type=self.location_level_type,
+        )
+
+        tag = Tag.objects.create()
+        tag_type = TagVersionType.objects.create(name='volume', archive_type=False)
+        tag_version = TagVersion.objects.create(tag=tag, type=tag_type, elastic_index='component')
+
+        url = reverse('location-tags-list', args=(str(location.pk),))
+        res = self.client.get(url)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 0)
+
+        tag_version.location = location
+        tag_version.save()
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['_id'], str(tag_version.pk))
+
+
 class AddNodeToLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2282,6 +2953,8 @@ class AddNodeToLocationTests(TestCase):
 class ChangeNodeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')
@@ -2342,6 +3015,8 @@ class ChangeNodeLocationTests(TestCase):
 class DeleteNodeLocationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
+        Feature.objects.create(name='archival descriptions', enabled=True)
+
         cls.org_group_type = GroupType.objects.create(codename='organization')
         cls.location_function_type = LocationFunctionType.objects.create(name='test')
         cls.location_level_type = LocationLevelType.objects.create(name='test')

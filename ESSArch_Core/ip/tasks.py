@@ -12,9 +12,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
+from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_exponential,
+)
 
 from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
 from ESSArch_Core.configuration.models import Path
@@ -35,9 +42,10 @@ from ESSArch_Core.ip.utils import (
     generate_premis,
     parse_submit_description_from_ip,
 )
-from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
-from ESSArch_Core.storage.copy import copy_file
+from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.storage.copy import copy_file, enough_space_available
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
     delete_path,
@@ -71,9 +79,6 @@ class SubmitSIP(DBTask):
         session = None
 
         if remote:
-            if update_path:
-                raise ValueError('Cannot update path when submitting to remote host')
-
             dst, remote_user, remote_pass = remote.split(',')
             dst = urljoin(dst, 'api/ip-reception/upload/')
 
@@ -93,7 +98,7 @@ class SubmitSIP(DBTask):
             dst_xml = dst
         copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
 
-        if update_path:
+        if update_path and not remote:
             ip.object_path = dst
             ip.package_mets_path = dst_xml
             ip.save()
@@ -119,6 +124,56 @@ class SubmitSIP(DBTask):
     def event_outcome_success(self, result, *args, **kwargs):
         ip = self.get_information_package()
         return "Submitted %s" % ip.object_identifier_value
+
+
+class TransferIP(DBTask):
+    event_type = 20600
+
+    def run(self):
+        ip = InformationPackage.objects.get(pk=self.ip)
+        src = ip.object_path
+        srcdir, srcfile = os.path.split(src)
+
+        remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
+        session = None
+        if remote:
+            dst, remote_user, remote_pass = remote.split(',')
+
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (remote_user, remote_pass)
+
+        if not remote:
+            dst = Path.objects.get(entity="ingest_transfer").value
+
+        block_size = 8 * 1000000  # 8MB
+        copy_file(src, dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(50, total=100)
+
+        objid = ip.object_identifier_value
+        src = ip.get_events_file_path()
+        if os.path.isfile(src):
+            if not remote:
+                xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
+            else:
+                xml_dst = dst
+            copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+
+        self.set_progress(75, total=100)
+
+        src = os.path.join(srcdir, "%s.xml" % objid)
+        if remote:
+            xml_dst = dst
+        else:
+            xml_dst = os.path.join(dst, "%s.xml" % objid)
+
+        copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+        self.set_progress(100, total=100)
+        return dst
+
+    def event_outcome_success(self, result, *args, **kwargs):
+        return "Transferred IP"
 
 
 class PrepareAIP(DBTask):
@@ -175,7 +230,6 @@ class PrepareAIP(DBTask):
                 # refresh date fields to convert them to datetime instances instead of
                 # strings to allow further datetime manipulation
                 ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-                ip.create_profile_rels([x.lower().replace(' ', '_') for x in profile_types], user)
         else:
             with transaction.atomic():
                 ip = existing_sip
@@ -186,7 +240,19 @@ class PrepareAIP(DBTask):
                 ip.state = 'Prepared'
                 ip.object_path = sip_path.as_posix()
                 ip.package_mets_path = xmlfile.as_posix()
-                ip.save()
+
+        ip.generation = 0
+        ip.aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            responsible=ip.responsible,
+            label=ip.label,
+            start_date=ip.start_date,
+            end_date=ip.end_date,
+        )
+        ip.save()
+
+        ProfileIP.objects.filter(ip=ip).delete()
+        ip.submission_agreement.lock_to_information_package(ip, user)
 
         return str(ip.pk)
 
@@ -303,6 +369,8 @@ class CreatePhysicalModel(DBTask):
         return "Created physical model for %s" % ip.object_identifier_value
 
 
+@retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
+       wait=wait_exponential(max=60), stop=stop_after_delay(600))
 class CreateContainer(DBTask):
     def run(self, src, dst):
         src, dst = self.parse_params(src, dst)
@@ -318,6 +386,8 @@ class CreateContainer(DBTask):
             dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
             dst = os.path.join(dst, dst_filename)
 
+        enough_space_available(os.path.dirname(dst), src, True)
+
         if container_format == 'zip':
             self.event_type = 50410
             zip_directory(dirname=src, zipname=dst, compress=compress)
@@ -331,7 +401,7 @@ class CreateContainer(DBTask):
         return dst
 
     def event_outcome_success(self, result, src, dst):
-        return "Created {}".format(dst)
+        return "Created {}".format(self.parse_params(dst))
 
 
 class ParseSubmitDescription(DBTask):
@@ -441,13 +511,32 @@ class MarkArchived(DBTask):
         ip.save()
 
 
+class PostPreservationCleanup(DBTask):
+    def run(self):
+        ip = self.get_information_package()
+
+        paths = Path.objects.filter(entity__in=[
+            'preingest_reception', 'preingest', 'ingest_reception',
+        ]).values_list('value', flat=True)
+
+        for p in paths:
+            delete_path(os.path.join(p, ip.object_identifier_value))
+            delete_path(os.path.join(p, ip.object_identifier_value) + '.tar')
+            delete_path(os.path.join(p, ip.object_identifier_value) + '.xml')
+
+
 class DeleteInformationPackage(DBTask):
+    logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
+
     def run(self, from_db=False, delete_files=True):
         ip = self.get_information_package()
 
         old_state = ip.state
         ip.state = 'Deleting'
         ip.save()
+
+        ip.delete_temp_files()
+
         try:
             ip.delete_workareas()
             if delete_files:
@@ -458,6 +547,12 @@ class DeleteInformationPackage(DBTask):
             raise
 
         self.set_progress(99, 100)
+
+        try:
+            ip.get_doc().delete()
+        except NotFoundError:
+            if ip.archived:
+                self.logger.warning('Information package document not found: {}'.format(ip.pk))
 
         if from_db:
             with transaction.atomic():
@@ -478,11 +573,13 @@ class CreateWorkarea(DBTask):
         user = User.objects.get(pk=user)
         Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
         Notification.objects.create(
-            message="%s is now in workarea" % ip.object_identifier_value,
+            message="%s is now in workspace" % ip.object_identifier_value,
             level=logging.INFO, user=user, refresh=True
         )
 
 
 class DeleteWorkarea(DBTask):
     def run(self, pk):
-        Workarea.objects.filter(pk=pk).delete()
+        workarea = Workarea.objects.get(pk=pk)
+        workarea.delete_files()
+        workarea.delete()

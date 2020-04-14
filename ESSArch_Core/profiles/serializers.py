@@ -220,7 +220,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubmissionAgreement
         fields = (
-            'id', 'name', 'published', 'type', 'status', 'label',
+            'id', 'name', 'published', 'type', 'status', 'label', 'policy',
 
             'archivist_organization',
 

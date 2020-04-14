@@ -1,5 +1,5 @@
 export default class AgentArchiveRelationModalInstanceCtrl {
-  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $filter, $rootScope) {
+  constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, ArchiveName) {
     const $ctrl = this;
     $ctrl.relationTemplate = {
       description: '',
@@ -10,7 +10,7 @@ export default class AgentArchiveRelationModalInstanceCtrl {
     $ctrl.options = {};
     $ctrl.data = data;
     $ctrl.fields = [];
-    $ctrl.$onInit = function() {
+    $ctrl.$onInit = function () {
       if (data.agent) {
         $ctrl.agent = angular.copy(data.agent);
       }
@@ -25,7 +25,7 @@ export default class AgentArchiveRelationModalInstanceCtrl {
         url: appConfig.djangoUrl + 'agent-tag-relation-types/',
         params: {pager: 'none'},
         method: 'GET',
-      }).then(function(response) {
+      }).then(function (response) {
         $ctrl.options.type = response.data;
         $ctrl.loadForm();
         EditMode.enable();
@@ -33,35 +33,24 @@ export default class AgentArchiveRelationModalInstanceCtrl {
       });
     };
 
-    $ctrl.getArchives = function(search) {
+    $ctrl.getArchives = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'tags/',
         mathod: 'GET',
         params: {page: 1, page_size: 10, index: 'archive', search: search},
-      }).then(function(response) {
-        $ctrl.options.archives = response.data.map(function(x) {
-          x.current_version.name_with_dates =
-            x.current_version.name +
-            (x.current_version.start_date !== null || x.current_version.end_date != null
-              ? ' (' +
-                (x.current_version.start_date !== null ? $filter('date')(x.current_version.start_date, 'yyyy') : '') +
-                ' - ' +
-                (x.current_version.end_date !== null ? $filter('date')(x.current_version.end_date, 'yyyy') : '') +
-                ')'
-              : '');
-          return x.current_version;
-        });
+      }).then((response) => {
+        $ctrl.options.archives = ArchiveName.parseArchiveNames(response.data);
         return $ctrl.options.archives;
       });
     };
-    $ctrl.loadForm = function() {
+    $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
           type: 'uiselect',
           key: 'archive',
           templateOptions: {
             required: true,
-            options: function() {
+            options: function () {
               return $ctrl.options.archives;
             },
             valueProp: 'id',
@@ -69,11 +58,11 @@ export default class AgentArchiveRelationModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.ARCHIVE'),
             label: $translate.instant('ACCESS.ARCHIVE'),
             appendToBody: false,
-            optionsFunction: function(search) {
+            optionsFunction: function (search) {
               return $ctrl.options.archives;
             },
-            refresh: function(search) {
-              return $ctrl.getArchives(search).then(function() {
+            refresh: function (search) {
+              return $ctrl.getArchives(search).then(function () {
                 this.options = $ctrl.options.archives;
                 return $ctrl.options.archives;
               });
@@ -129,7 +118,7 @@ export default class AgentArchiveRelationModalInstanceCtrl {
       ];
     };
 
-    $ctrl.add = function() {
+    $ctrl.add = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -141,19 +130,19 @@ export default class AgentArchiveRelationModalInstanceCtrl {
         method: 'POST',
         data: $ctrl.relation,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.adding = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.adding = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.save = function() {
+    $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
         return;
@@ -165,42 +154,42 @@ export default class AgentArchiveRelationModalInstanceCtrl {
         method: 'PATCH',
         data: $ctrl.relation,
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.remove = function() {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http({
         url: appConfig.djangoUrl + 'agents/' + $ctrl.agent.id + '/archives/' + $ctrl.relation.id + '/',
         method: 'DELETE',
       })
-        .then(function(response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch(function(response) {
+        .catch(function (response) {
           $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
           EditMode.disable();
         });
     };
 
-    $ctrl.cancel = function() {
+    $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
     };
-    $scope.$on('modal.closing', function(event, reason, closed) {
+    $scope.$on('modal.closing', function (event, reason, closed) {
       if (
         (data.allow_close === null || angular.isUndefined(data.allow_close) || data.allow_close !== true) &&
         (reason === 'cancel' || reason === 'backdrop click' || reason === 'escape key press')

@@ -24,16 +24,16 @@
 
 import logging
 
+from dj_rest_auth.views import (
+    LoginView as rest_auth_LoginView,
+    LogoutView as rest_auth_LogoutView,
+)
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_auth.views import (
-    LoginView as rest_auth_LoginView,
-    LogoutView as rest_auth_LogoutView,
-)
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
@@ -152,6 +152,8 @@ class PermissionViewSet(viewsets.ReadOnlyModelViewSet):
 
 class NotificationViewSet(viewsets.ModelViewSet):
     queryset = Notification.objects.all()
+    permission_classes = (IsAuthenticated,)
+
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ('seen',)
 
@@ -167,10 +169,6 @@ class NotificationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='set-all-seen')
     def set_all_seen(self, request):
         self.get_queryset().update(seen=True)
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def delete(self, request, *args, **kwargs):
-        self.get_queryset().delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

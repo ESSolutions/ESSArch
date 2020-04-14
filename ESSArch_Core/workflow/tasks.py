@@ -22,20 +22,15 @@
     Email - essarch@essolutions.se
 """
 
-import datetime
-import errno
 import logging
 import os
-import pathlib
 import shutil
 import tarfile
 import tempfile
 import zipfile
 
-from celery import states as celery_states
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
-from crontab import CronTab
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
@@ -45,18 +40,15 @@ from django.utils import timezone
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
     InformationPackage,
     Workarea,
 )
-from ESSArch_Core.maintenance.models import (
-    AppraisalJob,
-    AppraisalRule,
-    ConversionJob,
-    ConversionRule,
+from ESSArch_Core.maintenance.tasks import (
+    PollAppraisalJobs as PollAppraisalJobsAlias,
+    PollConversionJobs as PollConversionJobsAlias,
 )
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
@@ -74,7 +66,6 @@ from ESSArch_Core.util import (
     creation_date,
     delete_path,
     find_destination,
-    open_file,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.dbtask import DBTask
@@ -91,47 +82,32 @@ class ReceiveSIP(DBTask):
     @transaction.atomic
     def run(self, purpose=None, delete_sip=False):
         self.logger.debug('Receiving SIP')
-        aip = InformationPackage.objects.get(pk=self.ip)
-        algorithm = aip.get_checksum_algorithm()
-        container = aip.object_path
+        ip = self.get_information_package()
+        algorithm = ip.get_checksum_algorithm()
+        container = ip.object_path
         objid, container_type = os.path.splitext(os.path.basename(container))
         container_type = container_type.lower()
-        xml = aip.package_mets_path
-        aip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
-        aip.package_mets_size = os.path.getsize(xml)
-        aip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-        aip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
-        aip.generation = 0
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC, responsible=aip.responsible,
-                                                label=aip.label, start_date=aip.start_date, end_date=aip.end_date)
-        old_sip_path = aip.object_path
-        aip.aic = aic
-        aip_dir = os.path.join(aip.policy.ingest_path.value, objid)
-        aip.object_path = aip_dir
-        try:
-            os.makedirs(aip_dir)
-        except OSError as e:
-            if e.errno != errno.EEXIST:
-                raise
+        xml = ip.package_mets_path
+        ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
+        ip.package_mets_size = os.path.getsize(xml)
+        ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+        ip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
 
-        aip.save()
+        ip.object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+        ip.save()
 
-        dst_path, dst_name = find_destination('sip', aip.get_profile('aip').structure, aip.object_path)
-        if dst_path is None:
-            dst_path, dst_name = find_destination('content', aip.get_profile('aip').structure, aip.object_path)
+        sip_dst_path, sip_dst_name = find_destination('sip', ip.get_structure(), ip.object_path)
+        if sip_dst_path is None:
+            sip_dst_path, sip_dst_name = find_destination('content', ip.get_structure(), ip.object_path)
 
-        dst_name, = self.parse_params(dst_name)
-        dst = os.path.join(dst_path, dst_name)
+        sip_dst_name, = self.parse_params(sip_dst_name)
+        sip_dst = os.path.join(sip_dst_path, sip_dst_name)
 
-        sip_profile = aip.submission_agreement.profile_sip
+        if ip.policy.receive_extract_sip:
+            # remove any existing directory from previous attempts
+            delete_path(sip_dst)
 
-        try:
-            shutil.rmtree(dst)
-        except FileNotFoundError:
-            pass
-
-        if aip.policy.receive_extract_sip:
-            temp = Path.objects.cached('entity', 'temp', 'value')
+            temp = Path.objects.get(entity='temp').value
             with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
                 self.logger.debug('Extracting {} to {}'.format(container, tmpdir))
                 if container_type == '.tar':
@@ -145,12 +121,8 @@ class ReceiveSIP(DBTask):
                 else:
                     raise ValueError('Invalid container type: {}'.format(container))
 
-                dst = os.path.join(dst, '')
-                try:
-                    os.makedirs(dst)
-                except OSError as e:
-                    if e.errno != errno.EEXIST:
-                        raise
+                sip_dst = os.path.join(sip_dst, '')
+                os.makedirs(sip_dst)
 
                 tmpsrc = tmpdir
                 if len(os.listdir(tmpdir)) == 1 and os.listdir(tmpdir)[0] == root_member_name:
@@ -158,46 +130,21 @@ class ReceiveSIP(DBTask):
                     if os.path.isdir(new_tmpsrc):
                         tmpsrc = new_tmpsrc
 
-                self.logger.debug('Moving content of {} to {}'.format(tmpsrc, dst))
+                self.logger.debug('Moving content of {} to {}'.format(tmpsrc, sip_dst))
 
                 for f in os.listdir(tmpsrc):
-                    shutil.move(os.path.join(tmpsrc, f), dst)
+                    shutil.move(os.path.join(tmpsrc, f), sip_dst)
 
                 self.logger.debug('Deleting {}'.format(tmpdir))
-
-            aip.sip_path = os.path.relpath(dst, aip.object_path)
         else:
-            self.logger.debug('Copying {} to {}'.format(container, dst))
-            shutil.copy2(container, dst)
-            aip.sip_path = os.path.relpath(os.path.join(dst, os.path.basename(container)), aip.object_path)
+            self.logger.debug('Copying {} to {}'.format(container, sip_dst))
+            shutil.copy2(container, sip_dst)
 
-        sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, aip.sip_path)
-        if os.path.isfile(aip.sip_path):
-            sip_mets_data = parse_mets(
-                open_file(
-                    os.path.join(aip.object_path, sip_mets_dir, sip_mets_file),
-                    container=aip.sip_path,
-                    container_prefix=aip.object_identifier_value,
-                )
-            )
-        else:
-            sip_mets_data = parse_mets(open_file(os.path.join(aip.object_path, sip_mets_dir, sip_mets_file)))
+        ip.sip_path = os.path.relpath(sip_dst, ip.object_path)
+        ip.save()
+        return sip_dst
 
-        # prefix all SIP data
-        sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
-
-        aip_profile_rel_data = aip.get_profile_rel('aip').data
-        aip_profile_rel_data.data.update(sip_mets_data)
-        aip_profile_rel_data.save()
-
-        if delete_sip:
-            delete_path(old_sip_path)
-            delete_path(pathlib.Path(old_sip_path).with_suffix('.xml'))
-
-        self.logger.debug('sip_path set to {}'.format(aip.sip_path))
-        aip.save()
-
-    def event_outcome_success(self, result, purpose=None, delete_sip=False):
+    def event_outcome_success(self, result, *args, **kwargs):
         return "Received SIP"
 
 
@@ -252,7 +199,7 @@ class AccessAIP(DBTask):
                 ip=new_aip, user_id=self.responsible, type=Workarea.INGEST, read_only=not new
             )
             Notification.objects.create(
-                message="%s is now in workarea" % new_aip.object_identifier_value,
+                message="%s is now in workspace" % new_aip.object_identifier_value,
                 level=logging.INFO, user_id=self.responsible, refresh=True
             )
 
@@ -416,78 +363,9 @@ class UnmountIdleDrives(DBTask):
                 )
 
 
-class ScheduleAppraisalJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-
-        # get rules without future jobs scheduled
-        rules = AppraisalRule.objects.filter(
-            information_packages__isnull=False, information_packages__active=True,
-            information_packages__appraisal_date__lte=now
-        ).exclude(jobs__start_date__gte=now).exclude(frequency__exact='')
-
-        for rule in rules.iterator():
-            cron_entry = CronTab(rule.frequency)
-
-            try:
-                latest_job = rule.jobs.latest()
-                delay = cron_entry.next(timezone.localtime(latest_job.start_date))
-                last = latest_job.start_date
-            except AppraisalJob.DoesNotExist:
-                # no job has been created yet
-                delay = cron_entry.next(timezone.localtime(now))
-                last = now
-
-            next_date = last + datetime.timedelta(seconds=delay)
-            AppraisalJob.objects.create(rule=rule, start_date=next_date)
+class PollAppraisalJobs(PollAppraisalJobsAlias):
+    pass
 
 
-class PollAppraisalJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-        jobs = AppraisalJob.objects.select_related('rule').filter(status=celery_states.PENDING, start_date__lte=now)
-
-        for job in jobs.iterator():
-            job.run()
-
-
-class ScheduleConversionJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-
-        # get rules without future jobs scheduled
-        rules = ConversionRule.objects.filter(
-            information_packages__isnull=False, information_packages__active=True,
-        ).exclude(jobs__start_date__gte=now).exclude(frequency__exact='')
-
-        for rule in rules.iterator():
-            cron_entry = CronTab(rule.frequency)
-
-            try:
-                latest_job = rule.jobs.latest()
-                delay = cron_entry.next(timezone.localtime(latest_job.start_date))
-                last = latest_job.start_date
-            except ConversionJob.DoesNotExist:
-                # no job has been created yet
-                delay = cron_entry.next(timezone.localtime(now))
-                last = now
-
-            next_date = last + datetime.timedelta(seconds=delay)
-            ConversionJob.objects.create(rule=rule, start_date=next_date)
-
-
-class PollConversionJobs(DBTask):
-    track = False
-
-    def run(self):
-        now = timezone.now()
-        jobs = ConversionJob.objects.select_related('rule').filter(status=celery_states.PENDING, start_date__lte=now)
-
-        for job in jobs.iterator():
-            job.run()
+class PollConversionJobs(PollConversionJobsAlias):
+    pass

@@ -8,11 +8,17 @@ from unittest import mock
 from celery import states as celery_state
 from django.contrib.auth import get_user_model
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory
+from django.urls import reverse
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
-from ESSArch_Core.profiles.models import Profile, ProfileIP, ProfileIPData
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    ProfileIPData,
+    SubmissionAgreement,
+)
 from ESSArch_Core.storage.backends.disk import DiskStorageBackend
 from ESSArch_Core.storage.models import (
     DISK,
@@ -23,6 +29,11 @@ from ESSArch_Core.storage.models import (
     StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
+)
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_method_rel,
+    add_storage_obj,
 )
 from ESSArch_Core.util import normalize_path, timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
@@ -238,8 +249,7 @@ class GetPathResponseTests(TestCase):
         path = tempfile.mkdtemp(dir=self.datadir)
 
         relpath = os.path.basename(path)
-        response = self.ip.get_path_response(relpath, self.request)
-        response.close()
+        self.ip.get_path_response(relpath, self.request)
         mock_list_files.assert_called_once_with(relpath)
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
@@ -282,53 +292,68 @@ class GetPathResponseContainerTests(TestCase):
         mock_list_files.assert_called_once_with(path)
 
 
-class StatusTest(TestCase):
+class StatusTest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_superuser(username='user')
 
     def setUp(self):
+        self.client.force_authenticate(user=self.user)
         self.ip = InformationPackage.objects.create()
+
+    def get_status(self, ip):
+        res = self.client.get(reverse('informationpackage-detail', args=(str(ip.pk),)))
+        return res.data['status']
 
     def test_status_is_100_when_state_is_any_completed_state(self):
         completed_states = ["Prepared", "Uploaded", "Created", "Submitted", "Received", "Transferred", 'Archived']
 
         for state in completed_states:
             self.ip.state = state
-            self.assertEqual(self.ip.status(), 100)
+            self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_is_33_when_state_is_preparing_and_submission_agreement_is_not_locked(self):
         self.ip.state = 'Preparing'
         self.ip.submission_agreement_locked = False
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 33)
+        self.assertEqual(self.get_status(self.ip), 33)
 
     def test_status_is_between_66_and_100_when_state_is_preparing_and_submission_agreement_is_locked(self):
         self.ip.state = 'Preparing'
         self.ip.submission_agreement_locked = True
+        self.ip.save()
 
-        status = self.ip.status()
+        status = self.get_status(self.ip)
         self.assertGreaterEqual(status, 66)
         self.assertLessEqual(status, 100)
 
-    def test_status_is_100_if_state_is_None(self):
-        self.ip.state = None
+    def test_status_is_100_if_state_is_empty(self):
+        self.ip.state = ''
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 100)
+        self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_is_100_if_state_is_an_unhandled_type(self):
         self.ip.state = uuid.uuid4()
+        self.ip.save()
 
-        self.assertEqual(self.ip.status(), 100)
+        self.assertEqual(self.get_status(self.ip), 100)
 
     def test_status_from_steps_and_tasks(self):
         root_step = ProcessStep.objects.create(information_package=self.ip)
         child_step_a = ProcessStep.objects.create(parent_step=root_step)
-        ProcessTask.objects.create(processstep=child_step_a, progress=50)
+        ProcessTask.objects.create(processstep=child_step_a, information_package=self.ip, progress=50)
 
         child_step_b = ProcessStep.objects.create(parent_step=root_step)
-        ProcessTask.objects.create(processstep=child_step_b, progress=75)
+        ProcessTask.objects.create(processstep=child_step_b, information_package=self.ip, progress=75)
 
         ProcessTask.objects.create(information_package=self.ip, progress=25)
 
-        self.assertEqual(self.ip.status(), 43.75)
+        # unrelated task
+        ProcessTask.objects.create(progress=75)
+
+        self.assertEqual(self.get_status(self.ip), 50)
 
 
 class InformationPackageOpenFileTests(TestCase):
@@ -445,7 +470,13 @@ class InformationPackageOpenFileTests(TestCase):
         self.assertEqual(self.ip.open_file('mets.xml').read(), b'this is a mets')
 
 
-class InformationPackageStepStateTests(TestCase):
+class InformationPackageStepStateTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_superuser(username='user')
+
+    def setUp(self):
+        self.client.force_authenticate(user=self.user)
 
     def create_information_package(self, num, aic, package_type=InformationPackage.AIP):
         ip_set = set()
@@ -456,14 +487,14 @@ class InformationPackageStepStateTests(TestCase):
 
         return ip_set
 
-    @mock.patch('ESSArch_Core.ip.models.InformationPackage.related_ips')
-    def test_step_state_when_its_an_AIC_with_no_related_IPs_then_success(self, mocked_related_ips):
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        mocked_related_ips.return_value = set()
-        state = self.ip.step_state
+    def get_step_state(self, ip):
+        res = self.client.get(reverse('informationpackage-detail', args=(str(ip.pk),)))
+        return res.data['step_state']
 
+    def test_step_state_when_its_an_AIC_with_no_related_IPs_then_success(self):
+        ip = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        state = self.get_step_state(ip)
         self.assertEqual(state, celery_state.SUCCESS)
-        mocked_related_ips.assert_called_once()
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_then_success(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -471,7 +502,7 @@ class InformationPackageStepStateTests(TestCase):
         for ip in ip_set:
             ProcessTask.objects.create(information_package=ip, status=celery_state.SUCCESS)
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_started_then_started(self):
@@ -482,7 +513,7 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.STARTED)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_pending_then_pending(self):
@@ -493,7 +524,7 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.PENDING)
 
     def test_step_state_when_its_an_AIC_with_3_related_IPs_with_one_task_failure_then_failure(self):
@@ -504,13 +535,13 @@ class InformationPackageStepStateTests(TestCase):
         for idx, ip in enumerate(ip_set):
             ProcessTask.objects.create(information_package=ip, status=statuses[idx])
 
-        state = aic.step_state
+        state = self.get_step_state(aic)
         self.assertEqual(state, celery_state.FAILURE)
 
     def test_step_state_when_its_an_AIP_with_no_tasks_then_success(self):
         aip = InformationPackage.objects.create(package_type=InformationPackage.AIP)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIP_with_all_success_tasks_then_success(self):
@@ -519,7 +550,7 @@ class InformationPackageStepStateTests(TestCase):
         for _ in range(3):
             ProcessTask.objects.create(information_package=aip, status=celery_state.SUCCESS)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.SUCCESS)
 
     def test_step_state_when_its_an_AIP_with_one_task_started_then_started(self):
@@ -529,7 +560,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.STARTED)
 
     def test_step_state_when_its_an_AIP_with_one_task_pending_then_pending(self):
@@ -539,7 +570,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.PENDING)
 
     def test_step_state_when_its_an_AIP_with_one_task_failure_then_failure(self):
@@ -549,7 +580,7 @@ class InformationPackageStepStateTests(TestCase):
         for status in statuses:
             ProcessTask.objects.create(information_package=aip, status=status)
 
-        state = aip.step_state
+        state = self.get_step_state(aip)
         self.assertEqual(state, celery_state.FAILURE)
 
 
@@ -615,9 +646,10 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
 
     @classmethod
     def create_ip(cls, package_type, policy=None):
+        sa = SubmissionAgreement.objects.create(policy=policy)
         return InformationPackage.objects.create(
             package_type=package_type,
-            policy=policy,
+            submission_agreement=sa,
         )
 
     @classmethod
@@ -648,18 +680,11 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
         )
 
     def test_sip(self):
-        sip = self.create_ip(InformationPackage.SIP)
+        sip = self.create_ip(InformationPackage.SIP, self.create_policy(StoragePolicy.SHA256))
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', sip, data)
 
         self.assertEqual(sip.get_checksum_algorithm(), 'SHA-512')
-
-    def test_sip_missing_key_and_use_default(self):
-        sip = self.create_ip(InformationPackage.SIP)
-        data = {}
-        self.create_profile('transfer_project', sip, data)
-
-        self.assertEqual(sip.get_checksum_algorithm(), 'SHA-256')
 
     def test_aip(self):
         policy = self.create_policy(StoragePolicy.SHA384)
@@ -822,7 +847,8 @@ class InformationPackageCreatePreservationWorkflowTests(TestCase):
             ingest_path=Path.objects.create(),
         )
         aic = InformationPackage.objects.create()
-        ip = InformationPackage.objects.create(aic=aic, policy=policy)
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        ip = InformationPackage.objects.create(aic=aic, submission_agreement=sa)
 
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create()
@@ -867,31 +893,59 @@ class InformationPackagePreserveTests(TestCase):
 class InformationPackageGetMigratableStorageMethodsTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.storage_method = StorageMethod.objects.create()
-        cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        cls.storage_medium = StorageMedium.objects.create(
-            storage_target=cls.storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
+            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
-        cls.policy.storage_methods.add(cls.storage_method)
-
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
+        sa = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.ip = InformationPackage.objects.create(archived=True, submission_agreement=sa)
 
     def test_no_change(self):
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
+        self.policy.storage_methods.add(rel.storage_method)
+        add_storage_medium(rel.storage_target, 20)
+
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
 
+    def test_methods_in_different_policies(self):
+        migrate_rel = add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = add_storage_medium(migrate_rel.storage_target, 20)
+        add_storage_obj(self.ip, migrate_medium, DISK, '')
+        self.policy.storage_methods.add(migrate_rel.storage_method)
+
+        enabled_rel = add_storage_method_rel(DISK, 'new_enabled', STORAGE_TARGET_STATUS_ENABLED)
+        other_policy = StoragePolicy.objects.create(
+            policy_id='other',
+            cache_storage=self.policy.cache_storage,
+            ingest_path=self.policy.ingest_path,
+        )
+        other_policy.storage_methods.add(enabled_rel.storage_method)
+
+        self.assertFalse(self.ip.get_migratable_storage_methods().exists())
+
+    def test_migrate_and_enabled_method_rels(self):
+        migrate_rel = add_storage_method_rel(DISK, 'old_migrate', STORAGE_TARGET_STATUS_MIGRATE)
+        migrate_medium = add_storage_medium(migrate_rel.storage_target, 20)
+        add_storage_obj(self.ip, migrate_medium, DISK, '')
+
+        enabled_rel = StorageMethodTargetRelation.objects.create(
+            storage_target=StorageTarget.objects.create(),
+            storage_method=migrate_rel.storage_method,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+
+        self.policy.storage_methods.add(migrate_rel.storage_method)
+
+        self.assertEqual(1, self.ip.get_migratable_storage_methods().count())
+        self.assertEqual(enabled_rel.storage_method, self.ip.get_migratable_storage_methods().get())
+
     def test_new_storage_method(self):
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        self.policy.storage_methods.add(rel.storage_method)
+        medium = add_storage_medium(rel.storage_target, 20)
+        add_storage_obj(self.ip, medium, DISK, '')
+
         new_storage_method = StorageMethod.objects.create()
         new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(
@@ -899,28 +953,15 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
             storage_target=new_storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
-
         self.policy.storage_methods.add(new_storage_method)
-
-        # its not relevant for this IP until the old method contains it
-        method_exists = self.ip.get_migratable_storage_methods().exists()
-        self.assertFalse(method_exists)
-
-        # add IP to old method
-
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
 
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertTrue(method_exists)
 
     def test_new_storage_target(self):
-        # set the existing target as migratable
-        StorageMethodTargetRelation.objects.update(
-            status=STORAGE_TARGET_STATUS_MIGRATE
-        )
+        rel = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
+        self.policy.storage_methods.add(rel.storage_method)
+        medium = add_storage_medium(rel.storage_target, 20)
 
         # the IP is not migratable until there is a new
         # enabled target available
@@ -932,7 +973,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
 
         new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(
-            storage_method=self.storage_method,
+            storage_method=rel.storage_method,
             storage_target=new_storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
@@ -944,7 +985,7 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
         # add IP to old method
 
         StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
+            ip=self.ip, storage_medium=medium,
             content_location_type=DISK,
         )
 
@@ -969,114 +1010,3 @@ class InformationPackageGetMigratableStorageMethodsTests(TestCase):
 
         method_exists = self.ip.get_migratable_storage_methods().exists()
         self.assertFalse(method_exists)
-
-
-class InformationPackageManagerTests(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.storage_method = StorageMethod.objects.create()
-        cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
-            storage_method=cls.storage_method,
-            storage_target=cls.storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        cls.storage_medium = StorageMedium.objects.create(
-            storage_target=cls.storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-
-        cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
-            ingest_path=Path.objects.create(entity='test', value='foo')
-        )
-        cls.policy.storage_methods.add(cls.storage_method)
-
-        cls.ip = InformationPackage.objects.create(archived=True, policy=cls.policy)
-
-    def test_get_migratable_no_change(self):
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-    def test_get_migratable_new_storage_method(self):
-        new_storage_method = StorageMethod.objects.create()
-        new_storage_target = StorageTarget.objects.create(name='new')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=new_storage_method,
-            storage_target=new_storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
-        self.policy.storage_methods.add(new_storage_method)
-
-        # its not relevant for this IP until the old method contains it
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-        # add IP to old method
-
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertTrue(ip_exists)
-
-    def test_get_migratable_new_storage_target(self):
-        # set the existing target as migratable
-        StorageMethodTargetRelation.objects.update(
-            status=STORAGE_TARGET_STATUS_MIGRATE
-        )
-
-        # the IP is not migratable until there is a new
-        # enabled target available
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-        # add a new enabled target
-
-        new_storage_target = StorageTarget.objects.create(name='new')
-        StorageMethodTargetRelation.objects.create(
-            storage_method=self.storage_method,
-            storage_target=new_storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
-        # its not relevant for this IP until the method contains it
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)
-
-        # add IP to old method
-
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=self.storage_medium,
-            content_location_type=DISK,
-        )
-
-        # the IP is now migratable to the new enabled target
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertTrue(ip_exists)
-
-        # add object to new target
-
-        storage_medium = StorageMedium.objects.create(
-            medium_id='foo',
-            storage_target=new_storage_target,
-            status=20, location_status=50, block_size=1024, format=103,
-        )
-        StorageObject.objects.create(
-            ip=self.ip, storage_medium=storage_medium,
-            content_location_type=DISK,
-        )
-
-        # the IP is no longer migratable
-
-        ip_exists = InformationPackage.objects.migratable().exists()
-        self.assertFalse(ip_exists)

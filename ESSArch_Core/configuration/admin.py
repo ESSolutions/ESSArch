@@ -27,12 +27,13 @@ from django.contrib import admin
 from django.contrib.sites.models import Site as DjangoSite
 from django.db import transaction
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_protect
 from nested_inline.admin import NestedModelAdmin
 
 from ESSArch_Core.configuration.models import (
     EventType,
+    Feature,
     Parameter,
     Path,
     Site,
@@ -88,6 +89,13 @@ class EventTypeAdmin(admin.ModelAdmin):
 
 
 admin.site.register(EventType, EventTypeAdmin)
+
+
+class FeatureAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'enabled')
+    list_editable = ('enabled',)
+
+    search_fields = ('name', 'description')
 
 
 class StoragePolicyAdminForm(forms.ModelForm):
@@ -157,5 +165,6 @@ class StoragePolicyAdmin(NestedModelAdmin):
 
 
 admin.site.unregister(DjangoSite)
+admin.site.register(Feature, FeatureAdmin)
 admin.site.register(Site)
 admin.site.register(StoragePolicy, StoragePolicyAdmin)

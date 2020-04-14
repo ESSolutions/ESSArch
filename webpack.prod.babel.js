@@ -3,6 +3,7 @@ const common = require('./webpack.common.babel.js');
 const path = require('path');
 
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
@@ -16,6 +17,18 @@ module.exports = (env, argv) => {
     output: {
       filename: '[name]-[chunkhash].js',
       path: path.resolve(basedir, 'build'),
+    },
+    optimization: {
+      minimizer: [
+        new TerserPlugin({
+          sourceMap: true,
+          terserOptions: {
+            compress: {
+              drop_console: true,
+            },
+          },
+        }),
+      ],
     },
     plugins: [
       new ForkTsCheckerWebpackPlugin(),

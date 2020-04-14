@@ -13,7 +13,7 @@ from django.contrib.auth.models import Group as DjangoGroup
 from django.db import transaction
 from django.db.models import Q
 from django.utils.decorators import method_decorator
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from groups_manager.models import (
     Group as GroupManagerGroup,
@@ -161,6 +161,9 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return request.user.has_perm("%s.%s" % ('auth', 'delete_user'))
 
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_user'))
+
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')
 
@@ -233,6 +236,9 @@ class GroupAdmin(DjangoGroupAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return request.user.has_perm("%s.%s" % ('auth', 'delete_group'))
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_group'))
 
     def has_module_permission(self, request):
         return request.user.has_module_perms('auth')

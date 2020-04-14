@@ -15,11 +15,11 @@ export default class AppraisalCtrl {
     listViewService
   ) {
     const vm = this;
-    vm.rulesPerPage = 10;
+    vm.templatesPerPage = 10;
     vm.ongoingPerPage = 10;
     vm.nextPerPage = 10;
     vm.finishedPerPage = 10;
-    $scope.ruleLoading = false;
+    $scope.templateLoading = false;
     $scope.ongoingLoading = false;
     $scope.nextLoading = false;
     $scope.finishedLoading = false;
@@ -27,29 +27,36 @@ export default class AppraisalCtrl {
     $scope.$translate = $translate;
 
     //Cancel update intervals on state change
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(appraisalInterval);
     });
-    var appraisalInterval = $interval(function() {
-      vm.rulePipe(vm.ruleTableState);
+
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
+      vm.nextPipe(vm.nextTableState);
+      vm.ongoingPipe(vm.ongoingTableState);
+      vm.finishedPipe(vm.finishedTableState);
+    });
+
+    var appraisalInterval = $interval(function () {
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     }, appConfig.ipInterval);
 
-    $scope.$on('REFRESH_LIST_VIEW', function(event, data) {
-      vm.rulePipe(vm.ruleTableState);
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
+      vm.templatePipe(vm.templateTableState);
       vm.nextPipe(vm.nextTableState);
       vm.ongoingPipe(vm.ongoingTableState);
       vm.finishedPipe(vm.finishedTableState);
     });
 
     /**
-     * Smart table pipe function for appraisal rules
+     * Smart table pipe function for appraisal templates
      * @param {*} tableState
      */
-    vm.rulePipe = function(tableState) {
-      $scope.ruleLoading = true;
+    vm.templatePipe = function (tableState) {
+      $scope.templateLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
         if (tableState.search.predicateObject) {
@@ -60,20 +67,20 @@ export default class AppraisalCtrl {
         if (sorting.reverse) {
           sortString = '-' + sortString;
         }
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.rulesPerPage);
-        Appraisal.getRules(paginationParams, sortString, search).then(function(response) {
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.templatesPerPage);
+        Appraisal.getTemplates(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
-          vm.ruleTableState = tableState;
-          vm.ruleFilters.forEach(function(x) {
-            response.data.forEach(function(rule) {
-              if (x == rule.id) {
-                rule.usedAsFilter = true;
+          vm.templateTableState = tableState;
+          vm.templateFilters.forEach(function (x) {
+            response.data.forEach(function (template) {
+              if (x == template.id) {
+                template.usedAsFilter = true;
               }
             });
           });
-          vm.rules = response.data;
-          $scope.ruleLoading = false;
+          vm.templates = response.data;
+          $scope.templateLoading = false;
         });
       }
     };
@@ -82,7 +89,7 @@ export default class AppraisalCtrl {
      * Smart table pipe function for ongoing appraisals
      * @param {*} tableState
      */
-    vm.ongoingPipe = function(tableState) {
+    vm.ongoingPipe = function (tableState) {
       $scope.ongoingLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -95,7 +102,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ongoingPerPage);
-        Appraisal.getOngoing(paginationParams, sortString, search).then(function(response) {
+        Appraisal.getOngoing(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.ongoingTableState = tableState;
@@ -109,7 +116,7 @@ export default class AppraisalCtrl {
      * Smart table pipe function for next appraisals
      * @param {*} tableState
      */
-    vm.nextPipe = function(tableState) {
+    vm.nextPipe = function (tableState) {
       $scope.nextLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -122,7 +129,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.nextPerPage);
-        Appraisal.getNext(paginationParams, sortString, search).then(function(response) {
+        Appraisal.getNext(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.nextTableState = tableState;
@@ -136,7 +143,7 @@ export default class AppraisalCtrl {
      * Smart table pipe function for finished appraisals
      * @param {*} tableState
      */
-    vm.finishedPipe = function(tableState) {
+    vm.finishedPipe = function (tableState) {
       $scope.finishedLoading = true;
       if (!angular.isUndefined(tableState)) {
         var search = '';
@@ -149,7 +156,7 @@ export default class AppraisalCtrl {
           sortString = '-' + sortString;
         }
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.finishedPerPage);
-        Appraisal.getFinished(paginationParams, sortString, search).then(function(response) {
+        Appraisal.getFinished(paginationParams, sortString, search).then(function (response) {
           tableState.pagination.numberOfPages = Math.ceil(response.count / paginationParams.number); //set the number of pages so the pagination can update
           tableState.pagination.totalItemCount = response.count;
           vm.finishedTableState = tableState;
@@ -159,44 +166,31 @@ export default class AppraisalCtrl {
       }
     };
 
-    /**
-     * Run appraisal rule now
-     * @param {Object} appraisal
-     */
-    vm.runJob = function(job) {
-      $http({
-        url: appConfig.djangoUrl + 'appraisal-jobs/' + job.id + '/run/',
-        method: 'POST',
-      }).then(function(response) {
-        Notifications.add($translate.instant('ARCHIVE_MAINTENANCE.JOB_RUNNING'), 'success');
-      });
-    };
-
     /*
-     * Array containing chosen(checked) appraisal rules to use
+     * Array containing chosen(checked) appraisal templates to use
      * as filter for the other appraisal tables
      */
-    vm.ruleFilters = [];
+    vm.templateFilters = [];
 
     /**
-     * Add chosen appraisal rule to list of filters or remove it.
-     * Connected to apprailsal rule table checkbox
-     * @param {Object} rule
+     * Add chosen appraisal template to list of filters or remove it.
+     * Connected to apprailsal template table checkbox
+     * @param {Object} template
      */
-    vm.useAsFilter = function(rule) {
-      if (!vm.ruleFilters.includes(rule.id)) {
-        rule.used_as_filter = true;
-        vm.ruleFilters.push(rule.id);
+    vm.useAsFilter = function (template) {
+      if (!vm.templateFilters.includes(template.id)) {
+        template.used_as_filter = true;
+        vm.templateFilters.push(template.id);
       } else {
-        vm.ruleFilters.splice(vm.ruleFilters.indexOf(rule.id), 1);
-        rule.used_as_filter = false;
+        vm.templateFilters.splice(vm.templateFilters.indexOf(template.id), 1);
+        template.used_as_filter = false;
       }
     };
     /**
      * Show appraisal report
      * @param {Object} appraisal
      */
-    vm.showReport = function(appraisal) {
+    vm.showReport = function (appraisal) {
       const file = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'appraisal-jobs/' + appraisal.id + '/report/');
       $window.open(file, '_blank');
     };
@@ -204,45 +198,45 @@ export default class AppraisalCtrl {
     /**
      *  Clear search input
      */
-    $scope.clearSearch = function() {
-      delete vm.ruleTableState.search.predicateObject;
+    $scope.clearSearch = function () {
+      delete vm.templateTableState.search.predicateObject;
       $('#search-input')[0].value = '';
-      vm.rulePipe();
+      vm.templatePipe();
     };
     /**
      * MODALS
      */
 
-    vm.previewModal = function(job) {
+    vm.runJobModal = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/preview_appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/run_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
-            preview: true,
-            job: job,
+            job,
+            allow_close: true,
           },
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.runJob(job);
-          vm.rulePipe(vm.ruleTableState);
+        function (data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
           vm.nextPipe(vm.nextTableState);
           vm.ongoingPipe(vm.ongoingTableState);
           vm.finishedPipe(vm.finishedTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.createRuleModal = function() {
+    vm.createTemplateModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -250,116 +244,102 @@ export default class AppraisalCtrl {
         templateUrl: 'static/frontend/views/create_appraisal_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {},
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+        function (data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
         },
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.ruleModal = function(rule) {
+    vm.createJobModal = function (template) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_rule_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/create_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
-            rule: rule,
+            template,
           },
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
+        function (data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+          vm.ongoingPipe(vm.ongoingTableState);
+        },
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.ongoingModal = function(appraisal) {
+    vm.editJob = function (job) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/edit_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
-            appraisal: appraisal,
-            state: 'Ongoing',
+            job,
           },
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-
-    vm.nextModal = function(appraisal) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
-        controller: 'AppraisalModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            appraisal: appraisal,
-            state: 'Next',
-          },
+        function (data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
         },
-      });
-      modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
 
-    vm.finishedModal = function(appraisal) {
+    vm.editAppraisalTemplateModal = function (appraisal) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/appraisal_modal.html',
+        templateUrl: 'static/frontend/views/edit_appraisal_template_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
+        size: 'lg',
         resolve: {
           data: {
             appraisal: appraisal,
-            state: 'Finished',
           },
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {},
-        function() {
+        function (data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
+        },
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    vm.removeAppraisalRuleModal = function(appraisal) {
+    vm.removeAppraisalTemplateModal = function (appraisal) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/remove_appraisal_rule_modal.html',
+        templateUrl: 'static/frontend/views/remove_appraisal_template_modal.html',
         controller: 'AppraisalModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
@@ -369,10 +349,35 @@ export default class AppraisalCtrl {
         },
       });
       modalInstance.result.then(
-        function(data, $ctrl) {
-          vm.rulePipe(vm.ruleTableState);
+        function (data, $ctrl) {
+          vm.templatePipe(vm.templateTableState);
         },
-        function() {
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.removeJob = function (job) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_appraisal_job_modal.html',
+        controller: 'AppraisalJobModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            job,
+            allow_close: true,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data, $ctrl) {
+          vm.nextPipe(vm.nextTableState);
+          vm.finishedPipe(vm.finishedTableState);
+        },
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

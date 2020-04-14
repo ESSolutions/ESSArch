@@ -24,7 +24,6 @@
 
 import errno
 import logging
-import math
 import os
 import shutil
 import tarfile
@@ -39,25 +38,29 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db import connection, models, transaction
+from django.db import models, transaction
 from django.db.models import (
+    Avg,
     CharField,
     Count,
     Exists,
     F,
+    IntegerField,
     Max,
     Min,
     OuterRef,
+    Prefetch,
     Q,
-    Sum,
 )
-from django.db.models.expressions import RawSQL
+from django.db.models.expressions import Case, Subquery, Value, When
 from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from lxml import etree
@@ -76,14 +79,15 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.managers import OrganizationManager
+from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
 from ESSArch_Core.profiles.models import (
     ProfileIP,
     ProfileIPData,
-    ProfileSA,
     SubmissionAgreement as SA,
+    SubmissionAgreementIPData,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
@@ -95,10 +99,13 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_READ_ONLY,
     StorageMedium,
     StorageMethod,
+    StorageMethodTargetRelation,
     StorageObject,
     StorageTarget,
 )
+from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
+    delete_path,
     find_destination,
     generate_file_response,
     get_files_and_dirs,
@@ -108,7 +115,11 @@ from ESSArch_Core.util import (
     open_file,
     timestamp_to_datetime,
 )
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
+
+User = get_user_model()
+
 
 logger = logging.getLogger('essarch.ip')
 
@@ -177,109 +188,131 @@ class AgentNote(models.Model):
     note = models.CharField(max_length=255)
 
 
-class InformationPackageQuerySet(models.QuerySet):
-    def migratable(self):
-        # TODO: This is really, really ugly but is required until Django 3.0 is released
-        #
-        # See:
-        #  * https://github.com/django/django/pull/8119
-        #  * https://github.com/django/django/pull/11062
-        #  * https://github.com/django/django/pull/11677
-        #  * https://code.djangoproject.com/ticket/30739
+class InformationPackageQuerySet(OrganizationQuerySet):
+    def annotate_and_prefetch(self):
+        def create_when(nested, celery_state):
+            step_state_lookup = 'information_package__aic' if nested else 'information_package'
+            return When(Exists(
+                ProcessTask.objects.filter(
+                    status=celery_state, **{step_state_lookup: OuterRef('pk')}
+                ).values('pk')
+            ), then=Value(celery_state))
 
-        # TODO: Exclude those that already has a task that has not succeeded (?)
-
-        def mssql_wrapper(sql):
-            if connection.vendor == 'microsoft':
-                return '(CASE WHEN ({}) THEN 1 ELSE 0 END)'.format(sql)
-            return sql
-
-        method_with_old_migrate_and_new_enabled = StorageMethod.objects.annotate(
-            status_migrate_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_MIGRATE,)
-            ),
-            status_enabled_with_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    INNER JOIN storage_storagetarget U3 ON (U1.storage_target_id = U3.id)
-                    INNER JOIN storage_storagemedium U4 ON (U3.id = U4.storage_target_id)
-                    INNER JOIN storage_storageobject U5 ON (U4.id = U5.storage_medium_id)
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id) AND
-                        U5.ip_id=ip_informationpackage.id
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
-            status_enabled_without_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation U1
-                    WHERE (
-                        U1.status=%s AND
-                        U1.storage_method_id = (U0.id)
-                    )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
-        ).filter(
-            enabled=True,
-            status_migrate_with_ip=True,
-            status_enabled_without_ip=True,
-            status_enabled_with_ip=False,
-            storage_policies=OuterRef('policy'),
-        )
-
-        method_with_enabled_target_without_ip = StorageMethod.objects.annotate(
-            enabled_target_without_ip=RawSQL(mssql_wrapper("""
-                EXISTS(
-                    SELECT 1 FROM storage_storagemethodtargetrelation AS U2
-                    WHERE (
-                        U2.status=%s AND U2.storage_method_id = (U0.id) AND NOT (EXISTS(
-                            SELECT 1 FROM storage_storageobject U3
-                            INNER JOIN storage_storagemedium U4 ON (U4.id = U3.storage_medium_id)
-                            INNER JOIN storage_storagetarget U5 ON (U5.id = U4.storage_target_id)
-                            WHERE U3.ip_id = ip_informationpackage.id
-                            AND U5.id = U2.storage_target_id
-                       ))
-                   )
-                )"""), (STORAGE_TARGET_STATUS_ENABLED,)
-            ),
-        ).filter(
-            enabled=True,
-            enabled_target_without_ip=True,
-            storage_policies=OuterRef('policy')
-        )
+        ip_tasks = ProcessTask.objects.filter(
+            information_package=OuterRef('pk'),
+            undo_type=False, retried__isnull=True, undone__isnull=True,
+            steps_on_errors=None,
+        ).order_by()
 
         return self.annotate(
-            method_with_old_migrate_and_new_enabled_exists=Exists(method_with_old_migrate_and_new_enabled),
-            method_with_enabled_target_without_ip_exists=Exists(method_with_enabled_target_without_ip),
-        ).filter(
-            Q(
-                Q(method_with_enabled_target_without_ip_exists=True) |
-                Q(method_with_old_migrate_and_new_enabled_exists=True)
+            step_state=Case(
+                When(package_type=InformationPackage.AIC, then=Case(
+                    create_when(True, celery_states.FAILURE),
+                    create_when(True, celery_states.STARTED),
+                    create_when(True, celery_states.REVOKED),
+                    create_when(True, celery_states.PENDING),
+                    default=Value(celery_states.SUCCESS),
+                    output_field=CharField(),
+                )),
+                default=Case(
+                    create_when(False, celery_states.FAILURE),
+                    create_when(False, celery_states.STARTED),
+                    create_when(False, celery_states.REVOKED),
+                    create_when(False, celery_states.PENDING),
+                    default=Value(celery_states.SUCCESS),
+                    output_field=CharField(),
+                ),
+                output_field=CharField(),
             ),
-            archived=True
+            status=Case(
+                When(state='Prepared', then=Value(100)),
+                When(
+                    state='Preparing', then=Case(
+                        When(submission_agreement_locked=False, then=Value(33)),
+                        default=Value(66),
+                        output_field=IntegerField(),
+                    )
+                ),
+                When(
+                    Exists(ip_tasks),
+                    then=Subquery(
+                        ip_tasks.values('information_package').annotate(sp=Avg('progress')).values('sp')[:1]
+                    )
+                ),
+                default=Value(100),
+                output_field=IntegerField(),
+            ),
+        ).prefetch_related(
+            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org'),
+            Prefetch(
+                'submissionagreementipdata_set',
+                queryset=SubmissionAgreementIPData.objects.filter(
+                    pk__in=Subquery(SubmissionAgreementIPData.objects.filter(
+                        information_package=OuterRef('pk'),
+                        submission_agreement=OuterRef('submission_agreement'),
+                    ).values('pk'))
+                ),
+                to_attr='submission_agreement_data_versions',
+            ),
+        )
+
+    def migratable(self, storage_methods=None):
+        # TODO: Exclude those that already has a task that has not succeeded (?)
+        storage_methods = storage_methods or StorageMethod.objects.all()
+
+        def filter_objects(status):
+            return StorageObject.objects.filter(
+                storage_medium__storage_target__storage_method_target_relations__status=status,
+                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
+                ip=OuterRef(OuterRef('pk'))
+            )
+
+        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.annotate(
+            has_migrate_target_with_obj=Exists(filter_objects(STORAGE_TARGET_STATUS_MIGRATE)),
+            has_enabled_target_without_obj=~Exists(filter_objects(STORAGE_TARGET_STATUS_ENABLED)),
+            has_enabled_target_with_obj=F('has_enabled_target_without_obj'),
+        ).filter(
+            has_migrate_target_with_obj=True,
+            has_enabled_target_without_obj=True,
+            has_enabled_target_with_obj=False,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
+        )
+
+        method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
+            has_storage_obj=Exists(
+                StorageObject.objects.filter(
+                    storage_medium__storage_target=OuterRef('storage_target'),
+                    ip=OuterRef(OuterRef('pk'))
+                )
+            ),
+        ).filter(
+            has_storage_obj=False,
+            status=STORAGE_TARGET_STATUS_ENABLED,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
+        )
+
+        return self.filter(
+            Q(
+                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_target_rel_with_enabled_target_without_ip))
+            ),
+            archived=True,
         ).exclude(storage=None)
 
 
 class InformationPackageManager(OrganizationManager):
     def get_queryset(self):
-        return InformationPackageQuerySet(self.model, using=self._db)
+        return InformationPackageQuerySet(self.model, using=self._db).annotate_and_prefetch()
 
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
-    def migratable(self):
-        return self.get_queryset().migratable()
+    def migratable(self, storage_methods=None):
+        return self.get_queryset().migratable(storage_methods=storage_methods)
 
 
 class InformationPackage(models.Model):
@@ -371,12 +404,6 @@ class InformationPackage(models.Model):
         related_name='information_packages', null=True
     )
 
-    policy = models.ForeignKey(
-        'configuration.StoragePolicy',
-        on_delete=models.PROTECT,
-        related_name='information_packages',
-        null=True,
-    )
     aic = models.ForeignKey('self', on_delete=models.PROTECT, related_name='information_packages', null=True)
 
     sip_objid = models.CharField(max_length=255)
@@ -404,6 +431,8 @@ class InformationPackage(models.Model):
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
 
+    generic_groups = GenericRelation(GroupGenericObjects)
+
     objects = InformationPackageManager()
 
     def save(self, *args, **kwargs):
@@ -422,13 +451,22 @@ class InformationPackage(models.Model):
     def clear_locks(cls):
         return cache.delete_pattern(IP_LOCK_PREFIX + '*')
 
+    @property
+    def policy(self):
+        try:
+            return self.submission_agreement.policy
+        except AttributeError:
+            return None
+
     def get_lock_key(self):
         return '{}{}'.format(IP_LOCK_PREFIX, str(self.pk))
 
     def is_locked(self):
         return self.get_lock_key() in cache
 
-    def get_permissions(self, user, checker=None):
+    def get_permissions(self, user: User, checker=None):
+        if checker is not None:
+            return checker.get_perms(self)
         return user.get_all_permissions(self)
 
     def get_migratable_storage_methods(self):
@@ -437,12 +475,16 @@ class InformationPackage(models.Model):
         if not self.archived or not self.storage.exists():
             return StorageMethod.objects.none()
 
-        return self.policy.storage_methods.annotate(has_object=Exists(
-            StorageObject.objects.filter(
+        return self.policy.storage_methods.annotate(
+            has_object=Exists(StorageObject.objects.filter(
                 ip=self, storage_medium__storage_target__methods=OuterRef('pk'),
                 storage_medium__storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+            )),
+            has_enabled_rel=Exists(StorageMethodTargetRelation.objects.filter(
+                status=STORAGE_TARGET_STATUS_ENABLED,
+                storage_method=OuterRef('pk'),
             ))
-        ).filter(enabled=True).exclude(has_object=True)
+        ).filter(enabled=True, has_object=False, has_enabled_rel=True)
 
     def is_first_generation(self):
         if self.aic is None:
@@ -546,8 +588,9 @@ class InformationPackage(models.Model):
         user_perms = perms.pop('owner', [])
 
         organization = responsible.user_profile.current_organization
-        organization.assign_object(new_aip, custom_permissions=perms)
-        organization.add_object(new_aip)
+        if organization is not None:
+            organization.assign_object(new_aip, custom_permissions=perms)
+            organization.add_object(new_aip)
 
         for perm in user_perms:
             perm_name = get_permission_name(perm, new_aip)
@@ -594,6 +637,9 @@ class InformationPackage(models.Model):
 
         full_path = os.path.join(ctsdir, ctsfile)
         return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
+
+    def get_doc(self):
+        return InformationPackageDocument.get(id=str(self.pk))
 
     def get_archive_tag(self):
         if self.tag is not None:
@@ -737,11 +783,7 @@ class InformationPackage(models.Model):
         return self.get_profile_data(profile_type).get('allow_encrypted_files', False)
 
     def get_structure(self):
-        if self.package_type == InformationPackage.AIP and self.state == 'Prepared':
-            ip_profile_type = 'sip'
-        else:
-            ip_profile_type = self.get_package_type_display().lower()
-
+        ip_profile_type = self.get_package_type_display().lower()
         ip_profile_rel = self.get_profile_rel(ip_profile_type)
         return ip_profile_rel.profile.structure
 
@@ -753,7 +795,7 @@ class InformationPackage(models.Model):
         else:
             path = 'mets.xml'
 
-        return normalize_path(os.path.join(self.object_path, path))
+        return normalize_path(path)
 
     def get_premis_file_path(self):
         try:
@@ -782,6 +824,28 @@ class InformationPackage(models.Model):
 
         return 'ipevents.xml'
 
+    def update_sip_data(self):
+        sip_profile = self.submission_agreement.profile_sip
+        if sip_profile is not None and self.sip_path is not None:
+            sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, self.sip_path)
+            if os.path.isfile(self.sip_path):
+                sip_mets_data = parse_mets(
+                    open_file(
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        container=self.sip_path,
+                        container_prefix=self.object_identifier_value,
+                    )
+                )
+            else:
+                sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+
+            # prefix all SIP data
+            sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+            aip_profile_rel_data = self.get_profile_rel('aip').data
+            aip_profile_rel_data.data.update(sip_mets_data)
+            aip_profile_rel_data.save()
+
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
             if not cached:
@@ -800,115 +864,6 @@ class InformationPackage(models.Model):
                 return self.aic.information_packages.exclude(pk=self.pk)
 
         return InformationPackage.objects.none()
-
-    @property
-    def step_state(self):
-        """
-        Gets the state of the IP based on its tasks
-
-        Args:
-
-        Returns:
-            Can be one of the following:
-            SUCCESS, STARTED, FAILURE, PENDING
-
-            Which is decided by five scenarios:
-
-            * If there are tasks and they are all pending,
-              then PENDING.
-            * If a task has started, then STARTED.
-            * If a task has failed, then FAILURE.
-            * If all tasks have succeeded, then SUCCESS.
-
-            If the IP is an AIC, then the same algorithm is
-            applied on the related IPs instead
-        """
-
-        if self.package_type == InformationPackage.AIC:
-            ips = self.related_ips()
-            state = celery_states.SUCCESS
-
-            for ip in ips:
-                ip_step_state = ip.step_state
-
-                if ip_step_state == celery_states.STARTED or ip_step_state == celery_states.REVOKED:
-                    state = ip_step_state
-                if (ip_step_state == celery_states.PENDING and
-                        state not in [celery_states.STARTED, celery_states.REVOKED]):
-                    state = ip_step_state
-                if ip_step_state == celery_states.FAILURE:
-                    return ip_step_state
-
-            return state
-
-        tasks = self.processtask_set.filter(Q(hidden=False) | Q(hidden__isnull=True))
-        state = celery_states.SUCCESS
-        for task in tasks:
-            task_status = task.status
-
-            if task_status == celery_states.STARTED or task_status == celery_states.REVOKED:
-                state = task_status
-            if (task_status == celery_states.PENDING and
-                    state not in [celery_states.STARTED, celery_states.REVOKED]):
-                state = task_status
-            if task_status == celery_states.FAILURE:
-                return task_status
-
-        return state
-
-    def status(self):
-        if self.state == "Prepared":
-            return 100
-        elif self.state == "Preparing":
-            if not self.submission_agreement_locked:
-                return 33
-
-            progress = 66
-
-            try:
-                sa_profiles = ProfileSA.objects.filter(
-                    submission_agreement=self.submission_agreement
-                )
-
-                ip_profiles_locked = ProfileIP.objects.filter(
-                    ip=self, LockedBy__isnull=False,
-                    profile__profile_type__in=sa_profiles.values(
-                        "profile__profile_type"
-                    )
-                )
-
-                progress += math.ceil(ip_profiles_locked.count() * ((100 - progress) / sa_profiles.count()))
-
-            except ZeroDivisionError:
-                pass
-
-            return progress
-
-        step_progress = None
-        task_progress = None
-
-        steps = self.steps.filter(Q(parent_step__isnull=True) | Q(parent_step__information_package__isnull=True))
-        if steps.exists():
-            step_progress = sum([s.progress for s in steps])
-
-        tasks = self.processtask_set.filter(
-            Q(
-                Q(processstep__isnull=True) |
-                Q(processstep__information_package__isnull=True)
-            ),
-            steps_on_errors=None,
-            processtask=None,
-        )
-        if tasks.exists():
-            task_progress = tasks.aggregate(Sum('progress'))['progress__sum']
-
-        if tasks.exists() or steps.exists():
-            progress = task_progress or 0
-            progress += step_progress or 0
-
-            return progress / (steps.count() + tasks.count())
-
-        return 100
 
     def list_files(self, path=''):
         fullpath = os.path.join(self.object_path, path).rstrip('/')
@@ -1014,7 +969,7 @@ class InformationPackage(models.Model):
                 force_download=force_download,
                 name=path
             )
-        except (IOError, OSError) as e:
+        except OSError as e:
             if e.errno == errno.ENOENT:
                 raise exceptions.NotFound
 
@@ -1260,6 +1215,16 @@ class InformationPackage(models.Model):
                                         "label": "Delete temporary container",
                                         "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary mets",
+                                        "args": ["{{TEMP_METS_PATH}}"]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary aic mets",
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
+                                    },
                                 ],
                             },
                         ],
@@ -1276,21 +1241,38 @@ class InformationPackage(models.Model):
                 "if": workarea_id,
                 "args": [str(workarea_id)],
             },
+            {
+                "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",
+                "label": "Clean up workflow files",
+            },
         ]
 
         return workflow
 
-    def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None):
+    def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
+                               package_xml=False, aic_xml=False):
+        if new:
+            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
+        else:
+            dst_object_identifier_value = self.object_identifier_value
+
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
-            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
+
+            if new:
+                new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
+                new_aip.object_path = ingest_workarea_user
+                new_aip.save()
+            else:
+                new_aip = self
 
             workflow = [
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
                     "label": "Create workarea",
-                    "args": [str(self.pk), str(user.pk), Workarea.INGEST, True]
+                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new]
                 },
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
@@ -1359,18 +1341,19 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
 
         access_workarea = Path.objects.get(entity='access_workarea').value
-
-        if new:
-            dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
-        else:
-            dst_object_identifier_value = self.object_identifier_value
-
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
         access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
         access_workarea_user_aic_xml = os.path.join(
             access_workarea, user.username, self.aic.object_identifier_value
         ) + '.xml'
+
+        if new:
+            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
+            new_aip.object_path = access_workarea_user
+            new_aip.save()
+        else:
+            new_aip = self
 
         if extracted or new:
             os.makedirs(access_workarea_user, exist_ok=True)
@@ -1420,7 +1403,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIP xml to workspace",
-                    "if": tar,
+                    "if": tar and package_xml,
                     "args": [
                         temp_mets_path,
                         access_workarea_user,
@@ -1429,7 +1412,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIC xml to workspace",
-                    "if": tar,
+                    "if": tar and aic_xml,
                     "args": [
                         temp_aic_mets_path,
                         access_workarea_user,
@@ -1483,7 +1466,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_object_path,
                             access_workarea_user_package_xml,
@@ -1492,7 +1475,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
@@ -1541,7 +1524,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIP xml to workspace",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_mets_path,
                             access_workarea_user_package_xml,
@@ -1550,7 +1533,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIC xml to workspace",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [
                             temp_aic_mets_path,
                             access_workarea_user_aic_xml,
@@ -1616,7 +1599,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
-                        "if": tar,
+                        "if": tar and package_xml,
                         "args": [
                             temp_object_path,
                             access_workarea_user_package_xml,
@@ -1625,17 +1608,10 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar,
+                        "if": tar and aic_xml,
                         "args": [access_workarea_user_aic_xml]
                     },
                 ]
-
-        if new:
-            new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
-            new_aip.object_path = access_workarea_user
-            new_aip.save()
-        else:
-            new_aip = self
 
         workflow.append({
             "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
@@ -1679,6 +1655,8 @@ class InformationPackage(models.Model):
                 except ValueError:
                     # file has not been indexed, index it
                     index_path(self, src)
+
+        InformationPackageDocument.from_obj(self).save()
 
     def get_cached_storage_object(self):
         cache_method = self.policy.cache_storage
@@ -1850,6 +1828,16 @@ class InformationPackage(models.Model):
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
 
+    def delete_temp_files(self):
+        paths = [
+            os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.object_identifier_value)),
+        ]
+
+        for path in paths:
+            delete_path(path)
+
     def delete_files(self):
         path = self.get_path()
 
@@ -1873,6 +1861,7 @@ class InformationPackage(models.Model):
 
     def delete_workareas(self):
         for workarea in self.workareas.all():
+            workarea.delete_temp_files()
             workarea.delete_files()
             workarea.delete()
 
@@ -1880,6 +1869,9 @@ class InformationPackage(models.Model):
         ordering = ["generation", "-create_date"]
         verbose_name = _('information package')
         verbose_name_plural = _('information packages')
+        unique_together = (
+            ('aic', 'generation'),
+        )
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
@@ -2092,11 +2084,30 @@ class Workarea(models.Model):
 
     @property
     def path(self):
-        area_dir = Path.objects.cached('entity', self.get_type_display() + '_workarea', 'value')
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+
+    @property
+    def package_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value) + '.xml'
+
+    @property
+    def aic_xml_path(self):
+        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        return os.path.join(area_dir, self.user.username, self.ip.aic.object_identifier_value) + '.xml'
 
     def get_path(self):
         return self.path
+
+    def delete_temp_files(self):
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        delete_path(temp_path)
+
+    def delete_files(self):
+        path = self.get_path()
+        self.delete_temp_files()
+        delete_path(path)
 
     class Meta:
         ordering = ["ip"]

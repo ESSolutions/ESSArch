@@ -28,7 +28,6 @@ import tempfile
 
 from celery import states as celery_states
 from django.conf import settings
-from django.db import connection
 from django.test import TestCase, TransactionTestCase, override_settings
 from django_redis import get_redis_connection
 
@@ -42,15 +41,14 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 class test_status(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
 
     def tearDown(self):
         get_redis_connection("default").flushall()
-        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
@@ -207,6 +205,7 @@ class test_status(TestCase):
         with self.assertNumQueries(13):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
+    @TaskRunner(False)
     def test_cached_status_resume_step(self):
         fname = os.path.join(self.test_dir, "foo.txt")
 
@@ -394,15 +393,14 @@ class test_status(TestCase):
 class test_progress(TestCase):
     def setUp(self):
         settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.test_dir)
 
     def tearDown(self):
         get_redis_connection("default").flushall()
-        shutil.rmtree(self.test_dir)
 
     def test_no_steps_or_tasks(self):
         with self.assertNumQueries(2):
@@ -651,8 +649,6 @@ class test_running_steps(TransactionTestCase):
         settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
         Path.objects.create(entity='temp', value='temp')
-
-        self.transaction_support = not connection.features.autocommits_when_autocommit_is_off
 
     def test_empty_step(self):
         step = ProcessStep.objects.create()

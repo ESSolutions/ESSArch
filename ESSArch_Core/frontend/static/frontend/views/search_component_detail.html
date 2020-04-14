@@ -5,6 +5,29 @@
         {{vm.record._source.name?vm.record._source.name : vm.record.name}}
       </strong>
     </h3>
+    <div class="flex-row justify-content-end align-items-center position-relative">
+      <button
+        class="btn btn-default fas fa-print"
+        tooltip-placement="auto-top"
+        tooltip-append-to-body="false"
+        uib-tooltip="{{'EXPORT' | translate}}"
+        ng-click="vm.exportNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-edit"
+        ng-if="checkPermission('tags.change_tagversion')"
+        tooltip-placement="auto-top"
+        uib-tooltip="{{'EDIT' | translate}}"
+        ng-click="vm.editNodeModal(vm.record)"
+      ></button>
+      <button
+        class="btn btn-default fas fa-trash-alt"
+        tooltip-placement="auto-top"
+        ng-if="checkPermission('tags.delete_tagversion')"
+        uib-tooltip="{{'REMOVE' | translate}}"
+        ng-click="vm.removeNodeModal(vm.record)"
+      ></button>
+    </div>
   </div>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record.description">
@@ -43,6 +66,17 @@
       </button>
     </div>
   </div>
+  <div class="pt-base" ng-if="vm.record.appraisal_job">
+    <result-field
+      label="{{'ARCHIVE_MAINTENANCE.APPRAISAL_JOB' | translate}}"
+      strongLabel="true"
+      data="vm.record.appraisal_job.label"
+    ></result-field>
+  </div>
+  <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
+    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+  </div>
   <result-field label="{{'TYPE' | translate}}" stronglabel="true" data="vm.record._source.type"></result-field>
   <div ng-if="vm.record.location">
     <b> {{'ACCESS.LOCATION' | translate}} </b>:&nbsp;
@@ -57,6 +91,119 @@
     <div ng-repeat="x in vm.record.related_tags">
       <a ng-click="vm.goToNodePage(x.tag_version.id, false)">{{x.tag_version.name}}</a>
     </div>
+  </div>
+  <div
+    ng-if="vm.record.agents.length > 0 && !(vm.record.agents.length === 1 && vm.record.agents[0].type.creator)"
+    class="py-base"
+  >
+    <label>
+      {{'ACCESS.RELATED_AGENTS' | translate}}:
+    </label>
+    <div ng-repeat="x in vm.record.agents" ng-if="!x.type.creator" class="d-flex">
+      {{x.type.name}}:&nbsp;
+      <a ui-sref="home.archivalDescriptions.archiveCreators({id: x.agent.id})">{{x.name}}</a>
+    </div>
+  </div>
+  <div class="py-base">
+    <hr class="small mx-0" />
+    <div class="d-flex align-items-center justify-content-between">
+      <h4>
+        {{'ACCESS.REMARKS' | translate}}
+      </h4>
+      <div>
+        <button
+          class="btn btn-primary"
+          ng-click="vm.addNoteModal()"
+          permission
+          permission-only="'tags.change_tagversion'"
+        >
+          {{'ADD' | translate}}
+        </button>
+      </div>
+    </div>
+    <div class="position-relative" ng-repeat="x in vm.record.remarks">
+      <hr class="small mx-0" />
+      <div class="edit-btn-wrapper flex-row position-realtive float-right pt-base">
+        <button
+          permission
+          permission-only="'tags.change_tagversion'"
+          class="btn btn-default btn-sm fas fa-edit"
+          ng-click="vm.editNoteModal(x)"
+          uib-tooltip="{{'EDIT' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></button>
+        <button
+          permission
+          permission-only="'tags.change_tagversion'"
+          class="btn btn-default btn-sm fas fa-trash-alt"
+          ng-click="vm.removeNoteModal(x)"
+          uib-tooltip="{{'REMOVE' | translate}}"
+          tooltip-placement="auto top"
+          tooltip-append-to-body="true"
+        ></button>
+      </div>
+      <div class="flex-row">
+        <b>
+          {{x.type.name}}&nbsp;
+        </b>
+        <b
+          ><span
+            uib-tooltip="{{ 'CREATE_DATE' | translate }}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            {{x.create_date | date:"yyyy-MM-dd"}}
+          </span>
+          <span
+            ng-if="x.revise_date"
+            uib-tooltip="{{ 'ACCESS.REVISE_DATE' | translate }}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+            >&nbsp;({{x.revise_date | date:"yyyy-MM-dd"}})</span
+          >
+        </b>
+      </div>
+      <div class="pt-base" ng-bind-html="x.text"></div>
+      <div ng-if="x.href && x.href !== ''">
+        <label>
+          {{'ACCESS.HREF' | translate}}:&nbsp;
+        </label>
+        <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
+          {{x.href}}
+        </a>
+      </div>
+    </div>
+    <div ng-if="vm.record.remarks.length <= 0" class="empty-table-indicator text-center">
+      {{'ACCESS.NO_REMARKS' | translate}}
+    </div>
+    <hr class="small mx-0" />
+  </div>
+  <div
+    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
+  >
+    <strong>{{'ACCESS.ADMINISTRATIVE_DATES' | translate}}:</strong>
+    <result-field
+      label="{{'CREATE_DATE'| translate}}"
+      data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field label="{{'ACCESS.REVISE_DATE' |translate}}" data="vm.record.revise_date" type="date"></result-field>
+    <result-field
+      label="{{'ACCESS.IMPORT_DATE' | translate}}"
+      data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field
+      label="{{'ACCESS.APPRAISAL_DATE' | translate}}"
+      data="vm.record.appraisal_date ? vm.record.appraisal_date : ('ACCESS.DATE_MISSING' | translate)"
+      type="date"
+    ></result-field>
+    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
+    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
+    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
+    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
+    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
   </div>
   <div class="pb-base">
     <div class="d-flex align-items-center justify-content-between">
@@ -133,90 +280,6 @@
       </table>
     </div>
   </div>
-  <div
-    ng-if="vm.record.agents.length > 0 && !(vm.record.agents.length === 1 && vm.record.agents[0].type.creator)"
-    class="py-base"
-  >
-    <label>
-      {{'ACCESS.RELATED_AGENTS' | translate}}:
-    </label>
-    <div ng-repeat="x in vm.record.agents" ng-if="!x.type.creator" class="d-flex">
-      {{x.type.name}}:&nbsp;
-      <a ui-sref="home.archivalDescriptions.archiveCreators({id: x.agent.id})">{{x.name}}</a>
-    </div>
-  </div>
-  <div class="py-base">
-    <hr class="small mx-0" />
-    <div class="d-flex align-items-center justify-content-between">
-      <h4>
-        {{'ACCESS.REMARKS' | translate}}
-      </h4>
-      <div>
-        <button
-          class="btn btn-primary"
-          ng-click="vm.addNoteModal()"
-          permission
-          permission-only="'tags.change_tagversion'"
-        >
-          {{'ADD' | translate}}
-        </button>
-      </div>
-    </div>
-    <div class="position-relative" ng-repeat="x in vm.record.remarks">
-      <hr class="small mx-0" />
-      <div class="edit-btn-wrapper flex-row position-realtive float-right pt-base">
-        <button
-          permission
-          permission-only="'tags.change_tagversion'"
-          class="btn btn-default btn-sm fas fa-edit"
-          ng-click="vm.editNoteModal(x)"
-          uib-tooltip="{{'EDIT' | translate}}"
-          tooltip-placement="auto top"
-          tooltip-append-to-body="true"
-        ></button>
-        <button
-          permission
-          permission-only="'tags.change_tagversion'"
-          class="btn btn-default btn-sm fas fa-trash-alt"
-          ng-click="vm.removeNoteModal(x)"
-          uib-tooltip="{{'REMOVE' | translate}}"
-          tooltip-placement="auto top"
-          tooltip-append-to-body="true"
-        ></button>
-      </div>
-      <div class="flex-row">
-        <b
-          ><span
-            uib-tooltip="{{ 'CREATE_DATE' | translate }}"
-            tooltip-placement="auto top"
-            tooltip-append-to-body="true"
-          >
-            {{x.create_date | date:"yyyy-MM-dd"}}
-          </span>
-          <span
-            ng-if="x.revise_date"
-            uib-tooltip="{{ 'ACCESS.REVISE_DATE' | translate }}"
-            tooltip-placement="auto top"
-            tooltip-append-to-body="true"
-            >&nbsp;({{x.revise_date | date:"yyyy-MM-dd"}})</span
-          >
-        </b>
-      </div>
-      <div class="pt-base" ng-bind-html="x.text"></div>
-      <div ng-if="x.href && x.href !== ''">
-        <label>
-          {{'ACCESS.HREF' | translate}}:&nbsp;
-        </label>
-        <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
-          {{x.href}}
-        </a>
-      </div>
-    </div>
-    <div ng-if="vm.record.remarks.length <= 0" class="empty-table-indicator text-center">
-      {{'ACCESS.NO_REMARKS' | translate}}
-    </div>
-    <hr class="small mx-0" />
-  </div>
   <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
     <div class="title-action-button-row">
       <div class="title">
@@ -260,29 +323,6 @@
     </td>
   </div>
   <result-field stronglabel="true" label="{{'MEDIUM' | translate}}" data="vm.record.medium_type.name"></result-field>
-  <div
-    ng-if="vm.record.create_date || vm.record.revise_date || vm.record._source.arrival_date || vm.record._source.dispatch_date || vm.record._source.decision_date || vm.record._source.preparation_date || vm.record._source.ended_date || vm.record.end_date"
-  >
-    <strong>{{'DATES' | translate}}:</strong>
-    <result-field
-      label="{{'CREATE_DATE'| translate}}"
-      data="vm.record.create_date ? vm.record.create_date : ('ACCESS.DATE_MISSING' | translate)"
-      type="date"
-    ></result-field>
-    <result-field label="{{'ACCESS.REVISE_DATE' |translate}}" data="vm.record.revise_date" type="date"></result-field>
-    <result-field
-      label="{{'ACCESS.IMPORT_DATE' | translate}}"
-      data="vm.record.import_date ? vm.record.import_date : ('ACCESS.DATE_MISSING' | translate)"
-      type="date"
-    ></result-field>
-    <result-field label="Inkommen" data="vm.record._source.arrival_date" type="date"></result-field>
-    <result-field label="Expedierad" data="vm.record._source.dispatch_date" type="date"></result-field>
-    <result-field label="Beslutat" data="vm.record._source.decision_date" type="date"></result-field>
-    <result-field label="Upprättad" data="vm.record._source.preparation_date" type="date"></result-field>
-    <result-field label="Avslutat" data="vm.record._source.ended_date" type="date"></result-field>
-    <result-field label="{{'START_DATE' | translate}}" data="vm.record.start_date" type="date"></result-field>
-    <result-field label="{{'END_DATE' | translate}}" data="vm.record.end_date" type="date"></result-field>
-  </div>
   <div ng-if="vm.record.custom_fields && !angular.equals(vm.record.custom_fields, {})">
     <br />
     <b>{{'ACCESS.CUSTOM_FIELDS' | translate}}:</b>

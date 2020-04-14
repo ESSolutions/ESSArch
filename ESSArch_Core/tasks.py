@@ -39,6 +39,12 @@ from django.db import transaction
 from django.utils import timezone
 from django_redis import get_redis_connection
 from lxml import etree
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_exponential,
+)
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.crypto import decrypt_remote_credentials
@@ -58,6 +64,7 @@ from ESSArch_Core.fixity.validation.backends.xml import (
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy_dir, copy_file
+from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.storage.models import TapeDrive
 from ESSArch_Core.storage.tape import (
     DEFAULT_TAPE_BLOCK_SIZE,
@@ -486,7 +493,7 @@ class CompareRepresentationXMLFiles(DBTask):
 
         representations_dir = os.path.join(reps_path, reps_dir)
 
-        for p in find_pointers(ip.content_mets_path):
+        for p in find_pointers(os.path.join(ip.object_path, ip.content_mets_path)):
             rep_mets_path = p.path
             rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
             rep_path = os.path.relpath(rep_mets_path, representations_dir)
@@ -591,7 +598,10 @@ class DeleteFiles(DBTask):
 
 
 class CopyDir(DBTask):
+    @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
+           wait=wait_exponential(max=60), stop=stop_after_delay(600))
     def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+        src, dst = self.parse_params(src, dst)
         requests_session = None
         if remote_credentials:
             user, passw = decrypt_remote_credentials(remote_credentials)
@@ -606,6 +616,8 @@ class CopyDir(DBTask):
 
 
 class CopyFile(DBTask):
+    @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
+           wait=wait_exponential(max=60), stop=stop_after_delay(600))
     def run(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
         """
         Copies the given file to the given destination

@@ -6,18 +6,17 @@ from stat import S_IWRITE
 from unittest import mock
 
 from celery import states as celery_states
+from django.contrib.auth import get_user_model
 from django.template import TemplateDoesNotExist
 from django.test import TestCase
 from django.utils import timezone
 
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.maintenance.models import (
-    AppraisalJob,
-    ConversionJob,
-    find_all_files,
-)
-from ESSArch_Core.util import normalize_path, win_to_posix
+from ESSArch_Core.maintenance.models import AppraisalJob, ConversionJob
+from ESSArch_Core.util import win_to_posix
+
+User = get_user_model()
 
 
 class MaintenanceJobGetReportDirectoryTests(TestCase):
@@ -88,6 +87,7 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
 
     def setUp(self):
         self.now = timezone.now()
+        self.user = User.objects.create(username='user')
 
     @mock.patch('ESSArch_Core.maintenance.models.timezone.now')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._generate_report')
@@ -118,19 +118,16 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
     def test_mark_as_complete_when_report_generation_raised_exception(self, mock_generate_report, mock_timezone_now):
         mock_generate_report.side_effect = Exception()
         mock_timezone_now.return_value = self.now
-        appraisal_job = AppraisalJob.objects.create()
-        conversion_job = ConversionJob.objects.create()
+        appraisal_job = AppraisalJob.objects.create(user=self.user)
+        conversion_job = ConversionJob.objects.create(user=self.user)
 
         self.assertEqual(appraisal_job.status, celery_states.PENDING)
         self.assertIsNone(appraisal_job.end_date)
         self.assertEqual(conversion_job.status, celery_states.PENDING)
         self.assertIsNone(conversion_job.end_date)
 
-        with self.assertRaises(Exception):
-            appraisal_job._mark_as_complete()
-
-        with self.assertRaises(Exception):
-            conversion_job._mark_as_complete()
+        appraisal_job._mark_as_complete()
+        conversion_job._mark_as_complete()
 
         appraisal_job.refresh_from_db()
         conversion_job.refresh_from_db()
@@ -145,11 +142,13 @@ class MaintenanceJobMarkAsCompleteTests(TestCase):
 class MaintenanceJobRunTests(TestCase):
 
     def setUp(self):
+        self.user = User.objects.create(username='user')
+
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        self.appraisal_job = AppraisalJob.objects.create()
-        self.conversion_job = ConversionJob.objects.create()
+        self.appraisal_job = AppraisalJob.objects.create(user=self.user)
+        self.conversion_job = ConversionJob.objects.create(user=self.user)
 
         self.appraisal_path = os.path.join(self.datadir, 'appraisal_path')
         self.conversion_path = os.path.join(self.datadir, 'conversion_path')
@@ -329,10 +328,8 @@ class MaintenanceJobRunTests(TestCase):
 
 
 class FindAllFilesTests(TestCase):
-
     def setUp(self):
-        self.tmpdir = normalize_path(tempfile.mkdtemp())
-        self.datadir = os.path.join(self.tmpdir, "datadir")
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
         self.dir_names = [
             'a_dir', 'b_dir', 'c_dir',
@@ -367,59 +364,3 @@ class FindAllFilesTests(TestCase):
 
     def normalize_paths(self, expected_file_names):
         return [win_to_posix(f) for f in expected_file_names]
-
-    def test_find_all_files_when_pattern_is_star(self):
-        files = self.create_dirs_and_files()
-        expected_file_names = self.normalize_paths([fi.replace(os.path.join(self.datadir, ""), "") for fi in files])
-
-        found_files = find_all_files(self.datadir, self.ip, "*")
-        docs = self.normalize_paths([e['document'] for e in found_files])
-
-        for e in found_files:
-            self.assertEqual(e['ip'], 'ip_obj_id_value')
-
-        self.assertCountEqual(expected_file_names, docs)
-
-    def test_find_all_files_when_pattern_is_matching_pattern_which_ends_with_star(self):
-        self.create_dirs_and_files()
-        expected_file_names = self.normalize_paths([
-            'a_dir/0.txt', 'a_dir/1.txt', 'a_dir/2.txt',
-            'aa_dir/0.txt', 'aa_dir/1.txt', 'aa_dir/2.txt',
-            'ab_dir/0.txt', 'ab_dir/1.txt', 'ab_dir/2.txt',
-            'ac_dir/0.txt', 'ac_dir/1.txt', 'ac_dir/2.txt',
-            'a_dir/ca_dir/0.txt', 'a_dir/ca_dir/1.txt', 'a_dir/ca_dir/2.txt',
-        ])
-        found_files = find_all_files(self.datadir, self.ip, "a*")
-        docs = self.normalize_paths([e['document'] for e in found_files])
-
-        for e in found_files:
-            self.assertEqual(e['ip'], 'ip_obj_id_value')
-        self.assertCountEqual(expected_file_names, docs)
-
-    def test_find_all_files_when_pattern_is_matching_pattern_which_start_with_star(self):
-        self.create_dirs_and_files()
-        expected_file_names = self.normalize_paths([
-            'a_dir/2.txt', 'aa_dir/2.txt', 'ab_dir/2.txt', 'ac_dir/2.txt', 'a_dir/ca_dir/2.txt',
-            'b_dir/2.txt', 'ba_dir/2.txt', 'bb_dir/2.txt', 'bc_dir/2.txt', 'b_dir/cb_dir/2.txt',
-            'c_dir/2.txt', 'ca_dir/2.txt', 'cb_dir/2.txt', 'cc_dir/2.txt',
-        ])
-        found_files = find_all_files(self.datadir, self.ip, "**/2.txt")
-        docs = self.normalize_paths([e['document'] for e in found_files])
-
-        for e in found_files:
-            self.assertEqual(e['ip'], 'ip_obj_id_value')
-        self.assertCountEqual(expected_file_names, docs)
-
-    def test_find_all_files_when_pattern_is_matching_pattern_which_starts_and_ends_with_star(self):
-        self.create_dirs_and_files()
-        expected_file_names = self.normalize_paths([
-            'a_dir/2.txt', 'aa_dir/2.txt', 'ab_dir/2.txt', 'ac_dir/2.txt', 'a_dir/ca_dir/2.txt',
-            'b_dir/2.txt', 'ba_dir/2.txt', 'bb_dir/2.txt', 'bc_dir/2.txt', 'b_dir/cb_dir/2.txt',
-            'c_dir/2.txt', 'ca_dir/2.txt', 'cb_dir/2.txt', 'cc_dir/2.txt',
-        ])
-        found_files = find_all_files(self.datadir, self.ip, "**/2*")
-        docs = self.normalize_paths([e['document'] for e in found_files])
-
-        for e in found_files:
-            self.assertEqual(e['ip'], 'ip_obj_id_value')
-        self.assertCountEqual(expected_file_names, docs)

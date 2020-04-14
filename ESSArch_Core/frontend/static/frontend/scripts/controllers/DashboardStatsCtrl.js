@@ -1,42 +1,49 @@
+import {isEnabled} from './../features/utils';
+
 export default class DashboardStatsCtrl {
-  constructor(appConfig, $http, $uibModal, $log, $translate) {
+  constructor(appConfig, $http, $uibModal, $log, $translate, $rootScope) {
     const vm = this;
     vm.stats = null;
-    vm.$onInit = function() {
+    vm.$onInit = function () {
       vm.statsLoading = true;
       vm.getStats()
-        .then(function(stats) {
-          vm.getAgents(stats)
-            .then(statsWithAgents => {
-              vm.stats = statsWithAgents;
-              vm.statsLoading = false;
-            })
-            .catch(() => {
-              vm.statsLoading = false;
-            });
+        .then(function (stats) {
+          if (isEnabled($rootScope.features, 'archival descriptions')) {
+            vm.getAgents(stats)
+              .then((statsWithAgents) => {
+                vm.stats = statsWithAgents;
+                vm.statsLoading = false;
+              })
+              .catch(() => {
+                vm.statsLoading = false;
+              });
+          } else {
+            vm.stats = stats;
+            vm.statsLoading = false;
+          }
         })
         .catch(() => {
           vm.statsLoading = false;
         });
     };
 
-    vm.getAgents = function(stats) {
+    vm.getAgents = function (stats) {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         method: 'HEAD',
-      }).then(function(response) {
+      }).then(function (response) {
         stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
         return stats;
       });
     };
 
-    vm.getStats = function() {
-      return $http.get(appConfig.djangoUrl + 'stats/').then(function(response) {
+    vm.getStats = function () {
+      return $http.get(appConfig.djangoUrl + 'stats/').then(function (response) {
         return response.data;
       });
     };
 
-    vm.buildReportModal = function() {
+    vm.buildReportModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -46,7 +53,7 @@ export default class DashboardStatsCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               options: vm.stats,
             };
@@ -54,8 +61,8 @@ export default class DashboardStatsCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {
+        function (data) {},
+        function () {
           $log.info('modal-component dismissed at: ' + new Date());
         }
       );

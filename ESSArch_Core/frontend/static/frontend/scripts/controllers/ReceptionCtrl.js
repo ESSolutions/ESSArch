@@ -46,11 +46,10 @@ export default class ReceptionCtrl {
     const ipSortString = [];
     const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
-    $controller('TagsCtrl', {$scope: $scope, vm: vm});
     $scope.includedIps = [];
     $scope.profileEditor = false;
     //Request form data
-    $scope.initRequestData = function() {
+    $scope.initRequestData = function () {
       vm.request = {
         type: 'receive',
         purpose: '',
@@ -68,17 +67,17 @@ export default class ReceptionCtrl {
       };
     };
     $scope.initRequestData();
-    $transitions.onSuccess({}, function($transition) {
-      watchers.forEach(function(watcher) {
+    $transitions.onSuccess({}, function ($transition) {
+      watchers.forEach(function (watcher) {
         watcher();
       });
     });
 
-    $scope.menuOptions = function(rowType, row) {
+    $scope.menuOptions = function (rowType, row) {
       const methods = [];
       if (row.state === 'Prepared') {
         methods.push(
-          ContextMenuBase.changeOrganization(function() {
+          ContextMenuBase.changeOrganization(function () {
             $scope.ip = row;
             $rootScope.ip = row;
             vm.changeOrganizationModal($scope.ip);
@@ -86,19 +85,6 @@ export default class ReceptionCtrl {
         );
       }
       return methods;
-    };
-
-    $scope.updateTags = function() {
-      $scope.tagsLoading = true;
-      $scope.getArchives().then(function(result) {
-        vm.tags.archive.options = result;
-        $scope.requestForm = true;
-        $scope.tagsLoading = false;
-      });
-    };
-
-    $scope.storagePolicyChange = function() {
-      vm.request.informationClass = vm.request.storagePolicy.value.information_class;
     };
 
     //Get data for status view
@@ -124,14 +110,14 @@ export default class ReceptionCtrl {
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
         Resource.getReceptionPage(paginationParams, tableState, sorting, search, ipSortString, vm.columnFilters)
-          .then(function(result) {
+          .then(function (result) {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -140,7 +126,7 @@ export default class ReceptionCtrl {
                 vm.columnFilters
               );
 
-              listViewService.checkPages('reception', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('reception', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 vm.callServer(tableState);
@@ -151,7 +137,7 @@ export default class ReceptionCtrl {
     };
 
     //Click function for Ip table
-    vm.selectSingleRow = function(row, options) {
+    vm.selectSingleRow = function (row, options) {
       if ($scope.ip !== null && $scope.ip.id == row.id) {
         $scope.ip = null;
         $rootScope.ip = null;
@@ -173,17 +159,17 @@ export default class ReceptionCtrl {
       }
     };
 
-    vm.formatSdLabel = key => {
+    vm.formatSdLabel = (key) => {
       return key
         .toLowerCase()
         .split('_')
-        .map(x => {
+        .map((x) => {
           return x.charAt(0).toUpperCase() + x.slice(1);
         })
         .join(' ');
     };
 
-    vm.parseAltrecordIds = obj => {
+    vm.parseAltrecordIds = (obj) => {
       let parsed = {};
       angular.forEach(obj, (val, key) => {
         if (
@@ -198,7 +184,7 @@ export default class ReceptionCtrl {
       return parsed;
     };
 
-    $scope.getFileList = function(ip) {
+    $scope.getFileList = function (ip) {
       const array = [];
       const tempElement = {
         filename: ip.object_path,
@@ -210,23 +196,23 @@ export default class ReceptionCtrl {
     };
 
     //Reload current view
-    $scope.reloadPage = function() {
+    $scope.reloadPage = function () {
       $state.reload();
     };
     $scope.yes = $translate.instant('YES');
     $scope.no = $translate.instant('NO');
 
-    $scope.getStoragePolicies = function() {
-      return StoragePolicy.query().$promise.then(function(data) {
+    $scope.getStoragePolicies = function () {
+      return StoragePolicy.query().$promise.then(function (data) {
         return data;
       });
     };
 
     // Remove ip
-    $scope.removeIp = function(ipObject) {
+    $scope.removeIp = function (ipObject) {
       IP.delete({
         id: ipObject.id,
-      }).$promise.then(function() {
+      }).$promise.then(function () {
         $scope.edit = false;
         $scope.select = false;
         $scope.eventlog = false;
@@ -243,195 +229,56 @@ export default class ReceptionCtrl {
     };
 
     //Create and show modal for receive ip
-    $scope.receiveModal = function(ip) {
-      vm.receiveModalLoading = true;
-      if (angular.isUndefined(ip) && $scope.ip !== null) {
-        ip = $scope.ip;
+    $scope.receiveModal = function (ips) {
+      if (ips.length === 0 && $scope.ip) {
+        ips = [$scope.ip];
       }
-      if (ip.state === 'At reception') {
-        IPReception.get({id: ip.id}).$promise.then(function(resource) {
-          if (resource.altrecordids.SUBMISSIONAGREEMENT) {
-            IPReception.prepare({id: resource.id, submission_agreement: resource.altrecordids.SUBMISSIONAGREEMENT[0]})
-              .$promise.then(function(prepared) {
-                vm.receiveModalLoading = false;
-                const modalInstance = $uibModal.open({
-                  animation: true,
-                  ariaLabelledBy: 'modal-title',
-                  ariaDescribedBy: 'modal-body',
-                  templateUrl: 'static/frontend/views/receive_modal.html',
-                  controller: 'ReceiveModalInstanceCtrl',
-                  size: 'lg',
-                  scope: $scope,
-                  controllerAs: '$ctrl',
-                  resolve: {
-                    data: function() {
-                      return {
-                        ip: prepared,
-                        vm: vm,
-                      };
-                    },
-                  },
-                });
-                modalInstance.result.then(
-                  function(data) {
-                    $scope.getListViewData();
-                    if (data.status == 'received') {
-                      $scope.eventlog = false;
-                      $scope.edit = false;
-                      $scope.requestForm = false;
-                    }
-                    $scope.filebrowser = false;
-                    $scope.initRequestData();
-                    $scope.getListViewData();
-                    if ($scope.ips.length > 0) {
-                      $scope.ips.shift();
-                      $scope.getStoragePolicies().then(function(result) {
-                        vm.request.storagePolicy.options = result;
-                        $scope.getArchives().then(function(result) {
-                          vm.tags.archive.options = result;
-                          $scope.requestForm = true;
-                          $scope.receiveModal($scope.ips[0]);
-                        });
-                      });
-                    } else {
-                      $scope.ip = null;
-                      $rootScope.ip = null;
-                    }
-                  },
-                  function() {
-                    $scope.getListViewData();
-                    $log.info('modal-component dismissed at: ' + new Date());
-                  }
-                );
-              })
-              .catch(function(response) {
-                vm.receiveModalLoading = false;
-              });
-          } else {
-            vm.receiveModalLoading = false;
-            const modalInstance = $uibModal.open({
-              animation: true,
-              ariaLabelledBy: 'modal-title',
-              ariaDescribedBy: 'modal-body',
-              templateUrl: 'static/frontend/views/receive_modal.html',
-              controller: 'ReceiveModalInstanceCtrl',
-              size: 'lg',
-              scope: $scope,
-              controllerAs: '$ctrl',
-              resolve: {
-                data: function() {
-                  return {
-                    ip: resource,
-                    vm: vm,
-                  };
-                },
-              },
-            });
-            modalInstance.result.then(
-              function(data) {
-                $scope.getListViewData();
-                if (data.status == 'received') {
-                  $scope.eventlog = false;
-                  $scope.edit = false;
-                  $scope.requestForm = false;
-                }
-                $scope.filebrowser = false;
-                $scope.initRequestData();
-                $scope.getListViewData();
-                if ($scope.ips.length > 0) {
-                  $scope.ips.shift();
-                  $scope.getStoragePolicies().then(function(result) {
-                    vm.request.storagePolicy.options = result;
-                    $scope.getArchives().then(function(result) {
-                      vm.tags.archive.options = result;
-                      $scope.requestForm = true;
-                      $scope.receiveModal($scope.ips[0]);
-                    });
-                  });
-                } else {
-                  $scope.ip = null;
-                  $rootScope.ip = null;
-                }
-              },
-              function() {
-                $scope.getListViewData();
-                $log.info('modal-component dismissed at: ' + new Date());
-              }
-            );
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/receive_modal.html',
+        controller: 'ReceiveModalInstanceCtrl',
+        size: 'lg',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function () {
+            return {
+              ips: angular.copy(ips),
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $scope.getListViewData();
+          if ($scope.ips.length > 0) {
+            $scope.ips.shift();
           }
-        });
-      } else {
-        IP.get({id: ip.id}).$promise.then(function(resource) {
-          vm.receiveModalLoading = false;
-          const modalInstance = $uibModal.open({
-            animation: true,
-            ariaLabelledBy: 'modal-title',
-            ariaDescribedBy: 'modal-body',
-            templateUrl: 'static/frontend/views/receive_modal.html',
-            controller: 'ReceiveModalInstanceCtrl',
-            size: 'lg',
-            scope: $scope,
-            controllerAs: '$ctrl',
-            resolve: {
-              data: function() {
-                return {
-                  ip: resource,
-                  vm: vm,
-                };
-              },
-            },
-          });
-          modalInstance.result.then(
-            function(data) {
-              $scope.getListViewData();
-              if (data.status == 'received') {
-                $scope.eventlog = false;
-                $scope.edit = false;
-                $scope.requestForm = false;
-              }
-              $scope.filebrowser = false;
-              $scope.initRequestData();
-              $scope.getListViewData();
-              if ($scope.ips.length > 0) {
-                $scope.ips.shift();
-                $scope.getStoragePolicies().then(function(result) {
-                  vm.request.storagePolicy.options = result;
-                  $scope.getArchives().then(function(result) {
-                    vm.tags.archive.options = result;
-                    $scope.requestForm = true;
-                    $scope.receiveModal($scope.ips[0]);
-                  });
-                });
-              } else {
-                $scope.ip = null;
-                $rootScope.ip = null;
-              }
-            },
-            function() {
-              $scope.getListViewData();
-              $log.info('modal-component dismissed at: ' + new Date());
-            }
-          );
-        });
-      }
+        },
+        function () {
+          $scope.getListViewData();
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
     };
 
     $scope.informationClassAlert = null;
     $scope.alerts = {
       matchError: {type: 'danger', msg: $translate.instant('MATCH_ERROR')},
     };
-    $scope.closeAlert = function() {
+    $scope.closeAlert = function () {
       $scope.informationClassAlert = null;
     };
 
-    vm.uncheckAll = function() {
+    vm.uncheckAll = function () {
       $scope.includedIps = [];
-      vm.displayedIps.forEach(function(row) {
+      vm.displayedIps.forEach(function (row) {
         row.checked = false;
       });
     };
 
-    $scope.clickSubmit = function() {
+    $scope.clickSubmit = function () {
       if (vm.requestForm.$valid) {
         $scope.receive($scope.ips);
       }

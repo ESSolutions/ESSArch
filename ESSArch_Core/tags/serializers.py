@@ -4,9 +4,9 @@ import elasticsearch
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -339,25 +339,40 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     identifiers = NodeIdentifierSerializer(many=True, read_only=True)
     notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
+    is_tag_leaf_node = serializers.SerializerMethodField()
     is_unit_leaf_node = serializers.SerializerMethodField()
     related_structure_units = StructureUnitRelationSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
 
-    def get_is_unit_leaf_node(self, obj):
+    @staticmethod
+    def get_is_unit_leaf_node(obj):
         return obj.is_leaf_node()
 
+    def get_is_tag_leaf_node(self, obj):
+        # TODO: Make this a recursive check and add a separate field
+        # indicating if this unit have any direct tag children
+
+        if hasattr(obj, 'tag_leaf_node'):
+            return obj.tag_leaf_node
+
+        user = self.context['request'].user
+
+        archive_descendants = obj.structure.tagstructure_set.annotate(
+            versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')).for_user(user))
+        ).filter(structure_unit=obj, versions_exists=True)
+        return not archive_descendants.exists()
+
     def get_is_leaf_node(self, obj):
-        archive_descendants = obj.structure.tagstructure_set.filter(structure_unit=obj)
-        return obj.is_leaf_node() and not archive_descendants.exists()
+        return self.get_is_unit_leaf_node(obj) and self.get_is_tag_leaf_node(obj)
 
     class Meta:
         model = StructureUnit
         fields = (
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
-            'is_unit_leaf_node', 'structure', 'identifiers', 'notes',
-            'related_structure_units', 'structure',
+            'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
+            'identifiers', 'notes', 'related_structure_units',
         )
 
 
@@ -427,6 +442,18 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                     raise serializers.ValidationError(
                         _('Units in instances of type {} cannot be moved').format(structure_type)
                     )
+
+                parent = copied['parent']
+
+                if parent is not None:
+                    has_tags = parent.structure.tagstructure_set.annotate(
+                        versions_exists=Exists(TagVersion.objects.filter(tag=OuterRef('tag')))
+                    ).filter(structure_unit=parent, versions_exists=True)
+
+                    if has_tags:
+                        raise serializers.ValidationError(
+                            _('Units cannot be placed in a unit with tags').format(structure_type)
+                        )
 
                 copied.pop('parent', None)
 
@@ -627,6 +654,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     is_leaf_node = serializers.SerializerMethodField()
     _source = serializers.SerializerMethodField()
     masked_fields = serializers.SerializerMethodField()
+    archive = serializers.SerializerMethodField()
     related_tags = TagVersionRelationSerializer(source='tag_version_relations_a', many=True)
     medium_type = MediumTypeSerializer()
     notes = NodeNoteSerializer(many=True)
@@ -639,9 +667,14 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
+    appraisal_date = serializers.DateTimeField(source='tag.appraisal_date')
+    appraisal_job = serializers.SerializerMethodField()
+
+    def get_archive(self, obj):
+        return getattr(obj, 'archive', None)
 
     def get_is_leaf_node(self, obj):
-        return obj.is_leaf_node(structure=self.context.get('structure'))
+        return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
 
     def get_masked_fields(self, obj):
         cache_key = '{}_masked_fields'.format(obj.pk)
@@ -669,14 +702,26 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
                 custom_fields.pop(field)
         return custom_fields
 
+    def get_appraisal_job(self, obj: TagVersion):
+        job = obj.tag.appraisal_jobs.first()
+
+        if job is None:
+            return None
+
+        return {
+            'id': str(job.pk),
+            'label': str(job.label),
+        }
+
     class Meta:
         model = TagVersion
         fields = (
-            '_id', '_index', 'name', 'type', 'create_date', 'revise_date',
+            '_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'archive',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
-            'is_leaf_node', '_source', 'masked_fields',
+            'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
+            'appraisal_job',
         )
 
 
@@ -690,7 +735,7 @@ class AgentArchiveLinkSerializer(serializers.ModelSerializer):
         validators = [
             serializers.UniqueTogetherValidator(
                 queryset=model.objects.all(),
-                fields=('tag', 'agent'),
+                fields=('archive', 'agent'),
                 message=_('Archive already added')
             )
         ]
@@ -739,8 +784,8 @@ class TagVersionSerializer(TagVersionNestedSerializer):
             return None
 
         archive = tag_structure.get_root().pk
-        context = {'archive_structure': archive}
-        return StructureUnitSerializer(unit, context=context).data
+        self.context.update({'archive_structure': archive})
+        return StructureUnitSerializer(unit, context=self.context).data
 
     def get_organization(self, obj):
         try:
@@ -869,43 +914,65 @@ class TransferEditNodesSerializer(serializers.Serializer):
     )
 
 
-class ComponentWriteSerializer(serializers.Serializer):
+class NodeWriteSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField(required=False)
-    type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=False))
-    reference_code = serializers.CharField()
-    information_package = serializers.PrimaryKeyRelatedField(
-        default=None,
-        queryset=InformationPackage.objects.filter(archived=True),
-    )
-    index = serializers.ChoiceField(choices=['component', 'document'])
-    parent = serializers.PrimaryKeyRelatedField(required=False, queryset=TagVersion.objects.all())
-    location = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), allow_null=True)
-    structure = serializers.PrimaryKeyRelatedField(
-        required=False, queryset=Structure.objects.filter(is_template=False))
-    structure_unit = serializers.PrimaryKeyRelatedField(
-        required=False,
-        queryset=StructureUnit.objects.filter(structure__is_template=False),
-    )
-    start_date = serializers.DateTimeField(required=False)
-    end_date = serializers.DateTimeField(required=False)
+    start_date = serializers.DateTimeField(required=False, allow_null=True)
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
     custom_fields = serializers.JSONField(required=False)
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
+    appraisal_date = serializers.DateTimeField(required=False, allow_null=True)
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
 
     @staticmethod
-    def create_notes(tag_version, notes_data):
+    def create_notes(tag_version: TagVersion, notes_data):
         NodeNote.objects.bulk_create([
             NodeNote(tag_version=tag_version, **note)
             for note in notes_data
         ])
 
     @staticmethod
-    def create_identifiers(tag_version, identifiers_data):
+    def create_identifiers(tag_version: TagVersion, identifiers_data):
         NodeIdentifier.objects.bulk_create([
             NodeIdentifier(tag_version=tag_version, **identifier)
             for identifier in identifiers_data
         ])
+
+    @staticmethod
+    @transaction.atomic
+    def update_notes(tag_version: TagVersion, notes_data):
+        if notes_data is not None:
+            NodeNote.objects.filter(tag_version=tag_version).delete()
+            for note in notes_data:
+                note.setdefault('create_date', timezone.now())
+            NodeWriteSerializer.create_notes(tag_version, notes_data)
+
+    @staticmethod
+    @transaction.atomic
+    def update_identifiers(tag_version: TagVersion, identifiers_data):
+        if identifiers_data is not None:
+            NodeIdentifier.objects.filter(tag_version=tag_version).delete()
+            NodeWriteSerializer.create_identifiers(tag_version, identifiers_data)
+
+
+class ComponentWriteSerializer(NodeWriteSerializer):
+    type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=False))
+    reference_code = serializers.CharField()
+    information_package = serializers.PrimaryKeyRelatedField(
+        default=None,
+        allow_null=True,
+        queryset=InformationPackage.objects.filter(archived=True),
+    )
+    index = serializers.ChoiceField(choices=['component', 'document'])
+    parent = serializers.PrimaryKeyRelatedField(required=False, queryset=TagVersion.objects.all(), allow_null=True)
+    location = serializers.PrimaryKeyRelatedField(queryset=Location.objects.all(), allow_null=True)
+    structure = serializers.PrimaryKeyRelatedField(
+        required=False, queryset=Structure.objects.filter(is_template=False),
+    )
+    structure_unit = serializers.PrimaryKeyRelatedField(
+        required=False, queryset=StructureUnit.objects.filter(structure__is_template=False), allow_null=True,
+    )
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -915,9 +982,13 @@ class ComponentWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             information_package = validated_data.pop('information_package', None)
+            appraisal_date = validated_data.pop('appraisal_date', None)
             index = validated_data.pop('index')
 
-            tag = Tag.objects.create(information_package=information_package)
+            tag = Tag.objects.create(
+                information_package=information_package,
+                appraisal_date=appraisal_date,
+            )
             tag_structure = TagStructure(tag=tag)
 
             if structure_unit is not None:
@@ -964,32 +1035,26 @@ class ComponentWriteSerializer(serializers.Serializer):
                 new_unit = related if tag_structure.structure_unit is not None else None
                 tag_structure.copy_to_new_structure(related.structure, new_unit=new_unit)
 
-            self.create_identifiers(self, identifiers_data)
-            self.create_notes(self, notes_data)
+            self.create_identifiers(tag_version, identifiers_data)
+            self.create_notes(tag_version, notes_data)
 
         doc = Component.from_obj(tag_version)
         doc.save()
 
         return tag
 
-    def update(self, instance, validated_data):
+    def update(self, instance: TagVersion, validated_data):
         structure_unit = validated_data.pop('structure_unit', None)
         parent = validated_data.pop('parent', None)
         structure = validated_data.pop('structure', None)
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
-        information_package = validated_data.pop('information_package', None)
+        information_package = validated_data.pop('information_package', instance.tag.information_package)
+        appraisal_date = validated_data.pop('appraisal_date', instance.tag.appraisal_date)
         validated_data.pop('index', None)
 
-        if identifiers_data is not None:
-            NodeIdentifier.objects.filter(tag_version=instance).delete()
-            self.create_identifiers(instance, identifiers_data)
-
-        if notes_data is not None:
-            NodeNote.objects.filter(tag_version=instance).delete()
-            for note in notes_data:
-                note.setdefault('create_date', timezone.now())
-            self.create_notes(instance, notes_data)
+        self.update_identifiers(instance, identifiers_data)
+        self.update_notes(instance, notes_data)
 
         if structure is not None:
             tag = instance.tag
@@ -1009,6 +1074,7 @@ class ComponentWriteSerializer(serializers.Serializer):
             })
 
         instance.tag.information_package = information_package
+        instance.tag.appraisal_date = appraisal_date
         instance.tag.save()
         TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
         instance.refresh_from_db()
@@ -1023,6 +1089,9 @@ class ComponentWriteSerializer(serializers.Serializer):
         return instance
 
     def validate_parent(self, value):
+        if value is None:
+            return None
+
         if not self.instance:
             return value
 
@@ -1032,6 +1101,9 @@ class ComponentWriteSerializer(serializers.Serializer):
         return value
 
     def validate_structure_unit(self, value):
+        if value is None:
+            return None
+
         if not value.is_leaf_node():
             raise serializers.ValidationError(_("Must be a leaf unit"))
 
@@ -1055,44 +1127,24 @@ class ComponentWriteSerializer(serializers.Serializer):
         if data.get('information_package') is not None and not data['type'].information_package_type:
             raise serializers.ValidationError('information package can only be set on information package nodes')
 
-        if data.get('start_date') and data.get('end_date') and \
-           data.get('start_date') > data.get('end_date'):
-
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        end_date = data.get('end_date', getattr(self.instance, 'end_date', None))
+        if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(_("end date must occur after start date"))
 
         return data
 
 
-class ArchiveWriteSerializer(serializers.Serializer):
-    name = serializers.CharField()
+class ArchiveWriteSerializer(NodeWriteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
     structures = serializers.PrimaryKeyRelatedField(
         queryset=Structure.objects.filter(is_template=True, published=True),
         many=True,
     )
     archive_creator = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
-    description = serializers.CharField(required=False)
     reference_code = serializers.CharField(required=False, allow_blank=True)
     use_uuid_as_refcode = serializers.BooleanField(default=False)
-    start_date = serializers.DateTimeField(required=False)
-    end_date = serializers.DateTimeField(required=False)
-    custom_fields = serializers.JSONField(required=False)
-    notes = NodeNoteWriteSerializer(many=True, required=False)
-    identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
-
-    @staticmethod
-    def create_notes(tag_version, notes_data):
-        NodeNote.objects.bulk_create([
-            NodeNote(tag_version=tag_version, **note)
-            for note in notes_data
-        ])
-
-    @staticmethod
-    def create_identifiers(tag_version, identifiers_data):
-        NodeIdentifier.objects.bulk_create([
-            NodeIdentifier(tag_version=tag_version, **identifier)
-            for identifier in identifiers_data
-        ])
 
     def create(self, validated_data):
         with transaction.atomic():
@@ -1101,12 +1153,13 @@ class ArchiveWriteSerializer(serializers.Serializer):
             notes_data = validated_data.pop('notes', [])
             identifiers_data = validated_data.pop('identifiers', [])
             use_uuid_as_refcode = validated_data.pop('use_uuid_as_refcode', False)
+            appraisal_date = validated_data.pop('appraisal_date', None)
             tag_version_id = uuid.uuid4()
 
             if use_uuid_as_refcode:
                 validated_data['reference_code'] = str(tag_version_id)
 
-            tag = Tag.objects.create()
+            tag = Tag.objects.create(appraisal_date=appraisal_date)
             tag_version = TagVersion.objects.create(
                 pk=tag_version_id, tag=tag, elastic_index='archive',
                 **validated_data,
@@ -1127,28 +1180,22 @@ class ArchiveWriteSerializer(serializers.Serializer):
                 creator=True, defaults={'name': 'creator'}
             )
             AgentTagLink.objects.create(agent=agent, tag=tag_version, type=tag_link_type)
-            self.create_identifiers(self, identifiers_data)
-            self.create_notes(self, notes_data)
+            self.create_identifiers(tag_version, identifiers_data)
+            self.create_notes(tag_version, notes_data)
 
         doc = Archive.from_obj(tag_version)
         doc.save()
 
         return tag
 
-    def update(self, instance, validated_data):
+    def update(self, instance: TagVersion, validated_data):
         structures = validated_data.pop('structures', [])
         notes_data = validated_data.pop('notes', None)
         identifiers_data = validated_data.pop('identifiers', None)
+        appraisal_date = validated_data.pop('appraisal_date', instance.tag.appraisal_date)
 
-        if identifiers_data is not None:
-            NodeIdentifier.objects.filter(tag_version=instance).delete()
-            self.create_identifiers(instance, identifiers_data)
-
-        if notes_data is not None:
-            NodeNote.objects.filter(tag_version=instance).delete()
-            for note in notes_data:
-                note.setdefault('create_date', timezone.now())
-            self.create_notes(instance, notes_data)
+        self.update_identifiers(instance, identifiers_data)
+        self.update_notes(instance, notes_data)
 
         with transaction.atomic():
             for structure in structures:
@@ -1157,6 +1204,8 @@ class ArchiveWriteSerializer(serializers.Serializer):
                     for instance_unit in structure_instance.units.all():
                         StructureUnitDocument.from_obj(instance_unit).save()
 
+            instance.tag.appraisal_date = appraisal_date
+            instance.tag.save()
             TagVersion.objects.filter(pk=instance.pk).update(**validated_data)
             instance.refresh_from_db()
 
@@ -1189,9 +1238,9 @@ class ArchiveWriteSerializer(serializers.Serializer):
         return structures
 
     def validate(self, data):
-        if data.get('start_date') and data.get('end_date') and \
-           data.get('start_date') > data.get('end_date'):
-
+        start_date = data.get('start_date', getattr(self.instance, 'start_date', None))
+        end_date = data.get('end_date', getattr(self.instance, 'end_date', None))
+        if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError(_("end date must occur after start date"))
 
         if not self.instance and not data.get('reference_code') and not data.get('use_uuid_as_refcode'):

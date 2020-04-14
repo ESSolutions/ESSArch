@@ -3,10 +3,14 @@ import logging
 import os
 import shutil
 import tarfile
+from os import walk
+
+from glob2 import iglob
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
+from ESSArch_Core.util import normalize_path, open_file
 
 logger = logging.getLogger('essarch.storage.backends.disk')
 
@@ -24,9 +28,15 @@ class DiskStorageBackend(BaseStorageBackend):
 
         return os.path.join(dst, root)
 
-    def open(self, storage_object, file, *args, **kwargs):
-        path = os.path.join(storage_object.content_location_value, file)
-        return open(path, *args, **kwargs)
+    def open(self, storage_object: StorageObject, file, mode='r', *args, **kwargs):
+        if storage_object.container:
+            return open_file(
+                file, *args, container=storage_object.get_full_path(),
+                container_prefix=storage_object.ip.object_identifier_value, **kwargs
+            )
+
+        path = os.path.join(storage_object.get_full_path(), file)
+        return open(path, mode, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         src = storage_object.get_full_path()
@@ -67,6 +77,8 @@ class DiskStorageBackend(BaseStorageBackend):
             if idx == 0:
                 content_location_value = new
 
+        _, content_location_value = os.path.split(content_location_value)
+
         return StorageObject.objects.create(
             content_location_value=content_location_value,
             content_location_type=DISK,
@@ -74,8 +86,31 @@ class DiskStorageBackend(BaseStorageBackend):
             container=container,
         )
 
+    def list_files(self, storage_object, pattern, case_sensitive=True):
+        if storage_object.container:
+            raise NotImplementedError
+
+        datadir = storage_object.get_full_path()
+
+        if pattern is None:
+            for root, _dirs, files in walk(datadir):
+                rel = os.path.relpath(root, datadir)
+                for f in files:
+                    yield normalize_path(os.path.join(rel, f))
+        else:
+            for path in iglob(datadir + '/' + pattern, case_sensitive=case_sensitive):
+                if os.path.isdir(path):
+                    for root, _dirs, files in walk(path):
+                        rel = os.path.relpath(root, datadir)
+
+                        for f in files:
+                            yield normalize_path(os.path.join(rel, f))
+
+                else:
+                    yield normalize_path(os.path.relpath(path, datadir))
+
     def delete(self, storage_object):
-        path = storage_object.content_location_value
+        path = storage_object.get_full_path()
         if not storage_object.container:
             try:
                 shutil.rmtree(path)

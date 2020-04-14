@@ -1,3 +1,33 @@
+# Unreleased
+
+## Added
+
+- Feature flag for receiving SIP
+- Ability to transfer SIP from reception to another ESSArch instance
+
+## Changed
+
+- Bumped Elasticsearch requirement to 7.\*
+- AIP creation to be done at preservation step
+- Relation between IPs and storage policies to be defined in submission agreement
+
+## Fixed
+
+- Agent search filter
+
+# [3.1.2](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.2)
+
+## Fixed
+
+- Empty archive dropdown list (#904)
+
+# [3.1.1](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.1)
+
+## Fixed
+
+- Rules for moving structure unit instances (#850, #852, #863)
+- Assigned roles section on user admin page (#868)
+
 # [3.1.0](https://github.com/ESSolutions/ESSArch/releases/tag/3.1.0)
 
 ## Added

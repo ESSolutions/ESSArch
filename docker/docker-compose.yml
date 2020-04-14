@@ -50,7 +50,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        essarch worker -l info -q celery,file_operation,validation
+        essarch worker -l info -Q celery,file_operation,validation
     restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
@@ -147,13 +147,28 @@ services:
     build:
       context: elasticsearch
       args:
-        ELK_VERSION: 6.5.4
+        ELK_VERSION: 7.6.1
     volumes:
       - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
       - essarch_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
       - '9300:9300'
+    environment:
+      ES_JAVA_OPTS: '-Xmx1g -Xms1g'
+    networks:
+      - essarch
+
+  elasticsearch-test:
+    build:
+      context: elasticsearch
+      args:
+        ELK_VERSION: 7.6.1
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - '19200:9200'
+      - '19300:9300'
     environment:
       ES_JAVA_OPTS: '-Xmx1g -Xms1g'
     networks:

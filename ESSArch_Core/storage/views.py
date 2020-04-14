@@ -26,8 +26,16 @@ import os
 import uuid
 
 from django.contrib.auth.models import User
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import exceptions, filters, permissions, status, viewsets
+from rest_framework import (
+    exceptions,
+    filters,
+    permissions,
+    status,
+    views,
+    viewsets,
+)
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -41,12 +49,12 @@ from ESSArch_Core.configuration.serializers import (
 )
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.storage.filters import (
     StorageMediumFilter,
     StorageMethodFilter,
 )
 from ESSArch_Core.storage.models import (
-    STORAGE_TARGET_STATUS_ENABLED,
     TAPE,
     AccessQueue,
     IOQueue,
@@ -67,7 +75,10 @@ from ESSArch_Core.storage.serializers import (
     RobotQueueSerializer,
     RobotSerializer,
     StorageMediumSerializer,
+    StorageMediumWriteSerializer,
     StorageMigrationCreateSerializer,
+    StorageMigrationPreviewDetailWriteSerializer,
+    StorageMigrationPreviewWriteSerializer,
     StorageObjectSerializer,
     TapeDriveSerializer,
     TapeSlotSerializer,
@@ -274,15 +285,20 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     API endpoint for storage medium
     """
     queryset = StorageMedium.objects.all()
+
     serializer_class = StorageMediumSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
-
     filterset_class = StorageMediumFilter
 
     search_fields = (
         '=id', 'medium_id', 'status', 'location', 'location_status', 'used_capacity', 'create_date',
     )
-    ordering = ('-create_date',)
+
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return StorageMediumSerializer
+
+        return StorageMediumWriteSerializer
 
     @action(detail=True, methods=['post'])
     def mount(self, request, pk=None):
@@ -372,7 +388,7 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
 
 
-class StorageTargetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
+class StorageTargetViewSet(viewsets.ModelViewSet):
     """
     API endpoint for storage target
     """
@@ -382,19 +398,6 @@ class StorageTargetViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend, SearchFilter)
     filterset_fields = ('status', 'type',)
     search_fields = ('name',)
-
-    def get_queryset(self):
-        parents_query_dict = self.get_parents_query_dict()
-        ip_id = parents_query_dict.get('ip')
-        if ip_id is None:
-            return self.queryset
-
-        ip = InformationPackage.objects.get(pk=ip_id)
-        storage_methods = ip.get_migratable_storage_methods()
-        return StorageTarget.objects.filter(
-            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
-            storage_method_target_relations__storage_method__in=storage_methods,
-        )
 
 
 class RobotViewSet(viewsets.ModelViewSet):
@@ -539,6 +542,7 @@ class TapeSlotViewSet(viewsets.ModelViewSet):
 
 class StorageMigrationViewSet(viewsets.ModelViewSet):
     queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
+    serializer_class = ProcessTaskDetailSerializer
     filter_backends = (SearchFilter,)
     search_fields = (
         'label', 'information_package__id', 'information_package__object_identifier_value',
@@ -554,6 +558,11 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
 
         return ProcessTaskDetailSerializer
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['policy'] = self.request.data.get('policy')
+        return context
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -563,3 +572,44 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
             {'detail': 'Migration jobs created and queued'},
             status=status.HTTP_201_CREATED, headers=headers,
         )
+
+
+class StorageMigrationPreviewView(views.APIView, PaginatedViewMixin):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        context = {
+            'policy': request.query_params.get('policy'),
+        }
+        serializer = StorageMigrationPreviewWriteSerializer(data=request.query_params, context=context)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.save()
+
+        paginated = self.paginator.paginate_queryset(data, request)
+        return self.paginator.get_paginated_response(paginated)
+
+
+class StorageMigrationPreviewDetailView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        context = {
+            'policy': request.query_params.get('policy'),
+        }
+        serializer = StorageMigrationPreviewDetailWriteSerializer(data=request.query_params, context=context)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        policy = data['policy']
+        storage_methods = data.get('storage_methods', policy.storage_methods.all())
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
+
+        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(
+            submission_agreement__policy=policy,
+        )
+        ip = get_object_or_404(qs, pk=pk)
+
+        return Response(serializer.save(information_package=ip))

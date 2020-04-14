@@ -1,12 +1,16 @@
 import os
 
+from celery import states as celery_states
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import OuterRef, Subquery
 from django.utils import timezone
 from rest_framework import serializers, validators
 
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.serializers import UserSerializer
 from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.serializers import StorageTargetSerializer
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.serializers import (
     InformationPackageDetailSerializer,
@@ -14,6 +18,7 @@ from ESSArch_Core.ip.serializers import (
 )
 from ESSArch_Core.storage.models import (
     DISK,
+    STORAGE_TARGET_STATUS_ENABLED,
     AccessQueue,
     IOQueue,
     Robot,
@@ -30,12 +35,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
-    storage_target = serializers.PrimaryKeyRelatedField(
-        pk_field=serializers.UUIDField(format='hex_verbose'),
-        allow_null=False,
-        required=True,
-        queryset=StorageTarget.objects.all()
-    )
+    storage_target = StorageTargetSerializer(allow_null=False, required=True)
     tape_drive = serializers.PrimaryKeyRelatedField(
         pk_field=serializers.UUIDField(format='hex_verbose'),
         allow_null=True,
@@ -73,6 +73,15 @@ class StorageMediumSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
+
+
+class StorageMediumWriteSerializer(StorageMediumSerializer):
+    storage_target = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=False,
+        required=True,
+        queryset=StorageTarget.objects.all()
+    )
 
 
 class StorageObjectSerializer(serializers.ModelSerializer):
@@ -359,14 +368,16 @@ class RobotQueueSerializer(serializers.ModelSerializer):
 
 class InformationPackagePolicyField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        request = self.context['request']
-        qs = InformationPackage.objects.migratable()
+        policy = self.context['policy']
+        return InformationPackage.objects.migratable().filter(submission_agreement__policy=policy)
 
-        policy = request.data.get('policy')
-        if policy is not None:
-            qs = qs.filter(policy=policy)
 
-        return qs
+class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        policy = self.context['policy']
+        return StorageMethod.objects.filter_has_target_with_status(
+            STORAGE_TARGET_STATUS_ENABLED, True,
+        ).filter(storage_policies=policy)
 
 
 class StorageMigrationCreateSerializer(serializers.Serializer):
@@ -376,29 +387,111 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     policy = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=StoragePolicy.objects.all(),
     )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
     temp_path = serializers.CharField(write_only=True, allow_blank=False, allow_null=False)
 
     def create(self, validated_data):
         tasks = []
-        for ip in validated_data['information_packages']:
-            storage_methods = ip.get_migratable_storage_methods()
-            if not storage_methods.exists():
-                raise ValueError('No storage methods available for migration')
+        with transaction.atomic():
+            storage_objects = StorageObject.objects.filter(
+                pk__in=InformationPackage.objects.filter(
+                    pk__in=[ip.pk for ip in validated_data['information_packages']]
+                ).annotate(
+                    fastest=Subquery(
+                        StorageObject.objects.filter(
+                            ip=OuterRef('pk'),
+                        ).fastest().values('pk')[:1]
+                    )
+                ).values('fastest')
+            ).select_related('ip').fastest()
 
-            for storage_method in storage_methods:
-                t = ProcessTask(
-                    name='ESSArch_Core.storage.tasks.StorageMigration',
-                    label='Migrate to {}'.format(storage_method),
-                    args=[str(storage_method.pk), validated_data['temp_path']],
-                    information_package=ip,
-                    responsible=self.context['request'].user,
-                    eager=False,
+            storage_methods = validated_data.get('storage_methods', validated_data['policy'].storage_methods.all())
+            if isinstance(storage_methods, list):
+                storage_methods = StorageMethod.objects.filter(
+                    pk__in=[s.pk for s in storage_methods]
                 )
-                tasks.append(t)
 
-        ProcessTask.objects.bulk_create(tasks, 100)
+            for storage_object in storage_objects:
+                storage_methods = storage_methods.filter(pk__in=storage_object.ip.get_migratable_storage_methods())
 
-        for t in tasks:
-            t.run()
+                for storage_method in storage_methods:
+                    t, created = ProcessTask.objects.get_or_create(
+                        name='ESSArch_Core.storage.tasks.StorageMigration',
+                        label='Migrate to {}'.format(storage_method),
+                        status__in=[
+                            celery_states.PENDING,
+                            celery_states.RECEIVED,
+                            celery_states.STARTED,
+                        ],
+                        information_package=storage_object.ip,
+                        defaults={
+                            'args': [str(storage_method.pk), validated_data['temp_path']],
+                            'responsible': self.context['request'].user,
+                            'eager': False,
+                        }
+                    )
+                    if created:
+                        t.run()
+                    tasks.append(t)
 
         return ProcessTask.objects.filter(pk__in=[t.pk for t in tasks])
+
+
+class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = InformationPackage
+        fields = ('id', 'label', 'object_identifier_value',)
+
+
+class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
+    information_packages = InformationPackagePolicyField(
+        write_only=True, many=True,
+    )
+    policy = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=StoragePolicy.objects.all(),
+    )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
+
+    def create(self, validated_data):
+        information_packages = validated_data['information_packages']
+        storage_methods = validated_data.get('storage_methods', validated_data['policy'].storage_methods.all())
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
+        information_packages = InformationPackage.objects.filter(pk__in=[ip.pk for ip in information_packages])
+        information_packages = information_packages.migratable(storage_methods=storage_methods)
+        return StorageMigrationPreviewSerializer(instance=information_packages, many=True).data
+
+
+class StorageMigrationPreviewDetailWriteSerializer(serializers.Serializer):
+    policy = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=StoragePolicy.objects.all(),
+    )
+    storage_methods = StorageMethodPolicyField(
+        write_only=True, many=True, required=False,
+    )
+
+    def create(self, validated_data):
+        ip = validated_data['information_package']
+        storage_methods = validated_data.get('storage_methods', validated_data['policy'].storage_methods.all())
+
+        if isinstance(storage_methods, list):
+            if len(storage_methods) == 0:
+                storage_methods = validated_data['policy'].storage_methods.all()
+            else:
+                storage_methods = StorageMethod.objects.filter(
+                    pk__in=[s.pk for s in storage_methods]
+                )
+
+        storage_methods = storage_methods.filter(pk__in=ip.get_migratable_storage_methods())
+
+        targets = StorageTarget.objects.filter(
+            storage_method_target_relations__storage_method__in=storage_methods,
+            storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        return StorageTargetSerializer(instance=targets, many=True).data

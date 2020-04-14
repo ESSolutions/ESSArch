@@ -21,21 +21,24 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-
 import errno
 import filecmp
 import glob
 import io
 import os
 import shutil
+import tarfile
 import tempfile
 import uuid
 import zipfile
 from datetime import datetime
 from unittest import mock
 
+import requests
 from django.contrib.auth.models import Permission, User
+from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import FileResponse
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
@@ -43,10 +46,18 @@ from groups_manager.models import GroupType
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APITestCase
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
-from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    EventType,
+    Feature,
+    Parameter,
+    Path,
+    StoragePolicy,
+)
+from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
+from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     InformationPackage,
     Order,
@@ -57,10 +68,11 @@ from ESSArch_Core.profiles.models import (
     Profile,
     ProfileIP,
     ProfileIPData,
-    ProfileSA,
     SubmissionAgreement,
     SubmissionAgreementIPData,
 )
+from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
@@ -70,30 +82,38 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
-from ESSArch_Core.tags.models import (
-    Structure,
-    StructureType,
-    StructureUnit,
-    StructureUnitType,
-    Tag,
-    TagStructure,
-    TagVersion,
-    TagVersionType,
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_method_rel,
+    add_storage_obj,
+)
+from ESSArch_Core.tags.documents import File
+from ESSArch_Core.tags.tests.test_search import (
+    ESSArchSearchBaseTestCase,
+    ESSArchSearchBaseTransactionTestCase,
 )
 from ESSArch_Core.testing.runner import TaskRunner
-from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
+from ESSArch_Core.testing.test_helpers import (
+    create_mets_spec,
+    create_premis_spec,
+)
+from ESSArch_Core.util import timestamp_to_datetime
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
-class AccessTestCase(TestCase):
+class AccessTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
-        Path.objects.create(entity='temp', value="")
-
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
+
+        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir))
+
         cache = StorageMethod.objects.create()
         cache_target = StorageTarget.objects.create(name='cache target')
 
@@ -108,26 +128,27 @@ class AccessTestCase(TestCase):
             block_size=1024, format=103
         )
 
-        self.ip = InformationPackage.objects.create()
-        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        self.ip.policy = StoragePolicy.objects.create(
+        policy = StoragePolicy.objects.create(
             cache_storage=cache,
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, generation=0,
+            submission_agreement=sa,
+        )
+        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
 
         StorageObject.objects.create(
             storage_medium=storage_medium, ip=self.ip,
             content_location_type=DISK,
         )
 
-        self.user = User.objects.create(username="admin")
+        self.user = User.objects.create_superuser(username="superuser")
         self.member = self.user.essauth_member
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
 
-        self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.url = reverse('informationpackage-access', args=[self.ip.pk])
 
@@ -150,7 +171,7 @@ class AccessTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip(self, mock_step):
+    def test_received_ip_read_only(self, mock_step):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
@@ -158,10 +179,26 @@ class AccessTestCase(TestCase):
         mock_step.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip(self, mock_step):
+    def test_received_ip_new_generation(self, mock_step):
+        self.ip.state = 'Received'
+        self.ip.save()
+        res = self.client.post(self.url, {'tar': True, 'new': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_step.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_archived_ip_read_only(self, mock_step):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_step.assert_called_once()
+
+    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    def test_archived_ip_new_generation(self, mock_step):
+        self.ip.archived = True
+        self.ip.save()
+        res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         mock_step.assert_called_once()
 
@@ -495,13 +532,16 @@ class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
 class WorkareaFilesViewTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="access")
-        Path.objects.create(entity="ingest_workarea", value="ingest")
-
         cls.url = reverse('workarea-files-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
+
+        self.access = Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+        self.ingest = Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+
         self.user = User.objects.create(username="admin", password='admin')
         self.member = self.user.essauth_member
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
@@ -531,7 +571,7 @@ class WorkareaFilesViewTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
         path = 'does/exist'
-        fullpath = os.path.join('access', self.user.username, path)
+        fullpath = os.path.join(self.access, self.user.username, path)
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
@@ -556,7 +596,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src.txt'
         dst = 'dst.txt'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -584,7 +624,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -610,7 +650,7 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join('access', self.user.username, src)
+        full_src = os.path.join(self.access, self.user.username, src)
         full_dst = os.path.join(dstdir, dst)
 
         ip = InformationPackage.objects.create(
@@ -681,7 +721,10 @@ class InformationPackageViewSetTestCase(TestCase):
         self.assertEqual(len(res.data), 0)
 
     def test_aic_view_type_with_ordering_and_filter(self):
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2010, 1, 1)),
+        )
         aip14 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic, generation=4, state='foo',
@@ -698,7 +741,10 @@ class InformationPackageViewSetTestCase(TestCase):
             package_type=InformationPackage.AIP,
             aic=aic, generation=1, state='foo',
         )
-        aic2 = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        aic2 = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            start_date=make_aware(datetime(2000, 1, 1)),
+        )
         aip2 = InformationPackage.objects.create(
             package_type=InformationPackage.AIP,
             aic=aic2, generation=0, state='foo',
@@ -717,19 +763,19 @@ class InformationPackageViewSetTestCase(TestCase):
         self.member.assign_object(self.group, aip2, custom_permissions=perms)
         self.member.assign_object(self.group, aip3, custom_permissions=perms)
 
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'create_date', 'state': 'foo'})
-        self.assertEqual(len(res.data), 2)
-        self.assertEqual(res.data[0]['id'], str(aic.pk))
-        self.assertEqual(res.data[0]['information_packages'][0]['id'], str(aip11.pk))
-        self.assertEqual(res.data[0]['information_packages'][1]['id'], str(aip12.pk))
-        self.assertEqual(res.data[0]['information_packages'][2]['id'], str(aip13.pk))
-        self.assertEqual(res.data[0]['information_packages'][3]['id'], str(aip14.pk))
-        self.assertEqual(res.data[1]['id'], str(aic2.pk))
-
-        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-create_date', 'state': 'foo'})
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': 'start_date', 'state': 'foo'})
         self.assertEqual(len(res.data), 2)
         self.assertEqual(res.data[0]['id'], str(aic2.pk))
         self.assertEqual(res.data[1]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['information_packages'][0]['id'], str(aip11.pk))
+        self.assertEqual(res.data[1]['information_packages'][1]['id'], str(aip12.pk))
+        self.assertEqual(res.data[1]['information_packages'][2]['id'], str(aip13.pk))
+        self.assertEqual(res.data[1]['information_packages'][3]['id'], str(aip14.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'aic', 'ordering': '-start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data[0]['id'], str(aic.pk))
+        self.assertEqual(res.data[1]['id'], str(aic2.pk))
 
     def test_ip_view_type_with_ordering_and_filter(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
@@ -1380,13 +1426,67 @@ class InformationPackageViewSetTestCase(TestCase):
 
         self.assertEqual(len(res.data), 0)
 
+    def test_flat_view_type_with_ordering_and_filter(self):
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        start_date = make_aware(datetime(2000, 1, 1))
+        aip = InformationPackage.objects.create(
+            aic=aic, package_type=InformationPackage.AIP,
+            generation=0, state='foo', start_date=start_date,
+        )
+
+        start_date = make_aware(datetime(2010, 1, 1))
+        sip = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='foo',
+            start_date=start_date,
+        )
+        start_date = make_aware(datetime(2040, 1, 1))
+        sip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.SIP, state='bar',
+            start_date=start_date,
+        )
+
+        start_date = make_aware(datetime(2005, 1, 1))
+        dip = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='foo',
+            start_date=start_date,
+        )
+        start_date = make_aware(datetime(2030, 1, 1))
+        dip2 = InformationPackage.objects.create(
+            package_type=InformationPackage.DIP, state='bar',
+            start_date=start_date,
+        )
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, aip, custom_permissions=perms)
+        self.member.assign_object(self.group, sip, custom_permissions=perms)
+        self.member.assign_object(self.group, sip2, custom_permissions=perms)
+        self.member.assign_object(self.group, dip, custom_permissions=perms)
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': 'start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 3)
+        self.assertEqual(res.data[0]['id'], str(aip.pk))
+        self.assertEqual(res.data[1]['id'], str(dip.pk))
+        self.assertEqual(res.data[2]['id'], str(sip.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': '-start_date', 'state': 'foo'})
+        self.assertEqual(len(res.data), 3)
+        self.assertEqual(res.data[0]['id'], str(sip.pk))
+        self.assertEqual(res.data[1]['id'], str(dip.pk))
+        self.assertEqual(res.data[2]['id'], str(aip.pk))
+
+        res = self.client.get(self.url, data={'view_type': 'flat', 'ordering': 'start_date', 'state': 'bar'})
+        self.assertEqual(len(res.data), 2)
+        self.assertEqual(res.data[0]['id'], str(dip2.pk))
+        self.assertEqual(res.data[1]['id'], str(sip2.pk))
+
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
         cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
 
-        ip = InformationPackage.objects.create(object_path='foo', policy=policy)
+        sa = SubmissionAgreement.objects.create(policy=policy)
+        ip = InformationPackage.objects.create(object_path='foo', submission_agreement=sa)
         url = reverse('informationpackage-detail', args=(str(ip.pk),))
 
         # no permission
@@ -1433,44 +1533,6 @@ class InformationPackageViewSetTestCase(TestCase):
 
         mock_task.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_preserve_aip(self, mock_step):
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        cache = StorageMethod.objects.create()
-        ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
-        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.AIP, aic=aic, policy=policy)
-        self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
-        self.url = self.url + 'preserve/'
-
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
-
-        self.client.post(self.url)
-        mock_step.assert_called_once()
-
-        self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
-
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_preserve_dip(self, mock_step):
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        cache = StorageMethod.objects.create()
-        ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
-
-        self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
-        self.url = reverse('informationpackage-detail', args=(self.ip.pk,))
-        self.url = self.url + 'preserve/'
-
-        perms = {'group': ['view_informationpackage']}
-        self.member.assign_object(self.group, self.ip, custom_permissions=perms)
-
-        self.client.post(self.url, {'policy': str(policy.pk)})
-        mock_step.assert_called_once()
-
-        self.assertTrue(ProcessStep.objects.filter(information_package=self.ip).exists())
-
     def test_change_organization(self):
         self.ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
         self.url = reverse('informationpackage-change-organization', args=(self.ip.pk,))
@@ -1497,7 +1559,12 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
     def test_get_ip_with_submission_agreement(self, mock_data):
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
         sa = SubmissionAgreement.objects.create(
+            policy=policy,
             template=[
                 {
                     'key': 'foo',
@@ -1519,269 +1586,679 @@ class InformationPackageViewSetTestCase(TestCase):
         self.client.get(self.url)
 
 
-class InformationPackageReceptionViewSetTestCase(TestCase):
+class InformationPackageViewSetPermissionListTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="temp", value="temp")
+        cls.ctype = ContentType.objects.get_for_model(InformationPackage)
 
-        cls.cache = StorageMethod.objects.create()
-        cls.ingest = Path.objects.create(entity='ingest', value='ingest')
-        cls.policy = StoragePolicy.objects.create(cache_storage=cls.cache, ingest_path=cls.ingest)
+    def setUp(self):
+        self.user = User.objects.create(username="admin")
+        self.member = self.user.essauth_member
+        self.org_group_type = GroupType.objects.create(codename='organization')
 
+        self.europe = Group.objects.create(name="europe", group_type=self.org_group_type)
+        self.sweden = Group.objects.create(name="sweden", group_type=self.org_group_type, parent=self.europe)
+        self.uppsala = Group.objects.create(name="uppsala", group_type=self.org_group_type, parent=self.sweden)
+        self.sthlm = Group.objects.create(name="stockholm", group_type=self.org_group_type, parent=self.sweden)
+
+        self.user_perms = [
+            Permission.objects.get_or_create(codename='view_informationpackage', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='add', content_type=self.ctype)[0],
+        ]
+
+        self.admin_perms = [
+            Permission.objects.get_or_create(codename='view_informationpackage', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='change', content_type=self.ctype)[0],
+            Permission.objects.get_or_create(codename='delete', content_type=self.ctype)[0]
+        ]
+        self.expected_user_perms = ['view_informationpackage', 'add']
+        self.expected_user_perms_with_label = ['ip.%s' % p for p in self.expected_user_perms]
+        self.expected_admin_perms = ['view_informationpackage', 'change', 'delete']
+        self.expected_admin_perms_with_label = ['ip.%s' % p for p in self.expected_admin_perms]
+
+        self.admin_role = GroupMemberRole.objects.create(codename='admin')
+        self.user_role = GroupMemberRole.objects.create(codename='user')
+        self.user_role.permissions.add(*self.user_perms)
+        self.admin_role.permissions.add(*self.admin_perms)
+
+        # create users
+        self.user_europe = User.objects.create(username='user_europe')
+        self.admin_europe = User.objects.create(username='admin_europe')
+
+        self.user_sweden = User.objects.create(username='user_sweden')
+        self.admin_sweden = User.objects.create(username='admin_sweden')
+
+        self.user_uppsala = User.objects.create(username='user_uppsala')
+        self.admin_uppsala = User.objects.create(username='admin_uppsala')
+
+        self.user_sthlm = User.objects.create(username='user_sthlm')
+        self.admin_sthlm = User.objects.create(username='admin_sthlm')
+
+        # add users to groups with roles
+        self.europe.add_member(self.user_europe.essauth_member, roles=[self.user_role])
+        self.europe.add_member(self.admin_europe.essauth_member, roles=[self.admin_role])
+
+        self.sweden.add_member(self.user_sweden.essauth_member, roles=[self.user_role])
+        self.sweden.add_member(self.admin_sweden.essauth_member, roles=[self.admin_role])
+
+        self.uppsala.add_member(self.user_uppsala.essauth_member, roles=[self.user_role])
+        self.uppsala.add_member(self.admin_uppsala.essauth_member, roles=[self.admin_role])
+
+        self.sthlm.add_member(self.user_sthlm.essauth_member, roles=[self.user_role])
+        self.sthlm.add_member(self.admin_sthlm.essauth_member, roles=[self.admin_role])
+
+        # create IPs in organizations
+        self.uppsala_ip = InformationPackage.objects.create(label='uppsala_ip')
+        self.uppsala.add_object(self.uppsala_ip)
+
+        self.sthlm_ip = InformationPackage.objects.create(label='sthlm_ip')
+        self.sthlm.add_object(self.sthlm_ip)
+
+    def get_permissions(self, ip, user):
+        self.client.force_authenticate(user=user)
+        url = reverse('informationpackage-detail', args=(str(ip.pk),))
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        return res.data['permissions']
+
+    def test_permissions_list(self):
+        # users in same organization as IP must have the correct permissions
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_uppsala), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_uppsala), self.expected_admin_perms)
+
+        # users in an organization must have the correct permissions on the IPs in organizations/groups below
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_europe), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_europe), self.expected_admin_perms)
+
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.user_sweden), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.uppsala_ip, self.admin_sweden), self.expected_admin_perms)
+
+        self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.user_sweden), self.expected_user_perms)
+        self.assertCountEqual(self.get_permissions(self.sthlm_ip, self.admin_sweden), self.expected_admin_perms)
+
+
+class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
+    @classmethod
+    def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')
-
-        cls.url = reverse('ip-reception-list')
-
-        Path.objects.create(entity='ingest_reception', value='ingest_reception')
-        Path.objects.create(entity='ingest_unidentified', value='ingest_reception_unidentified')
-
-        cls.sa = SubmissionAgreement.objects.create()
-        aip_profile = Profile.objects.create(profile_type='aip')
-        ProfileSA.objects.create(submission_agreement=cls.sa, profile=aip_profile)
 
     def setUp(self):
         self.user = User.objects.create(username="admin", password='admin')
-
-        self.client = APIClient()
-        self.client.force_authenticate(user=self.user)
-
         self.member = self.user.essauth_member
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
+        self.user.user_profile.current_organization = self.group
+        self.user.user_profile.save()
+        self.client.force_authenticate(user=self.user)
 
-    def create_profile(self, profile_type, ip):
-        profile = Profile.objects.create(profile_type=profile_type)
-        profile_ip = ProfileIP.objects.create(profile=profile, ip=ip)
-        profile_ip_data = ProfileIPData.objects.create(relation=profile_ip, user=self.user)
-        profile_ip.data = profile_ip_data
-        profile_ip.save()
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
-        return profile
+        Parameter.objects.create(entity='agent_identifier_value', value='ESS')
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+        Parameter.objects.create(entity='medium_location', value='Media')
 
-    def test_receive_without_permission(self):
-        ip = InformationPackage.objects.create()
-        url = reverse('ip-reception-receive', args=[ip.pk])
+        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='preingest', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
+        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
+
+        os.makedirs(os.path.join(receipts.value, 'xml'))
+
+        self.cache = StorageMethod.objects.create()
+        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest)
+
+        self.cache_target = StorageTarget.objects.create(name='cache', target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=self.cache,
+            storage_target=self.cache_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
+    def test_preserve_aip(self, mock_index, mock_validate_schema):
+        storage_method = StorageMethod.objects.create(containers=True)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(self.cache, storage_method)
+
+        sa = SubmissionAgreement.objects.create(
+            policy=self.policy,
+            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
+        )
+        sa.profile_aip = Profile.objects.create(
+            profile_type='aip', specification=create_mets_spec(False, sa),
+            structure=[
+                {
+                    'type': 'file',
+                    'name': 'this_is_mets.xml',
+                    'use': 'mets_file',
+                },
+                {
+                    'type': 'file',
+                    'name': 'premis.xml',
+                    'use': 'preservation_description_file',
+                },
+                {
+                    'type': 'dir',
+                    'name': 'schemas',
+                    'use': 'xsd_files',
+                },
+            ]
+        )
+        sa.profile_aic_description = Profile.objects.create(
+            profile_type='aic_description',
+            specification=create_mets_spec(True, sa),
+        )
+        sa.profile_aip_description = Profile.objects.create(
+            profile_type='aip_description',
+            specification=create_mets_spec(True, sa),
+        )
+        sa.profile_preservation_metadata = Profile.objects.create(
+            profile_type='preservation_metadata',
+            specification=create_premis_spec(sa),
+        )
+        sa.save()
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
         perms = {'group': ['view_informationpackage']}
         self.member.assign_object(self.group, ip, custom_permissions=perms)
 
-        # return 403 when user doesn't have ip.receive permission
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_index.assert_called_once()
+
+        ip.refresh_from_db()
+        target_dir = os.listdir(storage_target.target)
+        self.assertIn('{}.tar'.format(ip.pk), target_dir)
+        self.assertIn('{}.xml'.format(ip.pk), target_dir)
+        self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
+
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=storage_target,
+                content_location_value=f'{ip.object_identifier_value}.tar',
+                container=True,
+            ).exists()
+        )
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=self.cache_target,
+                content_location_value=ip.object_identifier_value,
+                container=False,
+            ).exists()
+        )
+        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
+        self.assertTrue(
+            os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
+        )
+
+        tempdir = Path.objects.get(entity="temp").value
+        self.assertEqual(os.listdir(tempdir), [])
+
+    @TaskRunner()
+    def test_preserve_dip(self):
+        ip = InformationPackage.objects.create(package_type=InformationPackage.DIP)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class InformationPackageReceptionViewSetTestCase(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Feature.objects.create(name='receive', enabled=True)
+        Feature.objects.create(name='transfer', enabled=True)
+        cls.cache = StorageMethod.objects.create()
+
+        org_group_type = GroupType.objects.create(label='organization')
+        cls.group = Group.objects.create(name='organization', group_type=org_group_type)
+        cls.receive_perm = Permission.objects.get(content_type__app_label='ip', codename='receive')
+        cls.transfer_perm = Permission.objects.get(content_type__app_label='ip', codename='transfer_sip')
+
+    def add_user_to_group(self):
+        self.group.add_member(self.user.essauth_member)
+
+    def setUp(self):
+        self.user = User.objects.create()
+        self.client.force_authenticate(user=self.user)
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.reception = tempfile.mkdtemp(dir=self.datadir)
+        temp = tempfile.mkdtemp(dir=self.datadir)
+        ingest_unidentified = tempfile.mkdtemp(dir=self.datadir)
+        ingest = tempfile.mkdtemp(dir=self.datadir)
+
+        Path.objects.create(entity="temp", value=temp)
+        Path.objects.create(entity='ingest_reception', value=self.reception)
+        Path.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
+        ingest = Path.objects.create(entity='ingest', value=ingest)
+
+        policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest, receive_extract_sip=True)
+        self.sa = SubmissionAgreement.objects.create(
+            policy=policy,
+            profile_aic_description=Profile.objects.create(profile_type='aic_description'),
+            profile_aip=Profile.objects.create(
+                profile_type='aip',
+                structure=[
+                    {
+                        'type': 'file',
+                        'name': 'mets.xml',
+                        'use': 'mets_file',
+                    },
+                    {
+                        'type': 'folder',
+                        'name': 'content',
+                        'use': 'content',
+                        'children': [
+                            {
+                                'type': 'folder',
+                                'name': '{{INNER_IP_OBJID}}',
+                                'use': 'sip',
+                            },
+                        ]
+                    },
+                    {
+                        'type': 'folder',
+                        'name': 'metadata',
+                        'use': 'metadata',
+                        'children': [
+                            {
+                                'type': 'file',
+                                'use': 'xsd_files',
+                                'name': 'xsd_files'
+                            },
+                            {
+                                'type': 'file',
+                                'name': 'premis.xml',
+                                'use': 'preservation_description_file',
+                            },
+                        ]
+                    },
+                ],
+            ),
+            profile_aip_description=Profile.objects.create(profile_type='aip_description'),
+            profile_dip=Profile.objects.create(profile_type='dip'),
+        )
+
+    def get_package_path(self, objid):
+        return os.path.join(self.reception, '{}.tar'.format(objid))
+
+    def create_ip_package(self, objid):
+        path = self.get_package_path(objid)
+        with tarfile.open(path, 'w') as tar:
+            tar.add(__file__, arcname='content/test.txt')
+        return path
+
+    def get_xml_path(self, objid):
+        return os.path.join(self.reception, '{}.xml'.format(objid))
+
+    def create_ip_xml(self, objid, package, sa):
+        path = self.get_xml_path(objid)
+        open(path, 'w').close()
+
+        spec = create_mets_spec(True, sa)
+        XMLGenerator().generate(filesToCreate={path: {'spec': spec, 'data': {'OBJID': objid}}}, folderToParse=package)
+        return path
+
+    def test_list(self):
+        url = reverse('ip-reception-list')
+
+        # empty
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, [])
+
+        # contained
+        package = self.create_ip_package('foo')
+        self.create_ip_xml('foo', package, self.sa)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data[0]['object_identifier_value'], 'foo')
+        self.assertEqual(res.data[0]['object_path'], package)
+
+        # packages in database with state receiving
+        InformationPackage.objects.create(
+            object_identifier_value='bar',
+            package_type=InformationPackage.AIP,
+            state='Receiving',
+        )
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data), 2)
+
+    def test_retrieve(self):
+        url = reverse('ip-reception-detail', args=('foo',))
+
+        # non existing
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
+
+        # contained
+        package = self.create_ip_package('foo')
+        self.create_ip_xml('foo', package, self.sa)
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['object_identifier_value'], 'foo')
+        self.assertEqual(res.data['object_path'], package)
+
+        # packages in database with state receiving
+        InformationPackage.objects.create(
+            object_identifier_value='bar',
+            package_type=InformationPackage.AIP,
+            state='Receiving',
+        )
+        url = reverse('ip-reception-detail', args=('bar',))
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data['object_identifier_value'], 'bar')
+
+    @TaskRunner()
+    def test_receive_without_permission(self):
+        url = reverse('ip-reception-receive', args=('foo',))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_receive_ip_with_wrong_state(self):
-        ip = InformationPackage.objects.create()
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    def test_receive_existing_non_sip(self):
+        self.user.user_permissions.add(self.receive_perm)
 
-        # return 404 when IP is not in state Prepared
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
-        res = self.client.post(url, data={})
+        package_types = [
+            InformationPackage.AIC,
+            InformationPackage.AIP,
+            InformationPackage.AIU,
+            InformationPackage.DIP,
+        ]
+        for package_type in package_types:
+            with self.subTest(package_type):
+                ip = InformationPackage.objects.create(
+                    object_identifier_value='existing_{}'.format(package_type),
+                    package_type=package_type,
+                )
+                url = reverse('ip-reception-receive', args=(ip.object_identifier_value,))
+                res = self.client.post(url)
+                self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+
+    @TaskRunner()
+    def test_receive_invalid_xml(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        xml_path = self.get_xml_path("invalid-xml")
+        with open(xml_path, 'w') as f:
+            f.write('invalid')
+
+        url = reverse('ip-reception-receive', args=('invalid-xml',))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @TaskRunner()
+    def test_receive_missing_xml(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        url = reverse('ip-reception-receive', args=('does-not-exist',))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_receive_ip_with_incorrect_package_type(self):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIC)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    def test_receive_missing_package(self):
+        self.user.user_permissions.add(self.receive_perm)
 
-        # return 404 when IP is of type AIC
-        res = self.client.post(url, data={})
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+        os.remove(ip_package)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_receive_ip_with_missing_files(self):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    def test_receive_missing_profiles(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        # return 400 when any of the files doesn't exist
-        ip.package_type = InformationPackage.AIP
-        ip.save()
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        profile_types = [
+            'dip',
+            'aip_description',
+            'aip',
+            'aic_description',
+        ]
+        for ptype in profile_types:
+            with self.subTest(ptype):
+                setattr(self.sa, 'profile_{}'.format(ptype), None)
+                self.sa.save()
+
+                url = reverse('ip-reception-receive', args=(objid,))
+                res = self.client.post(url, data={})
+                self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @TaskRunner()
+    def test_receive_without_organization(self):
+        self.user.user_permissions.add(self.receive_perm)
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url, data={})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_receive_ip_with_missing_policy(self, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_existing_sip(self, mock_validate_schema):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        # return 400 when invalid or no policy is provided
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
+
+        ip = InformationPackage.objects.create(
+            object_identifier_value=objid,
+            package_type=InformationPackage.SIP,
+            object_path=ip_package,
+            submission_agreement=self.sa,
+        )
+        self.sa.lock_to_information_package(ip, self.user)
+
+        url = reverse('ip-reception-receive', args=(objid,))
         res = self.client.post(url, data={})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
+
+        aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
+        with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
+            self.assertEqual(f.read(), expected.read())
+
+    @TaskRunner()
+    def test_receive_ip_missing_sa(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
+
+        tree = etree.parse(xml)
+        for sa_el in tree.xpath("//*[local-name()='altRecordID'][@TYPE='SUBMISSIONAGREEMENT']"):
+            sa_el.getparent().remove(sa_el)
+        with open(xml, 'wb') as f:
+            tree.write(f, encoding="utf-8", xml_declaration=True)
+
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_receive_ip_with_structure_unit(self, mock_step, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        self.create_profile('sip', ip)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+    @TaskRunner()
+    def test_receive_ip_non_matching_parsed_and_provided_sa(self):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        structure_type = StructureType.objects.create(name='foo')
-        structure_template = Structure.objects.create(is_template=True, type=structure_type)
-        structure = Structure.objects.create(is_template=False, type=structure_type, template=structure_template)
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
 
-        archive_tag = Tag.objects.create()
-        archive_tag_version_type = TagVersionType.objects.create(name='archive', archive_type=True)
-        archive_tag_version = TagVersion.objects.create(
-            tag=archive_tag,
-            type=archive_tag_version_type,
-            elastic_index='archive',
-        )
-        TagStructure.objects.create(tag=archive_tag, structure=structure,)
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={'submission_agreement': "invalid-sa"})
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-        structure_unit_type = StructureUnitType.objects.create(name='foo', structure_type=structure_type)
-        structure_unit_template = StructureUnit.objects.create(structure=structure_template, type=structure_unit_type)
-        structure_unit = StructureUnit.objects.create(
-            structure=structure, type=structure_unit_type,
-            template=structure_unit_template,
-        )
-        tag_version_type = TagVersionType.objects.create(name='foo', information_package_type=True)
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_ip_matching_parsed_and_provided_sa(self, mock_validate_schema):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        with self.subTest('unit template'):
-            """Structure unit template is not valid"""
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'structure_unit': structure_unit_template.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
 
-        with self.subTest('non-published unit'):
-            """Structure template must be published"""
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'structure_unit': structure_unit.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url, data={'submission_agreement': str(self.sa.pk)})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
 
-        structure_template.publish()
-        with self.subTest('published unit'):
-            res = self.client.post(url, data={
-                'storage_policy': self.policy.pk,
-                'archive': archive_tag_version.pk,
-                'structure': structure.pk,
-                'structure_unit': structure_unit.pk,
-            })
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_receive_ip(self, mock_validate_schema):
+        self.user.user_permissions.add(self.receive_perm)
+        self.add_user_to_group()
 
-        self.assertTrue(
-            TagVersion.objects.filter(
-                tag__information_package=ip,
-                type=tag_version_type,
-                tag__structures__structure_unit=structure_unit,
-            ).exists()
-        )
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        self.create_ip_xml(objid, ip_package, self.sa)
 
-        mock_step.assert_called_once()
+        url = reverse('ip-reception-receive', args=(objid,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        mock_validate_schema.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run', side_effect=lambda *args, **kwargs: None)
-    def test_receive_ip_with_correct_data(self, mock_receive, mock_isfile, mock_get_container):
-        ip = InformationPackage.objects.create(state='Prepared', package_type=InformationPackage.AIP)
-        self.create_profile('sip', ip)
-        url = reverse('ip-reception-receive', args=[ip.pk])
-        perms = {'group': ['view_informationpackage', 'ip.receive']}
-        self.member.assign_object(self.group, ip, custom_permissions=perms)
+        aip = InformationPackage.objects.get(object_identifier_value=objid, package_type=InformationPackage.AIP)
+        with open(os.path.join(aip.object_path, 'content/foo/content/test.txt')) as f, open(__file__) as expected:
+            self.assertEqual(f.read(), expected.read())
 
-        tag = Tag.objects.create()
-        structure_type = StructureType.objects.create()
-        structure = Structure.objects.create(is_template=True, type=structure_type)
-        tag_structure = TagStructure.objects.create(tag=tag, structure=structure)
-        res = self.client.post(url, data={'storage_policy': self.policy.pk, 'tag': tag_structure.pk})
+    @TaskRunner()
+    def test_transfer_ip(self):
+        self.user.user_permissions.add(self.transfer_perm)
+        self.add_user_to_group()
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
+
+        transfer_dst = tempfile.mkdtemp(dir=self.datadir)
+        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
+
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
+
+        url = reverse('ip-reception-transfer', args=(objid,))
+        res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        mock_receive.assert_called_once()
+        expected_package_checksum = calculate_checksum(ip_package)
+        expected_xml_checksum = calculate_checksum(xml)
 
-    def test_prepare_conflict(self):
-        ip = InformationPackage.objects.create(object_identifier_value='foo', package_type=InformationPackage.AIP)
-        url = reverse('ip-reception-prepare', args=[ip.object_identifier_value])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(calculate_checksum(os.path.join(transfer_dst, 'foo.tar')), expected_package_checksum)
+        self.assertEqual(calculate_checksum(os.path.join(transfer_dst, 'foo.xml')), expected_xml_checksum)
 
-        ip.package_type = InformationPackage.SIP
-        ip.save()
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.ip.tasks.requests.Session', return_value=requests.Session())
+    @mock.patch('ESSArch_Core.ip.tasks.copy_file')
+    def test_transfer_ip_remote(self, mock_upload, mock_session):
+        self.user.user_permissions.add(self.transfer_perm)
+        self.add_user_to_group()
+        Parameter.objects.create(entity='event_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_agent_identifier_type', value='ESS')
+        Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
 
-    def test_prepare_missing_package(self):
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        transfer_dst = tempfile.mkdtemp(dir=self.datadir)
+        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
 
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description', return_value={})
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_without_sa(self, mock_isfile, mock_get_container, mock_parse_sd):
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        objid = 'foo'
+        ip_package = self.create_ip_package(objid)
+        xml = self.create_ip_xml(objid, ip_package, self.sa)
 
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_invalid_sa_in_xml(self, mock_isfile, mock_get_container, mock_parse_sd):
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [uuid.uuid4()]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_valid_sa_without_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
-                                                                      mock_parse_sd):
-        sa = SubmissionAgreement.objects.create()
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [sa.pk]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    @mock.patch('ESSArch_Core.ip.views.parse_submit_description')
-    @mock.patch('ESSArch_Core.ip.views.InformationPackageReceptionViewSet.get_container_for_xml',
-                return_value='foo.tar')
-    @mock.patch('ESSArch_Core.ip.views.os.path.isfile', return_value=True)
-    def test_prepare_with_valid_sa_with_profiles_referenced_in_xml(self, mock_isfile, mock_get_container,
-                                                                   mock_parse_sd):
-        sa = SubmissionAgreement.objects.create(
-            profile_aic_description=Profile.objects.create(),
-            profile_aip=Profile.objects.create(),
-            profile_aip_description=Profile.objects.create(),
-            profile_dip=Profile.objects.create(),
-        )
-        mock_parse_sd.return_value = {'altrecordids': {'SUBMISSIONAGREEMENT': [sa.pk]}}
-
-        url = reverse('ip-reception-prepare', args=[123])
-        res = self.client.post(url)
-        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
-
-        ip_exists = InformationPackage.objects.filter(
-            object_identifier_value='123',
-            package_type=InformationPackage.AIP,
+        ip = InformationPackage.objects.create(
+            object_identifier_value=objid,
+            package_type=InformationPackage.SIP,
+            object_path=ip_package,
+            submission_agreement=self.sa,
             responsible=self.user,
-            submission_agreement=sa).exists()
-        self.assertTrue(ip_exists)
+        )
+        self.sa.profile_transfer_project = Profile.objects.create(
+            profile_type='transfer_project',
+            template=[
+                {
+                    "type": "input",
+                    "key": "transfer_destination_url",
+                    'defaultValue': 'http://example.com/api/ip-reception/upload/,user,pass',
+                }
+            ],
+        )
+        self.sa.save()
+        self.sa.lock_to_information_package(ip, self.user)
+
+        url = reverse('ip-reception-transfer', args=(objid,))
+        res = self.client.post(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        mock_upload.assert_has_calls([
+            mock.call(
+                ip_package, 'http://example.com/api/ip-reception/upload/',
+                block_size=mock.ANY, requests_session=mock.ANY,
+            ),
+            mock.call(
+                xml, 'http://example.com/api/ip-reception/upload/',
+                block_size=mock.ANY, requests_session=mock.ANY,
+            ),
+        ])
+
+        kwargs = mock_upload.mock_calls[0][-1]
+        self.assertEqual(kwargs['requests_session'].auth, ('user', 'pass'))
+
+        kwargs = mock_upload.mock_calls[1][-1]
+        self.assertEqual(kwargs['requests_session'].auth, ('user', 'pass'))
 
 
 class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.sa1 = SubmissionAgreement.objects.create()
-        cls.sa2 = SubmissionAgreement.objects.create()
+        cls.policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        cls.sa1 = SubmissionAgreement.objects.create(policy=cls.policy)
+        cls.sa2 = SubmissionAgreement.objects.create(policy=cls.policy)
 
         Path.objects.create(entity='temp', value='')
 
@@ -1821,7 +2298,7 @@ class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
         self.assertEqual(self.ip.submission_agreement_data, new_data)
 
     def test_change_submission_agreement_and_data(self):
-        new_sa = SubmissionAgreement.objects.create()
+        new_sa = SubmissionAgreement.objects.create(policy=self.policy)
         new_data = SubmissionAgreementIPData.objects.create(
             submission_agreement=new_sa,
             information_package=self.ip,
@@ -2058,14 +2535,7 @@ class IdentifyIP(TestCase):
         EventType.objects.create(eventType=50600, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def setUp(self):
-        self.bd = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.bd, "datafiles")
-
-        try:
-            os.mkdir(self.datadir)
-        except BaseException:
-            pass
-
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
         mimetypes_file = Path.objects.create(
@@ -2088,7 +2558,8 @@ class IdentifyIP(TestCase):
 
         self.objid = 'unidentified_ip'
         fpath = os.path.join(self.path, '%s.tar' % self.objid)
-        open(fpath, 'a').close()
+        with tarfile.open(fpath, 'w') as tar:
+            tar.add(__file__, arcname='content/test.txt')
 
     def test_identify_ip(self):
         data = {
@@ -2368,7 +2839,11 @@ class CreateIPTestCase(TestCase):
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.sa = SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        cls.sa = SubmissionAgreement.objects.create(policy=policy)
 
         Path.objects.create(entity='temp')
         EventType.objects.create(eventType=10300, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -2522,6 +2997,7 @@ class DownloadIPTestCase(TestCase):
             res['Content-Disposition'],
             'attachment; filename="{}"'.format(os.path.basename(self.ip.object_path)),
         )
+        res.close()
 
 
 class test_submit_ip(TestCase):
@@ -2539,7 +3015,12 @@ class test_submit_ip(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-        self.sa = SubmissionAgreement.objects.create()
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+
+        self.sa = SubmissionAgreement.objects.create(policy=policy)
         self.ip = InformationPackage.objects.create(submission_agreement=self.sa)
         self.url = reverse('informationpackage-submit', args=(self.ip.pk,))
 
@@ -2657,11 +3138,15 @@ class test_submit_ip(TestCase):
         mock_step.assert_called_once()
 
 
-class test_set_uploaded(TestCase):
+class test_set_uploaded(APITestCase):
     def setUp(self):
-        self.user = User.objects.create(username="admin")
+        datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, datadir)
 
-        self.client = APIClient()
+        temp_dir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir)).value
+        os.makedirs(os.path.join(temp_dir, 'file_upload'))
+
+        self.user = User.objects.create(username="admin")
         self.client.force_authenticate(user=self.user)
 
         self.ip = InformationPackage.objects.create(state='Uploading')
@@ -2674,7 +3159,7 @@ class test_set_uploaded(TestCase):
         self.ip.refresh_from_db()
         self.assertEqual(self.ip.state, 'Uploading')
 
-    @TaskRunner()
+    @TaskRunner(propagate=False)
     def test_set_uploaded_with_permission(self):
         InformationPackage.objects.filter(pk=self.ip.pk).update(
             responsible=self.user
@@ -2696,8 +3181,9 @@ class UploadTestCase(TestCase):
 
         EventType.objects.create(eventType=50700, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
-        self.root = os.path.dirname(os.path.realpath(__file__))
-        self.datadir = os.path.join(self.root, 'datadir')
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
         self.src = os.path.join(self.datadir, 'src')
         self.dst = os.path.join(self.datadir, 'dst')
         self.temp = os.path.join(self.datadir, 'temp')
@@ -2710,14 +3196,8 @@ class UploadTestCase(TestCase):
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
-        self.addCleanup(shutil.rmtree, self.datadir)
-
         for path in [self.src, self.dst, self.temp]:
-            try:
-                os.makedirs(path)
-            except OSError as e:
-                if e.errno != 17:
-                    raise
+            os.makedirs(path)
 
     def test_upload_file(self):
         perms = {'group': ['view_informationpackage', 'ip.can_upload']}
@@ -2805,18 +3285,19 @@ class UploadTestCase(TestCase):
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
 
-class FilesActionTests(TestCase):
+class FilesActionTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')
         cls.user_role = GroupMemberRole.objects.create(codename='user_role')
 
     def setUp(self):
-        self.root = self.datadir = tempfile.mkdtemp()
-        self.datadir = os.path.join(self.root, 'datadir')
+        self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        self.client = APIClient()
+        self.datadir2 = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir2)
+
         self.user = User.objects.create(username="admin")
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.SIP,
@@ -2835,12 +3316,6 @@ class FilesActionTests(TestCase):
         membership.roles.add(self.user_role)
 
         self.org.add_object(self.ip)
-
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
 
     def test_get_method_with_no_params(self):
         self.client.force_authenticate(user=self.user)
@@ -2938,7 +3413,7 @@ class FilesActionTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         data = {
-            'path': tempfile.mkdtemp(),
+            'path': tempfile.mkdtemp(dir=self.datadir2),
             'type': 'dummy'
         }
         resp = self.client.post(self.url, data=data)
@@ -3051,7 +3526,7 @@ class FilesActionTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         data = {
-            'path': tempfile.mkdtemp(),
+            'path': tempfile.mkdtemp(dir=self.datadir2),
             'type': 'dummy'
         }
         resp = self.client.post(self.url, data=data)
@@ -3175,7 +3650,7 @@ class FilesActionTests(TestCase):
         self.ip.save()
         self.client.force_authenticate(user=self.user)
 
-        data = {'path': tempfile.mkdtemp()}
+        data = {'path': tempfile.mkdtemp(dir=self.datadir2)}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['detail'], f"Illegal path {data['path']}")
@@ -3237,7 +3712,7 @@ class FilesActionTests(TestCase):
         self.ip.save()
         self.client.force_authenticate(user=self.user)
 
-        data = {'path': tempfile.mkdtemp()}
+        data = {'path': tempfile.mkdtemp(dir=self.datadir2)}
         resp = self.client.delete(self.url, data=data)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(resp.data['detail'], f"Illegal path {data['path']}")
@@ -3285,3 +3760,159 @@ class FilesActionTests(TestCase):
         expected_error_message = "Cannot delete or add content of an IP that is not in 'Prepared' or 'Uploading' state"
         self.assertEqual(resp.data['detail'], expected_error_message)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.user = User.objects.create(username="admin")
+
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy,)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            archived=True, responsible=self.user,
+            submission_agreement=sa, object_path=self.datadir,
+        )
+        self.url = reverse('informationpackage-files', args=(self.ip.pk,))
+        sa.lock_to_information_package(self.ip, self.user)
+
+    def test_get_archived_dir_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        index_path(self.ip, test_file)
+        File._index.refresh()
+
+        os.makedirs(short_term_obj.get_full_path())
+        copy(test_file, short_term_obj.get_full_path())
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data,
+            [
+                {
+                    'name': 'foo.txt',
+                    'size': 11,
+                    'type': 'file',
+                    'modified': timestamp_to_datetime(os.stat(test_file).st_mtime).isoformat(),
+                }
+            ]
+        )
+
+    def test_get_archived_file_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        test_nested_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(test_nested_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, test_nested_file)
+        File._index.refresh()
+
+        os.makedirs(os.path.join(short_term_obj.get_full_path(), 'nested'))
+        copy(test_file, short_term_obj.get_full_path())
+        copy(test_nested_file, os.path.join(short_term_obj.get_full_path(), 'nested'))
+
+        params = {'path': 'foo.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()
+
+    def test_get_archived_file_from_long_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        long_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        long_term.storage_method.containers = True
+        long_term.storage_method.save()
+        long_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        long_term.storage_target.save()
+        long_term_medium = add_storage_medium(long_term.storage_target, 20, 'm1')
+        long_term_obj = add_storage_obj(
+            self.ip, long_term_medium, DISK, self.ip.object_identifier_value + '.tar',
+        )
+        long_term_obj.container = True
+        long_term_obj.save()
+
+        self.ip.policy.storage_methods.add(long_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        nested_test_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(nested_test_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, nested_test_file)
+        File._index.refresh()
+
+        with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
+            t.add(test_file, arcname='foo.txt')
+            t.add(nested_test_file, arcname='nested/bar.txt')
+
+        params = {'path': 'foo.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()

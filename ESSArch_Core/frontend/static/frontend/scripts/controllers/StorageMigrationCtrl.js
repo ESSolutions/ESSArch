@@ -8,65 +8,50 @@ export default class StorageMigrationCtrl {
     SelectedIPUpdater,
     $controller,
     $translate,
-    $uibModal
+    $uibModal,
+    StorageMedium,
+    Notifications
   ) {
     const vm = this;
     $scope.select = true;
     vm.formFiltersShow = true;
     vm.targetShow = true;
     vm.selectionListShow = true;
-    vm.itemsPerPage = 10;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
-    vm.filters;
+    vm.itemsPerPage = 10;
     $scope.job = null;
     $scope.jobs = [];
     vm.displayedJobs = [];
+    vm.displayedMediums = [];
+    vm.selectedMediums = [];
+    vm.mediumsPerPage = 10;
+    vm.mediumFilterModel = {};
+    vm.mediumFilterFields = [];
+    $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
+      if (vm.activePill === 'migrate') {
+        vm.updateStorageMediums();
+      }
+      if (vm.selectedMediums.length) {
+        vm.callServer($scope.tableState);
+      }
+      if (vm.activePill === 'tasks') {
+        vm.updateJobsList();
+      }
+    });
 
-    vm.resetFilters = () => {
-      vm.filters = {
-        migratable: true,
-      };
-    };
-
-    vm.options = {
-      policy: [],
-    };
-
-    vm.filterFields = [];
-
+    vm.initLoad = true;
     vm.$onInit = () => {
-      vm.resetFilters();
-      return $http.get(appConfig.djangoUrl + 'storage-policies/', {params: {pager: 'none'}}).then(response => {
-        vm.options.policy = response.data;
-        vm.buildFilters();
+      return $http.get(appConfig.djangoUrl + 'storage-policies/', {params: {pager: 'none'}}).then((response) => {
+        if (response.data.length > 0) {
+          vm.policyFilter = response.data[0];
+          vm.mediumFilterModel.policy = response.data[0].id;
+          vm.initLoad = false;
+        }
         return response.data;
       });
     };
 
-    vm.buildFilters = () => {
-      vm.filterFields = [
-        {
-          type: 'select',
-          key: 'policy',
-          templateOptions: {
-            label: $translate.instant('STORAGE_POLICY'),
-            options: vm.options.policy,
-            labelProp: 'policy_name',
-            valueProp: 'id',
-          },
-          defaultValue: vm.options.policy.length > 0 ? vm.options.policy[0].id : null,
-        },
-        {
-          key: 'current_medium',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('CURRENTMEDIUMID'),
-          },
-        },
-      ];
-    };
-
-    vm.callServer = function(tableState) {
+    vm.callServer = function (tableState) {
       $scope.ipLoading = true;
       if (vm.displayedIps.length == 0) {
         $scope.initLoad = true;
@@ -90,15 +75,18 @@ export default class StorageMigrationCtrl {
             {
               search,
               ordering,
-              view_type: $rootScope.auth.ip_list_view_type,
+              view_type: 'flat',
               page: paginationParams.pageNumber,
               page_size: paginationParams.number,
+              pager: paginationParams.pager,
+              medium: vm.selectedMediums.length ? vm.selectedMediums.map((x) => x.id) : null,
+              policy: vm.mediumFilterModel.policy,
               migratable: true,
             },
             vm.columnFilters
           ),
         })
-          .then(function(response) {
+          .then(function (response) {
             vm.displayedIps = response.data;
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.ipLoading = false;
@@ -106,7 +94,7 @@ export default class StorageMigrationCtrl {
             ipExists();
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = angular.extend(
                 {
@@ -119,7 +107,7 @@ export default class StorageMigrationCtrl {
                 filters.workarea = vm.workarea;
               }
 
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function(response) {
+              listViewService.checkPages('ip', paginationParams.number, filters).then(function (response) {
                 tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start =
                   response.numberOfPages * paginationParams.number - paginationParams.number;
@@ -130,7 +118,7 @@ export default class StorageMigrationCtrl {
       }
     };
 
-    vm.jobsPipe = tableState => {
+    vm.jobsPipe = (tableState) => {
       $scope.jobsLoading = true;
       if (vm.displayedJobs.length === 0) {
         $scope.initLoad = true;
@@ -155,10 +143,11 @@ export default class StorageMigrationCtrl {
             ordering,
             page: paginationParams.pageNumber,
             page_size: paginationParams.number,
+            pager: paginationParams.pager,
           },
         })
-          .then(function(response) {
-            response.data.forEach(x => {
+          .then(function (response) {
+            response.data.forEach((x) => {
               x.flow_type = 'task';
             });
             vm.displayedJobs = response.data;
@@ -169,7 +158,7 @@ export default class StorageMigrationCtrl {
             ipExists();
             SelectedIPUpdater.update(vm.displayedJobs, $scope.ips, $scope.ip);
           })
-          .catch(function(response) {
+          .catch(function (response) {
             $scope.jobsLoading = false;
           });
       }
@@ -179,7 +168,7 @@ export default class StorageMigrationCtrl {
       vm.jobsPipe(vm.jobsTableState);
     };
 
-    vm.migrationModal = function(ips) {
+    vm.migrationModal = function (ips) {
       if (ips.length <= 0) {
         if ($scope.ip !== null) {
           ips = [$scope.ip];
@@ -194,23 +183,26 @@ export default class StorageMigrationCtrl {
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
-          data: function() {
+          data: function () {
             return {
               ips: ips,
+              policy: vm.mediumFilterModel.policy,
             };
           },
         },
       });
       modalInstance.result.then(
-        function(data) {
-          vm.resetFilters();
+        function (data) {
+          $scope.ips = [];
+          $scope.ip = null;
+          vm.selectedMediums = [];
           $scope.getListViewData();
         },
-        function() {}
+        function () {}
       );
     };
     //Creates and shows modal with task information
-    $scope.taskInfoModal = function(task) {
+    $scope.taskInfoModal = function (task) {
       const modalInstance = $uibModal.open({
         animation: true,
         size: 'lg',
@@ -226,9 +218,131 @@ export default class StorageMigrationCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {},
-        function() {}
+        function (data) {},
+        function () {}
       );
+    };
+
+    // Medium List
+    vm.updateStorageMediums = function () {
+      vm.mediumPipe(vm.mediumTableState);
+    };
+
+    vm.mediumPipe = function (tableState) {
+      $scope.mediumLoading = true;
+      if (vm.displayedMediums.length == 0) {
+        $scope.initMediumLoad = true;
+      }
+      if (!angular.isUndefined(tableState)) {
+        vm.mediumTableState = tableState;
+        var search = '';
+        if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        }
+        let ordering = tableState.sort.predicate;
+        if (tableState.sort.reverse) {
+          ordering = '-' + ordering;
+        }
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.mediumsPerPage);
+        if (
+          (vm.mediumFilterModel.policy === null || angular.isUndefined(vm.mediumFilterModel.policy)) &&
+          vm.policyFilter !== null
+        ) {
+          vm.mediumFilterModel.policy = vm.policyFilter.id;
+          vm.mediumFilterFields.forEach((x) => {
+            if (x.key === 'policy') {
+              x.addDefault(vm.policyFilter);
+            }
+          });
+        }
+        if (vm.mediumFilterModel.medium_id_range_min || vm.mediumFilterModel.medium_id_range_max) {
+          $rootScope.skipErrorNotification = true;
+        }
+        StorageMedium.query(
+          angular.extend(
+            {
+              page: paginationParams.pageNumber,
+              page_size: paginationParams.number,
+              pager: paginationParams.pager,
+              migratable: true,
+              ordering,
+              search,
+            },
+            vm.mediumFilterModel
+          )
+        )
+          .$promise.then(function (resource) {
+            vm.displayedMediums = resource;
+            tableState.pagination.numberOfPages = Math.ceil(resource.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
+            $scope.mediumLoading = false;
+            $scope.initMediumLoad = false;
+            SelectedIPUpdater.update(vm.displayedMediums, [], $scope.storageMedium);
+          })
+          .catch(function (response) {
+            if (response.status == 404) {
+              const filters = {
+                search: search,
+              };
+
+              listViewService.checkPages('storage_medium', paginationParams.number, filters).then(function (response) {
+                tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
+                tableState.pagination.start =
+                  response.numberOfPages * paginationParams.number - paginationParams.number;
+                vm.mediumPipe(tableState);
+              });
+            } else {
+              if (response.data && response.data.medium_id_range) {
+                Notifications.add(response.data.medium_id_range, 'error');
+              }
+              $scope.mediumLoading = false;
+            }
+          });
+      }
+    };
+
+    vm.mediumSelected = (medium) => {
+      return (
+        vm.selectedMediums.filter((x) => {
+          return x.id === medium.id;
+        }).length > 0
+      );
+    };
+
+    vm.selectMedium = (medium, event) => {
+      if (vm.mediumSelected(medium)) {
+        let removeIndex = null;
+        vm.selectedMediums.forEach((x, idx) => {
+          if (x.id === medium.id) {
+            removeIndex = idx;
+          }
+        });
+        if (removeIndex !== null) {
+          vm.selectedMediums.splice(removeIndex, 1);
+        } else {
+        }
+        if (vm.selectedMediums.length === 0) {
+          vm.displayedIps = [];
+          $scope.ip = null;
+          $scope.ips = [];
+        } else {
+          $scope.getListViewData();
+        }
+      } else {
+        vm.selectedMediums.push(medium);
+      }
+    };
+
+    vm.deselectAllMediums = () => {
+      vm.selectedMediums = [];
+    };
+
+    vm.selectAllMediums = () => {
+      vm.displayedMediums.forEach((x) => {
+        if (!vm.mediumSelected(x)) {
+          vm.selectMedium(x);
+        }
+      });
+      $scope.getListViewData();
     };
   }
 }

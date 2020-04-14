@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from ESSArch_Core.agents.models import (
@@ -428,6 +428,7 @@ class AgentWriteSerializer(AgentSerializer):
             AgentRelation.objects.filter(Q(agent_a=instance) | Q(agent_b=instance)).delete()
             self.create_relations(instance, related_agents_data)
 
+        instance.revise_date = timezone.now()
         return super().update(instance, validated_data)
 
     def validate_names(self, value):

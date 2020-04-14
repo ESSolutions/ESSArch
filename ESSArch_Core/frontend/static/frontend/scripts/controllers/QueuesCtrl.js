@@ -8,22 +8,22 @@ export default class QueuesCtrl {
     vm.ioPerPage = 10;
     let ioInterval;
     $interval.cancel(ioInterval);
-    ioInterval = $interval(function() {
+    ioInterval = $interval(function () {
       vm.getIoQueue(vm.ioTableState);
     }, appConfig.queueInterval);
 
     let robotInterval;
     $interval.cancel(robotInterval);
-    robotInterval = $interval(function() {
+    robotInterval = $interval(function () {
       vm.getRobotQueue(vm.robotTableState);
     }, appConfig.queueInterval);
 
-    $transitions.onSuccess({}, function($transition) {
+    $transitions.onSuccess({}, function ($transition) {
       $interval.cancel(ioInterval);
       $interval.cancel(robotInterval);
     });
 
-    vm.getIoQueue = function(tableState) {
+    vm.getIoQueue = function (tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.ioLoading = true;
         vm.ioTableState = tableState;
@@ -41,19 +41,19 @@ export default class QueuesCtrl {
           sorting,
           search
         )
-          .then(function(result) {
+          .then(function (result) {
             vm.ioQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             tableState.pagination.totalItemCount = result.count;
             vm.ioLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('io_queue', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('io_queue', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getIoQueue(tableState);
@@ -64,7 +64,7 @@ export default class QueuesCtrl {
       }
     };
 
-    vm.getRobotQueue = function(tableState) {
+    vm.getRobotQueue = function (tableState) {
       if (!angular.isUndefined(tableState)) {
         vm.robotTableState = tableState;
         vm.robotLoading = true;
@@ -82,19 +82,19 @@ export default class QueuesCtrl {
           sorting,
           search
         )
-          .then(function(result) {
+          .then(function (result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             tableState.pagination.totalItemCount = result.count;
             vm.robotLoading = false;
           })
-          .catch(function(response) {
+          .catch(function (response) {
             if (response.status == 404) {
               const filters = {
                 search: search,
               };
 
-              listViewService.checkPages('robot_queue', paginationParams.number, filters).then(function(result) {
+              listViewService.checkPages('robot_queue', paginationParams.number, filters).then(function (result) {
                 tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
                 tableState.pagination.start = result.numberOfPages * paginationParams.number - paginationParams.number;
                 $scope.getIoQueue(tableState);

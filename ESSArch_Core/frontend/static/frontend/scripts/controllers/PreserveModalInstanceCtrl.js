@@ -1,50 +1,51 @@
-export default class PreserveModalInstanceCtrl {
-  constructor($uibModalInstance, data, Requests, $q) {
-    const $ctrl = this;
-    $ctrl.angular = angular;
-    $ctrl.data = data;
-    $ctrl.requestTypes = data.types;
-    $ctrl.request = data.request;
-    $ctrl.preserving = false;
+import {isEnabled} from './../features/utils';
 
-    $ctrl.$onInit = function() {
-      if ($ctrl.data.ips == null) {
-        $ctrl.data.ips = [$ctrl.data.ip];
+export default class PreserveModalInstanceCtrl {
+  constructor($uibModalInstance, data, Requests, $q, $controller, $scope, $rootScope) {
+    const vm = this;
+    $controller('TagsCtrl', {$scope: $scope, vm: vm});
+    $scope.isEnabled = isEnabled;
+    vm.angular = angular;
+    vm.data = data;
+    vm.requestTypes = data.types;
+    vm.request = data.request;
+    vm.preserving = false;
+
+    vm.$onInit = function () {
+      if (!vm.data.ips) {
+        vm.data.ips = [vm.data.ip];
       }
     };
-    $ctrl.ok = function() {
+
+    vm.ok = function () {
       $uibModalInstance.close();
     };
-    $ctrl.cancel = function() {
+    vm.cancel = function () {
       $uibModalInstance.dismiss('cancel');
     };
 
     // Preserve IP
-    $ctrl.preserve = function() {
-      $ctrl.preserving = true;
-      const params = {purpose: $ctrl.request.purpose};
-      params.policy =
-        $ctrl.request.storagePolicy && $ctrl.request.storagePolicy.value != ''
-          ? $ctrl.request.storagePolicy.value.id
-          : null;
-      if ($ctrl.request.appraisal_date != null) {
-        params.appraisal_date = $ctrl.request.appraisal_date;
-      }
+    vm.preserve = function () {
+      vm.preserving = true;
+      let data = {
+        purpose: vm.request.purpose,
+      };
+
       const promises = [];
-      $ctrl.data.ips.forEach(function(ip) {
+      vm.data.ips.forEach(function (ip) {
         promises.push(
-          Requests.preserve(ip, params)
-            .then(function(result) {
+          Requests.preserve(ip, data)
+            .then(function (result) {
               return result;
             })
-            .catch(function(response) {
+            .catch(function (response) {
               return response;
             })
         );
       });
-      $q.all(promises).then(function(data) {
+      $q.all(promises).then(function (data) {
         $uibModalInstance.close(data);
-        $ctrl.preserving = false;
+        vm.preserving = false;
       });
     };
   }
