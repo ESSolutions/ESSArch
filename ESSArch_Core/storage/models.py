@@ -552,7 +552,7 @@ class StorageMedium(models.Model):
     num_of_mounts = models.IntegerField(default=0)
 
     create_date = models.DateTimeField(default=timezone.now)
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     agent = models.CharField(max_length=255)
@@ -595,6 +595,7 @@ class StorageMedium(models.Model):
             data['tape_slot'] = TapeSlot.create_from_remote_copy(
                 host, session, data['tape_slot'], create_storage_medium=False
             )
+        data['last_changed_local'] = timezone.now
         storage_medium, _ = StorageMedium.objects.update_or_create(
             pk=data.pop('id'),
             medium_id=data.pop('medium_id'),
@@ -717,7 +718,7 @@ class StorageObject(models.Model):
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True, default=timezone.now)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='storage',
@@ -744,6 +745,7 @@ class StorageObject(models.Model):
         data.pop('medium_id', None)
         data.pop('target_name', None)
         data.pop('target_target', None)
+        data['last_changed_local'] = timezone.now
         obj, _ = StorageObject.objects.update_or_create(
             pk=data.pop('id'),
             defaults=data,

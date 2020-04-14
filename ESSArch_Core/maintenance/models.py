@@ -332,7 +332,9 @@ class AppraisalJob(MaintenanceJob):
                     ip.delete()
                 else:
                     # inactivate old generations
-                    InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+                    InformationPackage.objects.filter(
+                        aic=ip.aic, generation__lte=ip.generation
+                    ).update(active=False, last_changed_local=timezone.now())
 
             else:
                 new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
