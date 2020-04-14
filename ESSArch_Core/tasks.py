@@ -535,7 +535,7 @@ class UpdateIPStatus(DBTask):
                                     level=logging.INFO, user_id=self.responsible, refresh=True)
 
     def undo(self, status, prev=None):
-        InformationPackage.objects.filter(pk=self.ip).update(state=prev)
+        InformationPackage.objects.filter(pk=self.ip).update(state=prev, last_changed_local=timezone.now())
 
     def event_outcome_success(self, result, status, prev=None):
         ip = self.get_information_package()
@@ -558,7 +558,7 @@ class UpdateIPPath(DBTask):
         ip.save()
 
     def undo(self, status, prev=None):
-        InformationPackage.objects.filter(pk=self.ip).update(path=prev)
+        InformationPackage.objects.filter(pk=self.ip).update(path=prev, last_changed_local=timezone.now())
 
     def event_outcome_success(self, result, path, prev=None):
         ip = self.get_information_package()
@@ -575,7 +575,8 @@ class UpdateIPSizeAndCount(DBTask):
         size, count = get_tree_size_and_count(path)
 
         InformationPackage.objects.filter(pk=ip).update(
-            object_size=size, object_num_items=count
+            object_size=size, object_num_items=count,
+            last_changed_local=timezone.now(),
         )
 
         return size, count

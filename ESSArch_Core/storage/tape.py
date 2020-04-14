@@ -7,7 +7,7 @@ import time
 from subprocess import PIPE, Popen
 
 from django.conf import settings
-from django.utils.timezone import localtime
+from django.utils import timezone
 from lxml import etree
 from tenacity import retry, stop_after_attempt, wait_fixed
 
@@ -213,7 +213,7 @@ def create_tape_label(medium, xmlpath):
     label_tape = etree.SubElement(root, 'tape')
     label_tape.set('id', medium.medium_id)
 
-    local_create_date = localtime(medium.create_date)
+    local_create_date = timezone.localtime(medium.create_date)
     label_tape.set('date', local_create_date.replace(microsecond=0).isoformat())
 
     label_format = etree.SubElement(root, 'format')
@@ -416,7 +416,9 @@ def robot_inventory(robot):
                         tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=medium_id
                     ).update(tape_drive=drive)
                 else:
-                    StorageMedium.objects.filter(tape_drive=drive).update(tape_drive=None)
+                    StorageMedium.objects.filter(tape_drive=drive).update(
+                        tape_drive=None, last_changed_local=timezone.now(),
+                    )
             except TapeDrive.DoesNotExist:
                 logger.warning(
                     'Drive {row} (drive_id={drive}, robot={robot}) not found in database'.format(
@@ -452,7 +454,9 @@ def robot_inventory(robot):
                             )
                         )
 
-                    StorageMedium.objects.filter(medium_id=medium_id).update(tape_slot=slot)
+                    StorageMedium.objects.filter(medium_id=medium_id).update(
+                        tape_slot=slot, last_changed_local=timezone.now(),
+                    )
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
