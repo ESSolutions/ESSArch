@@ -6,7 +6,7 @@ export default class TransferSipModalInstanceCtrl {
     $ctrl.transferring = false;
 
     $ctrl.$onInit = () => {
-      $ctrl.ips = data.ips.map(ip => {
+      $ctrl.ips = data.ips.map((ip) => {
         ip.id = ip.object_identifier_value;
         return ip;
       });
