@@ -38,6 +38,7 @@ import requests
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.http import FileResponse
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
@@ -70,6 +71,9 @@ from ESSArch_Core.profiles.models import (
     SubmissionAgreement,
     SubmissionAgreementIPData,
 )
+from ESSArch_Core.search.ingest import index_path
+from ESSArch_Core.storage.copy import copy
+from ESSArch_Core.storage.exceptions import NoWriteableStorage
 from ESSArch_Core.storage.models import (
     DISK,
     STORAGE_TARGET_STATUS_ENABLED,
@@ -79,57 +83,78 @@ from ESSArch_Core.storage.models import (
     StorageObject,
     StorageTarget,
 )
-from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
+from ESSArch_Core.storage.tests.helpers import (
+    add_storage_medium,
+    add_storage_method_rel,
+    add_storage_obj,
+)
+from ESSArch_Core.tags.documents import File
+from ESSArch_Core.tags.tests.test_search import (
+    ESSArchSearchBaseTestCase,
+    ESSArchSearchBaseTransactionTestCase,
+)
 from ESSArch_Core.testing.runner import TaskRunner
 from ESSArch_Core.testing.test_helpers import (
     create_mets_spec,
     create_premis_spec,
 )
+from ESSArch_Core.util import timestamp_to_datetime
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 class AccessTestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
+        cls.user = User.objects.create()
         cls.org_group_type = GroupType.objects.create(label='organization')
 
     def setUp(self):
-        datadir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, datadir)
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
 
-        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir))
-        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir))
-        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir))
+        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
 
-        cache = StorageMethod.objects.create()
-        cache_target = StorageTarget.objects.create(name='cache target')
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create(
+            target=tempfile.mkdtemp(dir=self.datadir),
+        )
 
         StorageMethodTargetRelation.objects.create(
-            storage_method=cache,
-            storage_target=cache_target,
+            storage_method=storage_method,
+            storage_target=storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
         )
         storage_medium = StorageMedium.objects.create(
-            storage_target=cache_target,
+            storage_target=storage_target,
             status=20, location_status=50,
             block_size=1024, format=103
         )
 
         policy = StoragePolicy.objects.create(
-            cache_storage=cache,
             ingest_path=Path.objects.create(entity='ingest', value='ingest'),
         )
-        sa = SubmissionAgreement.objects.create(policy=policy)
+        policy.storage_methods.add(storage_method)
+        sa = SubmissionAgreement.objects.create(
+            policy=policy,
+            profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
+        )
+
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.AIP, generation=0,
-            submission_agreement=sa,
+            submission_agreement=sa, object_path=tempfile.mkdtemp(dir=self.datadir),
+            responsible=self.user,
+            aic=InformationPackage.objects.create(package_type=InformationPackage.AIC),
         )
-        self.ip.aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        sa.lock_to_information_package(self.ip, self.user)
 
-        StorageObject.objects.create(
+        storage_obj = StorageObject.objects.create(
             storage_medium=storage_medium, ip=self.ip,
-            content_location_type=DISK,
+            content_location_type=DISK, content_location_value=self.ip.object_identifier_value,
         )
+        os.makedirs(storage_obj.get_full_path())
+        open(os.path.join(storage_obj.get_full_path(), 'foo.txt'), 'a').close()
 
         self.user = User.objects.create_superuser(username="superuser")
         self.member = self.user.essauth_member
@@ -157,37 +182,60 @@ class AccessTestCase(APITestCase):
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip_read_only(self, mock_step):
+    @TaskRunner()
+    def test_received_ip_read_only(self):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_received_ip_new_generation(self, mock_step):
+    @TaskRunner()
+    def test_received_ip_new_generation(self):
         self.ip.state = 'Received'
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip_read_only(self, mock_step):
+    @TaskRunner()
+    def test_archived_ip_read_only(self):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
 
-    @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
-    def test_archived_ip_new_generation(self, mock_step):
+    @TaskRunner()
+    def test_archived_ip_new_generation(self):
         self.ip.archived = True
         self.ip.save()
         res = self.client.post(self.url, {'tar': True, 'new': True})
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_step.assert_called_once()
+
+    @TaskRunner()
+    def test_archived_cached_ip(self):
+        self.ip.archived = True
+        self.ip.save()
+
+        storage_method = StorageMethod.objects.create()
+        storage_target = StorageTarget.objects.create(
+            name='cache', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        StorageMedium.objects.create(
+            storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            medium_id='cache',
+        )
+        self.ip.policy.cache_storage = storage_method
+        self.ip.policy.save()
+
+        res = self.client.post(self.url, {'tar': True})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
 
 
 class WorkareaViewSetTestCase(TestCase):
@@ -1468,9 +1516,8 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
-        cache = StorageMethod.objects.create()
         ingest = Path.objects.create(entity='ingest', value='ingest')
-        policy = StoragePolicy.objects.create(cache_storage=cache, ingest_path=ingest)
+        policy = StoragePolicy.objects.create(ingest_path=ingest)
 
         sa = SubmissionAgreement.objects.create(policy=policy)
         ip = InformationPackage.objects.create(object_path='foo', submission_agreement=sa)
@@ -1547,7 +1594,6 @@ class InformationPackageViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
     def test_get_ip_with_submission_agreement(self, mock_data):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         sa = SubmissionAgreement.objects.create(
@@ -1697,35 +1743,14 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
 
         os.makedirs(os.path.join(receipts.value, 'xml'))
 
-        self.cache = StorageMethod.objects.create()
-        self.policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest)
+        self.policy = StoragePolicy.objects.create(ingest_path=ingest)
 
-        self.cache_target = StorageTarget.objects.create(name='cache', target=tempfile.mkdtemp(dir=self.datadir))
-        StorageMethodTargetRelation.objects.create(
-            storage_method=self.cache,
-            storage_target=self.cache_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-
-    @TaskRunner()
-    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
-    @mock.patch('ESSArch_Core.ip.tasks.InformationPackage.write_to_search_index')
-    def test_preserve_aip(self, mock_index, mock_validate_schema):
-        storage_method = StorageMethod.objects.create(containers=True)
-        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
-        StorageMethodTargetRelation.objects.create(
-            storage_method=storage_method,
-            storage_target=storage_target,
-            status=STORAGE_TARGET_STATUS_ENABLED
-        )
-        self.policy.storage_methods.add(self.cache, storage_method)
-
-        sa = SubmissionAgreement.objects.create(
+        self.sa = SubmissionAgreement.objects.create(
             policy=self.policy,
             profile_transfer_project=Profile.objects.create(profile_type='transfer_project'),
         )
-        sa.profile_aip = Profile.objects.create(
-            profile_type='aip', specification=create_mets_spec(False, sa),
+        self.sa.profile_aip = Profile.objects.create(
+            profile_type='aip', specification=create_mets_spec(False, self.sa),
             structure=[
                 {
                     'type': 'file',
@@ -1744,30 +1769,52 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
                 },
             ]
         )
-        sa.profile_aic_description = Profile.objects.create(
+        self.sa.profile_aic_description = Profile.objects.create(
             profile_type='aic_description',
-            specification=create_mets_spec(True, sa),
+            specification=create_mets_spec(True, self.sa),
         )
-        sa.profile_aip_description = Profile.objects.create(
+        self.sa.profile_aip_description = Profile.objects.create(
             profile_type='aip_description',
-            specification=create_mets_spec(True, sa),
+            specification=create_mets_spec(True, self.sa),
         )
-        sa.profile_preservation_metadata = Profile.objects.create(
+        self.sa.profile_preservation_metadata = Profile.objects.create(
             profile_type='preservation_metadata',
-            specification=create_premis_spec(sa),
+            specification=create_premis_spec(self.sa),
         )
-        sa.save()
+        self.sa.save()
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_preserve_aip(self, mock_validate_schema):
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir))
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(container_storage_method, storage_method)
 
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         ip = InformationPackage.objects.create(
-            package_type=InformationPackage.AIP, submission_agreement=sa,
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
             object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
             generation=0, aic=aic,
         )
         with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
             f.write('bar')
 
-        sa.lock_to_information_package(ip, self.user)
+        self.sa.lock_to_information_package(ip, self.user)
         url = reverse('informationpackage-preserve', args=(ip.pk,))
 
         perms = {'group': ['view_informationpackage']}
@@ -1775,35 +1822,131 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
 
         res = self.client.post(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        mock_index.assert_called_once()
 
         ip.refresh_from_db()
+        self.assertTrue(ip.archived)
+        container_target_dir = os.listdir(container_storage_target.target)
+        self.assertNotIn(str(ip.pk), container_target_dir)
+        self.assertIn('{}.tar'.format(ip.pk), container_target_dir)
+        self.assertIn('{}.xml'.format(ip.pk), container_target_dir)
+        self.assertIn('{}.xml'.format(ip.aic.pk), container_target_dir)
+
         target_dir = os.listdir(storage_target.target)
-        self.assertIn('{}.tar'.format(ip.pk), target_dir)
-        self.assertIn('{}.xml'.format(ip.pk), target_dir)
-        self.assertIn('{}.xml'.format(ip.aic.pk), target_dir)
+        self.assertIn(str(ip.pk), target_dir)
+        self.assertNotIn('{}.tar'.format(ip.pk), target_dir)
+        self.assertNotIn('{}.xml'.format(ip.pk), target_dir)
+        self.assertNotIn('{}.xml'.format(ip.aic.pk), target_dir)
+
+        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
 
         self.assertTrue(
             StorageObject.objects.filter(
                 ip=ip, storage_medium__storage_target=storage_target,
+                content_location_value=f'{ip.object_identifier_value}',
+                container=False,
+            ).exists()
+        )
+        self.assertTrue(
+            StorageObject.objects.filter(
+                ip=ip, storage_medium__storage_target=container_storage_target,
                 content_location_value=f'{ip.object_identifier_value}.tar',
                 container=True,
             ).exists()
         )
         self.assertTrue(
-            StorageObject.objects.filter(
-                ip=ip, storage_medium__storage_target=self.cache_target,
-                content_location_value=ip.object_identifier_value,
-                container=False,
-            ).exists()
-        )
-        self.assertEqual(ip.content_mets_path, 'this_is_mets.xml')
-        self.assertTrue(
-            os.path.isfile(os.path.join(self.cache_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
+            os.path.isfile(os.path.join(storage_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
 
         tempdir = Path.objects.get(entity="temp").value
         self.assertEqual(os.listdir(tempdir), [])
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_preserve_aip_to_disabled_method(self, _):
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False, enabled=False)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir), status=True)
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(container_storage_method, storage_method)
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        self.sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, ip, custom_permissions=perms)
+
+        expected_message = 'Storage method "{}" is disabled'.format(storage_method.name)
+        with self.assertRaisesMessage(NoWriteableStorage, expected_message):
+            self.client.post(url)
+
+        ip.refresh_from_db()
+        self.assertFalse(ip.archived)
+
+    @TaskRunner()
+    @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
+    def test_preserve_aip_to_disabled_target(self, _):
+        container_storage_method = StorageMethod.objects.create(containers=True)
+        container_storage_target = StorageTarget.objects.create(
+            name='container', target=tempfile.mkdtemp(dir=self.datadir),
+        )
+        StorageMethodTargetRelation.objects.create(
+            storage_method=container_storage_method,
+            storage_target=container_storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+
+        storage_method = StorageMethod.objects.create(containers=False)
+        storage_target = StorageTarget.objects.create(target=tempfile.mkdtemp(dir=self.datadir), status=False)
+        StorageMethodTargetRelation.objects.create(
+            storage_method=storage_method,
+            storage_target=storage_target,
+            status=STORAGE_TARGET_STATUS_ENABLED
+        )
+        self.policy.storage_methods.add(container_storage_method, storage_method)
+
+        aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
+        ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP, submission_agreement=self.sa,
+            object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
+            generation=0, aic=aic,
+        )
+        with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
+            f.write('bar')
+
+        self.sa.lock_to_information_package(ip, self.user)
+        url = reverse('informationpackage-preserve', args=(ip.pk,))
+
+        perms = {'group': ['view_informationpackage']}
+        self.member.assign_object(self.group, ip, custom_permissions=perms)
+
+        expected_message = 'No writeable target available for "{}"'.format(storage_method.name)
+        with self.assertRaisesMessage(NoWriteableStorage, expected_message):
+            self.client.post(url)
+
+        ip.refresh_from_db()
+        self.assertFalse(ip.archived)
 
     @TaskRunner()
     def test_preserve_dip(self):
@@ -1818,7 +1961,6 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
     def setUpTestData(cls):
         Feature.objects.create(name='receive', enabled=True)
         Feature.objects.create(name='transfer', enabled=True)
-        cls.cache = StorageMethod.objects.create()
 
         org_group_type = GroupType.objects.create(label='organization')
         cls.group = Group.objects.create(name='organization', group_type=org_group_type)
@@ -1845,7 +1987,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         Path.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
         ingest = Path.objects.create(entity='ingest', value=ingest)
 
-        policy = StoragePolicy.objects.create(cache_storage=self.cache, ingest_path=ingest, receive_extract_sip=True)
+        policy = StoragePolicy.objects.create(ingest_path=ingest, receive_extract_sip=True)
         self.sa = SubmissionAgreement.objects.create(
             policy=policy,
             profile_aic_description=Profile.objects.create(profile_type='aic_description'),
@@ -2241,7 +2383,6 @@ class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         cls.sa1 = SubmissionAgreement.objects.create(policy=cls.policy)
@@ -2827,7 +2968,6 @@ class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         cls.sa = SubmissionAgreement.objects.create(policy=policy)
@@ -3003,7 +3143,6 @@ class test_submit_ip(TestCase):
         self.client.force_authenticate(user=self.user)
 
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
 
@@ -3272,7 +3411,7 @@ class UploadTestCase(TestCase):
             self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
 
-class FilesActionTests(TestCase):
+class FilesActionTests(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -3285,7 +3424,6 @@ class FilesActionTests(TestCase):
         self.datadir2 = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir2)
 
-        self.client = APIClient()
         self.user = User.objects.create(username="admin")
         self.ip = InformationPackage.objects.create(
             package_type=InformationPackage.SIP,
@@ -3304,12 +3442,6 @@ class FilesActionTests(TestCase):
         membership.roles.add(self.user_role)
 
         self.org.add_object(self.ip)
-
-        try:
-            os.makedirs(self.datadir)
-        except OSError as e:
-            if e.errno != 17:
-                raise
 
     def test_get_method_with_no_params(self):
         self.client.force_authenticate(user=self.user)
@@ -3754,3 +3886,159 @@ class FilesActionTests(TestCase):
         expected_error_message = "Cannot delete or add content of an IP that is not in 'Prepared' or 'Uploading' state"
         self.assertEqual(resp.data['detail'], expected_error_message)
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.datadir = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.datadir)
+
+        self.user = User.objects.create(username="admin")
+
+        policy = StoragePolicy.objects.create(
+            cache_storage=StorageMethod.objects.create(),
+            ingest_path=Path.objects.create(),
+        )
+        sa = SubmissionAgreement.objects.create(policy=policy,)
+        self.ip = InformationPackage.objects.create(
+            package_type=InformationPackage.AIP,
+            archived=True, responsible=self.user,
+            submission_agreement=sa, object_path=self.datadir,
+        )
+        self.url = reverse('informationpackage-files', args=(self.ip.pk,))
+        sa.lock_to_information_package(self.ip, self.user)
+
+    def test_get_archived_dir_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        index_path(self.ip, test_file)
+        File._index.refresh()
+
+        os.makedirs(short_term_obj.get_full_path())
+        copy(test_file, short_term_obj.get_full_path())
+
+        res = self.client.get(self.url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            res.data,
+            [
+                {
+                    'name': 'foo.txt',
+                    'size': 11,
+                    'type': 'file',
+                    'modified': timestamp_to_datetime(os.stat(test_file).st_mtime).isoformat(),
+                }
+            ]
+        )
+
+    def test_get_archived_file_from_short_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        short_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        short_term.storage_method.containers = False
+        short_term.storage_method.save()
+        short_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        short_term.storage_target.save()
+        short_term_medium = add_storage_medium(short_term.storage_target, 20, 'm1')
+        short_term_obj = add_storage_obj(
+            self.ip, short_term_medium, DISK, self.ip.object_identifier_value,
+        )
+        short_term_obj.container = False
+        short_term_obj.save()
+
+        self.ip.policy.storage_methods.add(short_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        test_nested_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(test_nested_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, test_nested_file)
+        File._index.refresh()
+
+        os.makedirs(os.path.join(short_term_obj.get_full_path(), 'nested'))
+        copy(test_file, short_term_obj.get_full_path())
+        copy(test_nested_file, os.path.join(short_term_obj.get_full_path(), 'nested'))
+
+        params = {'path': 'foo.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()
+
+    def test_get_archived_file_from_long_term(self):
+        self.client.force_authenticate(user=self.user)
+
+        long_term = add_storage_method_rel(DISK, 't1', STORAGE_TARGET_STATUS_ENABLED)
+        long_term.storage_method.containers = True
+        long_term.storage_method.save()
+        long_term.storage_target.target = tempfile.mkdtemp(dir=self.datadir)
+        long_term.storage_target.save()
+        long_term_medium = add_storage_medium(long_term.storage_target, 20, 'm1')
+        long_term_obj = add_storage_obj(
+            self.ip, long_term_medium, DISK, self.ip.object_identifier_value + '.tar',
+        )
+        long_term_obj.container = True
+        long_term_obj.save()
+
+        self.ip.policy.storage_methods.add(long_term.storage_method)
+
+        test_file = os.path.join(self.datadir, 'foo.txt')
+        with open(test_file, 'w') as f:
+            f.write('hello world')
+
+        os.makedirs(os.path.join(self.datadir, 'nested'))
+        nested_test_file = os.path.join(self.datadir, 'nested', 'bar.txt')
+        with open(nested_test_file, 'w') as f:
+            f.write('hello nested world')
+
+        index_path(self.ip, test_file)
+        index_path(self.ip, nested_test_file)
+        File._index.refresh()
+
+        with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
+            t.add(test_file, arcname='foo.txt')
+            t.add(nested_test_file, arcname='nested/bar.txt')
+
+        params = {'path': 'foo.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello world')
+        res.close()
+
+        params = {'path': 'nested/bar.txt'}
+        res: FileResponse = self.client.get(self.url, params)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, 'hello nested world')
+        res.close()

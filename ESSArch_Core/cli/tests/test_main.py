@@ -59,7 +59,7 @@ class CLITest(SimpleTestCase):
                 optimization='fair',
                 pidfile=None,
                 prefetch_multiplier=1,
-                pool='prefork',
+                pool='gevent',
             )
             self.assertEqual(result.exit_code, 0)
 

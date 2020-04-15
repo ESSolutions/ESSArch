@@ -166,9 +166,7 @@ class PreserveInformationPackageTests(TestCase):
         Path.objects.create(entity='temp', value='temp')
 
     def setUp(self):
-        self.cache_storage = StorageMethod.objects.create()
         self.storage_policy = StoragePolicy.objects.create(
-            cache_storage=self.cache_storage,
             ingest_path=Path.objects.create(),
         )
 

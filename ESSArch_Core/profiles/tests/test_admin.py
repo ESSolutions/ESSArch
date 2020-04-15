@@ -4,7 +4,6 @@ from django.urls import reverse
 
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.storage.models import StorageMethod
 
 
 class SubmissionAgreementAdminTestCase(TestCase):
@@ -25,7 +24,6 @@ class SubmissionAgreementAdminTestCase(TestCase):
 
     def test_change_view(self):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(entity='ingest'),
         )
         sa = SubmissionAgreement.objects.create(policy=policy)

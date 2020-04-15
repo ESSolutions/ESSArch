@@ -112,7 +112,7 @@ def install(ctx, data_directory):
     installDefaultConfiguration()
 
 
-@click.option('-P', '--pool', default='prefork',
+@click.option('-P', '--pool', default='gevent',
               type=click.Choice(('prefork', 'eventlet', 'gevent', 'threads', 'solo'), case_sensitive=False))
 @click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))

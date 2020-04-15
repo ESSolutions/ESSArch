@@ -4,7 +4,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from ESSArch_Core.configuration.models import Feature
+from ESSArch_Core.configuration.models import Feature, Path, StoragePolicy
+from ESSArch_Core.storage.models import StorageMethod
 
 User = get_user_model()
 
@@ -34,6 +35,22 @@ class SiteTests(TestCase):
     def test_site(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
+class StoragePolicyTests(APITestCase):
+    def test_list(self):
+        self.user = User.objects.create(username='user')
+        self.client.force_authenticate(user=self.user)
+
+        url = reverse('storagepolicy-list')
+        StoragePolicy.objects.create(
+            ingest_path=Path.objects.create(),
+            cache_storage=StorageMethod.objects.create(),
+        )
+
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(resp.data), 1)
 
 
 class SysInfoTests(TestCase):

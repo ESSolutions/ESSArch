@@ -30,13 +30,11 @@ from ESSArch_Core.profiles.models import (
     ProfileSA,
     SubmissionAgreement,
 )
-from ESSArch_Core.storage.models import StorageMethod
 
 
 class SubmissionAgreementTestCase(TestCase):
     def test_copy(self):
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         sa = SubmissionAgreement.objects.create(policy=policy)
