@@ -10,7 +10,7 @@ from glob2 import iglob
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
-from ESSArch_Core.util import normalize_path
+from ESSArch_Core.util import normalize_path, open_file
 
 logger = logging.getLogger('essarch.storage.backends.disk')
 
@@ -28,9 +28,15 @@ class DiskStorageBackend(BaseStorageBackend):
 
         return os.path.join(dst, root)
 
-    def open(self, storage_object, file, *args, **kwargs):
+    def open(self, storage_object: StorageObject, file, mode='r', *args, **kwargs):
+        if storage_object.container:
+            return open_file(
+                file, *args, container=storage_object.get_full_path(),
+                container_prefix=storage_object.ip.object_identifier_value, **kwargs
+            )
+
         path = os.path.join(storage_object.get_full_path(), file)
-        return open(path, *args, **kwargs)
+        return open(path, mode, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
         src = storage_object.get_full_path()

@@ -228,7 +228,10 @@ class StoragePolicy(models.Model):
         'storage.StorageMethod',
         related_name='storage_policies',
     )
-    cache_storage = models.ForeignKey('storage.StorageMethod', on_delete=models.PROTECT, related_name='cache_policy')
+    cache_storage = models.ForeignKey(
+        'storage.StorageMethod', on_delete=models.PROTECT,
+        related_name='cache_policy', null=True,
+    )
     preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
     ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
     information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)

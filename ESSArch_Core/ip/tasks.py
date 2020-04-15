@@ -45,7 +45,10 @@ from ESSArch_Core.ip.utils import (
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file, enough_space_available
-from ESSArch_Core.storage.exceptions import NoSpaceLeftError
+from ESSArch_Core.storage.exceptions import (
+    NoSpaceLeftError,
+    NoWriteableStorage,
+)
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import (
     delete_path,
@@ -460,13 +463,16 @@ class PreserveInformationPackage(DBTask):
         storage_method = StorageMethod.objects.get(pk=storage_method_pk)
         policy_methods = policy.storage_methods.all()
 
-        if storage_method not in policy_methods and storage_method != policy.cache_storage:
+        if storage_method not in policy_methods:
             raise ValueError('{} not part of {}'.format(storage_method, policy))
+
+        if not storage_method.enabled:
+            raise NoWriteableStorage('Storage method "{}" is disabled'.format(storage_method.name))
 
         try:
             storage_target = storage_method.enabled_target
         except StorageTarget.DoesNotExist:
-            raise ValueError('No writeable target available for {}'.format(storage_method))
+            raise NoWriteableStorage('No writeable target available for "{}"'.format(storage_method.name))
 
         if storage_method.containers or storage_target.remote_server:
             src = [
