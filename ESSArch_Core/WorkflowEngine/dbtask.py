@@ -68,7 +68,9 @@ class DBTask(Task):
         if self.eager:
             return self.request.headers['headers']
 
-        return self.request.headers
+        if self.request.headers:
+            return self.request.headers
+        return {}
 
     @property
     def result_params(self):
