@@ -767,7 +767,7 @@ def RunWorkflowPollers(self):
                                       on_error=spec.get('on_error'), context=context)
 
     self.logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
-    for workflow in self.get_workflows():
+    for workflow in get_workflows():
         workflow.run()
 
 
