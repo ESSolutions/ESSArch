@@ -57,115 +57,107 @@ from ESSArch_Core.util import (
     normalize_path,
     zip_directory,
 )
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
 
 
-class SubmitSIP(DBTask):
-    event_type = 10500
+@app.task(bind=True, event_type=10500)
+def SubmitSIP(self, delete_source=False, update_path=True):
+    ip = InformationPackage.objects.get(pk=self.ip)
 
-    def run(self, delete_source=False, update_path=True):
-        ip = InformationPackage.objects.get(pk=self.ip)
+    reception = Path.objects.get(entity="ingest_reception").value
+    container_format = ip.get_container_format()
+    src = ip.object_path
 
-        reception = Path.objects.get(entity="ingest_reception").value
-        container_format = ip.get_container_format()
-        src = ip.object_path
+    try:
+        remote = ip.get_profile_data('transfer_project').get(
+            'preservation_organization_receiver_url'
+        )
+    except AttributeError:
+        remote = None
 
-        try:
-            remote = ip.get_profile_data('transfer_project').get(
-                'preservation_organization_receiver_url'
-            )
-        except AttributeError:
-            remote = None
+    session = None
 
-        session = None
+    if remote:
+        dst, remote_user, remote_pass = remote.split(',')
+        dst = urljoin(dst, 'api/ip-reception/upload/')
 
-        if remote:
-            dst, remote_user, remote_pass = remote.split(',')
-            dst = urljoin(dst, 'api/ip-reception/upload/')
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        session.auth = (remote_user, remote_pass)
+    else:
+        dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
 
-            session = requests.Session()
-            session.verify = settings.REQUESTS_VERIFY
-            session.auth = (remote_user, remote_pass)
-        else:
-            dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
+    block_size = 8 * 1000000  # 8MB
+    copy_file(src, dst, requests_session=session, block_size=block_size)
 
-        block_size = 8 * 1000000  # 8MB
-        copy_file(src, dst, requests_session=session, block_size=block_size)
+    src_xml = os.path.join(os.path.dirname(src), ip.object_identifier_value + ".xml")
+    if not remote:
+        dst_xml = os.path.join(reception, ip.object_identifier_value + ".xml")
+    else:
+        dst_xml = dst
+    copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
 
-        src_xml = os.path.join(os.path.dirname(src), ip.object_identifier_value + ".xml")
+    if update_path and not remote:
+        ip.object_path = dst
+        ip.package_mets_path = dst_xml
+        ip.save()
+
+    if delete_source:
+        delete_path(src)
+        delete_path(src_xml)
+
+    self.set_progress(100, total=100)
+
+    msg = "Submitted %s" % ip.object_identifier_value
+    self.create_success_event(msg)
+
+
+@app.task(bind=True, event_type=20600)
+def TransferIP(self):
+    ip = InformationPackage.objects.get(pk=self.ip)
+    src = ip.object_path
+    srcdir, srcfile = os.path.split(src)
+
+    remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
+    session = None
+    if remote:
+        dst, remote_user, remote_pass = remote.split(',')
+
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        session.auth = (remote_user, remote_pass)
+
+    if not remote:
+        dst = Path.objects.get(entity="ingest_transfer").value
+
+    block_size = 8 * 1000000  # 8MB
+    copy_file(src, dst, requests_session=session, block_size=block_size)
+
+    self.set_progress(50, total=100)
+
+    objid = ip.object_identifier_value
+    src = ip.get_events_file_path()
+    if os.path.isfile(src):
         if not remote:
-            dst_xml = os.path.join(reception, ip.object_identifier_value + ".xml")
+            xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
         else:
-            dst_xml = dst
-        copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
-
-        if update_path and not remote:
-            ip.object_path = dst
-            ip.package_mets_path = dst_xml
-            ip.save()
-
-        if delete_source:
-            delete_path(src)
-            delete_path(src_xml)
-
-        self.set_progress(100, total=100)
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return "Submitted %s" % ip.object_identifier_value
-
-
-class TransferIP(DBTask):
-    event_type = 20600
-
-    def run(self):
-        ip = InformationPackage.objects.get(pk=self.ip)
-        src = ip.object_path
-        srcdir, srcfile = os.path.split(src)
-
-        remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
-        session = None
-        if remote:
-            dst, remote_user, remote_pass = remote.split(',')
-
-            session = requests.Session()
-            session.verify = settings.REQUESTS_VERIFY
-            session.auth = (remote_user, remote_pass)
-
-        if not remote:
-            dst = Path.objects.get(entity="ingest_transfer").value
-
-        block_size = 8 * 1000000  # 8MB
-        copy_file(src, dst, requests_session=session, block_size=block_size)
-
-        self.set_progress(50, total=100)
-
-        objid = ip.object_identifier_value
-        src = ip.get_events_file_path()
-        if os.path.isfile(src):
-            if not remote:
-                xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
-            else:
-                xml_dst = dst
-            copy_file(src, xml_dst, requests_session=session, block_size=block_size)
-
-        self.set_progress(75, total=100)
-
-        src = os.path.join(srcdir, "%s.xml" % objid)
-        if remote:
             xml_dst = dst
-        else:
-            xml_dst = os.path.join(dst, "%s.xml" % objid)
-
         copy_file(src, xml_dst, requests_session=session, block_size=block_size)
-        self.set_progress(100, total=100)
-        return dst
 
-    def event_outcome_success(self, result, *args, **kwargs):
-        return "Transferred IP"
+    self.set_progress(75, total=100)
+
+    src = os.path.join(srcdir, "%s.xml" % objid)
+    if remote:
+        xml_dst = dst
+    else:
+        xml_dst = os.path.join(dst, "%s.xml" % objid)
+
+    copy_file(src, xml_dst, requests_session=session, block_size=block_size)
+    self.set_progress(100, total=100)
+    self.create_success_event("Transferred IP")
+    return dst
 
 
 @app.task(bind=True)
@@ -249,67 +241,53 @@ def PrepareAIP(self, sip_path):
     return str(ip.pk)
 
 
-class GenerateContentMets(DBTask):
-    event_type = 50600
-
-    def run(self):
-        generate_content_mets(self.get_information_package())
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return 'Generated {xml}'.format(xml=ip.content_mets_path)
+@app.task(bind=True, event_type=50600)
+def GenerateContentMets(self):
+    generate_content_mets(self.get_information_package())
+    ip = self.get_information_package()
+    msg = 'Generated {xml}'.format(xml=ip.content_mets_path)
+    self.create_success_event(msg)
 
 
-class GeneratePackageMets(DBTask):
-    event_type = 50600
+@app.task(bind=True, event_type=50600)
+def GeneratePackageMets(self, package_path=None, xml_path=None):
+    package_path, xml_path = self.parse_params(package_path, xml_path)
+    ip = self.get_information_package()
+    package_path = package_path if package_path is not None else ip.object_path
+    xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
 
-    def run(self, package_path=None, xml_path=None):
-        package_path, xml_path = self.parse_params(package_path, xml_path)
-        ip = self.get_information_package()
-        package_path = package_path if package_path is not None else ip.object_path
-        xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
-
-        generate_package_mets(ip, package_path, xml_path)
-        return xml_path
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        return 'Generated {xml}'.format(xml=result)
+    generate_package_mets(ip, package_path, xml_path)
+    msg = 'Generated {xml}'.format(xml=xml_path)
+    self.create_success_event(msg)
+    return xml_path
 
 
-class GenerateAICMets(DBTask):
-    def run(self, xml_path):
-        xml_path, = self.parse_params(xml_path)
-        ip = self.get_information_package()
-        generate_aic_mets(ip, xml_path)
-        return xml_path
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        return 'Generated {xml}'.format(xml=result)
-
-
-class GeneratePremis(DBTask):
-    event_type = 50600
-
-    def run(self):
-        generate_premis(self.get_information_package())
-
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        data = fill_specification_data(ip=ip)
-        path = parseContent(ip.get_premis_file_path(), data)
-
-        return 'Generated {xml}'.format(xml=path)
+@app.task(bind=True)
+def GenerateAICMets(self, xml_path):
+    xml_path, = self.parse_params(xml_path)
+    ip = self.get_information_package()
+    generate_aic_mets(ip, xml_path)
+    msg = 'Generated {xml}'.format(xml=xml_path)
+    self.create_success_event(msg)
+    return xml_path
 
 
-class GenerateEventsXML(DBTask):
-    event_type = 50600
+@app.task(bind=True, event_type=50600)
+def GeneratePremis(self):
+    generate_premis(self.get_information_package())
+    ip = self.get_information_package()
+    data = fill_specification_data(ip=ip)
+    path = parseContent(ip.get_premis_file_path(), data)
+    msg = 'Generated {xml}'.format(xml=path)
+    self.create_success_event(msg)
 
-    def run(self):
-        generate_events_xml(self.get_information_package())
 
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return 'Generated {xml}'.format(xml=ip.get_events_file_path())
+@app.task(bind=True, event_type=50600)
+def GenerateEventsXML(self):
+    generate_events_xml(self.get_information_package())
+    ip = self.get_information_package()
+    msg = 'Generated {xml}'.format(xml=ip.get_events_file_path())
+    self.create_success_event(msg)
 
 
 @app.task(bind=True)
@@ -358,47 +336,48 @@ def CreatePhysicalModel(self, structure=None, root=""):
 
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-class CreateContainer(DBTask):
-    def run(self, src, dst):
-        src, dst = self.parse_params(src, dst)
+@app.task(bind=True)
+def CreateContainer(self, src, dst):
+    src, dst = self.parse_params(src, dst)
 
-        ip = self.get_information_package()
-        container_format = ip.get_container_format().lower()
-        tpp = ip.get_profile_rel('transfer_project').profile
-        compress = tpp.specification_data.get('container_format_compression', False)
+    ip = self.get_information_package()
+    container_format = ip.get_container_format().lower()
+    tpp = ip.get_profile_rel('transfer_project').profile
+    compress = tpp.specification_data.get('container_format_compression', False)
 
-        dst = normalize_path(dst)
+    dst = normalize_path(dst)
 
-        if os.path.isdir(dst):
-            dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
-            dst = os.path.join(dst, dst_filename)
+    if os.path.isdir(dst):
+        dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
+        dst = os.path.join(dst, dst_filename)
 
-        enough_space_available(os.path.dirname(dst), src, True)
+    enough_space_available(os.path.dirname(dst), src, True)
 
-        if container_format == 'zip':
-            self.event_type = 50410
-            zip_directory(dirname=src, zipname=dst, compress=compress)
-        else:
-            self.event_type = 50400
-            compression = ':gz' if compress else ''
-            base_dir = os.path.basename(os.path.normpath(src))
-            with tarfile.open(dst, 'w%s' % compression) as new_tar:
-                new_tar.add(src, base_dir)
+    if container_format == 'zip':
+        self.event_type = 50410
+        zip_directory(dirname=src, zipname=dst, compress=compress)
+    else:
+        self.event_type = 50400
+        compression = ':gz' if compress else ''
+        base_dir = os.path.basename(os.path.normpath(src))
+        with tarfile.open(dst, 'w%s' % compression) as new_tar:
+            new_tar.add(src, base_dir)
 
-        return dst
+    msg = "Created {}".format(self.parse_params(dst))
+    self.create_success_event(msg)
 
-    def event_outcome_success(self, result, src, dst):
-        return "Created {}".format(self.parse_params(dst))
+    return dst
 
 
-class ParseSubmitDescription(DBTask):
-    @transaction.atomic
-    def run(self):
-        parse_submit_description_from_ip(self.get_information_package())
+@app.task(bind=True)
+@transaction.atomic
+def ParseSubmitDescription(self):
+    parse_submit_description_from_ip(self.get_information_package())
 
-    def event_outcome_success(self, result, *args, **kwargs):
-        ip = self.get_information_package()
-        return "Parsed submit description at {}".format(ip.package_mets_path)
+    ip = self.get_information_package()
+    msg = "Parsed submit description at {}".format(ip.package_mets_path)
+    self.create_success_event(msg)
+
 
 @app.task(bind=True, event_type=50630)
 @transaction.atomic
@@ -418,6 +397,7 @@ def ParseEvents(self):
 
     msg = "Parsed events from %s" % xmlfile_path
     self.create_success_event(msg)
+
 
 @app.task(bind=True)
 def Transform(self, backend, path=None):
