@@ -101,12 +101,12 @@ class FeatureAdmin(admin.ModelAdmin):
 class StoragePolicyAdminForm(forms.ModelForm):
     cache_storage = forms.ModelChoiceField(
         queryset=StorageMethod.objects.filter(type=DISK, remote=False, containers=False),
+        required=False,
     )
 
     def clean_cache_storage(self):
         data = self.cleaned_data['cache_storage']
-
-        if data.type != DISK or data.remote or data.containers:
+        if data is not None and (data.type != DISK or data.remote or data.containers):
             raise forms.ValidationError(
                 _('Cache must be a local disk without containers'),
                 code='invalid',
