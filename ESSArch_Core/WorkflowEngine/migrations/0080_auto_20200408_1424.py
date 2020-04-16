@@ -13,7 +13,14 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AlterModelOptions(
             name='processtask',
-            options={'get_latest_by': 'time_created', 'ordering': ('processstep_pos', 'time_created'), 'permissions': (('can_run', 'Can run tasks'), ('can_revoke', 'Can revoke tasks'), ('can_retry', 'Can retry tasks'))},
+            options={'get_latest_by': 'time_created',
+                     'ordering': ('processstep_pos', 'time_created'),
+                     'permissions': (
+                         ('can_run', 'Can run tasks'),
+                         ('can_revoke', 'Can revoke tasks'),
+                         ('can_retry', 'Can retry tasks')
+                     )
+                     },
         ),
         migrations.AlterIndexTogether(
             name='processtask',
