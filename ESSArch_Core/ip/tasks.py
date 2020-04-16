@@ -334,9 +334,10 @@ def CreatePhysicalModel(self, structure=None, root=""):
     msg = "Created physical model for %s" % ip.object_identifier_value
     self.create_success_event(msg)
 
+
+@app.task(bind=True)
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-@app.task(bind=True)
 def CreateContainer(self, src, dst):
     src, dst = self.parse_params(src, dst)
 

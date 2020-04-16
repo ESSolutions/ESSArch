@@ -35,7 +35,7 @@ class RunTasksNonEagerlyTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user1")
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_args(self, apply_async):
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
@@ -53,7 +53,7 @@ class RunTasksNonEagerlyTests(TestCase):
             queue='celery', task_id=str(t.celery_id),
         )
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_params(self, apply_async):
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
@@ -71,7 +71,7 @@ class RunTasksNonEagerlyTests(TestCase):
             link_error=None, queue='celery', task_id=str(t.celery_id),
         )
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_step(self, apply_async):
         step = ProcessStep.objects.create()
         t = ProcessTask.objects.create(

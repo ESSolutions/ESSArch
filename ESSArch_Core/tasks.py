@@ -496,9 +496,10 @@ def DeleteFiles(self, path):
     msg = "Deleted %s" % path
     self.create_success_event(msg)
 
+
+@app.task(bind=True)
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-@app.task(bind=True)
 def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     src, dst = self.parse_params(src, dst)
     requests_session = None
@@ -514,9 +515,9 @@ def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SI
     self.create_success_event(msg)
 
 
+@app.task(bind=True)
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-@app.task(bind=True)
 def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given file to the given destination
