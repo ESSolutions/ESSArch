@@ -93,6 +93,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 User = get_user_model()
 redis = get_redis_connection()
 
+
 @app.task(bind=True)
 def Notify(self, message, level, refresh, recipient=None):
     message, = self.parse_params(message)
@@ -521,7 +522,8 @@ class UpdateIPSizeAndCount(DBTask):
         size, count = get_tree_size_and_count(path)
 
         InformationPackage.objects.filter(pk=ip).update(
-            object_size=size, object_num_items=count
+            object_size=size, object_num_items=count,
+            last_changed_local=timezone.now(),
         )
 
         return size, count
