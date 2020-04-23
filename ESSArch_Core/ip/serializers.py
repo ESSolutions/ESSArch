@@ -3,6 +3,7 @@ import os
 import re
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import serializers
 
 from ESSArch_Core._version import get_versions
@@ -531,6 +532,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
+        aic_data['last_changed_local'] = timezone.now
         aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
 
         request = self.context.get("request")
@@ -541,6 +543,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
         validated_data['aic'] = aic
         validated_data['responsible'] = user
+        validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
 
         return ip

@@ -18,68 +18,13 @@ Start by installing the necessary Logstash dependencies:
 
     $ pip install -e /path/to/ESSArch_Core/[logstash]
 
-
-If ESSArch is installed using Docker, then the complete Elastic Stack is started
-together with ESSArch:
-
-.. code-block:: bash
-
-    $ docker-compose up -d
-
-When the first log is sent from the application to Logstash, you will get
-the option to create an index in Kibana.
-
-By default the index pattern should be::
-
-    logstash-*
-
-
-Click next to create the index pattern, and then head over to `Discover` page
-to see your logs.
-
-
-Logstash Configuration
-^^^^^^^^^^^^^^^^^^^^^^
-
-Example ``logstash.conf``::
-
-    input {
-        tcp {
-            port => 5000
-            codec => json
-        }
-    }
-
-    filter {
-        json {
-            source => "[message][raw]"
-        }
-
-        # Workaround for HTTP logs created from "django.channels.server" that have an extra "\u001b[m" at start and "\u001b[0m" at end.
-        if [type] == "django_http" {
-            grok {
-                match => { "message" => "m%{URIPROTO:protocol} %{WORD:method} %{URIPATHPARAM:request} %{NUMBER:status_code} \[%{NUMBER:duration}, %{HOSTPORT:host}\]" }
-            }
-            mutate {
-                remove_field => [ "message" ]
-            }
-        }
-    }
-
-    output {
-        elasticsearch {
-            hosts => "elasticsearch:9200"
-        }
-    }
-
-
 Configuration
 ^^^^^^^^^^^^^
 
 Modify your ESSArch settings by adding the Logstash handlers and loggers. This
 will override the default LOGGING configurations.
 
-Here is an example:
+For example:
 
 .. code-block:: python
 
@@ -117,11 +62,8 @@ Here is an example:
             'transport': 'logstash_async.transport.TcpTransport',
             'host': 'localhost',
             'port': 5000,
-            'ssl_enable': True,
-            'ssl_verify': True,
-            'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
-            'certfile': '/etc/ssl/certs/logstash.crt',
-            'keyfile': '/etc/ssl/private/logstash.key',
+            'ssl_enable': False,
+            'ssl_verify': False,
             'database_path': '{}/logstash_http.db'.format('/var/tmp'),
         },
         'logstash': {
@@ -131,11 +73,8 @@ Here is an example:
             'transport': 'logstash_async.transport.TcpTransport',
             'host': 'localhost',
             'port': 5000,
-            'ssl_enable': True,
-            'ssl_verify': True,
-            'ca_certs': 'etc/ssl/certs/logstash_ca.crt',
-            'certfile': '/etc/ssl/certs/logstash.crt',
-            'keyfile': '/etc/ssl/private/logstash.key',
+            'ssl_enable': False,
+            'ssl_verify': False,
             'database_path': '{}/logstash.db'.format('/var/tmp'),
         },
     },
@@ -177,9 +116,40 @@ Here is an example:
         },
   }
 
+
 More information on how to configure the logging can be found in the
 documentation for the Logstash Python library:
 https://python-logstash-async.readthedocs.io/en/stable/usage.html#usage-with-django
+
+Using Docker
+^^^^^^^^^^^^^
+
+If ESSArch is installed using Docker, then the complete Elastic Stack is started
+together with ESSArch:
+
+.. code-block:: bash
+
+    $ docker-compose up -d
+
+However, to have ESSArch write to logstash you need to update your
+ESSArch settings as described above, remember to change the log handler host from
+localhost to logstash. A default ``logstash.conf`` is already
+configured and does not need to be updated.
+
+Viewing logs in Kibana
+^^^^^^^^^^^^^^^^^^^^^^
+
+When the first log is sent from the application to Elasticsearch using
+Logstash, you will get the option to create an index in Kibana.
+
+By default the index pattern should be::
+
+    logstash-*
+
+
+Click next to create the index pattern, and then head over to the `Discover`
+page to see your logs.
+
 
 .. seealso::
 
