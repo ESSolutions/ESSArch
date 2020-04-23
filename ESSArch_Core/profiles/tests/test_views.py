@@ -16,7 +16,6 @@ from ESSArch_Core.profiles.serializers import (
     ProfileSerializer,
     SubmissionAgreementSerializer,
 )
-from ESSArch_Core.storage.models import StorageMethod
 
 User = get_user_model()
 
@@ -77,7 +76,6 @@ class GetAllSubmissionAgreementsTests(TestCase):
         self.url = reverse('submissionagreement-list')
 
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
         SubmissionAgreement.objects.create(policy=policy)
@@ -121,7 +119,6 @@ class CreateSubmissionAgreementTests(TestCase):
         self.client.force_authenticate(user=self.user)
 
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
 
@@ -136,7 +133,6 @@ class LockSubmissionAgreementTests(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity='temp', value='')
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
 
@@ -212,7 +208,6 @@ class SubmissionAgreementIPDataViewSetTestCase(TestCase):
     def setUpTestData(cls):
         Path.objects.create(entity='temp', value='')
         policy = StoragePolicy.objects.create(
-            cache_storage=StorageMethod.objects.create(),
             ingest_path=Path.objects.create(),
         )
 

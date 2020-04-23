@@ -8,4 +8,3 @@ node_modules
 *.egg-info/
 /MANIFEST
 /.idea/
-.git/

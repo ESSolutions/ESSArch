@@ -50,6 +50,12 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
+from tenacity import (
+    RetryError,
+    Retrying,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
@@ -331,6 +337,8 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         workarea = self.get_object()
 
         if not workarea.read_only:
+            workarea.delete_files()
+            workarea.ip.delete_files()
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -821,6 +829,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
+        # delete temp files
+        try:
+            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            shutil.rmtree(temp_path)
+        except FileNotFoundError:
+            pass
+
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
             eager=False,
@@ -1287,17 +1302,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if workarea is None:
             raise exceptions.ParseError(detail='IP not in writeable workarea')
 
-        generate_premis = ip.profile_locked('preservation_metadata')
         workflow = [
-            {
-                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                "label": "Generate premis",
-                "if": generate_premis,
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                "label": "Generate content-mets",
-            },
             {
                 "name": "ESSArch_Core.workflow.tasks.ReceiveAIP",
                 "label": "Receive AIP",
@@ -1356,6 +1361,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 os.remove(mets_path)
             except FileNotFoundError:
                 pass
+
+            ip.update_sip_data()
 
             if generate_premis:
                 premis_profile_data = ip.get_profile_data('preservation_metadata')
@@ -2132,7 +2139,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             Q(
                 Q(
                     package_type=InformationPackage.AIP,
-                    state__in=['Receiving']
+                    state__in=['At reception', 'Receiving']
                 ) |
                 Q(
                     package_type=InformationPackage.SIP,
@@ -2178,10 +2185,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return Response(parse_submit_description(fullpath, srcdir=path))
 
     @transaction.atomic
-    @permission_required_or_403(['ip.receive'])
-    @method_decorator(feature_enabled_or_404('receive'))
-    @action(detail=True, methods=['post'], url_path='receive')
-    def receive(self, request, pk=None):
+    def _prepare(self, request, pk):
         logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization
@@ -2260,26 +2264,14 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ip = existing_sip
             sa = ip.submission_agreement
 
-        ProfileIP.objects.filter(ip=ip).delete()
-        sa.lock_to_information_package(ip, request.user)
-
-        ip.sip_objid = pk
-        ip.sip_path = pk
-        ip.package_type = InformationPackage.AIP
-        ip.generation = 0
-        ip.aic = InformationPackage.objects.create(
-            package_type=InformationPackage.AIC,
-            responsible=ip.responsible,
-            label=ip.label,
-            start_date=ip.start_date,
-            end_date=ip.end_date,
-        )
-        ip.state = 'Receiving'
-        ip.object_path = normalize_path(container)
-        ip.package_mets_path = normalize_path(xmlfile)
-        ip.responsible = request.user
-
-        ip.save()
+        try:
+            for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
+                                    wait=wait_random_exponential(multiplier=1, max=60)):
+                with attempt:
+                    ProfileIP.objects.filter(ip=ip).delete()
+                    sa.lock_to_information_package(ip, request.user)
+        except RetryError:
+            pass
 
         if sa.profile_aic_description is None:
             raise exceptions.ParseError('Submission agreement missing AIC Description profile')
@@ -2293,75 +2285,113 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if sa.profile_dip is None:
             raise exceptions.ParseError('Submission agreement missing DIP profile')
 
-        # refresh date fields to convert them to datetime instances instead of
-        # strings to allow further datetime manipulation
-        ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
-
-        cts = ip.get_content_type_file()
-        has_cts = cts is not None and os.path.exists(cts)
-
-        aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Validation",
-                "children": [
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "label": "Validate package-mets",
-                        "params": {
-                            "xml_filename": "{{_PACKAGE_METS_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "label": "Diff-check against package-mets",
-                        "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "label": "Validate cts",
-                        "if": has_cts,
-                        "run_if": "{{_CTS_PATH | path_exists}}",
-                        "params": {
-                            "xml_filename": "{{_CTS_PATH}}",
-                            "schema_filename": "{{_CTS_SCHEMA_PATH}}",
-                        }
-                    },
-                ]
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                "label": "Create Physical Model",
-                'params': {'root': aip_object_path}
-            },
-            {
-                "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
-                "label": "Receive SIP",
-                "params": {
-                    'purpose': request.data.get('purpose'),
-                }
-            },
-            {
-                "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
-                "label": "Update IP size and file count",
-            },
-            {
-                "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to received",
-                "args": ["Received"],
-            },
-        ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Receive SIP"
-        workflow.information_package = ip
-        workflow.save()
-        workflow.run()
-        logger.info(
-            'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
-            extra={'user': request.user.pk},
+        ip.sip_objid = pk
+        ip.sip_path = pk
+        ip.package_type = InformationPackage.AIP
+        ip.generation = 0
+        ip.aic = InformationPackage.objects.create(
+            package_type=InformationPackage.AIC,
+            responsible=ip.responsible,
+            label=ip.label,
+            start_date=ip.start_date,
+            end_date=ip.end_date,
         )
-        return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+        ip.state = 'At reception'
+        ip.object_path = normalize_path(container)
+        ip.package_mets_path = normalize_path(xmlfile)
+        ip.responsible = request.user
+        ip.save()
+
+        return ip
+
+    @permission_required_or_403(['ip.receive'])
+    @method_decorator(feature_enabled_or_404('receive'))
+    @action(detail=True, methods=['post'], url_path='receive')
+    def receive(self, request, pk=None):
+        logger = logging.getLogger('essarch.ingest')
+
+        try:
+            ip = InformationPackage.objects.get(
+                object_identifier_value=pk,
+                package_type=InformationPackage.AIP,
+                state='At reception',
+            )
+        except InformationPackage.DoesNotExist:
+            ip = self._prepare(request, pk)
+
+        with transaction.atomic():
+            ip.state = 'Receiving'
+            ip.save()
+
+            # refresh date fields to convert them to datetime instances instead of
+            # strings to allow further datetime manipulation
+            ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+
+            cts = ip.get_content_type_file()
+            has_cts = cts is not None and os.path.exists(cts)
+
+            aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+            workflow_spec = [
+                {
+                    "step": True,
+                    "name": "Validation",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "label": "Validate package-mets",
+                            "params": {
+                                "xml_filename": "{{_PACKAGE_METS_PATH}}",
+                            }
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                            "label": "Diff-check against package-mets",
+                            "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "label": "Validate cts",
+                            "if": has_cts,
+                            "run_if": "{{_CTS_PATH | path_exists}}",
+                            "params": {
+                                "xml_filename": "{{_CTS_PATH}}",
+                                "schema_filename": "{{_CTS_SCHEMA_PATH}}",
+                            }
+                        },
+                    ]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                    "label": "Create Physical Model",
+                    'params': {'root': aip_object_path}
+                },
+                {
+                    "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
+                    "label": "Receive SIP",
+                    "params": {
+                        'purpose': request.data.get('purpose'),
+                    }
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                    "label": "Update IP size and file count",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to received",
+                    "args": ["Received"],
+                },
+            ]
+            workflow = create_workflow(workflow_spec, ip)
+            workflow.name = "Receive SIP"
+            workflow.information_package = ip
+            workflow.save()
+            workflow.run()
+            logger.info(
+                'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
+                extra={'user': request.user.pk},
+            )
+            return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
