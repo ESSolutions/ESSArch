@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-26 13:52+0100\n"
+"POT-Creation-Date: 2020-04-23 20:20+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -68,30 +68,41 @@ msgstr ""
 #: ../../external_logging.rst:134
 msgid ""
 "However, to have ESSArch write to logstash you need to update your "
-"ESSArch settings as described above. A default ``logstash.conf`` is "
-"already configured and does not need to be updated."
+"ESSArch settings as described above, remember to change the log handler "
+"host from localhost to logstash. A default ``logstash.conf`` is already "
+"configured and does not need to be updated."
 msgstr ""
 
-#: ../../external_logging.rst:139
+#: ../../external_logging.rst:140
 msgid "Viewing logs in Kibana"
 msgstr ""
 
-#: ../../external_logging.rst:141
+#: ../../external_logging.rst:142
 msgid ""
 "When the first log is sent from the application to Elasticsearch using "
 "Logstash, you will get the option to create an index in Kibana."
 msgstr ""
 
-#: ../../external_logging.rst:144
+#: ../../external_logging.rst:145
 msgid "By default the index pattern should be::"
 msgstr ""
 
-#: ../../external_logging.rst:149
+#: ../../external_logging.rst:150
 msgid ""
 "Click next to create the index pattern, and then head over to the "
 "`Discover` page to see your logs."
 msgstr ""
 
-#: ../../external_logging.rst:155
+#: ../../external_logging.rst:156
 msgid ":ref:`configuration`"
 msgstr ""
+
+#~ msgid ""
+#~ "However, to have ESSArch write to "
+#~ "logstash you need to update your "
+#~ "ESSArch settings as described above. A"
+#~ " default ``logstash.conf`` is already "
+#~ "configured and does not need to be"
+#~ " updated."
+#~ msgstr ""
+
