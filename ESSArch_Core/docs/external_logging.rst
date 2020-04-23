@@ -132,7 +132,7 @@ together with ESSArch:
     $ docker-compose up -d
 
 However, to have ESSArch write to logstash you need to update your
-ESSArch settings as described above, remember to change the log handler host from 
+ESSArch settings as described above, remember to change the log handler host from
 localhost to logstash. A default ``logstash.conf`` is already
 configured and does not need to be updated.
 
