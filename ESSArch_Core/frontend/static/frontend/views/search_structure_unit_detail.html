@@ -39,8 +39,7 @@
           ></button>
         </div>
       </div>
-      <p ng-if="vm.record.description"><div class="pt-base" ng-bind-html="vm.record.description"></div></p>
-
+      <div ng-if="vm.record.description" class="pt-base" ng-bind-html="vm.record.description"></div>
       <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
       <div ng-if="vm.record.identifiers.length > 0" class="pb-base">
         <label>
