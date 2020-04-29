@@ -23,11 +23,7 @@
     </div>
   </div>
   <h4 title="Informationsobjekt">{{vm.record._source.type}}</h4>
-  <div ng-if="vm.record.description">
-    <p ng-if="vm.record.description" class="result-description">
-      {{vm.record.description}}
-    </p>
-  </div>
+  <p ng-if="vm.record.description"><div class="pt-base" ng-bind-html="vm.record.description"></div></p>
   <div ng-if="vm.getArchiveCreator(vm.record) !== null">
     <label for="creator">{{'ACCESS.ARCHIVE_CREATOR' | translate}}:&nbsp;</label>
     <a id="creator" ui-sref="home.archivalDescriptions.archiveCreators({id: vm.getArchiveCreator(vm.record).id})">
