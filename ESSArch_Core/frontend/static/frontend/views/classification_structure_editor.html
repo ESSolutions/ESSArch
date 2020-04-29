@@ -185,7 +185,8 @@
             <h4 class="m-0 py-base">
               {{vm.node.root ? vm.node.structureType.name : vm.node.type.name}}
             </h4>
-            <p ng-if="vm.node.description">{{vm.node.description}}</p>
+
+            <div ng-if="vm.node.description" class="pt-base" ng-bind-html="vm.node.description"></div>
             <div class="flex-row align-items-center mb-base">
               <button
                 class="btn btn-primary"
