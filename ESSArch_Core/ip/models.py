@@ -1620,15 +1620,20 @@ class InformationPackage(models.Model):
 
         if ct_profile is not None:
             cts = self.get_content_type_file()
-            if os.path.isfile(cts):
-                logger.info('Found content type specification: {path}'.format(path=cts))
-                try:
-                    ct_importer_name = ct_profile.specification['name']
-                except KeyError:
-                    logger.exception('No content type importer specified in profile')
-                    raise
-                ct_importer = get_importer(ct_importer_name)(task)
-                indexed_files = ct_importer.import_content(cts, ip=self)
+            if cts is not None:
+                if os.path.isfile(cts):
+                    logger.info('Found content type specification: {path}'.format(path=cts))
+                    try:
+                        ct_importer_name = ct_profile.specification['name']
+                    except KeyError:
+                        logger.exception('No content type importer specified in profile')
+                        raise
+                    ct_importer = get_importer(ct_importer_name)(task)
+                    indexed_files = ct_importer.import_content(cts, ip=self)
+                else:
+                    err = "Content type specification file not found"
+                    logger.error('{err}: {path}'.format(err=err, path=cts))
+                    raise OSError(errno.ENOENT, err, cts)
             else:
                 err = "Content type specification not found"
                 logger.error('{err}: {path}'.format(err=err, path=cts))
