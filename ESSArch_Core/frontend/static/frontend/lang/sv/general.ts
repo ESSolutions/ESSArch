@@ -51,7 +51,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     CONSIGN_METHOD: 'Utlämnandemetod',
     CONTENTLOCATION: 'Innehållsplacering',
     CONTENT: 'Innehåll',
-    CONVERSION: 'Konvertering',
+    CONVERSION: 'Verktyg',
     CONVERTFILES: 'Konvertera filer',
     COPYID: 'Kopiera',
     COPYPATH: 'Kopiera sökväg',
