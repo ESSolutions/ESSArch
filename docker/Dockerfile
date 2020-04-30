@@ -1,10 +1,11 @@
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
-RUN apk update && apk add g++ make python
+RUN apk update && apk add g++ git make python
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
+COPY ./.git .git
 RUN yarn build:dev
 
 FROM python:3.8-buster as base
@@ -90,7 +91,7 @@ ADD requirements/optional.txt /code/requirements/optional.txt
 ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
-RUN pip install --no-cache-dir -e .[mysql,postgres]
+RUN pip install --no-cache-dir -e .[mysql,postgres,logstash]
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build

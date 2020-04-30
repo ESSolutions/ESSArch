@@ -79,6 +79,7 @@ from ESSArch_Core.auth.models import GroupGenericObjects, Member
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
@@ -104,6 +105,7 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.tags.documents import InformationPackageDocument
 from ESSArch_Core.util import (
+    delete_path,
     find_destination,
     generate_file_response,
     get_files_and_dirs,
@@ -394,7 +396,7 @@ class InformationPackage(models.Model):
     cached = models.BooleanField(_('cached'), default=False)
     archived = models.BooleanField(_('archived'), default=False)
 
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     responsible = models.ForeignKey(
@@ -822,6 +824,28 @@ class InformationPackage(models.Model):
 
         return 'ipevents.xml'
 
+    def update_sip_data(self):
+        sip_profile = self.submission_agreement.profile_sip
+        if sip_profile is not None and self.sip_path is not None:
+            sip_mets_dir, sip_mets_file = find_destination('mets_file', sip_profile.structure, self.sip_path)
+            if os.path.isfile(self.sip_path):
+                sip_mets_data = parse_mets(
+                    open_file(
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        container=self.sip_path,
+                        container_prefix=self.object_identifier_value,
+                    )
+                )
+            else:
+                sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+
+            # prefix all SIP data
+            sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
+
+            aip_profile_rel_data = self.get_profile_rel('aip').data
+            aip_profile_rel_data.data.update(sip_mets_data)
+            aip_profile_rel_data.save()
+
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:
             if not cached:
@@ -981,16 +1005,9 @@ class InformationPackage(models.Model):
         except Workarea.DoesNotExist:
             workarea_id = None
 
-        cache_storage = self.policy.cache_storage
-        container_methods = self.policy.storage_methods.secure_storage().filter(
-            remote=False, enabled=True,
-        ).exclude(pk=cache_storage.pk)
-        non_container_methods = self.policy.storage_methods.archival_storage().filter(
-            remote=False, enabled=True,
-        ).exclude(pk=cache_storage.pk)
-        remote_methods = self.policy.storage_methods.filter(
-            remote=True, enabled=True,
-        ).exclude(pk=cache_storage.pk)
+        container_methods = self.policy.storage_methods.secure_storage().filter(remote=False)
+        non_container_methods = self.policy.storage_methods.archival_storage().filter(remote=False)
+        remote_methods = self.policy.storage_methods.filter(remote=True)
 
         remote_servers = set([
             method.enabled_target.remote_server
@@ -1097,13 +1114,8 @@ class InformationPackage(models.Model):
                 "children": [
                     {
                         "step": True,
-                        "name": "Write to cache",
+                        "name": "Write to search index",
                         "children": [
-                            {
-                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                "label": "Write to storage medium",
-                                "args": [str(cache_storage.pk)],
-                            },
                             {
                                 "name": "ESSArch_Core.ip.tasks.WriteInformationPackageToSearchIndex",
                                 "label": "Write to search index",
@@ -1191,6 +1203,16 @@ class InformationPackage(models.Model):
                                         "label": "Delete temporary container",
                                         "args": ["{{TEMP_CONTAINER_PATH}}"]
                                     },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary mets",
+                                        "args": ["{{TEMP_METS_PATH}}"]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary aic mets",
+                                        "args": ["{{TEMP_AIC_METS_PATH}}"]
+                                    },
                                 ],
                             },
                         ],
@@ -1207,6 +1229,10 @@ class InformationPackage(models.Model):
                 "if": workarea_id,
                 "args": [str(workarea_id)],
             },
+            {
+                "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",
+                "label": "Clean up workflow files",
+            },
         ]
 
         return workflow
@@ -1221,7 +1247,7 @@ class InformationPackage(models.Model):
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
-            ingest_workarea_user = os.path.join(ingest_workarea, user.username, self.object_identifier_value)
+            ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
 
             if new:
                 new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
@@ -1284,14 +1310,14 @@ class InformationPackage(models.Model):
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
         cache_storage = self.policy.cache_storage
-        try:
-            cache_target = cache_storage.enabled_target
-            if not cache_target.storagemedium_set.writeable().exists():
-                cache_target = None
-            else:
-                cache_target = cache_target.target
-        except StorageTarget.DoesNotExist:
-            cache_target = None
+        cache_target = None
+        if cache_storage is not None:
+            try:
+                cache_enabled_target = cache_storage.enabled_target
+                if cache_enabled_target.storagemedium_set.writeable().exists():
+                    cache_target = cache_enabled_target.target
+            except StorageTarget.DoesNotExist:
+                pass
 
         temp_dir = Path.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path()
@@ -1301,6 +1327,7 @@ class InformationPackage(models.Model):
 
         storage_medium = storage_object.storage_medium
         storage_target = storage_medium.storage_target
+        storage_method = storage_target.methods.first()
 
         access_workarea = Path.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
@@ -1317,8 +1344,7 @@ class InformationPackage(models.Model):
         else:
             new_aip = self
 
-        if extracted or new:
-            os.makedirs(access_workarea_user, exist_ok=True)
+        os.makedirs(access_workarea_user, exist_ok=True)
 
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
@@ -1337,7 +1363,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
                     "label": "Extract temporary container to cache",
-                    "if": cache_target is not None,
+                    "if": storage_method.cached and cache_target is not None,
                     "allow_failure": True,
                     "args": [
                         temp_container_path,
@@ -1458,7 +1484,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
                         "label": "Extract temporary container to cache",
-                        "if": cache_target is not None,
+                        "if": storage_method.cached and cache_target is not None,
                         "allow_failure": True,
                         "args": [
                             temp_container_path,
@@ -1519,17 +1545,21 @@ class InformationPackage(models.Model):
                 ]
             else:
                 # reading from non long-term storage
+                if cache_target is not None:
+                    cache_dst = os.path.join(cache_target, self.object_identifier_value)
+                else:
+                    cache_dst = None
 
                 workflow = [
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Copy AIP to cache",
-                        "if": cache_target is not None,
+                        "if": storage_method.cached and cache_dst is not None,
                         "allow_failure": True,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
-                            "dst": os.path.join(cache_target, self.object_identifier_value),
+                            "storage_object": str(storage_object.pk),
+                            "dst": cache_dst,
                         },
                     },
                     {
@@ -1538,7 +1568,7 @@ class InformationPackage(models.Model):
                         "if": extracted,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': access_workarea_user
                         },
                     },
@@ -1548,7 +1578,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': temp_object_path,
                         },
                     },
@@ -1590,8 +1620,22 @@ class InformationPackage(models.Model):
 
         if ct_profile is not None:
             cts = self.get_content_type_file()
-            if os.path.isfile(cts):
-                logger.info('Found content type specification: {path}'.format(path=cts))
+            if cts is not None:
+                if os.path.isfile(cts):
+                    logger.info('Found content type specification: {path}'.format(path=cts))
+                    try:
+                        ct_importer_name = ct_profile.specification['name']
+                    except KeyError:
+                        logger.exception('No content type importer specified in profile')
+                        raise
+                    ct_importer = get_importer(ct_importer_name)(task)
+                    indexed_files = ct_importer.import_content(cts, ip=self)
+                else:
+                    err = "Content type specification file not found"
+                    logger.error('{err}: {path}'.format(err=err, path=cts))
+                    raise OSError(errno.ENOENT, err, cts)
+            else:
+                logger.info('No content type specification spcified in profile')
                 try:
                     ct_importer_name = ct_profile.specification['name']
                 except KeyError:
@@ -1599,10 +1643,6 @@ class InformationPackage(models.Model):
                     raise
                 ct_importer = get_importer(ct_importer_name)(task)
                 indexed_files = ct_importer.import_content(cts, ip=self)
-            else:
-                err = "Content type specification not found"
-                logger.error('{err}: {path}'.format(err=err, path=cts))
-                raise OSError(errno.ENOENT, err, cts)
 
         for root, dirs, files in walk(srcdir):
             for d in dirs:
@@ -1751,7 +1791,8 @@ class InformationPackage(models.Model):
 
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
-                used_capacity=F('used_capacity') + write_size
+                used_capacity=F('used_capacity') + write_size,
+                last_changed_local=timezone.now(),
             )
 
         return str(storage_object.pk)
@@ -1789,6 +1830,16 @@ class InformationPackage(models.Model):
 
         return open(os.path.join(self.object_path, path), *args, **kwargs)
 
+    def delete_temp_files(self):
+        paths = [
+            os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.pk)),
+            os.path.join(Path.objects.get(entity='temp').value, str(self.object_identifier_value)),
+        ]
+
+        for path in paths:
+            delete_path(path)
+
     def delete_files(self):
         path = self.get_path()
 
@@ -1812,6 +1863,7 @@ class InformationPackage(models.Model):
 
     def delete_workareas(self):
         for workarea in self.workareas.all():
+            workarea.delete_temp_files()
             workarea.delete_files()
             workarea.delete()
 
@@ -1875,7 +1927,7 @@ class InformationPackageMetadata(models.Model):
     message_digest_algorithm = models.IntegerField(null=True, choices=MESSAGE_DIGEST_ALGORITHM_CHOICES)
     message_digest = models.CharField(max_length=128, blank=True)
 
-    last_changed_local = models.DateTimeField(null=True)
+    last_changed_local = models.DateTimeField(auto_now=True)
     last_changed_external = models.DateTimeField(null=True)
 
     def check_db_sync(self):
@@ -2049,6 +2101,15 @@ class Workarea(models.Model):
 
     def get_path(self):
         return self.path
+
+    def delete_temp_files(self):
+        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        delete_path(temp_path)
+
+    def delete_files(self):
+        path = self.get_path()
+        self.delete_temp_files()
+        delete_path(path)
 
     class Meta:
         ordering = ["ip"]

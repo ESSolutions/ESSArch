@@ -332,7 +332,9 @@ class AppraisalJob(MaintenanceJob):
                     ip.delete()
                 else:
                     # inactivate old generations
-                    InformationPackage.objects.filter(aic=ip.aic, generation__lte=ip.generation).update(active=False)
+                    InformationPackage.objects.filter(
+                        aic=ip.aic, generation__lte=ip.generation
+                    ).update(active=False, last_changed_local=timezone.now())
 
             else:
                 new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
@@ -380,7 +382,7 @@ class AppraisalJob(MaintenanceJob):
         document_tag_ips = InformationPackage.objects.exclude(appraisal_jobs=self).filter(
             tags__appraisal_jobs=self,
             tags__current_version__elastic_index='document',
-        )
+        ).distinct()
         for ip in document_tag_ips.iterator():
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:

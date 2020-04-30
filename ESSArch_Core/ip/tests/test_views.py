@@ -39,6 +39,8 @@ class WorkareaEntryViewSetTestCase(TestCase):
 
         Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
         Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        temp_dir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir)).value
+        os.makedirs(os.path.join(temp_dir, 'file_upload'))
 
         self.url = reverse('workarea-entries-list')
 
@@ -227,7 +229,6 @@ class InformationPackageMigratableTests(TestCase):
         )
 
         cls.policy = StoragePolicy.objects.create(
-            cache_storage=cls.storage_method,
             ingest_path=Path.objects.create(entity='test', value='foo')
         )
         cls.policy.storage_methods.add(cls.storage_method)
