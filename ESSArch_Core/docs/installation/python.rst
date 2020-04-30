@@ -7,7 +7,7 @@ Python
 
 Dependencies
 ------------
- * `Python 3.7 <https://www.python.org/>`_
+ * `Python 3.8 <https://www.python.org/>`_
  * `pip 18.0 or higher <https://pip.pypa.io/>`_
 
 .. note::

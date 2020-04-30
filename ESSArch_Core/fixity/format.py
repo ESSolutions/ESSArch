@@ -137,7 +137,7 @@ class FormatIdentifier:
         """
 
         if os.name == 'nt':
-            start_time = time.clock()
+            start_time = time.perf_counter()
         else:
             start_time = time.time()
 
@@ -146,7 +146,7 @@ class FormatIdentifier:
         self.fido.identify_file(filename)
 
         if os.name == 'nt':
-            end_time = time.clock()
+            end_time = time.perf_counter()
         else:
             end_time = time.time()
 
