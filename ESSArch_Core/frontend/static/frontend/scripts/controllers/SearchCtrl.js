@@ -56,7 +56,7 @@ export default class SearchCtrl {
       vm.activeTab = data.tab;
     });
     $rootScope.$on('$translateChangeSuccess', function (event, current, previous) {
-      $http.get(appConfig.djangoUrl + 'search/', {params: {page_size: 0}}).then(function (response) {
+      $http.get(appConfig.djangoUrl + 'search/', { params: { page_size: 0 } }).then(function (response) {
         vm.loadTags(response.data.aggregations);
         vm.fileExtensions = response.data.aggregations._filter_extension.extension.buckets;
         vm.showTree = true;
@@ -101,6 +101,24 @@ export default class SearchCtrl {
       });
     };
 
+    vm.startDateFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.startDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.startDateFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.startDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.startDateFilterStatus[type] = true;
+      }
+    };
+
     vm.appraisalFilterStatus = {
       before: false,
       after: false,
@@ -135,7 +153,7 @@ export default class SearchCtrl {
     vm.getSavedSearches = function () {
       vm.loadingSearches = true;
       $http
-        .get(appConfig.djangoUrl + 'me/searches/', {pager: 'none'})
+        .get(appConfig.djangoUrl + 'me/searches/', { pager: 'none' })
         .then(function (response) {
           vm.searchList = angular.copy(response.data);
           vm.loadingSearches = false;
@@ -222,7 +240,7 @@ export default class SearchCtrl {
       return $http({
         url: appConfig.djangoUrl + 'tags/',
         mathod: 'GET',
-        params: {page: 1, page_size: 10, index: 'archive', search: search},
+        params: { page: 1, page_size: 10, index: 'archive', search: search },
       }).then(function (response) {
         vm.options.archives = response.data.map(function (x) {
           return x.current_version;
@@ -235,7 +253,7 @@ export default class SearchCtrl {
       return $http({
         url: appConfig.djangoUrl + 'agents/',
         mathod: 'GET',
-        params: {page: 1, page_size: 10, search: search},
+        params: { page: 1, page_size: 10, search: search },
       }).then(function (response) {
         response.data.forEach(function (agent) {
           AgentName.parseAgentNames(agent);
@@ -319,7 +337,7 @@ export default class SearchCtrl {
         Search.query(filters).then(function (response) {
           const filterCopy = angular.copy(vm.filterObject);
           if (!angular.equals($stateParams.query, filterCopy)) {
-            $state.go('home.archivalDescriptions.search', {query: filterCopy});
+            $state.go('home.archivalDescriptions.search', { query: filterCopy });
           }
           vm.searchResult = angular.copy(response.data);
           vm.numberOfResults = response.count;
@@ -348,7 +366,7 @@ export default class SearchCtrl {
             title: item.key,
           };
         }
-        item.state = {opened: true, selected: vm.filterObject[aggrType] == item.key};
+        item.state = { opened: true, selected: vm.filterObject[aggrType] == item.key };
         item.type = item.key;
         if (item.key == vm.filterObject[aggrType]) {
           missing = false;
@@ -364,7 +382,7 @@ export default class SearchCtrl {
           a_attr: {
             title: vm.filterObject[aggrType],
           },
-          state: {opened: true, selected: true},
+          state: { opened: true, selected: true },
           type: vm.filterObject[aggrType],
           children: [],
         });
@@ -383,7 +401,7 @@ export default class SearchCtrl {
           a_attr: {
             title: $translate.instant('TYPE'),
           },
-          state: {opened: true, disabled: true},
+          state: { opened: true, disabled: true },
           type: 'series',
           children: typeChildren,
           branch: 'type',
@@ -414,10 +432,10 @@ export default class SearchCtrl {
         index = result._index;
       }
       if (e.ctrlKey || e.metaKey) {
-        const url = $state.href('home.archivalDescriptions.search.' + index, {id: result.id});
+        const url = $state.href('home.archivalDescriptions.search.' + index, { id: result.id });
         $window.open(url, '_blank');
       } else {
-        $state.go('home.archivalDescriptions.search.' + index, {id: result.id});
+        $state.go('home.archivalDescriptions.search.' + index, { id: result.id });
         vm.activeTab = 1;
       }
     };
@@ -487,7 +505,7 @@ export default class SearchCtrl {
         },
       });
       modalInstance.result
-        .then(function (data) {})
+        .then(function (data) { })
         .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });
@@ -517,13 +535,13 @@ export default class SearchCtrl {
         resolve: {
           data: function () {
             return {
-              search: {filters},
+              search: { filters },
             };
           },
         },
       });
       modalInstance.result
-        .then(function (data) {})
+        .then(function (data) { })
         .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());
         });

@@ -202,6 +202,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SEND_AS_EMAIL: 'Skicka som e-post',
       SET_CURRENT_VERSION: 'Sätt som nuvarande',
       SHOWING_RESULT: 'Visar träff',
+      START_DATE: 'Startdatum',
       START_YEAR: 'Startår',
       STRUCTURE_UNIT: 'Strukturenhet',
       SUB_CATEGORY: 'Underkategori',

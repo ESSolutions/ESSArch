@@ -201,6 +201,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SEND_AS_EMAIL: 'Send as email',
       SET_CURRENT_VERSION: 'Set as current',
       SHOWING_RESULT: 'Showing result',
+      START_DATE: 'Start date',
       START_YEAR: 'Start year',
       STRUCTURE_UNIT: 'Structure unit',
       SUB_CATEGORY: 'Subcategory',
