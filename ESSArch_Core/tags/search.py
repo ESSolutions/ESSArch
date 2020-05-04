@@ -74,8 +74,8 @@ class ComponentSearch(FacetedSearch):
     filters = {
         'agents': {'many': True},
         'extensions': {'many': True},
-        'start_date': {},
-        'end_date': {},
+        'start_date_before': {},
+        'start_date_after': {},
         'type': {'many': True},
         'appraisal_date_before': {},
         'appraisal_date_after': {},
@@ -83,8 +83,8 @@ class ComponentSearch(FacetedSearch):
 
     def __init__(self, *args, exclude_indices=None, **kwargs):
         self.query_params_filter = kwargs.pop('filter_values', {})
-        self.start_date = self.query_params_filter.pop('start_date', None)
-        self.end_date = self.query_params_filter.pop('end_date', None)
+        self.start_date_before = self.query_params_filter.pop('start_date_before', None)
+        self.start_date_after = self.query_params_filter.pop('start_date_after', None)
         self.appraisal_date_before = self.query_params_filter.pop('appraisal_date_before', None)
         self.appraisal_date_after = self.query_params_filter.pop('appraisal_date_after', None)
         self.archives = self.query_params_filter.pop('archives', None)
@@ -96,30 +96,6 @@ class ComponentSearch(FacetedSearch):
 
         if exclude_indices is not None:
             self.index = [i for i in self.index if i not in exclude_indices]
-
-        def validate_date(d):
-            try:
-                return datetime.datetime.strptime(d, '%Y')
-            except ValueError:
-                try:
-                    return datetime.datetime.strptime(d, '%Y-%m')
-                except ValueError:
-                    try:
-                        return datetime.datetime.strptime(d, '%Y-%m-%d')
-                    except ValueError:
-                        raise exceptions.ParseError('Invalid date format, should be YYYY[-MM-DD]')
-
-        if self.start_date not in EMPTY_VALUES:
-            self.start_date = self.start_date.zfill(4)
-            self.start_date = validate_date(self.start_date)
-
-        if self.end_date not in EMPTY_VALUES:
-            self.end_date = self.end_date.zfill(4)
-            self.end_date = validate_date(self.end_date)
-
-        if self.start_date not in EMPTY_VALUES and self.end_date not in EMPTY_VALUES:
-            if self.start_date > self.end_date:
-                raise exceptions.ParseError('start_date cannot be set to date after end_date')
 
         super().__init__(*args, **kwargs)
 
@@ -203,17 +179,17 @@ class ComponentSearch(FacetedSearch):
         if self.personal_identification_number not in EMPTY_VALUES:
             s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
 
-        if self.start_date not in EMPTY_VALUES:
-            s = s.filter('range', end_date={'gte': self.start_date})
+        if self.start_date_after not in EMPTY_VALUES:
+            s = s.filter('range', start_date={'gte': self.start_date_after - datetime.timedelta(days=1)})
 
-        if self.end_date not in EMPTY_VALUES:
-            s = s.filter('range', start_date={'lte': self.end_date})
+        if self.start_date_before not in EMPTY_VALUES:
+            s = s.filter('range', start_date={'lte': self.start_date_before - datetime.timedelta(days=1)})
 
         if self.appraisal_date_after not in EMPTY_VALUES:
-            s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after})
+            s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after - datetime.timedelta(days=1)})
 
         if self.appraisal_date_before not in EMPTY_VALUES:
-            s = s.filter('range', appraisal_date={'lte': self.appraisal_date_before})
+            s = s.filter('range', appraisal_date={'lte': self.appraisal_date_before - datetime.timedelta(days=1)})
 
         if self.archives is not None:
             s = s.filter(Q('bool', minimum_should_match=1, should=[
@@ -298,12 +274,19 @@ def get_archive(id):
 class ComponentSearchSerializer(serializers.Serializer):
     appraisal_date_before = serializers.DateField(required=False, allow_null=True, default=None)
     appraisal_date_after = serializers.DateField(required=False, allow_null=True, default=None)
+    start_date_before = serializers.DateField(required=False, allow_null=True, default=None)
+    start_date_after = serializers.DateField(required=False, allow_null=True, default=None)
 
     def validate(self, data):
         if (data['appraisal_date_after'] and data['appraisal_date_before'] and
                 data['appraisal_date_after'] > data['appraisal_date_before']):
 
             raise serializers.ValidationError("appraisal_date_after must occur before appraisal_date_before")
+
+        if (data['start_date_after'] and data['start_date_before'] and
+                data['start_date_after'] > data['start_date_before']):
+
+            raise serializers.ValidationError("start_date_after must occur before start_date_before")
 
         return data
 
