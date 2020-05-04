@@ -1,5 +1,5 @@
 docutils==0.15.2
-sphinx-intl==2.0.0
+sphinx-intl==2.0.1
 sphinx-rtd-theme==0.4.3
 sphinx==2.4.4
 sphinxcontrib-httpdomain==1.7.0
