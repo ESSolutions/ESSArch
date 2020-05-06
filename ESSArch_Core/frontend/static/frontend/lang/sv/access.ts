@@ -91,6 +91,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       FIELD_EXISTS: 'Fältet finns redan!',
       FILE_EXTENSIONS: 'Filformat',
       FLAGGED_FOR_APPRAISAL: 'Gallras',
+      FLAGGED_FOR_SECURITY: 'Sekretess',
       GO_TO_SEARCH: 'Gå till Sök',
       GLOBALSEARCHDESC_DELIVERIES: 'Lista alla leveranser som associeras med söktermen',
       GLOBALSEARCHDESC_TAGS: 'Lista alla noder som associeras med söktermen',
