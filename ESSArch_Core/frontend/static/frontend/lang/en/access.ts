@@ -91,6 +91,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       FIELD_EXISTS: 'Field already exists!',
       FILE_EXTENSIONS: 'File format',
       FLAGGED_FOR_APPRAISAL: 'Appraisal',
+      FLAGGED_FOR_SECURITY: 'Security',
       GO_TO_SEARCH: 'Go to Search',
       GLOBALSEARCHDESC_DELIVERIES: 'List all deliveries associated to the search term',
       GLOBALSEARCHDESC_TAGS: 'List all nodes associated to the search term',
