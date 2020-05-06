@@ -326,49 +326,28 @@
   <div ng-if="vm.record.custom_fields && !angular.equals(vm.record.custom_fields, {})">
     <br />
     <b>{{'ACCESS.CUSTOM_FIELDS' | translate}}:</b>
-      <result-field
-        label="Handläggare"
-        data="vm.record.custom_fields['handlaggare']"
-      ></result-field>
-      <result-field
-        label="Ärendetyp"
-        data="vm.record.custom_fields['arendetyp']"
-      ></result-field>
-      <result-field
-        label="Datum"
-        data="vm.record.custom_fields['datum'] | date:'yyyy-MM-dd'"
-      ></result-field>      
-      <div ng-if="!vm.record.security_level">
-        <result-field
-          label="Brukare"
-          data="vm.record.custom_fields['brukare']"
-        ></result-field>  
-        <result-field
-          label="Personnummer"
-          data="vm.record.custom_fields['brukare_personnummer']"
-        ></result-field>                
-      </div>
-      <div ng-if="vm.record.security_level && 
-                checkPermission('tags.security_level_' + vm.record.security_level)">
-        <result-field
-          label="Brukare"
-          data="vm.record.custom_fields['brukare']"
-        ></result-field>     
-        <result-field
-          label="Personnummer"
-          data="vm.record.custom_fields['brukare_personnummer']"
-        ></result-field>               
-      </div>
-      <div ng-if="vm.record.security_level && 
+    <result-field label="Handläggare" data="vm.record.custom_fields['handlaggare']"></result-field>
+    <result-field label="Ärendetyp" data="vm.record.custom_fields['arendetyp']"></result-field>
+    <result-field label="Datum" data="vm.record.custom_fields['datum'] | date:'yyyy-MM-dd'"></result-field>
+    <div ng-if="!vm.record.security_level">
+      <result-field label="Brukare" data="vm.record.custom_fields['brukare']"></result-field>
+      <result-field label="Personnummer" data="vm.record.custom_fields['brukare_personnummer']"></result-field>
+    </div>
+    <div
+      ng-if="vm.record.security_level && 
+                checkPermission('tags.security_level_' + vm.record.security_level)"
+    >
+      <result-field label="Brukare" data="vm.record.custom_fields['brukare']"></result-field>
+      <result-field label="Personnummer" data="vm.record.custom_fields['brukare_personnummer']"></result-field>
+    </div>
+    <div
+      ng-if="vm.record.security_level && 
                 !checkPermission('tags.security_level_' + vm.record.security_level) && 
-                checkPermission('tags.security_level_exists_' + vm.record.security_level)">
-        <div>
-          <strong>Brukare:</strong>&nbsp;<span class="masked">***********************</span>
-        </div>   
-        <div>
-          <strong>Personnummer:</strong>&nbsp;<span class="masked">***********************</span>
-        </div>          
-      </div>        
+                checkPermission('tags.security_level_exists_' + vm.record.security_level)"
+    >
+      <div><strong>Brukare:</strong>&nbsp;<span class="masked">***********************</span></div>
+      <div><strong>Personnummer:</strong>&nbsp;<span class="masked">***********************</span></div>
+    </div>
   </div>
   <br />
   <button
