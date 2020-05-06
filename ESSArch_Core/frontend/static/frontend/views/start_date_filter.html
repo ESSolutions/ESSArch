@@ -1,0 +1,56 @@
+<label class="control-label" tooltip-placement="auto top" tooltip-append-to-body="true"
+  >{{'ACCESS.START_DATE' | translate}}</label
+>
+<div class="d-flex justify-content-start align-items-center">
+  <div class="dropdown" uib-dropdown dropdown-append-to-body="true" is-open="vm.startDateFilterStatus['after']">
+    <a class="dropdown-toggle" id="dropdown-after" role="button" uib-dropdown-toggle>
+      <div class="input-group">
+        <input
+          type="text"
+          data-date-time-input="YYYY-MM-DD"
+          data-model-type="YYYY-MM-DD"
+          ng-keydown="vm.startDateKeyDown('after', $event)"
+          ng-keyup="vm.startDateKeyUp('after', $event)"
+          ng-enter="vm.searchSubmit(vm.searchString)"
+          class="form-control"
+          data-ng-model="vm.filterObject.start_date_after"
+          autocomplete="off"
+        /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+      </div>
+    </a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+      <datetimepicker
+        data-ng-model="vm.filterObject.start_date_after"
+        ng-change="vm.startDateFilterStatus['after'] = false;vm.searchSubmit(vm.searchString);"
+        data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType:'YYYY-MM-DD'}"
+      />
+    </ul>
+  </div>
+  <div>
+    &nbsp;-&nbsp;
+  </div>
+  <div class="dropdown" uib-dropdown dropdown-append-to-body="true" is-open="vm.startDateFilterStatus['before']">
+    <a class="dropdown-toggle" id="dropdown-before" role="button" uib-dropdown-toggle>
+      <div class="input-group">
+        <input
+          type="text"
+          data-date-time-input="YYYY-MM-DD"
+          data-model-type="YYYY-MM-DD"
+          class="form-control"
+          ng-keydown="vm.startDateKeyDown('before', $event)"
+          ng-keyup="vm.startDateKeyUp('before', $event)"
+          ng-enter="vm.searchSubmit(vm.searchString)"
+          data-ng-model="vm.filterObject.start_date_before"
+          autocomplete="off"
+        /><span class="input-group-addon"><i class="fas fa-calendar-alt"></i></span>
+      </div>
+    </a>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel" uib-dropdown-menu>
+      <datetimepicker
+        data-ng-model="vm.filterObject.start_date_before"
+        ng-change="vm.startDateFilterStatus['before'] = false;vm.searchSubmit(vm.searchString);"
+        data-datetimepicker-config="{ minView: 'day', startView: 'year', modelType:'YYYY-MM-DD'}"
+      />
+    </ul>
+  </div>
+</div>

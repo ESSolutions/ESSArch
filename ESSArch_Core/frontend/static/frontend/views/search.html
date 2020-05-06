@@ -203,6 +203,7 @@
                     <th>{{'DATE' |translate}}</th>
                     <th>{{'DESCRIPTION' | translate}}</th>
                     <th class="shrink">{{'ACCESS.FLAGGED_FOR_APPRAISAL' | translate}}</th>
+                    <th class="shrink">{{'ACCESS.FLAGGED_FOR_SECURITY' | translate}}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -226,9 +227,10 @@
                       </div>
                     </td>
                     <td ng-bind-html="x.name" class="search-name-column"></td>
-                    <td class="search-td-nowrap">{{x.unit_dates.date}}</td>
+                    <td class="search-td-nowrap">{{x.start_date | date:"yyyy-MM-dd"}}</td>
                     <td ng-bind-html="x.desc"></td>
                     <td class="shrink">{{x.appraisal_date ? 'YES' : 'NO' | translate}}</td>
+                    <td class="shrink">{{x.security_level ? 'YES' : 'NO' | translate}}</td>
                   </tr>
                   <tr ng-if="!vm.searchResult.length && !ipLoading" class="empty-table-indicator">
                     <td colspan="8">{{'NO_RESULTS_FOUND' | translate}}</td>
