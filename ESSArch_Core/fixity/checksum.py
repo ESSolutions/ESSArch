@@ -40,7 +40,7 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
     hash_val = alg_from_str(algorithm)()
 
     if os.name == 'nt':
-        start_time = time.clock()
+        start_time = time.perf_counter()
     else:
         start_time = time.time()
 
@@ -55,7 +55,7 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
                 break
 
     if os.name == 'nt':
-        end_time = time.clock()
+        end_time = time.perf_counter()
     else:
         end_time = time.time()
 

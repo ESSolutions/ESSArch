@@ -63,6 +63,8 @@ class VersionedDocType(DocumentBase):
     agents = Keyword()
     task_id = Keyword()
     appraisal_date = Date()
+    start_date = Date()
+    end_date = Date()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -216,6 +218,8 @@ class Component(VersionedDocType):
             id=str(obj.pk),
             task_id=task_id,
             appraisal_date=obj.tag.appraisal_date,
+            start_date=obj.start_date,
+            end_date=obj.end_date,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,

@@ -6,7 +6,10 @@ export default class TransferSipModalInstanceCtrl {
     $ctrl.transferring = false;
 
     $ctrl.$onInit = () => {
-      $ctrl.ips = data.ips;
+      $ctrl.ips = data.ips.map((ip) => {
+        ip.id = ip.object_identifier_value;
+        return ip;
+      });
       $ctrl.checkInitialSas($ctrl.ips);
       EditMode.enable();
     };
@@ -33,6 +36,13 @@ export default class TransferSipModalInstanceCtrl {
             ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]].push(ip.id);
           } else {
             ipSaMap[ip.altrecordids.SUBMISSIONAGREEMENT[0]] = [ip.id];
+          }
+          ip.saLoading = true;
+        } else if (ip.submission_agreement) {
+          if (ipSaMap[ip.submission_agreement]) {
+            ipSaMap[ip.submission_agreement].push(ip.id);
+          } else {
+            ipSaMap[ip.submission_agreement] = [ip.id];
           }
           ip.saLoading = true;
         } else {

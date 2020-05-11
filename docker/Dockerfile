@@ -8,7 +8,7 @@ COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/fr
 COPY ./.git .git
 RUN yarn build:dev
 
-FROM python:3.7-buster as base
+FROM python:3.8-buster as base
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -91,7 +91,7 @@ ADD requirements/optional.txt /code/requirements/optional.txt
 ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
-RUN pip install --no-cache-dir -e .[mysql,postgres]
+RUN pip install --no-cache-dir -e .[mysql,postgres,logstash]
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build

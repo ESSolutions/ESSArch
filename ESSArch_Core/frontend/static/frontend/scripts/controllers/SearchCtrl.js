@@ -101,6 +101,24 @@ export default class SearchCtrl {
       });
     };
 
+    vm.startDateFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.startDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.startDateFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.startDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.startDateFilterStatus[type] = true;
+      }
+    };
+
     vm.appraisalFilterStatus = {
       before: false,
       after: false,

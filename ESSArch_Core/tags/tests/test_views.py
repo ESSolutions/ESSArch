@@ -4,6 +4,7 @@ from unittest import mock
 from countries_plus.models import Country
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
+from django.db.models import ProtectedError
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -1613,6 +1614,37 @@ class DeleteStructureUnitInstanceTests(TestCase):
 
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_delete_unit_containing_nodes(self):
+        instance = create_structure(self.structure_type)
+        instance.is_template = False
+        instance.save()
+
+        instance.type.editable_instances = True
+        instance.type.save()
+
+        structure_unit = create_structure_unit(self.structure_unit_type, instance, "1")
+
+        child_unit = create_structure_unit(self.structure_unit_type, instance, "1.1")
+        child_unit.parent = structure_unit
+        child_unit.save()
+        tag_structure = TagStructure.objects.create(
+            tag=Tag.objects.create(), structure_unit=child_unit,
+            structure=instance,
+        )
+        self.assertCountEqual(structure_unit.get_children(), [child_unit])
+
+        url = reverse('structure-units-detail', args=[instance.pk, child_unit.pk])
+        perm = Permission.objects.get(codename='delete_structureunit_instance')
+        self.user.user_permissions.add(perm)
+
+        with self.assertRaises(ProtectedError):
+            self.client.delete(url)
+
+        child_unit.refresh_from_db()
+        structure_unit.refresh_from_db()
+        self.assertCountEqual(structure_unit.get_children(), [child_unit])
+        self.assertCountEqual(child_unit.tagstructure_set.all(), [tag_structure])
 
 
 class AgentArchiveRelationTests(TestCase):

@@ -280,7 +280,7 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         self.assertEqual(res.data['hits'][0]['_id'], str(component_tag_version.pk))
 
     def test_filter_appraisal_date(self):
-        component_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=2, day=26)))
+        component_tag = Tag.objects.create(appraisal_date=make_aware(datetime(year=2020, month=1, day=1)))
         component_tag_version = TagVersion.objects.create(
             tag=component_tag,
             type=self.component_type,
@@ -289,27 +289,30 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
         doc = Component.from_obj(component_tag_version)
         doc.save(refresh='true')
 
-        with self.subTest('2020-02-26 before 2020-12-31'):
-            res = self.client.get(self.url, data={'appraisal_date_before': '2020-12-31'})
-            self.assertEqual(res.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(res.data['hits']), 1)
-
-        with self.subTest('2020-02-26 after 2020-01-01'):
+        with self.subTest('2020-01-01 is after or equal to 2020-01-01'):
             res = self.client.get(self.url, data={'appraisal_date_after': '2020-01-01'})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
 
-        with self.subTest('2020-02-26 not before 2020-01-01'):
-            res = self.client.get(self.url, data={'appraisal_date_before': '2020-01-01'})
+        with self.subTest('2020-01-01 not after 2020-01-02'):
+            res = self.client.get(self.url, data={'appraisal_date_after': '2020-01-02'})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 0)
 
-        with self.subTest('2020-02-26 not after 2020-12-31'):
-            res = self.client.get(self.url, data={'appraisal_date_after': '2020-12-31'})
+        with self.subTest('2020-01-01 not before 2019-12-31'):
+            res = self.client.get(self.url, data={'appraisal_date_before': '2019-12-31'})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 0)
 
-        with self.subTest('2020-02-26 between 2020-01-01 and 2020-12-31'):
+        with self.subTest('2020-01-01 between 2019-01-01 and 2020-01-01'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2019-01-01',
+                'appraisal_date_before': '2020-01-01',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 1)
+
+        with self.subTest('2020-01-01 between 2020-01-01 and 2020-12-31'):
             res = self.client.get(self.url, data={
                 'appraisal_date_after': '2020-01-01',
                 'appraisal_date_before': '2020-12-31',
@@ -317,10 +320,18 @@ class ComponentSearchTestCase(ESSArchSearchBaseTestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
 
-        with self.subTest('2020-02-26 not between 2020-12-01 and 2020-12-31'):
+        with self.subTest('2020-01-01 not between 2020-01-02 and 2020-12-31'):
             res = self.client.get(self.url, data={
-                'appraisal_date_after': '2020-12-01',
+                'appraisal_date_after': '2020-01-02',
                 'appraisal_date_before': '2020-12-31',
+            })
+            self.assertEqual(res.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(res.data['hits']), 0)
+
+        with self.subTest('2020-01-01 not between 2019-01-01 and 2019-12-31'):
+            res = self.client.get(self.url, data={
+                'appraisal_date_after': '2019-01-01',
+                'appraisal_date_before': '2019-12-31',
             })
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 0)
