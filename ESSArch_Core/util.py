@@ -465,10 +465,10 @@ def mptt_to_dict(node, serializer, context=None):
 
 def convert_file(path, new_format):
     if sys.platform == "win32":
-        UNOCONV = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+        cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
     else:
-        UNOCONV = ['unoconv']
-    cmd = UNOCONV.extend(['-f', new_format, '-eSelectPdfVersion=1', path])
+        cmd = ['unoconv']
+    cmd.extend(['-f', new_format, '-eSelectPdfVersion=1', path])
     logger.info(''.join(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
