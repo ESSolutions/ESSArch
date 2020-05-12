@@ -32,6 +32,7 @@ import os
 import platform
 import re
 import shutil
+import sys
 import tarfile
 import uuid
 import zipfile
@@ -463,7 +464,11 @@ def mptt_to_dict(node, serializer, context=None):
 
 
 def convert_file(path, new_format):
-    cmd = ['unoconv', '-f', new_format, '-eSelectPdfVersion=1', path]
+    if sys.platform == "win32":
+        cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+    else:
+        cmd = ['unoconv']
+    cmd.extend(['-f', new_format, '-eSelectPdfVersion=1', path])
     logger.info(''.join(cmd))
     p = Popen(cmd, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate()
