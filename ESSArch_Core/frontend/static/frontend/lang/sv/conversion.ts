@@ -2,12 +2,12 @@
 export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     CONVERSION_VIEW: {
-      ADD_CONVERTER: 'Lägg till konverterare',
-      CONVERTER: 'Konverterare',
-      REMOVE_CONVERSION: 'Ta bort konvertering',
-      RUN_CONVERSIONS: 'Kör konverteringar',
+      ADD_CONVERTER: 'Lägg till åtgärd',
+      CONVERTER: 'Verktyg',
+      REMOVE_CONVERSION: 'Ta bort åtgärd',
+      RUN_CONVERSIONS: 'Kör åtgärder',
     },
-    CONVERSION: 'Konvertering',
+    CONVERSION: 'Åtgärd',
     NONE_SELECTED: 'Ingen vald',
   });
 };

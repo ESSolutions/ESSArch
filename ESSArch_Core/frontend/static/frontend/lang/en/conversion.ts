@@ -2,12 +2,12 @@
 export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('en', {
     CONVERSION_VIEW: {
-      ADD_CONVERTER: 'Add converter',
-      CONVERTER: 'Converter',
-      REMOVE_CONVERSION: 'Remove conversion',
-      RUN_CONVERSIONS: 'Run conversions',
+      ADD_CONVERTER: 'Add action',
+      CONVERTER: 'Tools',
+      REMOVE_CONVERSION: 'Remove action',
+      RUN_CONVERSIONS: 'Run actions',
     },
-    CONVERSION: 'Conversion',
+    CONVERSION: 'Actions',
     NONE_SELECTED: 'None selected',
   });
 };
