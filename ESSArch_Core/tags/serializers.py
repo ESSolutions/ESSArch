@@ -1038,6 +1038,8 @@ class ComponentWriteSerializer(NodeWriteSerializer):
             self.create_identifiers(tag_version, identifiers_data)
             self.create_notes(tag_version, notes_data)
 
+            tag_version.refresh_from_db()
+
         doc = Component.from_obj(tag_version)
         doc.save()
 

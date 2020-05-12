@@ -28,7 +28,7 @@ import ChangePasswordModalCtrl from '../controllers/ChangePasswordModalCtrl';
 import ClassificationModalInstanceCtrl from '../controllers/ClassificationModalInstanceCtrl';
 import CollectContentCtrl from '../controllers/CollectContentCtrl';
 import CombinedWorkareaCtrl from '../controllers/CombinedWorkareaCtrl';
-import ConversionCtrl from '../controllers/ConversionCtrl';
+import ArchiveMaintenanceConversionCtrl from '../controllers/ArchiveMaintenanceConversionCtrl';
 import ConversionModalInstanceCtrl from '../controllers/ConversionModalInstanceCtrl';
 import ConversionJobModalInstanceCtrl from '../controllers/ConversionJobModalInstanceCtrl';
 import ConfirmReceiveCtrl from '../controllers/ConfirmReceiveCtrl';
@@ -83,6 +83,7 @@ import PublishClassificationStructureCtrl from '../controllers/PublishClassifica
 import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassificationStructureCtrl';
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
+import RemoveConversionModalInstanceCtrl from '../controllers/RemoveConversionModalInstanceCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RemoveStructureModalInstanceCtrl from '../controllers/RemoveStructureModalInstanceCtrl';
 import RemoveStructureUnitModalInstanceCtrl from '../controllers/RemoveStructureUnitModalInstanceCtrl';
@@ -382,7 +383,7 @@ export default angular
     CollectContentCtrl,
   ])
   .controller('CombinedWorkareaCtrl', ['$scope', '$controller', CombinedWorkareaCtrl])
-  .controller('ConversionCtrl', [
+  .controller('ArchiveMaintenanceConversionCtrl', [
     '$scope',
     'appConfig',
     '$http',
@@ -396,7 +397,7 @@ export default angular
     '$translate',
     '$transitions',
     'listViewService',
-    ConversionCtrl,
+    ArchiveMaintenanceConversionCtrl,
   ])
   .controller('ConversionModalInstanceCtrl', [
     '$translate',
@@ -937,6 +938,7 @@ export default angular
     '$transitions',
     ReceptionCtrl,
   ])
+  .controller('RemoveConversionModalInstanceCtrl', ['$uibModalInstance', 'data', RemoveConversionModalInstanceCtrl])
   .controller('RemoveNodeModalInstanceCtrl', [
     'Search',
     '$translate',

@@ -99,5 +99,8 @@ COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /co
 # Copy built docs
 COPY --from=build-docs /code/ESSArch_Core/docs/_build /code/ESSArch_Core/docs/_build
 
+# Use python version that match installed libreoffice for unoconv
+RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
+
 # Add source
 ADD . /code

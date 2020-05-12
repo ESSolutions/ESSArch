@@ -704,7 +704,7 @@ angular
         .state('home.archiveMaintenance.conversion', {
           url: '/conversion',
           templateUrl: '/static/frontend/views/conversion.html',
-          controller: 'ConversionCtrl as vm',
+          controller: 'ArchiveMaintenanceConversionCtrl as vm',
           resolve: {
             authenticated: resolveAuthenticated,
           },

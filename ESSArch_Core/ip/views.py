@@ -70,6 +70,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.fixity.models import ConversionTool
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -104,6 +105,7 @@ from ESSArch_Core.ip.permissions import (
 from ESSArch_Core.ip.serializers import (
     AgentSerializer,
     ConsignMethodSerializer,
+    ConversionSerializer,
     EventIPSerializer,
     EventIPWriteSerializer,
     InformationPackageCreateSerializer,
@@ -218,11 +220,45 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         see_all = self.request.user.has_perm('ip.see_all_in_workspaces')
         ips = InformationPackage.objects.visible_to_user(self.request.user)
 
-        qs = self.queryset.filter(ip__in=ips)
+        qs = super().get_queryset().filter(ip__in=ips)
         if not see_all:
             qs = qs.filter(user=self.request.user)
 
         return qs
+
+    @action(detail=True, methods=['post'], url_path='convert')
+    def convert(self, request, pk=None):
+        workarea: Workarea = self.get_object()
+
+        serializer = ConversionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [
+            {
+                "step": True,
+                "name": "Convert files",
+                "children": [],
+            }
+        ]
+
+        for converter in serializer.validated_data['converters']:
+            tool_name = converter['name']
+
+            # ensure that tool exists
+            ConversionTool.objects.get(name=tool_name)
+
+            pattern = converter['path']
+            options = converter['options']
+
+            workflow_spec[0]['children'].append({
+                "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
+                "label": tool_name,
+                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+            })
+
+        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
+        workflow.run()
+        return Response()
 
     @action(detail=True, methods=['post'], url_path='validate')
     def validate(self, request, pk=None):
@@ -844,6 +880,42 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         ip.state = "Uploaded"
         ip.save()
+        return Response()
+
+    @action(detail=True, methods=['post'], url_path='convert')
+    def convert(self, request, pk=None):
+        ip = self.get_object()
+        if ip.state not in ['Prepared', 'Uploading']:
+            raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+
+        serializer = ConversionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [
+            {
+                "step": True,
+                "name": "Convert files",
+                "children": []
+            }
+        ]
+
+        for converter in serializer.validated_data['converters']:
+            tool_name = converter['name']
+
+            # ensure that tool exists
+            ConversionTool.objects.get(name=tool_name)
+
+            pattern = converter['path']
+            options = converter['options']
+
+            workflow_spec[0]['children'].append({
+                "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
+                "label": tool_name,
+                "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
+            })
+
+        workflow = create_workflow(workflow_spec, eager=False, ip=ip)
+        workflow.run()
         return Response()
 
     @lock_obj(blocking_timeout=0.1)

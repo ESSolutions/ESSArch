@@ -1,6 +1,7 @@
 import datetime
 import os
 import shutil
+import sys
 import tempfile
 from subprocess import PIPE
 from unittest import mock
@@ -38,7 +39,11 @@ class ConvertFileTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        if sys.platform == "win32":
+            cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+        else:
+            cmd = ['unoconv']
+        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
@@ -52,7 +57,11 @@ class ConvertFileTests(SimpleTestCase):
         with self.assertRaises(ValueError):
             convert_file("test.docx", "pdf")
 
-        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        if sys.platform == "win32":
+            cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+        else:
+            cmd = ['unoconv']
+        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
     @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
@@ -65,7 +74,11 @@ class ConvertFileTests(SimpleTestCase):
 
         self.assertEqual(convert_file("test.docx", "pdf"), 'test.pdf')
 
-        cmd = ['unoconv', '-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx']
+        if sys.platform == "win32":
+            cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+        else:
+            cmd = ['unoconv']
+        cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
 

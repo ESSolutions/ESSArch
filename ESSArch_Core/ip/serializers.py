@@ -431,6 +431,16 @@ class WorkareaSerializer(serializers.ModelSerializer):
         )
 
 
+class ConverterSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    path = serializers.CharField()
+    options = serializers.JSONField()
+
+
+class ConversionSerializer(serializers.Serializer):
+    converters = serializers.ListField(child=ConverterSerializer())
+
+
 class InformationPackageAICSerializer(DynamicModelSerializer):
     information_packages = InformationPackageSerializer(read_only=True, many=True)
     package_type = serializers.ChoiceField(choices=((1, 'AIC'),))

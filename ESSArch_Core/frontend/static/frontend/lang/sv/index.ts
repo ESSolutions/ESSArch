@@ -1,5 +1,6 @@
 import access from './access';
 import archiveMaintenance from './archiveMaintenance';
+import conversion from './conversion';
 import dashboard from './dashboard';
 import email from './email';
 import error from './error';
@@ -21,6 +22,7 @@ import userSettings from './userSettings';
 export default [
   access,
   archiveMaintenance,
+  conversion,
   dashboard,
   email,
   error,
