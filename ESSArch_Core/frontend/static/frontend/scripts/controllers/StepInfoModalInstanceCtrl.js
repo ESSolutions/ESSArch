@@ -20,24 +20,6 @@ export default class StepInfoModalInstanceCtrl {
       $scope.currentStepTask = angular.copy(data.currentStepTask);
     };
 
-    //Undo step/task
-    $scope.myTreeControl.scope.taskStepUndo = function (branch) {
-      branch
-        .$undo()
-        .then(function (response) {
-          if ($scope.currentStepTask.flow_type === 'task') {
-            $scope.getTask($scope.currentStepTask);
-          } else {
-            $scope.getStep($scope.currentStepTask);
-          }
-          $timeout(function () {
-            $scope.statusViewUpdate($scope.ip);
-          }, 1000);
-        })
-        .catch(function () {
-          console.log('error');
-        });
-    };
     //Redo step/task
     $scope.myTreeControl.scope.taskStepRedo = function (branch) {
       branch

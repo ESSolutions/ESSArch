@@ -12,10 +12,6 @@ const Task = ($resource, appConfig) => {
           return response;
         },
       },
-      undo: {
-        method: 'POST',
-        params: {action: 'undo', id: '@id'},
-      },
       retry: {
         method: 'POST',
         params: {action: 'retry', id: '@id'},

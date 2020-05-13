@@ -22,18 +22,12 @@
     Email - essarch@essolutions.se
 """
 
-import logging
-import shutil
-import tempfile
-import uuid
 from unittest import mock
 
-from celery import states as celery_states
 from django.contrib.auth.models import User
-from django.test import TestCase, override_settings
+from django.test import TestCase
 
-from ESSArch_Core.ip.models import EventIP, InformationPackage
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
@@ -41,7 +35,7 @@ class RunTasksNonEagerlyTests(TestCase):
     def setUp(self):
         self.user = User.objects.create(username="user1")
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_args(self, apply_async):
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
@@ -50,14 +44,16 @@ class RunTasksNonEagerlyTests(TestCase):
         )
         t.run()
 
-        expected_options = {
+        expected_headers = {
             'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': None,
             'allow_failure': False
         }
-        apply_async.assert_called_once_with(args=[5, 10], kwargs={'_options': expected_options}, link_error=None,
-                                            queue='celery', task_id=str(t.celery_id))
+        apply_async.assert_called_once_with(
+            args=[5, 10], kwargs={}, headers={'headers': expected_headers}, link_error=None,
+            queue='celery', task_id=str(t.celery_id),
+        )
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_params(self, apply_async):
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
@@ -66,14 +62,16 @@ class RunTasksNonEagerlyTests(TestCase):
         )
         t.run()
 
-        expected_options = {
+        expected_headers = {
             'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': None,
             'allow_failure': False
         }
-        apply_async.assert_called_once_with(args=[], kwargs={'foo': 'bar', '_options': expected_options},
-                                            link_error=None, queue='celery', task_id=str(t.celery_id))
+        apply_async.assert_called_once_with(
+            args=[], kwargs={'foo': 'bar'}, headers={'headers': expected_headers},
+            link_error=None, queue='celery', task_id=str(t.celery_id),
+        )
 
-    @mock.patch('ESSArch_Core.tasks.DBTask.apply_async')
+    @mock.patch('ESSArch_Core.WorkflowEngine.dbtask.DBTask.apply_async')
     def test_run_with_step(self, apply_async):
         step = ProcessStep.objects.create()
         t = ProcessTask.objects.create(
@@ -84,12 +82,14 @@ class RunTasksNonEagerlyTests(TestCase):
         )
         t.run()
 
-        expected_options = {
+        expected_headers = {
             'responsible': None, 'ip': None, 'step': str(step.pk), 'step_pos': 2, 'hidden': None,
             'allow_failure': False
         }
-        apply_async.assert_called_once_with(args=[], kwargs={'_options': expected_options},
-                                            link_error=None, queue='celery', task_id=str(t.celery_id))
+        apply_async.assert_called_once_with(
+            args=[], kwargs={}, headers={'headers': expected_headers},
+            link_error=None, queue='celery', task_id=str(t.celery_id),
+        )
 
 
 class OnSuccessTests(TestCase):
@@ -135,7 +135,7 @@ class OnFailureTests(TestCase):
         self.assertEqual(
             task.exception,
             {
-                'exc_type': 'Exception',
+                'exc_type': 'ValueError',
                 'exc_message': ('An error occurred!',),
                 'exc_module': 'builtins'
             }
@@ -157,230 +157,3 @@ class OnFailureTests(TestCase):
         task.refresh_from_db()
         self.assertIsNone(task.result)
         self.assertIsNotNone(task.traceback)
-
-
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class test_undoing_tasks(TestCase):
-    def test_undo_successful_task(self):
-        x = 2
-        y = 1
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            params={'x': x, 'y': y}
-        )
-
-        task.run()
-        task.refresh_from_db()
-        self.assertEqual(task.status, celery_states.SUCCESS)
-
-        res = task.undo()
-        task.refresh_from_db()
-        self.assertEqual(res.get(), x - y)
-
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Add", undo_type=True)
-
-        self.assertEqual(task.undone, undo_task)
-        self.assertFalse(task.undo_type)
-        self.assertIsNone(task.retried)
-        self.assertEqual(task.status, celery_states.SUCCESS)
-        self.assertTrue(undo_task.undo_type)
-
-    def test_undo_failed_task(self):
-        task = ProcessTask.objects.create(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail")
-
-        with self.assertRaises(Exception):
-            task.run().get()
-
-        task.refresh_from_db()
-        self.assertEqual(task.status, celery_states.FAILURE)
-
-        task.undo()
-        task.refresh_from_db()
-
-        undo_task = ProcessTask.objects.get(name="ESSArch_Core.WorkflowEngine.tests.tasks.Fail", undo_type=True)
-        self.assertEqual(task.undone, undo_task)
-
-        self.assertFalse(task.undo_type)
-        self.assertIsNone(task.retried)
-        self.assertEqual(task.status, celery_states.FAILURE)
-        self.assertTrue(undo_task.undo_type)
-
-    def test_undo_with_args(self):
-        x = 2
-        y = 1
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            args=[x, y],
-        )
-
-        task.run()
-        res = task.undo()
-        task.refresh_from_db()
-
-        self.assertEqual(res.get(), x - y)
-
-
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
-class test_retrying_tasks(TestCase):
-
-    def setUp(self):
-        self.datadir = tempfile.mkdtemp()
-        self.addCleanup(shutil.rmtree, self.datadir)
-
-    def test_retry_with_args(self):
-        x = 2
-        y = 1
-
-        task = ProcessTask.objects.create(
-            name="ESSArch_Core.WorkflowEngine.tests.tasks.Add",
-            args=[x, y]
-        )
-
-        task.run()
-        task.undo()
-        res = task.retry().get()
-
-        self.assertEqual(res, x + y)
-
-
-class DBTaskTests(TestCase):
-
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
-    def test_create_event_when_success(self, mocked_logger_log):
-        db_task = DBTask()
-        db_task.eager = False
-        t = ProcessTask.objects.create()
-
-        db_task.create_event(
-            task_id=t.celery_id,
-            status=celery_states.SUCCESS,
-            args=["1", "2"],
-            kwargs={'some_key': 'some_value', '_options': 'opt_val'},
-            retval=None,
-            einfo=None
-        )
-
-        outcome_detail_note = ''
-        expected_extra = {
-            'event_type': db_task.event_type,
-            'object': db_task.ip,
-            'agent': None,
-            'task': t.pk,
-            'outcome': EventIP.SUCCESS
-        }
-        mocked_logger_log.assert_called_once_with(logging.INFO, outcome_detail_note, extra=expected_extra)
-
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.logger.log")
-    @mock.patch("billiard.einfo.ExceptionInfo")
-    def test_create_event_when_failure(self, mock_einfo, mock_logger_log):
-        db_task = DBTask()
-        db_task.eager = False
-        t = ProcessTask.objects.create()
-
-        db_task.create_event(
-            task_id=t.celery_id,
-            status=celery_states.PENDING,
-            args=["1", "2"],
-            kwargs={'some_key': 'some_value', '_options': 'opt_val'},
-            retval=None,
-            einfo=mock_einfo
-        )
-
-        expected_extra = {
-            'event_type': db_task.event_type,
-            'object': db_task.ip,
-            'agent': None,
-            'task': t.pk,
-            'outcome': EventIP.FAILURE
-        }
-        mock_logger_log.assert_called_once_with(logging.ERROR, mock.ANY, extra=expected_extra)
-
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_event_type_not_none_then_create_event(self, mock_create_event):
-        db_task = DBTask()
-        db_task.event_type = 123
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        retval = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        db_task.success(retval, task_id, args, kwargs)
-
-        mock_create_event.assert_called_once_with(task_id, celery_states.SUCCESS, args, kwargs, retval, None)
-
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_event_type_is_none_dont_create_event(self, mock_create_event):
-        db_task = DBTask()
-        db_task.event_type = None
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        retval = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        db_task.success(retval, task_id, args, kwargs)
-
-        mock_create_event.assert_not_called()
-
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_success_when_track_is_False_then_return(self, mock_create_event):
-        db_task = DBTask()
-        db_task.track = False
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        retval = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        db_task.success(retval, task_id, args, kwargs)
-
-        mock_create_event.assert_not_called()
-
-    @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_event_type_not_none_then_create_event(self, mock_create_event, mock_einfo):
-        db_task = DBTask()
-        db_task.event_type = 123
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        mock_einfo.type.__name__ = "exception name"
-
-        db_task.failure(None, task_id, args, kwargs, mock_einfo)
-
-        mock_create_event.assert_called_once_with(task_id, celery_states.FAILURE, args, kwargs, None, mock_einfo)
-
-    @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_event_type_is_none_then_dont_create_event(self, create_event, mock_einfo):
-        db_task = DBTask()
-        db_task.event_type = None
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        mock_einfo.type.__name__ = "exception name"
-
-        db_task.failure(None, task_id, args, kwargs, mock_einfo)
-
-        create_event.assert_not_called()
-
-    @mock.patch("billiard.einfo.ExceptionInfo")
-    @mock.patch("ESSArch_Core.WorkflowEngine.dbtask.DBTask.create_event")
-    def test_failure_when_track_is_False_then_return(self, mock_create_event, mock_einfo):
-        db_task = DBTask()
-        db_task.track = False
-        db_task.eager = False
-        task_id = uuid.uuid4()
-        args = uuid.uuid4()
-        kwargs = uuid.uuid4()
-
-        db_task.failure(None, task_id, args, kwargs, mock_einfo)
-
-        mock_create_event.assert_not_called()

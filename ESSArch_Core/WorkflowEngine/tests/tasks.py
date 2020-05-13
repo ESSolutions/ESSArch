@@ -24,55 +24,52 @@
 
 import os
 
+from ESSArch_Core.config.celery import app
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.WorkflowEngine.dbtask import DBTask
 
 
-class First(DBTask):
-    def run(self, foo=None):
-        return foo
+@app.task(bind=True)
+def First(self, foo=None):
+    return foo
 
 
-class Second(DBTask):
-    def run(self, foo=None):
-        self.set_progress(1, total=2)
-        return foo
+@app.task(bind=True)
+def Second(self, foo=None):
+    self.set_progress(1, total=2)
+    return foo
 
 
-class Third(DBTask):
-    def run(self, foo=None):
-        return foo
+@app.task(bind=True)
+def Third(self, foo=None):
+    return foo
 
 
-class Add(DBTask):
-    def run(self, x, y):
-        return x + y
-
-    def undo(self, x, y):
-        return x - y
+@app.task(bind=True)
+def Add(self, x, y):
+    return x + y
 
 
-class Fail(DBTask):
-    def run(self):
-        raise Exception('An error occurred!')
+@app.task(bind=True)
+def Fail(self):
+    raise ValueError('An error occurred!')
 
 
-class FailDoesNotExist(DBTask):
-    def run(self):
-        raise InformationPackage.DoesNotExist
+@app.task(bind=True)
+def FailDoesNotExist(self):
+    raise InformationPackage.DoesNotExist
 
 
-class FailIfFileNotExists(DBTask):
-    def run(self, filename=None):
-        assert os.path.isfile(filename)
-        return filename
+@app.task(bind=True)
+def FailIfFileNotExists(self, filename=None):
+    assert os.path.isfile(filename)
+    return filename
 
 
-class WithEvent(DBTask):
-    event_type = 1
+@app.task(bind=True)
+def WithEvent(self, bar, foo=None):
+    self.event_type = 1
 
-    def run(self, bar, foo=None):
-        return foo
+    msg = "Task completed successfully with bar=%s and foo=%s" % (bar, foo)
+    self.create_success_event(msg)
 
-    def event_outcome_success(self, result, bar, foo=None):
-        return "Task completed successfully with bar=%s and foo=%s" % (bar, foo)
+    return foo

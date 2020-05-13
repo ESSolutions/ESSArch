@@ -200,8 +200,7 @@ class InformationPackageQuerySet(OrganizationQuerySet):
 
         ip_tasks = ProcessTask.objects.filter(
             information_package=OuterRef('pk'),
-            undo_type=False, retried__isnull=True, undone__isnull=True,
-            steps_on_errors=None,
+            retried__isnull=True, steps_on_errors=None,
         ).order_by()
 
         return self.annotate(

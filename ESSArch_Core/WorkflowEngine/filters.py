@@ -29,9 +29,7 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class ProcessTaskFilter(filters.FilterSet):
-    undo_type = filters.BooleanFilter(field_name='undo_type', method='filter_undo_type')
     retry_type = filters.BooleanFilter(field_name='retry_type', method='filter_retry_type')
-    undone = filters.BooleanFilter(method='filter_undone')
     retried = filters.BooleanFilter(method='filter_retried')
     hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
 
@@ -42,17 +40,9 @@ class ProcessTaskFilter(filters.FilterSet):
             )
         return queryset.filter(hidden=value)
 
-    def filter_undo_type(self, queryset, name, value):
-        value = not value
-        return queryset.filter(undone_task__isnull=value)
-
     def filter_retry_type(self, queryset, name, value):
         value = not value
         return queryset.filter(retried_task__isnull=value)
-
-    def filter_undone(self, queryset, name, value):
-        value = not value
-        return queryset.filter(undone__isnull=value)
 
     def filter_retried(self, queryset, name, value):
         value = not value
@@ -61,7 +51,7 @@ class ProcessTaskFilter(filters.FilterSet):
     class Meta:
         model = ProcessTask
         fields = [
-            'undo_type', 'retry_type', 'hidden',
+            'retry_type', 'hidden',
         ]
 
 
