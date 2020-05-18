@@ -21,7 +21,7 @@ from ESSArch_Core.configuration.models import (
     Path,
     StoragePolicy,
 )
-from ESSArch_Core.fixity.models import ConversionTool
+from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.maintenance.models import (
     AppraisalJob,
@@ -1426,8 +1426,8 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         self.event_type = EventType.objects.create(eventType=50750, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
-        ConversionTool.objects.create(
-            name='ffmpeg', enabled=True, type=ConversionTool.Type.DOCKER_IMAGE,
+        ActionTool.objects.create(
+            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL, docker=True,
             path='ffmpeg', cmd='-i "{input}" "{input_dir}/{input_name}.{output}"',
         )
 
