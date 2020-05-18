@@ -412,7 +412,7 @@ except ImportError:
     RABBITMQ_URL = os.environ.get('RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672')
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
-    "ESSArch_Core.fixity.conversion.tasks",
+    "ESSArch_Core.fixity.action.tasks",
     "ESSArch_Core.ip.tasks",
     "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",

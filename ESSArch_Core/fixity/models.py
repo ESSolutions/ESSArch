@@ -9,21 +9,30 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.fields import JSONField
-from ESSArch_Core.fixity.exceptions import ConversionError
+from ESSArch_Core.fixity.exceptions import (
+    CollectionError,
+    ConversionError,
+    TransformationError,
+    ValidationError,
+)
 
 User = get_user_model()
 
 
 class ExternalTool(models.Model):
     class Type(models.TextChoices):
-        APPLICATION = 'APP'
-        DOCKER_IMAGE = 'DOCKER_IMG'
+        CONVERSION_TOOL = 'conversion'
+        COLLECTION_TOOL = 'collection'
+        TRANSFORMATION_TOOL = 'transformation'
+        VALIDATION_TOOL = 'validation'
 
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
     path = models.TextField(_('path'))
-    cmd = models.TextField(_('command'))
-    enabled = models.BooleanField(_('enabled'))
+    cmd = models.TextField(_('options or command'))
+    enabled = models.BooleanField(_('enabled'), default=True)
+    docker = models.BooleanField(_('docker'), default=False)
+    file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     form = JSONField(_('form'), null=True, blank=True)
 
     def __str__(self):
@@ -33,18 +42,32 @@ class ExternalTool(models.Model):
         abstract = True
 
 
-class ConversionTool(ExternalTool):
+class ActionTool(ExternalTool):
+    form = JSONField(_('form'), null=True, blank=True, default='''[
+        {
+            "key": "path",
+            "type": "input",
+            "templateOptions": {
+                "label": "PATH_i18n",
+                "required": true
+            },
+            "expressionProperties":{
+                "templateOptions.label":"\\"PATH\\" | translate"
+            }
+        }
+]''')
+
     class Meta:
-        verbose_name = _('conversion tool')
-        verbose_name_plural = _('conversion tools')
+        verbose_name = _('action tool')
+        verbose_name_plural = _('action tools')
 
     def prepare_cmd(self, filepath, options):
         kwargs = {
-            'input': filepath,
-            'input_basename': os.path.basename(filepath),
-            'input_dir': os.path.dirname(filepath),
-            'input_name': PurePath(filepath).stem,
-            'input_ext': ''.join(PurePath(filepath).suffixes)[1:],
+            'input': filepath,  # 'test1/test2/kanin.jpg'
+            'input_basename': os.path.basename(filepath),   # 'kanin.jpg'
+            'input_dir': os.path.dirname(filepath),     # 'test1/test2'
+            'input_name': PurePath(filepath).stem,      # 'kanin'
+            'input_ext': ''.join(PurePath(filepath).suffixes)[1:],  # 'jpg'
         }
         kwargs.update(options)
         return self.cmd.format(**kwargs)
@@ -53,7 +76,6 @@ class ConversionTool(ExternalTool):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
-
         try:
             os.chdir(rootdir)
             filepath = normalize_path(filepath)
@@ -61,7 +83,19 @@ class ConversionTool(ExternalTool):
             p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
             out, err = p.communicate()
             if p.returncode != 0:
-                raise ConversionError(err)
+                message = 'Command "{cmd}" exited with returncode "{returncode}" and error message "{err}"'.format(
+                    cmd=cmd,
+                    returncode=p.returncode,
+                    err=err
+                )
+                if self.type == ExternalTool.Type.CONVERSION_TOOL:
+                    raise ConversionError(message)
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL:
+                    raise CollectionError(message)
+                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL:
+                    raise TransformationError(message)
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL:
+                    raise ValidationError(message)
         finally:
             os.chdir(old_cwd)
 
@@ -80,9 +114,9 @@ class ConversionTool(ExternalTool):
         )
 
     def run(self, filepath, rootdir, options):
-        if self.type == ExternalTool.Type.APPLICATION:
+        if self.docker is False:
             return self._run_application(filepath, rootdir, options)
-        elif self.type == ExternalTool.Type.DOCKER_IMAGE:
+        elif self.docker is True:
             return self._run_docker(filepath, rootdir, options)
 
         raise ValueError('Unknown tool type')

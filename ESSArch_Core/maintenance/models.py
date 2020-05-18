@@ -22,7 +22,7 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import EventType, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fields import JSONField
-from ESSArch_Core.fixity.models import ConversionTool
+from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.exceptions import NoReadableStorage
@@ -594,7 +594,7 @@ class ConversionJob(MaintenanceJob):
             refresh=True,
         )
 
-    def convert(self, ip, path, rootpath, tool: ConversionTool, options, new_ip):
+    def convert(self, ip, path, rootpath, tool: ActionTool, options, new_ip):
         relpath = PurePath(path).relative_to(rootpath).as_posix()
         entry = ConversionJobEntry.objects.create(
             job=self,
@@ -638,7 +638,7 @@ class ConversionJob(MaintenanceJob):
 
             # convert files specified in rule
             for pattern, spec in self.specification.items():
-                tool = ConversionTool.objects.get(name=spec['tool'])
+                tool = ActionTool.objects.get(name=spec['tool'])
                 options = spec['options']
 
                 for path in iglob(new_ip_tmpdir + '/' + pattern, case_sensitive=False):

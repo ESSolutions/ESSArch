@@ -35,7 +35,7 @@ from ESSArch_Core.configuration.views import (
     SysInfoView,
 )
 from ESSArch_Core.fixity.views import (
-    ConversionToolViewSet,
+    ActionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
 )
@@ -319,7 +319,7 @@ router.register(r'conversion-jobs', ConversionJobViewSet).register(
     parents_query_lookups=['conversion_jobs'],
 )
 router.register(r'conversion-templates', ConversionTemplateViewSet)
-router.register(r'conversion-tools', ConversionToolViewSet)
+router.register(r'action-tools', ActionToolViewSet)
 router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)

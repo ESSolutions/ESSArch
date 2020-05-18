@@ -198,7 +198,8 @@ def installDefaultEventTypes():
         'Unpacked object': {'eventType': '50720', 'category': ip_cat},
         'Converted RES to PREMIS': {'eventType': '50730', 'category': ip_cat},
         'Deleted IP': {'eventType': '50740', 'category': ip_cat},
-        'Converted file': {'eventType': '50750', 'category': ip_cat},
+        'Conversion': {'eventType': '50750', 'category': ip_cat},
+        'Action tool': {'eventType': '50760', 'category': ip_cat},
     }
 
     for key, val in dct.items():

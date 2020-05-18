@@ -6,7 +6,7 @@ from unittest import mock
 
 from django.test import TestCase
 
-from ESSArch_Core.fixity.models import ConversionTool
+from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.util import normalize_path
 
 
@@ -22,8 +22,8 @@ class ConversionJobViewSetRunTests(TestCase):
         popen_obj.communicate.return_value = ('output', 'error')
         mock_popen.return_value = popen_obj
 
-        t = ConversionTool.objects.create(
-            name='ffmpeg', enabled=True, type=ConversionTool.Type.APPLICATION,
+        t = ActionTool.objects.create(
+            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL, docker=False,
             path='ffmpeg', cmd='-i {input} {input_name}.{output}',
         )
         f = os.path.join(self.datadir, 'foo.mkv')

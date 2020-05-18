@@ -431,14 +431,14 @@ class WorkareaSerializer(serializers.ModelSerializer):
         )
 
 
-class ConverterSerializer(serializers.Serializer):
+class ActionSerializer(serializers.Serializer):
     name = serializers.CharField()
-    path = serializers.CharField()
+    path = serializers.CharField(allow_blank=True)
     options = serializers.JSONField()
 
 
-class ConversionSerializer(serializers.Serializer):
-    converters = serializers.ListField(child=ConverterSerializer())
+class ActionToolSerializer(serializers.Serializer):
+    actions = serializers.ListField(child=ActionSerializer())
 
 
 class InformationPackageAICSerializer(DynamicModelSerializer):

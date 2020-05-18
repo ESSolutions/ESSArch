@@ -70,7 +70,7 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
-from ESSArch_Core.fixity.models import ConversionTool
+from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.fixity.transformation import AVAILABLE_TRANSFORMERS
 from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
@@ -103,9 +103,9 @@ from ESSArch_Core.ip.permissions import (
     IsResponsibleOrReadOnly,
 )
 from ESSArch_Core.ip.serializers import (
+    ActionToolSerializer,
     AgentSerializer,
     ConsignMethodSerializer,
-    ConversionSerializer,
     EventIPSerializer,
     EventIPWriteSerializer,
     InformationPackageCreateSerializer,
@@ -226,32 +226,32 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
         return qs
 
-    @action(detail=True, methods=['post'], url_path='convert')
-    def convert(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='actiontool')
+    def actiontool(self, request, pk=None):
         workarea: Workarea = self.get_object()
 
-        serializer = ConversionSerializer(data=request.data)
+        serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         workflow_spec = [
             {
                 "step": True,
-                "name": "Convert files",
-                "children": [],
+                "name": "Action tool",
+                "children": []
             }
         ]
 
-        for converter in serializer.validated_data['converters']:
+        for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
 
             # ensure that tool exists
-            ConversionTool.objects.get(name=tool_name)
+            ActionTool.objects.get(name=tool_name)
 
             pattern = converter['path']
             options = converter['options']
 
             workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
+                "name": "ESSArch_Core.fixity.action.tasks.Action",
                 "label": tool_name,
                 "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
             })
@@ -882,34 +882,34 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.save()
         return Response()
 
-    @action(detail=True, methods=['post'], url_path='convert')
-    def convert(self, request, pk=None):
+    @action(detail=True, methods=['post'], url_path='actiontool')
+    def actiontool(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
-        serializer = ConversionSerializer(data=request.data)
+        serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         workflow_spec = [
             {
                 "step": True,
-                "name": "Convert files",
+                "name": "Action tool",
                 "children": []
             }
         ]
 
-        for converter in serializer.validated_data['converters']:
+        for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
 
             # ensure that tool exists
-            ConversionTool.objects.get(name=tool_name)
+            ActionTool.objects.get(name=tool_name)
 
             pattern = converter['path']
             options = converter['options']
 
             workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.conversion.tasks.Convert",
+                "name": "ESSArch_Core.fixity.action.tasks.Action",
                 "label": tool_name,
                 "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
             })

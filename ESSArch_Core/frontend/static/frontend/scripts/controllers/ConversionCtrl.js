@@ -36,21 +36,11 @@ export default class ConversionCtrl {
 
     vm.getConverters = function (search) {
       return $http({
-        url: appConfig.djangoUrl + 'conversion-tools/',
+        url: appConfig.djangoUrl + 'action-tools/',
         method: 'GET',
         params: {search: search, pager: 'none'},
       }).then(function (response) {
         vm.options.converters = response.data.map((converter) => {
-          converter.pathField = [
-            {
-              type: 'input',
-              key: 'path',
-              templateOptions: {
-                label: $translate.instant('PATH'),
-                required: true,
-              },
-            },
-          ];
           return converter;
         });
         return vm.options.converters;
@@ -118,7 +108,7 @@ export default class ConversionCtrl {
         delete vm.flowOptions.purpose;
       }
       let data = angular.extend(vm.flowOptions, {
-        converters: vm.conversions.map((x) => {
+        actions: vm.conversions.map((x) => {
           let data = angular.copy(x.data);
           delete data.path;
           return {
@@ -130,7 +120,7 @@ export default class ConversionCtrl {
       });
       const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
       const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-      $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/convert/', data).then(() => {
+      $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
         $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
       });
     };

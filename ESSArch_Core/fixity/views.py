@@ -6,18 +6,18 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import ConversionTool, Validation
+from ESSArch_Core.fixity.models import ActionTool, Validation
 from ESSArch_Core.fixity.serializers import (
-    ConversionToolSerializer,
+    ActionToolSerializer,
     ValidationFilesSerializer,
     ValidationSerializer,
 )
 
 
-class ConversionToolViewSet(viewsets.ReadOnlyModelViewSet):
+class ActionToolViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = ConversionTool.objects.filter(enabled=True)
-    serializer_class = ConversionToolSerializer
+    queryset = ActionTool.objects.filter(enabled=True)
+    serializer_class = ActionToolSerializer
 
 
 class ValidationViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
