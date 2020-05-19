@@ -1427,8 +1427,9 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
 
         Path.objects.create(entity='conversion_reports', value=tempfile.mkdtemp(dir=self.datadir))
         ActionTool.objects.create(
-            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL, docker=True,
-            path='ffmpeg', cmd='-i "{input}" "{input_dir}/{input_name}.{output}"',
+            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL,
+            environment=ActionTool.EnvironmentType.DOCKER_ENV, path='ffmpeg',
+            cmd='-i "{input}" "{input_dir}/{input_name}.{output}"',
         )
 
         with self.storage_obj.open('foo.mkv', 'w') as f:
