@@ -23,8 +23,9 @@ class ConversionJobViewSetRunTests(TestCase):
         mock_popen.return_value = popen_obj
 
         t = ActionTool.objects.create(
-            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL, docker=False,
-            path='ffmpeg', cmd='-i {input} {input_name}.{output}',
+            name='ffmpeg', enabled=True, type=ActionTool.Type.CONVERSION_TOOL,
+            environment=ActionTool.EnvironmentType.CLI_ENV, path='ffmpeg',
+            cmd='-i {input} {input_name}.{output}',
         )
         f = os.path.join(self.datadir, 'foo.mkv')
         t.run(f, self.datadir, {'output': 'mp4'})
