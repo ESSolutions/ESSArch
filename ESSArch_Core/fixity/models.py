@@ -1,3 +1,4 @@
+import importlib
 import os
 import shlex
 import uuid
@@ -26,12 +27,18 @@ class ExternalTool(models.Model):
         TRANSFORMATION_TOOL = 'transformation'
         VALIDATION_TOOL = 'validation'
 
+    class EnvironmentType(models.TextChoices):
+        CLI_ENV = 'cli'
+        PYTHON_ENV = 'python'
+        DOCKER_ENV = 'docker'
+
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
     path = models.TextField(_('path'))
     cmd = models.TextField(_('options or command'))
     enabled = models.BooleanField(_('enabled'), default=True)
-    docker = models.BooleanField(_('docker'), default=False)
+    environment = models.CharField(_('environment'), max_length=20,
+                                   default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     form = JSONField(_('form'), null=True, blank=True)
 
@@ -99,6 +106,52 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
+    def _run_python(self, filepath, rootdir, options):
+        from ESSArch_Core.util import normalize_path
+
+        old_cwd = os.getcwd()
+        try:
+            os.chdir(rootdir)
+            filepath = normalize_path(filepath)
+            cmd = eval(self.prepare_cmd(filepath, options))
+            try:
+                [module, task] = self.path.rsplit('.', 1)
+                p = getattr(importlib.import_module(module), task)
+                if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
+                    p.convert(**cmd)
+                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
+                    p.convert(*cmd)
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, dict):
+                    p.collect(**cmd)
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, tuple):
+                    p.collect(*cmd)
+                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL and isinstance(cmd, dict):
+                    p.transform(**cmd)
+                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL and isinstance(cmd, tuple):
+                    p.transform(*cmd)
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, dict):
+                    p.validate(**cmd)
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, tuple):
+                    p.validate(*cmd)
+                else:
+                    raise ValueError(cmd)
+            except Exception as err:
+                message = 'Module "{module}" command "{cmd}" exited with error message "{err}"'.format(
+                    module=self.path,
+                    cmd=cmd,
+                    err=err
+                )
+                if self.type == ExternalTool.Type.CONVERSION_TOOL:
+                    raise ConversionError(message)
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL:
+                    raise CollectionError(message)
+                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL:
+                    raise TransformationError(message)
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL:
+                    raise ValidationError(message)
+        finally:
+            os.chdir(old_cwd)
+
     def _run_docker(self, filepath, rootdir, options):
         import docker
         client = docker.from_env()
@@ -114,10 +167,12 @@ class ActionTool(ExternalTool):
         )
 
     def run(self, filepath, rootdir, options):
-        if self.docker is False:
+        if self.environment == ActionTool.EnvironmentType.CLI_ENV:
             return self._run_application(filepath, rootdir, options)
-        elif self.docker is True:
+        elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
             return self._run_docker(filepath, rootdir, options)
+        elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
+            return self._run_python(filepath, rootdir, options)
 
         raise ValueError('Unknown tool type')
 
