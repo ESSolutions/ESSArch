@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 
 import click
 from wand.image import Image
@@ -42,6 +43,8 @@ class ImageConverter(BaseConverter):
 
     @classmethod
     def convert(cls, input_file, output_file, in_fmt=None, out_fmt=None):
+        if out_fmt is None:
+            out_fmt = mimetypes.guess_type(output_file)[0]
         with Image(filename=input_file) as in_img:
             out_fmt = cls.format_from_mimetype(out_fmt)
             in_img.format = out_fmt
