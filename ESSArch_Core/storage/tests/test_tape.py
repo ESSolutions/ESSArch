@@ -424,7 +424,7 @@ class TapeLabelTest(SimpleTestCase):
     def test_verify_tape_label_tape_tag_missing_should_return_False(self):
         current_time = timezone.now()
         mock_medium = self.get_mocked_medium("code id", current_time, 103, 512, 325)
-        xml_content = f"""\
+        xml_content = """\
 <?xml version='1.0' encoding='UTF-8'?>
 <label>
   <format format="103" blocksize="512" drivemanufacture="325"/>
