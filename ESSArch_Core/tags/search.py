@@ -581,7 +581,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                 ),
                 to_attr='volumes',
             ),
-        ).all()
+        ).all().order_by('reference_code')
 
         template = 'tags/archive.html'.format()
         f = tempfile.TemporaryFile()
