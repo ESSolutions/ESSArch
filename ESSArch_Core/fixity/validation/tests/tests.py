@@ -554,7 +554,7 @@ class DiffCheckValidatorTests(TestCase):
         os.remove(files[0])
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+        msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -567,7 +567,7 @@ class DiffCheckValidatorTests(TestCase):
             f.write('added')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -580,7 +580,7 @@ class DiffCheckValidatorTests(TestCase):
         os.rename(old, new)
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -592,7 +592,7 @@ class DiffCheckValidatorTests(TestCase):
             f.write('changed')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -619,7 +619,7 @@ class DiffCheckValidatorTests(TestCase):
         with self.subTest('delete file'):
             os.remove(files[0])
             self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-            msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+            msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
             with self.assertRaisesRegexp(ValidationError, msg):
                 self.validator.validate(self.datadir)
 
@@ -633,7 +633,7 @@ class DiffCheckValidatorTests(TestCase):
         tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -660,7 +660,7 @@ class DiffCheckValidatorTests(TestCase):
         os.remove(files[0])
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.fname)
+        msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -678,7 +678,7 @@ class DiffCheckValidatorTests(TestCase):
         os.rename(old, new)
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -698,7 +698,7 @@ class DiffCheckValidatorTests(TestCase):
         os.remove(files[1])
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
+        msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -722,7 +722,7 @@ class DiffCheckValidatorTests(TestCase):
         os.remove(files[2])
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'.format(xml=self.fname)
+        msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -748,7 +748,7 @@ class DiffCheckValidatorTests(TestCase):
             f.write('foo')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -765,7 +765,7 @@ class DiffCheckValidatorTests(TestCase):
             f.write('changed')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -779,7 +779,7 @@ class DiffCheckValidatorTests(TestCase):
                 f.write(f1.read())
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -796,7 +796,7 @@ class DiffCheckValidatorTests(TestCase):
         self.create_files()
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'.format(xml=self.fname)
+        msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -813,7 +813,7 @@ class DiffCheckValidatorTests(TestCase):
             f.write('added')
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-        msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'.format(xml=self.fname)
+        msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 
@@ -955,7 +955,7 @@ class DiffCheckValidatorRecursiveTests(TestCase):
         os.remove(files[1])
 
         self.validator = DiffCheckValidator(context=self.root_xml, options=self.options)
-        msg = '4 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'.format(xml=self.root_xml)
+        msg = '4 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
         with self.assertRaisesRegexp(ValidationError, msg):
             self.validator.validate(self.datadir)
 

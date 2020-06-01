@@ -946,7 +946,7 @@ class InformationPackage(models.Model):
     def validate_path(self, path):
         fullpath = os.path.join(self.object_path, path)
         if not in_directory(fullpath, self.object_path) and fullpath != os.path.splitext(self.object_path)[0] + '.xml':
-            raise exceptions.ValidationError('Illegal path: {s}'.format(path))
+            raise exceptions.ValidationError('Illegal path: {}'.format(path))
 
     def get_path_response(self, path, request, force_download=False, paginator=None):
         self.validate_path(path)

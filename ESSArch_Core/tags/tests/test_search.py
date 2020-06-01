@@ -478,7 +478,7 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
         )
         Component.from_obj(component_tag_version).save(refresh='true')
 
-        with self.subTest(f'no security level'):
+        with self.subTest('no security level'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
@@ -507,7 +507,7 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
         )
         Component.from_obj(component_tag_version).save(refresh='true')
 
-        with self.subTest(f'no security level'):
+        with self.subTest('no security level'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)
@@ -545,7 +545,7 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
         )
         Component.from_obj(component_tag_version).save(refresh='true')
 
-        with self.subTest(f'no security level'):
+        with self.subTest('no security level'):
             res = self.client.get(self.url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
             self.assertEqual(len(res.data['hits']), 1)

@@ -16,8 +16,8 @@ def get_result(step, reference):
     return results[reference]
 
 
-def _create_on_error_tasks(l, ip=None, responsible=None, eager=False):
-    for on_error_idx, on_error in enumerate(l):
+def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False):
+    for on_error_idx, on_error in enumerate(errors):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
         result_params = on_error.get('result_params', {})
