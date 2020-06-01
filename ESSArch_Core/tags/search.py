@@ -587,7 +587,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         f = tempfile.TemporaryFile()
 
         ctype = 'application/pdf'
-        render = render_to_string(template, {'archive_name': archive.name, 'series': series})
+        render = render_to_string(template, {'archive': archive, 'series': series})
         HTML(string=render).write_pdf(f)
 
         f.seek(0)

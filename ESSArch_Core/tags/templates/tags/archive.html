@@ -26,6 +26,7 @@
       border-collapse:
         collapse; border-spacing: 0;
       width: 100%;
+      table-layout: fixed;
       display: table;
     }
 
@@ -35,11 +36,11 @@
       /*background: #328cc1; /* Light grey background */
       font-weight: bold; /* Make sure they're bold */
       height: 30px;
-      color: white;
+      //color: white;
       text-align: center;
     }
     thead>tr {
-      background-color: #328cc1; /* Light grey background */
+      //background-color: #328cc1; /* Light grey background */
     }
 
     td {
@@ -48,69 +49,153 @@
       padding-left: 10px;
       height: 20px;
     }
+
+
     .title {
       width: 100%;
-      color: #0e4971;
+      color: #00000;
       line-height: 1.5;
     }
     .footer {
       margin-top: 20px;
       color: #bbbbbb;
+      position: absolute;
+      bottom: 0;
+    }
+
+    .frontpage{
+    font-family: Helvetica, Arial, sans-serif; /* Nicer font */
+    }
+
+    .seriesRefCode{
+     text-align: center;
+     vertical-align: top;
+    }
+
+    .seriesHeader{
+     text-align: left;
+
+    }
+
+     .seriesDescription{
+     text-align: left;
+     font-size: 11px;
+
+    }
+
+    .locationCol{
+    width: 7%
+
+    }
+    .volNr{
+    width: 11%
+
+    }
+    .time{
+    width: 11%
+
+    }
+     .notes{
+    width: 61%
+
+    }
+     .tocref{
+    width: 12%
+
+    }
+     .tocname{
+    width: 85%
+
     }
 
     .pagebreak { page-break-before: always; }
+
   </style>
 </head>
 <body>
-<div class="title">
-  <h1>{% trans "Archive" %}: {{archive_name}}</h1>
-  <b>{% trans "Date" %}: </b>{% now "Y-m-d G:i:s e" %}
-  <br/>
-  <hr/>
+<div class="frontpage">
+  <h1>{% trans "FINDING AID" %}</h1>
+  <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
+  <hr>
+  <h4>{% trans "Resource reference code" %}: {{archive.reference_code}}</h4>
+  <div class="footer">
+    <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
+  </div>
 </div>
+<div class="pagebreak"></div>
+<div class="toc">
+  <h1>{% trans "Table of content" %}</h1>
+  <h4>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h4>
+  <table>
+    <tbody>
+    <tr>
+      <th class="tocref">{% trans "Reference Code" %}</th>
+      <th class="tocname">{% trans "Serie" %}</th>
+    </tr>
+
+    {% for serie in series %}
+    <tr>
+      <td>{{ serie.reference_code }}</td>
+      <td>{{ serie.name }}</td>
+
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+    <div class="footer">
+    <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
+  </div>
+</div>
+<div class="pagebreak"></div>
 {% for serie in series %}
-    <table>
-      <thead>
-      <tr>
-        <th colspan="2">{% trans "Serie" %}</th>
-        <th>{% trans "Serie signum" %}</th>
-      </tr>
-      <tr>
-        <td colspan="2">{{ serie.name }}</td>
-        <td>{{ serie.reference_code }}</td>
-      </tr>
-      <tr>
-        <th colspan="3">{% trans "Notes" %}</th>
-      </tr>
-      {% for note in serie.notes.all %}
-        <tr>
-          <td colspan="3">{{ note.create_date | date:"Y-m-d" }}: {{ note.text }}</td>
-        </tr>
-      {% endfor %}
-      <tr>
-        <th>{% trans "Volume number" %}</th>
-        <th>{% trans "Time" %}</th>
-        <th>{% trans "Notes" %}</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for volume in serie.volumes %}
-        <tr>
-          <td>{{volume.tag.current_version.reference_code}}</td>
-          <td>{{volume.tag.current_version.start_date | date:"Y"}} - {{volume.tag.current_version.end_date | date:"Y"}}</td>
-          <td>
-            {% for note in volume.tag.current_version.notes.all %}
-              <div>{{ note.create_date | date:"Y-m-d" }}: {{note.text}}</div>
-            {% endfor %}
-          </td>
-        </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-    <div class="pagebreak"> </div>
-{% endfor %}
-<div class="footer">
-  {% essarch_project_shortname %} ({% essarch_project_name %}) {% essarch_version %}. © Copyright ESSolutions AB.
+<div class="title">
+  <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
 </div>
+<table>
+  <thead>
+  <tr>
+    <th colspan="3" class="seriesHeader">{% trans "Serie" %}:</th>
+    <th>{% trans "Reference Code" %}</th>
+  </tr>
+  <tr>
+    <td colspan="3"><h3>{{ serie.name }}</h3>
+      <p class="seriesDescription"><em>{{ serie.description }}</em></p>
+    </td>
+    <td class="seriesRefCode"><h2>{{ serie.reference_code }}</h2></td>
+  </tr>
+  </thead>
+</table>
+<table>
+  <thead>
+  <tr>
+    <th class="locationCol">{% trans "Location" %}</th>
+    <th class="volNr">{% trans "Ref.code" %}</th>
+    <th class="time">{% trans "Time" %}</th>
+    <th class="notes">{% trans "Notes" %}</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for volume in serie.volumes %}
+  <tr>
+    <td class="locationCol">{{volume.tag.current_version.location.name}}</td>
+    <td class="volNr">{{volume.tag.current_version.reference_code}}</td>
+    <td class="time">{{volume.tag.current_version.start_date | date:"Y"}} - {{volume.tag.current_version.end_date | date:"Y"}}
+    </td>
+    <td class="notes">
+      <div>{{volume.tag.current_version.description}}</div>
+      {% for note in volume.tag.current_version.notes.all %}
+      <br>
+      <div>{{ note.create_date | date:"Y-m-d" }} <em>({{ note.type}})</em> : {{note.text}}</div>
+      {% endfor %}
+    </td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<div class="footer">
+  <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
+</div>
+<div class="pagebreak"></div>
+{% endfor %}
 </body>
 </html>
