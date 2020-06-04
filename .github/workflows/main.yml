@@ -12,7 +12,7 @@ jobs:
   linting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -78,7 +78,7 @@ jobs:
   build-frontend:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
       - name: Get yarn cache
         id: yarn_cache
@@ -111,7 +111,7 @@ jobs:
   build-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pip
@@ -145,7 +145,7 @@ jobs:
   build-docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
 
       - name: Build
         run: |
@@ -157,8 +157,8 @@ jobs:
     env:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
         with:
           path: ~\AppData\Local\pip\Cache
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
@@ -170,17 +170,17 @@ jobs:
           python-version: 3.8
 
       - name: Get yarn cache
-        id: yarn_cache
+        id: yarn-cache
         run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v1
         with:
-          path: ${{ steps.yarn_cache.outputs.dir }}
+          path: ${{ steps.yarn-cache.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
 
-      - uses: actions/cache@v2
+      - uses: actions/cache@v1
         with:
           path: node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
@@ -322,7 +322,7 @@ jobs:
           mysql user: arkiv
           mysql password: password
           mysql root password: password
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - uses: actions/cache@v2
         with:
           path: ~/.cache/pip
