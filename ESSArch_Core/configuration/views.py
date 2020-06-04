@@ -145,10 +145,7 @@ class SysInfoView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
-        print('start to def get')
-        logger.exception("sysinfo exception")
-        logger.info("sysinfo info")
-        logger.error("sysinfo error")
+        print('start to def get', flush=True)
         full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
 
@@ -158,10 +155,9 @@ class SysInfoView(APIView):
             ('LANGUAGE_CODE', None),
             ('TIME_ZONE', None),
         ]
-        print('try to get sys.version_info')
+        print('try to get sys.version_info', flush=True)
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
-        print('try to get context platform')
-        return Response(context)
+        print('sysinfo try to get context platform', flush=True)
         context['platform'] = {
             'os': platform.system(),
             'release': platform.release(),
@@ -170,28 +166,28 @@ class SysInfoView(APIView):
             'win_version': platform.win32_ver(),
             'linux_dist': distro.linux_distribution(),
         }
-        print('try to get hostname')
+        print('sysinfo try to get hostname', flush=True)
         context['hostname'] = socket.gethostname()
-        print('try to get_versions')
+        print('sysinfo try to get_versions', flush=True)
         versions_dict = get_versions()
         versions_dict.update({'full': versions_dict['full-revisionid']})
         context['version'] = versions_dict
         context['time_checked'] = timezone.now()
-        print('try to get_database_info')
+        print('sysinfo try to get_database_info', flush=True)
         context['database'] = get_database_info()
 
-        print('try to get_eleasticsearch_info')
+        print('sysinfo try to get_eleasticsearch_info', flush=True)
         context['elasticsearch'] = get_elasticsearch_info(full)
-        print('try to get_redis_info')
+        print('sysinfo try to get_redis_info', flush=True)
         context['redis'] = get_redis_info(full)
-        print('try to get_rabbitmq_info')
+        print('sysinfo try to get_rabbitmq_info', flush=True)
         context['rabbitmq'] = get_rabbitmq_info(full)
-        print('try to get workers')
+        print('sysinfo try to get workers', flush=True)
         context['workers'] = get_workers(context['rabbitmq'])
-        print('try to get python_packages')
+        print('sysinfo try to get python_packages', flush=True)
         context['python_packages'] = pip_freeze()
 
-        print('try to get settings_flags')
+        print('sysinfo try to get settings_flags', flush=True)
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:
             actual_setting = getattr(settings, name, None)

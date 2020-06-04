@@ -39,7 +39,7 @@ class SiteTests(TestCase):
 
 class StoragePolicyTests(APITestCase):
     def test_list(self):
-        print('start policytest')
+        print('start policytest', flush=True)
         self.user = User.objects.create(username='user')
         self.client.force_authenticate(user=self.user)
 
@@ -50,10 +50,10 @@ class StoragePolicyTests(APITestCase):
         )
 
         resp = self.client.get(url)
-        print('end1 policytest')
+        print('end1 policytest', flush=True)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertEqual(len(resp.data), 1)
-        print('end2 policytest')
+        print('end2 policytest', flush=True)
 
 
 class SysInfoTests(TestCase):
@@ -63,11 +63,11 @@ class SysInfoTests(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
         self.url = reverse('configuration-sysinfo')
-        print('sysinfotests setup end')
+        print('sysinfotests setup end', flush=True)
 
     def test_site(self):
-        print('sysinfotests test_site start')
+        print('sysinfotests test_site start', flush=True)
         response = self.client.get(self.url)
-        print('sysinfotests test_site end1')
+        print('sysinfotests test_site end1', flush=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        print('sysinfotests test_site end2')
+        print('sysinfotests test_site end2', flush=True)
