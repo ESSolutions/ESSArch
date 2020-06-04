@@ -145,6 +145,7 @@ class SysInfoView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def get(self, request):
+        print('start to def get')
         full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
 
@@ -154,8 +155,9 @@ class SysInfoView(APIView):
             ('LANGUAGE_CODE', None),
             ('TIME_ZONE', None),
         ]
-
+        print('try to get sys.version_info')
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
+        print('try to get context platform')
         context['platform'] = {
             'os': platform.system(),
             'release': platform.release(),
@@ -164,19 +166,28 @@ class SysInfoView(APIView):
             'win_version': platform.win32_ver(),
             'linux_dist': distro.linux_distribution(),
         }
+        print('try to get hostname')
         context['hostname'] = socket.gethostname()
+        print('try to get_versions')
         versions_dict = get_versions()
         versions_dict.update({'full': versions_dict['full-revisionid']})
         context['version'] = versions_dict
         context['time_checked'] = timezone.now()
+        print('try to get_database_info')
         context['database'] = get_database_info()
 
+        print('try to get_eleasticsearch_info')
         context['elasticsearch'] = get_elasticsearch_info(full)
+        print('try to get_redis_info')
         context['redis'] = get_redis_info(full)
+        print('try to get_rabbitmq_info')
         context['rabbitmq'] = get_rabbitmq_info(full)
+        print('try to get workers')
         context['workers'] = get_workers(context['rabbitmq'])
+        print('try to get python_packages')
         context['python_packages'] = pip_freeze()
 
+        print('try to get settings_flags')
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:
             actual_setting = getattr(settings, name, None)
