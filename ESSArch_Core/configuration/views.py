@@ -148,6 +148,7 @@ class SysInfoView(APIView):
         print('start to def get')
         full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
+        return Response(context)
 
         # Flags in settings: Their expected  and actual values.
         SETTINGS_FLAGS = [
