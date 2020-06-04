@@ -393,13 +393,7 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          coverage run manage.py test
+          python manage.py test --verbosity=3
       - name: Report code coverage
         run: |
           coverage xml
-      - name: Codecov
-        uses: codecov/codecov-action@v1.0.6
-        with:
-          name: Linux (${{matrix.db}})
-          file: ./coverage.xml
-          flags: backend
