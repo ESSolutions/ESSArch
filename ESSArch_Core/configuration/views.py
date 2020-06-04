@@ -148,7 +148,6 @@ class SysInfoView(APIView):
         print('start to def get')
         full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
-        return Response(context)
 
         # Flags in settings: Their expected  and actual values.
         SETTINGS_FLAGS = [
@@ -159,6 +158,7 @@ class SysInfoView(APIView):
         print('try to get sys.version_info')
         context['python'] = '.'.join(str(x) for x in sys.version_info[:3])
         print('try to get context platform')
+        return Response(context)
         context['platform'] = {
             'os': platform.system(),
             'release': platform.release(),
