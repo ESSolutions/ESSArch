@@ -424,15 +424,15 @@ def parse_content_range_header(header):
         raise ValidationError(detail="Invalid Content-Range header")
 
 
-def chunks(chunks, n):
+def chunks(l, n):
     """Yield successive n-sized chunks from l."""
-    for i in range(0, len(chunks), n):
-        yield chunks[i:i + n]
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
 
 
-def flatten(flatten_list):
+def flatten(l):
     """Flattens a list of lists"""
-    return list(itertools.chain(*flatten_list))
+    return list(itertools.chain(*l))
 
 
 def nested_lookup(key, document):
