@@ -146,6 +146,9 @@ class SysInfoView(APIView):
 
     def get(self, request):
         print('start to def get')
+        logger.exception("sysinfo exception")
+        logger.info("sysinfo info")
+        logger.error("sysinfo error")
         full = string_to_bool(request.query_params.get('full', 'false'))
         context = {}
 

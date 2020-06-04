@@ -58,7 +58,7 @@ class StoragePolicyTests(APITestCase):
 
 class SysInfoTests(TestCase):
     def setUp(self):
-        print('sysinfotests setup start')
+        print('sysinfotests setup start', flush=True)
         self.user = User.objects.create(username='user')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
