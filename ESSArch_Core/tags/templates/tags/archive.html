@@ -1,7 +1,6 @@
 {% load essarch_meta %}
 {% load i18n %}
 {% load tz %}
-
 <html>
 <head>
   <meta charset="UTF-8">
@@ -104,11 +103,15 @@
 
     }
      .tocname{
-    width: 85%
+    width: 75%
 
+    }
+    .tobox{
+    width: 10%
     }
 
     .pagebreak { page-break-before: always; }
+
 
   </style>
 </head>
@@ -116,8 +119,9 @@
 <div class="frontpage">
   <h1>{% trans "FINDING AID" %}</h1>
   <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
-  <hr>
   <h4>{% trans "Resource reference code" %}: {{archive.reference_code}}</h4>
+  <hr>
+  <h3>{% trans "Creators" %}:</h3>{% for agent in agents %}{% if agent.type|stringformat:"s" == "arkivbildare" or agent.type|stringformat:"s" == "creator" %}{{agent.agent}} ({{agent.agent.start_date | date:"Y"}} - {{agent.agent.end_date | date:"Y"}})<br/>{% endif %} {% endfor %}
   <div class="footer">
     <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
   </div>
@@ -131,24 +135,72 @@
     <tr>
       <th class="tocref">{% trans "Reference Code" %}</th>
       <th class="tocname">{% trans "Serie" %}</th>
+      <th class="tobox">{% trans "Boxes" %}</th>
     </tr>
 
     {% for serie in series %}
+
     <tr>
       <td>{{ serie.reference_code }}</td>
       <td>{{ serie.name }}</td>
-
+      <td>{% if serie.volumes|length > 0 %} {{ serie.volumes|length }} {% else %} {% trans "no containers" %} {% endif %}
+      </td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
-    <div class="footer">
+  <div class="footer">
     <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
   </div>
 </div>
+
 <div class="pagebreak"></div>
+
+<div>
+  <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
+  <h1>{% trans "History" %}</h1>
+  {% for note in archive.notes.all %}
+  {% if note.type.history %}
+  <div>{{note.text|safe}}
+    <br/>
+    <br/>
+    <b>{% trans "Created" %}: </b><em>{{note.create_date | date:"Y-m-d"}}</em>
+    <br/>
+    {% if note.revise_date %}
+    <b>{% trans "Revised" %}: </b><em>{{note.revise_date | date:"Y-m-d"}}</em>
+    {% endif %}
+    <hr/>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+<div class="pagebreak"></div>
+
+<div>
+  <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
+  <h1>{% trans "Notes" %}</h1>
+  {% for note in archive.notes.all %}
+  {% if not note.type.history %}
+  <div>
+    <h4>{{note.type}}</h4>
+    <hr/>
+    {{note.text|safe}}
+    <br/>
+    <hr/>
+    <b>{% trans "Created" %}: </b><em>{{note.create_date | date:"Y-m-d"}}</em>
+    <br/>
+    {% if note.revise_date %}
+    <b>{% trans "Revised" %}: </b><em>{{note.revise_date | date:"Y-m-d"}}</em>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
 {% for serie in series %}
-<div class="title">
+{% if serie.volumes|length > 0 %}
+<div class="title pagebreak">
   <h2>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h2>
 </div>
 <table>
@@ -195,7 +247,7 @@
 <div class="footer">
   <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
 </div>
-<div class="pagebreak"></div>
+{% endif %}
 {% endfor %}
 </body>
 </html>
