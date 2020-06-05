@@ -37,6 +37,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from django_redis import get_redis_connection
 from elasticsearch.exceptions import ElasticsearchException
 from elasticsearch_dsl.connections import get_connection as get_es_connection
+from kombu.exceptions import OperationalError as kombu_OperationalError
 from redis.exceptions import RedisError
 from rest_framework import filters, permissions, viewsets
 from rest_framework.response import Response
@@ -126,12 +127,18 @@ def get_redis_info(full=False):
 
 def get_rabbitmq_info(full=False):
     try:
-        props = current_app.connection().connection.server_properties
+        props = current_app.connection(transport_options={'max_retries': 5}).connection.server_properties
         if full:
             return props
         return {'version': props['version']}
     except OSError:
         logger.exception("Could not connect to RabbitMQ.")
+        return {
+            'version': 'unknown',
+            'error': 'Error connecting to RabbitMQ. Check the logs for more detail.'
+        }
+    except kombu_OperationalError as e:
+        logger.exception("Could not connect to RabbitMQ. Error: %s" % e)
         return {
             'version': 'unknown',
             'error': 'Error connecting to RabbitMQ. Check the logs for more detail.'
