@@ -466,7 +466,11 @@
               </div>
               <div uib-accordion-group class="panel-default" is-open="vm.accordion.basic.authority.open">
                 <uib-accordion-heading>
-                  {{'ACCESS.RELATED_ARCHIVE_CREATORS' | translate}}
+                   <span
+                    uib-tooltip="{{'ACCESS.RELATED_ARCHIVE_CREATORS_DESC' | translate}}"
+                    tooltip-position="auto top"
+                    tooltip-append-to-body="true"
+                    >{{'ACCESS.RELATED_ARCHIVE_CREATORS' | translate}}</span>
                   <i
                     class="fas rotate-icon float-right"
                     ng-class="{'fa-angle-down': vm.accordion.basic.authority.open, 'fa-angle-right': !vm.accordion.basic.authority.open}"
@@ -490,7 +494,7 @@
                           {{'NAME' | translate}}
                         </th>
                         <th>
-                          {{'TYPE' | translate}}
+                          {{'ACCESS.RELATIONSHIP_TYPE' | translate}}
                         </th>
                         <th>
                           {{'DESCRIPTION' | translate}}
@@ -564,7 +568,11 @@
               </div>
               <div uib-accordion-group class="panel-default" is-open="vm.accordion.basic.resources.open">
                 <uib-accordion-heading>
-                  {{'ACCESS.RELATED_RESOURCES' | translate}}
+                  <span
+                    uib-tooltip="{{'ACCESS.RELATED_RESOURCES_DESC' | translate}}"
+                    tooltip-position="auto top"
+                    tooltip-append-to-body="true"
+                    >{{'ACCESS.RELATED_RESOURCES' | translate}}</span>
                   <i
                     class="fas rotate-icon float-right"
                     ng-class="{'fa-angle-down': vm.accordion.basic.resources.open, 'fa-angle-right': !vm.accordion.basic.resources.open}"
@@ -642,7 +650,7 @@
                             {{'NAME' | translate}}
                           </th>
                           <th class="cursor-pointer" st-sort="type">
-                            {{'TYPE' | translate}}
+                            {{'ACCESS.RELATIONSHIP_TYPE' | translate}}
                           </th>
                           <th class="cursor-pointer" st-sort="start_date">
                             {{'ACCESS.TIME_RANGE_START' | translate}}

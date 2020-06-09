@@ -74,7 +74,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Language
-        fields = ('id', 'name_en',)
+        fields = ('id', 'name_native',)
 
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):

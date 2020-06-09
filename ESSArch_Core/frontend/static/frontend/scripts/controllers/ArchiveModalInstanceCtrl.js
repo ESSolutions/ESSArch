@@ -226,7 +226,7 @@ export default class ArchiveModalInstanceCtrl {
             valueProp: 'pk',
             labelProp: 'name',
             required: true,
-            label: $translate.instant('TYPE'),
+            label: $translate.instant('ACCESS.RESOURCE_TYPE'),
             notNull: true,
           },
           defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0].pk : null,

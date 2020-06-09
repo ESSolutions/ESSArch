@@ -13,7 +13,7 @@ class LanguageViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = LanguageSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
-    search_fields = ('name_en',)
+    search_fields = ('name_native',)
 
     def get_queryset(self):
         user_lang = self.request.user.user_profile.language
