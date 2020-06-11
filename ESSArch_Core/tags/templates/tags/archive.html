@@ -1,4 +1,5 @@
 {% load essarch_meta %}
+{% load tags_meta %}
 {% load i18n %}
 {% load tz %}
 <html>
@@ -110,8 +111,17 @@
     width: 10%
     }
 
-    .pagebreak { page-break-before: always; }
+    ul{
+    font-family: Helvetica, Arial, sans-serif; /* Nicer font */
+    list-style: none;
+    font-size: 15px;
+    }
 
+    li {
+    padding-top: 10px;
+    }
+
+    .pagebreak { page-break-before: always; }
 
   </style>
 </head>
@@ -130,25 +140,18 @@
 <div class="toc">
   <h1>{% trans "Table of content" %}</h1>
   <h4>{{archive.name}} ({{archive.start_date | date:"Y"}} - {{archive.end_date | date:"Y"}} ) </h4>
-  <table>
-    <tbody>
-    <tr>
-      <th class="tocref">{% trans "Reference Code" %}</th>
-      <th class="tocname">{% trans "Serie" %}</th>
-      <th class="tobox">{% trans "Boxes" %}</th>
-    </tr>
-
-    {% for serie in series %}
-
-    <tr>
-      <td>{{ serie.reference_code }}</td>
-      <td>{{ serie.name }}</td>
-      <td>{% if serie.volumes|length > 0 %} {{ serie.volumes|length }} {% else %} {% trans "no containers" %} {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+ <ul>
+  {% recursetree series node children %}
+    <li>
+      <b>{{ node.reference_code }}</b> {{ node.name }} {% if node.volumes|length == 1 %} <em>({{ node.volumes|length }} {% trans "container" %})</em> {% elif node.volumes|length > 1 %}  <em>({{ node.volumes|length }} {% trans "containers" %})</em> {% else %} {% endif %}
+    </li>
+  {% if not node.is_leaf_node %}
+  <ul>
+    {{ children }}
+  </ul>
+  {% endif %}
+  {% endrecursetree %}
+ </ul>
   <div class="footer">
     <b>{% trans "Print Date" %}: </b>{% now "Y-m-d G:i:s e" %}
   </div>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-23 19:46+0200\n"
+"POT-Creation-Date: 2020-06-08 13:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -367,68 +367,68 @@ msgstr ""
 msgid "either reference_code or use_uuid_as_refcode must be set"
 msgstr ""
 
-#: templates/tags/archive.html:120
+#: templates/tags/archive.html:130
 msgid "FINDING AID"
 msgstr "ARKIVFÖRTECKNING"
 
-#: templates/tags/archive.html:122
+#: templates/tags/archive.html:132
 msgid "Resource reference code"
 msgstr "Referenskod Arkiv"
 
-#: templates/tags/archive.html:124
+#: templates/tags/archive.html:134
 msgid "Creators"
 msgstr "Arkivbildare"
 
-#: templates/tags/archive.html:126 templates/tags/archive.html:153
-#: templates/tags/archive.html:249
+#: templates/tags/archive.html:136 templates/tags/archive.html:157
+#: templates/tags/archive.html:252
 msgid "Print Date"
 msgstr "Utskriftsdatum"
 
-#: templates/tags/archive.html:131
+#: templates/tags/archive.html:141
 msgid "Table of content"
 msgstr "Innehåll"
 
-#: templates/tags/archive.html:136 templates/tags/archive.html:210
-msgid "Reference Code"
-msgstr "Seriesignum"
-
-#: templates/tags/archive.html:137 templates/tags/archive.html:209
-msgid "Serie"
-msgstr ""
-
-#: templates/tags/archive.html:138
-msgid "Boxes"
-msgstr "Volymer"
+#: templates/tags/archive.html:146
+msgid "container"
+msgstr "volym"
 
 #: templates/tags/archive.html:146
-msgid "no containers"
-msgstr "inga volymer"
+msgid "containers"
+msgstr "    volymer"
 
-#: templates/tags/archive.html:161
+#: templates/tags/archive.html:165
 msgid "History"
 msgstr "Historik"
 
-#: templates/tags/archive.html:167 templates/tags/archive.html:190
+#: templates/tags/archive.html:171 templates/tags/archive.html:194
 msgid "Created"
 msgstr "Skapad"
 
-#: templates/tags/archive.html:170 templates/tags/archive.html:193
+#: templates/tags/archive.html:174 templates/tags/archive.html:197
 msgid "Revised"
 msgstr "Ändrad"
 
-#: templates/tags/archive.html:181 templates/tags/archive.html:226
+#: templates/tags/archive.html:185 templates/tags/archive.html:230
 msgid "Notes"
 msgstr "Anmärkningar"
 
-#: templates/tags/archive.html:223
+#: templates/tags/archive.html:213
+msgid "Serie"
+msgstr ""
+
+#: templates/tags/archive.html:214
+msgid "Reference Code"
+msgstr "Seriesignum"
+
+#: templates/tags/archive.html:227
 msgid "Location"
 msgstr "Placering"
 
-#: templates/tags/archive.html:224
+#: templates/tags/archive.html:228
 msgid "Ref.code"
 msgstr "Vol.nr"
 
-#: templates/tags/archive.html:225
+#: templates/tags/archive.html:229
 msgid "Time"
 msgstr "Tid"
 
@@ -499,6 +499,9 @@ msgstr "Version {} existerar redan"
 #: views.py:394
 msgid "Cannot delete units in instances of type {}"
 msgstr "Kan ej radera enheter i instanser av typen {}"
+
+#~ msgid "Boxes"
+#~ msgstr "Volymer"
 
 #~ msgid "Volume number"
 #~ msgstr "Volymnummer"
