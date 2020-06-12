@@ -5,7 +5,7 @@
 </div>
 <form ng-submit="$ctrl.save()" name="$ctrl.form" novalidate>
   <div class="modal-body" id="modal-body">
-    <div ng-if="$ctrl.data.isStructureTemplate == false" class="mb-15px">
+    <div ng-if="$ctrl.data.isStructureTemplate == false && $ctrl.data.permission_to_relate_to_template == true" class="mb-15px">
       <label>
         {{'ACCESS.TEMPLATE_OR_INSTANCE' | translate}}
       </label>

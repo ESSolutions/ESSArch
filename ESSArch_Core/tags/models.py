@@ -633,7 +633,7 @@ class StructureUnit(MPTTModel):
                 archive_structure = self.structure.tagstructure_set.first().get_root()
                 try:
                     related_unit_instance = StructureUnit.objects.get(
-                        structure__template=other_unit.structure,
+                        template=other_unit,
                         structure__tagstructure__tag=archive_structure.tag,
                     )
                 except StructureUnit.DoesNotExist:
