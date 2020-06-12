@@ -1,10 +1,10 @@
 from django import template
-
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 from mptt.templatetags.mptt_tags import cache_tree_children
 
 register = template.Library()
+
 
 class RecurseTreeNode(template.Node):
     def __init__(self, template_nodes, queryset_var, nodevar, childrenvar):
