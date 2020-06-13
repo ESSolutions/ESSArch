@@ -95,13 +95,14 @@
   <div tabindex="-1" ng-if="'home.archivalDescriptions' | includedByState" class="sub-menu">
     <a
       tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.search')"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.archiveManager')"
       class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.archivalDescriptions.search')}"
-      ui-sref="home.archivalDescriptions.search"
-      ng-if="checkPermissions('home.archivalDescriptions.search')"
-      >{{('SEARCH' | translate)}}</a
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.archiveManager')}"
+      ui-sref="home.archivalDescriptions.archiveManager"
+      ng-if="checkPermissions('home.archivalDescriptions.archiveManager')"
+      >{{('ACCESS.ARCHIVES' | translate)}}</a
     >
+
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.archiveCreators')"
@@ -110,15 +111,6 @@
       ui-sref="home.archivalDescriptions.archiveCreators"
       ng-if="checkPermissions('home.archivalDescriptions.archiveCreators')"
       >{{('ARCHIVECREATORS' | translate)}}</a
-    >
-    <a
-      tabindex="0"
-      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.archiveManager')"
-      class="nav-item sliding-middle-out"
-      ng-class="{'chosen': $state.includes('home.archivalDescriptions.archiveManager')}"
-      ui-sref="home.archivalDescriptions.archiveManager"
-      ng-if="checkPermissions('home.archivalDescriptions.archiveManager')"
-      >{{('ACCESS.ARCHIVES' | translate)}}</a
     >
     <a
       tabindex="0"
@@ -148,6 +140,16 @@
       style="margin-left: 5px;"
       ng-if="checkPermissions('home.archivalDescriptions.deliveries')"
       >{{'DELIVERIES' | translate}}</a
+    >
+
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.search')"
+      class="nav-item sliding-middle-out"
+      ng-class="{'chosen': $state.includes('home.archivalDescriptions.search')}"
+      ui-sref="home.archivalDescriptions.search"
+      ng-if="checkPermissions('home.archivalDescriptions.search')"
+      >{{('SEARCH' | translate)}}</a
     >
   </div>
   <div tabindex="-1" ng-if="'home.administration' | includedByState" class="sub-menu">
