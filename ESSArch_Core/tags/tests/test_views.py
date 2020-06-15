@@ -61,8 +61,8 @@ def refresh_user(user):
     return User.objects.get(pk=user.pk)
 
 
-def create_structure(structure_type, template=True):
-    return Structure.objects.create(type=structure_type, is_template=template)
+def create_structure(structure_type, template=True, name=''):
+    return Structure.objects.create(type=structure_type, is_template=template, name=name)
 
 
 def create_structure_unit(structure_unit_type, structure, ref_code):
@@ -1415,8 +1415,8 @@ class RelatedStructureUnitTests(APITestCase):
 
         archive = Tag.objects.create()
 
-        dst_structure_template = create_structure(self.structure_type, template=True)
-        dst_structure_instance = create_structure(self.structure_type, template=False)
+        dst_structure_template = create_structure(self.structure_type, template=True, name='foo_template_structure')
+        dst_structure_instance = create_structure(self.structure_type, template=False, name='foo_structure')
         dst_structure_instance.template = dst_structure_template
         dst_structure_instance.save()
 
@@ -1428,9 +1428,10 @@ class RelatedStructureUnitTests(APITestCase):
             name="foo", reference_code="123", type=self.unit_type,
             structure=dst_structure_instance,
         )
-        archive_structure = TagStructure.objects.create(tag=archive, structure=dst_structure_instance)
+        archive_structure = TagStructure.objects.create(
+            tag=archive, structure=dst_structure_instance)
 
-        src_structure_instance = create_structure(self.structure_type, template=False)
+        src_structure_instance = create_structure(self.structure_type, template=False, name='bar_structure')
         src_instance_unit = StructureUnit.objects.create(
             name="bar", reference_code="456", type=self.unit_type,
             structure=src_structure_instance,
@@ -1447,6 +1448,17 @@ class RelatedStructureUnitTests(APITestCase):
         TagStructure.objects.create(
             tag=archive_nested_descendant, structure=src_structure_instance, parent=archive_descendant_structure,
         )
+
+        # Add second structure to same archive
+        dst_structure_instance_2 = create_structure(self.structure_type, template=False, name='foo_2_structure')
+        dst_structure_instance_2.template = dst_structure_template
+        dst_structure_instance_2.save()
+
+        StructureUnit.objects.create(
+            name="foo_2", reference_code="123_2", type=self.unit_type,
+            structure=dst_structure_instance_2,
+        )
+        TagStructure.objects.create(tag=archive, structure=dst_structure_instance_2)
 
         url = reverse('structure-units-detail', args=[src_structure_instance.pk, src_instance_unit.pk])
         response = self.client.patch(
