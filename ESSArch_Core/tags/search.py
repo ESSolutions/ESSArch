@@ -572,6 +572,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     @action(detail=True, url_path='export')
     def archive_report(self, request, pk=None):
+        agents = AgentTagLink.objects.filter(tag_id=pk).all()
         archive = TagVersion.objects.get(pk=pk)
         series = archive.get_active_structure().structure.units.prefetch_related(
             Prefetch(
@@ -581,13 +582,13 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                 ),
                 to_attr='volumes',
             ),
-        ).all()
+        ).all().order_by('reference_code')
 
         template = 'tags/archive.html'.format()
         f = tempfile.TemporaryFile()
 
         ctype = 'application/pdf'
-        render = render_to_string(template, {'archive_name': archive.name, 'series': series})
+        render = render_to_string(template, {'agents': agents, 'archive': archive, 'series': series})
         HTML(string=render).write_pdf(f)
 
         f.seek(0)
