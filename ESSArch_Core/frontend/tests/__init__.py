@@ -14,23 +14,20 @@ class FrontendTestCase(StaticLiveServerTestCase):
         options = Options()
         options.headless = True
         try:
-            print('setUpClass - WebDriver', flush=True)
             cls.selenium = WebDriver(options=options)
         except TimeoutException as e:
-            print('setUpClass - TimeoutException - error: %s' % e, flush=True)
-            print('sleep 60', flush=True)
-            time.sleep(60)
+            print('FrontendTestCase - setUpClass - TimeoutException - error: %s' % e, flush=True)
+            print('FrontendTestCase - sleep 15', flush=True)
+            time.sleep(15)
             try:
-                print('setUpClass - WebDriver', flush=True)
+                print('FrontendTestCase - setUpClass - WebDriver', flush=True)
                 cls.selenium = WebDriver(options=options)
             except TimeoutException as e:
-                print('setUpClass - TimeoutException - error: %s' % e, flush=True)
-                print('sleep 60', flush=True)
+                print('FrontendTestCase - setUpClass - TimeoutException - error: %s' % e, flush=True)
+                print('FrontendTestCase - sleep 60', flush=True)
                 time.sleep(60)
-                print('setUpClass - WebDriver', flush=True)
+                print('FrontendTestCase - setUpClass - WebDriver', flush=True)
                 cls.selenium = WebDriver(options=options)
-
-        print('setUpClass - implicitly_wait', flush=True)
         cls.selenium.implicitly_wait(10)
 
     @classmethod
