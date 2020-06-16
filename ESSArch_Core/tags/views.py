@@ -258,7 +258,10 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.published:
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
-        obj.publish()
+        try:
+            obj.publish()
+        except AssertionError:
+            raise exceptions.ParseError(_('Can only publish latest version'))
         return Response()
 
     @transaction.atomic

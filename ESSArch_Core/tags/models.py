@@ -640,23 +640,23 @@ class StructureUnit(MPTTModel):
 
                 archive_structure = self.structure.tagstructure_set.first().get_root()
                 try:
-                    related_unit_instance = StructureUnit.objects.get(
+                    related_unit_instances = StructureUnit.objects.filter(
                         structure__template=other_unit.structure,
                         structure__tagstructure__tag=archive_structure.tag,
                     )
                 except StructureUnit.DoesNotExist:
                     pass
                 else:
-                    related_structure_instance = related_unit_instance.structure
+                    for related_unit_instance in related_unit_instances:
+                        related_structure_instance = related_unit_instance.structure
 
-                    # copy existing tag structures to other unit
-                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
-                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
-                        if old_tag_structure.structure_unit is None:
-                            old_tag_structure.copy_to_new_structure(related_structure_instance)
-                            continue
-
-                        old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
+                        # copy existing tag structures to other unit
+                        old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                        for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                            if old_tag_structure.structure_unit is None:
+                                old_tag_structure.copy_to_new_structure(related_structure_instance)
+                                continue
+                            old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
 
         # create mirrored relation
         StructureUnitRelation.objects.create(
