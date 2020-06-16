@@ -41,14 +41,11 @@
           }
         },
         "archivalDescriptions": {
-          "search": {
-            "_permissions": ["tags.search"]
+          "archiveManager": {
+            "_permissions": ["tags.search", "tags.create_archive"]
           },
           "archiveCreators": {
             "_permissions": ["tags.search"]
-          },
-          "archiveManager": {
-            "_permissions": ["tags.search", "tags.create_archive"]
           },
           "classificationStructures": {
             "_permissions": ["tags.search"]
@@ -61,6 +58,9 @@
             "transfers": {
               "_permissions": ["tags.search"]
             }
+          },
+          "search": {
+            "_permissions": ["tags.search"]
           }
         },
         "workarea": {
