@@ -10,7 +10,9 @@ class FrontendTestCase(StaticLiveServerTestCase):
 
         options = Options()
         options.headless = True
+        print('setUpClass - WebDriver')
         cls.selenium = WebDriver(options=options)
+        print('setUpClass - implicitly_wait')
         cls.selenium.implicitly_wait(300)
 
     @classmethod

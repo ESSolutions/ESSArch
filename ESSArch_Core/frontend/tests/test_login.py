@@ -15,6 +15,7 @@ class LoginTests(FrontendTestCase):
         self.selenium.get('%s' % (self.live_server_url))
 
         # login
+        print('test_login - login')
         username_input = self.selenium.find_element_by_name("username")
         username_input.send_keys('user')
         password_input = self.selenium.find_element_by_name("password")
@@ -22,12 +23,13 @@ class LoginTests(FrontendTestCase):
 
         old_url = self.selenium.current_url
         self.selenium.find_element_by_xpath('//button[@type="submit"]').click()
-        WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
+        WebDriverWait(self.selenium, 300).until(EC.title_is('Info | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
 
         # logout
+        print('test_login - logout')
         old_url = self.selenium.current_url
         self.selenium.find_element_by_class_name('dropdown-toggle').click()
         self.selenium.find_element_by_xpath('//*[contains(text(), "Logout")]').click()
-        WebDriverWait(self.selenium, 15).until(EC.title_is('Login | ESSArch'))
+        WebDriverWait(self.selenium, 300).until(EC.title_is('Login | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
