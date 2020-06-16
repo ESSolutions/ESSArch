@@ -11,7 +11,7 @@ class FrontendTestCase(StaticLiveServerTestCase):
         options = Options()
         options.headless = True
         cls.selenium = WebDriver(options=options)
-        cls.selenium.implicitly_wait(120)
+        cls.selenium.implicitly_wait(300)
 
     @classmethod
     def tearDownClass(cls):
