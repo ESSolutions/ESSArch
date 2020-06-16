@@ -379,34 +379,70 @@ msgstr ""
 msgid "either reference_code or use_uuid_as_refcode must be set"
 msgstr ""
 
-#: templates/tags/archive.html:66 templates/tags/search_results.html:73
-msgid "Archive"
-msgstr "Arkiv"
+#: templates/tags/archive.html:130
+msgid "FINDING AID"
+msgstr "ARKIVFÖRTECKNING"
 
-#: templates/tags/archive.html:67 templates/tags/search_results.html:66
-#: templates/tags/search_results.html:77
-msgid "Date"
-msgstr "Datum"
+#: templates/tags/archive.html:132
+msgid "Resource reference code"
+msgstr "Referenskod Arkiv"
 
-#: templates/tags/archive.html:75
-msgid "Serie"
-msgstr ""
+#: templates/tags/archive.html:134
+msgid "Creators"
+msgstr "Arkivbildare"
 
-#: templates/tags/archive.html:76
-msgid "Serie signum"
-msgstr ""
+#: templates/tags/archive.html:136 templates/tags/archive.html:157
+#: templates/tags/archive.html:252
+msgid "Print Date"
+msgstr "Utskriftsdatum"
 
-#: templates/tags/archive.html:83 templates/tags/archive.html:93
+#: templates/tags/archive.html:141
+msgid "Table of content"
+msgstr "Innehåll"
+
+#: templates/tags/archive.html:146
+msgid "container"
+msgstr "volym"
+
+#: templates/tags/archive.html:146
+msgid "containers"
+msgstr "    volymer"
+
+#: templates/tags/archive.html:165
+msgid "History"
+msgstr "Historik"
+
+#: templates/tags/archive.html:171 templates/tags/archive.html:194
+msgid "Created"
+msgstr "Skapad"
+
+#: templates/tags/archive.html:174 templates/tags/archive.html:197
+msgid "Revised"
+msgstr "Ändrad"
+
+#: templates/tags/archive.html:185 templates/tags/archive.html:230
 msgid "Notes"
 msgstr "Anmärkningar"
 
-#: templates/tags/archive.html:91
-msgid "Volume number"
-msgstr "Volymnummer"
-
-#: templates/tags/archive.html:92
-msgid "Time"
+#: templates/tags/archive.html:213
+msgid "Serie"
 msgstr ""
+
+#: templates/tags/archive.html:214
+msgid "Reference Code"
+msgstr "Seriesignum"
+
+#: templates/tags/archive.html:227
+msgid "Location"
+msgstr "Placering"
+
+#: templates/tags/archive.html:228
+msgid "Ref.code"
+msgstr "Vol.nr"
+
+#: templates/tags/archive.html:229
+msgid "Time"
+msgstr "Tid"
 
 #: templates/tags/search_results.html:63
 msgid "Search results"
@@ -415,6 +451,14 @@ msgstr "Sökresultat"
 #: templates/tags/search_results.html:64
 msgid "User"
 msgstr "Användare"
+
+#: templates/tags/search_results.html:66 templates/tags/search_results.html:77
+msgid "Date"
+msgstr "Datum"
+
+#: templates/tags/search_results.html:73
+msgid "Archive"
+msgstr "Arkiv"
 
 #: templates/tags/search_results.html:74
 msgid "Type"
@@ -467,3 +511,9 @@ msgstr "Version {} existerar redan"
 #: views.py:394
 msgid "Cannot delete units in instances of type {}"
 msgstr "Kan ej radera enheter i instanser av typen {}"
+
+#~ msgid "Boxes"
+#~ msgstr "Volymer"
+
+#~ msgid "Volume number"
+#~ msgstr "Volymnummer"
