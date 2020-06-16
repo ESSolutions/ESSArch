@@ -68,10 +68,10 @@ export default class SearchDetailCtrl {
       const nodeId = $stateParams.id;
 
       if (isStructureUnit) {
-        console.log('Getting data for initial node, structure unit -', nodeId);
+        console.log('Getting data for initial node, structure unit -', nodeId, structure);
         var nodePromise = vm.getStructureUnit(nodeId);
       } else {
-        console.log('Getting data for initial node, tag -', nodeId);
+        console.log('Getting data for initial node, tag -', nodeId, structure);
         var nodePromise = vm.getNode(nodeId);
       }
 
@@ -79,8 +79,14 @@ export default class SearchDetailCtrl {
         data.state = {selected: true, opened: true};
         vm.sortNotes(data);
         vm.record = data;
+        vm.structureId = structure ? structure : vm.record.structure;
         if (!vm.record._is_structure_unit) {
           vm.parseAgents(vm.record);
+          $state.go(
+            'home.archivalDescriptions.search.component',
+            {id: vm.record._id, structure: vm.structureId},
+            {notify: false}
+          );
         }
         const startNode = data;
         let archiveId = null;
@@ -95,7 +101,6 @@ export default class SearchDetailCtrl {
         } else {
           archiveId = vm.record.archive;
         }
-        vm.structureId = structure ? structure : vm.record.structure;
 
         if (vm.record._id === archiveId) {
           vm.createArchiveNode(startNode, vm.record);
@@ -1511,6 +1516,7 @@ export default class SearchDetailCtrl {
             isStructureTemplate: vm.structure.is_template,
             structure: vm.structure.id,
             archive: vm.archive,
+            permission_to_relate_to_template: false,
           },
         },
       });
@@ -1539,6 +1545,7 @@ export default class SearchDetailCtrl {
             node: node,
             structure: vm.structure.id,
             isStructureTemplate: vm.structure.is_template,
+            permission_to_relate_to_template: false,
           },
         },
       });
