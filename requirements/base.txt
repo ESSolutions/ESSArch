@@ -1,6 +1,5 @@
 boto3==1.13.16
-future==0.18.2
-celery[tblib]==4.4.4
+celery[tblib]==4.4.5
 cffi==1.14
 channels==2.4.0
 channels_redis==2.4.2
