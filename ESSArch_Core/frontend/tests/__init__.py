@@ -10,10 +10,10 @@ class FrontendTestCase(StaticLiveServerTestCase):
 
         options = Options()
         options.headless = True
-        print('setUpClass - WebDriver')
+        print('setUpClass - WebDriver', flush=True)
         cls.selenium = WebDriver(options=options)
-        print('setUpClass - implicitly_wait')
-        cls.selenium.implicitly_wait(300)
+        print('setUpClass - implicitly_wait', flush=True)
+        cls.selenium.implicitly_wait(10)
 
     @classmethod
     def tearDownClass(cls):
