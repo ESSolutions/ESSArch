@@ -681,8 +681,6 @@ class ListStructureUnitTests(APITestCase):
         data = response.data
 
         with self.subTest('b1'):
-            print('data: %s' % repr(data))
-            print('data[3]: %s' % repr(data[3]))
             self.assertTrue(data[3]['is_unit_leaf_node'])
             self.assertTrue(data[3]['is_tag_leaf_node'])
             self.assertTrue(data[3]['is_leaf_node'])
