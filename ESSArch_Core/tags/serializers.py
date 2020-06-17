@@ -331,7 +331,7 @@ class StructureUnitTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StructureUnitType
-        fields = ('id', 'name', 'structure_type',)
+        fields = ('id', 'name', 'structure_type', 'date_render_format',)
 
 
 class StructureUnitSerializer(serializers.ModelSerializer):
@@ -588,7 +588,8 @@ class TagVersionTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TagVersionType
-        fields = ('pk', 'name', 'archive_type', 'information_package_type', 'custom_fields_template')
+        fields = ('pk', 'name', 'archive_type', 'information_package_type',
+                  'custom_fields_template', 'date_render_format')
 
 
 class MetricTypeSerializer(serializers.ModelSerializer):

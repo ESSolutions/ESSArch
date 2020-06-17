@@ -677,7 +677,7 @@ class ListStructureUnitTests(APITestCase):
         # delete TagVersion, keep structure
         tv.delete()
 
-        response = self.client.get(self.url, {'ordering': 'name'})
+        response = self.client.get(self.url, {'ordering': 'reference_code'})
         data = response.data
 
         with self.subTest('b1'):

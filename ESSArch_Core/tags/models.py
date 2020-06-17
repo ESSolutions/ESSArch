@@ -373,8 +373,16 @@ class Structure(models.Model):
 
 
 class StructureUnitType(models.Model):
+    YYYY = 'yyyy'
+    YYYYMMdd = 'yyyy-MM-dd'
+    DATE_RENDER_CHOICES = (
+        (YYYY, _('yyyy')),
+        (YYYYMMdd, _('yyyy-MM-dd')),
+    )
     structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE, verbose_name=_('structure type'))
     name = models.CharField(_('name'), max_length=255, blank=False)
+    date_render_format = models.CharField(
+        _('Date render format'), choices=DATE_RENDER_CHOICES, blank=True, max_length=255)
 
     def __str__(self):
         return self.name
@@ -873,6 +881,13 @@ class Location(MPTTModel):
 
 
 class TagVersionType(models.Model):
+    YYYY = 'yyyy'
+    YYYYMMdd = 'yyyy-MM-dd'
+    DATE_RENDER_CHOICES = (
+        (YYYY, _('yyyy')),
+        (YYYYMMdd, _('yyyy-MM-dd')),
+    )
+
     unique_information_package_type_error = _(
         'Only 1 node type can be set as information package type at a time'
     )
@@ -884,6 +899,8 @@ class TagVersionType(models.Model):
     archive_type = models.BooleanField(_('archive type'), default=False)
     custom_fields_template = JSONField(default=[], blank=True)
     information_package_type = models.BooleanField(_('information package type'), default=False)
+    date_render_format = models.CharField(
+        _('Date render format'), choices=DATE_RENDER_CHOICES, max_length=255, blank=True,)
 
     def clean(self):
         if self.information_package_type:

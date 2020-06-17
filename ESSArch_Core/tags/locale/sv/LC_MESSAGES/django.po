@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-08 13:01+0200\n"
+"POT-Creation-Date: 2020-06-13 14:42+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -34,14 +34,14 @@ msgstr ""
 msgid "structure unit"
 msgstr ""
 
-#: models.py:45 models.py:75 models.py:1274
+#: models.py:45 models.py:75 models.py:1291
 msgid "type"
 msgstr ""
 
 #: models.py:49 models.py:85 models.py:109 models.py:124 models.py:139
-#: models.py:178 models.py:377 models.py:810 models.py:819 models.py:830
-#: models.py:841 models.py:856 models.py:883 models.py:1260 models.py:1272
-#: models.py:1273 models.py:1302
+#: models.py:178 models.py:383 models.py:818 models.py:827 models.py:838
+#: models.py:849 models.py:864 models.py:898 models.py:1277 models.py:1289
+#: models.py:1290 models.py:1319
 msgid "name"
 msgstr "namn"
 
@@ -61,11 +61,11 @@ msgstr ""
 msgid "href"
 msgstr ""
 
-#: models.py:78 models.py:170 models.py:402 models.py:802
+#: models.py:78 models.py:170 models.py:410 models.py:810
 msgid "create date"
 msgstr ""
 
-#: models.py:79 models.py:171 models.py:403 models.py:803
+#: models.py:79 models.py:171 models.py:411 models.py:811
 msgid "revise date"
 msgstr ""
 
@@ -113,7 +113,7 @@ msgstr "redigeringsbara instansrelationer"
 msgid "movable instance units"
 msgstr "flyttbara instansenheter"
 
-#: models.py:134 models.py:376
+#: models.py:134 models.py:382
 msgid "structure type"
 msgstr "strukturtyp"
 
@@ -129,19 +129,19 @@ msgstr "strukturrelationstyp"
 msgid "structure relation types"
 msgstr "strukturrelationstyper"
 
-#: models.py:167 models.py:399 models.py:799 models.py:1275
+#: models.py:167 models.py:407 models.py:807 models.py:1292
 msgid "description"
 msgstr "beskrivning"
 
-#: models.py:168 models.py:400 models.py:800 models.py:1174
+#: models.py:168 models.py:408 models.py:808 models.py:1191
 msgid "start date"
 msgstr "startdatum"
 
-#: models.py:169 models.py:401 models.py:801 models.py:1175
+#: models.py:169 models.py:409 models.py:809 models.py:1192
 msgid "end date"
 msgstr "slutdatum"
 
-#: models.py:191 models.py:428
+#: models.py:191 models.py:436
 msgid "template"
 msgstr "mall"
 
@@ -157,141 +157,153 @@ msgstr "är mall"
 msgid "published"
 msgstr "publicerad"
 
-#: models.py:383
+#: models.py:379 models.py:887
+msgid "yyyy"
+msgstr ""
+
+#: models.py:380 models.py:888
+msgid "yyyy-MM-dd"
+msgstr ""
+
+#: models.py:385 models.py:903
+msgid "Date render format"
+msgstr "Datumformat"
+
+#: models.py:391
 msgid "structure unit type"
 msgstr "strukturenhetstyp"
 
-#: models.py:384
+#: models.py:392
 msgid "structure unit types"
 msgstr "strukturenhetstyper"
 
-#: models.py:435 models.py:957 models.py:1315
+#: models.py:443 models.py:974 models.py:1332
 msgid "transfers"
 msgstr "överföringar"
 
-#: models.py:681
+#: models.py:689
 msgid "Can add structure unit instances"
 msgstr "Kan skapa instanser av strukturenheter"
 
-#: models.py:682
+#: models.py:690
 msgid "Can change instances of structure units"
 msgstr "Kan ändra instanser av strukturenheter"
 
-#: models.py:683
+#: models.py:691
 msgid "Can delete instances of structure units"
 msgstr "Kan radera instanser av strukturenheter"
 
-#: models.py:684
+#: models.py:692
 msgid "Can move instances of structure units"
 msgstr "Kan flytta instanser av strukturenheter"
 
-#: models.py:811
+#: models.py:819
 msgid "size"
 msgstr ""
 
-#: models.py:812
+#: models.py:820
 msgid "unit"
 msgstr ""
 
-#: models.py:825
+#: models.py:833
 msgid "metric type"
 msgstr "enhetstyp"
 
-#: models.py:826
+#: models.py:834
 msgid "metric types"
 msgstr "enhetstyper"
 
-#: models.py:836
+#: models.py:844
 msgid "location level type"
 msgstr "placeringsnivå"
 
-#: models.py:837
+#: models.py:845
 msgid "location level types"
 msgstr "placeringsnivåer"
 
-#: models.py:847
+#: models.py:855
 msgid "location function type"
 msgstr "placeringsfunktion"
 
-#: models.py:848
+#: models.py:856
 msgid "location function types"
 msgstr "placeringsfunktioner"
 
-#: models.py:858
+#: models.py:866
 msgid "parent"
 msgstr ""
 
-#: models.py:860 models.py:954
+#: models.py:868 models.py:971
 msgid "metric"
 msgstr "enhet"
 
-#: models.py:861 models.py:955
+#: models.py:869 models.py:972
 msgid "capacity"
 msgstr "kapacitet"
 
-#: models.py:862
+#: models.py:870
 msgid "level type"
 msgstr "nivå"
 
-#: models.py:863
+#: models.py:871
 msgid "function"
 msgstr "funktion"
 
-#: models.py:871 models.py:956
+#: models.py:879 models.py:973
 msgid "location"
 msgstr "placering"
 
-#: models.py:872
+#: models.py:880
 msgid "locations"
 msgstr "placeringar"
 
-#: models.py:877
+#: models.py:892
 msgid "Only 1 node type can be set as information package type at a time"
 msgstr ""
 
-#: models.py:880
+#: models.py:895
 msgid "Node information package type not found"
 msgstr ""
 
-#: models.py:884
+#: models.py:899
 msgid "archive type"
 msgstr "arkivtyp"
 
-#: models.py:886
+#: models.py:901
 #, fuzzy
 #| msgid "node relation type"
 msgid "information package type"
 msgstr "nodrelationstyp"
 
-#: models.py:904
+#: models.py:921
 msgid "node type"
 msgstr "nodtyp"
 
-#: models.py:905
+#: models.py:922
 msgid "node types"
 msgstr "nodtyper"
 
-#: models.py:959
+#: models.py:976
 msgid "security level"
 msgstr ""
 
-#: models.py:1266
+#: models.py:1283
 msgid "delivery type"
 msgstr "leveranstyp"
 
-#: models.py:1267
+#: models.py:1284
 msgid "delivery types"
 msgstr "leveranstyper"
 
-#: models.py:1296 models.py:1303
+#: models.py:1313 models.py:1320
 msgid "delivery"
 msgstr ""
 
-#: models.py:1297
+#: models.py:1314
 msgid "deliveries"
 msgstr ""
 
-#: models.py:1314
+#: models.py:1331
 msgid "transfer"
 msgstr ""
 
@@ -339,31 +351,31 @@ msgstr "Enhetstypen {} är inte tillåten i strukturtypen {}"
 msgid "Parent and child structure unit must be in the same structure"
 msgstr ""
 
-#: serializers.py:739
+#: serializers.py:740
 msgid "Archive already added"
 msgstr "Arkivet har redan lagts till"
 
-#: serializers.py:1101
+#: serializers.py:1102
 msgid "Cannot be parent to itself"
 msgstr ""
 
-#: serializers.py:1110
+#: serializers.py:1111
 msgid "Must be a leaf unit"
 msgstr ""
 
-#: serializers.py:1135 serializers.py:1246
+#: serializers.py:1136 serializers.py:1247
 msgid "end date must occur after start date"
 msgstr ""
 
-#: serializers.py:1221
+#: serializers.py:1222
 msgid "At least one structure is required"
 msgstr ""
 
-#: serializers.py:1235
+#: serializers.py:1236
 msgid "Non-empty structures cannot be deleted from archives"
 msgstr ""
 
-#: serializers.py:1249
+#: serializers.py:1250
 msgid "either reference_code or use_uuid_as_refcode must be set"
 msgstr ""
 
