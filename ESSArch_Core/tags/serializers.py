@@ -293,6 +293,7 @@ class StructureWriteSerializer(StructureSerializer):
 class RelatedStructureUnitSerializer(serializers.ModelSerializer):
     structure = StructureSerializer(read_only=True)
     archive = serializers.SerializerMethodField(read_only=True)
+    archive_name = serializers.SerializerMethodField(read_only=True)
 
     def get_archive(self, obj):
         tag_structure = obj.structure.tagstructure_set.filter(
@@ -304,9 +305,19 @@ class RelatedStructureUnitSerializer(serializers.ModelSerializer):
 
         return None
 
+    def get_archive_name(self, obj):
+        tag_structure = obj.structure.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.name
+
+        return None
+
     class Meta:
         model = StructureUnit
-        fields = ('id', 'name', 'structure', 'archive')
+        fields = ('id', 'name', 'reference_code', 'structure', 'archive', 'archive_name')
 
 
 class StructureUnitRelationSerializer(serializers.ModelSerializer):

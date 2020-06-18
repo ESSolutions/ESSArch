@@ -80,6 +80,9 @@
                 {{'DESCRIPTION' | translate}}
               </th>
               <th>
+                {{'ACCESS.ARCHIVE' | translate}}
+              </th>              
+              <th>
                 {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
               </th>
               <th>
@@ -114,7 +117,7 @@
               ui-state-params="StructureUnitRelation.getRelatedStructureUnitLinkParams(x.structure_unit)"
             >
               <td>
-                {{x.structure_unit.name}}
+                {{x.structure_unit.reference_code + ' - ' + x.structure_unit.name}}
               </td>
               <td>
                 {{x.type.name}}
@@ -122,6 +125,9 @@
               <td class="oneline-ellipsis">
                 {{x.description}}
               </td>
+              <td>
+                {{x.structure_unit.archive_name}}
+              </td>              
               <td>
                 {{StructureName.getNameWithVersion(x.structure_unit.structure)}}
               </td>
