@@ -402,6 +402,9 @@ class File(Component):
             type=obj.type.name,
             ip=ip_id,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            start_date=obj.tag.current_version.start_date,
+            end_date=obj.tag.current_version.end_date,
+            security_level=obj.tag.current_version.security_level,
             **obj.custom_fields,
         )
 
@@ -424,6 +427,7 @@ class Directory(Component):
         name = 'directory'
         analyzers = [autocomplete_analyzer]
 
+    @classmethod
     def get_index_queryset(cls):
         return TagVersion.objects.select_related(
             'tag', 'tag__information_package', 'type',
@@ -476,7 +480,7 @@ class StructureUnitDocument(DocumentBase):
         fields={'keyword': {'type': 'keyword'}}
     )
     type = Keyword()
-    description = Text()
+    desc = Text()   # python migrate_structure_unit_field.py
     comment = Text()
     reference_code = Text(
         analyzer=autocomplete_analyzer,
@@ -515,7 +519,7 @@ class StructureUnitDocument(DocumentBase):
             task_id=task_id,
             name=obj.name,
             type=obj.type.name,
-            description=obj.description,
+            desc=obj.description,
             comment=obj.comment,
             reference_code=obj.reference_code,
             archive=archive_doc,
