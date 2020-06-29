@@ -370,6 +370,8 @@ class File(Component):
         ip_id = getattr(obj.tag.information_package, 'pk', None)
         ip_id = str(ip_id) if ip_id is not None else None
 
+        current_version = getattr(obj.tag, 'current_version', None)
+
         if index_file_content:
             # Read file from ip to update indexed file content (field: attachment)
             if obj.tag.information_package:
@@ -402,9 +404,9 @@ class File(Component):
             type=obj.type.name,
             ip=ip_id,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
-            start_date=obj.tag.current_version.start_date,
-            end_date=obj.tag.current_version.end_date,
-            security_level=obj.tag.current_version.security_level,
+            start_date=getattr(current_version, 'start_date', None),
+            end_date=getattr(current_version, 'end_date', None),
+            security_level=getattr(current_version, 'security_level', None),
             **obj.custom_fields,
         )
 
