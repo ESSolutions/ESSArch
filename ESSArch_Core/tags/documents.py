@@ -1,4 +1,8 @@
+import base64
+import os
+
 from django.utils import timezone
+from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -349,7 +353,7 @@ class File(Component):
         ).filter(elastic_index='document')
 
     @classmethod
-    def from_obj(cls, obj, archive=None):
+    def from_obj(cls, obj, archive=None, index_file_content=False):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
 
         if archive is not None:
@@ -365,6 +369,24 @@ class File(Component):
             task_id = str(obj.tag.task.pk)
         ip_id = getattr(obj.tag.information_package, 'pk', None)
         ip_id = str(ip_id) if ip_id is not None else None
+
+        if index_file_content:
+            # Read file from ip to update indexed file content (field: attachment)
+            if obj.tag.information_package:
+                ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+                with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
+                    content = f.read()
+                encoded_content = base64.b64encode(content).decode("ascii")
+        else:
+            # Get already indexed file content from old_doc (field: attachment)
+            attachment = {}
+            try:
+                old_doc = File.get(id=str(obj.pk), index='document')
+            except NotFoundError:
+                pass
+            else:
+                if old_doc.attachment:
+                    attachment = old_doc.attachment
 
         doc = File(
             _id=str(obj.pk),
@@ -382,6 +404,12 @@ class File(Component):
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
             **obj.custom_fields,
         )
+
+        if index_file_content:
+            doc.data = encoded_content
+        else:
+            doc.attachment = attachment
+
         return doc
 
     class Meta:
