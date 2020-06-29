@@ -1,4 +1,8 @@
+import base64
+import os
+
 from django.utils import timezone
+from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import (
     Boolean,
     Date,
@@ -349,7 +353,7 @@ class File(Component):
         ).filter(elastic_index='document')
 
     @classmethod
-    def from_obj(cls, obj, archive=None):
+    def from_obj(cls, obj, archive=None, index_file_content=False):
         units = StructureUnit.objects.filter(tagstructure__tag__versions=obj)
 
         if archive is not None:
@@ -366,6 +370,26 @@ class File(Component):
         ip_id = getattr(obj.tag.information_package, 'pk', None)
         ip_id = str(ip_id) if ip_id is not None else None
 
+        current_version = getattr(obj.tag, 'current_version', None)
+
+        if index_file_content:
+            # Read file from ip to update indexed file content (field: attachment)
+            if obj.tag.information_package:
+                ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+                with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
+                    content = f.read()
+                encoded_content = base64.b64encode(content).decode("ascii")
+        else:
+            # Get already indexed file content from old_doc (field: attachment)
+            attachment = {}
+            try:
+                old_doc = File.get(id=str(obj.pk), index='document')
+            except NotFoundError:
+                pass
+            else:
+                if old_doc.attachment:
+                    attachment = old_doc.attachment
+
         doc = File(
             _id=str(obj.pk),
             id=str(obj.pk),
@@ -380,8 +404,17 @@ class File(Component):
             type=obj.type.name,
             ip=ip_id,
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
+            start_date=getattr(current_version, 'start_date', None),
+            end_date=getattr(current_version, 'end_date', None),
+            security_level=getattr(current_version, 'security_level', None),
             **obj.custom_fields,
         )
+
+        if index_file_content:
+            doc.data = encoded_content
+        else:
+            doc.attachment = attachment
+
         return doc
 
     class Meta:
@@ -396,6 +429,7 @@ class Directory(Component):
         name = 'directory'
         analyzers = [autocomplete_analyzer]
 
+    @classmethod
     def get_index_queryset(cls):
         return TagVersion.objects.select_related(
             'tag', 'tag__information_package', 'type',
@@ -448,7 +482,7 @@ class StructureUnitDocument(DocumentBase):
         fields={'keyword': {'type': 'keyword'}}
     )
     type = Keyword()
-    description = Text()
+    desc = Text()   # python migrate_structure_unit_field.py
     comment = Text()
     reference_code = Text(
         analyzer=autocomplete_analyzer,
@@ -487,7 +521,7 @@ class StructureUnitDocument(DocumentBase):
             task_id=task_id,
             name=obj.name,
             type=obj.type.name,
-            description=obj.description,
+            desc=obj.description,
             comment=obj.comment,
             reference_code=obj.reference_code,
             archive=archive_doc,

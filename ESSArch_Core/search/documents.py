@@ -45,7 +45,7 @@ class DocumentBase(es.Document):
         migrate(cls, move_data=False, update_alias=True, delete_old_index=True)
 
     @classmethod
-    def index_documents(cls, batch_size=None, remove_stale=False, queryset=None):
+    def index_documents(cls, batch_size=None, remove_stale=False, index_file_content=False, queryset=None):
         """
         Main method for indexing the documents.
         """
@@ -59,14 +59,14 @@ class DocumentBase(es.Document):
 
         # perform the indexing
         if queryset:
-            cls.perform_index(queryset, batch_size)
+            cls.perform_index(queryset, batch_size, index_file_content)
 
         # remove the stale values.
         if remove_stale:
             cls.remove_stale(queryset, batch_size)
 
     @classmethod
-    def perform_index(cls, queryset, batch_size):
+    def perform_index(cls, queryset, batch_size, index_file_content=False):
         """
         Performs the indexing.
         """
@@ -74,19 +74,24 @@ class DocumentBase(es.Document):
         for start in range(0, queryset.count(), batch_size):
             end = start + batch_size
             batch_qs = queryset[start:end]
-            batch = cls.create_batch(list(batch_qs))
+            batch = cls.create_batch(list(batch_qs), index_file_content)
             cls.index_batch(batch)
             time.sleep(0.5)
 
     @classmethod
-    def create_batch(cls, objects):
+    def create_batch(cls, objects, index_file_content=False):
         """
         Creates the document dict for indexing.
         """
 
         batch = []
         for obj in objects:
-            batch.append(cls.from_obj(obj).to_dict(include_meta=True))
+            if cls.__name__ == 'File' and index_file_content:
+                d_dict = cls.from_obj(obj, index_file_content=True).to_dict(include_meta=True)
+                d_dict['pipeline'] = 'ingest_attachment'
+            else:
+                d_dict = cls.from_obj(obj).to_dict(include_meta=True)
+            batch.append(d_dict)
         return batch
 
     @classmethod

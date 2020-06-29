@@ -120,7 +120,7 @@ class ListStructureTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class CreateStructureTests(TestCase):
+class CreateStructureTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -744,7 +744,7 @@ class ListStructureUnitTests(APITestCase):
         self.assertEqual(len(res.data), 0)
 
 
-class CreateStructureUnitTests(TestCase):
+class CreateStructureUnitTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -986,7 +986,7 @@ class CreateStructureUnitTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
-class UpdateStructureUnitTemplateTests(TestCase):
+class UpdateStructureUnitTemplateTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -1118,7 +1118,7 @@ class UpdateStructureUnitTemplateTests(TestCase):
         self.assertEqual(response.data, {'non_field_errors': [NON_EDITABLE_STRUCTURE_CHANGE_ERROR]})
 
 
-class UpdateStructureUnitInstanceTests(TestCase):
+class UpdateStructureUnitInstanceTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -1308,7 +1308,7 @@ class UpdateStructureUnitInstanceTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-class RelatedStructureUnitTests(APITestCase):
+class RelatedStructureUnitTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -1568,7 +1568,7 @@ class RelatedStructureUnitTests(APITestCase):
         )
 
 
-class DeleteStructureUnitInstanceTests(TestCase):
+class DeleteStructureUnitInstanceTests(ESSArchSearchBaseTestCase):
     @classmethod
     def setUpTestData(cls):
         Feature.objects.create(name='archival descriptions', enabled=True)
@@ -2250,8 +2250,6 @@ class DeleteTagTests(ESSArchSearchBaseTestCase):
         cls.org_group_type = GroupType.objects.create(codename='organization')
 
     def setUp(self):
-        super().setUp()
-
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
 
