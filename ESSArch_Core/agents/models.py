@@ -41,13 +41,14 @@ class AgentRelation(models.Model):
 
 
 class Agent(models.Model):
-    MINIMAL = 0
+    MINIMAL = 2
     PARTIAL = 1
-    FULL = 2
+    FULL = 0
     LEVEL_OF_DETAIL_CHOICES = (
-        (MINIMAL, _('minimal')),
-        (PARTIAL, _('partial')),
         (FULL, _('full')),
+        (PARTIAL, _('partial')),
+        (MINIMAL, _('minimal')),
+
     )
 
     DRAFT = 0

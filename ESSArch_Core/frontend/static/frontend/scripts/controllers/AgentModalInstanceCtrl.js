@@ -124,7 +124,7 @@ export default class AgentModalInstanceCtrl {
               );
             },
             ngOptions: 'to.getTypeName(x) for x in to.options',
-            label: $translate.instant('TYPE'),
+            label: $translate.instant('ACCESS.CREATOR_TYPE'),
             required: true,
             notNull: true,
           },
@@ -170,7 +170,7 @@ export default class AgentModalInstanceCtrl {
           type: 'input',
           key: 'main',
           templateOptions: {
-            label: $translate.instant('NAME'),
+            label: $translate.instant('ACCESS.CREATOR_NAME'),
             required: true,
           },
         });
@@ -271,7 +271,7 @@ export default class AgentModalInstanceCtrl {
                 type: 'datepicker',
                 key: 'start_date',
                 templateOptions: {
-                  label: $translate.instant('START_DATE'),
+                  label: $translate.instant('ACCESS.CREATOR_START_YEAR'),
                   appendToBody: false,
                   dateFormat: 'YYYY-MM-DD',
                 },
@@ -281,7 +281,7 @@ export default class AgentModalInstanceCtrl {
                 type: 'datepicker',
                 key: 'end_date',
                 templateOptions: {
-                  label: $translate.instant('END_DATE'),
+                  label: $translate.instant('ACCESS.CREATOR_END_YEAR'),
                   appendToBody: false,
                   dateFormat: 'YYYY-MM-DD',
                 },
@@ -309,7 +309,7 @@ export default class AgentModalInstanceCtrl {
                 return $ctrl.options.language.choices;
               },
               valueProp: 'id',
-              labelProp: 'name_en',
+              labelProp: 'name_native',
               label: $translate.instant('ACCESS.LANGUAGE'),
               appendToBody: false,
               optionsFunction: function (search) {
@@ -345,7 +345,7 @@ export default class AgentModalInstanceCtrl {
               options: $ctrl.options.ref_code.choices,
               valueProp: 'id',
               labelProp: 'formatted_name',
-              label: $translate.instant('ACCESS.REFERENCE_CODE'),
+              label: $translate.instant('ACCESS.AGENT_REFERENCE_CODE'),
               defaultValue: $ctrl.options.ref_code.choices.length > 0 ? $ctrl.options.ref_code.choices[0].id : null,
               required: true,
               notNull: true,
@@ -355,7 +355,7 @@ export default class AgentModalInstanceCtrl {
             type: 'datepicker',
             key: 'create_date',
             templateOptions: {
-              label: $translate.instant('CREATE_DATE'),
+              label: $translate.instant('ACCESS.AGENT_CREATE_DATE'),
               appendToBody: false,
               required: true,
             },
