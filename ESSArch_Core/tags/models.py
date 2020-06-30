@@ -373,8 +373,16 @@ class Structure(models.Model):
 
 
 class StructureUnitType(models.Model):
+    YYYY = 'yyyy'
+    YYYYMMdd = 'yyyy-MM-dd'
+    DATE_RENDER_CHOICES = (
+        (YYYY, _('yyyy')),
+        (YYYYMMdd, _('yyyy-MM-dd')),
+    )
     structure_type = models.ForeignKey('StructureType', on_delete=models.CASCADE, verbose_name=_('structure type'))
     name = models.CharField(_('name'), max_length=255, blank=False)
+    date_render_format = models.CharField(
+        _('Date render format'), choices=DATE_RENDER_CHOICES, blank=True, max_length=255)
 
     def __str__(self):
         return self.name
@@ -632,23 +640,23 @@ class StructureUnit(MPTTModel):
 
                 archive_structure = self.structure.tagstructure_set.first().get_root()
                 try:
-                    related_unit_instance = StructureUnit.objects.get(
+                    related_unit_instances = StructureUnit.objects.filter(
                         structure__template=other_unit.structure,
                         structure__tagstructure__tag=archive_structure.tag,
                     )
                 except StructureUnit.DoesNotExist:
                     pass
                 else:
-                    related_structure_instance = related_unit_instance.structure
+                    for related_unit_instance in related_unit_instances:
+                        related_structure_instance = related_unit_instance.structure
 
-                    # copy existing tag structures to other unit
-                    old_tag_structures = TagStructure.objects.filter(structure_unit=self)
-                    for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
-                        if old_tag_structure.structure_unit is None:
-                            old_tag_structure.copy_to_new_structure(related_structure_instance)
-                            continue
-
-                        old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
+                        # copy existing tag structures to other unit
+                        old_tag_structures = TagStructure.objects.filter(structure_unit=self)
+                        for old_tag_structure in old_tag_structures.get_descendants(include_self=True):
+                            if old_tag_structure.structure_unit is None:
+                                old_tag_structure.copy_to_new_structure(related_structure_instance)
+                                continue
+                            old_tag_structure.copy_to_new_structure(related_structure_instance, related_unit_instance)
 
         # create mirrored relation
         StructureUnitRelation.objects.create(
@@ -873,6 +881,13 @@ class Location(MPTTModel):
 
 
 class TagVersionType(models.Model):
+    YYYY = 'yyyy'
+    YYYYMMdd = 'yyyy-MM-dd'
+    DATE_RENDER_CHOICES = (
+        (YYYY, _('yyyy')),
+        (YYYYMMdd, _('yyyy-MM-dd')),
+    )
+
     unique_information_package_type_error = _(
         'Only 1 node type can be set as information package type at a time'
     )
@@ -884,6 +899,8 @@ class TagVersionType(models.Model):
     archive_type = models.BooleanField(_('archive type'), default=False)
     custom_fields_template = JSONField(default=[], blank=True)
     information_package_type = models.BooleanField(_('information package type'), default=False)
+    date_render_format = models.CharField(
+        _('Date render format'), choices=DATE_RENDER_CHOICES, max_length=255, blank=True,)
 
     def clean(self):
         if self.information_package_type:

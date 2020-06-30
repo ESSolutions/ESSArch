@@ -1,3 +1,4 @@
+import elasticsearch
 from django.db import transaction
 from django.db.models import (
     CharField,
@@ -11,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from mptt.templatetags.mptt_tags import cache_tree_children
-from rest_framework import exceptions, filters, permissions, viewsets
+from rest_framework import exceptions, filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.response import Response
@@ -23,6 +24,7 @@ from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.views import InformationPackageViewSet
+from ESSArch_Core.tags.documents import StructureUnitDocument
 from ESSArch_Core.tags.filters import (
     StructureFilter,
     StructureUnitFilter,
@@ -258,7 +260,10 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.published:
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
-        obj.publish()
+        try:
+            obj.publish()
+        except AssertionError:
+            raise exceptions.ParseError(_('Can only publish latest version'))
         return Response()
 
     @transaction.atomic
@@ -377,25 +382,60 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         parents_query_dict = self.get_parents_query_dict()
         if parents_query_dict:
             request.data.update(parents_query_dict)
-        return super().create(request, *args, **kwargs)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        headers = self.get_success_headers(serializer.data)
+        # Create elasticsearch document
+        instance = serializer.instance
+        doc = StructureUnitDocument.from_obj(instance)
+        doc.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     def update(self, request, *args, **kwargs):
         parents_query_dict = self.get_parents_query_dict()
         if parents_query_dict:
             request.data.update(parents_query_dict)
-        return super().update(request, *args, **kwargs)
+
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        # Update elasticsearch document
+        doc = StructureUnitDocument.from_obj(instance)
+        doc.save()
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        structure = instance.structure
-
-        if not structure.is_template and not structure.type.editable_instances:
-            raise exceptions.ValidationError(
-                _('Cannot delete units in instances of type {}').format(structure.type)
-            )
-
         with transaction.atomic():
-            return super().destroy(request, *args, **kwargs)
+            instance = self.get_object()
+            structure = instance.structure
+
+            if not structure.is_template and not structure.type.editable_instances:
+                raise exceptions.ValidationError(
+                    _('Cannot delete units in instances of type {}').format(structure.type)
+                )
+            # Delete elasticsearch document if exists
+            try:
+                doc = StructureUnitDocument.from_obj(instance)
+                doc.get(doc.id)
+            except elasticsearch.NotFoundError:
+                pass
+            else:
+                instance.delete()
+                doc.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            instance.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['get'])
     def nodes(self, request, pk=None, parent_lookup_structure=None):
