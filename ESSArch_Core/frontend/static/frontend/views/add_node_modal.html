@@ -12,6 +12,24 @@
     ></formly-form>
   </div>
   <div class="modal-footer">
+    <button
+      class="btn btn-default pull-left"
+      type="button"
+      uib-tooltip="{{ 'UPDATE_INITIAL_VALUES_DESC' | translate }}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+      ng-click="$ctrl.update_initial_values()"
+    >
+      <i class="fas" ng-class="{'fa-lock-open': !$ctrl.form_locked, 'fa-lock color-success': $ctrl.form_locked}"></i>
+    </button>
+    <button
+      class="btn btn-primary"
+      ng-disabled="!$ctrl.changed() || $ctrl.submitting"
+      type="button"
+      ng-click="$ctrl.submit_plus()"
+    >
+      {{'SAVE_ADD_ANOTHER' | translate}} <i ng-if="$ctrl.submitting" class="fas fa-spinner fa-spin"></i>
+    </button>
     <button class="btn btn-primary" ng-disabled="!$ctrl.changed() || $ctrl.submitting" type="submit">
       {{'ADD' | translate}} <i ng-if="$ctrl.submitting" class="fas fa-spinner fa-spin"></i>
     </button>

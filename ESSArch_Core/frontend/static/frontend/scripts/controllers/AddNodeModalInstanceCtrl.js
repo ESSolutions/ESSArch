@@ -24,6 +24,7 @@ export default class AddNodeModalInstanceCtrl {
     $ctrl.nodeFields = [];
     $ctrl.types = [];
     $ctrl.custom_fields_template = [];
+    var count;
 
     $ctrl.$onInit = function () {
       $http
@@ -36,9 +37,10 @@ export default class AddNodeModalInstanceCtrl {
             url = angular.copy(url) + 'search/';
           }
           $http.head(url + data.node.original.id + '/children/').then(function (childrenResponse) {
-            const count = parseInt(childrenResponse.headers('Count'));
+            count = parseInt(childrenResponse.headers('Count')) + 1;
+
             if (!isNaN(count)) {
-              $ctrl.newNode.reference_code = (count + 1).toString();
+              $ctrl.newNode.reference_code = count; //.toString();
             }
             EditMode.enable();
             $ctrl.typeOptions = response.data;
@@ -200,6 +202,49 @@ export default class AddNodeModalInstanceCtrl {
       return !angular.equals($ctrl.newNode, {});
     };
 
+    $ctrl.update_initial_values = function () {
+      $ctrl.options.updateInitialValue();
+      $ctrl.form_locked = true;
+      Notifications.add($translate.instant('UPDATED_INITIAL_VALUES_NOTIFICATION'), 'success');
+    };
+
+    $ctrl.submit_plus = function () {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
+      if ($ctrl.changed()) {
+        $ctrl.submitting = true;
+        count++;
+
+        const params = angular.extend($ctrl.newNode, {
+          archive: data.archive,
+          structure: data.structure,
+          location: null,
+        });
+        if ($ctrl.node._is_structure_unit) params.structure_unit = $ctrl.node._id;
+        else {
+          params.parent = $ctrl.node._id;
+        }
+
+        $rootScope.skipErrorNotification = true;
+        Search.addNode(params)
+          .then(function (response) {
+            $ctrl.submitting = false;
+            Notifications.add($translate.instant('ACCESS.NODE_ADDED'), 'success');
+            EditMode.disable();
+
+            $ctrl.options.resetModel();
+            $ctrl.newNode.reference_code = count;
+            //$uibModalInstance.close(response.data);
+            //tree.jstree("refresh");
+          })
+          .catch(function (response) {
+            $ctrl.nonFieldErrors = response.data.non_field_errors;
+            $ctrl.submitting = false;
+          });
+      }
+    };
     $ctrl.submit = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
@@ -233,6 +278,7 @@ export default class AddNodeModalInstanceCtrl {
     };
     $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
+      console.log(response.data);
     };
     $scope.$on('modal.closing', function (event, reason, closed) {
       if (
