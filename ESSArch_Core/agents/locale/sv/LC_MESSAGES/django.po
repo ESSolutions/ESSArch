@@ -63,23 +63,23 @@ msgstr ""
 
 #: models.py:48
 msgid "minimal"
-msgstr ""
+msgstr "minimal"
 
 #: models.py:49
 msgid "partial"
-msgstr ""
+msgstr "partiell"
 
 #: models.py:50
 msgid "full"
-msgstr ""
+msgstr "fullständig"
 
 #: models.py:56
 msgid "draft"
-msgstr ""
+msgstr "utkast"
 
 #: models.py:57
 msgid "final"
-msgstr ""
+msgstr "slutgiltig"
 
 #: models.py:62
 msgid "latin"
