@@ -203,7 +203,7 @@ export default class AddNodeModalInstanceCtrl {
     };
 
     $ctrl.update_initial_values = function () {
-      $ctrl.options.updateInitialValue();
+      $ctrl.options.updateInitialValue;
       $ctrl.form_locked = true;
       Notifications.add($translate.instant('UPDATED_INITIAL_VALUES_NOTIFICATION'), 'success');
     };
