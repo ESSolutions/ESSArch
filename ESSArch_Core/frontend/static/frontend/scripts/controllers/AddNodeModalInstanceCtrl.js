@@ -172,8 +172,10 @@ export default class AddNodeModalInstanceCtrl {
         {
           type: 'uiselect',
           key: 'information_package',
-          hideExpression: () => {
-            return !isIpType($ctrl.newNode.type);
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !isIpType($ctrl.newNode.type);
+            },
           },
           templateOptions: {
             options: function () {
@@ -203,7 +205,7 @@ export default class AddNodeModalInstanceCtrl {
     };
 
     $ctrl.update_initial_values = function () {
-      $ctrl.options.updateInitialValue;
+      $ctrl.options.updateInitialValue();
       $ctrl.form_locked = true;
       Notifications.add($translate.instant('UPDATED_INITIAL_VALUES_NOTIFICATION'), 'success');
     };
@@ -236,8 +238,6 @@ export default class AddNodeModalInstanceCtrl {
 
             $ctrl.options.resetModel();
             $ctrl.newNode.reference_code = count;
-            //$uibModalInstance.close(response.data);
-            //tree.jstree("refresh");
           })
           .catch(function (response) {
             $ctrl.nonFieldErrors = response.data.non_field_errors;
