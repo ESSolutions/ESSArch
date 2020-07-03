@@ -9,7 +9,7 @@ export default class NodeOrganizationModalInstanceCtrl {
     $ctrl.model = {};
     $ctrl.fields = [];
     $ctrl.$onInit = function () {
-      if (data.node) {
+      if (data.node.organization) {
         $ctrl.currentOrganization = angular.copy(data.node.organization);
         $ctrl.model.organization = angular.copy(data.node.organization.id);
         $ctrl.options.organizations.push(data.node.organization);
@@ -55,9 +55,17 @@ export default class NodeOrganizationModalInstanceCtrl {
 
     $ctrl.save = function () {
       $ctrl.saving = true;
+      if (data.node.type === 'agent') {
+        $ctrl.url = appConfig.djangoUrl + 'agents/' + data.node._id + '/change-organization/';
+        console.log('ctrl.url - agents');
+      } else {
+        $ctrl.url = appConfig.djangoUrl + 'search/' + data.node._id + '/change-organization/';
+        console.log('ctrl.url - search');
+      }
+
       $http({
         method: 'POST',
-        url: appConfig.djangoUrl + 'search/' + data.node._id + '/change-organization/',
+        url: $ctrl.url,
         data: {
           organization: $ctrl.model.organization,
         },

@@ -1,6 +1,7 @@
 import uuid
 
 from countries_plus.models import Country
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F
@@ -8,6 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from languages_plus.models import Language
 
+from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.managers import OrganizationManager
 
 
@@ -128,6 +130,29 @@ class Agent(models.Model):
         )
 
         return rel
+
+    @transaction.atomic
+    def change_organization(self, organization, change_related_ips=False, change_related_archives=False):
+        if organization.group_type.codename != 'organization':
+            raise ValueError('{} is not an organization'.format(organization))
+        ctype = ContentType.objects.get_for_model(self)
+        agent_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+
+        if change_related_archives:
+            for AgentTagLink_obj in AgentTagLink.objects.filter(agent=self):
+                print('update tag: %s with org: %s' % (repr(AgentTagLink_obj.tag), organization))
+                ctype = ContentType.objects.get_for_model(AgentTagLink_obj.tag)
+                GroupGenericObjects.objects.update_or_create(object_id=AgentTagLink_obj.tag.pk, content_type=ctype,
+                                                             defaults={'group': organization})
+
+        if change_related_ips:
+            for ip_obj in agent_obj.get_related_ip_objs():
+                print('update ip: %s with org: %s' % (repr(ip_obj), organization))
+                ip_obj.change_organization(organization)
+
+        print('update agent: %s with org: %s' % (repr(self), organization))
+        agent_obj.group = organization
+        agent_obj.save()
 
     def __str__(self):
         name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()

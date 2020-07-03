@@ -2,6 +2,8 @@ from django.db.models import F, Prefetch
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from ESSArch_Core.agents.filters import AgentFilter, AgentOrderingFilter
 from ESSArch_Core.agents.models import (
@@ -37,6 +39,7 @@ from ESSArch_Core.agents.serializers import (
 )
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.permissions import ActionPermissions
+from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 
 
@@ -143,6 +146,17 @@ class AgentViewSet(viewsets.ModelViewSet):
             return AgentWriteSerializer
 
         return self.serializer_class
+
+    @action(detail=True, methods=['post'], url_path='change-organization')
+    def change_organization(self, request, pk=None):
+        agent = self.get_object()
+
+        serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        org = serializer.validated_data['organization']
+
+        agent.change_organization(org, change_related_ips=False, change_related_archives=True)
+        return Response()
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
