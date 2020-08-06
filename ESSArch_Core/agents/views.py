@@ -154,8 +154,11 @@ class AgentViewSet(viewsets.ModelViewSet):
         serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         org = serializer.validated_data['organization']
+        change_related_ips = serializer.validated_data['change_related_ips']
+        change_related_archives = serializer.validated_data['change_related_archives']
 
-        agent.change_organization(org, change_related_ips=False, change_related_archives=True)
+        agent.change_organization(org, change_related_ips=change_related_ips,
+                                  change_related_archives=change_related_archives)
         return Response()
 
 

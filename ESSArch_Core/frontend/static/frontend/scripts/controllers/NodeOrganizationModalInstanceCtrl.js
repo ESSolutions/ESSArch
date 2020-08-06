@@ -25,50 +25,99 @@ export default class NodeOrganizationModalInstanceCtrl {
     };
 
     $ctrl.buildForm = () => {
-      $ctrl.fields = [
-        {
-          key: 'organization',
-          type: 'uiselect',
-          templateOptions: {
-            required: true,
-            label: $translate.instant('ORGANIZATION'),
-            options: function () {
-              return $ctrl.options.organizations;
-            },
-            valueProp: 'id',
-            labelProp: 'name',
-            placeholder: $translate.instant('ORGANIZATION'),
-            appendToBody: false,
-            optionsFunction: function (search) {
-              return $ctrl.options.organizations;
-            },
-            refresh: function (search) {
-              return $ctrl.getOrganizations(search).then(function () {
-                this.options = $ctrl.options.organizations;
+      if (data.node.type === 'agent') {
+        $ctrl.fields = [
+          {
+            key: 'organization',
+            type: 'uiselect',
+            templateOptions: {
+              required: true,
+              label: $translate.instant('ORGANIZATION'),
+              options: function () {
                 return $ctrl.options.organizations;
-              });
+              },
+              valueProp: 'id',
+              labelProp: 'name',
+              placeholder: $translate.instant('ORGANIZATION'),
+              appendToBody: false,
+              optionsFunction: function (search) {
+                return $ctrl.options.organizations;
+              },
+              refresh: function (search) {
+                return $ctrl.getOrganizations(search).then(function () {
+                  this.options = $ctrl.options.organizations;
+                  return $ctrl.options.organizations;
+                });
+              },
             },
           },
-        },
-      ];
+          {
+            type: 'checkbox',
+            key: 'change_related_archives',
+            templateOptions: {
+              label: $translate.instant('CHANGE_RELATED_ARCHIVES'),
+            },
+            defaultValue: true,
+          },
+          {
+            type: 'checkbox',
+            key: 'change_related_ips',
+            templateOptions: {
+              label: $translate.instant('CHANGE_RELATED_IPS'),
+            },
+            defaultValue: false,
+          },
+        ];
+      } else {
+        $ctrl.fields = [
+          {
+            key: 'organization',
+            type: 'uiselect',
+            templateOptions: {
+              required: true,
+              label: $translate.instant('ORGANIZATION'),
+              options: function () {
+                return $ctrl.options.organizations;
+              },
+              valueProp: 'id',
+              labelProp: 'name',
+              placeholder: $translate.instant('ORGANIZATION'),
+              appendToBody: false,
+              optionsFunction: function (search) {
+                return $ctrl.options.organizations;
+              },
+              refresh: function (search) {
+                return $ctrl.getOrganizations(search).then(function () {
+                  this.options = $ctrl.options.organizations;
+                  return $ctrl.options.organizations;
+                });
+              },
+            },
+          },
+        ];
+      }
     };
 
     $ctrl.save = function () {
       $ctrl.saving = true;
       if (data.node.type === 'agent') {
         $ctrl.url = appConfig.djangoUrl + 'agents/' + data.node._id + '/change-organization/';
-        console.log('ctrl.url - agents');
+        $ctrl.data = {
+          organization: $ctrl.model.organization,
+          change_related_ips: $ctrl.model.change_related_ips,
+          change_related_archives: $ctrl.model.change_related_archives,
+        };
       } else {
         $ctrl.url = appConfig.djangoUrl + 'search/' + data.node._id + '/change-organization/';
-        console.log('ctrl.url - search');
+        $ctrl.data = {
+          organization: $ctrl.model.organization,
+        };
       }
 
       $http({
         method: 'POST',
         url: $ctrl.url,
-        data: {
-          organization: $ctrl.model.organization,
-        },
+        data: $ctrl.data,
       })
         .then(function () {
           Notifications.add($translate.instant('ORGANIZATION.ORGANIZATION_CHANGED'), 'success');

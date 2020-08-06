@@ -140,17 +140,17 @@ class Agent(models.Model):
 
         if change_related_archives:
             for AgentTagLink_obj in AgentTagLink.objects.filter(agent=self):
-                print('update tag: %s with org: %s' % (repr(AgentTagLink_obj.tag), organization))
+                # print('update tag: %s with org: %s' % (repr(AgentTagLink_obj.tag), organization))
                 ctype = ContentType.objects.get_for_model(AgentTagLink_obj.tag)
                 GroupGenericObjects.objects.update_or_create(object_id=AgentTagLink_obj.tag.pk, content_type=ctype,
                                                              defaults={'group': organization})
 
         if change_related_ips:
             for ip_obj in agent_obj.get_related_ip_objs():
-                print('update ip: %s with org: %s' % (repr(ip_obj), organization))
+                # print('update ip: %s with org: %s' % (repr(ip_obj), organization))
                 ip_obj.change_organization(organization)
 
-        print('update agent: %s with org: %s' % (repr(self), organization))
+        # print('update agent: %s with org: %s' % (repr(self), organization))
         agent_obj.group = organization
         agent_obj.save()
 
