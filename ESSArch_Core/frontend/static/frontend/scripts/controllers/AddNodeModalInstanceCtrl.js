@@ -88,6 +88,7 @@ export default class AddNodeModalInstanceCtrl {
             label: $translate.instant('LABEL'),
             required: true,
             focus: true,
+            maxlength: 255,
           },
           type: 'input',
           key: 'name',
@@ -135,7 +136,7 @@ export default class AddNodeModalInstanceCtrl {
           type: 'textarea',
           templateOptions: {
             label: $translate.instant('DESCRIPTION'),
-            rows: 3,
+            maxlength: 255,
           },
         },
         {

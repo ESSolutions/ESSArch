@@ -24,13 +24,15 @@ export default class TransferModalInstanceCtrl {
             focus: true,
             label: $translate.instant('NAME'),
             required: true,
+            maxlength: 255,
           },
         },
         {
-          type: 'input',
+          type: 'textarea',
           key: 'description',
           templateOptions: {
             label: $translate.instant('DESCRIPTION'),
+            rows: 3,
           },
         },
         {
@@ -38,6 +40,7 @@ export default class TransferModalInstanceCtrl {
           key: 'submitter_organization',
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION'),
+            maxlength: 255,
           },
         },
         {
@@ -45,6 +48,7 @@ export default class TransferModalInstanceCtrl {
           key: 'submitter_organization_main_address',
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION_MAIN_ADDRESS'),
+            maxlength: 255,
           },
         },
         {
@@ -52,6 +56,7 @@ export default class TransferModalInstanceCtrl {
           key: 'submitter_individual_name',
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_NAME'),
+            maxlength: 255,
           },
         },
         {
@@ -59,6 +64,7 @@ export default class TransferModalInstanceCtrl {
           key: 'submitter_individual_phone',
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_PHONE'),
+            maxlength: 255,
           },
         },
         {
@@ -66,6 +72,7 @@ export default class TransferModalInstanceCtrl {
           key: 'submitter_individual_email',
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_EMAIL'),
+            maxlength: 255,
           },
         },
       ];

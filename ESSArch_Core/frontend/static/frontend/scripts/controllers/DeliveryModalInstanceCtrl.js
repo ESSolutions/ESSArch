@@ -66,6 +66,7 @@ export default class DeliveryModalInstanceCtrl {
             focus: true,
             label: $translate.instant('NAME'),
             required: true,
+            maxlength: 255,
           },
         },
         {
@@ -140,6 +141,7 @@ export default class DeliveryModalInstanceCtrl {
           key: 'reference_code',
           templateOptions: {
             label: $translate.instant('ACCESS.REFERENCE_CODE'),
+            maxlength: 255,
           },
         },
       ];

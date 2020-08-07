@@ -6,5 +6,6 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       'Enter a valid URL with credentials\n(https://example.com,user,pass)',
     'This field is required': 'This field is required',
     'Enter a valid URL': 'Enter a valid URL',
+    'This value is too long': 'This value is too long',
   });
 };

@@ -989,6 +989,7 @@ angular
     ) {
       formlyConfig.extras.errorExistsAndShouldBeVisibleExpression = 'form.$submitted || fc.$touched || fc[0].$touched';
       formlyValidationMessages.addStringMessage('required', 'This field is required');
+      formlyValidationMessages.addStringMessage('maxlength', 'This value is too long');
       $rootScope.app = 'ESSArch';
       $rootScope.flowObjects = {};
       djangoAuth

@@ -135,6 +135,7 @@ export default class EditNodeModalInstanceCtrl {
             label:
               data.node && data.node._index === 'archive' ? $translate.instant('NAME') : $translate.instant('LABEL'),
             required: true,
+            maxlength: 255,
           },
         },
         {
@@ -180,6 +181,7 @@ export default class EditNodeModalInstanceCtrl {
           templateOptions: {
             label: $translate.instant('DESCRIPTION'),
             rows: 3,
+            maxlength: 255,
           },
         },
         {
