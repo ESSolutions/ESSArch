@@ -691,7 +691,8 @@ export default class SearchDetailCtrl {
           const changeOrganization = {
             label: $translate.instant('ORGANIZATION.CHANGE_ORGANIZATION'),
             _disabled: function () {
-              return node.original._index !== 'archive';
+              console.log(node.original);
+              return node.original._index !== 'archive' && node.original.type !== 'agent';
             },
             action: function () {
               vm.changeOrganizationModal(node.original);
@@ -711,7 +712,7 @@ export default class SearchDetailCtrl {
           const isLeaf = node.original.is_leaf_node;
           const actions =
             node.original.type === 'agent'
-              ? {}
+              ? {changeOrganization: changeOrganization}
               : {
                   update: update,
                   add: !isUnit || isUnitLeaf ? add : undefined,

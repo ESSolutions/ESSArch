@@ -579,10 +579,20 @@ class TagVersionRelationSerializer(serializers.ModelSerializer):
 
 class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
     names = AgentNameSerializer(many=True)
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        try:
+            ctype = ContentType.objects.get_for_model(obj)
+            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+            serializer = GroupSerializer(instance=group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
 
     class Meta:
         model = Agent
-        fields = ('id', 'names', 'create_date', 'revise_date', 'start_date', 'end_date',)
+        fields = ('id', 'names', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
 
 
 class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):

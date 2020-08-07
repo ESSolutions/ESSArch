@@ -52,6 +52,14 @@ class GroupGenericObjects(models.Model):
     object_id = models.CharField(max_length=255)
     content_object = GenericForeignKey()
 
+    def get_related_ip_objs(self):
+        from ESSArch_Core.ip.models import InformationPackage
+        ip_objs = []
+        ctype = ContentType.objects.get_for_model(InformationPackage)
+        for gg_ip in GroupGenericObjects.objects.filter(group=self.group, content_type=ctype):
+            ip_objs.append(InformationPackage.objects.get(id=gg_ip.object_id))
+        return ip_objs
+
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
         indexes = [

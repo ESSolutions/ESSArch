@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -25,6 +26,8 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.api.validators import StartDateEndDateValidator
+from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.auth.serializers import GroupSerializer
 
 
 class RefCodeSerializer(serializers.ModelSerializer):
@@ -259,6 +262,16 @@ class AgentSerializer(serializers.ModelSerializer):
     mandates = SourcesOfAuthoritySerializer(many=True, required=False)
     related_agents = AgentRelationSerializer(source='agent_relations_a', many=True, required=False)
     ref_code = RefCodeSerializer()
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        try:
+            ctype = ContentType.objects.get_for_model(obj)
+            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
+            serializer = GroupSerializer(instance=group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
 
     class Meta:
         model = Agent
@@ -281,6 +294,7 @@ class AgentSerializer(serializers.ModelSerializer):
             'revise_date',
             'start_date',
             'end_date',
+            'organization',
         )
 
 

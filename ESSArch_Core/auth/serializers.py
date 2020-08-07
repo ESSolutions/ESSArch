@@ -76,6 +76,8 @@ class OrganizationDetailSerializer(GroupSerializer):
 
 class ChangeOrganizationSerializer(serializers.Serializer):
     organization = serializers.IntegerField()
+    change_related_ips = serializers.BooleanField(required=False, default=False)
+    change_related_archives = serializers.BooleanField(required=False, default=False)
 
     def validate_organization(self, org_id):
         user = self.context.get('request').user
