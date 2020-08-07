@@ -200,7 +200,7 @@ jobs:
           powershell "Start-Process msiexec.exe -Wait -ArgumentList '/I msodbcsql.msi /qn /norestart IACCEPTMSODBCSQLLICENSETERMS=YES'"
 
           choco install imagemagick
-          choco install redis-64
+          choco install redis-64 --version 3.0.503
 
           python -m pip install --upgrade pip wheel setuptools
           pip install --upgrade six>=1.12.0
