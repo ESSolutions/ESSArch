@@ -2,7 +2,7 @@ const validate = () => {
   return {
     message: {
       minlength: 'This value is not long enough.',
-      maxlength: 'This value is too long.',
+      maxlength: 'This value is too long',
       email: 'A properly formatted email address is required.',
       required: 'This field is required.',
     },

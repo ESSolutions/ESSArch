@@ -35,6 +35,7 @@ export default class EditStructureUnitModalInstanceCtrl {
             label: $translate.instant('ACCESS.REFERENCE_CODE'),
             focus: true,
             required: true,
+            maxlength: 255,
           },
           type: 'input',
           key: 'reference_code',
@@ -43,6 +44,8 @@ export default class EditStructureUnitModalInstanceCtrl {
           templateOptions: {
             type: 'text',
             label: $translate.instant('NAME'),
+            required: true,
+            maxlength: 255,
           },
           type: 'input',
           key: 'name',

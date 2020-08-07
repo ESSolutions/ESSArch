@@ -76,6 +76,7 @@ export default class ClassificationModalInstanceCtrl {
             label: $translate.instant('NAME'),
             required: true,
             focus: true,
+            maxlength: 255,
           },
         },
         {
@@ -101,6 +102,7 @@ export default class ClassificationModalInstanceCtrl {
               templateOptions: {
                 label: $translate.instant('VERSION'),
                 required: true,
+                maxlength: 255,
               },
               defaultValue: '1.0',
             },
@@ -148,6 +150,7 @@ export default class ClassificationModalInstanceCtrl {
             type: 'text',
             required: true,
             focus: true,
+            maxlength: 255,
           },
           type: 'input',
           key: 'reference_code',
@@ -157,6 +160,7 @@ export default class ClassificationModalInstanceCtrl {
             type: 'text',
             label: $translate.instant('NAME'),
             required: true,
+            maxlength: 255,
           },
           type: 'input',
           key: 'name',
