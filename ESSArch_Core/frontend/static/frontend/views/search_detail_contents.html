@@ -1,13 +1,17 @@
 <div ng-if="vm.archive && vm.record">
   <h4>{{'ACCESS.CONTENTS' | translate}}</h4>
   <div st-table="vm.recordChildren" st-pipe="vm.getChildrenTable" class="table-x-overflow table-container">
-    <table class="table table-striped">
+    <table class="table table-striped" ng-switch="vm.recordChildren[0]._is_structure_unit">
       <thead>
-        <tr>
+        <tr ng-switch-when="true">
           <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
           <th>{{'ACCESS.TITLE' | translate}}</th>
           <th>{{'TIME' | translate}}</th>
-          <th></th>
+        </tr>
+        <tr ng-switch-when="false">
+          <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+          <th>{{'TIME' | translate}}</th>
+          <th>{{'DESCRIPTION' | translate}}</th>
         </tr>
       </thead>
       <tbody>
@@ -15,8 +19,15 @@
           <td class="cursor-pointer">
             <b>{{x.reference_code}}</b>
           </td>
-          <td class="cursor-pointer">{{x.name}}</td>
-          <td class="cursor-pointer">
+          <td class="cursor-pointer" ng-if="x._is_structure_unit===false">
+            <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
+              {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
+              date:x.type.date_render_format}}
+            </div>
+          </td>
+          <td class="cursor-pointer" ng-if="x._is_structure_unit===false">{{x.description}}</td>
+          <td class="cursor-pointer" ng-if="x._is_structure_unit===true">{{x.name}}</td>
+          <td class="cursor-pointer" ng-if="x._is_structure_unit===true">
             <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
               {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
               date:x.type.date_render_format}}
