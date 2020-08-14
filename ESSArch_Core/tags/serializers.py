@@ -691,12 +691,16 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     )
     appraisal_date = serializers.DateTimeField(source='tag.appraisal_date')
     appraisal_job = serializers.SerializerMethodField()
+    is_mixed_type = serializers.SerializerMethodField()
 
     def get_archive(self, obj):
         return getattr(obj, 'archive', None)
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
+
+    def get_is_mixed_type(self, obj):
+        return self.context.get('is_mixed_type')
 
     def get_masked_fields(self, obj):
         cache_key = '{}_masked_fields'.format(obj.pk)
@@ -743,7 +747,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
-            'appraisal_job',
+            'appraisal_job', 'is_mixed_type',
         )
 
 
