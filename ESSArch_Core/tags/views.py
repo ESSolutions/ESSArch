@@ -448,8 +448,13 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             children = TagVersion.objects.none()
 
-        context = {'structure': structure, 'request': request, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user, 'is_mixed_type': False}
         children = children.for_user(request.user).natural_sort()
+        mixed_dict = {}
+        for child in children:
+            mixed_dict[child.type] = mixed_dict.get(child.type, 0) + 1
+        if len(mixed_dict) > 1:
+            context['is_mixed_type'] = True
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)

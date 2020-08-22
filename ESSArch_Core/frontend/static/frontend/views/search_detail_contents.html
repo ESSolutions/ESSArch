@@ -1,8 +1,11 @@
 <div ng-if="vm.archive && vm.record">
   <h4>{{'ACCESS.CONTENTS' | translate}}</h4>
   <div st-table="vm.recordChildren" st-pipe="vm.getChildrenTable" class="table-x-overflow table-container">
-    <table class="table table-striped">
-      <thead>
+    <table
+      class="table table-striped"
+      ng-switch="vm.recordChildren[0]._is_structure_unit || vm.recordChildren[0].is_mixed_type"
+    >
+      <thead ng-switch-when="true">
         <tr>
           <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
           <th>{{'ACCESS.TITLE' | translate}}</th>
@@ -10,7 +13,15 @@
           <th></th>
         </tr>
       </thead>
-      <tbody>
+      <thead ng-switch-when="false">
+        <tr>
+          <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+          <th>{{'TIME' | translate}}</th>
+          <th>{{'DESCRIPTION' | translate}}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody ng-switch-when="true">
         <tr ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" ng-repeat="x in vm.recordChildren">
           <td class="cursor-pointer">
             <b>{{x.reference_code}}</b>
@@ -22,6 +33,35 @@
               date:x.type.date_render_format}}
             </div>
           </td>
+          <td class="cursor-pointer">
+            <button
+              ng-if="x._index == 'document'"
+              class="btn btn-success btn-small"
+              ng-click="$event.stopPropagation();vm.viewFile(x)"
+            >
+              <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+            </button>
+          </td>
+        </tr>
+        <tr ng-if="vm.recordChildren.length <= 0 && !vm.childrenLoading" class="empty-table-indicator">
+          <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
+        </tr>
+        <tr ng-if="vm.recordChildren.length <= 0 && vm.childrenLoading" class="empty-table-indicator">
+          <td class="loading-column" colspan="4">{{'LOADING' | translate}}</td>
+        </tr>
+      </tbody>
+      <tbody ng-switch-when="false">
+        <tr ng-click="vm.goToNodePage(x._id, x._is_structure_unit)" ng-repeat="x in vm.recordChildren">
+          <td class="cursor-pointer">
+            <b>{{x.reference_code}}</b>
+          </td>
+          <td class="cursor-pointer">
+            <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
+              {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
+              date:x.type.date_render_format}}
+            </div>
+          </td>
+          <td class="cursor-pointer">{{x.description}}</td>
           <td class="cursor-pointer">
             <button
               ng-if="x._index == 'document'"
