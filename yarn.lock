@@ -1408,10 +1408,10 @@ angular-resizable@^1.2.0:
   resolved "https://registry.yarnpkg.com/angular-resizable/-/angular-resizable-1.2.0.tgz#9dd29af008f8b54abfc051bd269a8f0b4fe43f1a"
   integrity sha1-ndKa8Aj4tUq/wFG9JpqPC0/kPxo=
 
-angular-resource@~1.7:
-  version "1.7.9"
-  resolved "https://registry.yarnpkg.com/angular-resource/-/angular-resource-1.7.9.tgz#fa53623fae2c60debe2410d692447dcb0ba02396"
-  integrity sha512-rXXhCE2qT31Pn4Sl+2XL+ntv4zxnA2OzY+clCl8/pOp/s/gIzxpQlEtXipo3QK8Qur3glbIkeF/bJw+gjVAdUw==
+angular-resource@~1.8:
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/angular-resource/-/angular-resource-1.8.0.tgz#578ef122e7cb7bcc6c0ad6c2451dc3d27fd570ba"
+  integrity sha512-9woUq3kDwoT7R6SjKX8vaJMhOplYBm9sqRAxKgDhDIdPyA8iBowqQIusf9+8Q+z/HlXb8ZXvKspJyKXrxmKdvg==
 
 angular-sanitize@~1.7:
   version "1.7.9"
