@@ -1336,7 +1336,12 @@ angular-clipboard@^1.7.0:
   resolved "https://registry.yarnpkg.com/angular-clipboard/-/angular-clipboard-1.7.0.tgz#9621a6ce66eab1ea9549aa8bfb3b71352307554f"
   integrity sha512-4/eg3zZw1MJpIsMc+mWzeVNyWBu8YWpXPTdmbgyPRp/6f0xB6I3XR2iC6Mb4mg/5E9q6exCd0sX2yiIsw+ZLJw==
 
-"angular-cookies@>=1.2.26 <1.8", angular-cookies@~1.7:
+"angular-cookies@>=1.2.26 <1.9":
+  version "1.8.0"
+  resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.8.0.tgz#c981c843652e716c1cf993451c2509f00a4b0169"
+  integrity sha512-gWO3RKF0WMmXhseiN3Aw9aEmQ3mB53wSdAxpeKKHbiDwU7vmK+MBuebyOX9qbwZYubn5nM8LByZVmg7T6jOV1w==
+
+angular-cookies@~1.7:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.7.9.tgz#0f0cd2a9d1c81e5b8d6c6711d41f0909f9d0b8e0"
   integrity sha512-3eRq/aPrtCZKDWQnc3nW3sFoMbLiHkCkyDF2O9u7VXnqvVsUPaipk5R1ZqahgcSQHQrN/F5IU4T4nrz52qAZmA==
@@ -1430,20 +1435,20 @@ angular-translate-loader-static-files@^2.18.1:
   dependencies:
     angular-translate "~2.18.2"
 
-angular-translate-storage-cookie@~2.18.1:
-  version "2.18.2"
-  resolved "https://registry.yarnpkg.com/angular-translate-storage-cookie/-/angular-translate-storage-cookie-2.18.2.tgz#fe759e5749c3f2a93831276d629800cd6f3b42e7"
-  integrity sha512-9JlS9WM+1jU7XDFvgzMKrZT+a81g7KJAISmGVGxtEtOQT+YRlNZ9YlqPVqAP7BBQuVrZwZVnB0tqFSUufqfnpA==
+angular-translate-storage-cookie@~2.18.3:
+  version "2.18.3"
+  resolved "https://registry.yarnpkg.com/angular-translate-storage-cookie/-/angular-translate-storage-cookie-2.18.3.tgz#0b5f2c1302c79c6f9d5b3eac3d8482e13683d61d"
+  integrity sha512-U+foi+s6hQbrVx2YXcZeynQ6JP8kheNgx5QobpB1jYSHaTlwBSA3nCD/VqGk5Nz50hM2IeeHi2zJX6YdUIj+wg==
   dependencies:
-    angular-cookies ">=1.2.26 <1.8"
-    angular-translate "~2.18.2"
+    angular-cookies ">=1.2.26 <1.9"
+    angular-translate "~2.18.3"
 
-angular-translate@^2.11.0, angular-translate@~2.18.1, angular-translate@~2.18.2:
-  version "2.18.2"
-  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.2.tgz#2a26653d179f7043c0ffa66fdf65155d01c82e06"
-  integrity sha512-aAtNieh0fUv6yM6vKuWsdswT0BbOf6kvsu+QZ15Fp10rKEienMs3M8aPWyd9IVZ5pA1GaRJir6T8OvWGG4J+Fw==
+angular-translate@^2.11.0, angular-translate@~2.18.1, angular-translate@~2.18.2, angular-translate@~2.18.3:
+  version "2.18.3"
+  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.3.tgz#e1c1b4e985bb6492063a0ac744e0f6b21a44403c"
+  integrity sha512-ziEi1nTaNIsdn3iKpcALaSFjM9CjwvoIWE/EKepajB/6qT5oB3K1IU5VcaH7Bd0scNRfaJpW+qUD6nsHWDEZ6A==
   dependencies:
-    angular "^1.7.9"
+    angular "^1.8.0"
 
 angular-tree-control@0.2.28:
   version "0.2.28"
@@ -1468,7 +1473,7 @@ angular-websocket@^2.0.1:
     angular "*"
     ws "^1.0.0"
 
-angular@*, angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.7.9, angular@^1.x, angular@~1.4, angular@~1.7:
+angular@*, angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.8.0, angular@^1.x, angular@~1.4, angular@~1.7:
   version "1.7.9"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.7.9.tgz#e52616e8701c17724c3c238cfe4f9446fd570bc4"
   integrity sha512-5se7ZpcOtu0MBFlzGv5dsM1quQDoDeUTwZrWjGtTNA7O88cD8TEk5IEKCTDa3uECV9XnvKREVUr7du1ACiWGFQ==
