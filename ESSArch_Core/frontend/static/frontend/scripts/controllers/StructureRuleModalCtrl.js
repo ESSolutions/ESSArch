@@ -66,7 +66,12 @@ export default class StructureRuleModalCtrl {
       }
       $ctrl.adding = true;
       const rules = angular.copy(data.rules);
-      rules[$ctrl.rule.type] = {movable: $ctrl.rule.movable};
+      if ($ctrl.rule.movable) {
+        rules[$ctrl.rule.type] = {movable: $ctrl.rule.movable};
+      } else {
+        rules[$ctrl.rule.type] = {movable: false};
+      }
+
       Structure.update(
         {
           id: data.structure.id,
