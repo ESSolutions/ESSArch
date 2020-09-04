@@ -441,6 +441,7 @@ class StructureUnit(MPTTModel):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
+    specification = JSONField(default={})
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
@@ -472,6 +473,7 @@ class StructureUnit(MPTTModel):
             reference_code=self.reference_code,
             start_date=self.start_date,
             end_date=self.end_date,
+            specification = self.specification,
             template=template_unit,
         )
 

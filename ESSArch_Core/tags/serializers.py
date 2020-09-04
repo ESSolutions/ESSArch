@@ -347,6 +347,7 @@ class StructureUnitTypeSerializer(serializers.ModelSerializer):
 
 class StructureUnitSerializer(serializers.ModelSerializer):
     type = StructureUnitTypeSerializer()
+    specification = serializers.JSONField(default={})
     identifiers = NodeIdentifierSerializer(many=True, read_only=True)
     notes = NodeNoteSerializer(many=True, read_only=True)
     is_leaf_node = serializers.SerializerMethodField()
@@ -383,7 +384,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
-            'identifiers', 'notes', 'related_structure_units',
+            'identifiers', 'notes', 'related_structure_units', 'specification'
         )
 
 
