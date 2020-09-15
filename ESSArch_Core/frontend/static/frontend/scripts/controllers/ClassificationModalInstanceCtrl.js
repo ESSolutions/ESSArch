@@ -1,3 +1,4 @@
+// DENNA
 export default class ClassificationModalInstanceCtrl {
   constructor(
     data,

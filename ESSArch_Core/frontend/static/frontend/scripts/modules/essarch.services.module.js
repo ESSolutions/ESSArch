@@ -33,6 +33,7 @@ import storage from '../services/storage';
 import storageMedium from '../services/storageMedium';
 import storageObject from '../services/storageObject';
 import structure from '../services/structure';
+import structureUnit from '../services/structureUnit';
 import structureName from '../services/structureName';
 import structureUnitRelation from '../services/structureUnitRelation';
 import sysinfo from '../services/sysinfo';
@@ -110,6 +111,7 @@ export default angular
   .factory('StorageMedium', ['$resource', 'appConfig', storageMedium])
   .factory('StorageObject', ['$resource', 'appConfig', storageObject])
   .factory('Structure', ['$resource', 'appConfig', structure])
+  .factory('StructureUnit', ['$resource', 'appConfig', structureUnit])
   .factory('StructureName', ['$filter', '$translate', structureName])
   .factory('StructureUnitRelation', [structureUnitRelation])
   .factory('Sysinfo', ['$resource', 'appConfig', sysinfo])

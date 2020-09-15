@@ -272,6 +272,12 @@
               ng-include
               src="'static/frontend/views/structure_detail_structure_data.html'"
             ></div>
+            <div
+              ng-if="!vm.node.root"
+              class="structure-rules"
+              ng-include
+              src="'static/frontend/views/structure_detail_structure_unit_data.html'"
+            ></div>
           </div>
         </div>
       </div>

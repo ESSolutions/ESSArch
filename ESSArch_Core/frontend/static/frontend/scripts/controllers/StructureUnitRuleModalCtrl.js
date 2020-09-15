@@ -1,30 +1,11 @@
-export default class StructureRuleModalCtrl {
-  constructor($uibModalInstance, $http, appConfig, data, EditMode, $q, $translate, Structure, Notifications) {
+export default class StructureUnitRuleModalCtrl {
+  constructor($uibModalInstance, $http, appConfig, data, EditMode, $q, $translate, StructureUnit, Notifications) {
     const $ctrl = this;
     $ctrl.rule = {};
     $ctrl.$onInit = function () {
       $ctrl.data = data;
       if (!data.remove) {
         const typePromises = [];
-        typePromises.push(
-          $http
-            .get(appConfig.djangoUrl + 'tag-version-types/', {params: {archive_type: false, pager: 'none'}})
-            .then(function (response) {
-              response.data.forEach(function (x) {
-                x.id = x.pk;
-              });
-              return response.data;
-            })
-        );
-        typePromises.push(
-          $http
-            .get(appConfig.djangoUrl + 'structure-unit-types/', {
-              params: {structure_type: $ctrl.data.structure.structureType.id, pager: 'none'},
-            })
-            .then(function (response) {
-              return response.data;
-            })
-        );
         $q.all(typePromises).then(function (data) {
           $ctrl.typeOptions = [].concat.apply([], data);
           if ($ctrl.typeOptions.length > 0) {
@@ -35,20 +16,9 @@ export default class StructureRuleModalCtrl {
       }
     };
 
+
     $ctrl.loadForm = function () {
       $ctrl.fields = [
-        {
-          key: 'type',
-          type: 'select',
-          templateOptions: {
-            label: $translate.instant('TYPE'),
-            options: $ctrl.typeOptions,
-            valueProp: 'name',
-            labelProp: 'name',
-            required: true,
-          },
-          defaultValue: $ctrl.typeOptions.length > 0 ? $ctrl.typeOptions[0].name : null,
-        },
         {
           key: 'movable',
           type: 'checkbox',
@@ -76,11 +46,11 @@ export default class StructureRuleModalCtrl {
       $ctrl.adding = true;
       const rules = angular.copy(data.rules);
       console.log('RULES', rules)
-      rules[$ctrl.rule.type] = {movable: null, editable: null};
+      rules['rules'] = {movable: null, editable: null};
 
-      rules[$ctrl.rule.type] = {movable: $ctrl.rule.movable, editable: $ctrl.rule.editable};
-
-      Structure.update(
+      rules['rules'] = {movable: $ctrl.rule.movable, editable: $ctrl.rule.editable};
+      console.log("DATA", data)
+      StructureUnit.update(
         {
           id: data.structure.id,
         },

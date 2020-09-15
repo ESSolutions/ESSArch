@@ -889,6 +889,40 @@ export default class ClassificationStructureEditorCtrl {
         }
       );
     };
+
+
+    vm.addStructureUnitRuleModal = function (structure) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/add_structure_unit_rule_modal.html',
+        size: 'md',
+        controller: 'StructureUnitRuleModalCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            rules: vm.rules,
+            structure: structure,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          vm.updateStructures().then(function () {
+            vm.structure.specification = data.specification;
+            vm.node.specification = data.specification;
+            if (data.specification.rules) {
+              vm.rules = data.specification.rules;
+            }
+          });
+        },
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     vm.newStructureVersionModal = function (structure) {
       const modalInstance = $uibModal.open({
         animation: true,

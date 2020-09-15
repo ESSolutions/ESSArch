@@ -103,6 +103,7 @@ import StorageMigrationModalInstanceCtrl from '../controllers/StorageMigrationMo
 import StorageMigrationPreviewModalInstanceCtrl from '../controllers/StorageMigrationPreviewModalInstanceCtrl';
 import StructureModalInstanceCtrl from '../controllers/StructureModalInstanceCtrl';
 import StructureRuleModalCtrl from '../controllers/StructureRuleModalCtrl';
+import StructureUnitRuleModalCtrl from '../controllers/StructureUnitRuleModalCtrl';
 import StructureUnitRelationModalInstanceCtrl from '../controllers/StructureUnitRelationModalInstanceCtrl';
 import StructureVersionModalInstanceCtrl from '../controllers/StructureVersionModalInstanceCtrl';
 import TagsCtrl from '../controllers/TagsCtrl';
@@ -531,7 +532,7 @@ export default angular
     'Utils',
     EditNodeModalInstanceCtrl,
   ])
-  .controller('EditStructureUnitModalInstanceCtrl', [
+  .controller('EditStructureUnitModalInstanceCtrlEditStructureUnitModalInstanceCtrl', [
     '$translate',
     '$uibModalInstance',
     'appConfig',
@@ -1053,6 +1054,19 @@ export default angular
     'Structure',
     'Notifications',
     StructureRuleModalCtrl,
+  ])
+    .controller('StructureUnitRuleModalCtrl', [
+    '$uibModalInstance',
+    '$http',
+    'appConfig',
+    'data',
+    'EditMode',
+    '$q',
+    '$translate',
+    'Structure',
+    'StructureUnit',
+    'Notifications',
+    StructureUnitRuleModalCtrl,
   ])
   .controller('StructureUnitRelationModalInstanceCtrl', [
     '$uibModalInstance',

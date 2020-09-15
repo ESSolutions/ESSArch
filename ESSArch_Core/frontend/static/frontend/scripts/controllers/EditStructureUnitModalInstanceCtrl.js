@@ -1,3 +1,4 @@
+// DENNA
 export default class EditStructureUnitModalInstanceCtrl {
   constructor($translate, $uibModalInstance, appConfig, $http, data, $scope, Notifications, EditMode, $rootScope) {
     const $ctrl = this;

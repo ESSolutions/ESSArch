@@ -548,18 +548,28 @@ export default class SearchDetailCtrl {
       dnd: {
         is_draggable: function (nodes) {
           const not_draggable = nodes.some(function (node) {
+
             return (
               (node.original._is_structure_unit &&
                 !(
                   $scope.checkPermission('tags.move_structureunit_instance') &&
-                  vm.structure.type.movable_instance_units
+                  vm.structure.type.movable_instance_units //&& nodes[0].original.specification.rules.movable
                 )) ||
               node.original._index === 'archive'
             );
           });
+
           if (not_draggable) {
             return false;
-          }
+          };
+
+          if (!angular.isUndefined(nodes[0].original.specification.rules)){
+          return nodes[0].original.specification.rules.movable
+          };
+
+         /*if (!nodes[0].original.specification.rules.movable){
+         return false;
+          };*/
 
           let structure = null;
           vm.archiveStructures.forEach(function (struct) {
@@ -568,7 +578,11 @@ export default class SearchDetailCtrl {
             }
           });
           const type = nodes[0].original.type;
+
+
+
           if (get(structure, 'specification.rules.' + type.name, false)) {
+
             return get(structure, 'specification.rules.' + type.name + '.movable', false);
           } else {
             return true;
