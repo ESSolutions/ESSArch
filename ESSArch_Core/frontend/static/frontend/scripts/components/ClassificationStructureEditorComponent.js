@@ -11,6 +11,7 @@ export default {
     '$log',
     '$translate',
     'Structure',
+    'StructureUnit',
     '$q',
     '$timeout',
     '$state',

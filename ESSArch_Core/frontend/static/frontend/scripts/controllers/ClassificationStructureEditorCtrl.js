@@ -8,6 +8,7 @@ export default class ClassificationStructureEditorCtrl {
     $log,
     $translate,
     Structure,
+    StructureUnit,
     $q,
     $timeout,
     $state,
@@ -20,6 +21,7 @@ export default class ClassificationStructureEditorCtrl {
   ) {
     const vm = this;
     vm.structure = null;
+    vm.structureUnit = StructureUnit.get({id:172});
     vm.structures = [];
     vm.rules = {};
     vm.manuallyReload = false;
@@ -891,7 +893,7 @@ export default class ClassificationStructureEditorCtrl {
     };
 
 
-    vm.addStructureUnitRuleModal = function (structure) {
+    vm.addStructureUnitRuleModal = function (structureUnit) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -903,7 +905,7 @@ export default class ClassificationStructureEditorCtrl {
         resolve: {
           data: {
             rules: vm.rules,
-            structure: structure,
+            structureUnit: structureUnit,
           },
         },
       });
