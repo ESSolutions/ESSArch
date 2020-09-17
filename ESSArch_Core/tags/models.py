@@ -473,7 +473,7 @@ class StructureUnit(MPTTModel):
             reference_code=self.reference_code,
             start_date=self.start_date,
             end_date=self.end_date,
-            specification = self.specification,
+            specification=self.specification,
             template=template_unit,
         )
 
