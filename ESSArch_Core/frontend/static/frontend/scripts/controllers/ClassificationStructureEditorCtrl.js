@@ -21,7 +21,7 @@ export default class ClassificationStructureEditorCtrl {
   ) {
     const vm = this;
     vm.structure = null;
-    vm.structureUnit = StructureUnit.get({id:172});
+    vm.structureUnit = StructureUnit.get({id: 1367});
     vm.structures = [];
     vm.rules = {};
     vm.manuallyReload = false;
@@ -891,7 +891,6 @@ export default class ClassificationStructureEditorCtrl {
         }
       );
     };
-
 
     vm.addStructureUnitRuleModal = function (structureUnit) {
       const modalInstance = $uibModal.open({

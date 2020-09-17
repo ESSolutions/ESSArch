@@ -16,7 +16,6 @@ export default class StructureUnitRuleModalCtrl {
       }
     };
 
-
     $ctrl.loadForm = function () {
       $ctrl.fields = [
         {
@@ -27,13 +26,13 @@ export default class StructureUnitRuleModalCtrl {
           },
           defaultValue: false,
         },
-           {
+        {
           key: 'editable',
           type: 'checkbox',
           templateOptions: {
             label: 'Kan redigeras',
-
-          }, defaultValue: false,
+          },
+          defaultValue: false,
         },
       ];
     };
@@ -45,14 +44,14 @@ export default class StructureUnitRuleModalCtrl {
       }
       $ctrl.adding = true;
       const rules = angular.copy(data.rules);
-      console.log('RULES', rules)
+      console.log('RULES', rules);
       rules['rules'] = {movable: null, editable: null};
 
       rules['rules'] = {movable: $ctrl.rule.movable, editable: $ctrl.rule.editable};
-      console.log("DATA", data)
+      console.log('DATA', data);
       StructureUnit.update(
         {
-          id: data.structure.id,
+          id: data.structureUnit.id,
         },
         {
           specification: {

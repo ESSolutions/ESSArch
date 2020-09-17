@@ -1055,7 +1055,7 @@ export default angular
     'Notifications',
     StructureRuleModalCtrl,
   ])
-    .controller('StructureUnitRuleModalCtrl', [
+  .controller('StructureUnitRuleModalCtrl', [
     '$uibModalInstance',
     '$http',
     'appConfig',
@@ -1063,7 +1063,6 @@ export default angular
     'EditMode',
     '$q',
     '$translate',
-    'Structure',
     'StructureUnit',
     'Notifications',
     StructureUnitRuleModalCtrl,
