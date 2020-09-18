@@ -10,13 +10,9 @@
       >
         <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
           <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
-            <uib-accordion-heading>
-              {{'CONVERSION' | translate}}
-            </uib-accordion-heading>
+            <uib-accordion-heading> {{'CONVERSION' | translate}} </uib-accordion-heading>
             <div>
-              <label class="control-label">
-                {{'CONVERSION_VIEW.CONVERTER' | translate}}
-              </label>
+              <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
               <div>
                 <ui-select
                   ng-model="conversion.converter"

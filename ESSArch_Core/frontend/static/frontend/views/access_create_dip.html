@@ -38,9 +38,7 @@
                   ng-if="vm.request.type == 'view' || vm.request.type == 'edit_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
                 >
                   <div class="form-group">
-                    <label>
-                      {{'COMMENT' | translate}}
-                    </label>
+                    <label> {{'COMMENT' | translate}} </label>
                   </div>
                   <input class="form-control" ng-model="vm.request.purpose" />
                 </div>
@@ -132,7 +130,7 @@
                 ng-dblClick=""
                 ng-disabled="vm.requestForm.$invalid || vm.creating"
                 type="button"
-                style="float: right;"
+                style="float: right"
               >
                 {{'CREATEDIP' | translate}} <i ng-if="vm.creating" class="fas fa-spinner fa-spin"></i>
               </button>
@@ -176,9 +174,7 @@
       class="no-tabs-available"
       ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs' || (ips.length > 0 && vm.specificTabs.includes('create_dip')))"
     >
-      <h4>
-        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
-      </h4>
+      <h4>{{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}</h4>
     </div>
   </div>
 </div>

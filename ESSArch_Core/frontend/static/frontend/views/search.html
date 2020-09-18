@@ -44,12 +44,8 @@
           <table class="table table-striped m-0">
             <thead>
               <tr>
-                <th>
-                  {{'NAME' | translate}}
-                </th>
-                <th class="white-space-nowrap shrink">
-                  {{'REMOVE' | translate}}
-                </th>
+                <th>{{'NAME' | translate}}</th>
+                <th class="white-space-nowrap shrink">{{'REMOVE' | translate}}</th>
               </tr>
             </thead>
             <tbody>
@@ -60,9 +56,7 @@
                 ui-state-opts="{reload: true}"
                 class="selectable"
               >
-                <td>
-                  {{x.name}}
-                </td>
+                <td>{{x.name}}</td>
                 <td class="text-center shrink">
                   <button
                     class="btn btn-default btn-sm fas fa-trash-alt"
@@ -105,9 +99,7 @@
           </label>
         </div>
         <hr />
-        <label ng-if="vm.fileExtensions.length">
-          {{'ACCESS.FILE_EXTENSIONS' | translate}}
-        </label>
+        <label ng-if="vm.fileExtensions.length"> {{'ACCESS.FILE_EXTENSIONS' | translate}} </label>
         <div class="file-type-filters">
           <div class="file-filter" ng-repeat="x in vm.fileExtensions">
             <label>
@@ -149,9 +141,7 @@
           class="filter-tree"
         >
           <div class="pb-1">
-            <b>
-              {{'ACCESS.NARROW_RESULTS' | translate}}
-            </b>
+            <b> {{'ACCESS.NARROW_RESULTS' | translate}} </b>
           </div>
           <hr class="small" />
           <div class="px-base">
@@ -212,17 +202,11 @@
                     ng-click="vm.openResult(x, $event)"
                     class="result-item-table clickable"
                   >
-                    <td>
-                      {{x.type}}
-                    </td>
-                    <td class="search-archive-column">
-                      {{x.archive.name}}
-                    </td>
+                    <td>{{x.type}}</td>
+                    <td class="search-archive-column">{{x.archive.name}}</td>
                     <td>
                       <div class="white-space-nowrap d-flex">
-                        <span ng-if="x.structure_units.length > 0">
-                          {{x.structure_units[0].reference_code}}:
-                        </span>
+                        <span ng-if="x.structure_units.length > 0"> {{x.structure_units[0].reference_code}}: </span>
                         <div ng-bind-html="x.reference_code"></div>
                       </div>
                     </td>

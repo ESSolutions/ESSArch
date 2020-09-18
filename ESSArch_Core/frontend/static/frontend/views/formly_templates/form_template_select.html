@@ -7,6 +7,6 @@
   tooltip-append-to-body="true"
   >{{to.label}} {{to.required ? '*' : ''}}</label
 >
-<select class="form-control" id="{{::id}}" name="{{::id}}" class="form-control" ng-model="model[options.key]"
-  ><option ng-hide="to.notNull" value="">{{to.nullDisplay}}</option></select
->
+<select class="form-control" id="{{::id}}" name="{{::id}}" class="form-control" ng-model="model[options.key]">
+  <option ng-hide="to.notNull" value="">{{to.nullDisplay}}</option>
+</select>

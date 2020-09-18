@@ -1,9 +1,7 @@
 <div class="status-tree-grid table-container">
   <div class="state-tree-table-head">
     <div class="d-flex align-items-center">
-      <h4 class="m-0">
-        {{ "TASKS" | translate }}
-      </h4>
+      <h4 class="m-0">{{ "TASKS" | translate }}</h4>
       <a
         target="_blank"
         class="help-button"
@@ -16,7 +14,7 @@
     </div>
     <div class="refresh-icon">
       <span
-        style="float: right; margin-bottom: 5px;"
+        style="float: right; margin-bottom: 5px"
         ng-click="statusViewUpdate(ip)"
         class="clickable angular-animate fas fa-sync-alt fa-lg"
         ng-class="{'fa-sync-alt-animate': myTreeControl.scope.stateLoading }"

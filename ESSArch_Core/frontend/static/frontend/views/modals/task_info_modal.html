@@ -55,9 +55,7 @@
         </div>
       </div>
     </div>
-    <label>
-      {{ "STATUS" | translate }}
-    </label>
+    <label> {{ "STATUS" | translate }} </label>
     <uib-progressbar
       class="progress"
       ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
@@ -77,30 +75,22 @@
         <p>{{ currentStepTask.time_created | date: "yyyy-MM-dd HH:mm:ss.sss" }}</p>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
-        <label>
-          {{ "STARTED" | translate }}
-        </label>
+        <label> {{ "STARTED" | translate }} </label>
         <p>
           {{ currentStepTask.time_started !== null ? (currentStepTask.time_started | date: "yyyy-MM-dd HH:mm:ss.sss") :
           "-" }}
         </p>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
-        <label>
-          {{ "DONE" | translate }}
-        </label>
+        <label> {{ "DONE" | translate }} </label>
         <p>
           {{ currentStepTask.time_done !== null ? (currentStepTask.time_done | date: "yyyy-MM-dd HH:mm:ss.sss") : "-"
           }}
         </p>
       </div>
       <div class="col-12 col-sm-6 col-md-3">
-        <label>
-          {{ "STATE_TREE.DURATION" | translate }}
-        </label>
-        <p>
-          {{ currentStepTask.duration !== null ? currentStepTask.duration : "-" }}
-        </p>
+        <label> {{ "STATE_TREE.DURATION" | translate }} </label>
+        <p>{{ currentStepTask.duration !== null ? currentStepTask.duration : "-" }}</p>
       </div>
     </div>
 
@@ -109,22 +99,18 @@
       <tbody>
         <tr>
           <td>
-            <div style="max-height: 300px; overflow-y: auto;">
+            <div style="max-height: 300px; overflow-y: auto">
               <b>{{ "STATE_TREE.ARGUMENTS" | translate }}:</b>
               <table class="table">
                 <tbody>
                   {{ $ctrl.getArgsString(currentStepTask.args) }}
-                  <span ng-if="currentStepTask.args.length === 0">
-                    {{'NO_ARGUMENTS' | translate}}
-                  </span>
+                  <span ng-if="currentStepTask.args.length === 0"> {{'NO_ARGUMENTS' | translate}} </span>
                 </tbody>
               </table>
             </div>
-            <div style="max-height: 300px; overflow-y: auto;">
+            <div style="max-height: 300px; overflow-y: auto">
               <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
-              <span ng-if="angular.equals(currentStepTask.params, {})">
-                {{'NO_PARAMETERS' | translate}}
-              </span>
+              <span ng-if="angular.equals(currentStepTask.params, {})"> {{'NO_PARAMETERS' | translate}} </span>
               <table class="table">
                 <tbody>
                   <tr ng-repeat="(key, value) in currentStepTask.params track by $index">
@@ -170,7 +156,7 @@
         <label for items-per-page></label>
         <select
           id="items-per-page"
-          style="margin-right: 10px;"
+          style="margin-right: 10px"
           class="form-control items-per-page"
           ng-model="$ctrl.itemsPerPage"
           ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
@@ -204,24 +190,14 @@
             <thead>
               <tr>
                 <th></th>
-                <th st-sort="message" class="cursor-pointer">
-                  {{ "MESSAGE" | translate }}
-                </th>
-                <th st-sort="validator" class="cursor-pointer">
-                  {{ "VALIDATOR" | translate }}
-                </th>
-                <th>
-                  {{ "STATE_TREE.REPRESENTATION" | translate }}
-                </th>
-                <th st-sort="filename" class="cursor-pointer">
-                  {{ "FILENAME" | translate }}
-                </th>
+                <th st-sort="message" class="cursor-pointer">{{ "MESSAGE" | translate }}</th>
+                <th st-sort="validator" class="cursor-pointer">{{ "VALIDATOR" | translate }}</th>
+                <th>{{ "STATE_TREE.REPRESENTATION" | translate }}</th>
+                <th st-sort="filename" class="cursor-pointer">{{ "FILENAME" | translate }}</th>
                 <th st-sort="time_started" st-sort-default="true" class="cursor-pointer">
                   {{ "STARTED" | translate }}
                 </th>
-                <th st-sort="time_done" class="cursor-pointer">
-                  {{ "DONE" | translate }}
-                </th>
+                <th st-sort="time_done" class="cursor-pointer">{{ "DONE" | translate }}</th>
               </tr>
             </thead>
             <tbody>
@@ -255,24 +231,12 @@
                   >
                   </i>
                 </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.message }}
-                </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.validator }}
-                </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.specification.options.representation }}
-                </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.filename }}
-                </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.time_started | date: "yyyy-MM-dd HH:mm:ss.sss" }}
-                </td>
-                <td class="text-oneline-ellipsis">
-                  {{ x.time_done | date: "yyyy-MM-dd HH:mm:ss.sss" }}
-                </td>
+                <td class="text-oneline-ellipsis">{{ x.message }}</td>
+                <td class="text-oneline-ellipsis">{{ x.validator }}</td>
+                <td class="text-oneline-ellipsis">{{ x.specification.options.representation }}</td>
+                <td class="text-oneline-ellipsis">{{ x.filename }}</td>
+                <td class="text-oneline-ellipsis">{{ x.time_started | date: "yyyy-MM-dd HH:mm:ss.sss" }}</td>
+                <td class="text-oneline-ellipsis">{{ x.time_done | date: "yyyy-MM-dd HH:mm:ss.sss" }}</td>
               </tr>
               <tr ng-if="!$ctrl.validations.length && !validationsLoading" class="empty-table-indicator">
                 <td colspan="7">{{ "NO_RESULTS_FOUND" | translate }}</td>

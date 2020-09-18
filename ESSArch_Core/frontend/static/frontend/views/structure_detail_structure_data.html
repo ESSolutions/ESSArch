@@ -1,8 +1,6 @@
 <div class="title-action-button-row mb-base">
   <div class="title">
-    <h4>
-      {{'ACCESS.RULES' | translate}}
-    </h4>
+    <h4>{{'ACCESS.RULES' | translate}}</h4>
   </div>
   <div
     ng-if="!vm.node.published && vm.structure.is_editable"
@@ -19,13 +17,9 @@
   <table class="table table-striped">
     <thead>
       <tr>
+        <th>{{'TYPE' | translate}}</th>
         <th>
-          {{'TYPE' | translate}}
-        </th>
-        <th>
-          <strong>
-            {{'ACCESS.CAN_BE_MOVED' | translate}}
-          </strong>
+          <strong> {{'ACCESS.CAN_BE_MOVED' | translate}} </strong>
         </th>
         <th
           ng-if="!vm.node.published && vm.structure.is_editable"
@@ -40,9 +34,7 @@
     <tbody>
       <tr ng-repeat="(key, value) in vm.rules">
         <td>
-          <strong>
-            {{key}}
-          </strong>
+          <strong> {{key}} </strong>
         </td>
         <td>
           <input

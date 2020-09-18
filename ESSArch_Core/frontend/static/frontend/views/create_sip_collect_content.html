@@ -27,7 +27,7 @@
                 src="'static/frontend/views/file_upload.html'"
               ></div>
               <div ng-if="ip.responsible.id != auth.id && !checkPermission('ip.can_upload')">
-                <p style="color: red;">{{'UPLOAD.NO_PERMISSION_UPLOAD' | translate}}!</p>
+                <p style="color: red">{{'UPLOAD.NO_PERMISSION_UPLOAD' | translate}}!</p>
               </div>
             </div>
             <div class="eventlog-view" ng-class="{'border-none': 'ips.length > 0'}">
@@ -37,7 +37,7 @@
                   ng-dblClick=""
                   ng-disabled="vm.uploading === true || (((ip !== null && ip.responsible.id != auth.id) || (ips.length > 0 && !vm.multipleIpResponsible())) && !checkPermission('ip.set_uploaded'))"
                   type="submit"
-                  style="float: right;"
+                  style="float: right"
                 >
                   {{'DONE' | translate}}
                 </button>
@@ -78,9 +78,7 @@
       class="no-tabs-available"
       ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs')"
     >
-      <h4>
-        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
-      </h4>
+      <h4>{{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}</h4>
     </div>
   </div>
 </div>

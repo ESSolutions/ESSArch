@@ -1,7 +1,7 @@
 <div class="profile-editor">
   <div ng-if="select" id="select-view" class="select-view">
     <div class="sa-table table-container">
-      <table ng-if="!saAlert && saProfile" style="margin-top: 20px;" class="table table-striped">
+      <table ng-if="!saAlert && saProfile" style="margin-top: 20px" class="table table-striped">
         <thead>
           <tr>
             <th
@@ -108,8 +108,9 @@
               ng-change="vm.changeSaDataVersion(vm.saDataVersion)"
               ng-model="vm.saDataVersion"
               ng-options="x as vm.saDataVersionList.indexOf(x) == 0 ? 'Default' : vm.saDataVersionList.indexOf(x) for x in vm.saDataVersionList"
-              >{{ x }}</select
             >
+              {{ x }}
+            </select>
           </div>
         </div>
         <div class="loading-column w-100 text-center position-absolute absolute-top" ng-if="vm.fieldsLoading()">
@@ -133,7 +134,7 @@
           ></button>
         </div>
       </form>
-      <div uib-alert ng-if="saAlert" style="width: 100%;" ng-class="'alert-' + (saAlert.type || 'warning')">
+      <div uib-alert ng-if="saAlert" style="width: 100%" ng-class="'alert-' + (saAlert.type || 'warning')">
         {{saAlert.msg}}
       </div>
     </div>
@@ -148,7 +149,7 @@
         <div class="table-container">
           <table
             ng-if="saProfile.locked"
-            style="margin-top: 10px; margin-bottom: 0px;"
+            style="margin-top: 10px; margin-bottom: 0px"
             st-table="selectCollection"
             st-skip-natural="true"
             st-safe-src="selectRowCollection"
@@ -179,9 +180,7 @@
               <tr ng-repeat="profile in selectRowCollection" ng-if="profile.template.length">
                 <div ng-if="profile.name">
                   <td>{{vm.mapProfileType(profile.profile_type)}}</td>
-                  <td>
-                    {{profile.name}}
-                  </td>
+                  <td>{{profile.name}}</td>
                   <td>
                     <button
                       ng-if="!vm.disabled && (vm.types[profile.profile_type] && vm.types[profile.profile_type].disabled === false)"
@@ -231,8 +230,9 @@
               ng-change="vm.changeDataVersion(vm.profileIp, vm.dataVersion)"
               ng-model="vm.dataVersion"
               ng-options="x as vm.profileIp.data_versions.indexOf(x) == 0 ? 'Default' : vm.profileIp.data_versions.indexOf(x) for x in vm.profileIp.data_versions"
-              >{{ x }}</select
             >
+              {{ x }}
+            </select>
           </div>
         </div>
         <div class="loading-column w-100 text-center position-absolute absolute-top" ng-if="vm.fieldsLoading()">

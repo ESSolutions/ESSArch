@@ -1,9 +1,7 @@
 <div class="file-explorer" st-table="deckGridData" st-pipe="dirPipe">
   <div class="title-action-button-row">
     <div class="title">
-      <h4>
-        {{'FILEBROWSER.FILEBROWSER' | translate}}
-      </h4>
+      <h4>{{'FILEBROWSER.FILEBROWSER' | translate}}</h4>
     </div>
   </div>
   <div class="nav-refresh-wrapper">
@@ -113,9 +111,7 @@
             <div ng-class="card.type" ng-if="card.type == 'dir'">
               <li class="fas fa-folder"></li>
             </div>
-            <div class="one-row-ellipsis">
-              {{card.name}}
-            </div>
+            <div class="one-row-ellipsis">{{card.name}}</div>
           </td>
           <td
             uib-tooltip-html="'{{'SIZE' | translate}}: {{card.size | filesize}}'"
@@ -123,9 +119,7 @@
             tooltip-popup-delay="1000"
             tooltip-append-to-body="true"
           >
-            <div class="one-row-ellipsis">
-              {{card.size | filesize}}
-            </div>
+            <div class="one-row-ellipsis">{{card.size | filesize}}</div>
           </td>
           <td
             uib-tooltip-html="'{{'CHANGED' | translate}}: {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}'"
@@ -133,9 +127,7 @@
             tooltip-popup-delay="1000"
             tooltip-append-to-body="true"
           >
-            <div class="one-row-ellipsis">
-              {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}
-            </div>
+            <div class="one-row-ellipsis">{{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}</div>
           </td>
         </tr>
         <tr ng-if="!deckGridData.length && !gridArrayLoading" class="empty-table-indicator">

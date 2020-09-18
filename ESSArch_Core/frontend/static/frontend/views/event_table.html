@@ -2,9 +2,7 @@
   <div st-table="vm.displayed" st-pipe="eventPipe" class="table-container">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{ "EVENT.EVENTS" | translate }}
-        </h4>
+        <h4>{{ "EVENT.EVENTS" | translate }}</h4>
         <a
           target="_blank"
           class="help-button"
@@ -26,8 +24,7 @@
         uib-tooltip="{{ 'ITEMSPERPAGE' | translate }}"
         tooltip-placement="auto top"
         tooltip-append-to-body="true"
-      >
-      </select>
+      ></select>
       <advanced-filters
         type="event"
         active-model="vm.columnFilters"
@@ -124,7 +121,7 @@
       class="events-form"
       ng-submit="addEvent(ip, newEventForm.eventType, newEventForm.comment, newEventForm.eventOutcome)"
     >
-      <div class="form-group my-0" style="margin-right: 5px;">
+      <div class="form-group my-0" style="margin-right: 5px">
         <label>{{ "EVENT.EVENTTYPE" | translate }}</label>
         <select
           class="status-note form-control"
@@ -165,7 +162,7 @@
   <div
     uib-alert
     ng-if="addEventAlert"
-    style="width: 50%; float: right; margin-right: 10px;"
+    style="width: 50%; float: right; margin-right: 10px"
     ng-class="'alert-' + (addEventAlert.type || 'warning')"
     close="closeAlert()"
   >

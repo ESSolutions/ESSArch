@@ -1,7 +1,5 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">
-    {{'ACCESS.EDIT_RELATION_TO_STRUCTURE_UNIT' | translate}}
-  </h3>
+  <h3 class="modal-title" id="modal-title">{{'ACCESS.EDIT_RELATION_TO_STRUCTURE_UNIT' | translate}}</h3>
 </div>
 <form ng-submit="$ctrl.save()" name="$ctrl.form" novalidate>
   <div class="modal-body" id="modal-body">
@@ -9,16 +7,13 @@
       ng-if="$ctrl.data.isStructureTemplate == false && $ctrl.data.permission_to_relate_to_template == true"
       class="mb-15px"
     >
-      <label>
-        {{'ACCESS.TEMPLATE_OR_INSTANCE' | translate}}
-      </label>
+      <label> {{'ACCESS.TEMPLATE_OR_INSTANCE' | translate}} </label>
       <select
         class="form-control"
         ng-model="$ctrl.isTemplate"
         ng-change="$ctrl.isTemplateChange($ctrl.isTemplate)"
         ng-options="x.value as x.label for x in $ctrl.isTemplateOptions"
-      >
-      </select>
+      ></select>
     </div>
     <formly-form
       ng-if="!$ctrl.isTemplate"

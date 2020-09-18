@@ -2,9 +2,7 @@
   <div ng-if="!vm.initLoad" class="table-container" st-table="vm.transfers" st-pipe="vm.transferPipe">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'TRANSFERS' | translate}}
-        </h4>
+        <h4>{{'TRANSFERS' | translate}}</h4>
       </div>
       <div class="action-button">
         <button
@@ -21,7 +19,7 @@
       <label for items-per-page></label>
       <select
         id="items-per-page"
-        style="margin-right: 10px;"
+        style="margin-right: 10px"
         class="form-control items-per-page"
         ng-model="vm.itemsPerPage"
         ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
@@ -44,7 +42,7 @@
         type="button"
         ng-click="vm.transferPipe(vm.transferTableState)"
         class="btn btn-primary btn-small"
-        style="margin-left: 5px;"
+        style="margin-left: 5px"
         uib-tooltip="{{'SEARCH' | translate}}"
         tooltip-placement="auto top"
         tooltip-append-to-body="true"
@@ -67,12 +65,8 @@
         <thead>
           <tr>
             <th class="cursor-pointer" st-sort="name">{{ "NAME" | translate }}</th>
-            <th class="shrink" permission permission-except="'tags.change_transfer'">
-              {{'VIEW' | translate}}
-            </th>
-            <th class="shrink" permission permission-only="'tags.change_transfer'">
-              {{'EDIT' | translate}}
-            </th>
+            <th class="shrink" permission permission-except="'tags.change_transfer'">{{'VIEW' | translate}}</th>
+            <th class="shrink" permission permission-only="'tags.change_transfer'">{{'EDIT' | translate}}</th>
             <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_transfer'">
               {{'REMOVE' | translate}}
             </th>
@@ -85,9 +79,7 @@
             ng-class="{'selected': vm.selectedTransfer.id === x.id}"
             ng-click="vm.transferClick(x)"
           >
-            <td>
-              {{x.name}}
-            </td>
+            <td>{{x.name}}</td>
             <td class="text-center shrink" permission permission-except="'tags.change_transfer'">
               <button
                 class="btn btn-default fas fa-eye btn-sm"
@@ -151,9 +143,7 @@
             ng-class="{'fa-angle-down': vm.accordion.basic.open, 'fa-angle-right': !vm.accordion.basic.open}"
           ></i>
         </uib-accordion-heading>
-        <label class="m-0">
-          {{'ACCESS.SUBMITTER_ORGANIZATION' | translate}}:
-        </label>
+        <label class="m-0"> {{'ACCESS.SUBMITTER_ORGANIZATION' | translate}}: </label>
         <result-field
           label="{{'ACCESS.ORGANIZATION' | translate}}"
           data="vm.selectedTransfer.submitter_organization"
@@ -162,9 +152,7 @@
           label="{{'ACCESS.SUBMITTER_ORGANIZATION_MAIN_ADDRESS' | translate}}"
           data="vm.selectedTransfer.submitter_organization_main_address"
         ></result-field>
-        <label class="m-0 pt-base">
-          {{'ACCESS.SUBMITTER_INDIVIDUAL' | translate}}:
-        </label>
+        <label class="m-0 pt-base"> {{'ACCESS.SUBMITTER_INDIVIDUAL' | translate}}: </label>
         <result-field
           label="{{'ACCESS.SUBMITTER_INDIVIDUAL_NAME' | translate}}"
           data="vm.selectedTransfer.submitter_individual_name"
@@ -240,7 +228,7 @@
               type="button"
               ng-click="vm.transferEventsPipe(vm.transferEventsTableState)"
               class="btn btn-primary btn-small"
-              style="margin-left: 5px;"
+              style="margin-left: 5px"
               uib-tooltip="{{'SEARCH' | translate}}"
               tooltip-placement="auto top"
               tooltip-append-to-body="true"
@@ -263,18 +251,10 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th st-sort="eventType" class="cursor-pointer">
-                    {{'EVENT.EVENTTYPE' | translate}}
-                  </th>
-                  <th st-sort="eventOutcomeDetailNote" class="cursor-pointer">
-                    {{'DESCRIPTION' | translate}}
-                  </th>
-                  <th st-sort="eventDateTime" class="cursor-pointer">
-                    {{'EVENT.EVENTTIME' | translate}}
-                  </th>
-                  <th st-sort="linkingAgentIdentifierValue" class="cursor-pointer">
-                    {{'RESPONSIBLE' | translate}}
-                  </th>
+                  <th st-sort="eventType" class="cursor-pointer">{{'EVENT.EVENTTYPE' | translate}}</th>
+                  <th st-sort="eventOutcomeDetailNote" class="cursor-pointer">{{'DESCRIPTION' | translate}}</th>
+                  <th st-sort="eventDateTime" class="cursor-pointer">{{'EVENT.EVENTTIME' | translate}}</th>
+                  <th st-sort="linkingAgentIdentifierValue" class="cursor-pointer">{{'RESPONSIBLE' | translate}}</th>
                   <th class="white-space-nowrap shrink" permission permission-only="'ip.change_eventip'">
                     {{'EDIT' | translate}}
                   </th>
@@ -285,18 +265,10 @@
               </thead>
               <tbody>
                 <tr ng-repeat="x in vm.transferEvents">
-                  <td>
-                    {{x.eventDetail}}
-                  </td>
-                  <td class="white-space-nowrap">
-                    {{x.eventOutcomeDetailNote}}
-                  </td>
-                  <td>
-                    {{x.eventDateTime | date:'yyyy-MM-dd HH:mm:ss'}}
-                  </td>
-                  <td>
-                    {{x.linkingAgentIdentifierValue}}
-                  </td>
+                  <td>{{x.eventDetail}}</td>
+                  <td class="white-space-nowrap">{{x.eventOutcomeDetailNote}}</td>
+                  <td>{{x.eventDateTime | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                  <td>{{x.linkingAgentIdentifierValue}}</td>
                   <td class="text-center shrink" permission permission-only="'ip.change_eventip'">
                     <button
                       class="btn btn-default fas fa-edit btn-sm"
@@ -383,7 +355,7 @@
               type="button"
               ng-click="vm.tagsPipe(vm.tagsTableState)"
               class="btn btn-primary btn-small"
-              style="margin-left: 5px;"
+              style="margin-left: 5px"
               uib-tooltip="{{'SEARCH' | translate}}"
               tooltip-placement="auto top"
               tooltip-append-to-body="true"
@@ -406,15 +378,9 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th st-sort="name" class="cursor-pointer">
-                    {{'NAME' | translate}}
-                  </th>
-                  <th st-sort="reference_code" class="cursor-pointer">
-                    {{'ACCESS.REFERENCE_CODE' | translate}}
-                  </th>
-                  <th>
-                    {{'ACCESS.ARCHIVE' | translate}}
-                  </th>
+                  <th st-sort="name" class="cursor-pointer">{{'NAME' | translate}}</th>
+                  <th st-sort="reference_code" class="cursor-pointer">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+                  <th>{{'ACCESS.ARCHIVE' | translate}}</th>
                   <th permission permission-only="'tags.change_transfer'" class="white-space-nowrap shrink">
                     {{'ACCESS.REMOVE_TRANSFER_LINK' | translate}}
                   </th>
@@ -426,15 +392,9 @@
                   class="selectable"
                   ui-sref="{{'home.archivalDescriptions.search.component'}}({id: x._id})"
                 >
-                  <td>
-                    {{x.name}}
-                  </td>
-                  <td>
-                    {{x.reference_code}}
-                  </td>
-                  <td>
-                    {{x._source.archive.name}}
-                  </td>
+                  <td>{{x.name}}</td>
+                  <td>{{x.reference_code}}</td>
+                  <td>{{x._source.archive.name}}</td>
                   <td permission permission-only="'tags.change_transfer'" class="text-center shrink">
                     <button
                       class="btn btn-default fas fa-trash-alt btn-sm"
@@ -512,7 +472,7 @@
               type="button"
               ng-click="vm.unitsPipe(vm.unitsTableState)"
               class="btn btn-primary btn-small"
-              style="margin-left: 5px;"
+              style="margin-left: 5px"
               uib-tooltip="{{'SEARCH' | translate}}"
               tooltip-placement="auto top"
               tooltip-append-to-body="true"
@@ -535,15 +495,9 @@
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th st-sort="name" class="cursor-pointer">
-                    {{'NAME' | translate}}
-                  </th>
-                  <th st-sort="reference_code" class="cursor-pointer">
-                    {{'ACCESS.REFERENCE_CODE' | translate}}
-                  </th>
-                  <th>
-                    {{'ACCESS.ARCHIVE' | translate}}
-                  </th>
+                  <th st-sort="name" class="cursor-pointer">{{'NAME' | translate}}</th>
+                  <th st-sort="reference_code" class="cursor-pointer">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+                  <th>{{'ACCESS.ARCHIVE' | translate}}</th>
                   <th permission permission-only="'tags.change_transfer'" class="white-space-nowrap shrink">
                     {{'ACCESS.REMOVE_TRANSFER_LINK' | translate}}
                   </th>
@@ -555,15 +509,9 @@
                   class="selectable"
                   ui-sref="{{'home.archivalDescriptions.search.structure_unit'}}({id: x.id})"
                 >
-                  <td>
-                    {{x.name}}
-                  </td>
-                  <td>
-                    {{x.reference_code}}
-                  </td>
-                  <td>
-                    {{x._source.archive.name}}
-                  </td>
+                  <td>{{x.name}}</td>
+                  <td>{{x.reference_code}}</td>
+                  <td>{{x._source.archive.name}}</td>
                   <td permission permission-only="'tags.change_transfer'" class="text-center shrink">
                     <button
                       class="btn btn-default fas fa-trash-alt btn-sm"

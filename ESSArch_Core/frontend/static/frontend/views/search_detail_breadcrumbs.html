@@ -1,7 +1,5 @@
 <div>
-  <label>
-    {{'PATH' | translate}}
-  </label>
+  <label> {{'PATH' | translate}} </label>
   <ul class="breadcrumb" ng-if="vm.record.breadcrumbs && vm.record.breadcrumbs.length > 0">
     <li ng-repeat="x in vm.record.breadcrumbs">
       <a ng-if="$index !== vm.record.breadcrumbs.length-1" ng-click="vm.goToNode(x._id)">{{x.name}}</a>

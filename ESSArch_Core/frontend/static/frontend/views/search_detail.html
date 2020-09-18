@@ -19,9 +19,7 @@
     <div class="detail-header">
       <div ng-include src="'static/frontend/views/search_detail_breadcrumbs.html'"></div>
       <div class="version-select-wrapper">
-        <label title="{{'ACCESS.VERSION_HISTORY_DESC' | translate}}">
-          {{'ACCESS.VERSION_HISTORY' | translate}}
-        </label>
+        <label title="{{'ACCESS.VERSION_HISTORY_DESC' | translate}}"> {{'ACCESS.VERSION_HISTORY' | translate}} </label>
         <div class="flex-row">
           <select
             class="form-control version-select"
@@ -44,9 +42,7 @@
       </div>
     </div>
     <hr class="small" />
-    <div ng-if="vm.record.security_level">
-      {{'ACCESS.SECURITY_LEVEL' | translate}}: {{vm.record.security_level}}
-    </div>
+    <div ng-if="vm.record.security_level">{{'ACCESS.SECURITY_LEVEL' | translate}}: {{vm.record.security_level}}</div>
     <div class="type-specific-results" ng-switch="vm.record._index">
       <div ng-switch-when="component">
         <div ng-switch="vm.record.type.name.toLowerCase()">

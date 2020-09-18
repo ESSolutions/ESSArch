@@ -1,20 +1,14 @@
 <div class="modal-heading">
   <div>
-    <h3 class="modal-title" id="modal-title">
-      {{'PREVIEW_MIGRATION' | translate}}
-    </h3>
+    <h3 class="modal-title" id="modal-title">{{'PREVIEW_MIGRATION' | translate}}</h3>
   </div>
 </div>
 <div class="modal-body" id="modal-body" st-table="$ctrl.previews" st-pipe="$ctrl.previewPipe">
-  <p>
-    {{'PREVIEW_MIGRATION_DESC' | translate}}
-  </p>
+  <p>{{'PREVIEW_MIGRATION_DESC' | translate}}</p>
   <hr class="small" />
   <div class="title-action-button-row">
     <div class="title">
-      <h4>
-        {{'INFORMATION_PACKAGES' | translate}}
-      </h4>
+      <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
     </div>
     <div class="action-button"></div>
   </div>
@@ -67,14 +61,12 @@
         <tr
           ng-if="previewItem.targets.length && !previewItem.collapsed"
           ng-repeat="target in previewItem.targets"
-          style="background-color: rgba(50, 120, 255, 0.1);"
+          style="background-color: rgba(50, 120, 255, 0.1)"
           ng-repeat-end
         >
           <td></td>
           <td>{{target.id}}</td>
-          <td>
-            {{target.name}}
-          </td>
+          <td>{{target.name}}</td>
         </tr>
         <tr ng-if="!previewItem.targets.length && previewItem.targetsLoading" class="empty-table-indicator">
           <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>

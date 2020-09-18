@@ -8,12 +8,12 @@
       type="button"
       class="btn btn-default"
       ng-click="optionalOptions = !optionalOptions"
-      style="margin-top: 10px;"
+      style="margin-top: 10px"
     >
       <i class="fas fa-minus" ng-if="optionalOptions"></i
       ><i class="fas fa-plus" ng-if="!optionalOptions"></i> {{'OPTIONS' | translate}}
     </button>
-    <div ng-if="optionalOptions" class="form-group" style="margin-top: 15px;">
+    <div ng-if="optionalOptions" class="form-group" style="margin-top: 15px">
       <formly-form model="$ctrl.ipData" fields="$ctrl.identifierField" options="{}"></formly-form>
     </div>
   </div>

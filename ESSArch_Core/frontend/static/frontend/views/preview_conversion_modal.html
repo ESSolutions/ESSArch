@@ -5,9 +5,7 @@
   <div ng-if="!$ctrl.initModalLoad" class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'INFORMATION_PACKAGES' | translate}}
-        </h4>
+        <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
       </div>
     </div>
     <div class="search-prepare-wrapper">
@@ -40,7 +38,7 @@
       ng-keydown="$ctrl.ipListKeydownListener($event)"
       class="list-view-table"
     >
-      <table class="table table-striped" style="margin-bottom: 0px;">
+      <table class="table table-striped" style="margin-bottom: 0px">
         <a ng-if="$ctrl.ips.length" ng-click="$ctrl.deselectAll()">
           {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}} {{'SELECTED' | translate}})
         </a>

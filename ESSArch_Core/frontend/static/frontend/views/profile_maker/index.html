@@ -8,8 +8,9 @@
           ng-change="vm.editTemplate(vm.template)"
           ng-model="vm.template"
           ng-options="x as x.name for x in vm.templates"
-          >x</select
         >
+          x
+        </select>
         <input
           ng-if="vm.template"
           class="btn btn-primary"

@@ -1,10 +1,8 @@
 <div class="number-per-page-wrapper">
-  <div class="page-number">
-    {{vm.calculatePageNumber()}}
-  </div>
-  <select class="form-control items-per-page" ng-model="vm.resultsPerPage" ng-options="x for x in [10,25,50,100]"
-    >{{x}}</select
-  >
+  <div class="page-number">{{vm.calculatePageNumber()}}</div>
+  <select class="form-control items-per-page" ng-model="vm.resultsPerPage" ng-options="x for x in [10,25,50,100]">
+    {{x}}
+  </select>
   <div>
     <button
       class="btn btn-default btn-sm"

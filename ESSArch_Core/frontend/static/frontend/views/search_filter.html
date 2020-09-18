@@ -1,7 +1,5 @@
 <div class="search-filter">
-  <label class="control-label" ng-if="vm.label">
-    {{vm.label + (vm.required ? ' *' : '')}}
-  </label>
+  <label class="control-label" ng-if="vm.label"> {{vm.label + (vm.required ? ' *' : '')}} </label>
   <div class="filter-input-wrapper">
     <div>
       <ul class="list-unstyled filter-selected-options" ng-if="vm.selected.length > 0">
@@ -16,9 +14,7 @@
         >
           {{x[vm.labelProp]}}<i ng-show="showDelete" class="fas fa-times-circle delete-symbol absolute-top-right"></i>
         </li>
-        <li ng-if="vm.selected.length === 0">
-          {{'EMPTY' | translate}}
-        </li>
+        <li ng-if="vm.selected.length === 0">{{'EMPTY' | translate}}</li>
       </ul>
     </div>
     <input
@@ -39,9 +35,7 @@
         >
           {{x[vm.labelProp]}}
         </li>
-        <li ng-if="vm.optionsEmpty()">
-          {{'NO_RESULTS_FOUND' | translate}}
-        </li>
+        <li ng-if="vm.optionsEmpty()">{{'NO_RESULTS_FOUND' | translate}}</li>
       </ul>
     </div>
   </div>

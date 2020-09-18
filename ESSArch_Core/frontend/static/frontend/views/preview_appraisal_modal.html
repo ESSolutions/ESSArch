@@ -5,9 +5,7 @@
   <div ng-if="!$ctrl.initModalLoad" class="table-container" st-table="$ctrl.displayedIps" st-pipe="$ctrl.callServer">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'INFORMATION_PACKAGES' | translate}}
-        </h4>
+        <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
       </div>
     </div>
     <div class="search-prepare-wrapper">
@@ -40,7 +38,7 @@
       ng-keydown="$ctrl.ipListKeydownListener($event)"
       class="list-view-table"
     >
-      <table class="table table-striped" style="margin-bottom: 0px;">
+      <table class="table table-striped" style="margin-bottom: 0px">
         <a ng-if="$ctrl.ips.length" ng-click="$ctrl.deselectAll()">
           {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}} {{'SELECTED' | translate}})
         </a>
@@ -97,9 +95,7 @@
     <hr class="small" />
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'ACCESS.NODES' | translate}}
-        </h4>
+        <h4>{{'ACCESS.NODES' | translate}}</h4>
       </div>
     </div>
     <div class="search-prepare-wrapper">
@@ -130,15 +126,9 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th st-sort="name" class="cursor-pointer">
-              {{'NAME' | translate}}
-            </th>
-            <th st-sort="reference_code" class="cursor-pointer">
-              {{'ACCESS.REFERENCE_CODE' | translate}}
-            </th>
-            <th>
-              {{'ACCESS.ARCHIVE' | translate}}
-            </th>
+            <th st-sort="name" class="cursor-pointer">{{'NAME' | translate}}</th>
+            <th st-sort="reference_code" class="cursor-pointer">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+            <th>{{'ACCESS.ARCHIVE' | translate}}</th>
           </tr>
         </thead>
         <tbody>
@@ -147,15 +137,9 @@
             ng-class="{'selected': $ctrl.selectedTags.includes(x.id)}"
             ng-click="$ctrl.tagsTableClick(x, $event)"
           >
-            <td>
-              {{x.name}}
-            </td>
-            <td>
-              {{x.reference_code}}
-            </td>
-            <td>
-              {{x.archive}}
-            </td>
+            <td>{{x.name}}</td>
+            <td>{{x.reference_code}}</td>
+            <td>{{x.archive}}</td>
           </tr>
           <tr ng-if="!$ctrl.tags.length && !$ctrl.tagsLoading" class="empty-table-indicator">
             <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>

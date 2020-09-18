@@ -8,24 +8,18 @@
       <div class="request-type">
         <div ng-repeat="type in $ctrl.requestTypes">
           <input type="radio" ng-model="$ctrl.request.type" value="{{type}}" />
-          <label>
-            {{type.toUpperCase() | translate}}
-          </label>
+          <label> {{type.toUpperCase() | translate}} </label>
         </div>
       </div>
       <div class="request-params">
         <div
           ng-if="$ctrl.request.type == 'inventory' || $ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount' || $ctrl.request.type == 'unmount_force'"
         >
-          <label>
-            {{'COMMENT' | translate}}
-          </label>
+          <label> {{'COMMENT' | translate}} </label>
           <input required class="form-control" ng-model="$ctrl.request.purpose" focused="true" />
         </div>
         <div ng-if="$ctrl.request.type == 'mount' && $ctrl.tapeSlot == null">
-          <label>
-            {{'STORAGEMEDIUM' | translate}}
-          </label>
+          <label> {{'STORAGEMEDIUM' | translate}} </label>
           <select
             required
             class="form-control"

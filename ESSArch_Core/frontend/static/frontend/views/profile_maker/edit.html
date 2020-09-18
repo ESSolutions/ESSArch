@@ -6,7 +6,7 @@
     on-selection="showSelected(node.key, selected)"
     selected-node="node1"
     expanded-nodes="expandedNodes"
-    style="float: left;"
+    style="float: left"
   >
     <span class="{{node.templateOnly}}">{{node.name}}</span>
   </treecontrol>
@@ -33,7 +33,7 @@
       on-selection="addEl(node.data)"
       selected-node="node1"
       expanded-nodes="expandedNodes"
-      style="float: left;"
+      style="float: left"
     >
       <span class="{{node.templateOnly}}">{{node.name}}</span>
     </treecontrol>
@@ -61,9 +61,7 @@
       <div>
         <h3 ng-if="vm.possibleChildren.length > 0">PossibleChildren</h3>
         <div ng-repeat="child in vm.possibleChildren track by $index" class="children">
-          <p>
-            {{child}}
-          </p>
+          <p>{{child}}</p>
           <button type="button" class="btn btn-success" ng-click="vm.addChild(child)">Add</button>
           <!-- <span ng-click="vm.addChild(child)">{{child.name}}
                     </span> -->

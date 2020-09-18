@@ -129,16 +129,16 @@
         >
           <select
             tabindex="-1"
-            style="width: auto; margin-left: 10px;"
+            style="width: auto; margin-left: 10px"
             class="form-control"
             ng-model="currentOrganization"
             ng-disabled="availableOrganizations.length === 0"
             ng-change="changeOrganization(); updateListView()"
             ng-options="x as x.name for x in availableOrganizations track by x.id"
           >
-            <option ng-hide="availableOrganizations.length > 0" selected value=""
-              >{{'ORGANIZATION.NO_ORGANIZATIONS' | translate}}</option
-            >
+            <option ng-hide="availableOrganizations.length > 0" selected value="">
+              {{'ORGANIZATION.NO_ORGANIZATIONS' | translate}}
+            </option>
           </select>
         </div>
       </div>

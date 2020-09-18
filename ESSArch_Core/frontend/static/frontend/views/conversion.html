@@ -3,9 +3,7 @@
     <div class="table-container" st-table="vm.templates" st-pipe="vm.templatePipe">
       <div class="title-action-button-row">
         <div class="title">
-          <h4>
-            {{'ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATES' | translate}}
-          </h4>
+          <h4>{{'ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATES' | translate}}</h4>
           <a
             target="_blank"
             class="help-button"
@@ -55,7 +53,7 @@
           type="button"
           ng-click="getListviewData()"
           class="btn btn-primary btn-small"
-          style="margin-left: 5px;"
+          style="margin-left: 5px"
           uib-tooltip="{{'SEARCH' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
@@ -78,12 +76,8 @@
           <thead>
             <tr>
               <th>{{'NAME' | translate}}</th>
-              <th class="shrink">
-                {{'EDIT' | translate}}
-              </th>
-              <th class="white-space-nowrap shrink">
-                {{'REMOVE' | translate}}
-              </th>
+              <th class="shrink">{{'EDIT' | translate}}</th>
+              <th class="white-space-nowrap shrink">{{'REMOVE' | translate}}</th>
             </tr>
           </thead>
           <tbody>
@@ -117,7 +111,7 @@
         </table>
         <div
           class="search-pagination"
-          style="float: right;"
+          style="float: right"
           st-template="static/frontend/views/file_pagination.html"
           st-pagination=""
           st-items-by-page="vm.templatesPerPage"
@@ -127,9 +121,7 @@
     </div>
     <hr />
     <div class="w-100 d-flex justify-content-between align-items-center">
-      <h4>
-        {{'ARCHIVE_MAINTENANCE.CONVERSION_JOBS' | translate}}
-      </h4>
+      <h4>{{'ARCHIVE_MAINTENANCE.CONVERSION_JOBS' | translate}}</h4>
       <button class="btn btn-primary" ng-click="vm.createJobModal()">
         {{'ARCHIVE_MAINTENANCE.CREATE_JOB' | translate}}
       </button>
@@ -165,9 +157,7 @@
               <th>{{'LABEL' | translate}}</th>
               <th>{{'START' | translate}}</th>
               <th class="shrink">{{'ARCHIVE_MAINTENANCE.RUN' | translate}}</th>
-              <th class="shrink">
-                {{'EDIT' | translate}}
-              </th>
+              <th class="shrink">{{'EDIT' | translate}}</th>
               <th permission permission-only="'maintenance.delete_conversionjob'" class="white-space-nowrap shrink">
                 {{'REMOVE' | translate}}
               </th>
@@ -209,7 +199,7 @@
         </table>
         <div
           class="search-pagination"
-          style="float: right;"
+          style="float: right"
           st-template="static/frontend/views/file_pagination.html"
           st-pagination=""
           st-items-by-page="vm.nextPerPage"
@@ -264,7 +254,7 @@
         </table>
         <div
           class="search-pagination"
-          style="float: right;"
+          style="float: right"
           st-template="static/frontend/views/file_pagination.html"
           st-pagination=""
           st-items-by-page="vm.ongoingPerPage"
@@ -354,7 +344,7 @@
         </table>
         <div
           class="search-pagination"
-          style="float: right;"
+          style="float: right"
           st-template="static/frontend/views/file_pagination.html"
           st-pagination=""
           st-items-by-page="vm.finishedPerPage"
