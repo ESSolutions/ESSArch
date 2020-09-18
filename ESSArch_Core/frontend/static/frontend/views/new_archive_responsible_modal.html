@@ -3,9 +3,7 @@
 </div>
 <form ng-submit="$ctrl.create()">
   <div class="modal-body" id="modal-body">
-    <label for="name">
-      {{'NAME' | translate}}
-    </label>
+    <label for="name"> {{'NAME' | translate}} </label>
 
     <ui-select
       allow-clear
@@ -32,9 +30,7 @@
       </ui-select-no-choice>
     </ui-select>
 
-    <label for="type">
-      {{'ID' | translate}}
-    </label>
+    <label for="type"> {{'ID' | translate}} </label>
     <ui-select
       allow-clear
       ng-model="$ctrl.responsible"
@@ -62,9 +58,7 @@
     <div ng-if="$ctrl.responsible.id !== null">
       <div class="title-action-button-row py-base">
         <div class="title">
-          <h4>
-            {{'ACCESS.ARCHIVES' | translate}}
-          </h4>
+          <h4>{{'ACCESS.ARCHIVES' | translate}}</h4>
         </div>
         <div class="action-button">
           <button
@@ -83,9 +77,7 @@
         <div class="col-xs-4">
           <ul class="list-style-none pl-base">
             <li ng-repeat="archive in $ctrl.archives">
-              <a>
-                {{archive.name}}
-              </a>
+              <a> {{archive.name}} </a>
             </li>
           </ul>
         </div>
@@ -94,22 +86,14 @@
             <table class="table">
               <thead>
                 <tr>
-                  <th>
-                    {{'NAME' | translate}}
-                  </th>
-                  <th>
-                    {{'ACCESS.REFERENCE_CODE' | translate}}
-                  </th>
+                  <th>{{'NAME' | translate}}</th>
+                  <th>{{'ACCESS.REFERENCE_CODE' | translate}}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr ng-repeat="archive in $ctrl.archives">
-                  <td>
-                    {{archive.name}}
-                  </td>
-                  <td>
-                    {{archive.reference_code}}
-                  </td>
+                  <td>{{archive.name}}</td>
+                  <td>{{archive.reference_code}}</td>
                 </tr>
                 <tr ng-if="!$ctrl.archives.length && !$ctrl.archivesLoading" class="empty-table-indicator">
                   <td colspan="2">{{'NO_RESULTS_FOUND' | translate}}</td>

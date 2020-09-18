@@ -53,12 +53,8 @@
       <table class="table table-striped">
         <tbody>
           <tr ng-repeat="flag in sysInfo.settings_flags" ng-class="{'unexpected': flag.unexpected}">
-            <td>
-              {{flag.name}}
-            </td>
-            <td>
-              {{flag.actual.toString().toUpperCase()}}
-            </td>
+            <td>{{flag.name}}</td>
+            <td>{{flag.actual.toString().toUpperCase()}}</td>
           </tr>
         </tbody>
       </table>
@@ -68,61 +64,37 @@
         <table class="table">
           <thead>
             <tr>
-              <th>
-                {{'NAME' | translate}}
-              </th>
-              <th>
-                {{'SYSINFO.BROKER' | translate}}
-              </th>
-              <th>
-                {{'SYSINFO.PID' | translate}}
-              </th>
-              <th>
-                {{'SYSINFO.MAX_CONCURRENCY' | translate}}
-              </th>
+              <th>{{'NAME' | translate}}</th>
+              <th>{{'SYSINFO.BROKER' | translate}}</th>
+              <th>{{'SYSINFO.PID' | translate}}</th>
+              <th>{{'SYSINFO.MAX_CONCURRENCY' | translate}}</th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="(name, stats) in sysInfo.workers">
-              <td>
-                {{name}}
-              </td>
-              <td>
-                {{stats.broker.hostname}}:{{stats.broker.port}}
-              </td>
-              <td>
-                {{stats.pid}}
-              </td>
-              <td>
-                {{stats.pool['max-concurrency']}}
-              </td>
+              <td>{{name}}</td>
+              <td>{{stats.broker.hostname}}:{{stats.broker.port}}</td>
+              <td>{{stats.pid}}</td>
+              <td>{{stats.pool['max-concurrency']}}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
-    <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden;">
+    <div class="col-12 col-lg-6 p-0 pl-lg-base" style="overflow: hidden">
       <p><b>{{'SYSINFO.PYTHONPACKAGES' | translate}}: </b></p>
       <div class="table-container table-x-overflow">
         <table class="table table-striped">
           <thead>
             <tr>
-              <th>
-                {{'PACKAGE' | translate}}
-              </th>
-              <th>
-                {{'VERSION' | translate}}
-              </th>
+              <th>{{'PACKAGE' | translate}}</th>
+              <th>{{'VERSION' | translate}}</th>
             </tr>
           </thead>
           <tbody>
             <tr ng-repeat="x in sysInfo.python_packages">
-              <td>
-                {{x[0]}}
-              </td>
-              <td>
-                {{x[1]}}
-              </td>
+              <td>{{x[0]}}</td>
+              <td>{{x[1]}}</td>
             </tr>
           </tbody>
         </table>

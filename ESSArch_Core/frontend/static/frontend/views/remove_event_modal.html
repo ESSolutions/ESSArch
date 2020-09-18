@@ -2,9 +2,7 @@
   <h3 class="modal-title" id="modal-title">{{'EVENT.DO_YOU_WANT_TO_REMOVE_EVENT' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
-  <b>
-    {{$ctrl.event.eventDetail}}
-  </b>
+  <b> {{$ctrl.event.eventDetail}} </b>
 </div>
 <div class="modal-footer">
   <button class="btn btn-danger" type="button" ng-click="$ctrl.remove()" focused="true" ng-disabled="$ctrl.removing">

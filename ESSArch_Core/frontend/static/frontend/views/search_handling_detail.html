@@ -1,14 +1,10 @@
 <div class="component-result">
   <h3 title="Namn">
-    <strong title="Namn" ng-if="vm.record._source.reference_code">
-      {{vm.record._source.name}}
-    </strong>
+    <strong title="Namn" ng-if="vm.record._source.reference_code"> {{vm.record._source.name}} </strong>
   </h3>
   <h4><span title="Informationsobjekt">{{vm.record._source.type}}</span></h4>
   <div ng-if="vm.record.description">
-    <p class="result-description">
-      {{vm.record.description}}
-    </p>
+    <p class="result-description">{{vm.record.description}}</p>
   </div>
 
   <div title="Status" ng-if="vm.record._source.status">

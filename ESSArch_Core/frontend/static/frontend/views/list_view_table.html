@@ -1,9 +1,7 @@
 <div st-table="vm.displayedIps" st-pipe="vm.callServer">
   <div class="title-action-button-row">
     <div class="title">
-      <h4>
-        {{vm.listViewTitle}}
-      </h4>
+      <h4>{{vm.listViewTitle}}</h4>
       <a
         ng-if="vm.getStateDocPage()"
         target="_blank"
@@ -78,7 +76,7 @@
       type="button"
       ng-click="getListViewData()"
       class="btn btn-primary btn-small"
-      style="margin-left: 5px;"
+      style="margin-left: 5px"
       uib-tooltip="{{'SEARCH' | translate}}"
       tooltip-placement="auto top"
       tooltip-append-to-body="true"
@@ -105,7 +103,7 @@
   </div>
 
   <div id="list-view" tabindex="0" ng-keydown="vm.ipListKeydownListener($event)" class="list-view-table">
-    <table class="table table-striped" style="margin-bottom: 0px;">
+    <table class="table table-striped" style="margin-bottom: 0px">
       <a
         ng-if="vm.expandAllVisible() && vm.showExpand"
         class="pr-base"
@@ -139,7 +137,7 @@
             tooltip-placement="auto top"
             tooltip-append-to-body="true"
           >
-            <span ng-hide="col.label=='step_state' || col.label == 'storage_status'" style="white-space: nowrap;">
+            <span ng-hide="col.label=='step_state' || col.label == 'storage_status'" style="white-space: nowrap">
               {{col.label.toUpperCase() | translate}}
             </span>
           </th>
@@ -172,7 +170,7 @@
           ng-repeat-end
           class="table-item selectable"
           ng-class="{'selected': ip.object_identifier_value == subrow.object_identifier_value || selectedAmongOthers(subrow.id)}"
-          style="background-color: rgba(50, 120, 255, 0.1);"
+          style="background-color: rgba(50, 120, 255, 0.1)"
           ng-click="ipTableClick(subrow, $event)"
           context-menu="menuOptions('subrow', subrow)"
         >

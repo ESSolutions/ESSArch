@@ -10,7 +10,7 @@
           on-selection="showSelected(node, $parentNode)"
           selected-node="selectedNode"
           expanded-nodes="expandedNodes"
-          style="float: left;"
+          style="float: left"
         >
           <span class="tree-edit-item">{{node.name}}</span>
         </treecontrol>
@@ -21,22 +21,14 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th>
-                {{'NAME' | translate}}
-              </th>
-              <th>
-                {{'USED_FOR' | translate}}
-              </th>
+              <th>{{'NAME' | translate}}</th>
+              <th>{{'USED_FOR' | translate}}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td uib-tooltip="{{selectedNode.name}}" tooltip-placement="auto top">
-                {{selectedNode.name}}
-              </td>
-              <td uib-tooltip="{{selectedNode.use}}" tooltip-placement="auto top">
-                {{selectedNode.use}}
-              </td>
+              <td uib-tooltip="{{selectedNode.name}}" tooltip-placement="auto top">{{selectedNode.name}}</td>
+              <td uib-tooltip="{{selectedNode.use}}" tooltip-placement="auto top">{{selectedNode.use}}</td>
             </tr>
           </tbody>
         </table>

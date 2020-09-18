@@ -12,8 +12,9 @@
         required
         ng-model="$ctrl.appraisalTemplate"
         ng-options="x as x.name for x in $ctrl.appraisalTemplates"
-        >{{x}}</select
       >
+        {{x}}
+      </select>
     </label>
   </div>
   <div class="modal-footer">

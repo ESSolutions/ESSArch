@@ -3,9 +3,7 @@
 </div>
 <form ng-submit="$ctrl.generateReport()">
   <div class="modal-body" id="modal-body">
-    <h4>
-      {{'DASHBOARD.SELECT_INFORMATION_FOR_REPORT' | translate}}
-    </h4>
+    <h4>{{'DASHBOARD.SELECT_INFORMATION_FOR_REPORT' | translate}}</h4>
     <ul ng-if="$ctrl.options !== {}" class="list-unstyled">
       <li ng-repeat="(key, value) in $ctrl.options">
         <input type="checkbox" ng-model="$ctrl.selected[key]" /> {{'DASHBOARD.' + key.toUpperCase() | translate}}

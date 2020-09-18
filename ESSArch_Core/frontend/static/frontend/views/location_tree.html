@@ -55,7 +55,7 @@
             permission
             permission-only="'tags.change_location'"
             type="button"
-            style="margin-left: 3px;"
+            style="margin-left: 3px"
             ng-click="vm.editNodeModal(vm.selected)"
             class="btn btn-default"
             uib-tooltip="{{'EDIT' | translate}}"
@@ -70,7 +70,7 @@
             permission
             permission-only="'tags.delete_location'"
             type="button"
-            style="margin-left: 3px;"
+            style="margin-left: 3px"
             ng-click="vm.removeNodeModal(vm.selected)"
             class="btn btn-default"
             uib-tooltip="{{'REMOVE' | translate}}"
@@ -83,9 +83,7 @@
       </div>
     </div>
     <hr class="small my-base mx-0" />
-    <h4>
-      {{vm.selected.name}} ({{vm.selected.level_type.name}})
-    </h4>
+    <h4>{{vm.selected.name}} ({{vm.selected.level_type.name}})</h4>
     {{vm.selected.capacity}} {{vm.selected.metric.name}}
     <br />
     {{vm.selected.function.name}}
@@ -97,9 +95,7 @@
     >
       <div class="title-action-button-row">
         <div class="title">
-          <h4>
-            {{'ACCESS.TAGS_IN_LOCATION' | translate}}
-          </h4>
+          <h4>{{'ACCESS.TAGS_IN_LOCATION' | translate}}</h4>
         </div>
         <div class="action-button">
           <button
@@ -155,7 +151,7 @@
           type="button"
           ng-click="vm.tagsPipe(vm.tagsTableState)"
           class="btn btn-primary btn-small"
-          style="margin-left: 5px;"
+          style="margin-left: 5px"
           uib-tooltip="{{'SEARCH' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
@@ -178,15 +174,9 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th st-sort="name" class="cursor-pointer">
-                {{'NAME' | translate}}
-              </th>
-              <th st-sort="reference_code" class="cursor-pointer">
-                {{'ACCESS.REFERENCE_CODE' | translate}}
-              </th>
-              <th>
-                {{'ACCESS.ARCHIVE' | translate}}
-              </th>
+              <th st-sort="name" class="cursor-pointer">{{'NAME' | translate}}</th>
+              <th st-sort="reference_code" class="cursor-pointer">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+              <th>{{'ACCESS.ARCHIVE' | translate}}</th>
               <th permission permission-only="'tags.change_location'" class="white-space-nowrap shrink">
                 {{'ACCESS.REMOVE_LOCATION_LINK' | translate}}
               </th>
@@ -199,15 +189,9 @@
               class="selectable"
               ng-click="vm.tagsTableClick(x, $event)"
             >
-              <td>
-                {{x.name}}
-              </td>
-              <td>
-                {{x.reference_code}}
-              </td>
-              <td>
-                {{x.archive}}
-              </td>
+              <td>{{x.name}}</td>
+              <td>{{x.reference_code}}</td>
+              <td>{{x.archive}}</td>
               <td permission permission-only="'tags.change_location'" class="text-center shrink">
                 <button
                   class="btn btn-default fas fa-trash-alt btn-sm"

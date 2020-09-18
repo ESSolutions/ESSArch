@@ -8,9 +8,7 @@
   </div>
   <div class="main-page-selects">
     <div ng-controller="OrganizationCtrl" class="organization-select">
-      <label>
-        {{ "ORGANIZATION.ORGANIZATION" | translate }}
-      </label>
+      <label> {{ "ORGANIZATION.ORGANIZATION" | translate }} </label>
       <select
         tabindex="-1"
         class="form-control"
@@ -19,15 +17,13 @@
         ng-change="changeOrganization(); updateListView()"
         ng-options="x as x.name for x in availableOrganizations track by x.id"
       >
-        <option ng-hide="availableOrganizations.length > 0" selected value=""
-          >{{ "ORGANIZATION.NO_ORGANIZATIONS" | translate }}</option
-        >
+        <option ng-hide="availableOrganizations.length > 0" selected value="">
+          {{ "ORGANIZATION.NO_ORGANIZATIONS" | translate }}
+        </option>
       </select>
     </div>
     <div ng-controller="LanguageCtrl as vm" class="language-select">
-      <label>
-        {{ "LANGUAGE" | translate }}
-      </label>
+      <label> {{ "LANGUAGE" | translate }} </label>
       <select
         tabindex="-1"
         class="form-control"

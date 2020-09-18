@@ -15,38 +15,26 @@
           <div class="select-sub-edit-eventlog-wrapper mb-base" ng-if="(ips.length === 0 && ip !== null)">
             <div class="edit-view border-none">
               <div ng-if="ip.altrecordids">
-                <h4>
-                  {{'SUBMITDESCRIPTION' | translate}}
-                </h4>
+                <h4>{{'SUBMITDESCRIPTION' | translate}}</h4>
                 <div class="table-container table-x-overflow">
                   <table class="table table-striped">
                     <tbody>
                       <tr ng-repeat="(key, value) in vm.parseAltrecordIds(ip.altrecordids)">
-                        <td>
-                          {{vm.formatSdLabel(key)}}
-                        </td>
-                        <td>
-                          {{value[0]}}
-                        </td>
+                        <td>{{vm.formatSdLabel(key)}}</td>
+                        <td>{{value[0]}}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div ng-if="ip.agents">
-                <h4>
-                  {{'AGENTS' | translate}}
-                </h4>
+                <h4>{{'AGENTS' | translate}}</h4>
                 <div class="table-container table-x-overflow">
                   <table class="table table-striped">
                     <tbody>
                       <tr ng-repeat-start="(key, value) in ip.agents">
-                        <td>
-                          {{vm.formatSdLabel(key)}}
-                        </td>
-                        <td>
-                          {{value.name}}
-                        </td>
+                        <td>{{vm.formatSdLabel(key)}}</td>
+                        <td>{{value.name}}</td>
                         <td class="shrink">
                           <a ng-if="value.notes.length" ng-click="value.expanded = !value.expanded">
                             <i
@@ -59,22 +47,18 @@
                       </tr>
                       <tr
                         ng-if="value.expanded"
-                        style="background-color: rgba(50, 120, 255, 0.1);"
+                        style="background-color: rgba(50, 120, 255, 0.1)"
                         ng-repeat-end
                         ng-repeat="x in value.notes"
                       >
-                        <td colspan="3">
-                          {{x}}
-                        </td>
+                        <td colspan="3">{{x}}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="table-container table-x-overflow py-1">
-                <h4>
-                  SIP
-                </h4>
+                <h4>SIP</h4>
                 <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
                   <thead>
                     <tr>
@@ -99,7 +83,7 @@
               <button class="btn btn-primary" ng-click="receiveModal(ips)" ng-disabled="vm.receiveModalLoading">
                 {{'RECEIVE' | translate}} <i ng-if="vm.receiveModalLoading" class="fas fa-spinner fa-spin"></i>
               </button>
-              <p style="margin-left: 5px; margin-bottom: 0;">
+              <p style="margin-left: 5px; margin-bottom: 0">
                 {{ips.length > 0?ips.length:1}} {{'SELECTED' | translate}}
               </p>
             </div>
@@ -115,38 +99,26 @@
           <div class="select-sub-edit-eventlog-wrapper mb-base" ng-if="(ips.length === 0 && ip !== null)">
             <div class="edit-view border-none">
               <div ng-if="ip.altrecordids">
-                <h4>
-                  {{'SUBMITDESCRIPTION' | translate}}
-                </h4>
+                <h4>{{'SUBMITDESCRIPTION' | translate}}</h4>
                 <div class="table-container table-x-overflow">
                   <table class="table table-striped">
                     <tbody>
                       <tr ng-repeat="(key, value) in vm.parseAltrecordIds(ip.altrecordids)">
-                        <td>
-                          {{vm.formatSdLabel(key)}}
-                        </td>
-                        <td>
-                          {{value[0]}}
-                        </td>
+                        <td>{{vm.formatSdLabel(key)}}</td>
+                        <td>{{value[0]}}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div ng-if="ip.agents">
-                <h4>
-                  {{'AGENTS' | translate}}
-                </h4>
+                <h4>{{'AGENTS' | translate}}</h4>
                 <div class="table-container table-x-overflow">
                   <table class="table table-striped">
                     <tbody>
                       <tr ng-repeat-start="(key, value) in ip.agents">
-                        <td>
-                          {{vm.formatSdLabel(key)}}
-                        </td>
-                        <td>
-                          {{value.name}}
-                        </td>
+                        <td>{{vm.formatSdLabel(key)}}</td>
+                        <td>{{value.name}}</td>
                         <td class="shrink">
                           <a ng-if="value.notes.length" ng-click="value.expanded = !value.expanded">
                             <i
@@ -159,22 +131,18 @@
                       </tr>
                       <tr
                         ng-if="value.expanded"
-                        style="background-color: rgba(50, 120, 255, 0.1);"
+                        style="background-color: rgba(50, 120, 255, 0.1)"
                         ng-repeat-end
                         ng-repeat="x in value.notes"
                       >
-                        <td colspan="3">
-                          {{x}}
-                        </td>
+                        <td colspan="3">{{x}}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
               <div class="table-container table-x-overflow py-1">
-                <h4>
-                  SIP
-                </h4>
+                <h4>SIP</h4>
                 <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
                   <thead>
                     <tr>
@@ -199,7 +167,7 @@
               <button class="btn btn-primary" ng-click="vm.transferModal(ips)" ng-disabled="vm.transferModalLoading">
                 {{'TRANSFER_SIP' | translate}} <i ng-if="vm.transferModalLoading" class="fas fa-spinner fa-spin"></i>
               </button>
-              <p style="margin-left: 5px; margin-bottom: 0;">
+              <p style="margin-left: 5px; margin-bottom: 0">
                 {{ips.length > 0?ips.length:1}} {{'SELECTED' | translate}}
               </p>
             </div>
@@ -236,9 +204,7 @@
       class="no-tabs-available"
       ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs' || (ips.length > 0 && vm.specificTabs.includes('create_dip')))"
     >
-      <h4>
-        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
-      </h4>
+      <h4>{{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}</h4>
     </div>
   </div>
 </div>

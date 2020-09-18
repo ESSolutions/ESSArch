@@ -10,9 +10,7 @@
             <th></th>
             <th>ID</th>
             <th>{{'LABEL' | translate}}</th>
-            <th>
-              {{'SUBMISSION_AGREEMENT' | translate}}
-            </th>
+            <th>{{'SUBMISSION_AGREEMENT' | translate}}</th>
           </tr>
         </thead>
         <tbody>
@@ -42,9 +40,7 @@
             <td>{{ip.object_identifier_value}}</td>
             <td>{{ip.label}}</td>
             <td>
-              <div ng-if="ip.sa && ip.hasValidSa && !ip.saLoading">
-                {{ip.sa.label}}
-              </div>
+              <div ng-if="ip.sa && ip.hasValidSa && !ip.saLoading">{{ip.sa.label}}</div>
               <div ng-if="ip.sa === null && !ip.hasValidSa && !ip.saLoading">
                 {{'INVALID_SUBMISSION_AGREEMENT' | translate}}
               </div>
@@ -58,9 +54,7 @@
           </tr>
           <tr ng-repeat-end ng-if="ip.error" class="failed">
             <td colspan="4">
-              <div ng-if="ip.error">
-                {{ip.error}}
-              </div>
+              <div ng-if="ip.error">{{ip.error}}</div>
             </td>
           </tr>
         </tbody>

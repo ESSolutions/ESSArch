@@ -44,26 +44,20 @@
                   class="form-group"
                   ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new' || vm.request.type == 'query'"
                 >
-                  <label>
-                    {{'COMMENT' | translate}}
-                  </label>
+                  <label> {{'COMMENT' | translate}} </label>
                   <input class="form-control" ng-model="vm.request.purpose" />
                 </div>
                 <div
                   ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
                 >
                   <input type="checkbox" ng-model="vm.request.package_xml" />
-                  <label>
-                    {{'INCLUDE_PACKAGE_XML' | translate}}
-                  </label>
+                  <label> {{'INCLUDE_PACKAGE_XML' | translate}} </label>
                 </div>
                 <div
                   ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
                 >
                   <input type="checkbox" ng-model="vm.request.aic_xml" />
-                  <label>
-                    {{'INCLUDE_AIC_XML' | translate}}
-                  </label>
+                  <label> {{'INCLUDE_AIC_XML' | translate}} </label>
                 </div>
               </div>
             </form>
@@ -121,9 +115,7 @@
       class="no-tabs-available"
       ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs')"
     >
-      <h4>
-        {{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}
-      </h4>
+      <h4>{{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}</h4>
     </div>
   </div>
 </div>

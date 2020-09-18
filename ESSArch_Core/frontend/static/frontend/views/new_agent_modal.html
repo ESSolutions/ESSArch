@@ -5,9 +5,7 @@
   <div class="modal-body" id="modal-body">
     <div class="pb-base">
       <formly-form model="$ctrl.agent" fields="$ctrl.typeField" options="{}"></formly-form>
-      <h4 ng-if="$ctrl.nameFields.length > 0">
-        {{'ACCESS.AUTHORIZED_NAME' | translate}}
-      </h4>
+      <h4 ng-if="$ctrl.nameFields.length > 0">{{'ACCESS.AUTHORIZED_NAME' | translate}}</h4>
       <formly-form model="$ctrl.authName" fields="$ctrl.nameFields" options="{}"></formly-form>
       <form-errors errors="$ctrl.nameErrors"></form-errors>
       <hr />

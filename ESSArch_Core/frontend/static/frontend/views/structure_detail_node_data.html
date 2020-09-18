@@ -1,8 +1,6 @@
 <div class="title-action-button-row mb-base">
   <div class="title">
-    <h4>
-      {{'ACCESS.RELATED_STRUCTURE_UNITS' | translate}}
-    </h4>
+    <h4>{{'ACCESS.RELATED_STRUCTURE_UNITS' | translate}}</h4>
   </div>
   <div class="action-button">
     <button
@@ -19,21 +17,11 @@
 <table class="table table-striped">
   <thead>
     <tr>
-      <th>
-        {{'NAME' | translate}}
-      </th>
-      <th>
-        {{'TYPE' | translate}}
-      </th>
-      <th>
-        {{'DESCRIPTION' | translate}}
-      </th>
-      <th>
-        {{'ACCESS.VALID_DATE_START' | translate}}
-      </th>
-      <th>
-        {{'ACCESS.VALID_DATE_END' | translate}}
-      </th>
+      <th>{{'NAME' | translate}}</th>
+      <th>{{'TYPE' | translate}}</th>
+      <th>{{'DESCRIPTION' | translate}}</th>
+      <th>{{'ACCESS.VALID_DATE_START' | translate}}</th>
+      <th>{{'ACCESS.VALID_DATE_END' | translate}}</th>
       <th class="shrink" ng-if="vm.structure.is_editable" permission permission-only="'tags.change_structureunit'">
         {{'EDIT' | translate}}
       </th>
@@ -55,21 +43,11 @@
       ui-state-params="StructureUnitRelation.getRelatedStructureUnitLinkParams(x.structure_unit)"
       ui-state-opts="{reload: true}"
     >
-      <td>
-        {{x.structure_unit.name}}
-      </td>
-      <td>
-        {{x.type.name}}
-      </td>
-      <td>
-        {{x.description}}
-      </td>
-      <td>
-        {{x.start_date | date:"yyyy-MM-dd"}}
-      </td>
-      <td>
-        {{x.end_date | date:"yyyy-MM-dd"}}
-      </td>
+      <td>{{x.structure_unit.name}}</td>
+      <td>{{x.type.name}}</td>
+      <td>{{x.description}}</td>
+      <td>{{x.start_date | date:"yyyy-MM-dd"}}</td>
+      <td>{{x.end_date | date:"yyyy-MM-dd"}}</td>
       <td
         class="text-center shrink"
         ng-if="vm.structure.is_editable"

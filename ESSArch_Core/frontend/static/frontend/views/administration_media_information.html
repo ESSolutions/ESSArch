@@ -2,9 +2,7 @@
   <div class="list-view" st-table="vm.displayedMediums" st-pipe="vm.callServer">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'STORAGE_MEDIUMS' | translate}}
-        </h4>
+        <h4>{{'STORAGE_MEDIUMS' | translate}}</h4>
       </div>
     </div>
     <div class="search-prepare-wrapper">
@@ -12,7 +10,7 @@
       <select
         id="items-per-page"
         ng-change="updateIpsPerPage(vm.itemsPerPage)"
-        style="margin-right: 10px;"
+        style="margin-right: 10px"
         class="form-control items-per-page"
         ng-model="vm.itemsPerPage"
         ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
@@ -42,21 +40,17 @@
     </div>
 
     <div id="list-view" class="list-view-table">
-      <table class="table table-striped" style="margin-bottom: 0px;">
+      <table class="table table-striped" style="margin-bottom: 0px">
         <thead>
           <tr>
             <th class="clickable" st-sort="medium_id" st-sort-default="true" class="column-label">ID</th>
             <th class="clickable" st-sort="storage_target" class="column-label">{{'STORAGETARGET' | translate}}</th>
-            <th class="clickable" st-sort="create_date" class="column-label">
-              {{'CREATED' | translate}}
-            </th>
+            <th class="clickable" st-sort="create_date" class="column-label">{{'CREATED' | translate}}</th>
             <th class="clickable" st-sort="status" class="column-label">{{'STATUS' | translate}}</th>
             <th class="clickable" st-sort="location" class="column-label">{{'LOCATION' | translate}}</th>
             <th class="clickable" st-sort="location_status" class="column-label">{{'LOCATIONSTATUS' | translate}}</th>
             <th class="clickable" st-sort="used_capacity" class="column-label">{{'USEDCAPACITY' | translate}}</th>
-            <th class="clickable" st-sort="max_capacity" class="column-label">
-              {{'MAXCAPACITY' | translate}}
-            </th>
+            <th class="clickable" st-sort="max_capacity" class="column-label">{{'MAXCAPACITY' | translate}}</th>
           </tr>
         </thead>
         <tbody>
@@ -66,15 +60,15 @@
             ng-attr-context-menu="menuOptions"
             class="table-item selectable"
           >
-            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+            <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.medium_id}}
             </td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.storage_target.name}}</td>
-            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+            <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
             </td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.status}}</td>
-            <td class="clickable" style="white-space: nowrap;" ng-click="storageMediumTableClick(row)">
+            <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.location}}
             </td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.location_status}}</td>
@@ -102,11 +96,11 @@
       ></div>
     </td>
   </div>
-  <div ng-if="select" style="margin-top: 5px;" class="select-sub-edit-eventlog-wrapper">
+  <div ng-if="select" style="margin-top: 5px" class="select-sub-edit-eventlog-wrapper">
     <div ng-if="select" id="select-view" class="select-view">
       <h4>{{'STORAGEMEDIUM' | translate}}</h4>
       <div class="table-container">
-        <table class="table table-striped" style="width: 50%;">
+        <table class="table table-striped" style="width: 50%">
           <thead>
             <tr>
               <th>{{'NAME' | translate}}</th>
@@ -160,7 +154,7 @@
           <label for items-per-page></label>
           <select
             id="items-per-page"
-            style="margin-right: 10px;"
+            style="margin-right: 10px"
             class="form-control items-per-page"
             ng-model="vm.objectsPerPage"
             ng-options="x.value as x.name for x in $root.itemsPerPageOptions"
@@ -189,7 +183,7 @@
           </div>
         </div>
         <div id="list-view" class="table-container table-x-overflow">
-          <table class="table table-striped" style="margin-bottom: 0px;">
+          <table class="table table-striped" style="margin-bottom: 0px">
             <thead>
               <tr>
                 <th st-sort="ip__object_identifier_value" class="clickable" class="column-label">IP</th>

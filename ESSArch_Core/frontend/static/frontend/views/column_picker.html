@@ -1,11 +1,7 @@
-<h4>
-  {{ "USER_SETTINGS.TABLE_COLUMNS" | translate }}
-</h4>
+<h4>{{ "USER_SETTINGS.TABLE_COLUMNS" | translate }}</h4>
 <div class="column-picker">
   <div class="flex-column">
-    <label>
-      {{ "USER_SETTINGS.AVAILABLE_COLUMNS" | translate }}
-    </label>
+    <label> {{ "USER_SETTINGS.AVAILABLE_COLUMNS" | translate }} </label>
     <select
       multiple="multiple"
       ng-model="vm.availableColumns.chosen"
@@ -23,9 +19,7 @@
     </button>
   </div>
   <div class="flex-column">
-    <label>
-      {{ "USER_SETTINGS.VISIBLE_COLUMNS" | translate }}
-    </label>
+    <label> {{ "USER_SETTINGS.VISIBLE_COLUMNS" | translate }} </label>
     <select
       multiple="multiple"
       ng-model="vm.activeColumns.chosen"

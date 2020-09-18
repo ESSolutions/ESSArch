@@ -2,7 +2,7 @@
   <form ng-submit="vm.addProfileFromFile(vm.profileFromFile)">
     <label class="btn btn-success" tabindex="0" ng-enter="vm.triggerProfileUpload()">
       {{ "IMPORT.IMPORT_PROFILE_FROM_FILE" | translate }}&nbsp;<i class="fas fa-upload"></i>
-      <input id="profile-upload" type="file" style="display: none;" fileread="vm.profileFromFile" />
+      <input id="profile-upload" type="file" style="display: none" fileread="vm.profileFromFile" />
     </label>
   </form>
   <br />
@@ -12,25 +12,17 @@
       <span class="d-inline d-md-none">{{ "IMPORT.IMPORT_SA_FROM_FILE_SHORT" | translate }}</span>
       &nbsp;
       <i class="fas fa-upload"></i>
-      <input id="sa-upload" type="file" style="display: none;" fileread="vm.saFromFile" />
+      <input id="sa-upload" type="file" style="display: none" fileread="vm.saFromFile" />
     </label>
   </form>
   <hr />
-  <h4>
-    {{ "IMPORT.IMPORT_SA_FROM_ARCHIVE" | translate }}
-  </h4>
+  <h4>{{ "IMPORT.IMPORT_SA_FROM_ARCHIVE" | translate }}</h4>
   <form name="vm.importSaForm" ng-submit="vm.getSaProfiles()">
-    <label>
-      {{ "IMPORT.IMPORT_URL" | translate }}
-    </label>
+    <label> {{ "IMPORT.IMPORT_URL" | translate }} </label>
     <input class="form-control" ng-model="vm.url" type="url" ng-pattern="/^https?:\/\//" required />
-    <label>
-      {{ "USERNAME" | translate }}
-    </label>
+    <label> {{ "USERNAME" | translate }} </label>
     <input class="form-control" ng-model="vm.user.username" required />
-    <label>
-      {{ "PASSWORD" | translate }}
-    </label>
+    <label> {{ "PASSWORD" | translate }} </label>
     <input class="form-control" ng-model="vm.user.password" type="password" required />
     <div class="alert alert-danger" ng-if="error">{{ error }}</div>
     <button ng-disabled="vm.importSaForm.$invalid" class="btn btn-primary" type="submit">
@@ -44,9 +36,10 @@
         focused="true"
         ng-model="vm.saProfile.profile"
         ng-options="x as x.name for x in vm.saProfile.profiles"
-        >{{ x }}</select
       >
-      <button class="btn btn-primary" type="submit" ng-disabled="!vm.saProfile.profile" style="margin-top: 5px;">
+        {{ x }}
+      </select>
+      <button class="btn btn-primary" type="submit" ng-disabled="!vm.saProfile.profile" style="margin-top: 5px">
         {{ "IMPORT.IMPORT_SA" | translate }}<span ng-if="vm.importingSa"
           >&nbsp;<i class="fas fa-spinner fa-spin"></i
         ></span>

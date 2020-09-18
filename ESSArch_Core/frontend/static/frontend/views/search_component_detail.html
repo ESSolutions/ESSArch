@@ -31,9 +31,7 @@
   </div>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record.description">
-    <p class="result-description">
-      {{vm.record.description}}
-    </p>
+    <p class="result-description">{{vm.record.description}}</p>
   </div>
   <div ng-if="vm.getArchiveCreator(vm.record) !== null">
     <label for="creator">{{'ACCESS.ARCHIVE_CREATOR' | translate}}:&nbsp;</label>
@@ -85,9 +83,7 @@
     >
   </div>
   <div ng-if="vm.record.related_tags.length > 0" class="py-base">
-    <label>
-      {{'ACCESS.RELATED' | translate}}
-    </label>
+    <label> {{'ACCESS.RELATED' | translate}} </label>
     <div ng-repeat="x in vm.record.related_tags">
       <a ng-click="vm.goToNodePage(x.tag_version.id, false)">{{x.tag_version.name}}</a>
     </div>
@@ -96,9 +92,7 @@
     ng-if="vm.record.agents.length > 0 && !(vm.record.agents.length === 1 && vm.record.agents[0].type.creator)"
     class="py-base"
   >
-    <label>
-      {{'ACCESS.RELATED_AGENTS' | translate}}:
-    </label>
+    <label> {{'ACCESS.RELATED_AGENTS' | translate}}: </label>
     <div ng-repeat="x in vm.record.agents" ng-if="!x.type.creator" class="d-flex">
       {{x.type.name}}:&nbsp;
       <a ui-sref="home.archivalDescriptions.archiveCreators({id: x.agent.id})">{{x.name}}</a>
@@ -107,9 +101,7 @@
   <div class="py-base">
     <hr class="small mx-0" />
     <div class="d-flex align-items-center justify-content-between">
-      <h4>
-        {{'ACCESS.REMARKS' | translate}}
-      </h4>
+      <h4>{{'ACCESS.REMARKS' | translate}}</h4>
       <div>
         <button
           class="btn btn-primary"
@@ -144,9 +136,7 @@
         ></button>
       </div>
       <div class="flex-row">
-        <b>
-          {{x.type.name}}&nbsp;
-        </b>
+        <b> {{x.type.name}}&nbsp; </b>
         <b
           ><span
             uib-tooltip="{{ 'CREATE_DATE' | translate }}"
@@ -166,12 +156,8 @@
       </div>
       <div class="pt-base" ng-bind-html="x.text"></div>
       <div ng-if="x.href && x.href !== ''">
-        <label>
-          {{'ACCESS.HREF' | translate}}:&nbsp;
-        </label>
-        <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
-          {{x.href}}
-        </a>
+        <label> {{'ACCESS.HREF' | translate}}:&nbsp; </label>
+        <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto"> {{x.href}} </a>
       </div>
     </div>
     <div ng-if="vm.record.remarks.length <= 0" class="empty-table-indicator text-center">
@@ -207,9 +193,7 @@
   </div>
   <div class="pb-base">
     <div class="d-flex align-items-center justify-content-between">
-      <h4>
-        {{'ACCESS.IDENTIFIERS' | translate}}
-      </h4>
+      <h4>{{'ACCESS.IDENTIFIERS' | translate}}</h4>
       <div>
         <button
           class="btn btn-primary"
@@ -225,15 +209,9 @@
       <table class="table table-striped">
         <thead>
           <tr>
-            <th>
-              {{'TYPE' | translate}}
-            </th>
-            <th>
-              ID
-            </th>
-            <th permission permission-only="'tags.change_tagversion'" class="shrink">
-              {{'EDIT' | translate}}
-            </th>
+            <th>{{'TYPE' | translate}}</th>
+            <th>ID</th>
+            <th permission permission-only="'tags.change_tagversion'" class="shrink">{{'EDIT' | translate}}</th>
             <th permission permission-only="'tags.change_tagversion'" class="white-space-nowrap shrink">
               {{'REMOVE' | translate}}
             </th>
@@ -241,12 +219,8 @@
         </thead>
         <tbody>
           <tr ng-repeat="x in vm.record.identifiers">
-            <td>
-              {{x.type.name}}
-            </td>
-            <td>
-              {{x.identifier}}
-            </td>
+            <td>{{x.type.name}}</td>
+            <td>{{x.identifier}}</td>
             <td permission permission-only="'tags.change_tagversion'" class="text-center shrink">
               <button
                 class="btn btn-default btn-sm fas fa-edit"
@@ -283,9 +257,7 @@
   <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
     <div class="title-action-button-row">
       <div class="title">
-        <h4>
-          {{'TRANSFERS' | translate}}
-        </h4>
+        <h4>{{'TRANSFERS' | translate}}</h4>
       </div>
     </div>
     <div class="list-view-table table-x-overflow">
@@ -302,9 +274,7 @@
             ng-class="{'selected': vm.selectedTransfer.id === x.id}"
             ui-sref="home.archivalDescriptions.deliveries.transfers({delivery: x.delivery, transfer: x.id})"
           >
-            <td>
-              {{x.name}}
-            </td>
+            <td>{{x.name}}</td>
           </tr>
           <tr ng-if="vm.transfers.length === 0" class="empty-table-indicator">
             <td colspan="1">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -339,7 +309,7 @@
     <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
   </button>
   <p
-    style="color: red; white-space: nowrap;"
+    style="color: red; white-space: nowrap"
     ng-if="vm.record.type == 'document' && !(vm.record._source.terms_and_condition == null || checkPermission('tags.view_pul'))"
   >
     Ej behörig att visa

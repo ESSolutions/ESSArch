@@ -6,8 +6,9 @@
       ng-change="vm.chooseSa(vm.saProfile)"
       ng-model="vm.saProfile"
       ng-options="x as x.name + (x.published?' (Published)':'') for x in vm.saProfiles"
-      >x</select
     >
+      x
+    </select>
     <button class="btn btn-default" ng-click="vm.newSa()"><i class="fas fa-plus"></i></button>
     <button
       class="btn btn-default"

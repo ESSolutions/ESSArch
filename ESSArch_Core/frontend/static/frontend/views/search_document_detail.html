@@ -1,14 +1,10 @@
 <div class="document-result">
   <h3 title="Namn">
-    <strong title="Namn" ng-if="vm.record.name">
-      {{vm.record.name}}
-    </strong>
+    <strong title="Namn" ng-if="vm.record.name"> {{vm.record.name}} </strong>
   </h3>
   <h4 ng-if="vm.record.type">{{vm.record.type.name}}</h4>
   <div ng-if="vm.record.description">
-    <p ng-if="vm.record.description" class="result-description m-0">
-      {{vm.record.description}}
-    </p>
+    <p ng-if="vm.record.description" class="result-description m-0">{{vm.record.description}}</p>
   </div>
   <div
     title="Dokumentnummer"
@@ -51,7 +47,7 @@
   <br />
 
   <p
-    style="color: red; white-space: nowrap;"
+    style="color: red; white-space: nowrap"
     ng-if="vm.record.type == 'document' && !(vm.record.custom_fields.terms_and_condition == null || checkPermission('tags.view_pul'))"
   >
     Ej behörig att visa

@@ -1,7 +1,5 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">
-    {{'ARCHIVE_MAINTENANCE.RUN_CONVERSION_JOB' | translate}}
-  </h3>
+  <h3 class="modal-title" id="modal-title">{{'ARCHIVE_MAINTENANCE.RUN_CONVERSION_JOB' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
   <div class="table-x-overflow">
@@ -26,9 +24,7 @@
     ng-if="angular.equals($ctrl.data.job.specification, {}) || $ctrl.data.job.specification == null"
   >
     {{'ARCHIVE_MAINTENANCE.ONE_SPECIFICATION_REQUIRED' | translate}}<br />
-    <a ng-click="$ctrl.editJob()">
-      {{'ARCHIVE_MAINTENANCE.EDIT_CONVERSION_JOB' | translate}}
-    </a>
+    <a ng-click="$ctrl.editJob()"> {{'ARCHIVE_MAINTENANCE.EDIT_CONVERSION_JOB' | translate}} </a>
   </div>
 </div>
 <div class="modal-footer">

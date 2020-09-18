@@ -1,7 +1,5 @@
 <div class="classification-select">
-  <label class="">
-    {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}
-  </label>
+  <label class=""> {{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}} </label>
   <div class="flex-row">
     <select
       class="form-control version-select"
@@ -23,7 +21,7 @@
   <button
     ng-disabled="vm.locationButtonDisabled()"
     class="btn btn-sm btn-primary mb-2px"
-    style="margin-right: 2px;"
+    style="margin-right: 2px"
     ng-if="vm.recordTreeInstance"
     ng-click="vm.addNodeLocationModal(vm.getChecked())"
     permission
@@ -35,7 +33,7 @@
     ng-disabled="vm.deliveryButtonDisabled()"
     class="btn btn-sm btn-primary mb-2px"
     ng-if="vm.recordTreeInstance"
-    style="margin-right: 2px;"
+    style="margin-right: 2px"
     ng-click="vm.addNodeDeliveryModal(vm.getChecked())"
     permission
     permission-only="'tags.change_transfer'"

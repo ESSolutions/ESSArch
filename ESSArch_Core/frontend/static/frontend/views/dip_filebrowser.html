@@ -12,7 +12,7 @@
       <select
         ng-if="checkPermission('ip.see_all_in_workspaces') && auth.current_organization"
         class="form-control organization-member-select"
-        style="margin-right: 10px;"
+        style="margin-right: 10px"
         ng-model="vm.organizationMember.current"
         ng-options="x as x.username for x in vm.organizationMember.options track by x.id"
         ng-change="resetWorkareaGridArrays(); workareaPipe(workarea_tableState);"
@@ -104,19 +104,13 @@
             <div ng-class="card.type" ng-if="card.type == 'dir'">
               <li class="fas fa-folder"></li>
             </div>
-            <div class="one-row-ellipsis">
-              {{card.name}}
-            </div>
+            <div class="one-row-ellipsis">{{card.name}}</div>
           </td>
           <td>
-            <div class="one-row-ellipsis">
-              {{card.size | filesize}}
-            </div>
+            <div class="one-row-ellipsis">{{card.size | filesize}}</div>
           </td>
           <td>
-            <div class="one-row-ellipsis">
-              {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}
-            </div>
+            <div class="one-row-ellipsis">{{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}</div>
           </td>
         </tr>
         <tr ng-if="!deckGridData.length && !workArrayLoading" class="empty-table-indicator">
@@ -252,19 +246,13 @@
             <div ng-class="card.type" ng-if="card.type == 'dir'">
               <li class="fas fa-folder"></li>
             </div>
-            <div class="one-row-ellipsis">
-              {{card.name}}
-            </div>
+            <div class="one-row-ellipsis">{{card.name}}</div>
           </td>
           <td>
-            <div class="one-row-ellipsis">
-              {{card.size | filesize}}
-            </div>
+            <div class="one-row-ellipsis">{{card.size | filesize}}</div>
           </td>
           <td>
-            <div class="one-row-ellipsis">
-              {{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}
-            </div>
+            <div class="one-row-ellipsis">{{card.modified | date: 'yyyy-MM-dd HH:mm:ss'}}</div>
           </td>
         </tr>
         <tr ng-if="!chosenFiles.length && !gridArrayLoading" class="empty-table-indicator">

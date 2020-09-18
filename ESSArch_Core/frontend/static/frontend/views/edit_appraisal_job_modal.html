@@ -7,9 +7,7 @@
       <formly-form model="$ctrl.model" fields="$ctrl.fields" options="{}"></formly-form>
       <div ng-include src="'static/frontend/views/package_file_pattern_selector.html'"></div>
       <hr />
-      <div ng-if="$ctrl.initModalLoad" class="loading-column text-center">
-        {{'LOADING' | translate}}
-      </div>
+      <div ng-if="$ctrl.initModalLoad" class="loading-column text-center">{{'LOADING' | translate}}</div>
       <div
         ng-if="!$ctrl.initModalLoad"
         class="table-container"
@@ -18,9 +16,7 @@
       >
         <div class="title-action-button-row">
           <div class="title">
-            <h4>
-              {{'ARCHIVE_MAINTENANCE.SELECT_INFORMATION_PACKAGES' | translate}}
-            </h4>
+            <h4>{{'ARCHIVE_MAINTENANCE.SELECT_INFORMATION_PACKAGES' | translate}}</h4>
           </div>
         </div>
         <div class="search-prepare-wrapper">
@@ -57,7 +53,7 @@
             type="button"
             ng-click="$ctrl.getIps()"
             class="btn btn-primary btn-small"
-            style="margin-left: 5px;"
+            style="margin-left: 5px"
             uib-tooltip="{{'SEARCH' | translate}}"
             tooltip-placement="auto top"
             tooltip-append-to-body="true"
@@ -82,7 +78,7 @@
           ng-keydown="$ctrl.ipListKeydownListener($event)"
           class="list-view-table"
         >
-          <table class="table table-striped" style="margin-bottom: 0px;">
+          <table class="table table-striped" style="margin-bottom: 0px">
             <a ng-if="$ctrl.ips.length" ng-click="$ctrl.deselectAll()">
               {{'CLEAR_ALL' | translate}} ({{ip !== null ? 1 : ips.length}} {{'SELECTED' | translate}})
             </a>
@@ -140,9 +136,7 @@
       <hr class="small" />
       <div class="title-action-button-row">
         <div class="title">
-          <h4>
-            {{'ARCHIVE_MAINTENANCE.SELECTED_NODES' | translate}}
-          </h4>
+          <h4>{{'ARCHIVE_MAINTENANCE.SELECTED_NODES' | translate}}</h4>
         </div>
       </div>
       <div class="search-prepare-wrapper">
@@ -174,7 +168,7 @@
           type="button"
           ng-click="$ctrl.tagsPipe($ctrl.tagsTableState)"
           class="btn btn-primary btn-small"
-          style="margin-left: 5px;"
+          style="margin-left: 5px"
           uib-tooltip="{{'SEARCH' | translate}}"
           tooltip-placement="auto top"
           tooltip-append-to-body="true"
@@ -197,15 +191,9 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th st-sort="name" class="cursor-pointer">
-                {{'NAME' | translate}}
-              </th>
-              <th st-sort="reference_code" class="cursor-pointer">
-                {{'ACCESS.REFERENCE_CODE' | translate}}
-              </th>
-              <th>
-                {{'ACCESS.ARCHIVE' | translate}}
-              </th>
+              <th st-sort="name" class="cursor-pointer">{{'NAME' | translate}}</th>
+              <th st-sort="reference_code" class="cursor-pointer">{{'ACCESS.REFERENCE_CODE' | translate}}</th>
+              <th>{{'ACCESS.ARCHIVE' | translate}}</th>
               <th permission permission-only="'tags.change_location'" class="white-space-nowrap shrink">
                 {{'REMOVE' | translate}}
               </th>
@@ -217,15 +205,9 @@
               ng-class="{'selected': $ctrl.selectedTags.includes(x.id)}"
               ng-click="$ctrl.tagsTableClick(x, $event)"
             >
-              <td>
-                {{x.name}}
-              </td>
-              <td>
-                {{x.reference_code}}
-              </td>
-              <td>
-                {{x.archive}}
-              </td>
+              <td>{{x.name}}</td>
+              <td>{{x.reference_code}}</td>
+              <td>{{x.archive}}</td>
               <td permission permission-only="'tags.change_location'" class="text-center shrink">
                 <button
                   type="button"
