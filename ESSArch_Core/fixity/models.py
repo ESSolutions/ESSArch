@@ -40,6 +40,7 @@ class ExternalTool(models.Model):
     environment = models.CharField(_('environment'), max_length=20,
                                    default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
+    delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
     form = JSONField(_('form'), null=True, blank=True)
 
     def __str__(self):
@@ -99,7 +100,7 @@ class ActionTool(ExternalTool):
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
                     raise CollectionError(message)
-                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL:
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL:
                     raise TransformationError(message)
                 elif self.type == ExternalTool.Type.VALIDATION_TOOL:
                     raise ValidationError(message)
@@ -125,9 +126,9 @@ class ActionTool(ExternalTool):
                     p.collect(**cmd)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, tuple):
                     p.collect(*cmd)
-                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL and isinstance(cmd, dict):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, dict):
                     p.transform(**cmd)
-                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, tuple):
                     p.transform(*cmd)
                 elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, dict):
                     p.validate(**cmd)
@@ -145,7 +146,7 @@ class ActionTool(ExternalTool):
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
                     raise CollectionError(message)
-                elif self.type == ExternalTool.Type.TRANFORMATION_TOOL:
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL:
                     raise TransformationError(message)
                 elif self.type == ExternalTool.Type.VALIDATION_TOOL:
                     raise ValidationError(message)
