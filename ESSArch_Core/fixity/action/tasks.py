@@ -15,20 +15,23 @@ User = get_user_model()
 
 
 @app.task(bind=True, event_type=50760)
-def Action(self, tool, pattern, rootdir, options, purpose=None, delete_original=True):
-    def _convert(path, rootdir, tool, options, delete_original=True):
+def Action(self, tool, pattern, rootdir, options, purpose=None):
+    def _convert(path, rootdir, tool, options):
         tool.run(path, rootdir, options)
 
         relpath = PurePath(path).relative_to(rootdir).as_posix()
         EventIP.objects.create(
             eventType_id=50750,
             eventOutcome=EventIP.SUCCESS,
-            eventOutcomeDetailNote='Converted {}'.format(relpath),
+            eventOutcomeDetailNote='{type} {relpath}'.format(
+                type=tool.type.capitalize(),
+                relpath=relpath
+            ),
             linkingObjectIdentifierValue=str(self.get_information_package().pk),
             linkingAgentIdentifierValue=User.objects.get(pk=self.responsible)
         )
 
-        if delete_original:
+        if tool.delete_original:
             os.remove(path)
 
     ip = self.get_information_package()
@@ -55,6 +58,8 @@ def Action(self, tool, pattern, rootdir, options, purpose=None, delete_original=
     else:
         filepath = os.path.join(rootdir, pattern)
         tool.run(filepath, rootdir, options)
+        if tool.delete_original:
+            os.remove(filepath)
 
     Notification.objects.create(
         message='{type} job done for "{ip}"'.format(
