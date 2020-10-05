@@ -1501,10 +1501,10 @@ angular-clipboard@^1.7.0:
   resolved "https://registry.yarnpkg.com/angular-clipboard/-/angular-clipboard-1.7.0.tgz#9621a6ce66eab1ea9549aa8bfb3b71352307554f"
   integrity sha512-4/eg3zZw1MJpIsMc+mWzeVNyWBu8YWpXPTdmbgyPRp/6f0xB6I3XR2iC6Mb4mg/5E9q6exCd0sX2yiIsw+ZLJw==
 
-"angular-cookies@>=1.2.26 <1.9", angular-cookies@~1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.8.0.tgz#c981c843652e716c1cf993451c2509f00a4b0169"
-  integrity sha512-gWO3RKF0WMmXhseiN3Aw9aEmQ3mB53wSdAxpeKKHbiDwU7vmK+MBuebyOX9qbwZYubn5nM8LByZVmg7T6jOV1w==
+"angular-cookies@>=1.2.26 <1.9", angular-cookies@~1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/angular-cookies/-/angular-cookies-1.8.1.tgz#d5f34fe69acfcf8604dd06d3e3e08a18fbae5e77"
+  integrity sha512-952lNWW2REfGRwErYB4kLiWCvCE+euaPtIq8iYdZso0T74D6KCz82zSQjO5xnxfIKWMeKp2X2yIMksyH++GZcw==
 
 angular-date-time-input@^1.2.1:
   version "1.2.1"
