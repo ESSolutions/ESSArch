@@ -84,7 +84,7 @@
     "stylelint": "^13.7.1",
     "stylelint-config-recommended-scss": "^4.0.0",
     "stylelint-scss": "^3.11.1",
-    "ts-loader": "^8.0.3",
+    "ts-loader": "^8.0.4",
     "typescript": "^4.0.2",
     "ua-parser-js": "^0.7.22",
     "ui-select": "~0.19.6",
