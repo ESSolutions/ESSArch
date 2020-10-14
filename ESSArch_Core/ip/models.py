@@ -80,7 +80,6 @@ from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import parse_mets
-from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
 from ESSArch_Core.profiles.models import (
@@ -2081,7 +2080,7 @@ class Workarea(models.Model):
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='workareas')
     read_only = models.BooleanField(default=True)
     type = models.IntegerField(choices=TYPE_CHOICES, default=0)
-    successfully_validated = JSONField(default=None, null=True)
+    successfully_validated = models.JSONField(default=None, null=True)
 
     @property
     def path(self):

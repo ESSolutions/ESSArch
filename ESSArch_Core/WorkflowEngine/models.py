@@ -50,8 +50,6 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.fields import JSONField
-
 logger = logging.getLogger('essarch.WorkflowEngine')
 
 
@@ -157,7 +155,7 @@ class ProcessStep(MPTTModel, Process):
     )
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
-    context = JSONField(default={}, null=True)
+    context = models.JSONField(default=dict, null=True)
     descendants = MPTTDescendants()
     subtree = MPTTSubtree()
 

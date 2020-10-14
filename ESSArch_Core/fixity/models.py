@@ -9,7 +9,6 @@ from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
     ConversionError,
@@ -41,7 +40,7 @@ class ExternalTool(models.Model):
                                    default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
-    form = JSONField(_('form'), null=True, blank=True)
+    form = models.JSONField(_('form'), null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -50,20 +49,24 @@ class ExternalTool(models.Model):
         abstract = True
 
 
-class ActionTool(ExternalTool):
-    form = JSONField(_('form'), null=True, blank=True, default='''[
-        {
+def ActionTool_form_default():
+    return [
+        dict({
             "key": "path",
             "type": "input",
-            "templateOptions": {
+            "templateOptions": dict({
                 "label": "PATH_i18n",
-                "required": true
-            },
-            "expressionProperties":{
-                "templateOptions.label":"\\"PATH\\" | translate"
-            }
-        }
-]''')
+                "required": "true"
+            }),
+            "expressionProperties": dict({
+                "templateOptions.label": "\"PATH\" | translate"
+            })
+        })
+    ]
+
+
+class ActionTool(ExternalTool):
+    form = models.JSONField(_('form'), null=True, blank=True, default=ActionTool_form_default)
 
     class Meta:
         verbose_name = _('action tool')
@@ -182,10 +185,10 @@ class Validation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     filename = models.CharField(max_length=255)
     validator = models.CharField(max_length=255)
-    specification = JSONField(null=True)
+    specification = models.JSONField(null=True)
     time_started = models.DateTimeField(null=True)
     time_done = models.DateTimeField(null=True)
-    passed = models.NullBooleanField(null=True)
+    passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
     message = models.TextField(max_length=255, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
