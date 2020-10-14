@@ -1,6 +1,6 @@
 from django.contrib import admin
-from django_json_widget.widgets import JSONEditorWidget
 from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
 
 from ESSArch_Core.fixity.models import ActionTool
 
