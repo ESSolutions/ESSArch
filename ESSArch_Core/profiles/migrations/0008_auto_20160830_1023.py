@@ -28,8 +28,6 @@ import uuid
 
 from django.db import migrations, models
 
-from ESSArch_Core.fields import JSONField
-
 
 class Migration(migrations.Migration):
 
@@ -42,7 +40,8 @@ class Migration(migrations.Migration):
             name='Profile',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('profile_type', models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('classification', 'Classification'), ('import', 'Import'), ('submit_description', 'Submit Description'), ('sip', 'SIP'), ('aip', 'AIP'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_description', 'Preservation Description')], max_length=255)),
+                ('profile_type', models.CharField(choices=[('transfer_project', 'Transfer Project'), ('content_type', 'Content Type'), ('data_selection', 'Data Selection'), ('classification', 'Classification'), ('import', 'Import'), (
+                    'submit_description', 'Submit Description'), ('sip', 'SIP'), ('aip', 'AIP'), ('dip', 'DIP'), ('workflow', 'Workflow'), ('preservation_description', 'Preservation Description')], max_length=255)),
                 ('name', models.CharField(max_length=255)),
                 ('type', models.CharField(blank=True, max_length=255)),
                 ('status', models.CharField(blank=True, max_length=255)),
@@ -57,9 +56,9 @@ class Migration(migrations.Migration):
                 ('submission_schedule', models.CharField(blank=True, max_length=255)),
                 ('submission_data_inventory', models.CharField(blank=True, max_length=255)),
                 ('structure', models.TextField()),
-                ('template', JSONField(null=True)),
-                ('specification', JSONField(null=True)),
-                ('specification_data', JSONField(null=True)),
+                ('template', models.JSONField(null=True)),
+                ('specification', models.JSONField(null=True)),
+                ('specification_data', models.JSONField(null=True)),
             ],
             options={
                 'ordering': ['name'],

@@ -6,8 +6,6 @@ import django.db.models.deletion
 import groups_manager.models
 import mptt.fields
 
-from ESSArch_Core.fields import JSONField
-
 
 def forward(apps, schema_editor):
     OldMember = apps.get_model("groups_manager", "Member")
@@ -85,15 +83,18 @@ class Migration(migrations.Migration):
                 ('description', models.TextField(blank=True, default='', verbose_name='description')),
                 ('comment', models.TextField(blank=True, default='', verbose_name='comment')),
                 ('full_name', models.CharField(blank=True, default='', max_length=255, verbose_name='full name')),
-                ('properties', JSONField(blank=True, default={}, verbose_name='properties')),
+                ('properties', models.JSONField(blank=True, default={}, verbose_name='properties')),
                 ('django_auth_sync', models.BooleanField(blank=True, default=True)),
-                ('parent', mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='sub_essauth_group_set', to='essauth.Group', verbose_name='parent')),
+                ('parent', mptt.fields.TreeForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE,
+                                                      related_name='sub_essauth_group_set', to='essauth.Group', verbose_name='parent')),
                 ('lft', models.PositiveIntegerField(editable=False)),
                 ('rght', models.PositiveIntegerField(editable=False)),
                 ('tree_id', models.PositiveIntegerField(db_index=True, editable=False)),
                 ('level', models.PositiveIntegerField(editable=False)),
-                ('django_group', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='essauth_group', to='auth.Group')),
-                ('group_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='essauth_groups', to='groups_manager.GroupType', verbose_name='group type')),
+                ('django_group', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,
+                                                      related_name='essauth_group', to='auth.Group')),
+                ('group_type', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                                 related_name='essauth_groups', to='groups_manager.GroupType', verbose_name='group type')),
             ],
             options={
                 'ordering': ('name',),
@@ -113,7 +114,8 @@ class Migration(migrations.Migration):
                 ('username', models.CharField(blank=True, default='', max_length=255, verbose_name='username')),
                 ('email', models.EmailField(blank=True, default='', max_length=255, verbose_name='email')),
                 ('django_auth_sync', models.BooleanField(blank=True, default=True, verbose_name='django auth sync')),
-                ('django_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='essauth_member', to=settings.AUTH_USER_MODEL)),
+                ('django_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE,
+                                                     related_name='essauth_member', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'ordering': ('last_name', 'first_name'),
@@ -127,9 +129,12 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('expiration_date', models.DateTimeField(default=None, null=True, verbose_name='expiration date')),
-                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_membership', to='essauth.Group', verbose_name='group')),
-                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='group_membership', to='essauth.Member', verbose_name='member')),
-                ('roles', models.ManyToManyField(related_name='group_memberships', to='groups_manager.GroupMemberRole', verbose_name='roles')),
+                ('group', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                            related_name='group_membership', to='essauth.Group', verbose_name='group')),
+                ('member', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                             related_name='group_membership', to='essauth.Member', verbose_name='member')),
+                ('roles', models.ManyToManyField(related_name='group_memberships',
+                                                 to='groups_manager.GroupMemberRole', verbose_name='roles')),
             ],
             options={
                 'ordering': ('group', 'member'),
@@ -140,7 +145,8 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='group',
             name='group_members',
-            field=models.ManyToManyField(related_name='essauth_groups', through='essauth.GroupMember', to='essauth.Member'),
+            field=models.ManyToManyField(related_name='essauth_groups',
+                                         through='essauth.GroupMember', to='essauth.Member'),
         ),
         migrations.AlterUniqueTogether(
             name='groupmember',

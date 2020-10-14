@@ -21,7 +21,6 @@ from weasyprint import HTML
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.configuration.models import EventType, Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
-from ESSArch_Core.fields import JSONField
 from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -170,7 +169,7 @@ class AppraisalTemplate(MaintenanceTemplate):
     type = models.CharField(max_length=100, choices=TYPE_CHOICES, default=ARCHIVAL_OBJECT)
 
     # empty for all files in IP
-    package_file_pattern = JSONField(null=True, default=None)
+    package_file_pattern = models.JSONField(null=True, default=None)
 
 
 class AppraisalJob(MaintenanceJob):
@@ -183,7 +182,7 @@ class AppraisalJob(MaintenanceJob):
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='appraisal_jobs',
     )
-    package_file_pattern = JSONField(null=True, default=None)
+    package_file_pattern = models.JSONField(null=True, default=None)
 
     MAINTENANCE_TYPE = 'appraisal'
 
@@ -431,7 +430,7 @@ class AppraisalJobEntry(MaintenanceJobEntry):
 
 
 class ConversionTemplate(MaintenanceTemplate):
-    specification = JSONField(null=True, default=None)
+    specification = models.JSONField(null=True, default=None)
 
 
 def preserve_new_generation(new_ip):
@@ -559,7 +558,7 @@ class ConversionJob(MaintenanceJob):
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', null=True, on_delete=models.SET_NULL, related_name='conversion_jobs',
     )
-    specification = JSONField(null=True, default=None)
+    specification = models.JSONField(null=True, default=None)
 
     MAINTENANCE_TYPE = 'conversion'
 

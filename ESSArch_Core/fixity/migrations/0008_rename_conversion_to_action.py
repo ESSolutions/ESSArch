@@ -2,8 +2,6 @@
 
 from django.db import migrations, models
 
-import ESSArch_Core.fields
-
 
 class Migration(migrations.Migration):
 
