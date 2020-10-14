@@ -41,11 +41,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='templatepackage',
-            name='elements',
-            field=models.JSONField(null=True),
-        ),
-        migrations.AlterField(
-            model_name='templatepackage',
             name='structure',
             field=models.JSONField(null=True),
         ),
