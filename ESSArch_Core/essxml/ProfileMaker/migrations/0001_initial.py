@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='templatePackage',
             fields=[
-                ('structure', models.TextField()),
+                ('structure', models.JSONField(null=True)),
                 ('elements', models.TextField()),
                 ('name', models.CharField(max_length=255, primary_key=True, serialize=False)),
             ],

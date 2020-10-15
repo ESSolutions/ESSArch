@@ -39,9 +39,4 @@ class Migration(migrations.Migration):
             name='tempates',
             field=models.JSONField(null=True),
         ),
-        migrations.AlterField(
-            model_name='templatepackage',
-            name='structure',
-            field=models.JSONField(null=True),
-        ),
     ]
