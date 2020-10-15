@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models, transaction
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
@@ -971,7 +972,7 @@ class TagVersion(models.Model):
     capacity = models.IntegerField(_('capacity'), null=True)  # FloatField or DecimalField instead?
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
-    custom_fields = models.JSONField(default=dict)
+    custom_fields = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
     security_level = models.IntegerField(_('security level'), null=True)
 
     def to_search_doc(self):
