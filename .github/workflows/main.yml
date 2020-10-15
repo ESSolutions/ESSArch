@@ -209,7 +209,7 @@ jobs:
           pip uninstall -y drf_extensions
           pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
           pip uninstall -y django-mssql-backend
-          pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/django31-cursor.zip
+          pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/django31-jsonfield.zip
           pip check
           essarch settings generate -qp local_essarch_settings.py
           mkdir /ESSArch/log
@@ -382,7 +382,7 @@ jobs:
           pip uninstall -y drf_extensions
           pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
           pip uninstall -y django-mssql-backend
-          pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/django31-cursor.zip
+          pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/django31-jsonfield.zip
           pip check
           essarch settings generate --overwrite -qp local_essarch_settings.py
           sudo mkdir -p /ESSArch/log
