@@ -10,7 +10,7 @@
     title="Dokumentnummer"
     ng-if="vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].custom_fields.arkivobjekt_id"
   >
-    <strong>Dokumentnummer:</strong> {{
+    <strong>Dokumentnummer :</strong> {{
     vm.record.breadcrumbs[vm.record.breadcrumbs.length-2].custom_fields.arkivobjekt_id }}
     <br />
   </div>
@@ -74,7 +74,13 @@
     data="vm.record.custom_fields.size"
     type="filesize"
   ></result-field>
-  <button class="btn btn-success btn-small margin-top-5" ng-click="vm.viewFile(vm.record)">
+
+  <button ng-if="!vm.record.rendering"  class="btn btn-success btn-small margin-top-5" ng-click="vm.viewFile(vm.record)">
     <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
   </button>
+<span ng-if="vm.record.rendering">
+  <button  class="btn btn-success btn-small margin-top-5" ng-click="vm.viewXmlFile(vm.record)">
+    <i class="far fa-eye"></i> {{'VIEW' | translate}}
+  </button>
+    </span>
 </div>

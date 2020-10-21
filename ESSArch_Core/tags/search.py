@@ -8,6 +8,7 @@ import math
 import os
 import tempfile
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -48,7 +49,11 @@ from ESSArch_Core.tags.serializers import (
     TagVersionSerializerWithVersions,
     TagVersionWriteSerializer,
 )
-from ESSArch_Core.util import generate_file_response, remove_prefix
+from ESSArch_Core.util import (
+    assign_stylesheet,
+    generate_file_response,
+    remove_prefix,
+)
 
 logger = logging.getLogger('essarch.search')
 EXPORT_FORMATS = ('csv', 'pdf')
@@ -593,6 +598,21 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         f.seek(0)
         name = 'archive_{}.pdf'.format(pk)
+        return generate_file_response(f, content_type=ctype, name=name)
+
+    @action(detail=True, url_path='xml2pdf')
+    def xml2pdf(self, request, pk=None):
+        obj = TagVersion.objects.get(pk=pk)
+        xslt = os.path.join(settings.MEDIA_ROOT, str(obj.rendering.file))
+        ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+        xml = obj.tag.information_package.open_file(ip_file_path)
+
+        transformed_doc = assign_stylesheet(xml, xslt)
+
+        ctype = 'application/pdf'
+        f = tempfile.TemporaryFile()
+        HTML(string=transformed_doc).write_pdf(f)
+        name = '{}_{}.pdf'.format(str(obj.rendering.file), pk)
         return generate_file_response(f, content_type=ctype, name=name)
 
     @action(detail=True, url_path='label')

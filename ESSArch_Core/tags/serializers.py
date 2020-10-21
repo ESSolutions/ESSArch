@@ -47,6 +47,7 @@ from ESSArch_Core.tags.models import (
     NodeNote,
     NodeNoteType,
     NodeRelationType,
+    Rendering,
     RuleConventionType,
     Search,
     Structure,
@@ -619,6 +620,12 @@ class MetricTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name',)
 
 
+class RenderingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rendering
+        fields = ('id', 'name', 'type', 'file', 'custom_fields')
+
+
 class LocationLevelTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = LocationLevelType
@@ -686,6 +693,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     metric = MetricTypeSerializer()
     location = LocationSerializer()
     custom_fields = serializers.JSONField()
+    rendering = RenderingSerializer()
     information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
@@ -747,7 +755,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
-            'appraisal_job', 'is_mixed_type',
+            'appraisal_job', 'is_mixed_type', 'rendering',
         )
 
 
