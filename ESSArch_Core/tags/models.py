@@ -4,6 +4,7 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models, transaction
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
@@ -17,7 +18,6 @@ from relativity.mptt import MPTTSubtree
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
-from ESSArch_Core.fields import JSONField
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
 
@@ -202,7 +202,7 @@ class Structure(models.Model):
     revise_date = models.DateTimeField(auto_now=True)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
-    specification = JSONField(default={})
+    specification = models.JSONField(default=dict)
     rule_convention_type = models.ForeignKey('tags.RuleConventionType', on_delete=models.PROTECT, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
@@ -897,7 +897,7 @@ class TagVersionType(models.Model):
 
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
     archive_type = models.BooleanField(_('archive type'), default=False)
-    custom_fields_template = JSONField(default=[], blank=True)
+    custom_fields_template = models.JSONField(default=list, blank=True)
     information_package_type = models.BooleanField(_('information package type'), default=False)
     date_render_format = models.CharField(
         _('Date render format'), choices=DATE_RENDER_CHOICES, max_length=255, blank=True,)
@@ -972,7 +972,7 @@ class TagVersion(models.Model):
     capacity = models.IntegerField(_('capacity'), null=True)  # FloatField or DecimalField instead?
     location = models.ForeignKey(Location, on_delete=models.PROTECT, null=True, verbose_name=_('location'))
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='tag_versions')
-    custom_fields = JSONField(default={})
+    custom_fields = models.JSONField(default=dict, encoder=DjangoJSONEncoder)
     security_level = models.IntegerField(_('security level'), null=True)
 
     def to_search_doc(self):
@@ -1268,7 +1268,7 @@ class TagStructure(MPTTModel):
 
 
 class Search(models.Model):
-    query = JSONField(null=False)
+    query = models.JSONField(null=False)
     name = models.CharField(max_length=255, blank=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='searches')
 

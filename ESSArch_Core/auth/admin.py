@@ -24,7 +24,6 @@ from groups_manager.models import (
     Member as GroupManagerMember,
 )
 from nested_inline.admin import NestedModelAdmin, NestedTabularInline
-from rest_framework.authtoken.models import Token
 
 from ESSArch_Core.admin import NestedStackedInlineWithoutHeader
 from ESSArch_Core.auth.models import (
@@ -304,7 +303,6 @@ class ProxyPermissionAdmin(admin.ModelAdmin):
 
 admin.site.unregister(DjangoGroup)
 admin.site.unregister(EmailAddress)
-admin.site.unregister(Token)
 admin.site.unregister(User)
 admin.site.register(ProxyPermission, ProxyPermissionAdmin)
 admin.site.register(ProxyGroup, GroupAdmin)

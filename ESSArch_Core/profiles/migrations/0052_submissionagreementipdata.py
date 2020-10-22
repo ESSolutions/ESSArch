@@ -6,8 +6,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-from ESSArch_Core.fields import JSONField
-
 
 class Migration(migrations.Migration):
 
@@ -22,11 +20,12 @@ class Migration(migrations.Migration):
             name='SubmissionAgreementIPData',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('data', JSONField(default={})),
+                ('data', models.JSONField(default={})),
                 ('version', models.IntegerField(default=0)),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('information_package', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ip.InformationPackage')),
-                ('submission_agreement', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='profiles.SubmissionAgreement')),
+                ('submission_agreement', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE, to='profiles.SubmissionAgreement')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={

@@ -5,8 +5,6 @@ import uuid
 from django.db import migrations, models
 import django.db.models.deletion
 
-from ESSArch_Core.fields import JSONField
-
 
 class Migration(migrations.Migration):
 
@@ -22,9 +20,10 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('name', models.CharField(max_length=255)),
-                ('type', models.CharField(choices=[('archival_object', 'Archival Object'), ('metadata', 'Metadata')], default='archival_object', max_length=100)),
+                ('type', models.CharField(choices=[('archival_object', 'Archival Object'),
+                                                   ('metadata', 'Metadata')], default='archival_object', max_length=100)),
                 ('frequency', models.CharField(blank=True, default='', max_length=255)),
-                ('specification', JSONField(default=None, null=True)),
+                ('specification', models.JSONField(default=None, null=True)),
                 ('information_packages', models.ManyToManyField(related_name='appraisal_rules', to='ip.InformationPackage')),
 
             ],
@@ -35,8 +34,10 @@ class Migration(migrations.Migration):
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
                 ('start_date', models.DateTimeField(null=True)),
                 ('end_date', models.DateTimeField(null=True)),
-                ('rule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='jobs', to='maintenance.AppraisalRule')),
-                ('status', models.CharField(choices=[('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('SUCCESS', 'SUCCESS'), ('STARTED', 'STARTED'), ('FAILURE', 'FAILURE'), ('PENDING', 'PENDING')], default='PENDING', max_length=50)),
+                ('rule', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                           related_name='jobs', to='maintenance.AppraisalRule')),
+                ('status', models.CharField(choices=[('RECEIVED', 'RECEIVED'), ('RETRY', 'RETRY'), ('REVOKED', 'REVOKED'), ('SUCCESS', 'SUCCESS'), (
+                    'STARTED', 'STARTED'), ('FAILURE', 'FAILURE'), ('PENDING', 'PENDING')], default='PENDING', max_length=50)),
             ],
         ),
         migrations.CreateModel(
@@ -48,8 +49,10 @@ class Migration(migrations.Migration):
                 ('document', models.CharField(blank=True, max_length=255)),
                 ('component', models.CharField(blank=True, max_length=255)),
                 ('component_field', models.CharField(blank=True, max_length=255)),
-                ('ip', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='appraisal_job_entries', to='ip.InformationPackage')),
-                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='entries', to='maintenance.AppraisalJob')),
+                ('ip', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                         related_name='appraisal_job_entries', to='ip.InformationPackage')),
+                ('job', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                          related_name='entries', to='maintenance.AppraisalJob')),
             ],
         ),
         migrations.AlterModelOptions(

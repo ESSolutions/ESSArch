@@ -6,8 +6,6 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-from ESSArch_Core.fields import JSONField
-
 
 class Migration(migrations.Migration):
 
@@ -21,10 +19,11 @@ class Migration(migrations.Migration):
             name='ProfileIPData',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('data', JSONField(default={})),
+                ('data', models.JSONField(default={})),
                 ('version', models.IntegerField(default=0)),
                 ('created', models.DateTimeField(auto_now_add=True)),
-                ('relation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='data_versions', to='profiles.ProfileIP')),
+                ('relation', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                               related_name='data_versions', to='profiles.ProfileIP')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
@@ -35,6 +34,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='profileip',
             name='data',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='profiles.ProfileIPData'),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                    to='profiles.ProfileIPData'),
         ),
     ]
