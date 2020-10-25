@@ -24,6 +24,8 @@
 
 from django import forms
 from django.contrib import admin
+from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
 
 from .models import Profile, SubmissionAgreement
 from .utils import lowercase_profile_types
@@ -68,6 +70,9 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
             'fields': tuple(['profile_{}'.format(pt) for pt in lowercase_profile_types])
         }),
     )
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
 
 admin.site.register(SubmissionAgreement, SubmissionAgreementAdmin)
@@ -105,6 +110,9 @@ class ProfileAdmin(admin.ModelAdmin):
             )
         }),
     )
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
 
 admin.site.register(Profile, ProfileAdmin)

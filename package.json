@@ -101,7 +101,8 @@
     "**/minimist": "^1.2.5",
     "terser-webpack-plugin": "^4.2.1",
     "dot-prop": "^5.3.0",
-    "node-forge": "^0.10.0"
+    "node-forge": "^0.10.0",
+    "object-path": "^0.11.5"
   },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",

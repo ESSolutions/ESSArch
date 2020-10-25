@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
 
 from ESSArch_Core.tags.models import (
     DeliveryType,
@@ -34,6 +36,9 @@ class StructureUnitTypeAdmin(admin.ModelAdmin):
 
 class TagVersionTypeAdmin(admin.ModelAdmin):
     list_display = ('name', 'archive_type', 'information_package_type')
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
 
 class RenderingAdmin(admin.ModelAdmin):

@@ -406,7 +406,7 @@ class AgentName(models.Model):
     type = models.ForeignKey('agents.AgentNameType', on_delete=models.PROTECT, null=False)
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
-    certainty = models.NullBooleanField(_('certainty'))
+    certainty = models.BooleanField(_('certainty'), null=True)
 
 
 class AgentNameType(models.Model):

@@ -25,26 +25,24 @@
 
 from django.db import models
 
-from ESSArch_Core.fields import JSONField
-
 
 class extensionPackage(models.Model):
     id = models.AutoField(primary_key=True)
-    allElements = JSONField(null=True)
-    existingElements = JSONField(null=True)
-    allAttributes = JSONField(null=True)
+    allElements = models.JSONField(null=True)
+    existingElements = models.JSONField(null=True)
+    allAttributes = models.JSONField(null=True)
 
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
-    nsmap = JSONField(default={})
+    nsmap = models.JSONField(default=dict)
 
 
 class templatePackage(models.Model):
-    existingElements = JSONField(null=True)
-    # treeData = JSONField(null=True)
-    allElements = JSONField(null=True)
-    structure = JSONField(default=[])
+    existingElements = models.JSONField(null=True)
+    # treeData = models.JSONField(null=True)
+    allElements = models.JSONField(null=True)
+    structure = models.JSONField(default=list)
     # isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length=255, primary_key=True)
     root_element = models.CharField(max_length=55, default='')
@@ -53,7 +51,7 @@ class templatePackage(models.Model):
     prefix = models.CharField(max_length=20)
     schemaURL = models.URLField()
     targetNamespace = models.CharField(max_length=255)
-    nsmap = JSONField(default={})
+    nsmap = models.JSONField(default=dict)
     # generated = models.BooleanField(default=False)
     # creator         = models.CharField( max_length = 255 )
 #     archivist_organization  = models.CharField( max_length = 255 )
