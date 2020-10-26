@@ -960,7 +960,7 @@ class Rendering(models.Model):
     name = models.CharField(max_length=255)
     type = models.CharField(_('Type'), choices=TYPE_CHOICES, max_length=255, blank=True,)
     file = models.FileField(upload_to='stylesheets/', validators=[FileExtensionValidator(allowed_extensions=['xslt'])])
-    custom_fields = JSONField(default={})
+    custom_fields = models.JSONField(default=dict)
 
 
 class TagVersion(models.Model):

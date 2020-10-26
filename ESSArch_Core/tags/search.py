@@ -182,7 +182,7 @@ class ComponentSearch(FacetedSearch):
             ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
-            s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
+            s = s.filter('term', personal_identification_number=self.personal_identification_number)
 
         if self.start_date_after not in EMPTY_VALUES:
             s = s.filter('range', start_date={'gte': self.start_date_after - datetime.timedelta(days=1)})

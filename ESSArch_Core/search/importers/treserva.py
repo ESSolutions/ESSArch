@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import base64
-# import errno
 import logging
 import os
-# from os import listdir
-# from os.path import isfile, join
 import uuid
 from ESSArch_Core.search.ingest import index_document
 from django.db import transaction
-# from django.db.models import Q
 from lxml import etree
-from elasticsearch_dsl.connections import get_connection as get_es_connection
-from elasticsearch import helpers as es_helpers
-from ESSArch_Core.essxml.util import parse_mets, get_altrecordid
+from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.search.importers.base import BaseImporter
-from ESSArch_Core.tags.documents import Component, File
+from ESSArch_Core.tags.documents import Component
 from ESSArch_Core.tags.models import (
     StructureUnit,
     StructureUnitType,
@@ -34,34 +28,11 @@ from ESSArch_Core.util import (
 logger = logging.getLogger('essarch.search.importers.EardErmsImporter')
 
 
-def save_to_elasticsearch(components):
-    logger.info("Saving to Elasticsearch...")
-    conn = get_es_connection()
-    count = 0
-
-    for ok, result in es_helpers.streaming_bulk(conn, components):
-        action, result = result.popitem()
-        doc_id = result['_id']
-        doc = '/%s/%s' % (result['_index'], doc_id)
-
-        if not ok:
-            logger.error('Failed to %s document %s: %r' % (action, doc, result))
-        else:
-            logger.debug('Saved document %s: %r' % (doc, result))
-            count += 1
-
-        yield ok, count
-
-    logger.info("Documents saved to Elasticsearch")
-
 def get_encoded_content_from_file(filepath):
     with open(filepath, 'rb') as f:
         content = f.read()
         encoded_content = base64.b64encode(content).decode("ascii")
     return encoded_content
-
-
-from lxml import etree
 
 
 def get_treserva_path(dirpath):
@@ -114,8 +85,6 @@ class TreservaImporter(BaseImporter):
 
         return self.indexed_files
 
-
-
     def get_content(self, rootdir, path, ip):
 
         data = {}
@@ -137,15 +106,24 @@ class TreservaImporter(BaseImporter):
         sip_mets = parse_mets(get_sip_mets(ip))
         archivist_note = sip_mets['agents']['ARCHIVIST_ORGANIZATION']['notes'][0]
 
+        # Parse Treserva XML and map to custom_fields
         tp = get_treserva_path(dirpath)
-        pt = parse_treserva(os.path.join(dirpath,tp))
+        pt = parse_treserva(os.path.join(dirpath, tp))
 
-
+        # Get TV and TS for archive
         archive = TagVersion.objects.get(reference_code=archivist_note)
         ts = TagStructure.objects.get(tag=archive.tag)
+
+        # Create StructureUnit - serie
         structure_unit_type = StructureUnitType.objects.get(name='serie')
-        serie,_ = StructureUnit.objects.get_or_create(structure=ts.structure, name='TRESERVA',
-                                                    reference_code='F3C', type=structure_unit_type)
+        serie, _ = StructureUnit.objects.get_or_create(
+            structure=ts.structure,
+            name='TRESERVA',
+            reference_code='F3C',
+            type=structure_unit_type
+        )
+
+        # Create TV and TS for akt / arende
         akt = Tag.objects.create(information_package=ip, task=self.task)
         akt_version_type, _ = TagVersionType.objects.get_or_create(name='Treserva', archive_type=False,
                                                                    information_package_type=False)
@@ -156,8 +134,9 @@ class TreservaImporter(BaseImporter):
             name=ip.label,
             type=akt_version_type,
             reference_code=str(uuid.uuid4()),
-            custom_fields = pt
+            custom_fields=pt
         )
+        logger.debug("Created TV - akt_version: %s" % repr(akt_version))
 
         akt_repr = TagStructure.objects.create(
             tag=akt,
@@ -165,16 +144,18 @@ class TreservaImporter(BaseImporter):
             structure=ts.structure,
             structure_unit=serie
         )
+        logger.debug("Created TS - akt_repr: %s with parent: %s" % (repr(akt_repr), repr(akt_repr.parent)))
 
-
-
-
+        akt_version_doc = Component.from_obj(akt_version, archive)
+        akt_version_doc.save()
+        logger.debug("Saved TV - akt_version_doc to index Component: %s" % repr(akt_version_doc))
 
         dir_reference_code = 1
         for root, dirs, files in os.walk(dirpath):
             basename = os.path.basename(root)
             if basename != 'Content':
 
+                # Create TV and TS for directorys
                 tag = Tag.objects.create(information_package=ip, task=self.task)
                 tag_version_type, _ = TagVersionType.objects.get_or_create(name='directory', archive_type=False)
                 tag_version = TagVersion.objects.create(
@@ -185,16 +166,21 @@ class TreservaImporter(BaseImporter):
                     type=tag_version_type,
                     reference_code=dir_reference_code
                 )
+                logger.debug("Created TV - tag_version: %s" % repr(tag_version))
 
                 dir_tag_repr = TagStructure.objects.create(
                     tag=tag_version.tag,
                     parent=akt_repr,
                     structure=ts.structure
                 )
+                logger.debug("Created TS - dir_tag_repr: %s with parent: %s" %
+                             (repr(dir_tag_repr), repr(dir_tag_repr.parent)))
+
+                tag_version_doc = Component.from_obj(tag_version, archive)
+                tag_version_doc.save()
+                logger.debug("Saved TV - tag_version_doc to index Component: %s" % repr(tag_version_doc))
 
                 dir_reference_code += 1
-
-
             else:
                 dir_tag_repr = akt_repr
 
@@ -216,10 +202,10 @@ class TreservaImporter(BaseImporter):
                 self.indexed_files.append(filepath)
                 if filename.endswith('.xml'):
                     xslt = Rendering.objects.get(name='treserva')
-
                 else:
                     xslt = None
 
+                # Create TV and TS for files
                 tag = Tag.objects.create(information_package=ip, task=self.task)
                 tag_version_type, _ = TagVersionType.objects.get_or_create(name='document', archive_type=False)
                 tag_version = TagVersion.objects.create(
@@ -231,24 +217,20 @@ class TreservaImporter(BaseImporter):
                     reference_code=file_reference_code,
                     rendering=xslt,
                     custom_fields=data,
-
-
                 )
-                encoded_content = get_encoded_content_from_file(filepath)
-                d = File.from_obj(tag_version, archive)
-                d.data = encoded_content
-                d_dict = d.to_dict(include_meta=True)
-                d_dict['pipeline'] = 'ingest_attachment'
+                logger.debug("Created TV - tag_version: %s" % repr(tag_version))
 
-                TagStructure.objects.create(
+                file_tag_repr = TagStructure.objects.create(
                     tag=tag_version.tag,
                     parent=dir_tag_repr,
                     structure=ts.structure,
                 )
+                logger.debug("Created TS - file_tag_repr: %s with parent: %s" %
+                             (repr(file_tag_repr), repr(file_tag_repr.parent)))
 
                 doc, tag_version = index_document(tag_version, filepath)
-                tag_version.save()
+                logger.debug("Saved TV - tag_version: %s and index filepath: %s to index File" %
+                             (repr(akt_version_doc), filepath))
+
                 file_reference_code += 1
-        save_to_elasticsearch(akt_version)
-        akt_version.save()
         return 0

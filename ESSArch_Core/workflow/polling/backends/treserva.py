@@ -22,6 +22,7 @@ import uuid
 
 logger = logging.getLogger('essarch.workflow.polling.XWorkflowPoller')
 
+
 def hash_file(fname, dig):
     if dig == "sha256":
         algorithm = hashlib.sha256()
@@ -95,3 +96,4 @@ class TreservaWorkflowPoller(BaseWorkflowPoller):
             if os.path.isfile(subpath):
                 continue
 
+        return []
