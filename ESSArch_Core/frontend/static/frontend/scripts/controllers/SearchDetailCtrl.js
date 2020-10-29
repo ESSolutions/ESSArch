@@ -964,6 +964,7 @@ export default class SearchDetailCtrl {
       } else {
         params.path = file._source.filename;
       }
+      params.path = params.path.replace(/\&/g, "%26");
       const showFile = $sce.trustAsResourceUrl(
         appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
       );
