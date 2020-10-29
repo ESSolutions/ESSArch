@@ -4,7 +4,7 @@ import os
 import uuid
 import msoffcrypto
 
-from elasticsearch.exceptions import ElasticsearchException
+from elasticsearch.exceptions import ElasticsearchException, RequestError
 
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import (
@@ -63,6 +63,9 @@ def index_document(tag_version, filepath):
     try:
         doc.save(pipeline='ingest_attachment')
     except ElasticsearchException:
+        logger.exception('Failed to index {}'.format(filepath))
+        raise
+    except RequestError:
         logger.exception('Failed to index {}'.format(filepath))
         raise
     return doc, tag_version
