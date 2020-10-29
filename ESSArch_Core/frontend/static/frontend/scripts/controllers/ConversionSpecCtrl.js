@@ -10,7 +10,7 @@ export default class ConversionSpecCtrl {
 
     vm.getTools = (search) => {
       return $http
-        .get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}})
+        .get(appConfig.djangoUrl + 'action-tools/', {params: {search, pager: 'none'}})
         .then((response) => {
           response.data.map((x) => {
             return {name: x.name, fullItem: x};
