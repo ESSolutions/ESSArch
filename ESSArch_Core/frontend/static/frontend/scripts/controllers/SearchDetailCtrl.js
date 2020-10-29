@@ -1100,6 +1100,7 @@ export default class SearchDetailCtrl {
       modalInstance.result.then(
         function (data, $ctrl) {
           Notifications.add($translate.instant('EXPORTED_SUCCESSFULLY'), 'success');
+          console.log('vm.structure', vm.structure);
           vm.loadRecordAndTree(vm.structure);
         },
         function () {

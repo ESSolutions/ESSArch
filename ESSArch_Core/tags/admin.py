@@ -43,6 +43,9 @@ class TagVersionTypeAdmin(admin.ModelAdmin):
 
 class RenderingAdmin(admin.ModelAdmin):
     list_display = ('name', 'type')
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
 
 admin.site.register(DeliveryType)
