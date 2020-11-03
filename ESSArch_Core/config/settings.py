@@ -31,11 +31,6 @@ ESSARCH_WORKFLOW_POLLERS = {
         'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
         'path': '/ESSArch/data/preingest/reception',
         'sa': 'SA National Archive and Government SE',
-    },
-    'treserva': {
-        'class': 'ESSArch_Core.workflow.polling.backends.treserva.TreservaWorkflowPoller',
-        'path': '/ESSArch/data/ingest/uip',
-        'sa': 'SA National Archive and Government SE',
     }
 }
 
