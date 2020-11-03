@@ -2,7 +2,6 @@ import base64
 import logging
 import os
 import uuid
-import msoffcrypto
 
 from elasticsearch.exceptions import ElasticsearchException
 
@@ -22,24 +21,12 @@ from ESSArch_Core.util import (
 logger = logging.getLogger('essarch.search.ingest')
 
 
-def _validate_ole_file(filepath):
-    with open(filepath, "rb") as f:
-        officefile = msoffcrypto.OfficeFile(f)
-        return officefile.is_encrypted()
-
-
 def index_document(tag_version, filepath):
     with open(filepath, 'rb') as f:
         content = f.read()
 
     ip = tag_version.tag.information_package
     encoded_content = base64.b64encode(content).decode("ascii")
-    try:
-        if _validate_ole_file(filepath):
-            logger.debug("ENCRYPTED FILE DETECTED, skip to index", filepath)
-            encoded_content = ''
-    except:
-        pass
     extension = os.path.splitext(tag_version.name)[1][1:]
     dirname = os.path.dirname(filepath)
     href = normalize_path(os.path.relpath(dirname, ip.object_path))
@@ -57,7 +44,6 @@ def index_document(tag_version, filepath):
     }
 
     doc = File.from_obj(tag_version)
-
     doc.data = encoded_content
 
     try:
