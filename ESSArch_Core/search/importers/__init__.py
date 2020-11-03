@@ -7,7 +7,6 @@ AVAILABLE_IMPORTERS = {
     'single_records': 'ESSArch_Core.search.importers.single_records.SingleRecordsImporter',
     'treserva': 'ESSArch_Core.search.importers.treserva.TreservaImporter',
     'AF1_fall_A': 'ESSArch_Core.search.importers.AF1_fall_A.AF1_fall_AImporter',
-    'AF1_fall_B': 'ESSArch_Core.search.importers.AF1_fall_B.AF1_fall_BImporter',
 }
 
 extra_importers = getattr(settings, 'ESSARCH_IMPORTERS', {})
