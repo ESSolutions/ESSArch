@@ -105,12 +105,12 @@ class AF1_fall_AImporter(BaseImporter):
 
                 try:
                     structure_unit = StructureUnit.objects.get_or_create(structure=ts.structure, type=unit_type[0],
-                                                                         reference_code=su_name_ref[0],
-                                                                         name=su_name_ref[1], parent=parent)
+                                                        reference_code=su_name_ref[0],
+                                                        name=su_name_ref[1], parent=parent)
                 except:
                     structure_unit = StructureUnit.objects.get_or_create(structure=ts.structure, type=unit_type[0],
-                                                                         reference_code=su_name_ref[0] + '_dup',
-                                                                         name=su_name_ref[1], parent=parent)
+                                                                            reference_code=su_name_ref[0]+'_dup',
+                                                                            name=su_name_ref[1], parent=parent)
             else:
                 pass
 
@@ -156,12 +156,8 @@ class AF1_fall_AImporter(BaseImporter):
                     structure_unit=structure_unit[0]
                 )
 
-                try:
-                    doc, tag_version = index_document(tag_version, filepath)
-                    tag_version.save()
-                except:
-                    logger.exception('Failed to index, problem to read or file corrupt {}'.format(filepath))
-                    raise
+                doc, tag_version = index_document(tag_version, filepath)
+                tag_version.save()
                 file_reference_code += 1
 
         with transaction.atomic():
