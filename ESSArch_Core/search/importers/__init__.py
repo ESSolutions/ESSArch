@@ -4,9 +4,6 @@ from django.conf import settings
 
 AVAILABLE_IMPORTERS = {
     'eard_erms': 'ESSArch_Core.search.importers.earderms.EardErmsImporter',
-    'single_records': 'ESSArch_Core.search.importers.single_records.SingleRecordsImporter',
-    'treserva': 'ESSArch_Core.search.importers.treserva.TreservaImporter',
-    'AF1_fall_A': 'ESSArch_Core.search.importers.AF1_fall_A.AF1_fall_AImporter',
 }
 
 extra_importers = getattr(settings, 'ESSARCH_IMPORTERS', {})
