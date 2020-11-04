@@ -2,6 +2,7 @@ import logging
 import uuid
 
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import FileExtensionValidator
@@ -18,6 +19,7 @@ from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -1185,6 +1187,20 @@ class TagVersion(models.Model):
 
     def is_leaf_node(self, user, structure=None):
         return self.tag.is_leaf_node(user, structure)
+
+    @transaction.atomic
+    def change_organization(self, organization):
+        if organization.group_type.codename != 'organization':
+            raise ValueError('{} is not an organization'.format(organization))
+        ctype = ContentType.objects.get_for_model(self)
+        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
+                                                     defaults={'group': organization})
+
+    def get_organization(self):
+        ctype = ContentType.objects.get_for_model(self)
+        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+
+        return gg_obj
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)

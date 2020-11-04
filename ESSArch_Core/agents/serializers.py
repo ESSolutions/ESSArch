@@ -266,9 +266,7 @@ class AgentSerializer(serializers.ModelSerializer):
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
+            serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
