@@ -7,8 +7,8 @@ import logging
 import math
 import os
 import tempfile
-import requests
 
+import requests
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -23,13 +23,13 @@ from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
 from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
 from elasticsearch_dsl.connections import get_connection
+from proxy.views import proxy_view
 from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
-from proxy.views import proxy_view
 from weasyprint import HTML
 
 from ESSArch_Core.agents.models import AgentTagLink

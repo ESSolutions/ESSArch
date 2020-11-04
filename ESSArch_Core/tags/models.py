@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator
 from django.core.serializers.json import DjangoJSONEncoder
+from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
@@ -18,8 +18,8 @@ from mptt.querysets import TreeQuerySet
 from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent
-from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
