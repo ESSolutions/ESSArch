@@ -830,7 +830,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                      file_item,
                      'application/png')
         }
-        response = requests.post(url, params=params, data=data, files=files)
+        requests.post(url, params=params, data=data, files=files)
 
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):
