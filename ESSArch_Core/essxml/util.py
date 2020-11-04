@@ -167,6 +167,8 @@ def parse_mets(xmlfile):
     if root.xpath('local-name()').lower() != 'mets':
         raise ValueError('%s is not a valid mets file' % xmlfile)
 
+    data['altrecordids'] = get_altrecordids(root)
+
     # save root attributes without namespace prefix
     localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
     for k, v in root.attrib.items():

@@ -136,23 +136,28 @@ class Agent(models.Model):
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
         ctype = ContentType.objects.get_for_model(self)
-        agent_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        gg_agent, created = GroupGenericObjects.objects.get_or_create(object_id=self.pk, content_type=ctype,
+                                                                      defaults={'group': organization})
 
         if change_related_archives:
-            for AgentTagLink_obj in AgentTagLink.objects.filter(agent=self):
-                # print('update tag: %s with org: %s' % (repr(AgentTagLink_obj.tag), organization))
-                ctype = ContentType.objects.get_for_model(AgentTagLink_obj.tag)
-                GroupGenericObjects.objects.update_or_create(object_id=AgentTagLink_obj.tag.pk, content_type=ctype,
-                                                             defaults={'group': organization})
+            for tv_obj in gg_agent.get_related_tv_objs():
+                # print('update tv: %s with org: %s' % (repr(tv_obj), organization))
+                tv_obj.change_organization(organization)
 
         if change_related_ips:
-            for ip_obj in agent_obj.get_related_ip_objs():
+            for ip_obj in gg_agent.get_related_ip_objs():
                 # print('update ip: %s with org: %s' % (repr(ip_obj), organization))
                 ip_obj.change_organization(organization)
 
         # print('update agent: %s with org: %s' % (repr(self), organization))
-        agent_obj.group = organization
-        agent_obj.save()
+        gg_agent.group = organization
+        gg_agent.save()
+
+    def get_organization(self):
+        ctype = ContentType.objects.get_for_model(self)
+        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+
+        return gg_obj
 
     def __str__(self):
         name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()

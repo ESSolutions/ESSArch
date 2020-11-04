@@ -50,7 +50,8 @@ leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'),
 
 
 def parse_content_django(content, info=None, unicode_error=False, syntax_error=False):
-    for k, v in info.items():
+    info_copy = {**info}
+    for k, v in info_copy.items():
         if (isinstance(v, (str, bytes))):
             info[k] = make_unicode(v)
 

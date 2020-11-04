@@ -520,6 +520,11 @@ class InformationPackage(models.Model):
             group=organization
         )
 
+    def get_organization(self):
+        ctype = ContentType.objects.get_for_model(self)
+        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        return gg_obj
+
     @staticmethod
     def get_dirs(structure, data, root=""):
         for content in structure:

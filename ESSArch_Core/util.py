@@ -249,6 +249,15 @@ def move_schema_locations_to_root(tree=None, filename=None):
     return tree
 
 
+def assign_stylesheet(xml, xslt):
+    xml_doc = etree.parse(xml).getroot()
+    xslt_doc = etree.parse(xslt)
+    transform = etree.XSLT(xslt_doc)
+    new_doc = transform(xml_doc)
+
+    return etree.tostring(new_doc)
+
+
 def creation_date(path_to_file):
     """
     Try to get the date that a file was created, falling back to when it was

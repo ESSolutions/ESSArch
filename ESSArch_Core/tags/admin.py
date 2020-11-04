@@ -10,6 +10,7 @@ from ESSArch_Core.tags.models import (
     NodeIdentifierType,
     NodeNoteType,
     NodeRelationType,
+    Rendering,
     StructureRelationType,
     StructureType,
     StructureUnitType,
@@ -40,6 +41,13 @@ class TagVersionTypeAdmin(admin.ModelAdmin):
     }
 
 
+class RenderingAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type')
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+
+
 admin.site.register(DeliveryType)
 admin.site.register(LocationFunctionType)
 admin.site.register(LocationLevelType)
@@ -51,3 +59,4 @@ admin.site.register(StructureType)
 admin.site.register(StructureRelationType, StructureRelationTypeAdmin)
 admin.site.register(StructureUnitType, StructureUnitTypeAdmin)
 admin.site.register(TagVersionType, TagVersionTypeAdmin)
+admin.site.register(Rendering, RenderingAdmin)

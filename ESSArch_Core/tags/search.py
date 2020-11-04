@@ -8,6 +8,8 @@ import math
 import os
 import tempfile
 
+import requests
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
@@ -21,6 +23,7 @@ from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
 from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
 from elasticsearch_dsl.connections import get_connection
+from proxy.views import proxy_view
 from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -48,7 +51,11 @@ from ESSArch_Core.tags.serializers import (
     TagVersionSerializerWithVersions,
     TagVersionWriteSerializer,
 )
-from ESSArch_Core.util import generate_file_response, remove_prefix
+from ESSArch_Core.util import (
+    assign_stylesheet,
+    generate_file_response,
+    remove_prefix,
+)
 
 logger = logging.getLogger('essarch.search')
 EXPORT_FORMATS = ('csv', 'pdf')
@@ -177,7 +184,7 @@ class ComponentSearch(FacetedSearch):
             ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
-            s = s.filter('term', personal_identification_numbers=self.personal_identification_number)
+            s = s.filter('term', personal_identification_number=self.personal_identification_number)
 
         if self.start_date_after not in EMPTY_VALUES:
             s = s.filter('range', start_date={'gte': self.start_date_after - datetime.timedelta(days=1)})
@@ -595,6 +602,21 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         name = 'archive_{}.pdf'.format(pk)
         return generate_file_response(f, content_type=ctype, name=name)
 
+    @action(detail=True, url_path='xml2pdf')
+    def xml2pdf(self, request, pk=None):
+        obj = TagVersion.objects.get(pk=pk)
+        xslt = os.path.join(settings.MEDIA_ROOT, str(obj.rendering.file))
+        ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+        xml = obj.tag.information_package.open_file(ip_file_path)
+
+        transformed_doc = assign_stylesheet(xml, xslt)
+
+        ctype = 'application/pdf'
+        f = tempfile.TemporaryFile()
+        HTML(string=transformed_doc).write_pdf(f)
+        name = '{}_{}.pdf'.format(str(obj.rendering.file), pk)
+        return generate_file_response(f, content_type=ctype, name=name)
+
     @action(detail=True, url_path='label')
     def label_report(self, request, pk=None):
         archive = TagVersion.objects.get(pk=pk)
@@ -714,6 +736,101 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Missing email address')
 
         return self.send_mass_email(ids, user)
+
+    @action(detail=False, methods=['get'], url_path='omeka_api/(?P<path>.*)')
+    def omeka_api(self, request, path):
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            extra_requests_args = {'params': {'key': omeka_key}}
+        else:
+            extra_requests_args = {}
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        remoteurl = '%s/api/%s' % (omeka_server, path)
+        return proxy_view(request, remoteurl, extra_requests_args)
+
+    @action(detail=True, methods=['post'], url_path='export-to-omeka')
+    def export_to_omeka(self, request, pk=None):
+        tag = self.get_tag_object()
+        metadata = tag.from_search()['_source']
+
+        # Create item in collection
+        collection_id = request.data.get('collection_id', None)
+        item_id = self.create_item(collection_id, metadata)
+        print('item_id: %s' % item_id)
+
+        # Upload file to item
+        if tag.elastic_index == 'document':
+            ip = tag.tag.information_package
+            path = os.path.join(metadata['href'], metadata['filename'])
+            file_item = ip.open_file(path, 'rb').read()
+            file_order = 1
+            self.upload_file(file_order, item_id, file_item, metadata)
+        return Response('Exported to Omeka (collection id: {})'.format(request.data.get('collection_id', '-')))
+
+    def create_item(self, collection_id, metadata):
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        url = '%s/api/items' % omeka_server
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            params = {'key': omeka_key}
+        else:
+            params = {}
+        metadata_title = '%s - %s' % (metadata['structure_units'][0]['name'],
+                                      metadata['structure_units'][0]['reference_code'])
+
+        data = {
+            "item_type": {"id": 1},
+            "collection": {"id": collection_id},
+            "public": True,
+            "featured": False,
+            "tags": [
+                {"name": metadata['archive']['name']},
+                {"name": metadata['archive']['reference_code']}
+            ],
+            "element_texts": [
+                {
+                    "html": False,
+                    "text": metadata_title,
+                    "element": {"id": 50}  # ID of the element responsible for title (50 in Dublin Core)
+                }
+            ]
+        }
+
+        response = requests.post(url, params=params, data=json.dumps(data))
+        item_id = json.loads(response.content)['id']
+
+        return item_id
+
+    def upload_file(self, order, item_id, file_item, metadata):
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        url = '%s/api/files' % omeka_server
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            params = {'key': omeka_key}
+        else:
+            params = {}
+
+        # Building data structure for the request
+        body_data = {
+            "order": order,  # order of the file, integer
+            "item": {"id": item_id},  # ID of the item to which the file should be attached
+            "element_texts": [
+                    {
+                        "html": False,
+                        "text": metadata['name'],  # Title of the document
+                        "element": {"id": 50}  # ID of the element responsible for title (50 in Dublin Core)
+                    }
+            ]
+        }
+        data = {'data': json.dumps(body_data)}  # packing body data to json and assigning name 'data' to it
+
+        # Building info about my file, assigning name 'file'
+        files = {
+            'file': (metadata['filename'],
+                     file_item,
+                     'application/png')
+        }
+        requests.post(url, params=params, data=data, files=files)
 
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):

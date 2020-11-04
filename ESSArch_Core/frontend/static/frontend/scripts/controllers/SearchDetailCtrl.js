@@ -964,8 +964,18 @@ export default class SearchDetailCtrl {
       } else {
         params.path = file._source.filename;
       }
+      params.path = params.path.replace(/\&/g, '%26');
       const showFile = $sce.trustAsResourceUrl(
         appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
+      );
+      $window.open(showFile, '_blank');
+    };
+
+    vm.viewXmlFile = function (node) {
+      const params = {};
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node.id + '/xml2pdf/'
+        //appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
       );
       $window.open(showFile, '_blank');
     };
@@ -1090,6 +1100,7 @@ export default class SearchDetailCtrl {
       modalInstance.result.then(
         function (data, $ctrl) {
           Notifications.add($translate.instant('EXPORTED_SUCCESSFULLY'), 'success');
+          console.log('vm.structure', vm.structure);
           vm.loadRecordAndTree(vm.structure);
         },
         function () {

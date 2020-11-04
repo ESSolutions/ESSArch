@@ -9,15 +9,13 @@ export default class ConversionSpecCtrl {
     vm.toolDataForm = [];
 
     vm.getTools = (search) => {
-      return $http
-        .get(appConfig.djangoUrl + 'conversion-tools/', {params: {search, pager: 'none'}})
-        .then((response) => {
-          response.data.map((x) => {
-            return {name: x.name, fullItem: x};
-          });
-          vm.tools = response.data;
-          return response.data;
+      return $http.get(appConfig.djangoUrl + 'action-tools/', {params: {search, pager: 'none'}}).then((response) => {
+        response.data.map((x) => {
+          return {name: x.name, fullItem: x};
         });
+        vm.tools = response.data;
+        return response.data;
+      });
     };
 
     vm.baseSpecFields = [

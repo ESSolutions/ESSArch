@@ -1,7 +1,6 @@
 import uuid
 
 import elasticsearch
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
@@ -47,6 +46,7 @@ from ESSArch_Core.tags.models import (
     NodeNote,
     NodeNoteType,
     NodeRelationType,
+    Rendering,
     RuleConventionType,
     Search,
     Structure,
@@ -550,10 +550,19 @@ class MediumTypeSerializer(serializers.ModelSerializer):
 
 
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        try:
+            serializer = GroupSerializer(instance=obj.get_organization().group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
+
     class Meta:
         model = TagVersion
         fields = ('id', 'elastic_index', 'name', 'type', 'create_date', 'start_date',
-                  'end_date',)
+                  'end_date', 'organization')
 
 
 class TagVersionWriteSerializer(serializers.ModelSerializer):
@@ -583,9 +592,7 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
+            serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
@@ -617,6 +624,12 @@ class MetricTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = MetricType
         fields = ('id', 'name',)
+
+
+class RenderingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rendering
+        fields = ('id', 'name', 'type', 'file', 'custom_fields')
 
 
 class LocationLevelTypeSerializer(serializers.ModelSerializer):
@@ -686,6 +699,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     metric = MetricTypeSerializer()
     location = LocationSerializer()
     custom_fields = serializers.JSONField()
+    rendering = RenderingSerializer()
     information_package = TagVersionInformationPackageSerializer(
         source='tag.information_package', read_only=True,
     )
@@ -747,7 +761,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
-            'appraisal_job', 'is_mixed_type',
+            'appraisal_job', 'is_mixed_type', 'rendering',
         )
 
 
@@ -815,9 +829,7 @@ class TagVersionSerializer(TagVersionNestedSerializer):
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
+            serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
