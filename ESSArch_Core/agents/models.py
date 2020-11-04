@@ -135,7 +135,9 @@ class Agent(models.Model):
     def change_organization(self, organization, change_related_ips=False, change_related_archives=False):
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
-        gg_agent = self.get_organization()
+        ctype = ContentType.objects.get_for_model(self)
+        gg_agent, created = GroupGenericObjects.objects.get_or_create(object_id=self.pk, content_type=ctype,
+                                                                      defaults={'group': organization})
 
         if change_related_archives:
             for tv_obj in gg_agent.get_related_tv_objs():
