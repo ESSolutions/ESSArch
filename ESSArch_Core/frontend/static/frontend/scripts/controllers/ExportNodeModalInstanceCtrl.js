@@ -23,13 +23,13 @@ export default class ExportNodeModalInstanceCtrl {
       }).then(function (response) {
         $ctrl.options.collections = [];
         response.data.forEach(function (col) {
-          console.log('COLLECTION ID', col.id );
+          console.log('COLLECTION ID', col.id);
           col.element_texts.forEach(function (element_text) {
-            console.log('element_text', element_text );
+            console.log('element_text', element_text);
             if (element_text.element.name === 'Title') {
-              console.log('title', element_text.text, col.id ); 
+              console.log('title', element_text.text, col.id);
               $ctrl.options.collections.push({full_name: element_text.text, id: col.id});
-            }  
+            }
           });
         });
         return $ctrl.options.collections;
@@ -81,7 +81,7 @@ export default class ExportNodeModalInstanceCtrl {
           label: $translate.instant('ACCESS.COLLECTION'),
           appendToBody: false,
           refresh: function (search) {
-              return $ctrl.getOmekaCollections(search);
+            return $ctrl.getOmekaCollections(search);
           },
         },
         hideExpression: function ($viewValue, $modelValue, scope) {
@@ -127,7 +127,6 @@ export default class ExportNodeModalInstanceCtrl {
         });
     };
 
-
     let exportLabels = (node) => {
       const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/label/');
       $window.open(showFile, '_blank');
@@ -140,7 +139,7 @@ export default class ExportNodeModalInstanceCtrl {
       $uibModalInstance.close();
     };
 
-      let exportxml2pdf = (node) => {
+    let exportxml2pdf = (node) => {
       const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/xml2pdf/');
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
@@ -156,10 +155,9 @@ export default class ExportNodeModalInstanceCtrl {
           exportOmeka(data.node, $ctrl.model.include_descendants, $ctrl.model.collection);
         } else if (option === 'archive') {
           exportArchive(data.node);
-        }else if (option === 'xml2pdf') {
+        } else if (option === 'xml2pdf') {
           exportxml2pdf(data.node);
         }
-
       }
     };
     $ctrl.cancel = function () {

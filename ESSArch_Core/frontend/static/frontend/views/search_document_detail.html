@@ -75,12 +75,16 @@
     type="filesize"
   ></result-field>
 
-  <button ng-if="!vm.record.rendering"  class="btn btn-success btn-small margin-top-5" ng-click="vm.viewFile(vm.record)">
+  <button
+    ng-if="!vm.record.rendering"
+    class="btn btn-success btn-small margin-top-5"
+    ng-click="vm.viewFile(vm.record)"
+  >
     <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
   </button>
-<span ng-if="vm.record.rendering">
-  <button  class="btn btn-success btn-small margin-top-5" ng-click="vm.viewXmlFile(vm.record)">
-    <i class="far fa-eye"></i> {{'VIEW' | translate}}
-  </button>
-    </span>
+  <span ng-if="vm.record.rendering">
+    <button class="btn btn-success btn-small margin-top-5" ng-click="vm.viewXmlFile(vm.record)">
+      <i class="far fa-eye"></i> {{'VIEW' | translate}}
+    </button>
+  </span>
 </div>
