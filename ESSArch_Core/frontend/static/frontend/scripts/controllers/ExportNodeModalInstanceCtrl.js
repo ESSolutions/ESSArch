@@ -18,9 +18,8 @@ export default class ExportNodeModalInstanceCtrl {
 
     $ctrl.getOmekaCollections = function (search) {
       return $http({
-        url: 'https://regionarkivet-pub.essarch.se/api/collections',
-        mathod: 'GET',
-        params: {key: '633eab62b70f40f7683f57e37715a2a68c5fa3a4'},
+        method: 'GET',
+        url: appConfig.djangoUrl + 'search/omeka_api/collections/',
       }).then(function (response) {
         $ctrl.options.collections = [];
         response.data.forEach(function (col) {
