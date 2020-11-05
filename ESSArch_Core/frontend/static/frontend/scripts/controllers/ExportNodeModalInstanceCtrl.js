@@ -158,7 +158,6 @@ export default class ExportNodeModalInstanceCtrl {
         } else if (option === 'xml2pdf') {
           exportxml2pdf(data.node);
         }
-
       }
     };
     $ctrl.cancel = function () {
