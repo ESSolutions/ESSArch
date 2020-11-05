@@ -7,8 +7,8 @@ import logging
 import math
 import os
 import tempfile
-import requests
 
+import requests
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
@@ -23,6 +23,7 @@ from django_filters.constants import EMPTY_VALUES
 from elasticsearch.exceptions import NotFoundError, TransportError
 from elasticsearch_dsl import FacetedSearch, Q, TermsFacet
 from elasticsearch_dsl.connections import get_connection
+from proxy.views import proxy_view
 from rest_framework import exceptions, serializers, status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -736,25 +737,21 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
         return self.send_mass_email(ids, user)
 
+    @action(detail=False, methods=['get'], url_path='omeka_api/(?P<path>.*)')
+    def omeka_api(self, request, path):
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            extra_requests_args = {'params': {'key': omeka_key}}
+        else:
+            extra_requests_args = {}
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        remoteurl = '%s/api/%s' % (omeka_server, path)
+        return proxy_view(request, remoteurl, extra_requests_args)
+
     @action(detail=True, methods=['post'], url_path='export-to-omeka')
     def export_to_omeka(self, request, pk=None):
         tag = self.get_tag_object()
-        user = self.request.user
-
-        if not user.email:
-            raise exceptions.ParseError('Missing email address')
-
-        if request.data.get('include_descendants', False):
-            ids = tag.get_descendants(include_self=True).values_list('id', flat=True)
-            return self.send_mass_email(ids, user)
-
         metadata = tag.from_search()['_source']
-        subject = 'Export: {}'.format(tag.name)
-
-        body = '\n'.join(['{}: {}'.format(k, json.dumps(v, ensure_ascii=False)) for k, v in metadata.items()])
-        email = EmailMessage(subject=subject, body=body, to=[user.email])
-
-        # email.send()
 
         # Create item in collection
         collection_id = request.data.get('collection_id', None)
@@ -765,20 +762,22 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if tag.elastic_index == 'document':
             ip = tag.tag.information_package
             path = os.path.join(metadata['href'], metadata['filename'])
-            #email.attach(os.path.basename(path), ip.open_file(path, 'rb').read())
             file_item = ip.open_file(path, 'rb').read()
             file_order = 1
             self.upload_file(file_order, item_id, file_item, metadata)
         return Response('Exported to Omeka (collection id: {})'.format(request.data.get('collection_id', '-')))
 
-    API_KEY = '633eab62b70f40f7683f57e37715a2a68c5fa3a4'  # my Omeka API key
-
     def create_item(self, collection_id, metadata):
-        url = 'https://regionarkivet-pub.essarch.se/api/items'
-        params = {'key': self.API_KEY}
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        url = '%s/api/items' % omeka_server
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            params = {'key': omeka_key}
+        else:
+            params = {}
         metadata_title = '%s - %s' % (metadata['structure_units'][0]['name'],
                                       metadata['structure_units'][0]['reference_code'])
-        #metadata_title = metadata['structure_units']['name']
+
         data = {
             "item_type": {"id": 1},
             "collection": {"id": collection_id},
@@ -798,14 +797,18 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         }
 
         response = requests.post(url, params=params, data=json.dumps(data))
-        print(json.loads(response.content))
         item_id = json.loads(response.content)['id']
 
         return item_id
 
     def upload_file(self, order, item_id, file_item, metadata):
-        url = 'https://regionarkivet-pub.essarch.se/api/files'
-        params = {'key': self.API_KEY}  # packing Omeka key as payload
+        omeka_server = getattr(settings, 'OMEKA_SERVER', 'https://localhost')
+        url = '%s/api/files' % omeka_server
+        omeka_key = getattr(settings, 'OMEKA_KEY', '')
+        if omeka_key:
+            params = {'key': omeka_key}
+        else:
+            params = {}
 
         # Building data structure for the request
         body_data = {
@@ -827,8 +830,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                      file_item,
                      'application/png')
         }
-        response = requests.post(url, params=params, data=data, files=files)
-        print(response.content)
+        requests.post(url, params=params, data=data, files=files)
 
     @action(detail=True, methods=['get'])
     def children(self, request, pk=None):

@@ -58,6 +58,14 @@ class GroupGenericObjects(models.Model):
             ip_objs.append(InformationPackage.objects.get(id=gg_ip.object_id))
         return ip_objs
 
+    def get_related_tv_objs(self):
+        from ESSArch_Core.tags.models import TagVersion
+        tv_objs = []
+        ctype = ContentType.objects.get_for_model(TagVersion)
+        for gg_tv in GroupGenericObjects.objects.filter(group=self.group, content_type=ctype):
+            tv_objs.append(TagVersion.objects.get(id=gg_tv.object_id))
+        return tv_objs
+
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
         indexes = [

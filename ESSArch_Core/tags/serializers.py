@@ -1,7 +1,6 @@
 import uuid
 
 import elasticsearch
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
@@ -551,10 +550,19 @@ class MediumTypeSerializer(serializers.ModelSerializer):
 
 
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
+    organization = serializers.SerializerMethodField()
+
+    def get_organization(self, obj):
+        try:
+            serializer = GroupSerializer(instance=obj.get_organization().group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
+
     class Meta:
         model = TagVersion
         fields = ('id', 'elastic_index', 'name', 'type', 'create_date', 'start_date',
-                  'end_date',)
+                  'end_date', 'organization')
 
 
 class TagVersionWriteSerializer(serializers.ModelSerializer):
@@ -584,9 +592,7 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
+            serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
@@ -823,9 +829,7 @@ class TagVersionSerializer(TagVersionNestedSerializer):
 
     def get_organization(self, obj):
         try:
-            ctype = ContentType.objects.get_for_model(obj)
-            group = GroupGenericObjects.objects.get(object_id=obj.pk, content_type=ctype).group
-            serializer = GroupSerializer(instance=group)
+            serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None

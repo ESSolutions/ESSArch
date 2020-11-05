@@ -964,22 +964,21 @@ export default class SearchDetailCtrl {
       } else {
         params.path = file._source.filename;
       }
-      params.path = params.path.replace(/\&/g, "%26");
+      params.path = params.path.replace(/\&/g, '%26');
       const showFile = $sce.trustAsResourceUrl(
         appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
       );
       $window.open(showFile, '_blank');
     };
 
-      vm.viewXmlFile = function (node) {
+    vm.viewXmlFile = function (node) {
       const params = {};
       const showFile = $sce.trustAsResourceUrl(
-      appConfig.djangoUrl + 'search/' + node.id + '/xml2pdf/'
+        appConfig.djangoUrl + 'search/' + node.id + '/xml2pdf/'
         //appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
       );
       $window.open(showFile, '_blank');
     };
-
 
     vm.includeDescendants = false;
     vm.emailDocument = function (record) {
