@@ -1,42 +1,20 @@
-import errno
 import logging
 import os
 import shutil
+import uuid
+from zipfile import ZipFile
 
-from django.db import transaction
+from django.template.loader import render_to_string
 
-from ESSArch_Core.auth.models import Group, GroupMember
-from ESSArch_Core.configuration.models import StoragePolicy
-from ESSArch_Core.ip.models import InformationPackage
+from ESSArch_Core.essxml.util import parse_mets
+from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.utils import lowercase_profile_types
 from ESSArch_Core.util import stable_path
 from ESSArch_Core.WorkflowEngine.polling.backends.base import (
     BaseWorkflowPoller,
 )
-import hashlib
-from zipfile import ZipFile
-from django.template.loader import render_to_string
-from ESSArch_Core.essxml.util import parse_mets
-import uuid
 
 logger = logging.getLogger('essarch.workflow.polling.XWorkflowPoller')
-
-
-def hash_file(fname, dig):
-    if dig == "sha256":
-        algorithm = hashlib.sha256()
-    if dig == "sha512":
-        algorithm = hashlib.sha3_512()
-    if dig == "sha1":
-        algorithm = hashlib.sha1()
-    if dig == "md5":
-        algorithm = hashlib.md5()
-
-    with open(fname, "rb") as f:
-        for chunk in iter(lambda: f.read(65536), b""):
-            algorithm.update(chunk)
-    return algorithm.hexdigest()
 
 
 class TreservaWorkflowPoller(BaseWorkflowPoller):
@@ -48,8 +26,10 @@ class TreservaWorkflowPoller(BaseWorkflowPoller):
                 continue
             if '.DS' in subpath:
                 continue
+            if not stable_path(subpath):
+                continue
             SIZE = os.path.getsize(subpath)
-            MD5 = hash_file(subpath, 'md5')
+            MD5 = calculate_checksum(subpath, 'MD5')
             with ZipFile(subpath) as sipzip:
                 with sipzip.open('sip.xml') as sipfile:
                     sip_mets = parse_mets(sipfile)
