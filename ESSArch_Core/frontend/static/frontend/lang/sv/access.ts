@@ -59,7 +59,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CREATOR_START_YEAR: 'Arkivbildarens startår',
       CREATOR_TYPE: 'Typ av arkivbildare',
       CUSTOM_FIELDS: 'Egna fält',
-      COLLECTION: 'Sammling',
+      COLLECTION: 'Samling',
       DATES: 'Datum',
       DATE_MISSING: 'Datum saknas',
       DECISION_DATE: 'Beslutsdatum',
