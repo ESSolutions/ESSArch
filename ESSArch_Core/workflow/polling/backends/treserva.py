@@ -54,15 +54,15 @@ class TreservaWorkflowPoller(BaseWorkflowPoller):
                                                          "SIZE": SIZE, "MD5": MD5,
                                                          "ARCHIVIST_SOFTWARE": agents['ARCHIVIST_SOFTWARE']['name'],
                                                          "ARCHIVIST_SOFTWARE_VERSION":
-                                                             agents['ARCHIVIST_SOFTWARE']['notes'][0],
+                                                             agents['ARCHIVIST_SOFTWARE']['name'],
                                                          "ARCHIVIST_ORGANIZATION": agents['ARCHIVIST_ORGANIZATION'][
                                                              'name'],
                                                          "ARCHIVIST_ORGANIZATION_NOTE":
-                                                             agents['ARCHIVIST_ORGANIZATION']['notes'][0],
+                                                             agents['ARCHIVIST_ORGANIZATION']['name'],
                                                          "CREATOR_ORGANIZATION": agents['CREATOR_ORGANIZATION'][
                                                              'name'],
                                                          "CREATOR_ORGANIZATION_NOTE":
-                                                             agents['CREATOR_ORGANIZATION']['notes'][0],
+                                                             agents['CREATOR_ORGANIZATION']['name'],
 
                                                          })
                     with open(os.path.join(path, f'{OBJID}.xml'), 'w') as sdfile:
