@@ -54,7 +54,6 @@ def installProfiles():
     installProfileContentType(sa)
 
 
-
 def installSubmissionAgreement():
     try:
         policy = StoragePolicy.objects.get(policy_name="default")
@@ -64,11 +63,11 @@ def installSubmissionAgreement():
             raise
 
     dct = {
-        'name': 'AF1_B',
+        'name': 'GSA 045/2014',
         'published': True,
         'type': 'Standard',
         'status': 'Agreed',
-        'label': 'AF1_B',
+        'label': 'GSA 045/2014',
         'policy': policy,
         'archivist_organization': 'Archive X',
         'template': [
