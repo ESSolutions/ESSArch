@@ -54,8 +54,6 @@ def installProfiles():
     installProfileContentType(sa)
 
 
-
-
 def installSubmissionAgreement():
     try:
         policy = StoragePolicy.objects.get(policy_name="default")
@@ -342,18 +340,7 @@ def installProfileSIP(sa):
                 'type': 'folder',
                 'name': 'content',
                 'use': 'content',
-                'children': [
-                    {
-                        'type': 'file',
-                        "name": 'metadata.xml',
-                        'use': 'content_type_specification'
-                    },
-                    {
-                        'type': 'file',
-                        "name": 'metadata.xsd',
-                        'use': 'content_type_specification_schema'
-                    },
-                ],
+                'children': [],
             },
             {
                 'type': 'folder',

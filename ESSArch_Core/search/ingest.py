@@ -2,10 +2,10 @@ import base64
 import logging
 import os
 import uuid
-import msoffcrypto
 
 from elasticsearch.exceptions import ElasticsearchException, RequestError
 
+from ESSArch_Core.fixity.validate import validate_file
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import (
     Tag,
@@ -22,24 +22,17 @@ from ESSArch_Core.util import (
 logger = logging.getLogger('essarch.search.ingest')
 
 
-def _validate_ole_file(filepath):
-    with open(filepath, "rb") as f:
-        officefile = msoffcrypto.OfficeFile(f)
-        return officefile.is_encrypted()
-
-
 def index_document(tag_version, filepath):
     with open(filepath, 'rb') as f:
         content = f.read()
 
     ip = tag_version.tag.information_package
     encoded_content = base64.b64encode(content).decode("ascii")
-    try:
-        if _validate_ole_file(filepath):
-            logger.debug("ENCRYPTED FILE DETECTED, skip to index", filepath)
-            encoded_content = ''
-    except:
-        pass
+    validate_errors = validate_file(filepath)
+    if validate_errors:
+        logger.warning('Skip to index filepath: %s, problem: %s' % (filepath, validate_errors))
+        encoded_content = ''
+
     extension = os.path.splitext(tag_version.name)[1][1:]
     dirname = os.path.dirname(filepath)
     href = normalize_path(os.path.relpath(dirname, ip.object_path))
@@ -63,10 +56,10 @@ def index_document(tag_version, filepath):
     try:
         doc.save(pipeline='ingest_attachment')
     except ElasticsearchException:
-        logger.exception('Failed to index {}'.format(filepath))
+        logger.exception('Failed to index {} (ElasticsearchException)'.format(filepath))
         raise
     except RequestError:
-        logger.exception('Failed to index {}'.format(filepath))
+        logger.exception('Failed to index {} (RequestError)'.format(filepath))
         raise
     return doc, tag_version
 

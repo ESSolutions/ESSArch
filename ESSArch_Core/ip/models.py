@@ -1716,7 +1716,9 @@ class InformationPackage(models.Model):
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def update_remote_ip(self, host, session):
-        from ESSArch_Core.ip.serializers import InformationPackageFromMasterSerializer
+        from ESSArch_Core.ip.serializers import (
+            InformationPackageFromMasterSerializer,
+        )
 
         remote_ip = urljoin(host, reverse('informationpackage-add-from-master'))
         data = InformationPackageFromMasterSerializer(instance=self).data
