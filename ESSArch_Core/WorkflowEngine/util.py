@@ -1,5 +1,6 @@
 import importlib
 
+from celery import states as celery_states
 from django.db import transaction
 from tenacity import retry, stop_after_delay, wait_random_exponential
 
@@ -16,7 +17,7 @@ def get_result(step, reference):
     return results[reference]
 
 
-def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False):
+def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
     for on_error_idx, on_error in enumerate(errors):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
@@ -33,6 +34,7 @@ def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False):
             information_package=ip,
             responsible=responsible,
             processstep_pos=on_error_idx,
+            status=status,
         )
 
 
@@ -118,7 +120,8 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
         with ProcessStep.objects.delay_mptt_updates():
             root_step = ProcessStep.objects.create(name=name, eager=eager, context=context)
 
-            on_error_tasks = list(_create_on_error_tasks(on_error, ip=ip, responsible=responsible))
+            on_error_tasks = list(_create_on_error_tasks(
+                on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
             ProcessTask.objects.bulk_create(on_error_tasks)
             root_step.on_error.add(*on_error_tasks)
 
