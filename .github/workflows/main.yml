@@ -218,7 +218,7 @@ jobs:
           echo "$env:GeckoWebDrive" >> $GITHUB_PATH
 
           # Make all PATH additions global
-          #echo "::set-env name=PATH::$env:PATH;C:\Program Files\GTK3-Runtime Win64\bin"
+          echo "C:\Program Files\GTK3-Runtime Win64\bin" >> $GITHUB_PATH
 
       - name: Build frontend
         run: |
