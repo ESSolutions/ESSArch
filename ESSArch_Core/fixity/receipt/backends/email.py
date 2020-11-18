@@ -54,7 +54,10 @@ class EmailReceiptBackend(BaseReceiptBackend):
         )
 
         for attachment in kwargs.get('attachments', []):
-            msg.attach_file(attachment)
+
+            logger.debug('email attachment: %s, type: %s' % (repr(attachment), type(attachment)))
+            if attachment is not None:
+                msg.attach_file(attachment)
 
         msg_count = msg.send(fail_silently=False)
 
