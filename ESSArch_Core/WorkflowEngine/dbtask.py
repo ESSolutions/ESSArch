@@ -112,7 +112,8 @@ class DBTask(Task):
     def _run(self, *args, **kwargs):
         self.extra_data = {}
         if self.ip:
-            for attempt in Retrying(reraise=True, stop=stop_after_delay(30), wait=wait_random_exponential(multiplier=1, max=60)):
+            for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
+                                    wait=wait_random_exponential(multiplier=1, max=60)):
                 with attempt:
                     try:
                         ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
