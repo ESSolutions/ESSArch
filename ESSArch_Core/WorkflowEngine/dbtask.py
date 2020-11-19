@@ -29,6 +29,7 @@ from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
+from tenacity import Retrying, stop_after_delay, wait_random_exponential
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -111,7 +112,13 @@ class DBTask(Task):
     def _run(self, *args, **kwargs):
         self.extra_data = {}
         if self.ip:
-            ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
+            for attempt in Retrying(reraise=True, stop=stop_after_delay(30), wait=wait_random_exponential(multiplier=1, max=60)):
+                with attempt:
+                    try:
+                        ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
+                    except InformationPackage.DoesNotExist as e:
+                        logger.warning('exception DoesNotExist when get ip: %s retry' % repr(self.ip))
+                        raise e
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
