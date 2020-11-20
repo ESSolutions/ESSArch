@@ -92,6 +92,8 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 User = get_user_model()
 redis = get_redis_connection()
 
+logger = logging.getLogger('essarch')
+
 
 @app.task(bind=True)
 def Notify(self, message, level, refresh, recipient=None):
@@ -731,10 +733,13 @@ def ConvertFile(self, path, format_map, delete_original=True):
             except KeyError:
                 continue
             else:
-                convert_file(filepath, new_format)
-                self.files_count += 1
-                if delete_original:
-                    os.remove(filepath)
+                try:
+                    convert_file(filepath, new_format)
+                    self.files_count += 1
+                    if delete_original:
+                        os.remove(filepath)
+                except ValueError as e:
+                    logger.error('Failed to convert file: %s, error: %s' % (filepath, e))
 
     msg = "Converted %s file(s) at %s" % (self.files_count, path,)
     self.create_success_event(msg)
