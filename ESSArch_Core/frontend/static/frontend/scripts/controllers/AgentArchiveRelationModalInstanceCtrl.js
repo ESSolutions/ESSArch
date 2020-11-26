@@ -58,12 +58,8 @@ export default class AgentArchiveRelationModalInstanceCtrl {
             placeholder: $translate.instant('ACCESS.ARCHIVE'),
             label: $translate.instant('ACCESS.ARCHIVE'),
             appendToBody: false,
-            optionsFunction: function (search) {
-              return $ctrl.options.archives;
-            },
             refresh: function (search) {
               return $ctrl.getArchives(search).then(function () {
-                this.options = $ctrl.options.archives;
                 return $ctrl.options.archives;
               });
             },

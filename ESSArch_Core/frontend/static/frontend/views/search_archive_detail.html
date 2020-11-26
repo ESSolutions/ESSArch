@@ -1,8 +1,8 @@
 <div class="archive-result" ng-if="vm.record">
   <div class="d-flex justify-content-between align-items-center w-100">
     <h3 title="Namn">
-      <strong title="Namn" ng-if="vm.record._source.name || vm.record.name">
-        {{vm.record._source.name?vm.record._source.name : vm.record.name}}
+      <strong title="Namn" ng-if="vm.record._source.name || vm.record.name_with_dates">
+        {{vm.record._source.name?vm.record._source.name : vm.record.name_with_dates}}
       </strong>
     </h3>
     <div class="flex-row justify-content-end align-items-center position-relative">
@@ -63,8 +63,9 @@
     ></result-field>
   </div>
   <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
-    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
-    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date |
+    date:vm.record.type.date_render_format) : ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date |
+    date:vm.record.type.date_render_format) : ''}}
   </div>
   <div ng-include src="'static/frontend/views/search_detail_contents.html'"></div>
   <div class="pb-base">

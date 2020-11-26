@@ -10,6 +10,7 @@ from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 from django.utils import timezone
+from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
 from mptt.managers import TreeManager
@@ -1201,6 +1202,25 @@ class TagVersion(models.Model):
         gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
 
         return gg_obj
+
+    def get_name_with_dates(self):
+        date_format = '%x'
+        start_date = ''
+        end_date = ''
+        if self.type.date_render_format:
+            if self.type.date_render_format == 'yyyy':
+                date_format = '%Y'
+            elif self.type.date_render_format == 'yyyy-MM-dd':
+                date_format = '%Y-%m-%d'
+
+        if self.start_date or self.end_date:
+            if self.start_date is not None:
+                start_date = localdate(self.start_date).strftime(date_format)
+            if self.end_date is not None:
+                end_date = localdate(self.end_date).strftime(date_format)
+            return '%s (%s - %s)' % (self.name, start_date, end_date)
+        else:
+            return self.name
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)

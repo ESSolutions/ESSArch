@@ -207,6 +207,15 @@ class AgentTagLinkRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
     creator = models.BooleanField(_('creator'), default=False)
 
+    YYYY = 'yyyy'
+    YYYYMMdd = 'yyyy-MM-dd'
+    DATE_RENDER_CHOICES = (
+        (YYYY, _('yyyy')),
+        (YYYYMMdd, _('yyyy-MM-dd')),
+    )
+    date_render_format = models.CharField(
+        _('Date render format'), choices=DATE_RENDER_CHOICES, blank=True, max_length=255)
+
     def clean(self):
         if self.creator:
             try:

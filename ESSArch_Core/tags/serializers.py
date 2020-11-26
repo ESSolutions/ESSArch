@@ -551,6 +551,7 @@ class MediumTypeSerializer(serializers.ModelSerializer):
 
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
     organization = serializers.SerializerMethodField()
+    name_with_dates = serializers.SerializerMethodField()
 
     def get_organization(self, obj):
         try:
@@ -559,9 +560,12 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
         except GroupGenericObjects.DoesNotExist:
             return None
 
+    def get_name_with_dates(self, obj):
+        return obj.get_name_with_dates()
+
     class Meta:
         model = TagVersion
-        fields = ('id', 'elastic_index', 'name', 'type', 'create_date', 'start_date',
+        fields = ('id', 'elastic_index', 'name', 'name_with_dates', 'type', 'create_date', 'start_date',
                   'end_date', 'organization')
 
 
@@ -706,6 +710,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     appraisal_date = serializers.DateTimeField(source='tag.appraisal_date')
     appraisal_job = serializers.SerializerMethodField()
     is_mixed_type = serializers.SerializerMethodField()
+    name_with_dates = serializers.SerializerMethodField()
 
     def get_archive(self, obj):
         return getattr(obj, 'archive', None)
@@ -715,6 +720,9 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
 
     def get_is_mixed_type(self, obj):
         return self.context.get('is_mixed_type')
+
+    def get_name_with_dates(self, obj):
+        return obj.get_name_with_dates()
 
     def get_masked_fields(self, obj):
         cache_key = '{}_masked_fields'.format(obj.pk)
@@ -756,7 +764,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
         fields = (
-            '_id', '_index', 'name', 'type', 'create_date', 'revise_date', 'archive',
+            '_id', '_index', 'name', 'name_with_dates', 'type', 'create_date', 'revise_date', 'archive',
             'import_date', 'start_date', 'related_tags', 'notes', 'end_date',
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
