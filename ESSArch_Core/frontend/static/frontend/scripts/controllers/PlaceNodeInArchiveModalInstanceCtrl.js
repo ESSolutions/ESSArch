@@ -77,7 +77,7 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
           var hasMatch = false;
           for (var index = 0; index < response.data.length; ++index) {
             var item = response.data[index];
-            if(item.tag){
+            if (item.tag) {
               hasMatch = true;
               break;
             }
@@ -177,8 +177,7 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
             },
           },
           expressionProperties: {
-            'templateOptions.onChange': function ($modelValue) {
-            },
+            'templateOptions.onChange': function ($modelValue) {},
           },
         },
       ];
