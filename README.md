@@ -9,20 +9,26 @@
 Elasticsearch requires `vm.max_map_count` to be at least 262144, see
 [Install Elasticsearch with Docker](https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html#docker-cli-run-prod-mode) for more information
 
-1. Enter the `docker` directory and start the services
+1. Build the `essarch` docker image
+
+```
+docker build -t essarch -f docker/Dockerfile .
+```
+
+2. Enter the `docker` directory and start the services
 
 ```
 $ cd docker
 $ docker-compose up -d
 ```
 
-2. Wait for the `essarch` service to start by examining the logs
+3. Wait for the `essarch` service to start by examining the logs
 
 ```
 $ docker-compose logs -f essarch
 ```
 
-3. Finally visit `http://localhost:8000` in your browser
+4. Finally visit `http://localhost:8000` in your browser
 
 # Contributing
 
