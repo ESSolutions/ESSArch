@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ARCHIVAL_DESCRIPTION: 'Archival description',
       AUTHORITY_RECORDS: 'Authority records',
       BUILD_REPORT: 'Build report',
+      DELIVERIES: 'Accessions',
       GENERATE_REPORT: 'Generate report',
       INFORMATION_PACKAGES: 'Information packages',
       ORDERED_INFORMATION_PACKAGES: 'Ordered dissemination packages',
