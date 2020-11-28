@@ -127,14 +127,18 @@ export default class ExportNodeModalInstanceCtrl {
         });
     };
 
-    let exportLabels = (node) => {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/label/');
+    let exportLabels = (node, structure) => {
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node._id + '/label/?structure=' + structure.id
+      );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
 
-    let exportArchive = (node) => {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/export/');
+    let exportArchive = (node, structure) => {
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node._id + '/export/?structure=' + structure.id
+      );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
@@ -150,11 +154,11 @@ export default class ExportNodeModalInstanceCtrl {
         if (option === 'email') {
           exportEmail(data.node, $ctrl.model.include_descendants);
         } else if (option === 'labels') {
-          exportLabels(data.node);
+          exportLabels(data.node, data.structure);
         } else if (option === 'omeka') {
           exportOmeka(data.node, $ctrl.model.include_descendants, $ctrl.model.collection);
         } else if (option === 'archive') {
-          exportArchive(data.node);
+          exportArchive(data.node, data.structure);
         } else if (option === 'xml2pdf') {
           exportxml2pdf(data.node);
         }
