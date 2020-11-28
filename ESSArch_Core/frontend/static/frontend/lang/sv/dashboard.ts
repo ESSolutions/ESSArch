@@ -4,6 +4,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     DASHBOARD: {
       APPRAISALS: 'Utförda gallringar',
       ARCHIVAL_DESCRIPTION: 'Arkivredovisning',
+      AUTHORITY_RECORDS: 'Arkivbildare'
       BUILD_REPORT: 'Bygg rapport',
       DELIVERIES: 'Registrerade leveranser',
       GENERATE_REPORT: 'Generera rapport',
