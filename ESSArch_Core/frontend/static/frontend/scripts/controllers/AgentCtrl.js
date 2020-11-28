@@ -28,19 +28,19 @@ export default class AgentCtrl {
           open: true,
         },
         identifiers: {
-          open: true,
+          open: false,
         },
         names: {
-          open: true,
+          open: false,
         },
         mandates: {
-          open: true,
+          open: false,
         },
         authority: {
-          open: true,
+          open: false,
         },
         resources: {
-          open: true,
+          open: false,
         },
       },
       history: {
