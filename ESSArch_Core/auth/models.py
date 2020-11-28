@@ -336,6 +336,13 @@ class UserProfile(models.Model):
         (FLAT, 'FLAT'),
     )
 
+    LIST = 'list'
+    GRID = 'grid'
+    FILE_BROWSER_LIST_VIEW_CHOICES = (
+        (LIST, 'list'),
+        (GRID, 'grid'),
+    )
+
     def default_ip_list_columns():
         return [
             'label', 'object_identifier_value', 'create_date', 'responsible',
@@ -346,7 +353,8 @@ class UserProfile(models.Model):
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     language = models.CharField(max_length=10, default='')
     ip_list_columns = PickledObjectField(default=default_ip_list_columns)
-    ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
+    ip_list_view_type = models.CharField(max_length=10, choices=FILE_BROWSER_LIST_VIEW_CHOICES, default=LIST,)
+    file_browser_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP, )
     notifications_enabled = models.BooleanField(default=True)
 
     class Meta:
