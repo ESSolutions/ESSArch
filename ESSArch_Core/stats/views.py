@@ -16,6 +16,7 @@ from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
 from ESSArch_Core.tags.models import TagVersion, Delivery
+from ESSArch_Core.agents.models import Agent
 from ESSArch_Core.util import generate_file_response
 
 User = get_user_model()
@@ -24,6 +25,7 @@ User = get_user_model()
 def get_data():
     data = {
         'appraisals': AppraisalJob.objects.filter(status=celery_states.SUCCESS).count(),
+        'authority_records': Agent.objects.count(),
         'deliveries': Delivery.objects.count(),
         'information_packages': InformationPackage.objects.count(),
         'ordered_information_packages': InformationPackage.objects.filter(orders__isnull=False).count(),
@@ -31,6 +33,7 @@ def get_data():
         'roles': GroupMemberRole.objects.count(),
         'total_object_size': InformationPackage.objects.aggregate(Sum('object_size'))['object_size__sum'] or 0,
         'users': User.objects.count(),
+
     }
 
     if Feature.objects.filter(name='archival descriptions', enabled=True).exists():
