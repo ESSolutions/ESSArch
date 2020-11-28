@@ -128,13 +128,17 @@ export default class ExportNodeModalInstanceCtrl {
     };
 
     let exportLabels = (node, structure) => {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/label/?structure='+structure.id);
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node._id + '/label/?structure=' + structure.id
+      );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
 
     let exportArchive = (node, structure) => {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'search/' + node._id + '/export/?structure='+structure.id);
+      const showFile = $sce.trustAsResourceUrl(
+        appConfig.djangoUrl + 'search/' + node._id + '/export/?structure=' + structure.id
+      );
       $window.open(showFile, '_blank');
       $uibModalInstance.close();
     };
