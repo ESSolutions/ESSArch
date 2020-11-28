@@ -14,6 +14,15 @@ export default class UserSettingsCtrl {
       });
     };
 
+    $scope.changeFileBrowserViewType = function (type) {
+      Me.update({
+        file_browser_view_type: type,
+      }).$promise.then(function (data) {
+        $window.sessionStorage.setItem('file-browser-type', data.file_browser_view_type);
+        $rootScope.auth = data;
+      });
+    };
+
     function loadColumnPicker() {
       vm.allColumns.forEach(function (column) {
         let tempBool = false;

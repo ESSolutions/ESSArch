@@ -20,6 +20,17 @@
       ></select>
     </label>
   </div>
+  <div class="filebrowser-view-type">
+    <label>
+      {{'FILEBROWSER' | translate}}
+      <select
+        class="form-control"
+        ng-change="changeFileBrowserViewType(auth.file_browser_view_type)"
+        ng-model="auth.file_browser_view_type"
+        ng-options="x for x in ['List','Grid']"
+      ></select>
+    </label>
+  </div>
   <hr />
   <div ng-if="vm.activeColumns.options && vm.allColumns" class="active-columns">
     <div ng-include src="'static/frontend/views/column_picker.html'"></div>
