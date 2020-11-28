@@ -140,7 +140,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     FIRST_NAME: 'Förnamn',
     FORCECOPIES: 'Tvinga ytterligare kopior på samma mål-media',
     FORCE_WRITE_MIGRATED: 'Tillåt duplicerade lagringsposter',
-    FORMAT_CONVERSION: 'Formatkonvertering',
+    FORMAT_CONVERSION: 'Arkivvård',
     FORMAT: 'Format',
     FROM: 'från',
     GENERATE_TEMPLATE: 'Generera template',

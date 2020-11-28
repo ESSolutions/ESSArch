@@ -138,7 +138,7 @@ const general = ($translateProvider) => {
     FIRST_NAME: 'First name',
     FORCECOPIES: 'Force additional copies on the same target medium',
     FORCE_WRITE_MIGRATED: 'Allow duplicate storage entries',
-    FORMAT_CONVERSION: 'Format conversion',
+    FORMAT_CONVERSION: 'Maintenance',
     FORMAT: 'Format',
     FROM: 'from',
     GENERATE_TEMPLATE: 'Generate template',

@@ -30,8 +30,8 @@ export default class IpConversionJobModalInstanceCtrl {
           valueProp: 'id',
           labelProp: 'labelProp',
           required: true,
-          placeholder: $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_JOB'),
-          label: $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_JOB'),
+          placeholder: $translate.instant('ARCHIVE_MAINTENANCE.MAINTENANCE_JOB'),
+          label: $translate.instant('ARCHIVE_MAINTENANCE.MAINTENANCE_JOB'),
           appendToBody: false,
           refresh: function (search) {
             if (angular.isUndefined(search) || search === null || search === '') {
