@@ -5,6 +5,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       APPRAISALS: 'Utförda gallringar',
       ARCHIVAL_DESCRIPTION: 'Arkivredovisning',
       BUILD_REPORT: 'Bygg rapport',
+      DELIVERIES: 'Registrerade leveranser',
       GENERATE_REPORT: 'Generera rapport',
       INFORMATION_PACKAGES: 'Informationspaket',
       ORDERED_INFORMATION_PACKAGES: 'Beställda utlämnandepaket',
