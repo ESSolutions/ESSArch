@@ -581,7 +581,10 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     def archive_report(self, request, pk=None):
         agents = AgentTagLink.objects.filter(tag_id=pk).all()
         archive = TagVersion.objects.get(pk=pk)
-        series = archive.get_active_structure().structure.units.prefetch_related(
+        structure_id = request.query_params['structure']
+        structure = Structure.objects.get(pk=structure_id)
+
+        series = structure.units.prefetch_related(
             Prefetch(
                 'tagstructure_set',
                 queryset=TagStructure.objects.select_related(
@@ -620,9 +623,11 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
     @action(detail=True, url_path='label')
     def label_report(self, request, pk=None):
         archive = TagVersion.objects.get(pk=pk)
-
         agents = AgentTagLink.objects.filter(tag_id=pk).all()
-        series = archive.get_active_structure().structure.units.prefetch_related(
+        structure_id = request.query_params['structure']
+        structure = Structure.objects.get(pk=structure_id)
+
+        series = structure.units.prefetch_related(
             Prefetch(
                 'tagstructure_set',
                 queryset=TagStructure.objects.select_related(
