@@ -842,12 +842,20 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         parent = self.get_tag_object()
         structure = self.request.query_params.get('structure')
         self.verify_structure(parent, structure)
-        context = {'structure': structure, 'request': request, 'user': request.user}
+        context = {'structure': structure, 'request': request, 'user': request.user, 'is_mixed_type': False}
         children = parent.get_children(structure).select_related(
             'tag__information_package', 'type',
         ).prefetch_related(
             'agent_links', 'identifiers', 'notes', 'tag_version_relations_a',
         ).for_user(request.user)
+        doument_index = False
+        mixed_dict = {}
+        for child in children:
+            mixed_dict[child.type] = mixed_dict.get(child.type, 0) + 1
+            if child.elastic_index == 'document':
+                doument_index = True
+        if len(mixed_dict) > 1 or doument_index:
+            context['is_mixed_type'] = True
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(children, request)
