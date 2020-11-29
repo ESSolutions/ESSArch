@@ -6,6 +6,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       TABLE_COLUMNS: 'Table columns',
       USEROPTIONS: 'User options',
       VISIBLE_COLUMNS: 'Visible columns',
+      SAVED: 'Settings saved'
+      SAVE_ERROR: 'Error when saving settings'
     },
     USERSETTINGS: 'User settings',
   });
