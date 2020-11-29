@@ -1,5 +1,5 @@
 export default class UserSettingsCtrl {
-  constructor(Me, $scope, $rootScope, $controller, myService, $window) {
+  constructor(Me, $scope, $rootScope, $controller, myService, Notifications, $translate, $window) {
     const vm = this;
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: '', params: {}});
     vm.activeColumns = {chosen: []};
@@ -11,6 +11,7 @@ export default class UserSettingsCtrl {
       }).$promise.then(function (data) {
         $window.sessionStorage.setItem('view-type', data.ip_list_view_type);
         $rootScope.auth = data;
+        Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
       });
     };
 
@@ -20,6 +21,7 @@ export default class UserSettingsCtrl {
       }).$promise.then(function (data) {
         $window.sessionStorage.setItem('file-browser-type', data.file_browser_view_type);
         $rootScope.auth = data;
+        Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
       });
     };
 
@@ -81,7 +83,6 @@ export default class UserSettingsCtrl {
     $scope.saveColumns = function () {
       $rootScope.listViewColumns = vm.activeColumns.options;
       vm.activeColumns.chosen = [];
-      $scope.saveAlert = null;
       const updateArray = vm.activeColumns.options.map(function (a) {
         return a.label;
       });
@@ -90,20 +91,12 @@ export default class UserSettingsCtrl {
       }).$promise.then(
         function (data) {
           $rootScope.auth = data;
-          $scope.saveAlert = $scope.alerts.saveSuccess;
+          Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
         },
         function error() {
-          $scope.saveAlert = $scope.alerts.saveError;
+          Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
         }
       );
-    };
-    $scope.saveAlert = null;
-    $scope.alerts = {
-      saveError: {type: 'danger', msg: 'SAVE_ERROR'},
-      saveSuccess: {type: 'success', msg: 'SAVED_MESSAGE'},
-    };
-    $scope.closeAlert = function () {
-      $scope.saveAlert = null;
     };
   }
 }

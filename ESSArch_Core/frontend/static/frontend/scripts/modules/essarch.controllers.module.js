@@ -1151,6 +1151,8 @@ export default angular
     '$rootScope',
     '$controller',
     'myService',
+    'Notifications',
+    '$translate',
     '$window',
     UserSettingsCtrl,
   ])
