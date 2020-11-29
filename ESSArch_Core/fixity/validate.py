@@ -6,6 +6,33 @@ import click
 import msoffcrypto
 
 
+def validate_tv_obj_file(obj, filepath):
+    errors = {}
+    coruppt_flag = False
+    try:
+        with obj.tag.information_package.open_file(filepath, "rb") as f:
+            if os.path.splitext(filepath)[1] in ['.docx']:
+                try:
+                    from docx import Document
+                    Document(f)
+                except KeyError as e:
+                    errors[filepath] = 'file is coruppt (%s)' % str(e)
+                    coruppt_flag = True
+                except zipfile.BadZipFile as e:
+                    errors[filepath] = 'file is coruppt (%s)' % str(e)
+                    coruppt_flag = True
+                except ModuleNotFoundError:
+                    pass
+            if not coruppt_flag and os.path.splitext(filepath)[1] in ['.docx', '.xlsx']:
+                officefile = msoffcrypto.OfficeFile(f)
+                if officefile.is_encrypted():
+                    errors[filepath] = 'file is encrypted'
+    except FileNotFoundError:
+        errors[filepath] = 'file not found'
+
+    return errors
+
+
 def validate_file(filepath, rootdir=None):
     errors = {}
     if rootdir:

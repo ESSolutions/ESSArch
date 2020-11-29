@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 
 from django.utils import timezone
@@ -20,6 +21,7 @@ from elasticsearch_dsl import (
     tokenizer,
 )
 
+from ESSArch_Core.fixity.validate import validate_tv_obj_file
 from ESSArch_Core.search.documents import DocumentBase
 from ESSArch_Core.tags.models import StructureUnit, TagVersion
 
@@ -34,6 +36,9 @@ autocomplete_analyzer = analyzer(
     filter=[autocomplete_filter, 'lowercase'],
     tokenizer='standard'
 )
+
+
+logger = logging.getLogger('essarch.search.ingest')
 
 
 class Node(InnerDoc):
@@ -69,6 +74,7 @@ class VersionedDocType(DocumentBase):
     appraisal_date = Date()
     start_date = Date()
     end_date = Date()
+    date_render_format = Keyword()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -224,6 +230,7 @@ class Component(VersionedDocType):
             appraisal_date=obj.tag.appraisal_date,
             start_date=obj.start_date,
             end_date=obj.end_date,
+            date_render_format=obj.type.date_render_format,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -379,6 +386,11 @@ class File(Component):
                 with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
                     content = f.read()
                 encoded_content = base64.b64encode(content).decode("ascii")
+                validate_errors = validate_tv_obj_file(obj, ip_file_path)
+                if validate_errors:
+                    print('Skip to index filepath: %s, obj: %s, problem: %s' % (ip_file_path, obj.id, validate_errors))
+                    logger.warning('Skip to index filepath: %s, problem: %s' % (ip_file_path, validate_errors))
+                    encoded_content = ''
         else:
             # Get already indexed file content from old_doc (field: attachment)
             attachment = {}
@@ -406,6 +418,7 @@ class File(Component):
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
             start_date=getattr(current_version, 'start_date', None),
             end_date=getattr(current_version, 'end_date', None),
+            date_render_format=obj.type.date_render_format,
             security_level=getattr(current_version, 'security_level', None),
             **obj.custom_fields,
         )
@@ -492,6 +505,7 @@ class StructureUnitDocument(DocumentBase):
     archive = Nested(InnerArchiveDocument)
     start_date = Date()
     end_date = Date()
+    date_render_format = Keyword()
 
     @classmethod
     def get_model(cls):
@@ -527,6 +541,7 @@ class StructureUnitDocument(DocumentBase):
             archive=archive_doc,
             start_date=obj.start_date,
             end_date=obj.end_date,
+            date_render_format=obj.type.date_render_format,
         )
         return doc
 
