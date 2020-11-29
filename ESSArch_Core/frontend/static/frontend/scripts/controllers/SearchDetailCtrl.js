@@ -1101,6 +1101,7 @@ export default class SearchDetailCtrl {
         resolve: {
           data: {
             node: node,
+            structure: vm.structure,
           },
         },
       });
