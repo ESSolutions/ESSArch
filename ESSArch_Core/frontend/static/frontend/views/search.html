@@ -211,7 +211,9 @@
                       </div>
                     </td>
                     <td ng-bind-html="x.name" class="search-name-column"></td>
-                    <td class="search-td-nowrap">{{x.start_date | date:"yyyy-MM-dd"}}</td>
+                    <td class="search-td-nowrap">
+                      {{x.start_date | date:x.date_render_format}} - {{x.end_date | date:x.date_render_format}}
+                    </td>
                     <td ng-bind-html="x.desc"></td>
                     <td class="shrink">{{x.appraisal_date ? 'YES' : 'NO' | translate}}</td>
                     <td class="shrink">{{x.security_level ? 'YES' : 'NO' | translate}}</td>
