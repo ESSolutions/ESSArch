@@ -388,7 +388,6 @@ class File(Component):
                 encoded_content = base64.b64encode(content).decode("ascii")
                 validate_errors = validate_tv_obj_file(obj, ip_file_path)
                 if validate_errors:
-                    print('Skip to index filepath: %s, obj: %s, problem: %s' % (ip_file_path, obj.id, validate_errors))
                     logger.warning('Skip to index filepath: %s, problem: %s' % (ip_file_path, validate_errors))
                     encoded_content = ''
         else:
