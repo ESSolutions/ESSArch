@@ -11,6 +11,7 @@ export default class UserSettingsCtrl {
       }).$promise.then(function (data) {
         $window.sessionStorage.setItem('view-type', data.ip_list_view_type);
         $rootScope.auth = data;
+        Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
       });
     };
 
@@ -20,6 +21,7 @@ export default class UserSettingsCtrl {
       }).$promise.then(function (data) {
         $window.sessionStorage.setItem('file-browser-type', data.file_browser_view_type);
         $rootScope.auth = data;
+        Notifications.add($translate.instant('USER_SETTINGS.SAVED'), 'success');
       });
     };
 
