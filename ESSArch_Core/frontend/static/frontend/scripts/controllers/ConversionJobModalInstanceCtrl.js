@@ -336,7 +336,7 @@ export default class ConversionJobModalInstanceCtrl {
         .then(() => {
           $ctrl.removingJob = false;
           Notifications.add(
-            $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_JOB_REMOVED', {name: data.job.label}),
+            $translate.instant('ARCHIVE_MAINTENANCE.MAINTENANCE_JOB_REMOVED', {name: data.job.label}),
             'success'
           );
           EditMode.disable();

@@ -89,7 +89,7 @@ export default class ConversionModalInstanceCtrl {
         .then(function (response) {
           $ctrl.removingTemplate = false;
           Notifications.add(
-            $translate.instant('ARCHIVE_MAINTENANCE.CONVERSION_TEMPLATE_REMOVED', {name: conversion.name}),
+            $translate.instant('ARCHIVE_MAINTENANCE.MAINTENANCE_TEMPLATE_REMOVED', {name: conversion.name}),
             'success'
           );
           EditMode.disable();
