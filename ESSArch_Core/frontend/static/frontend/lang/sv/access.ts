@@ -94,6 +94,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATED_ARCHIVE_CREATOR: 'Redigera relation till arkivbildare',
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Redigera relation till strukturenhet',
       EDIT_TRANSFER: 'Redigera leverans',
+      END_DATE: 'Slutdatum',
       END_YEAR: 'Slutår',
       EXPORT_ARCHIVE: 'Utskriftsbar arkivförteckning',
       EXPORT_OPTION: 'Typ av export',

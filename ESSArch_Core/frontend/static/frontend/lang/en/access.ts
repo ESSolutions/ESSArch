@@ -90,6 +90,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATED_ARCHIVE_CREATOR: 'Edit related authority record',
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Edit relation to structure unit',
       EDIT_TRANSFER: 'Edit transfer',
+      END_DATE: 'End date',
       END_YEAR: 'End year',
       EXPORT_ARCHIVE: 'Printable finding aid',
       EXPORT_OPTION: 'Export option',

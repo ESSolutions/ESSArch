@@ -119,6 +119,24 @@ export default class SearchCtrl {
       }
     };
 
+    vm.endDateFilterStatus = {
+      before: false,
+      after: false,
+    };
+
+    vm.endDateKeyDown = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.endDateFilterStatus[type] = false;
+        vm.searchSubmit(vm.searchString);
+      }
+    };
+
+    vm.endDateKeyUp = (type, event) => {
+      if (event.keyCode == 9) {
+        vm.endDateFilterStatus[type] = true;
+      }
+    };
+
     vm.appraisalFilterStatus = {
       before: false,
       after: false,

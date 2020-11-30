@@ -83,6 +83,8 @@ class ComponentSearch(FacetedSearch):
         'extensions': {'many': True},
         'start_date_before': {},
         'start_date_after': {},
+        'end_date_before': {},
+        'end_date_after': {},
         'type': {'many': True},
         'appraisal_date_before': {},
         'appraisal_date_after': {},
@@ -92,6 +94,8 @@ class ComponentSearch(FacetedSearch):
         self.query_params_filter = kwargs.pop('filter_values', {})
         self.start_date_before = self.query_params_filter.pop('start_date_before', None)
         self.start_date_after = self.query_params_filter.pop('start_date_after', None)
+        self.end_date_before = self.query_params_filter.pop('end_date_before', None)
+        self.end_date_after = self.query_params_filter.pop('end_date_after', None)
         self.appraisal_date_before = self.query_params_filter.pop('appraisal_date_before', None)
         self.appraisal_date_after = self.query_params_filter.pop('appraisal_date_after', None)
         self.archives = self.query_params_filter.pop('archives', None)
@@ -192,6 +196,12 @@ class ComponentSearch(FacetedSearch):
         if self.start_date_before not in EMPTY_VALUES:
             s = s.filter('range', start_date={'lte': self.start_date_before - datetime.timedelta(days=1)})
 
+        if self.end_date_after not in EMPTY_VALUES:
+            s = s.filter('range', end_date={'gte': self.end_date_after - datetime.timedelta(days=1)})
+
+        if self.end_date_before not in EMPTY_VALUES:
+            s = s.filter('range', end_date={'lte': self.end_date_before - datetime.timedelta(days=1)})
+
         if self.appraisal_date_after not in EMPTY_VALUES:
             s = s.filter('range', appraisal_date={'gte': self.appraisal_date_after - datetime.timedelta(days=1)})
 
@@ -283,6 +293,8 @@ class ComponentSearchSerializer(serializers.Serializer):
     appraisal_date_after = serializers.DateField(required=False, allow_null=True, default=None)
     start_date_before = serializers.DateField(required=False, allow_null=True, default=None)
     start_date_after = serializers.DateField(required=False, allow_null=True, default=None)
+    end_date_before = serializers.DateField(required=False, allow_null=True, default=None)
+    end_date_after = serializers.DateField(required=False, allow_null=True, default=None)
 
     def validate(self, data):
         if (data['appraisal_date_after'] and data['appraisal_date_before'] and
@@ -294,6 +306,11 @@ class ComponentSearchSerializer(serializers.Serializer):
                 data['start_date_after'] > data['start_date_before']):
 
             raise serializers.ValidationError("start_date_after must occur before start_date_before")
+
+        if (data['end_date_after'] and data['end_date_before'] and
+                data['end_date_after'] > data['end_date_before']):
+
+            raise serializers.ValidationError("end_date_after must occur before end_date_before")
 
         return data
 
