@@ -196,7 +196,11 @@ def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
     if requests_session is not None:
         copy_file_remotely(src, dst, requests_session, block_size=block_size)
     else:
-        enough_space_available(os.path.dirname(dst), src, True)
+        try:
+            enough_space_available(os.path.dirname(dst), src, True)
+        except FileNotFoundError:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            enough_space_available(os.path.dirname(dst), src, True)
         copy_file_locally(src, dst)
 
     return dst

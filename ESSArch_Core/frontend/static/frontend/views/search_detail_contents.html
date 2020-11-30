@@ -26,7 +26,14 @@
           <td class="cursor-pointer">
             <b>{{x.reference_code}}</b>
           </td>
-          <td class="cursor-pointer">{{x.name}}</td>
+          <td
+            class="cursor-pointer"
+            uib-tooltip="{{x.description}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            {{x.name}}
+          </td>
           <td class="cursor-pointer">
             <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
               {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |

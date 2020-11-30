@@ -74,7 +74,19 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
             return x.current_version;
           });
         } else {
-          nodes = response.data;
+          var hasMatch = false;
+          for (var index = 0; index < response.data.length; ++index) {
+            var item = response.data[index];
+            if (item.tag) {
+              hasMatch = true;
+              break;
+            }
+          }
+          if (hasMatch) {
+            nodes = response.data;
+          } else {
+            nodes = [];
+          }
         }
         if (angular.isUndefined(structure) || structure === null) {
           $ctrl.options.node = [];
@@ -114,12 +126,18 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
               return $ctrl.options.archive;
             },
             refresh: function (search) {
+              $ctrl.options.structure = [];
+              $ctrl.options.unit = [];
+              $ctrl.options.node = [];
+              $ctrl.structureModel.structure = null;
+              $ctrl.model.structure_unit = null;
+              $ctrl.model.node = null;
+
               if ($ctrl.initArchiveSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initArchiveSearch);
                 $ctrl.initArchiveSearch = null;
               }
               return $ctrl.getArchives(search).then(function () {
-                this.options = $ctrl.options.archive;
                 return $ctrl.options.archive;
               });
             },
@@ -127,7 +145,6 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
           expressionProperties: {
             'templateOptions.onChange': function ($modelValue) {
               $ctrl.structureModel.structure = null;
-              $ctrl.relation.structure_unit = null;
             },
           },
         },
@@ -148,20 +165,19 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
             clearEnabled: true,
             appendToBody: false,
             refresh: function (search) {
+              $ctrl.options.structure = [];
+              $ctrl.model.structure_unit = null;
               if ($ctrl.initStructureSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initStructureSearch);
                 $ctrl.initStructureSearch = null;
               }
               return $ctrl.getStructures(search, $ctrl.archiveModel.archive).then(function () {
-                this.options = $ctrl.options.structure;
                 return $ctrl.options.structure;
               });
             },
           },
           expressionProperties: {
-            'templateOptions.onChange': function ($modelValue) {
-              $ctrl.relation.structure_unit = null;
-            },
+            'templateOptions.onChange': function ($modelValue) {},
           },
         },
       ];
@@ -185,6 +201,8 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
             appendToBody: false,
             clearEnabled: true,
             refresh: function (search) {
+              $ctrl.options.node = [];
+              $ctrl.model.node = null;
               if ($ctrl.initUnitSearch && (angular.isUndefined(search) || search === null || search === '')) {
                 search = angular.copy($ctrl.initUnitSearch);
                 $ctrl.initUnitSearch = null;
@@ -192,7 +210,6 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
               return $ctrl
                 .getStructureUnits(search, $ctrl.structureModel.structure, $ctrl.archiveModel.archive)
                 .then(function () {
-                  this.options = $ctrl.options.unit;
                   return $ctrl.options.unit;
                 });
             },
@@ -224,7 +241,6 @@ export default class PlaceNodeInArchiveModalInstanceCtrl {
                   $ctrl.archiveModel.archive
                 )
                 .then(function () {
-                  this.options = $ctrl.options.node;
                   return $ctrl.options.node;
                 });
             },

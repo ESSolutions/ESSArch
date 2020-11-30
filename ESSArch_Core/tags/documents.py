@@ -69,6 +69,7 @@ class VersionedDocType(DocumentBase):
     appraisal_date = Date()
     start_date = Date()
     end_date = Date()
+    date_render_format = Keyword()
 
     def create_new_version(self, start_date=None, end_date=None, refresh=False):
         data = self.to_dict(include_meta=False)
@@ -224,6 +225,7 @@ class Component(VersionedDocType):
             appraisal_date=obj.tag.appraisal_date,
             start_date=obj.start_date,
             end_date=obj.end_date,
+            date_render_format=obj.type.date_render_format,
             archive=archive_doc,
             structure_units=[ComponentStructureUnitDocument.from_obj(unit) for unit in units],
             current_version=obj.tag.current_version == obj,
@@ -406,6 +408,7 @@ class File(Component):
             agents=[str(pk) for pk in obj.agents.values_list('pk', flat=True)],
             start_date=getattr(current_version, 'start_date', None),
             end_date=getattr(current_version, 'end_date', None),
+            date_render_format=obj.type.date_render_format,
             security_level=getattr(current_version, 'security_level', None),
             **obj.custom_fields,
         )
@@ -492,6 +495,7 @@ class StructureUnitDocument(DocumentBase):
     archive = Nested(InnerArchiveDocument)
     start_date = Date()
     end_date = Date()
+    date_render_format = Keyword()
 
     @classmethod
     def get_model(cls):
@@ -527,6 +531,7 @@ class StructureUnitDocument(DocumentBase):
             archive=archive_doc,
             start_date=obj.start_date,
             end_date=obj.end_date,
+            date_render_format=obj.type.date_render_format,
         )
         return doc
 

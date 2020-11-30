@@ -103,6 +103,7 @@ export default class SearchDetailCtrl {
         }
 
         if (vm.record._id === archiveId) {
+          console.log('createArchiveNode, startNode: ', startNode, 'vm.record: ', vm.record);
           vm.createArchiveNode(startNode, vm.record);
         } else {
           if (!angular.isUndefined(archiveId) && archiveId !== null) {
@@ -130,6 +131,8 @@ export default class SearchDetailCtrl {
         vm.parseAgents(archive);
         let creator = vm.getArchiveCreator(archive);
 
+        console.log('creator: ', creator);
+
         if (creator !== null) {
           creator._id = creator.id;
           creator = vm.createNode(creator);
@@ -148,6 +151,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.createNode = function (node) {
+      console.log('node1: ', node);
       if (angular.isUndefined(node.name)) {
         node.name = '';
       }
@@ -171,6 +175,7 @@ export default class SearchDetailCtrl {
         node.children = [vm.createPlaceholderNode()];
       }
       node.state = {opened: false};
+      console.log('node2: ', node);
       return node;
     };
 
@@ -178,6 +183,8 @@ export default class SearchDetailCtrl {
       const structureId = vm.structure ? vm.structure.id : vm.structureId;
       return $http.get(vm.url + 'search/' + id + '/', {params: {structure: structureId}}).then(function (response) {
         response.data._is_structure_unit = false;
+        vm.response2 = angular.copy(response);
+        console.log('getNode 185: response2.data: ', vm.response2.data);
         return vm.createNode(response.data);
       });
     };

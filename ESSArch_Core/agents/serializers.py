@@ -198,7 +198,7 @@ class AgentTagLinkRelationTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AgentTagLinkRelationType
-        fields = ('id', 'name', 'creator',)
+        fields = ('id', 'name', 'creator', 'date_render_format',)
 
 
 class MainAgentTypeSerializer(serializers.ModelSerializer):

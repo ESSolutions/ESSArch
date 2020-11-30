@@ -562,10 +562,10 @@
                         <tr>
                           <th class="cursor-pointer" st-sort="name">{{'NAME' | translate}}</th>
                           <th class="cursor-pointer" st-sort="type">{{'ACCESS.RELATIONSHIP_TYPE' | translate}}</th>
+                          <th>{{'DESCRIPTION' | translate}}</th>
                           <th class="cursor-pointer" st-sort="start_date">
-                            {{'ACCESS.TIME_RANGE_START' | translate}}
+                            {{'ACCESS.RELATIONSHIP_TIME_RANGE' | translate}}
                           </th>
-                          <th class="cursor-pointer" st-sort="end_date">{{'ACCESS.TIME_RANGE_END' | translate}}</th>
                           <th permission permission-only="'agents.change_agent'" class="shrink">
                             {{'EDIT' | translate}}
                           </th>
@@ -576,10 +576,21 @@
                       </thead>
                       <tbody>
                         <tr ng-repeat="x in vm.agent.archives" class="selectable" ng-click="vm.archiveClick(x)">
-                          <td>{{x.archive.name}}</td>
+                          <td
+                            uib-tooltip="{{x.archive.description}}"
+                            tooltip-placement="auto top"
+                            tooltip-append-to-body="true"
+                          >
+                            {{x.archive.name_with_dates}}
+                          </td>
                           <td>{{x.type.name}}</td>
-                          <td>{{x.start_date | date:"yyyy-MM-dd"}}</td>
-                          <td>{{x.end_date |date:"yyyy-MM-dd"}}</td>
+                          <td class="oneline-ellipsis">{{x.description}}</td>
+                          <td>
+                            <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
+                              {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
+                              date:x.type.date_render_format}}
+                            </div>
+                          </td>
                           <td permission permission-only="'agents.change_agent'" class="text-center shrink">
                             <button
                               class="btn btn-default btn-sm fas fa-edit"

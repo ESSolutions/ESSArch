@@ -72,8 +72,9 @@
     ></result-field>
   </div>
   <div ng-if="vm.record.start_date || vm.record.end_date" class="pt-base">
-    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date | date:"yyyy-MM-dd") :
-    ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date | date:"yyyy-MM-dd") : ''}}
+    <b>{{'DATE' | translate}}:</b>&nbsp; {{vm.record.start_date ? (vm.record.start_date |
+    date:vm.record.type.date_render_format) : ''}}&nbsp;-&nbsp;{{vm.record.end_date ? (vm.record.end_date |
+    date:vm.record.type.date_render_format) : ''}}
   </div>
   <result-field label="{{'TYPE' | translate}}" stronglabel="true" data="vm.record._source.type"></result-field>
   <div ng-if="vm.record.location">

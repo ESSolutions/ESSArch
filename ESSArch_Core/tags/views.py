@@ -450,10 +450,13 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
         context = {'structure': structure, 'request': request, 'user': request.user, 'is_mixed_type': False}
         children = children.for_user(request.user).natural_sort()
+        doument_index = False
         mixed_dict = {}
         for child in children:
             mixed_dict[child.type] = mixed_dict.get(child.type, 0) + 1
-        if len(mixed_dict) > 1:
+            if child.elastic_index == 'document':
+                doument_index = True
+        if len(mixed_dict) > 1 or doument_index:
             context['is_mixed_type'] = True
 
         if self.paginator is not None:
