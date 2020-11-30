@@ -25,6 +25,13 @@ DEFAULT_BLOCK_SIZE = 10 * MB
 logger = logging.getLogger('essarch.storage.copy')
 
 
+def get_existing_part_of_path(path):
+    if os.path.isdir(path):
+        return path
+    else:
+        return get_existing_part_of_path(os.path.dirname(path))
+
+
 def enough_space_available(dst: str, src: str, raise_exception: bool = False) -> bool:
     """
     Tells if there is enough space available at
@@ -38,7 +45,7 @@ def enough_space_available(dst: str, src: str, raise_exception: bool = False) ->
     """
 
     src_size, _ = get_tree_size_and_count(src)
-    dst_free_space = shutil.disk_usage(dst).free
+    dst_free_space = shutil.disk_usage(get_existing_part_of_path(dst)).free
 
     try:
         assert src_size <= dst_free_space
