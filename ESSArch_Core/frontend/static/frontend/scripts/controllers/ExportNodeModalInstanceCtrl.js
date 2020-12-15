@@ -4,15 +4,18 @@ export default class ExportNodeModalInstanceCtrl {
     $ctrl.data = data;
     $ctrl.exportOptions = [];
     $ctrl.options = {};
-    $ctrl.model = {option: 'email'};
 
     let getExportOptions = (node) => {
-      $ctrl.exportOptions = [{name: $translate.instant('ACCESS.SEND_AS_EMAIL'), value: 'email'}];
-      $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_OMEKA'), value: 'omeka'});
+      $ctrl.exportOptions = [];
       if (node._index === 'archive') {
-        $ctrl.exportOptions.push({name: $translate.instant('ACCESS.CREATE_LABELS'), value: 'labels'});
+        $ctrl.model = {option: 'archive'};
         $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_ARCHIVE'), value: 'archive'});
+        $ctrl.exportOptions.push({name: $translate.instant('ACCESS.CREATE_LABELS'), value: 'labels'});
+      } else {
+        $ctrl.model = {option: 'email'};
       }
+      $ctrl.exportOptions.push({name: $translate.instant('ACCESS.EXPORT_OMEKA'), value: 'omeka'});
+      $ctrl.exportOptions.push({name: $translate.instant('ACCESS.SEND_AS_EMAIL'), value: 'email'});
       return $ctrl.exportOptions;
     };
 
