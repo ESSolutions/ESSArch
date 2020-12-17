@@ -693,7 +693,7 @@ export default class SearchDetailCtrl {
           const newVersion = {
             label: $translate.instant('ACCESS.NEW_VERSION'),
             _disabled: function () {
-              return node.original._is_structure_unit;
+              return node.original._is_structure_unit || node.original._index === 'archive';
             },
             action: function () {
               vm.newVersionNodeModal(node);
