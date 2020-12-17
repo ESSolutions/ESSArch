@@ -1,5 +1,6 @@
 import logging
 import uuid
+from copy import deepcopy
 
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
@@ -18,7 +19,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from mptt.querysets import TreeQuerySet
 from relativity.mptt import MPTTSubtree
 
-from ESSArch_Core.agents.models import Agent
+from ESSArch_Core.agents.models import Agent, AgentTagLink
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
@@ -1112,14 +1113,24 @@ class TagVersion(models.Model):
             data = {}
 
         # create copies with same tag as old version
-        new = TagVersion.objects.create(
-            tag=self.tag,
-            type=self.type,
-            name=self.name,
-            elastic_index=self.elastic_index,
-            start_date=start_date,
-            end_date=end_date
-        )
+        new = deepcopy(self)
+        new.pk = None
+        new.create_date = timezone.now()
+        new.revise_date = timezone.now()
+        new.start_date = start_date
+        new.end_date = end_date
+        new.save()
+
+        try:
+            ctype = ContentType.objects.get_for_model(self)
+            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+            GroupGenericObjects.objects.update_or_create(object_id=new.pk, content_type=ctype,
+                                                         defaults={'group': gg_obj.group})
+        except GroupGenericObjects.DoesNotExist:
+            pass
+
+        for agent_link in AgentTagLink.objects.filter(tag=self):
+            AgentTagLink.objects.create(tag=new, agent=agent_link.agent, type=agent_link.type)
 
         # TODO: create new copy of old elastic document updated with `data`
         doc = new.to_search()

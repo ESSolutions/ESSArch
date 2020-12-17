@@ -1067,19 +1067,35 @@ class ComponentWriteSerializer(NodeWriteSerializer):
                 AgentTagLink.objects.create(tag=tag_version, agent=agent_link.agent, type=agent_link.type)
 
             tag_structure.refresh_from_db()
-            if structure_unit is None:
-                structure_unit = tag_structure.get_ancestors(
-                    include_self=True
-                ).filter(structure_unit__isnull=False).get().structure_unit
-            related_units = structure_unit.related_structure_units.filter(
-                structure__is_template=False
-            ).exclude(
-                structure=tag_structure.structure
-            )
 
-            for related in related_units:
-                new_unit = related if tag_structure.structure_unit is not None else None
-                tag_structure.copy_to_new_structure(related.structure, new_unit=new_unit)
+            # Prel remove code, does not need copy to related structures??
+            # if structure_unit is None:
+            #     structure_unit = tag_structure.get_ancestors(
+            #         include_self=True
+            #     ).filter(structure_unit__isnull=False).get().structure_unit
+            # related_units = structure_unit.related_structure_units.filter(
+            #     structure__is_template=False
+            # ).exclude(
+            #     structure=tag_structure.structure
+            # )
+            # logger.debug('ComponentWriteSerializer - create - tag: {tag}, tag_structure: {tag_structure},
+            # tag_structure.structure: {tag_structure_structure},
+            # tag_structure.structure_unit: {tag_structure_structure_unit},
+            # related_units: {related_units}'.format(
+            #     tag=tag, tag_structure=tag_structure, tag_structure_structure=tag_structure.structure,
+            # tag_structure_structure_unit=tag_structure.structure_unit, related_units=related_units
+            # ))
+            # for related in related_units:
+            #     new_unit = related if tag_structure.structure_unit is not None else None
+            #     logger.debug('ComponentWriteSerializer - create (for related) - related: {related},
+            # new_unit: {new_unit}, related.structure: {related_structure}'.format(
+            #         related=related, new_unit=new_unit, related_structure=related.structure
+            #     ))
+            #     new_tag_structure = tag_structure.copy_to_new_structure(related.structure, new_unit=new_unit)
+            #     logger.debug('ComponentWriteSerializer - create (for related 2) - new_tag_structure:
+            # {new_tag_structure}'.format(
+            #         new_tag_structure=new_tag_structure
+            #     ))
 
             self.create_identifiers(tag_version, identifiers_data)
             self.create_notes(tag_version, notes_data)
@@ -1116,10 +1132,11 @@ class ComponentWriteSerializer(NodeWriteSerializer):
                 parent = parent_structure
                 structure_unit = None
 
-            TagStructure.objects.update_or_create(tag=tag, structure=structure, defaults={
-                'parent': parent,
-                'structure_unit': structure_unit,
-            })
+            if parent or structure_unit:
+                TagStructure.objects.update_or_create(tag=tag, structure=structure, defaults={
+                    'parent': parent,
+                    'structure_unit': structure_unit,
+                })
 
         instance.tag.information_package = information_package
         instance.tag.appraisal_date = appraisal_date
