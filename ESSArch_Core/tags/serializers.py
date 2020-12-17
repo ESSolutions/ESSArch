@@ -1078,16 +1078,22 @@ class ComponentWriteSerializer(NodeWriteSerializer):
             # ).exclude(
             #     structure=tag_structure.structure
             # )
-            # logger.debug('ComponentWriteSerializer - create - tag: {tag}, tag_structure: {tag_structure}, tag_structure.structure: {tag_structure_structure}, tag_structure.structure_unit: {tag_structure_structure_unit}, related_units: {related_units}'.format(
-            #     tag=tag, tag_structure=tag_structure, tag_structure_structure=tag_structure.structure, tag_structure_structure_unit=tag_structure.structure_unit, related_units=related_units
+            # logger.debug('ComponentWriteSerializer - create - tag: {tag}, tag_structure: {tag_structure},
+            # tag_structure.structure: {tag_structure_structure},
+            # tag_structure.structure_unit: {tag_structure_structure_unit},
+            # related_units: {related_units}'.format(
+            #     tag=tag, tag_structure=tag_structure, tag_structure_structure=tag_structure.structure,
+            # tag_structure_structure_unit=tag_structure.structure_unit, related_units=related_units
             # ))
             # for related in related_units:
             #     new_unit = related if tag_structure.structure_unit is not None else None
-            #     logger.debug('ComponentWriteSerializer - create (for related) - related: {related}, new_unit: {new_unit}, related.structure: {related_structure}'.format(
+            #     logger.debug('ComponentWriteSerializer - create (for related) - related: {related},
+            # new_unit: {new_unit}, related.structure: {related_structure}'.format(
             #         related=related, new_unit=new_unit, related_structure=related.structure
             #     ))
             #     new_tag_structure = tag_structure.copy_to_new_structure(related.structure, new_unit=new_unit)
-            #     logger.debug('ComponentWriteSerializer - create (for related 2) - new_tag_structure: {new_tag_structure}'.format(
+            #     logger.debug('ComponentWriteSerializer - create (for related 2) - new_tag_structure:
+            # {new_tag_structure}'.format(
             #         new_tag_structure=new_tag_structure
             #     ))
 
