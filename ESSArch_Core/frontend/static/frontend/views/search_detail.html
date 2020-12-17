@@ -18,7 +18,7 @@
   <div ng-if="!vm.unavailable" class="view-content">
     <div class="detail-header">
       <div ng-include src="'static/frontend/views/search_detail_breadcrumbs.html'"></div>
-      <div class="version-select-wrapper">
+      <div ng-if="vm.record._index !== 'archive'" class="version-select-wrapper">
         <label title="{{'ACCESS.VERSION_HISTORY_DESC' | translate}}"> {{'ACCESS.VERSION_HISTORY' | translate}} </label>
         <div class="flex-row">
           <select
