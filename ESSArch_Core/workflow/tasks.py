@@ -71,6 +71,30 @@ User = get_user_model()
 logger = logging.getLogger('essarch')
 
 
+@app.task(bind=True)
+@transaction.atomic
+def ReceiveDir(self):
+    def _get_workarea_path():
+        ip = InformationPackage.objects.get(pk=self.ip)
+        workarea = Path.objects.get(entity='ingest_workarea').value
+        username = User.objects.get(pk=self.responsible).username
+        workarea_user = os.path.join(workarea, username)
+        return os.patjoin(workarea_user, ip.object_identifier_value)
+
+    ip = InformationPackage.objects.get(pk=self.ip)
+    objpath = ip.object_path
+    workarea_path = _get_workarea_path()
+
+    shutil.copytree(objpath, workarea_path)
+    ip.object_path = workarea_path
+    ip.save()
+    Workarea.objects.create(ip=ip, user_id=self.responsible, type=Workarea.INGEST, read_only=False)
+
+    self.create_success_event("Received IP")
+
+
+
+
 @app.task(bind=True, event_type=20100)
 @transaction.atomic
 def ReceiveSIP(self, purpose=None, delete_sip=False):
