@@ -79,7 +79,7 @@ def ReceiveDir(self):
         workarea = Path.objects.get(entity='ingest_workarea').value
         username = User.objects.get(pk=self.responsible).username
         workarea_user = os.path.join(workarea, username)
-        return os.patjoin(workarea_user, ip.object_identifier_value)
+        return os.path.join(workarea_user, ip.object_identifier_value)
 
     ip = InformationPackage.objects.get(pk=self.ip)
     objpath = ip.object_path
