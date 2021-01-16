@@ -19,7 +19,7 @@ export default class ConversionCtrl {
     vm.conversions = [
       {
         id: 0,
-        name: $translate.instant('CONVERSION') + ' 1',
+        name: '1',
         converter: null,
         data: {},
       },
@@ -51,7 +51,7 @@ export default class ConversionCtrl {
       tabNumber++;
       let val = {
         id: tabNumber,
-        name: $translate.instant('CONVERSION') + ' ' + (tabNumber + 1),
+        name: (tabNumber + 1),
         validator: null,
         data: {},
       };
