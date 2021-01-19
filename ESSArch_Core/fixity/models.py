@@ -83,7 +83,7 @@ class ActionTool(ExternalTool):
         kwargs.update(options)
         return self.cmd.format(**kwargs)
 
-    def _run_application(self, filepath, rootdir, options):
+    def _run_application(self, filepath, rootdir, options, t):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -110,7 +110,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_python(self, filepath, rootdir, options):
+    def _run_python(self, filepath, rootdir, options, t):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -120,7 +120,8 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-                p = getattr(importlib.import_module(module), task)
+                p = getattr(importlib.import_module(module), task)(task=t)
+                print("p", p)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
                 elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
@@ -156,7 +157,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_docker(self, filepath, rootdir, options):
+    def _run_docker(self, filepath, rootdir, options, t):
         import docker
         client = docker.from_env()
         workdir = '/mnt/vol1'
@@ -170,13 +171,13 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
-    def run(self, filepath, rootdir, options):
+    def run(self, filepath, rootdir, options, t):
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
-            return self._run_application(filepath, rootdir, options)
+            return self._run_application(filepath, rootdir, options,t)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
-            return self._run_docker(filepath, rootdir, options)
+            return self._run_docker(filepath, rootdir, options,t)
         elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
-            return self._run_python(filepath, rootdir, options)
+            return self._run_python(filepath, rootdir, options, t)
 
         raise ValueError('Unknown tool type')
 

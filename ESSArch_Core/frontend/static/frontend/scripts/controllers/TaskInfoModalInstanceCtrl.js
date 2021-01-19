@@ -10,14 +10,75 @@ export default class TaskInfoModalInstanceCtrl {
     Task,
     listViewService,
     $uibModal,
-    $timeout
+    $timeout,
+    $filter
   ) {
     const $ctrl = this;
     $scope.myTreeControl = {scope: {}};
     $scope.angular = angular;
     if (data) {
       $ctrl.data = data;
-    }
+    };
+
+// Show fullscreen validation message
+    $ctrl.showFullscreenMessage = function(validation) {
+      $ctrl.fullscreenActive = true;
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/validation_fullscreen_message.html',
+        controller: 'DataModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        windowClass: 'fullscreen-modal',
+        resolve: {
+          data: {
+            validation: validation,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {
+          $ctrl.fullscreenActive = false;
+        },
+        function() {
+          $ctrl.fullscreenActive = false;
+          $console.log('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    $ctrl.ok = function() {
+      $uibModalInstance.close();
+    };
+
+
+
+    /*$ctrl.showValidationResult = function(validation) {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/validation_fullscreen_message.html',
+        controller: 'DataModalInstanceCtrl',
+        size: 'lg',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            validation: validation,
+            message:validation,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function(data) {},
+        function() {
+          console.log('modal-component dismissed at: ' + new Date());
+        }
+      );
+    }; */
+
+
+
 
     $ctrl.validations = [];
     $ctrl.$onInit = () => {
