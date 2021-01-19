@@ -485,6 +485,7 @@ export default angular
     'Notifications',
     'data',
     '$q',
+    '$uibModal',
     DataModalInstanceCtrl,
   ])
   .controller('DeactivateMediumModalInstanceCtrl', [
@@ -1124,6 +1125,7 @@ export default angular
     'listViewService',
     '$uibModal',
     '$timeout',
+    '$filter',
     TaskInfoModalInstanceCtrl,
   ])
   .controller('UserDropdownCtrl', [

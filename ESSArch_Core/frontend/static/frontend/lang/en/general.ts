@@ -293,6 +293,7 @@ const general = ($translateProvider) => {
     PREPAREIPDESC: 'Create a new IP',
     PREPARESIP: 'Prepare SIP',
     PRESERVE: 'Preserve',
+    PRESS_ESCAPE_TO_CLOSE:'Press ESC to close',
     PREVIEW: 'Preview',
     PREVIEW_MIGRATION: 'Preview storage migration',
     PREVIEW_MIGRATION_DESC: 'Select an information package to see which storage targets it will be migrated to',
