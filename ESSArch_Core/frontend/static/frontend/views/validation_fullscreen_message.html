@@ -1,0 +1,25 @@
+<div class="modal-heading">
+  <div>
+    <b>{{'FILENAME' | translate}}: </b>{{$ctrl.data.validation.filename}} <br />
+    <b>{{'VALIDATOR' | translate}}: </b>{{$ctrl.data.validation.validator}} <br />
+    <b>{{'STATE' | translate}}: </b>
+    <div ng-if="$ctrl.data.validation.passed" class="step-state-success"><b>{{'SUCCESS' | translate}}</b></div>
+    <div ng-if="!$ctrl.data.validation.passed" class="step-state-failure"><b>{{'FAILURE' | translate}}</b></div>
+  </div>
+  <h4
+    class="no-select clickable"
+    ng-click="$ctrl.cancel()"
+    uib-tooltip="{{'CLOSE' | translate}}"
+    tooltip-placement="auto bottom-left"
+    tooltip-append-to-body="true"
+  >
+    {{'PRESS_ESCAPE_TO_CLOSE' | translate}}
+  </h4>
+</div>
+<div class="modal-body" id="modal-body">
+  <div>
+    <pre
+      ng-bind-html="$ctrl.data.validation.message"
+    ></pre>
+  </div>
+</div>
