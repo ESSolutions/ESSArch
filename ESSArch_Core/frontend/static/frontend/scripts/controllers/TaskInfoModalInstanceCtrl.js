@@ -18,10 +18,10 @@ export default class TaskInfoModalInstanceCtrl {
     $scope.angular = angular;
     if (data) {
       $ctrl.data = data;
-    };
+    }
 
-// Show fullscreen validation message
-    $ctrl.showFullscreenMessage = function(validation) {
+    // Show fullscreen validation message
+    $ctrl.showFullscreenMessage = function (validation) {
       $ctrl.fullscreenActive = true;
       var modalInstance = $uibModal.open({
         animation: true,
@@ -38,20 +38,18 @@ export default class TaskInfoModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $ctrl.fullscreenActive = false;
         },
-        function() {
+        function () {
           $ctrl.fullscreenActive = false;
           $console.log('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-
-
 
     /*$ctrl.showValidationResult = function(validation) {
       var modalInstance = $uibModal.open({
@@ -76,9 +74,6 @@ export default class TaskInfoModalInstanceCtrl {
         }
       );
     }; */
-
-
-
 
     $ctrl.validations = [];
     $ctrl.$onInit = () => {

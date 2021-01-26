@@ -1,5 +1,5 @@
 export default class DataModalInstanceCtrl {
-  constructor(IP, $scope, $uibModalInstance, Notifications, data, $q, $uibModal,) {
+  constructor(IP, $scope, $uibModalInstance, Notifications, data, $q, $uibModal) {
     const $ctrl = this;
     if (data.vm) {
       var vm = data.vm;
@@ -13,9 +13,8 @@ export default class DataModalInstanceCtrl {
       }
     };
 
-
     // Show fullscreen validation message
-    $ctrl.showFullscreenMessage = function() {
+    $ctrl.showFullscreenMessage = function () {
       $ctrl.fullscreenActive = true;
       var modalInstance = $uibModal.open({
         animation: true,
@@ -32,19 +31,18 @@ export default class DataModalInstanceCtrl {
         },
       });
       modalInstance.result.then(
-        function(data) {
+        function (data) {
           $ctrl.fullscreenActive = false;
         },
-        function() {
+        function () {
           $ctrl.fullscreenActive = false;
           $console.log('modal-component dismissed at: ' + new Date());
         }
       );
     };
-    $ctrl.ok = function() {
+    $ctrl.ok = function () {
       $uibModalInstance.close();
     };
-
 
     // Close prepare alert
     $scope.closePrepareAlert = function () {
