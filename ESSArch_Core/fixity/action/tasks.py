@@ -16,7 +16,7 @@ User = get_user_model()
 
 @app.task(bind=True, event_type=50760)
 def Action(self, tool, pattern, rootdir, options, purpose=None):
-    def _convert(path, rootdir, tool, options, t=None):
+    def _convert(path, rootdir, tool, options,t):
         tool.run(path, rootdir, options, t)
 
         relpath = PurePath(path).relative_to(rootdir).as_posix()

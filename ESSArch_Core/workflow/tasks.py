@@ -93,6 +93,8 @@ def ReceiveDir(self):
     self.create_success_event("Received IP")
 
 
+
+
 @app.task(bind=True, event_type=20100)
 @transaction.atomic
 def ReceiveSIP(self, purpose=None, delete_sip=False):
