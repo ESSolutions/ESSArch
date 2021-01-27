@@ -179,4 +179,4 @@ class StoragePolicyNestedSerializer(StoragePolicySerializer):
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
-        fields = ('name', 'logo',)
+        fields = ('name', 'logo', 'title', 'text')

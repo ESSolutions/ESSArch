@@ -295,7 +295,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     PREPAREIPDESC: 'Gör ett nytt IP',
     PREPARESIP: 'Förbered SIP',
     PRESERVE: 'Arkivera',
-    PRESS_ESCAPE_TO_CLOSE:'Tryck på ESC för att stänga',
+    PRESS_ESCAPE_TO_CLOSE: 'Tryck på ESC för att stänga',
     PREVIEW: 'Förhandsgranska',
     PREVIEW_MIGRATION: 'Förhandsgranska lagringsmigrering',
     PREVIEW_MIGRATION_DESC:

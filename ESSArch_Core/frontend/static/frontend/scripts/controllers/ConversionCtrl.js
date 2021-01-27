@@ -51,7 +51,7 @@ export default class ConversionCtrl {
       tabNumber++;
       let val = {
         id: tabNumber,
-        name: (tabNumber + 1),
+        name: tabNumber + 1,
         validator: null,
         data: {},
       };
