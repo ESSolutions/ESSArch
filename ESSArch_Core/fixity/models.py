@@ -171,7 +171,7 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
-    def run(self, filepath, rootdir, options, t):
+    def run(self, filepath, rootdir, options, t=None):
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
             return self._run_application(filepath, rootdir, options, t)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
