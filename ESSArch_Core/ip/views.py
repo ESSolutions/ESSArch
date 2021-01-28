@@ -885,8 +885,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool')
     def actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading']:
-            raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading" or "Received"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
