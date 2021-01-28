@@ -1,3 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap');
+
+* {
+	margin: 0;
+	padding: 0;
+}
+
 a {
   cursor: pointer;
 }
@@ -7,7 +14,8 @@ html {
 }
 
 body {
-  background-color: $body-background;
+  font-family: 'Lato', sans-serif;
+  box-sizing: border-box;
   margin: 0px auto;
   overflow: auto;
   -ms-overflow-style: scrollbar;
@@ -15,11 +23,115 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  height: 100%;
+  height:100%;
+}
+
+.text-primary-p {
+	color: #a5aaad;
+	font-size: 14px;
+	font-weight: 700;
+}
+.font-bold {
+	font-weight: 700;
+}
+.text-title {
+	color: #2e4a66;
+}
+.text-lightblue {
+	color: #469cac;
+}
+.text-red {
+	color: #cc3d38;
+}
+.text-yellow {
+	color: #a98921;
+}
+.text-green {
+	color: #3b9668;
+}
+
+.container {
+	display: grid;
+	height: 100vh;
+	grid-template-columns: 0.8fr 1fr 1fr;
+	grid-template-rows: 0.2fr 3fr;
+	grid-template-areas: "nav nav nav" "main main main";
 }
 
 main {
+  background: #f3f4f6;
+  grid-area: main;
+  overflow-y: auto;
   display: block;
+}
+
+.main__container {
+  padding: 20px 50px;
+}
+
+.main__title {
+  display: flex;
+  align-items: center;
+}
+
+.main__greeting > h1 {
+  font-size: 24px;
+  color: #2e4a66;
+  margin-bottom: 5px;
+}
+
+.main__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 30 px;
+  margin: 20px 0;
+}
+
+
+.card-stats {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	height: 70px;
+	padding: 25px;
+	background: #f3f4f6;
+	box-shadow: 5px 5px 13px #ededed, -5px -5px 13px #ffffff;
+}
+.card_inner {
+	display: flex;
+	align-items: center;
+  justify-content: space-between;
+	>span {
+		font-size: 25px;
+	}
+}
+.card1 {
+	color: #35a4ba;
+	text-align: center;
+	padding: 25px;
+	border-radius: 20px;
+	font-size: 14px;
+}
+.card2 {
+	color: #38e1b0;
+	text-align: center;
+	padding: 25px;
+	border-radius: 5px;
+	font-size: 14px;
+}
+.card3 {
+	color: #3a3e41;
+	text-align: center;
+	padding: 25px;
+	border-radius: 5px;
+	font-size: 14px;
+}
+.card4 {
+	color: #f65a6f;
+	text-align: center;
+	padding: 25px;
+	border-radius: 5px;
+	font-size: 14px;
 }
 
 .ui-select-dropdown {
