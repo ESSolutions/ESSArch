@@ -1,10 +1,10 @@
-@import "~@fontsource/lato/300.css";
-@import "~@fontsource/lato/400.css";
-@import "~@fontsource/lato/700.css";
+@import '~@fontsource/lato/300.css';
+@import '~@fontsource/lato/400.css';
+@import '~@fontsource/lato/700.css';
 
 * {
-	margin: 0;
-	padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 a {
@@ -25,39 +25,39 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  height:100%;
+  height: 100%;
 }
 
 .text-primary-p {
-	color: #a5aaad;
-	font-size: 14px;
-	font-weight: 700;
+  color: #a5aaad;
+  font-size: 14px;
+  font-weight: 700;
 }
 .font-bold {
-	font-weight: 700;
+  font-weight: 700;
 }
 .text-title {
-	color: #2e4a66;
+  color: #2e4a66;
 }
 .text-lightblue {
-	color: #469cac;
+  color: #469cac;
 }
 .text-red {
-	color: #cc3d38;
+  color: #cc3d38;
 }
 .text-yellow {
-	color: #a98921;
+  color: #a98921;
 }
 .text-green {
-	color: #3b9668;
+  color: #3b9668;
 }
 
 .container {
-	display: grid;
-	height: 100vh;
-	grid-template-columns: 0.8fr 1fr 1fr;
-	grid-template-rows: 0.2fr 3fr;
-	grid-template-areas: "nav nav nav" "main main main";
+  display: grid;
+  height: 100vh;
+  grid-template-columns: 0.8fr 1fr 1fr;
+  grid-template-rows: 0.2fr 3fr;
+  grid-template-areas: 'nav nav nav' 'main main main';
 }
 
 main {
@@ -89,51 +89,50 @@ main {
   margin: 20px 0;
 }
 
-
 .card-stats {
-	display: flex;
-	flex-direction: column;
-	justify-content: space-around;
-	height: 70px;
-	padding: 25px;
-	background: #f3f4f6;
-	box-shadow: 5px 5px 13px #ededed, -5px -5px 13px #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 70px;
+  padding: 25px;
+  background: #f3f4f6;
+  box-shadow: 5px 5px 13px #ededed, -5px -5px 13px #ffffff;
 }
 .card_inner {
-	display: flex;
-	align-items: center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-	>span {
-		font-size: 25px;
-	}
+  > span {
+    font-size: 25px;
+  }
 }
 .card1 {
-	color: #35a4ba;
-	text-align: center;
-	padding: 25px;
-	border-radius: 20px;
-	font-size: 14px;
+  color: #35a4ba;
+  text-align: center;
+  padding: 25px;
+  border-radius: 20px;
+  font-size: 14px;
 }
 .card2 {
-	color: #38e1b0;
-	text-align: center;
-	padding: 25px;
-	border-radius: 5px;
-	font-size: 14px;
+  color: #38e1b0;
+  text-align: center;
+  padding: 25px;
+  border-radius: 5px;
+  font-size: 14px;
 }
 .card3 {
-	color: #3a3e41;
-	text-align: center;
-	padding: 25px;
-	border-radius: 5px;
-	font-size: 14px;
+  color: #3a3e41;
+  text-align: center;
+  padding: 25px;
+  border-radius: 5px;
+  font-size: 14px;
 }
 .card4 {
-	color: #f65a6f;
-	text-align: center;
-	padding: 25px;
-	border-radius: 5px;
-	font-size: 14px;
+  color: #f65a6f;
+  text-align: center;
+  padding: 25px;
+  border-radius: 5px;
+  font-size: 14px;
 }
 
 .ui-select-dropdown {

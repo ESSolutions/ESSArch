@@ -1,50 +1,47 @@
-
 <div ng-if="!vm.statsLoading && vm.stats !== null">
   <div ng-if="vm.stats.tags && vm.stats.tags.length" permission permission-only="'tags.search'">
     <hr />
     <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>
     <div class="main__cards">
       <div class="card-stats">
-          <div class="card__inner" ng-repeat="x in vm.stats.tags">
-            <p class="text-primary-p">{{x.type__name}}</p>
-            <span class="font-bold text-title">{{x.total}}</span>
-          </div>
+        <div class="card__inner" ng-repeat="x in vm.stats.tags">
+          <p class="text-primary-p">{{x.type__name}}</p>
+          <span class="font-bold text-title">{{x.total}}</span>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-
 <div ng-if="!vm.statsLoading && vm.stats !== null">
   <h4>{{'DASHBOARD.SYSTEM' | translate}}</h4>
   <div class="main__cards">
-
     <div class="card-stats">
-        <div class="card__inner">
-            <p class="text-primary-p">{{'DASHBOARD.INFORMATION_PACKAGES' | translate}}</p>
-            <span class="font-bold text-title">{{vm.stats.information_packages}}</span>
-        </div>
-    </div>  
-
-    <div class="card-stats">
-        <div class="card__inner">
-            <p class="text-primary-p">{{'DASHBOARD.ORDERED_INFORMATION_PACKAGES' | translate}}</p>
-            <span class="font-bold text-title">{{vm.stats.ordered_information_packages}}</span>
-        </div>
+      <div class="card__inner">
+        <p class="text-primary-p">{{'DASHBOARD.INFORMATION_PACKAGES' | translate}}</p>
+        <span class="font-bold text-title">{{vm.stats.information_packages}}</span>
+      </div>
     </div>
 
     <div class="card-stats">
-        <div class="card__inner">
-            <p class="text-primary-p">{{'DASHBOARD.APPRAISALS' | translate}}</p>
-            <span class="font-bold text-title">{{vm.stats.appraisals}}</span>
-        </div>
+      <div class="card__inner">
+        <p class="text-primary-p">{{'DASHBOARD.ORDERED_INFORMATION_PACKAGES' | translate}}</p>
+        <span class="font-bold text-title">{{vm.stats.ordered_information_packages}}</span>
+      </div>
     </div>
 
     <div class="card-stats">
-        <div class="card__inner">
-            <p class="text-primary-p">{{'DASHBOARD.TOTAL_OBJECT_SIZE' | translate}}</p>
-            <span class="font-bold text-title">{{vm.stats.total_object_size | filesize}}</span>
-        </div>
+      <div class="card__inner">
+        <p class="text-primary-p">{{'DASHBOARD.APPRAISALS' | translate}}</p>
+        <span class="font-bold text-title">{{vm.stats.appraisals}}</span>
+      </div>
+    </div>
+
+    <div class="card-stats">
+      <div class="card__inner">
+        <p class="text-primary-p">{{'DASHBOARD.TOTAL_OBJECT_SIZE' | translate}}</p>
+        <span class="font-bold text-title">{{vm.stats.total_object_size | filesize}}</span>
+      </div>
     </div>
   </div>
   <div class="float-right">
@@ -57,10 +54,10 @@
     >
       <i class="fas fa-print"></i>
     </button>
-    <br>
-    <br>
+    <br />
+    <br />
   </div>
-  </div>
-  <div ng-if="vm.statsLoading && vm.stats == null" class="loading-column w-100 text-center">
-    {{'LOADING' | translate}}
+</div>
+<div ng-if="vm.statsLoading && vm.stats == null" class="loading-column w-100 text-center">
+  {{'LOADING' | translate}}
 </div>
