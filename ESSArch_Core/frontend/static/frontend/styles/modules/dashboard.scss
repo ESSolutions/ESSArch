@@ -5,23 +5,3 @@
     width: 100%;
   }
 }
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: $padding-base-horizontal;
-  border-collapse: collapse;
-}
-
-.dashboard-row {
-  justify-content: space-between;
-  &:before,
-  &:after {
-    content: '';
-    display: block;
-  }
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  width: 100%;
-}
