@@ -936,6 +936,11 @@
   resolved "https://registry.yarnpkg.com/@flowjs/ng-flow/-/ng-flow-2.7.8.tgz#1d9f9d1f82acda5360328c315bacfd60dbfd9819"
   integrity sha512-zO6jNvz41oMOJj9+1N+vLT0ytitbCtuGABJQRzQDOPXyRMmlSXfJ7om5oYOztyUFrr4jDpE4QFPt+r2/RFceCg==
 
+"@fontsource/lato@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@fontsource/lato/-/lato-4.1.0.tgz#a510e063c50974fe0a3631ec9a8d2fac95d7c50d"
+  integrity sha512-AkD7RiL60Cjsp6qVyjEM+X3nGsk1eO4SsNB7yVBADlBR6IogJno7wzZ4vGHbDTGuxge2LV1FR7peBuT95cHifw==
+
 "@fortawesome/fontawesome-free@~5.14.0":
   version "5.14.0"
   resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-5.14.0.tgz#a371e91029ebf265015e64f81bfbf7d228c9681f"
