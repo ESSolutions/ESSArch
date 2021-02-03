@@ -26,6 +26,8 @@ export default class DashboardStatsCtrl {
           vm.statsLoading = false;
         });
     };
+    vm.labels = ["Fotografi", "Text", "Film", "Ljudband"];
+    vm.d = [3, 5, 10, 4];
 
     vm.getAgents = function (stats) {
       return $http({
