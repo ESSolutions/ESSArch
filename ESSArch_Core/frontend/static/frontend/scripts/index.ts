@@ -38,6 +38,7 @@ import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
 import 'angular-bootstrap-contextmenu';
 import 'angular-bootstrap-grid-tree';
+import 'angular-chart.js';
 import 'angular-clipboard';
 import 'angular-cookies';
 import 'angular-date-time-input';
@@ -59,6 +60,7 @@ import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
+import 'chart.js';
 import 'messenger-hubspot';
 import 'moment';
 import 'ui-select';
@@ -140,6 +142,7 @@ const hasActiveFeature = (feature) => {
 
 angular
   .module('essarch', [
+    'chart.js',
     essarchLanguageModule,
     essarchControllersModule,
     essarchServicesModule,
