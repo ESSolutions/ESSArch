@@ -20,16 +20,23 @@
               ng-submit="submitRequest(ip, vm.request)"
             >
               <div class="request-type">
+
+                <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="edit" />
+                    <i class="fas fa-wrench"></i> {{'GET_AS_EDITABLE' | translate}}
+                  </label>
+                </div>
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="get" />
-                    {{'GET' | translate}}
+                    <i class="fas fa-book-open"></i> {{'GET_AS_READ_ONLY' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea_as_new')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="get_as_new" />
-                    {{'GET_AS_NEW_GENERATION' | translate}}
+                    <i class="fas fa-code-branch"></i> {{'GET_AS_NEW_GENERATION' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.diff_check')">
@@ -41,14 +48,14 @@
                 <div ng-if="checkPermission('ip.preserve')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="preserve" />
-                    {{'PRESERVE' | translate}}
+                    <i class="fas fa-archive"></i> {{'PRESERVE' | translate}}
                   </label>
                 </div>
               </div>
               <div class="request-params">
                 <div
                   class="form-group"
-                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
+                  ng-if="vm.request.type == 'edit' || vm.request.type == 'get' || vm.request.type == 'get_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
                 >
                   <label> {{'COMMENT' | translate}} </label>
                   <input class="form-control" ng-model="vm.request.purpose" />
@@ -82,7 +89,7 @@
           <div
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
-            ng-if="(vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'get' || vm.request.type == 'get_as_new')"
+            ng-if="(vm.request.type == 'edit' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'get' || vm.request.type == 'get_as_new')"
             class="select-sub-edit-eventlog-wrapper"
           >
             <div ng-if="eventlog" class="eventlog-view">

@@ -147,6 +147,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     GET_AS_CONTAINER: 'Hämta som container',
     GET_AS_NEW_GENERATION: 'Hämta som ny generation',
     GET: 'Hämta',
+    GET_AS_READ_ONLY: 'Hämta i läsläge',
+    GET_AS_EDITABLE: 'Hämta i redigeringsläge',
     GLOBALSEARCH: 'sök ...',
     GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'Lista alla arkivbildare som associeras med söktermen',
     GLOBALSEARCHDESC_ARCHIVES: 'Lista alla arkiv som associeras med söktermen',
