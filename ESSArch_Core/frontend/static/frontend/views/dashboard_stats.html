@@ -1,14 +1,20 @@
-    <div ng-if="!vm.statsLoading && vm.stats !== null">
-      <div ng-if="vm.stats.tags && vm.stats.tags.length" permission permission-only="'tags.search'">
-        <hr />
-        <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>
-        <div class="main__container">
-          <div class="main__chart">
-            <canvas id="pie" chart-options="vm.options" class="chart-pie" chart-data="vm.d" chart-labels="vm.labels"></canvas>
-          </div>
-        </div>                    
+<div ng-if="!vm.statsLoading && vm.stats !== null">
+  <div ng-if="vm.stats.tags && vm.stats.tags.length" permission permission-only="'tags.search'">
+    <hr />
+    <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>
+    <div class="main__container">
+      <div class="main__chart">
+        <canvas
+          id="pie"
+          chart-options="vm.options"
+          class="chart-pie"
+          chart-data="vm.d"
+          chart-labels="vm.labels"
+        ></canvas>
       </div>
-    </div>  
+    </div>
+  </div>
+</div>
 
 <div ng-if="!vm.statsLoading && vm.stats !== null">
   <h4>{{'DASHBOARD.SYSTEM' | translate}}</h4>
@@ -16,7 +22,7 @@
     <div class="card-stats">
       <div class="card__inner">
         <p class="text-primary-p">{{'DASHBOARD.INFORMATION_PACKAGES' | translate}}</p>
-        <span class="font-bold text-title">{{vm.stats.information_packages}}</span>           
+        <span class="font-bold text-title">{{vm.stats.information_packages}}</span>
       </div>
     </div>
 
