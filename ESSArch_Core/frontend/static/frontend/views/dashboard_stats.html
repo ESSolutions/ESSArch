@@ -2,8 +2,13 @@
   <div ng-if="vm.stats.tags && vm.stats.tags.length" permission permission-only="'tags.search'">
     <hr />
     <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>
-    <div class="main__container">
-      <div class="wrapper">
+    <div class="main__cards">
+      <div class="card-stats">
+        <div class="card__inner">
+          <p class="text-primary-p">{{'ARCHIVECREATORS' | translate}}</p>
+          <span class="font-bold text-title">{{vm.archivecreatortotal}}</span>
+        </div>
+      </div>
         <div class="main__chart">
           <canvas
             id="pie"
@@ -13,7 +18,6 @@
             chart-labels="vm.labels"
           ></canvas>
         </div>
-      </div>
     </div>
   </div>
 </div>

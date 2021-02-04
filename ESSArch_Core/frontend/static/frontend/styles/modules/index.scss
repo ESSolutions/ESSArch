@@ -60,11 +60,6 @@ body {
   grid-template-areas: 'nav nav nav' 'main main main';
 }
 
-.wrapper {
-  display: grid;
-  grid-template-columns: 400px 200px;
-}
-
 main {
   background: #f3f4f6;
   grid-area: main;
