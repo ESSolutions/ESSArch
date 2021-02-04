@@ -2,19 +2,8 @@
   <div class="main__container">
     <div class="main__title">
       <div class="main__greeting">
-        <h1>ESSArch - A Digital Archival Solution</h1>
-        <p>
-          ESSArch is an open source archival solution compliant to the OAIS ISO-standard, developed together with the
-          National Archives of Sweden and Norway.
-        </p>
-        <p>
-          ESSArch consist of software components that provide functionality for Pre-Ingest, Ingest, Preservation,
-          Access, Data Management, Administration and Management.
-        </p>
-        <p>
-          Every software component of ESSArch can be used individually and also be easily integrated together to
-          provide overall functionality for producers, archivists and consumers.
-        </p>
+        <h1 ng-bind-html="vm.sites.title"></h1>
+        <p ng-bind-html="vm.sites.text"></p>
       </div>
     </div>
     <dashboard-stats></dashboard-stats>
