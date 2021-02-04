@@ -4,6 +4,9 @@ export default class DashboardStatsCtrl {
   constructor(appConfig, $http, $uibModal, $log, $translate, $rootScope) {
     const vm = this;
     vm.stats = null;
+    vm.labels = [];
+    vm.options= [];
+    vm.d = [];
     vm.$onInit = function () {
       vm.statsLoading = true;
       vm.getStats()
@@ -12,6 +15,26 @@ export default class DashboardStatsCtrl {
             vm.getAgents(stats)
               .then((statsWithAgents) => {
                 vm.stats = statsWithAgents;
+                angular.forEach([vm.stats.tags], function(arr){
+                  angular.forEach(arr, function(value){
+                    vm.labels.push(value.type__name);
+                    vm.d.push(value.total);
+                  })
+               });
+               vm.options = {
+                tooltipEvents: [],
+                showTooltips: true,
+                tooltipCaretSize: 0,
+                onAnimationComplete: function () {
+                    this.showTooltip(this.segments, true);
+                },
+                legend: {
+                  display: true,
+                  labels: {
+                      fontColor: 'rgb(255, 99, 132)'
+                  }
+                }
+              };
                 vm.statsLoading = false;
               })
               .catch(() => {
@@ -26,8 +49,8 @@ export default class DashboardStatsCtrl {
           vm.statsLoading = false;
         });
     };
-    vm.labels = ["Fotografi", "Text", "Film", "Ljudband"];
-    vm.d = [3, 5, 10, 4];
+
+    
 
     vm.getAgents = function (stats) {
       return $http({

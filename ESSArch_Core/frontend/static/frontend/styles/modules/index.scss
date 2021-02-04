@@ -71,6 +71,11 @@ main {
   padding: 20px 50px;
 }
 
+.main__chart {
+  display: flex;
+  align-items: center;
+}
+
 .main__title {
   display: flex;
   align-items: center;
