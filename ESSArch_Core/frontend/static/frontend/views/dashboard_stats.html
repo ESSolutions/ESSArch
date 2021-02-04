@@ -3,14 +3,16 @@
     <hr />
     <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>
     <div class="main__container">
-      <div class="main__chart">
-        <canvas
-          id="pie"
-          chart-options="vm.options"
-          class="chart-pie"
-          chart-data="vm.d"
-          chart-labels="vm.labels"
-        ></canvas>
+      <div class="wrapper">
+        <div class="main__chart">
+          <canvas
+            id="pie"
+            chart-options="vm.options"
+            class="chart-pie"
+            chart-data="vm.d"
+            chart-labels="vm.labels"
+          ></canvas>
+        </div>
       </div>
     </div>
   </div>
