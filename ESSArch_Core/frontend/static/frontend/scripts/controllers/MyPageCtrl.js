@@ -7,8 +7,8 @@ export default class MyPageCtrl {
       vm.sitesLoading = true;
       vm.getSites()
         .then(function (sites) {
-            vm.sites = sites;
-            vm.sitesLoading = false;
+          vm.sites = sites;
+          vm.sitesLoading = false;
         })
         .catch(() => {
           vm.sitesLoading = false;
@@ -19,5 +19,5 @@ export default class MyPageCtrl {
         return response.data;
       });
     };
-  }  
+  }
 }
