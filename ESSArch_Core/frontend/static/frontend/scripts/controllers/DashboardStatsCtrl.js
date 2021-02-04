@@ -4,9 +4,9 @@ export default class DashboardStatsCtrl {
   constructor(appConfig, $http, $uibModal, $log, $translate, $rootScope) {
     const vm = this;
     vm.stats = null;
-    vm.labels = [];
-    vm.options = [];
-    vm.d = [];
+    vm.chartlabels = [];
+    vm.chartoptions = [];
+    vm.chartdata = [];
     vm.archivecreatortotal = null;
     vm.$onInit = function () {
       vm.statsLoading = true;
@@ -18,11 +18,11 @@ export default class DashboardStatsCtrl {
                 vm.stats = statsWithAgents;
                 angular.forEach([vm.stats.tags], function (arr) {
                   angular.forEach(arr, function (value) {
-                    vm.labels.push(value.type__name);
-                    vm.d.push(value.total);
+                    vm.chartlabels.push(value.type__name);
+                    vm.chartdata.push(value.total);
                   });
                 });
-                vm.options = {
+                vm.chartoptions = {
                   tooltipEvents: [],
                   showTooltips: true,
                   tooltipCaretSize: 0,
