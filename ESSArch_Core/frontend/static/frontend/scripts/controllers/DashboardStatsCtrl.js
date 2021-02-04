@@ -5,7 +5,7 @@ export default class DashboardStatsCtrl {
     const vm = this;
     vm.stats = null;
     vm.labels = [];
-    vm.options= [];
+    vm.options = [];
     vm.d = [];
     vm.$onInit = function () {
       vm.statsLoading = true;
@@ -15,26 +15,26 @@ export default class DashboardStatsCtrl {
             vm.getAgents(stats)
               .then((statsWithAgents) => {
                 vm.stats = statsWithAgents;
-                angular.forEach([vm.stats.tags], function(arr){
-                  angular.forEach(arr, function(value){
+                angular.forEach([vm.stats.tags], function (arr) {
+                  angular.forEach(arr, function (value) {
                     vm.labels.push(value.type__name);
                     vm.d.push(value.total);
-                  })
-               });
-               vm.options = {
-                tooltipEvents: [],
-                showTooltips: true,
-                tooltipCaretSize: 0,
-                onAnimationComplete: function () {
+                  });
+                });
+                vm.options = {
+                  tooltipEvents: [],
+                  showTooltips: true,
+                  tooltipCaretSize: 0,
+                  onAnimationComplete: function () {
                     this.showTooltip(this.segments, true);
-                },
-                legend: {
-                  display: true,
-                  labels: {
-                      fontColor: 'rgb(255, 99, 132)'
-                  }
-                }
-              };
+                  },
+                  legend: {
+                    display: true,
+                    labels: {
+                      fontColor: 'rgb(255, 99, 132)',
+                    },
+                  },
+                };
                 vm.statsLoading = false;
               })
               .catch(() => {
@@ -49,8 +49,6 @@ export default class DashboardStatsCtrl {
           vm.statsLoading = false;
         });
     };
-
-    
 
     vm.getAgents = function (stats) {
       return $http({
