@@ -7,6 +7,7 @@ export default class DashboardStatsCtrl {
     vm.labels = [];
     vm.options = [];
     vm.d = [];
+    vm.archivecreatortotal = null;
     vm.$onInit = function () {
       vm.statsLoading = true;
       vm.getStats()
@@ -55,7 +56,7 @@ export default class DashboardStatsCtrl {
         url: appConfig.djangoUrl + 'agents/',
         method: 'HEAD',
       }).then(function (response) {
-        stats.tags.unshift({type__name: $translate.instant('ARCHIVECREATORS'), total: response.headers('Count')});
+        vm.archivecreatortotal = response.headers('Count');
         return stats;
       });
     };
