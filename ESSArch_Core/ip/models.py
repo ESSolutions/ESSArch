@@ -1716,12 +1716,21 @@ class InformationPackage(models.Model):
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def update_remote_ip(self, host, session):
-        from ESSArch_Core.ip.serializers import InformationPackageFromMasterSerializer
+        from ESSArch_Core.ip.serializers import (
+            InformationPackageFromMasterSerializer,
+        )
 
         remote_ip = urljoin(host, reverse('informationpackage-add-from-master'))
         data = InformationPackageFromMasterSerializer(instance=self).data
-        response = session.post(remote_ip, json=data, timeout=10)
-        response.raise_for_status()
+        response = None
+        try:
+            response = session.post(remote_ip, json=data, timeout=10)
+            response.raise_for_status()
+        except RequestException as e:
+            msg = 'Response: {response}, post_url: {post_url}, post_data: {post_data}'.format(
+                response=e.response.text, post_url=remote_ip, post_data=data)
+            logger.error(msg)
+            raise e
 
     @retry(retry=retry_if_exception_type(StorageMediumFull), reraise=True, stop=stop_after_attempt(2),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
