@@ -509,6 +509,10 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
     policy = StoragePolicySerializer()
     organization = serializers.SerializerMethodField()
+    submission_agreement = serializers.PrimaryKeyRelatedField(
+        queryset=SubmissionAgreement.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
     submission_agreement_data = serializers.SerializerMethodField()
     submission_agreement_data_versions = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(read_only=True)
