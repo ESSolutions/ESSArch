@@ -4,6 +4,7 @@ import AccessCtrl from '../controllers/AccessCtrl';
 import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AccessWorkareaCtrl from '../controllers/AccessWorkareaCtrl';
+import ActionModalCtrl from '../controllers/ActionModalCtrl';
 import AddNodeModalInstanceCtrl from '../controllers/AddNodeModalInstanceCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AgentModalInstanceCtrl from '../controllers/AgentModalInstanceCtrl';
@@ -175,6 +176,7 @@ export default angular
     AccessIpCtrl,
   ])
   .controller('AccessWorkareaCtrl', ['$scope', '$controller', AccessWorkareaCtrl])
+  .controller('ActionModalCtrl', ['$scope', '$uibModalInstance', 'validations', ActionModalCtrl])
   .controller('AddNodeModalInstanceCtrl', [
     'Search',
     '$translate',

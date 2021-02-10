@@ -99,6 +99,20 @@ export default class ConversionCtrl {
       },
     ];
 
+    $scope.clickForModal = function(validations) {      
+      $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/actionmodal.html',
+        scope: $scope,
+        controller: 'ActionModalCtrl',
+        resolve: {
+          validations
+        },
+      });
+    }
+
     let tabNumber = 0;
     vm.conversions = [
       {
