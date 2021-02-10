@@ -35,11 +35,18 @@ export default class ConversionCtrl {
                   console.log('vdata: ');
                   console.log(vdata[j].id);
                   var validation = null;
+                  /*
+                  time_done: "2021-02-03T17:12:58.500696+01:00"
+time_started: "2021-02-03T17:12:58.500687+01:00"
+                  */
                   if (vdata[j].passed == true) {
                     validation = {
                       id: vdata[j].id,
                       taskid: tids[i].id,
                       label: tids[i].label,
+                      time_done: vdata[j].time_done,
+                      time_started: vdata[j].time_started,
+                      time_created: tids[i].time_created,
                       filename: vdata[j].filename,
                       passed: 'Success',
                       validator: vdata[j].validator,
@@ -50,6 +57,9 @@ export default class ConversionCtrl {
                       id: vdata[j].id,
                       taskid: tids[i].id,
                       label: tids[i].label,
+                      time_done: vdata[j].time_done,
+                      time_started: vdata[j].time_started,
+                      time_created: tids[i].time_created,
                       filename: vdata[j].filename,
                       passed: 'Failure',
                       validator: vdata[j].validator,
@@ -60,6 +70,9 @@ export default class ConversionCtrl {
                       id: vdata[j].id,
                       taskid: tids[i].id,
                       label: tids[i].label,
+                      time_done: vdata[j].time_done,
+                      time_started: vdata[j].time_started,
+                      time_created: tids[i].time_created,
                       filename: vdata[j].filename,
                       passed: 'Unknown',
                       validator: vdata[j].validator,

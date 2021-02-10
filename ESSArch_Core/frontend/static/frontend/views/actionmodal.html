@@ -58,6 +58,31 @@
         >
         <b>{{ currentStepTask.progress | number : 0 }}%</b>
     </uib-progressbar>
+    <div class="row py-2">
+        <div class="col-12 col-sm-6 col-md-3">
+          <label>{{ "CREATED" | translate }}</label>
+          <p>{{ currentStepTask.time_created | date: "yyyy-MM-dd HH:mm:ss.sss" }}</p>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <label> {{ "STARTED" | translate }} </label>
+          <p>
+            {{ currentStepTask.time_started !== null ? (currentStepTask.time_started | date: "yyyy-MM-dd HH:mm:ss.sss") :
+            "-" }}
+          </p>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <label> {{ "DONE" | translate }} </label>
+          <p>
+            {{ currentStepTask.time_done !== null ? (currentStepTask.time_done | date: "yyyy-MM-dd HH:mm:ss.sss") : "-"
+            }}
+          </p>
+        </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <label> {{ "STATE_TREE.DURATION" | translate }} </label>
+          <p>{{ currentStepTask.duration !== null ? currentStepTask.duration : "-" }}</p>
+        </div>
+      </div>
+  
 
       </div>
     </div>

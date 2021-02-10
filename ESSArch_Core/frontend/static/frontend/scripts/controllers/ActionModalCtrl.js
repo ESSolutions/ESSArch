@@ -1,5 +1,24 @@
+import moment from 'moment';
+
 export default class ActionModalCtrl {
     constructor($scope, $rootScope, $uibModalInstance, currentStepTask) {
+        if (currentStepTask.time_started !== null && currentStepTask.time_done !== null) {
+            const started = moment(currentStepTask.time_started);
+            const done = moment(currentStepTask.time_done);
+            currentStepTask.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
+          } else {
+            currentStepTask.duration = null;
+          }
+
+          $scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
+        if (currentStepTask.time_started !== null && currentStepTask.time_done !== null) {
+            const started = moment(currentStepTask.time_started);
+            const done = moment(currentStepTask.time_done);
+            currentStepTask.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
+          } else {
+            currentStepTask.duration = null;
+          }
+
         $scope.currentStepTask = currentStepTask;
         $scope.ok = () => {
             $uibModalInstance.close('remove');
@@ -10,6 +29,12 @@ export default class ActionModalCtrl {
           };
 
         $scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
-
+        if (currentStepTask.time_started !== null && currentStepTask.time_done !== null) {
+            const started = moment(currentStepTask.time_started);
+            const done = moment(currentStepTask.time_done);
+            currentStepTask.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
+          } else {
+            currentStepTask.duration = null;
+          }
     }
   }
