@@ -1,10 +1,18 @@
 <div class="modal-heading task-info-modal-head">
-    <h4 class="modal-title" id="myModalLabel">Details</h4>
+    <h3
+    class="modal-title"
+    id="modal-title"
+    uib-tooltip="{{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.filename }}"
+    tooltip-placement="auto top"
+    tooltip-append-to-body="true"
+  >
+    {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.filename }}
+  </h3>
   </div>
   <div class="modal-body">
     <div class="panel panel-default">
         <div class="panel-body">
-              {{selected | json}}
+              {{currentStepTask | json}}
         </div>
     </div>
   </div>
