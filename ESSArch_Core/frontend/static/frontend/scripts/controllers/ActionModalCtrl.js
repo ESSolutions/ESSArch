@@ -36,5 +36,22 @@ export default class ActionModalCtrl {
           } else {
             currentStepTask.duration = null;
           }
+
+          $scope.getArgsString = function (args) {
+            if (!angular.isUndefined(args)) {
+              return args
+                .map(function (x) {
+                  if (x === null) {
+                    return 'null';
+                  } else {
+                    return x;
+                  }
+                })
+                .join(', ');
+            } else {
+              return '';
+            }
+          };
+          
     }
   }
