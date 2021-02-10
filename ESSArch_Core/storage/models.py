@@ -286,7 +286,7 @@ class StorageMethodTargetRelation(models.Model):
             if StorageMethodTargetRelation.objects.filter(
                 storage_method=self.storage_method,
                 status=STORAGE_TARGET_STATUS_ENABLED,
-            ).exists():
+            ).count() > 1:
                 raise ValidationError(_('Only 1 target can be enabled for a storage method at a time'),)
         return super().save(*args, **kwargs)
 
