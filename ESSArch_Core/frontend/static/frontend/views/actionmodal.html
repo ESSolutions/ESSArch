@@ -43,8 +43,22 @@
                 {{ currentStepTask.taskid }}
               </button>
             </div>
-          </div>
+          </div>                
         </div>
+        <label> {{ "STATUS" | translate }} </label>
+        <uib-progressbar
+        class="progress"
+        ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
+        animate="true"
+        value="currentStepTask.progress"
+        type="{{ mapStepStateProgress(currentStepTask) }}"
+        uib-tooltip="{{ currentStepTask.status | translate }}"
+        tooltip-placement="auto top"
+        tooltip-append-to-body="true"
+        >
+        <b>{{ currentStepTask.progress | number : 0 }}%</b>
+    </uib-progressbar>
+
       </div>
     </div>
   <div class="modal-footer">

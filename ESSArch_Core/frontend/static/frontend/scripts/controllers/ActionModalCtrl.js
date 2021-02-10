@@ -1,5 +1,5 @@
 export default class ActionModalCtrl {
-    constructor($scope, $uibModalInstance, currentStepTask) {
+    constructor($scope, $rootScope, $uibModalInstance, currentStepTask) {
         $scope.currentStepTask = currentStepTask;
         $scope.ok = () => {
             $uibModalInstance.close('remove');
@@ -8,5 +8,8 @@ export default class ActionModalCtrl {
         $scope.idCopyDone = function () {
             $scope.idCopied = true;
           };
+
+        $scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
+
     }
   }
