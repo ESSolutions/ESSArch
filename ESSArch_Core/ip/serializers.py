@@ -508,16 +508,16 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
     policy = StoragePolicySerializer()
-    organization = serializers.SerializerMethodField()
+    #organization = serializers.SerializerMethodField()
     submission_agreement = serializers.PrimaryKeyRelatedField(
         queryset=SubmissionAgreement.objects.all(),
         pk_field=serializers.UUIDField(format='hex_verbose'),
     )
-    submission_agreement_data = serializers.SerializerMethodField()
-    submission_agreement_data_versions = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(read_only=True)
-    )
-    profiles = ProfileIPSerializer(source='profileip_set', many=True)
+    #submission_agreement_data = serializers.SerializerMethodField()
+    # submission_agreement_data_versions = serializers.ListField(
+    #    child=serializers.PrimaryKeyRelatedField(read_only=True)
+    # )
+    #profiles = ProfileIPSerializer(source='profileip_set', many=True)
 
     def get_organization(self, obj):
         try:
@@ -543,6 +543,9 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         return data
 
     def create_storage_method(self, data):
+        if data is None:
+            return None
+
         storage_method_target_set_data = data.pop('storage_method_target_relations')
         storage_method, _ = StorageMethod.objects.update_or_create(
             id=data['id'],
@@ -597,7 +600,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             user = User.objects.get(username="system")
 
         validated_data['aic'] = aic
-        validated_data['policy'] = policy
+        #validated_data['policy'] = policy
         validated_data['responsible'] = user
         validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
@@ -614,8 +617,9 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'appraisal_date', 'profiles', 'policy', 'organization', 'submission_agreement',
-            'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
+            'start_date', 'end_date', 'appraisal_date', 'policy', 'submission_agreement',
+            #'start_date', 'end_date', 'appraisal_date', 'profiles', 'policy', 'organization', 'submission_agreement',
+            #'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
         )
         extra_kwargs = {
             'id': {

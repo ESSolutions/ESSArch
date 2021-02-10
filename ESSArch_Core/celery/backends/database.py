@@ -101,8 +101,11 @@ class DatabaseBackend(BaseDictBackend):
 
     @classmethod
     def exception_to_python(cls, exc):
-        """Convert serialized exception to Python exception."""
+        """Convert serialized exception or string to Python exception."""
         if exc:
+            if isinstance(exc, str):
+                exc = Exception(exc)
+
             if not isinstance(exc, BaseException):
                 exc_module = exc.get('exc_module')
                 if exc_module is None:
