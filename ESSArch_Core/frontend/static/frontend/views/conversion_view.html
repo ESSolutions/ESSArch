@@ -88,4 +88,51 @@
       </button>
     </div>
   </form>
+  <br />
+  <h3>Number of Rows</h3>
+  <select ng-model="objectsshown">
+    <option>All</option>
+    <option>5</option>
+    <option>10</option>
+    <option>20</option>
+    <option>25</option>
+    <option>50</option>
+  </select>
+</div>
+<h3>Sort by Names</h3>
+<input id="Text1" type="text" ng-model="Names" />
+<br />
+<div ng-if="!vm.validationsLoading && vm.validations !== null">
+  <div class="table-x-overflow">
+    <table class="table tree-grid">
+      <thead>
+        <tr>
+          <th>Filename</th>
+          <th>State</th>
+          <th>Validator</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="x in vm.validations | filter:Names | limitTo:objectsshown">
+          <td>{{x.filename}}</td>
+          <td>{{x.passed}}</td>
+          <td>{{x.validator}}</td>
+          <td>{{x.time_started}}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div ng-if="vm.validationsLoading && vm.validations == null" class="loading-column w-100 text-center">
+  {{'LOADING' | translate}}
+</div>
+
+<div class="status-tree-grid table-container">
+  <div class="state-tree-table-head">
+    <div class="d-flex align-items-center">
+      <h4 class="m-0">{{ "TASKS" | translate }}</h4>
+    </div>
+  </div>
 </div>
