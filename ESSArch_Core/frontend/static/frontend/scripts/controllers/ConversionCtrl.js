@@ -120,7 +120,7 @@ export default class ConversionCtrl {
       },
     ];
 
-    $scope.clickForModal = function(currentStepTask) {      
+    $scope.clickForModal = function (currentStepTask) {
       $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -129,10 +129,10 @@ export default class ConversionCtrl {
         scope: $scope,
         controller: 'ActionModalCtrl',
         resolve: {
-          currentStepTask
+          currentStepTask,
         },
       });
-    }
+    };
 
     let tabNumber = 0;
     vm.conversions = [

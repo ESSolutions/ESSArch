@@ -1,5 +1,5 @@
 <div class="modal-heading task-info-modal-head">
-    <h3
+  <h3
     class="modal-title"
     id="modal-title"
     uib-tooltip="{{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.filename }}"
@@ -8,81 +8,78 @@
   >
     {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.filename }}
   </h3>
-  </div>
-  <div ng-if="currentStepTask" class="modal-body" id="modal-body">
-    <div class="step-task-info">
-      <div class="row">
-        <div class="col-12 col-md-6" ng-if="currentStepTask.filename">
-          <label>{{ "NAME" | translate }}</label>
-          <p class="m-0 py-base word-break-word">{{ currentStepTask.filename }}</p>
-        </div>
-        <div class="col-12 col-md-6">
-            <label>{{ "IDENTIFICATION" | translate }}</label>
-            <br />
-            <div class="btn-group id-button">
-              <button
-                class="btn btn-default"
-                clipboard
-                text="currentStepTask.taskid"
-                on-copied="idCopyDone()"
-                uib-tooltip="{{ 'COPYID' | translate }}"
-                tooltip-placement="auto top"
-                tooltip-append-to-body="true"
-              >
-                <i
-                  class="fas"
-                  ng-class="{'fa-clipboard': !idCopied, 'fa-clipboard-check color-success': idCopied}"
-                ></i>
-              </button>
-              <button
-                class="btn btn-default"
-                uib-tooltip="{{ 'IDENTIFICATION' | translate }}"
-                tooltip-placement="auto top"
-                tooltip-append-to-body="true"
-              >
-                {{ currentStepTask.taskid }}
-              </button>
-            </div>
-          </div>                
-        </div>
-        <label> {{ "STATUS" | translate }} </label>
-        <uib-progressbar
-        class="progress"
-        ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
-        animate="true"
-        value="currentStepTask.progress"
-        type="{{ mapStepStateProgress(currentStepTask) }}"
-        uib-tooltip="{{ currentStepTask.status | translate }}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-        >
-        <b>{{ currentStepTask.progress | number : 0 }}%</b>
-    </uib-progressbar>
-    <div class="row py-2">
-        <div class="col-12 col-sm-6 col-md-3">
-          <label>{{ "CREATED" | translate }}</label>
-          <p>{{ currentStepTask.time_created | date: "yyyy-MM-dd HH:mm:ss.sss" }}</p>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <label> {{ "STARTED" | translate }} </label>
-          <p>
-            {{ currentStepTask.time_started !== null ? (currentStepTask.time_started | date: "yyyy-MM-dd HH:mm:ss.sss") :
-            "-" }}
-          </p>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <label> {{ "DONE" | translate }} </label>
-          <p>
-            {{ currentStepTask.time_done !== null ? (currentStepTask.time_done | date: "yyyy-MM-dd HH:mm:ss.sss") : "-"
-            }}
-          </p>
-        </div>
-        <div class="col-12 col-sm-6 col-md-3">
-          <label> {{ "STATE_TREE.DURATION" | translate }} </label>
-          <p>{{ currentStepTask.duration !== null ? currentStepTask.duration : "-" }}</p>
+</div>
+<div ng-if="currentStepTask" class="modal-body" id="modal-body">
+  <div class="step-task-info">
+    <div class="row">
+      <div class="col-12 col-md-6" ng-if="currentStepTask.filename">
+        <label>{{ "NAME" | translate }}</label>
+        <p class="m-0 py-base word-break-word">{{ currentStepTask.filename }}</p>
+      </div>
+      <div class="col-12 col-md-6">
+        <label>{{ "IDENTIFICATION" | translate }}</label>
+        <br />
+        <div class="btn-group id-button">
+          <button
+            class="btn btn-default"
+            clipboard
+            text="currentStepTask.taskid"
+            on-copied="idCopyDone()"
+            uib-tooltip="{{ 'COPYID' | translate }}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            <i class="fas" ng-class="{'fa-clipboard': !idCopied, 'fa-clipboard-check color-success': idCopied}"></i>
+          </button>
+          <button
+            class="btn btn-default"
+            uib-tooltip="{{ 'IDENTIFICATION' | translate }}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+          >
+            {{ currentStepTask.taskid }}
+          </button>
         </div>
       </div>
-      <br />
+    </div>
+    <label> {{ "STATUS" | translate }} </label>
+    <uib-progressbar
+      class="progress"
+      ng-class="{'active progress-striped': currentStepTask.status == 'STARTED'}"
+      animate="true"
+      value="currentStepTask.progress"
+      type="{{ mapStepStateProgress(currentStepTask) }}"
+      uib-tooltip="{{ currentStepTask.status | translate }}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
+      <b>{{ currentStepTask.progress | number : 0 }}%</b>
+    </uib-progressbar>
+    <div class="row py-2">
+      <div class="col-12 col-sm-6 col-md-3">
+        <label>{{ "CREATED" | translate }}</label>
+        <p>{{ currentStepTask.time_created | date: "yyyy-MM-dd HH:mm:ss.sss" }}</p>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label> {{ "STARTED" | translate }} </label>
+        <p>
+          {{ currentStepTask.time_started !== null ? (currentStepTask.time_started | date: "yyyy-MM-dd HH:mm:ss.sss") :
+          "-" }}
+        </p>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label> {{ "DONE" | translate }} </label>
+        <p>
+          {{ currentStepTask.time_done !== null ? (currentStepTask.time_done | date: "yyyy-MM-dd HH:mm:ss.sss") : "-"
+          }}
+        </p>
+      </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <label> {{ "STATE_TREE.DURATION" | translate }} </label>
+        <p>{{ currentStepTask.duration !== null ? currentStepTask.duration : "-" }}</p>
+      </div>
+    </div>
+    <br />
     <table class="table">
       <tbody>
         <tr>
@@ -96,8 +93,7 @@
                 </tbody>
               </table>
             </div>
-            
-<div style="max-height: 300px; overflow-y: auto">
+            <div style="max-height: 300px; overflow-y: auto">
               <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
               <span ng-if="angular.equals(currentStepTask.params, {})"> {{'NO_PARAMETERS' | translate}} </span>
               <table class="table">
@@ -110,13 +106,12 @@
                   </tr>
                 </tbody>
               </table>
-            </div>            
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
-      </div>
-    </div>
+  </div>
   <div class="modal-footer">
     <button class="btn btn-success" ng-click="ok()">OK</button>
   </div>
