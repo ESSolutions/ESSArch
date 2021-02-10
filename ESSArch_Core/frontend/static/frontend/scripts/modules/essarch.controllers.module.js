@@ -176,7 +176,7 @@ export default angular
     AccessIpCtrl,
   ])
   .controller('AccessWorkareaCtrl', ['$scope', '$controller', AccessWorkareaCtrl])
-  .controller('ActionModalCtrl', ['$scope', '$uibModalInstance', 'validations', ActionModalCtrl])
+  .controller('ActionModalCtrl', ['$scope', '$uibModalInstance', 'currentStepTask', ActionModalCtrl])
   .controller('AddNodeModalInstanceCtrl', [
     'Search',
     '$translate',
