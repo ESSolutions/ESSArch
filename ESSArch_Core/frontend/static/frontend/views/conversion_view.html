@@ -114,7 +114,10 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="currentStepTask in vm.validations | filter:Names | limitTo:objectsshown" ng-class="{active : isSelected(currentStepTask)}">
+        <tr
+          ng-repeat="currentStepTask in vm.validations | filter:Names | limitTo:objectsshown"
+          ng-class="{active : isSelected(currentStepTask)}"
+        >
           <td><a ng-click="clickForModal(currentStepTask)">{{currentStepTask.filename}}</a></td>
           <td>{{currentStepTask.passed}}</td>
           <td>{{currentStepTask.validator}}</td>
