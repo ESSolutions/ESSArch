@@ -28,15 +28,6 @@ export default class ActionModalCtrl {
       $scope.idCopied = true;
     };
 
-    $scope.mapStepStateProgress = $rootScope.mapStepStateProgress;
-    if (currentStepTask.time_started !== null && currentStepTask.time_done !== null) {
-      const started = moment(currentStepTask.time_started);
-      const done = moment(currentStepTask.time_done);
-      currentStepTask.duration = moment.utc(done.diff(started)).format('HH:mm:ss.SSS');
-    } else {
-      currentStepTask.duration = null;
-    }
-
     $scope.getArgsString = function (args) {
       if (!angular.isUndefined(args)) {
         return args
