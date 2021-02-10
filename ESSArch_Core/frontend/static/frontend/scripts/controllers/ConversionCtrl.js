@@ -38,6 +38,7 @@ export default class ConversionCtrl {
                   if (vdata[j].passed == true) {
                     validation = {
                       id: vdata[j].id,
+                      taskid: tids[i].id,
                       label: tids[i].label,
                       filename: vdata[j].filename,
                       passed: 'Success',
@@ -47,6 +48,7 @@ export default class ConversionCtrl {
                   } else if (vdata[j].passed == false) {
                     validation = {
                       id: vdata[j].id,
+                      taskid: tids[i].id,
                       label: tids[i].label,
                       filename: vdata[j].filename,
                       passed: 'Failure',
@@ -56,6 +58,7 @@ export default class ConversionCtrl {
                   } else {
                     validation = {
                       id: vdata[j].id,
+                      taskid: tids[i].id,
                       label: tids[i].label,
                       filename: vdata[j].filename,
                       passed: 'Unknown',
