@@ -114,11 +114,11 @@
         </tr>
       </thead>
       <tbody>
-        <tr ng-repeat="validations in vm.validations | filter:Names | limitTo:objectsshown" ng-class="{active : isSelected(validations)}">
-          <td><a ng-click="clickForModal(validations)">{{validations.filename}}</a></td>
-          <td>{{validations.passed}}</td>
-          <td>{{validations.validator}}</td>
-          <td>{{validations.time_started}}</td>
+        <tr ng-repeat="currentStepTask in vm.validations | filter:Names | limitTo:objectsshown" ng-class="{active : isSelected(currentStepTask)}">
+          <td><a ng-click="clickForModal(currentStepTask)">{{currentStepTask.filename}}</a></td>
+          <td>{{currentStepTask.passed}}</td>
+          <td>{{currentStepTask.validator}}</td>
+          <td>{{currentStepTask.time_started}}</td>
         </tr>
       </tbody>
     </table>

@@ -99,7 +99,7 @@ export default class ConversionCtrl {
       },
     ];
 
-    $scope.clickForModal = function(validations) {      
+    $scope.clickForModal = function(currentStepTask) {      
       $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -108,7 +108,7 @@ export default class ConversionCtrl {
         scope: $scope,
         controller: 'ActionModalCtrl',
         resolve: {
-          validations
+          currentStepTask
         },
       });
     }
