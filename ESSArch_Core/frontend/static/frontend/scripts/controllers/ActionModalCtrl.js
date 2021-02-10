@@ -4,5 +4,9 @@ export default class ActionModalCtrl {
         $scope.ok = () => {
             $uibModalInstance.close('remove');
         };
+        $scope.idCopied = false;
+        $scope.idCopyDone = function () {
+            $scope.idCopied = true;
+          };
     }
   }

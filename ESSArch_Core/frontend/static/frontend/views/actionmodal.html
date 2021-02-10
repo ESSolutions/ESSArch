@@ -9,13 +9,44 @@
     {{ currentStepTask.label && currentStepTask.label !== '' ? currentStepTask.label : currentStepTask.filename }}
   </h3>
   </div>
-  <div class="modal-body">
-    <div class="panel panel-default">
-        <div class="panel-body">
-              {{currentStepTask | json}}
+  <div ng-if="currentStepTask" class="modal-body" id="modal-body">
+    <div class="step-task-info">
+      <div class="row">
+        <div class="col-12 col-md-6" ng-if="currentStepTask.filename">
+          <label>{{ "NAME" | translate }}</label>
+          <p class="m-0 py-base word-break-word">{{ currentStepTask.filename }}</p>
         </div>
+        <div class="col-12 col-md-6">
+            <label>{{ "IDENTIFICATION" | translate }}</label>
+            <br />
+            <div class="btn-group id-button">
+              <button
+                class="btn btn-default"
+                clipboard
+                text="currentStepTask.taskid"
+                on-copied="idCopyDone()"
+                uib-tooltip="{{ 'COPYID' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+                <i
+                  class="fas"
+                  ng-class="{'fa-clipboard': !idCopied, 'fa-clipboard-check color-success': idCopied}"
+                ></i>
+              </button>
+              <button
+                class="btn btn-default"
+                uib-tooltip="{{ 'IDENTIFICATION' | translate }}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+                {{ currentStepTask.taskid }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
   <div class="modal-footer">
     <button class="btn btn-success" ng-click="ok()">OK</button>
   </div>
