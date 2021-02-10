@@ -89,53 +89,98 @@
     </div>
   </form>
   <br />
-  <h3>Number of Rows</h3>
-  <select ng-model="objectsshown">
-    <option>All</option>
+</div>
+<br />
+<div ng-if="!vm.validationsLoading && vm.validations !== null"></div>
+<div st-table="vm.validations">
+  <hr />
+  <h4>{{ "STATE_TREE.VALIDATIONS" | translate }}</h4>
+  <div class="search-prepare-wrapper">
+    <select
+      style="margin-right: 10px"
+      class="form-control items-per-page"
+      ng-model="objectsshown"
+      uib-tooltip="{{ 'ITEMSPERPAGE' | translate }}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    >
     <option>5</option>
     <option>10</option>
-    <option>20</option>
     <option>25</option>
     <option>50</option>
+    <option>All</option>
   </select>
-</div>
-<h3>Sort by Names</h3>
-<input id="Text1" type="text" ng-model="Names" />
-<br />
-<div ng-if="!vm.validationsLoading && vm.validations !== null">
-  <div class="table-x-overflow">
-    <table class="table tree-grid">
-      <thead>
-        <tr>
-          <th>Filename</th>
-          <th>State</th>
-          <th>Validator</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          ng-repeat="currentStepTask in vm.validations | filter:Names | limitTo:objectsshown"
-          ng-class="{active : isSelected(currentStepTask)}"
-        >
-          <td><a ng-click="clickForModal(currentStepTask)">{{currentStepTask.filename}}</a></td>
-          <td>{{currentStepTask.passed}}</td>
-          <td>{{currentStepTask.validator}}</td>
-          <td>{{currentStepTask.time_started}}</td>
-        </tr>
-      </tbody>
-    </table>
+    <input
+      ng-model="Names"
+      class="form-control global-search"
+      ng-attr-placeholder="{{ 'GLOBALSEARCH' | translate }}"
+      type="text"
+      uib-tooltip="{{ 'GLOBALSEARCHDESC_VALIDATION' | translate }}"
+      tooltip-placement="auto top"
+      tooltip-append-to-body="true"
+    />
   </div>
+  <div class="table-container">
+    <div class="list-view-table table-x-overflow">
+      <table class="table table-striped validation-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>{{ "VALIDATOR" | translate }}</th>
+            <th>{{ "FILENAME" | translate }}</th>
+            <th>
+              {{ "STARTED" | translate }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            ng-repeat="x in vm.validations | filter:Names | limitTo:objectsshown"
+            ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}"
+          >
+            <td class="text-center pr-0">
+              <i
+                class="fas fa-check"
+                ng-if="x.passed && x.time_done"
+                uib-tooltip="{{ 'SUCCESS' | translate }}"
+                tooltip-placement="right"
+                tooltip-append-to-body="true"
+              >
+              </i>
+              <i
+                class="fas fa-times"
+                ng-if="!x.passed && x.time_done"
+                uib-tooltip="{{ 'FAILURE' | translate }}"
+                tooltip-placement="right"
+                tooltip-append-to-body="true"
+              >
+              </i>
+              <i
+                class="fas fa-spinner fa-spin"
+                ng-if="!x.passed && x.time_done === null && x.time_started"
+                uib-tooltip="{{ 'STATE_TREE.RUNNING' | translate }}"
+                tooltip-placement="right"
+                tooltip-append-to-body="true"
+              >
+              </i>
+            </td>
+            <td class="text-oneline-ellipsis">{{ x.validator }}</td>
+            <td class="text-oneline-ellipsis"><a ng-click="clickForModal(x)">{{ x.filename }}</a></td>
+            <td class="text-oneline-ellipsis">{{ x.time_started | date: "yyyy-MM-dd HH:mm:ss.sss" }}</td>
+          </tr>
+          <tr ng-if="!vm.validations.length && !validationsLoading" class="empty-table-indicator">
+            <td colspan="7">{{ "NO_RESULTS_FOUND" | translate }}</td>
+          </tr>
+          <tr ng-if="!vm.validations.length && validationsLoading" class="empty-table-indicator">
+            <td class="loading-column" colspan="7">{{ "LOADING" | translate }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 </div>
 
 <div ng-if="vm.validationsLoading && vm.validations == null" class="loading-column w-100 text-center">
   {{'LOADING' | translate}}
-</div>
-
-<div class="status-tree-grid table-container">
-  <div class="state-tree-table-head">
-    <div class="d-flex align-items-center">
-      <h4 class="m-0">{{ "TASKS" | translate }}</h4>
-    </div>
-  </div>
 </div>
