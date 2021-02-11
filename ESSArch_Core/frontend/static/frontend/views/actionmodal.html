@@ -95,7 +95,10 @@
             </div>
             <div style="max-height: 300px; overflow-y: auto">
               <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
-              <span ng-if="angular.equals(currentStepTask.params, {})"> {{'NO_PARAMETERS' | translate}} </span>
+              <!--
+                <span ng-if="angular.equals(currentStepTask.params, {})"> {{'NO_PARAMETERS' | translate}} </span>
+              -->
+              <span> {{'NO_PARAMETERS' | translate}} </span>
               <table class="table">
                 <tbody>
                   <tr ng-repeat="(key, value) in currentStepTask.params track by $index">
