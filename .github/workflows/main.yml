@@ -206,8 +206,6 @@ jobs:
           pip install --upgrade six>=1.12.0
           pip install .[mssql]
           pip install -r requirements/tests.txt
-          pip uninstall -y drf_extensions
-          pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
           pip uninstall -y django-mssql-backend
           pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/master.zip
           pip check
@@ -379,8 +377,6 @@ jobs:
 
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
-          pip uninstall -y drf_extensions
-          pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
           pip uninstall -y django-mssql-backend
           pip install --no-cache-dir https://github.com/ESSolutions/django-mssql-backend/archive/master.zip
           pip check
