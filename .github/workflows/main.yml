@@ -368,7 +368,6 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
-          sudo ACCEPT_EULA=Y apt-get install -y python3-dev default-libmysqlclient-dev build-essential
 
           python -m pip install --upgrade pip wheel setuptools
 
