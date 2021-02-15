@@ -5,119 +5,6 @@ export default class ConversionCtrl {
     vm.options = {converters: []};
     vm.fields = $scope.mockedConversions;
     vm.activeTab = 'conversion0';
-    vm.validations = null;
-    vm.tasks = null;
-    var ip = null;
-    vm.tool = null;
-    vm.status = null;
-    const taskids = [];
-    vm.validations = null;
-    vm.objectsshown = 3;
-
-    vm.$onInit = function () {
-      vm.validationsLoading = true;
-
-      const activeip = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-      vm.getTFromREST(activeip)
-        .then(function (tids) {
-          const files = [];
-          vm.tids = tids;
-          $http({
-            url: appConfig.djangoUrl + 'validations/',
-            method: 'GET',
-            params: {pager: 'none'},
-          }).then(function (response) {
-            const vdata = response.data;
-            for (var i = 0; i < tids.length; i++) {
-              for (var j = 0; j < vdata.length; j++) {
-                if (vdata[j].task.includes(tids[i].id)) {
-                  var validation = null;
-                  if (vdata[j].passed == true) {
-                    validation = {
-                      id: vdata[j].id,
-                      taskid: tids[i].id,
-                      label: tids[i].label,
-                      progress: tids[i].progress,
-                      status: tids[i].status,
-                      time_done: vdata[j].time_done,
-                      time_started: vdata[j].time_started,
-                      validator: vdata[j].validator,
-                      specification: vdata[j].specification,
-                      time_created: tids[i].time_created,
-                      args: tids[i].args,
-                      params: tids[i].params,
-                      filename: vdata[j].filename,
-                      passed: 'SUCCESS',
-                      validator: vdata[j].validator,
-                      time_started: vdata[j].time_started,
-                    };
-                  } else if (vdata[j].passed == false) {
-                    validation = {
-                      id: vdata[j].id,
-                      taskid: tids[i].id,
-                      label: tids[i].label,
-                      progress: tids[i].progress,
-                      status: tids[i].status,
-                      time_done: vdata[j].time_done,
-                      time_started: vdata[j].time_started,
-                      validator: vdata[j].validator,
-                      specification: vdata[j].specification,
-                      time_created: tids[i].time_created,
-                      args: tids[i].args,
-                      params: tids[i].params,
-                      filename: vdata[j].filename,
-                      passed: 'FAILURE',
-                      validator: vdata[j].validator,
-                      time_started: vdata[j].time_started,
-                    };
-                  } else {
-                    validation = {
-                      id: vdata[j].id,
-                      taskid: tids[i].id,
-                      label: tids[i].label,
-                      progress: tids[i].progress,
-                      status: tids[i].status,
-                      time_done: vdata[j].time_done,
-                      time_started: vdata[j].time_started,
-                      validator: vdata[j].validator,
-                      specification: vdata[j].specification,
-                      time_created: tids[i].time_created,
-                      args: tids[i].args,
-                      params: tids[i].params,
-                      filename: vdata[j].filename,
-                      passed: 'UNKNOWN',
-                      validator: vdata[j].validator,
-                      time_started: vdata[j].time_started,
-                    };
-                  }
-
-                  files.push(validation);
-                }
-              }
-            }
-            vm.validations = files;
-          });
-          vm.validationsLoading = false;
-        })
-        .catch(() => {
-          vm.validationsLoading = false;
-        });
-    };
-
-    vm.getTaskIDs = function (activeip) {
-      var tarray = [];
-
-      vm.validationsLoading = true;
-      vm.getTFromREST(activeip)
-        .then(function (tids) {
-          tarray = tids;
-        })
-        .catch(() => {
-          tarray = null;
-        });
-
-      return tarray;
-    };
 
     vm.purposeField = [
       {
@@ -128,20 +15,6 @@ export default class ConversionCtrl {
         },
       },
     ];
-
-    $scope.clickForModal = function (currentStepTask) {
-      $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/actionmodal.html',
-        scope: $scope,
-        controller: 'ActionModalCtrl',
-        resolve: {
-          currentStepTask,
-        },
-      });
-    };
 
     let tabNumber = 0;
     vm.conversions = [
@@ -172,36 +45,6 @@ export default class ConversionCtrl {
           return converter;
         });
         return vm.options.converters;
-      });
-    };
-
-    vm.getTFromREST = function (information_package) {
-      var tids = [];
-      return $http({
-        url: appConfig.djangoUrl + 'tasks/',
-        method: 'GET',
-        params: {pager: 'none', information_package: information_package},
-      }).then(function (response) {
-        const tdata = response.data;
-        for (var i = 0; i < tdata.length; i++) {
-          if (tdata[i].information_package == information_package && !angular.equals([], tdata[i].args)) {
-            tids.push(tdata[i]);
-          }
-        }
-        return tids;
-      });
-    };
-
-    vm.getValidationFromREST = function (task) {
-      var fname = '';
-      return $http({
-        url: appConfig.djangoUrl + 'validations/',
-        method: 'GET',
-        params: {pager: 'none', task},
-      }).then(function (response) {
-        const vdata = response.data;
-
-        return vdata;
       });
     };
 
