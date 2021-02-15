@@ -45,12 +45,11 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
       return expandAndGetActionChildren(workflow, expandedNodes);
     });
   }
-  
 
   // Takes an array of steps, expands the ones that should be expanded and
   // populates children recursively.
 
-    // Takes an array of steps, expands the ones that should be expanded and
+  // Takes an array of steps, expands the ones that should be expanded and
   // populates children recursively.
   function expandAndGetChildren(steps, expandedNodes) {
     const expandedObject = expand(steps, expandedNodes);
@@ -79,12 +78,12 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         return temp;
       });
     });
-    for (var i = 0; i < steps.length; i++) { 
-      if(steps[i].label){
-        if (steps[i].label.toUpperCase() === search.toUpperCase()){
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].label) {
+        if (steps[i].label.toUpperCase() === search.toUpperCase()) {
           stepsToKeep.push(steps[i]);
         }
-      }    
+      }
     }
 
     steps = stepsToKeep;
@@ -165,7 +164,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   }
   return {
     getTreeData: getTreeData,
-    getTreeActionData : getTreeActionData,
+    getTreeActionData: getTreeActionData,
     getChildrenForStep: getChildrenForStep,
   };
 };
