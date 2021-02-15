@@ -75,7 +75,7 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
-ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config
+ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config:/ESSArch/plugins
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -104,7 +104,3 @@ RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bi
 
 # Add source
 ADD . /code
-
-# temporary build wheel from git master for drf_extensions pending official support for Django 3.1
-RUN pip uninstall -y drf_extensions
-RUN pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
