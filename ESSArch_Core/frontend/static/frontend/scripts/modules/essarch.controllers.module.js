@@ -119,6 +119,7 @@ import VersionCtrl from '../controllers/VersionCtrl';
 import VersionModalInstanceCtrl from '../controllers/VersionModalInstanceCtrl';
 import WorkareaCtrl from '../controllers/WorkareaCtrl';
 import StateTreeCtrl from '../controllers/StateTreeCtrl';
+import StateTreeActionCtrl from '../controllers/StateTreeActionCtrl';
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -1232,6 +1233,24 @@ export default angular
     '$transitions',
     'listViewService',
     StateTreeCtrl,
+  ])
+  .controller('StateTreeActionCtrl', [
+    '$scope',
+    '$translate',
+    'Step',
+    'Task',
+    'appConfig',
+    '$timeout',
+    '$interval',
+    'PermPermissionStore',
+    '$q',
+    '$uibModal',
+    '$log',
+    'StateTree',
+    '$rootScope',
+    '$transitions',
+    'listViewService',
+    StateTreeActionCtrl,
   ])
   .controller('StorageMigrationCtrl', [
     '$rootScope',
