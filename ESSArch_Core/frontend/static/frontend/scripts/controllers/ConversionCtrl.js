@@ -28,12 +28,9 @@ export default class ConversionCtrl {
             params: {pager: 'none'},
           }).then(function (response) {
             const vdata = response.data;
-            console.log(vdata);
             for (var i = 0; i < tids.length; i++) {
               for (var j = 0; j < vdata.length; j++) {
                 if (vdata[j].task.includes(tids[i].id)) {
-                  console.log('vdata: ');
-                  console.log(vdata[j].id);
                   var validation = null;
                   if (vdata[j].passed == true) {
                     validation = {
