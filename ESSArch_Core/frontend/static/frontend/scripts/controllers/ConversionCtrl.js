@@ -25,6 +25,12 @@ export default class ConversionCtrl {
         data: {},
       },
     ];
+
+    vm.arrlist = [{
+      "userid": 1,
+      "name": "Diana Video"
+      }];
+      
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {
       vm.currentConversion = conversion;

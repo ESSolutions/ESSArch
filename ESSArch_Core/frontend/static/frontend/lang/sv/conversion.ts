@@ -9,5 +9,9 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     },
     CONVERSION: 'Åtgärd',
     NONE_SELECTED: 'Ingen vald',
+    PROFILE: 'Profil',
+    TOOL_DESCRIPTION: 'Verktygsbeskrivning',
+    VALIDATION_DESCRIPTION: 'Valideringsbeskrivning',
+    SELECT_PROFILE: 'Välj profil',
   });
 };

@@ -9,5 +9,9 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     },
     CONVERSION: 'Actions',
     NONE_SELECTED: 'None selected',
+    PROFILE: 'Profile',
+    TOOL_DESCRIPTION: 'Tool description',
+    VALIDATION_DESCRIPTION: 'Validation description',
+    SELECT_PROFILE: 'Select profile',
   });
 };
