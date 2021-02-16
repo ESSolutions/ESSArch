@@ -22,6 +22,48 @@ main {
   display: block;
 }
 
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    'timeline timeline info info'
+    'tools tools description description'
+    '. . . .';
+}
+
+.timeline {
+  grid-area: timeline;
+}
+
+.tools {
+  grid-area: tools;
+}
+
+.description {
+  grid-area: description;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    'profile profile profile'
+    'purpose purpose purpose';
+  grid-area: info;
+}
+
+.profile {
+  grid-area: profile;
+}
+
+.purpose {
+  grid-area: purpose;
+}
+
 .ui-select-dropdown {
   opacity: 1 !important;
 }
