@@ -64,18 +64,16 @@
                 <label class="control-label"> {{'PROFILE' | translate}} </label>
                 <br />
                 <select name="users">
-          
                   <option value="">--{{'SELECT_PROFILE' | translate}}--</option>
-                  
+
                   <option ng-repeat="option in vm.arrlist" value="{{option.userid}}">{{option.name}}</option>
-                  
                 </select>
               </div>
-              <br/>  
-                <div>
-                  <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>
-                  <p>Validation description text</p>
-                </div>
+              <br />
+              <div>
+                <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>
+                <p>Validation description text</p>
+              </div>
               <br />
             </div>
           </div>
@@ -92,7 +90,7 @@
           <i class="fas fa-plus"></i>
         </uib-tab-heading>
       </uib-tab>
-    </uib-tabset>    
+    </uib-tabset>
     <hr class="small" />
     <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
     <div class="flex-row justify-content-end">
