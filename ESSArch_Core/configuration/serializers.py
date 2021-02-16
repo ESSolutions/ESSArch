@@ -200,6 +200,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'id': {
+                'read_only': False,
                 'validators': [],
             },
             'policy_id': {
