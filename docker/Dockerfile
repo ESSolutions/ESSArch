@@ -106,7 +106,3 @@ RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bi
 # Add source
 ADD . /code
 
-# temporary build wheel from git master for drf_extensions pending official support for Django 3.1
-RUN pip uninstall -y drf_extensions
-RUN pip install --no-cache-dir https://github.com/chibisov/drf-extensions/archive/master.zip
-#RUN pip install git+https://github.com/chibisov/drf-extensions.git@8001a440c7322be26bbe2d16f3a334a8b0b5860b
