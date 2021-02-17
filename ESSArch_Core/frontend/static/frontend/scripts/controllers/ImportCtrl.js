@@ -70,6 +70,13 @@ export default class ImportCtrl {
                 });
             })
           );
+        } else if (key === 'policy') {
+          promises.push(
+            $http.get(vm.url + '/api/storage-policies/' + sa[key] + '/', {headers: headers}).then(function (response) {
+              const data = response.data;
+              console.log('Policy key: ' + sa[key] + ' data: ' + data);
+            })
+          );
         } else {
         }
       }
