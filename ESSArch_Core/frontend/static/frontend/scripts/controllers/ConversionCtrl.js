@@ -5,6 +5,42 @@ export default class ConversionCtrl {
     vm.options = {converters: []};
     vm.fields = $scope.mockedConversions;
     vm.activeTab = 'conversion0';
+    vm.profiles = [];
+    vm.arrlist = [];
+    var listA = []; 
+    
+    $scope.dunit= vm.arrlist[0];
+    vm.$onInit = function () {
+
+      vm.profilesLoading = true;
+
+                $http({
+                  url: appConfig.djangoUrl + 'profiles/',
+                  method: 'GET',
+                  params: {pager: 'none'},
+                }).then(function (response) {
+                  const pdata = response.data;
+                  var profile = null;
+                    for (var j = 0; j < pdata.length; j++) {
+                      if (pdata[j].profile_type.includes('validation')) {
+                        
+                        profile = {
+                          id: pdata[j].id,
+                          name: pdata[j].name,
+                        }
+      
+                        listA.push(profile);
+                      }
+                    }
+                  
+                  vm.profilesLoading = false;
+                })
+              .catch(() => {
+                vm.profilesLoading = false;
+              });
+            
+              vm.arrlist = listA;
+            };
 
     vm.purposeField = [
       {
@@ -26,12 +62,6 @@ export default class ConversionCtrl {
       },
     ];
 
-    vm.arrlist = [
-      {
-        userid: 1,
-        name: 'Diana Video',
-      },
-    ];
 
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {

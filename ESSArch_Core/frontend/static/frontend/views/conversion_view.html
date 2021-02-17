@@ -1,12 +1,3 @@
-<div class="grid-container">
-  <div class="timeline"></div>
-  <div class="tools"></div>
-  <div class="description"></div>
-  <div class="info">
-    <div class="profile"></div>
-    <div class="purpose"></div>
-  </div>
-</div>
 <div class="conversion-view">
   <form name="vm.form">
     <uib-tabset active="vm.activeTab" type="pills">
@@ -72,12 +63,13 @@
               <div>
                 <label class="control-label"> {{'PROFILE' | translate}} </label>
                 <br />
-                <select name="users">
-                  <option value="">--{{'SELECT_PROFILE' | translate}}--</option>
 
-                  <option ng-repeat="option in vm.arrlist" value="{{option.userid}}">{{option.name}}</option>
+                <select class="form-control" ng-change="unitChanged()" ng-model="dunit">
+                  <option ng-selected="dunit == item.id" ng-repeat="item in vm.arrlist" ng-value="item.id">{{item.name}}</option>
                 </select>
+
               </div>
+              
               <br />
               <div>
                 <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>

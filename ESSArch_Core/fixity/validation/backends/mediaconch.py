@@ -26,7 +26,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
         reporter=reporting_element, format=output_format, policy=policy, filename=filename
     )
     logger.debug(cmd)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     return out, err, p.returncode
 
