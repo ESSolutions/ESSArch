@@ -9,6 +9,12 @@
         heading="{{conversion.name}}"
       >
         <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
+          <div>
+            <label class="control-label"> {{'PROFILE' | translate}} </label>
+            <br />
+            <p>{{vm.arrlist[$index].name}}</p>
+            <p>{{vm.arrlist[$index].profile_type}}</p>
+          </div>
           <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
             <uib-accordion-heading> {{'CONVERSION' | translate}} </uib-accordion-heading>
             <div>
