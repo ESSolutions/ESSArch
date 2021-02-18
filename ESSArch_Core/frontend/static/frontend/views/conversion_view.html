@@ -65,11 +65,12 @@
                 <br />
 
                 <select class="form-control" ng-change="unitChanged()" ng-model="dunit">
-                  <option ng-selected="dunit == item.id" ng-repeat="item in vm.arrlist" ng-value="item.id">{{item.name}}</option>
+                  <option ng-selected="dunit == item.id" ng-repeat="item in vm.arrlist" ng-value="item.id">
+                    {{item.name}}
+                  </option>
                 </select>
-
               </div>
-              
+
               <br />
               <div>
                 <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>

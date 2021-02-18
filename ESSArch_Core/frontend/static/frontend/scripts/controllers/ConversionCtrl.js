@@ -7,13 +7,17 @@ export default class ConversionCtrl {
     vm.activeTab = 'conversion0';
     vm.profiles = [];
     vm.arrlist = [];
-    var listA = []; 
-    
-    $scope.dunit= vm.arrlist[0];
+    var listA = [];
+    vm.profile = [];
+    const ipToSearch = 'a44ad659-07f2-420c-aa80-f2d55df99970';
+
+    $scope.dunit = vm.arrlist[0];
     vm.$onInit = function () {
+      console.log('index');
+      console.log($scope.$index);
 
       vm.profilesLoading = true;
-
+      /*
                 $http({
                   url: appConfig.djangoUrl + 'profiles/',
                   method: 'GET',
@@ -41,6 +45,33 @@ export default class ConversionCtrl {
             
               vm.arrlist = listA;
             };
+            */
+      $http({
+        url: appConfig.djangoUrl + 'profile-ip/',
+        method: 'GET',
+        params: {pager: 'none'},
+      })
+        .then(function (response) {
+          const pdata = response.data;
+          var profile = null;
+          for (var j = 0; j < pdata.length; j++) {
+            profile = {
+              id: pdata[j].id,
+              name: pdata[j].profile_name,
+              profile_type: pdata[j].profile_type,
+            };
+
+            listA.push(profile);
+          }
+
+          vm.profilesLoading = false;
+        })
+        .catch(() => {
+          vm.profilesLoading = false;
+        });
+
+      vm.arrlist = listA;
+    };
 
     vm.purposeField = [
       {
@@ -61,7 +92,6 @@ export default class ConversionCtrl {
         data: {},
       },
     ];
-
 
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {
