@@ -83,7 +83,7 @@ class ActionTool(ExternalTool):
         kwargs.update(options)
         return self.cmd.format(**kwargs)
 
-    def _run_application(self, filepath, rootdir, options, t):
+    def _run_application(self, filepath, rootdir, options, t=None, ip=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -110,7 +110,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_python(self, filepath, rootdir, options, t):
+    def _run_python(self, filepath, rootdir, options, t=None, ip=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -120,8 +120,7 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-                p = getattr(importlib.import_module(module), task)(task=t)
-                print("p", p)
+                p = getattr(importlib.import_module(module), task)(task=t, ip=ip)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
                 elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
@@ -171,13 +170,13 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
-    def run(self, filepath, rootdir, options, t=None):
+    def run(self, filepath, rootdir, options, t=None, ip=None):
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
-            return self._run_application(filepath, rootdir, options, t)
+            return self._run_application(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
-            return self._run_docker(filepath, rootdir, options, t)
+            return self._run_docker(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
-            return self._run_python(filepath, rootdir, options, t)
+            return self._run_python(filepath, rootdir, options, t, ip)
 
         raise ValueError('Unknown tool type')
 

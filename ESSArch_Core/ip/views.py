@@ -1576,7 +1576,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         data = request.data
 
-        options = ['tar', 'extracted']
+        options = ['tar', 'extracted', 'edit']
         if ip.package_type == InformationPackage.AIP:
             options.append('new')
 
@@ -1631,6 +1631,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
             package_xml=data.get('package_xml', False),
             aic_xml=data.get('aic_xml', False),
+            edit=data.get('edit',False),
         )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})

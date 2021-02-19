@@ -484,6 +484,7 @@ export default angular
   .controller('DataModalInstanceCtrl', [
     'IP',
     '$scope',
+    '$sce',
     '$uibModalInstance',
     'Notifications',
     'data',
