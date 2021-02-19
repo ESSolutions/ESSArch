@@ -55,13 +55,16 @@ export default class ConversionCtrl {
           const pdata = response.data;
           var profile = null;
           for (var j = 0; j < pdata.length; j++) {
-            profile = {
-              id: pdata[j].id,
-              name: pdata[j].profile_name,
-              profile_type: pdata[j].profile_type,
-            };
-
-            listA.push(profile);
+            if(pdata[j].ip==ipToSearch){
+              profile = {
+                id: pdata[j].id,
+                name: pdata[j].profile_name,
+                profile_type: pdata[j].profile_type,
+              };
+  
+              listA.push(profile);
+            }
+            
           }
 
           vm.profilesLoading = false;
