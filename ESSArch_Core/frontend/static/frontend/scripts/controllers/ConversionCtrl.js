@@ -7,17 +7,22 @@ export default class ConversionCtrl {
     vm.activeTab = 'conversion0';
     vm.profiles = [];
     vm.arrlist = [];
+    vm.saprofiles = [];
+    var listA = []; 
+    var listB = [];
+
     var listA = [];
     vm.profile = [];
     const ipToSearch = 'a44ad659-07f2-420c-aa80-f2d55df99970';
-
-    $scope.dunit = vm.arrlist[0];
+    
+    $scope.dunit= vm.arrlist[0];
     vm.$onInit = function () {
+      console.log('hello from change');
       console.log('index');
       console.log($scope.$index);
 
       vm.profilesLoading = true;
-      /*
+      
                 $http({
                   url: appConfig.djangoUrl + 'profiles/',
                   method: 'GET',
@@ -43,9 +48,8 @@ export default class ConversionCtrl {
                 vm.profilesLoading = false;
               });
             
-              vm.arrlist = listA;
-            };
-            */
+             
+          
       $http({
         url: appConfig.djangoUrl + 'profile-ip/',
         method: 'GET',
@@ -55,25 +59,27 @@ export default class ConversionCtrl {
           const pdata = response.data;
           var profile = null;
           for (var j = 0; j < pdata.length; j++) {
-            if(pdata[j].ip==ipToSearch){
+            if(pdata[j].ip.includes(ipToSearch)){
               profile = {
                 id: pdata[j].id,
                 name: pdata[j].profile_name,
                 profile_type: pdata[j].profile_type,
-              };
-  
-              listA.push(profile);
+              }
             }
-            
-          }
+          listB.push(profile);
 
-          vm.profilesLoading = false;
-        })
+        }
+      })
         .catch(() => {
-          vm.profilesLoading = false;
+          console.log('catch ');
         });
 
+      console.log('Profiles list');
+      console.log(listB);
+      
       vm.arrlist = listA;
+      vm.saprofiles = listB;
+      
     };
 
     vm.purposeField = [
