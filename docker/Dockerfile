@@ -105,4 +105,3 @@ RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bi
 
 # Add source
 ADD . /code
-
