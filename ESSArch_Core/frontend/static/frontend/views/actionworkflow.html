@@ -1,0 +1,36 @@
+<div class="action-workflow">
+
+  <form name="vm.form">
+    <div>
+      <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
+      <div>
+        <ui-select
+          ng-model="profiles.profile"
+          on-select="vm.updateConverterForm(conversion)"
+          theme="bootstrap"
+          sortable="true"
+          close-on-select="true"
+          append-to-body="true"
+        >
+          <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.CONVERTER' | translate}}"
+          >{{profiles.profile.name}}
+          </ui-select-match
+          >
+          <ui-select-choices
+            ng-hide="!$select.open"
+            refresh-delay="0"
+            refresh="vm.getProfiles($select.search)"
+            repeat="x in vm.options.profiles | propsFilter: {name: $select.search}"
+          >
+            <div ng-bind-html="x.name | highlight: $select.search"></div>
+          </ui-select-choices>
+          <ui-select-no-choice>
+            <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+          </ui-select-no-choice>
+        </ui-select>
+     {{profiles.profile.}}
+      </div>
+    </div>
+  </form>
+
+</div>

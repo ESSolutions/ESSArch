@@ -8,6 +8,7 @@ import dashboardStats from '../components/DashboardStatsComponent';
 import deliveryComponent from '../components/DeliveryComponent';
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
+import actionWorkflow from '../components/actionWorkflowComponent';
 import exportComponent from '../components/ExportComponent';
 import filebrowserComponent from '../components/FilebrowserComponent';
 import formErrorComponent from '../components/FormErrorComponent';
@@ -38,6 +39,7 @@ export default angular
   .component('deliveryPage', deliveryComponent)
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)
+  .component('actionWorkflow', actionWorkflow)
   .component('export', exportComponent)
   .component('filebrowser', filebrowserComponent)
   .component('formErrors', formErrorComponent)

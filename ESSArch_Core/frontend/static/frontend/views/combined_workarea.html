@@ -105,6 +105,12 @@
           <conversion-view ip="ip" base-url="workareas"></conversion-view>
         </div>
       </uib-tab>
+                <!--<uib-tab ng-if="ip !== null && ips.length == 0" index="'action_workflow'" heading="{{'ACTION_WORKFLOW' | translate}}">
+        <div ng-if="vm.activeTab === 'action_workflow'" class="events-status-wrapper">
+          <action-workflow ip="ip" base-url="workareas"></action-workflow>
+
+        </div>
+      </uib-tab>-->
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
         <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
           <div class="status-view">
