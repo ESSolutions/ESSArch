@@ -19,6 +19,9 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SA_IMPORTED: 'Leveransöverenskommelse "{{name}}" har importerats. \nID: {{id}}',
       SA_IS_PUBLISHED_CANNOT_BE_OVERWRITTEN:
         'Leveransöverenskommelse {{name}} är publicerad och kan inte skrivas över',
+      STORAGEPOLICY_EXISTS: 'Lagringsregelverk finns redan',
+      STORAGEPOLICY_EXISTS_DESC: 'Lagringsregelverk med samma ID finns redan. VIll du skriva över den?',
+      STORAGEPOLICY_IMPORTED: 'Lagringsregelverk: "{{name}}" har importerats. \nID: {{id}}',
     },
   });
 };

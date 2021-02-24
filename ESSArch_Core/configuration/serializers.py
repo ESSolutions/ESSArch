@@ -34,6 +34,7 @@ from ESSArch_Core.configuration.models import (
     Site,
     StoragePolicy,
 )
+from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.storage.models import (
     StorageMethod,
     StorageMethodTargetRelation,
@@ -183,6 +184,29 @@ class StoragePolicySerializer(serializers.ModelSerializer):
             # add to policy, dummy
 
         return policy
+
+    def update(self, instance, validated_data):
+        storage_method_set_data = validated_data.pop('storage_methods')
+        cache_storage_data = validated_data.pop('cache_storage')
+        ingest_path_data = validated_data.pop('ingest_path')
+
+        cache_storage = self.create_storage_method(cache_storage_data)
+        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
+
+        validated_data['cache_storage'] = cache_storage
+        validated_data['ingest_path'] = ingest_path
+
+        for storage_method_data in storage_method_set_data:
+            storage_method = self.create_storage_method(storage_method_data)
+            instance.storage_methods.add(storage_method)
+
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        if self.instance is None and StoragePolicy.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Storage policy already exists')
+
+        return data
 
     class Meta:
         model = StoragePolicy

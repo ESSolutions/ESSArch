@@ -784,6 +784,7 @@ export default angular
     'SA',
     'Notifications',
     '$translate',
+    'StoragePolicy',
     OverwriteModalInstanceCtrl,
   ])
   .controller('PlaceNodeInArchiveModalInstanceCtrl', [
