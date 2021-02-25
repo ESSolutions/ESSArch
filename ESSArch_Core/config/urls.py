@@ -38,6 +38,7 @@ from ESSArch_Core.fixity.views import (
     ActionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
+    IPProfileOrderViewSet
 )
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
@@ -163,6 +164,7 @@ router.register(r'transfers', TransferViewSet).register(
     basename='transfer-structure-units',
     parents_query_lookups=['transfers'],
 )
+router.register(r'ip-profile-order', IPProfileOrderViewSet)
 router.register(r'transfers', TransferViewSet).register(
     r'tags',
     TagVersionViewSet,

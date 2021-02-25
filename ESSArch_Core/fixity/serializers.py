@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ESSArch_Core.fixity.models import ActionTool, Validation
+from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder
 
 
 class ActionToolSerializer(serializers.ModelSerializer):
@@ -24,3 +24,9 @@ class ValidationFilesSerializer(serializers.ModelSerializer):
     class Meta:
         model = Validation
         fields = ('id', 'filename', 'passed', 'time_started', 'time_done',)
+
+
+class IPProfileOrderSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = IPProfileOrder
+        fields = ('id', 'context', 'profile', 'information_package')

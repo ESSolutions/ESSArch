@@ -6,13 +6,15 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import ActionTool, Validation
+from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder
 from ESSArch_Core.fixity.serializers import (
     ActionToolSerializer,
     ValidationFilesSerializer,
     ValidationSerializer,
+    IPProfileOrderSerializer,
 )
 
+from django.views.generic import ListView
 
 class ActionToolViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (IsAuthenticated,)
@@ -42,3 +44,12 @@ class ValidationFilesViewSet(ValidationViewSet):
     ).order_by('time_started')
 
     serializer_class = ValidationFilesSerializer
+
+
+class IPProfileOrderViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = IPProfileOrder.objects.all()
+    serializer_class = IPProfileOrderSerializer
+    permission_classes = (IsAuthenticated,)
