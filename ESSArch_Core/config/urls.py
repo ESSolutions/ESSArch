@@ -40,6 +40,7 @@ from ESSArch_Core.fixity.views import (
     ValidationViewSet,
     IPProfileOrderViewSet
     ProfileDescriptionViewSet
+    ExternalToolDescriptionViewSet
 )
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
@@ -153,6 +154,7 @@ router.register(r'deliveries', DeliveryViewSet).register(
     parents_query_lookups=['delivery'],
 )
 router.register(r'delivery-types', DeliveryTypeViewSet)
+router.register(r'externalTool-description', ExternalToolDescriptionViewSet)
 router.register(r'transfers', TransferViewSet).register(
     r'events',
     EventIPViewSet,

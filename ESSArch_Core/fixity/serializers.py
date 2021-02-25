@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder, ProfileDescription
+from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder, ProfileDescription, ExternalToolDescription
 
 
 class ActionToolSerializer(serializers.ModelSerializer):
@@ -35,3 +35,8 @@ class ProfileDescriptionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = ProfileDescription
         fields = ('id', 'description', 'profile')
+
+class ExternalToolDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ExternalToolDescription
+        fields = ('id', 'description', 'externalTool')

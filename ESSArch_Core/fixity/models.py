@@ -219,3 +219,11 @@ class ProfileDescription(models.Model):
 
     class Meta:
         ordering = ["-id"]
+
+class ExternalToolDescription(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    description = models.CharField(max_length=255)
+    externalTool = models.ForeignKey('fixity.ExternalTool', on_delete=models.CASCADE, null=True)
+
+    class Meta:
+        ordering = ["-id"]
