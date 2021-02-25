@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder
+from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder, ProfileDescription
 
 
 class ActionToolSerializer(serializers.ModelSerializer):
@@ -30,3 +30,8 @@ class IPProfileOrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = IPProfileOrder
         fields = ('id', 'context', 'profile', 'information_package')
+
+class ProfileDescriptionSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = ProfileDescription
+        fields = ('id', 'description', 'profile')

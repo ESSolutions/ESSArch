@@ -12,6 +12,7 @@ from ESSArch_Core.fixity.serializers import (
     ValidationFilesSerializer,
     ValidationSerializer,
     IPProfileOrderSerializer,
+    ProfileDescriptionSerializer,
 )
 
 from django.views.generic import ListView
@@ -52,4 +53,12 @@ class IPProfileOrderViewSet(viewsets.ModelViewSet):
     """
     queryset = IPProfileOrder.objects.all()
     serializer_class = IPProfileOrderSerializer
+    permission_classes = (IsAuthenticated,)
+
+class ProfileDescriptionViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = ProfileDescription.objects.all()
+    serializer_class = ProfileDescriptionSerializer
     permission_classes = (IsAuthenticated,)
