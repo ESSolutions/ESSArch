@@ -53,6 +53,16 @@
                   options="{}"
                 ></formly-form>
               </div>
+              <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+                <label class="control-label"> {{'PROFILE' | translate}} </label>
+                <br />
+
+                <select class="form-control" ng-change="unitChanged()" ng-model="dunit">
+                  <option ng-repeat="item in vm.profilelist" ng-value="item.id">
+                    {{item.name}}
+                  </option>
+                </select>
+              </div>
               <br />
               <div>
                 <label> {{'TOOL_DESCRIPTION' | translate}} </label>
@@ -60,16 +70,6 @@
               </div>
               <br />
               <br />
-              <div>
-                <label class="control-label"> {{'PROFILE' | translate}} </label>
-                <br />
-
-                <select class="form-control" ng-change="unitChanged()" ng-model="dunit">
-                  <option ng-selected="dunit == item.id" ng-repeat="item in vm.arrlist" ng-value="item.id">
-                    {{item.name}}
-                  </option>
-                </select>
-              </div>
 
               <br />
               <div>

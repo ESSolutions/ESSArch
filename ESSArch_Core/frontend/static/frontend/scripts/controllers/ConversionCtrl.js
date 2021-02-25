@@ -6,52 +6,19 @@ export default class ConversionCtrl {
     vm.fields = $scope.mockedConversions;
     vm.activeTab = 'conversion0';
     vm.profiles = [];
-    vm.arrlist = [];
-    vm.saprofiles = [];
-    var listA = []; 
-    var listB = [];
+    vm.profilelist = [];
+    var profilelist = [];
+    var dianaaudiocontext = null;
+    vm.showProfiles = false;
 
-    var listA = [];
     vm.profile = [];
     const ipToSearch = 'a44ad659-07f2-420c-aa80-f2d55df99970';
-    
-    $scope.dunit= vm.arrlist[0];
-    vm.$onInit = function () {
-      console.log('hello from change');
-      console.log('index');
-      console.log($scope.$index);
 
+    vm.$onInit = function () {
       vm.profilesLoading = true;
-      
-                $http({
-                  url: appConfig.djangoUrl + 'profiles/',
-                  method: 'GET',
-                  params: {pager: 'none'},
-                }).then(function (response) {
-                  const pdata = response.data;
-                  var profile = null;
-                    for (var j = 0; j < pdata.length; j++) {
-                      if (pdata[j].profile_type.includes('validation')) {
-                        
-                        profile = {
-                          id: pdata[j].id,
-                          name: pdata[j].name,
-                        }
-      
-                        listA.push(profile);
-                      }
-                    }
-                  
-                  vm.profilesLoading = false;
-                })
-              .catch(() => {
-                vm.profilesLoading = false;
-              });
-            
-             
-          
+
       $http({
-        url: appConfig.djangoUrl + 'profile-ip/',
+        url: appConfig.djangoUrl + 'profiles/',
         method: 'GET',
         params: {pager: 'none'},
       })
@@ -59,27 +26,38 @@ export default class ConversionCtrl {
           const pdata = response.data;
           var profile = null;
           for (var j = 0; j < pdata.length; j++) {
-            if(pdata[j].ip.includes(ipToSearch)){
+            if (pdata[j].profile_type.includes('validation')) {
               profile = {
                 id: pdata[j].id,
-                name: pdata[j].profile_name,
-                profile_type: pdata[j].profile_type,
-              }
-            }
-          listB.push(profile);
+                name: pdata[j].name,
+              };
 
-        }
-      })
+              profilelist.push(profile);
+            }
+          }
+
+          vm.profilesLoading = false;
+        })
         .catch(() => {
-          console.log('catch ');
+          vm.profilesLoading = false;
         });
 
-      console.log('Profiles list');
-      console.log(listB);
-      
-      vm.arrlist = listA;
-      vm.saprofiles = listB;
-      
+        vm.contextLoading = true;
+      $http({
+        url: appConfig.djangoUrl + 'profiles/450fcd19-d798-4e04-b392-575490103284/',
+        method: 'GET',
+        params: {pager: 'none'},
+      })
+        .then(function (response) {
+          const pdata = response.data;
+          dianaaudiocontext = pdata.specification.mediaconch[0].context;
+          vm.contextLoading = false;
+        })
+        .catch(() => {
+          vm.contextLoading = false;
+        });
+
+
     };
 
     vm.purposeField = [
@@ -105,10 +83,15 @@ export default class ConversionCtrl {
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {
       vm.currentConversion = conversion;
+      if((conversion.converter)&&(conversion.converter.name.includes("Mediaconch"))){
+        vm.profilelist = profilelist;
+      } else {
+        vm.profilelist = [];
+      }
       if (conversion.converter) {
         vm.fields = conversion.converter.form;
       } else {
-        vm.fields = [];
+        vm.fields = [];       
       }
     };
 
