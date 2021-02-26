@@ -6,7 +6,7 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfileOrder
+from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfile, ProfileDesc, ExternalToolDesc
 from ESSArch_Core.fixity.serializers import (
     ActionToolSerializer,
     ValidationFilesSerializer,
@@ -52,7 +52,7 @@ class IPProfileOrderViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = IPProfileOrder.objects.all()
+    queryset = IPProfile.objects.all()
     serializer_class = IPProfileOrderSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -60,7 +60,7 @@ class ProfileDescriptionViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = ProfileDescription.objects.all()
+    queryset = ProfileDesc.objects.all()
     serializer_class = ProfileDescriptionSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -68,6 +68,6 @@ class ExternalToolDescriptionViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = ExternalToolDescription.objects.all()
+    queryset = ExternalToolDesc.objects.all()
     serializer_class = ExternalToolDescriptionSerializer
     permission_classes = (IsAuthenticated,)

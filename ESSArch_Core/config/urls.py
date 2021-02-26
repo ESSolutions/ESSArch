@@ -38,8 +38,8 @@ from ESSArch_Core.fixity.views import (
     ActionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
-    IPProfileOrderViewSet
-    ProfileDescriptionViewSet
+    IPProfileOrderViewSet,
+    ProfileDescriptionViewSet,
     ExternalToolDescriptionViewSet
 )
 from ESSArch_Core.ip.views import (

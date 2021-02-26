@@ -200,11 +200,13 @@ class Validation(models.Model):
     )
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
-class IPProfileOrder(models.Model):
+class IPProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     context = models.CharField(max_length=255)
     profile = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE, null=True)
+    p_id = models.CharField(max_length=255)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
+    ip_id = models.CharField(max_length=255)
 
     class Meta:
         ordering = ["-id"]
@@ -212,18 +214,20 @@ class IPProfileOrder(models.Model):
     def __str__(self):
         return self.context
 
-class ProfileDescription(models.Model):
+class ProfileDesc(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=255)
     profile = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE, null=True)
-
+    p_id = models.CharField(max_length=255)
+    
     class Meta:
         ordering = ["-id"]
 
-class ExternalToolDescription(models.Model):
+class ExternalToolDesc(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=255)
-    externalTool = models.ForeignKey('fixity.ExternalTool', on_delete=models.CASCADE, null=True)
+    actionTool = models.ForeignKey('fixity.ActionTool', on_delete=models.CASCADE, null=True)
+    actiontool_name = models.CharField(max_length=255)
 
     class Meta:
         ordering = ["-id"]
