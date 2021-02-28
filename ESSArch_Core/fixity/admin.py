@@ -4,9 +4,10 @@ from django_json_widget.widgets import JSONEditorWidget
 
 from ESSArch_Core.fixity.models import (
     ActionTool, 
-    IPProfile,
-    ProfileDesc,
-    ExternalToolDesc,
+    ActionToolProfileOrder,
+    ActionToolProfileDescription,
+    ActionToolDescription,
+    ActionToolProfile,
 )
 
 
@@ -19,6 +20,7 @@ class ActionToolAdmin(admin.ModelAdmin):
 
 
 admin.site.register(ActionTool, ActionToolAdmin)
-admin.site.register(IPProfile)
-admin.site.register(ProfileDesc)
-admin.site.register(ExternalToolDesc)
+admin.site.register(ActionToolProfileOrder)
+admin.site.register(ActionToolProfileDescription)
+admin.site.register(ActionToolDescription)
+admin.site.register(ActionToolProfile)

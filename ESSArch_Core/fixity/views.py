@@ -6,14 +6,15 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import ActionTool, Validation, IPProfile, ProfileDesc, ExternalToolDesc
+from ESSArch_Core.fixity.models import ActionTool, Validation, ActionToolProfileOrder, ActionToolProfileDescription, ActionToolDescription, ActionToolProfile
 from ESSArch_Core.fixity.serializers import (
     ActionToolSerializer,
     ValidationFilesSerializer,
     ValidationSerializer,
-    IPProfileOrderSerializer,
-    ProfileDescriptionSerializer,
-    ExternalToolDescriptionSerializer,
+    ActionToolProfileOrderSerializer,
+    ActionToolProfileDescriptionSerializer,
+    ActionToolDescriptionSerializer,
+    ActionToolProfileSerializer,
 )
 
 from django.views.generic import ListView
@@ -48,26 +49,34 @@ class ValidationFilesViewSet(ValidationViewSet):
     serializer_class = ValidationFilesSerializer
 
 
-class IPProfileOrderViewSet(viewsets.ModelViewSet):
+class ActionToolProfileOrderViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = IPProfile.objects.all()
-    serializer_class = IPProfileOrderSerializer
+    queryset = ActionToolProfileOrder.objects.all()
+    serializer_class = ActionToolProfileOrderSerializer
     permission_classes = (IsAuthenticated,)
 
-class ProfileDescriptionViewSet(viewsets.ModelViewSet):
+class ActionToolProfileDescriptionViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = ProfileDesc.objects.all()
-    serializer_class = ProfileDescriptionSerializer
+    queryset = ActionToolProfileDescription.objects.all()
+    serializer_class = ActionToolProfileDescriptionSerializer
     permission_classes = (IsAuthenticated,)
 
-class ExternalToolDescriptionViewSet(viewsets.ModelViewSet):
+class ActionToolDescriptionViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows groups to be viewed or edited.
     """
-    queryset = ExternalToolDesc.objects.all()
-    serializer_class = ExternalToolDescriptionSerializer
+    queryset = ActionToolDescription.objects.all()
+    serializer_class = ActionToolDescriptionSerializer
+    permission_classes = (IsAuthenticated,)
+
+class ActionToolProfileViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows groups to be viewed or edited.
+    """
+    queryset = ActionToolProfile.objects.all()
+    serializer_class = ActionToolProfileSerializer
     permission_classes = (IsAuthenticated,)
