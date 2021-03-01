@@ -5,7 +5,7 @@
     "@babel/preset-env": "^7.11.5",
     "@babel/register": "^7.11.5",
     "@flowjs/ng-flow": "~2.7.8",
-    "@fortawesome/fontawesome-free": "~5.14.0",
+    "@fortawesome/fontawesome-free": "~5.15.2",
     "@intervolga/optimize-cssnano-plugin": "^1.0.6",
     "@types/angular": "^1.7.3",
     "@types/angular-formly": "^7.2.34",
