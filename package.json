@@ -90,7 +90,7 @@
     "ui-select": "~0.19.6",
     "url-loader": "^4.0.0",
     "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.11",
+    "webpack-cli": "^4.5.0",
     "webpack-dev-server": "^3.11.0",
     "webpack-manifest-plugin": "^2.1.2",
     "webpack-merge": "^4.2.2"
