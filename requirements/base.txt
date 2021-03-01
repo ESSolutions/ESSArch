@@ -44,6 +44,6 @@ redis==3.3.8
 regex==2019.11.1
 requests==2.23.0
 requests_toolbelt==0.9.1
-tenacity==6.1.0
+tenacity==6.3.1
 wand==0.6.1
 weasyprint==51
