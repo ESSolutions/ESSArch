@@ -2,4 +2,4 @@ doc8==0.8.0
 flake8==3.8.3
 flake8-assertive==1.2.1
 flake8-bugbear==20.1.4
-isort==4.3.21
+isort==5.7.0
