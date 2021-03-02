@@ -41,6 +41,8 @@
                       </ui-select-no-choice>
                     </ui-select>
                   </div>
+                  <br />
+                  <p>{{vm.currentConversion.converter.description}}</p>
                   <div ng-if="vm.fields.length">
                     <hr class="small" />
                     <formly-form
@@ -66,11 +68,6 @@
                       ng-options="item.name for item in vm.profilelist"
                       ng-change="SelectedRow(selectedProfile)"
                     ></select>
-                    <div>
-                      <br />
-                      <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>
-                      <p>Validation description text</p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -90,13 +87,17 @@
             </uib-tab-heading>
           </uib-tab>
         </uib-tabset>
+        
       </div>
       <div class="div2">
         <br/>
         <br/>
-        <br/>
-        <p>{{vm.currentConversion.converter.description}}</p>
+        
+        <hr class="small" />
+
+        
         <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
+        <br/>
         <div class="flex-row justify-content-end">
           <button
             ng-if="vm.conversions.length > 1"
@@ -112,6 +113,7 @@
           >
             {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
           </button>
+          
         </div>
       </div>
     </div>
