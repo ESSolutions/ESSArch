@@ -1241,7 +1241,7 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
-                               package_xml=False, aic_xml=False):
+                               package_xml=False, aic_xml=False, edit=False):
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
         else:
@@ -1256,6 +1256,12 @@ class InformationPackage(models.Model):
                 new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
                 new_aip.object_path = ingest_workarea_user
                 new_aip.save()
+
+            elif edit:
+                new_aip = self
+                new_aip.state = 'Ingest Workarea'
+                new_aip.save(update_fields=['state'])
+
             else:
                 new_aip = self
 
@@ -1263,7 +1269,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
                     "label": "Create workarea",
-                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new]
+                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new and not edit]
                 },
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",

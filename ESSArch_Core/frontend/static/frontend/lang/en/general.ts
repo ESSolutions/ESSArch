@@ -145,6 +145,8 @@ const general = ($translateProvider) => {
     GET_AS_CONTAINER: 'Get as container',
     GET_AS_NEW_GENERATION: 'Get as new generation',
     GET: 'Get',
+    GET_AS_READ_ONLY: 'Get as read only',
+    GET_AS_EDITABLE: 'Get in edit mode',
     GLOBALSEARCH: 'search ...',
     GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'List all authority records associated to the search term',
     GLOBALSEARCHDESC_ARCHIVES: 'List all resources associated to the search term',

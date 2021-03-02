@@ -6,7 +6,8 @@ from ESSArch_Core.fixity.models import ActionTool
 
 
 class ActionToolAdmin(admin.ModelAdmin):
-    fields = ('name', 'enabled', 'type', 'environment', 'file_processing', 'delete_original', 'path', 'cmd', 'form')
+    fields = ('name', 'description', 'enabled', 'type', 'environment', 'file_processing', 'delete_original', 'path', 'cmd', 'form',
+              'file')
     list_display = ('name', 'enabled', 'type', 'environment', 'file_processing', 'delete_original')
     formfield_overrides = {
         models.JSONField: {'widget': JSONEditorWidget},

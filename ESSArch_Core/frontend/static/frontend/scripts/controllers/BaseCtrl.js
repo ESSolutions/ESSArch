@@ -618,6 +618,13 @@ export default class BaseCtrl {
             vm.accessModal(ip, request);
           }
           break;
+        case 'edit':
+          if ($scope.ips.length > 0) {
+            vm.accessModal($scope.ips, request);
+          } else {
+            vm.accessModal(ip, request);
+          }
+          break;
         case 'get_tar':
           if ($scope.ips.length > 0) {
             vm.accessModal($scope.ips, request);
@@ -825,6 +832,7 @@ export default class BaseCtrl {
         tar: request.type === 'get_tar',
         extracted: request.type === 'get',
         new: request.type === 'get_as_new',
+        edit:$ctrl.data.request.type === 'edit',
         package_xml: request.package_xml,
         aic_xml: request.aic_xml,
       };
