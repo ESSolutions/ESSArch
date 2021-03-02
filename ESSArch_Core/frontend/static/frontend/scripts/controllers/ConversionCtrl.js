@@ -11,6 +11,8 @@ export default class ConversionCtrl {
     var dianaaudiocontext = null;
     vm.showProfiles = false;
 
+    vm.profileChosen = null;
+
     vm.profile = [];
     const ipToSearch = 'a44ad659-07f2-420c-aa80-f2d55df99970';
 
@@ -42,7 +44,7 @@ export default class ConversionCtrl {
           vm.profilesLoading = false;
         });
 
-        vm.contextLoading = true;
+      vm.contextLoading = true;
       $http({
         url: appConfig.djangoUrl + 'profiles/450fcd19-d798-4e04-b392-575490103284/',
         method: 'GET',
@@ -56,8 +58,6 @@ export default class ConversionCtrl {
         .catch(() => {
           vm.contextLoading = false;
         });
-
-
     };
 
     vm.purposeField = [
@@ -80,18 +80,20 @@ export default class ConversionCtrl {
       },
     ];
 
+    vm.arrlist = [
+      {
+        userid: 1,
+        name: 'Diana Video',
+      },
+    ];
+
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {
       vm.currentConversion = conversion;
-      if((conversion.converter)&&(conversion.converter.name.includes("Mediaconch"))){
-        vm.profilelist = profilelist;
-      } else {
-        vm.profilelist = [];
-      }
       if (conversion.converter) {
         vm.fields = conversion.converter.form;
       } else {
-        vm.fields = [];       
+        vm.fields = [];
       }
     };
 
@@ -105,6 +107,36 @@ export default class ConversionCtrl {
           return converter;
         });
         return vm.options.converters;
+      });
+    };
+
+    vm.getTFromREST = function (information_package) {
+      var tids = [];
+      return $http({
+        url: appConfig.djangoUrl + 'tasks/',
+        method: 'GET',
+        params: {pager: 'none', information_package: information_package},
+      }).then(function (response) {
+        const tdata = response.data;
+        for (var i = 0; i < tdata.length; i++) {
+          if (tdata[i].information_package == information_package && !angular.equals([], tdata[i].args)) {
+            tids.push(tdata[i]);
+          }
+        }
+        return tids;
+      });
+    };
+
+    vm.getValidationFromREST = function (task) {
+      var fname = '';
+      return $http({
+        url: appConfig.djangoUrl + 'validations/',
+        method: 'GET',
+        params: {pager: 'none', task},
+      }).then(function (response) {
+        const vdata = response.data;
+
+        return vdata;
       });
     };
 
@@ -154,7 +186,48 @@ export default class ConversionCtrl {
       );
     };
 
+    $scope.SelectedRow = function (selectedProfile) {
+      console.log('item selected');
+      console.log(selectedProfile);
+      vm.profileChosen = selectedProfile;
+      //vm.profilesLoading = true;
+
+      $http({
+        url: appConfig.djangoUrl + 'externalTool-description/',
+        method: 'GET',
+        params: {pager: 'none'},
+      })
+        .then(function (response) {
+          const pdata = response.data;
+          /*
+          var profile = null;
+          for (var j = 0; j < pdata.length; j++) {
+            
+            if (pdata[j].profile_type.includes('validation')) {
+              profile = {
+                id: pdata[j].id,
+                name: pdata[j].name,
+              };
+
+              profilelist.push(profile);
+            }
+            
+          }
+*/
+          console.log(pdata);
+          for (var j = 0; j < pdata.length; j++) {
+            console.log(pdata[j].actionTool.name);
+          }
+          //vm.profilesLoading = false;
+        })
+        .catch(() => {
+          //vm.profilesLoading = false;
+        });
+    };
     vm.startConversion = () => {
+      console.log('vm.profileChosen');
+      console.log(vm.profileChosen);
+
       if (vm.form.$invalid) {
         vm.form.$setSubmitted();
         return;

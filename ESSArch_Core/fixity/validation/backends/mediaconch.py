@@ -28,10 +28,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
         reporter=reporting_element, format=output_format, policy=policy, filename=filename
     )
     logger.debug(cmd)
-<<<<<<< HEAD
-=======
     #todo Remove shell=True
->>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     return out, err, p.returncode

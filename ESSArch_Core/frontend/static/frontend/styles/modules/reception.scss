@@ -4,6 +4,40 @@
   width: 100%;
   position: relative;
 }
+.parent {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 10px;
+  grid-row-gap: 0px;
+}
+.div1 {
+  grid-area: 1 / 1 / 2 / 2;
+}
+.div2 {
+  grid-area: 1 / 2 / 2 / 3;
+}
+
+.uibalt a.ng-binding {
+	background-color: #A8B5BE;
+  border-radius: 50%;
+}
+
+.uibalt.active a.ng-binding {
+  color: #000 !important;
+	background-color: #207FDD !important;
+  border-radius: 50%;
+}
+
+.uibaltplus a.ng-binding {
+  color: white;
+	background-color: #55BB58 !important;
+}
+
+.uibaltplus.active a.ng-binding {
+  color: white !important;
+	background-color: #55BB58 !important;
+}
 .helper {
   background: white;
   border: 1px solid black;

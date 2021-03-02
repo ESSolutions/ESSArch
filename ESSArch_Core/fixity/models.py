@@ -119,11 +119,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-<<<<<<< HEAD
-    def _run_python(self, filepath, rootdir, options, t=None, ip=None):
-=======
     def _run_python(self, filepath, rootdir, options, t=None, ip=None, context=None):
->>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -133,11 +129,7 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-<<<<<<< HEAD
-                p = getattr(importlib.import_module(module), task)(task=t, ip=ip)
-=======
                 p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
->>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
                 elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
@@ -187,21 +179,13 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
-<<<<<<< HEAD
-    def run(self, filepath, rootdir, options, t=None, ip=None):
-=======
     def run(self, filepath, rootdir, options, t=None, ip=None, context=None):
->>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
             return self._run_application(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
             return self._run_docker(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
-<<<<<<< HEAD
-            return self._run_python(filepath, rootdir, options, t, ip)
-=======
             return self._run_python(filepath, rootdir, options, t, ip, context)
->>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
 
         raise ValueError('Unknown tool type')
 

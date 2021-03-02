@@ -1,115 +1,119 @@
 <div class="conversion-view">
   <form name="vm.form">
-    <uib-tabset active="vm.activeTab" type="pills">
-      <uib-tab
-        sortable-tab
-        ng-repeat="conversion in vm.conversions track by $index"
-        ng-click="vm.updateConverterForm(conversion)"
-        index="'conversion' + $index"
-        heading="{{conversion.name}}"
-      >
-        <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
-          <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
-            <uib-accordion-heading> {{'CONVERSION' | translate}} </uib-accordion-heading>
-            <div>
-              <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
-              <div>
-                <ui-select
-                  ng-model="conversion.converter"
-                  on-select="vm.updateConverterForm(conversion)"
-                  theme="bootstrap"
-                  sortable="true"
-                  close-on-select="true"
-                  append-to-body="true"
-                >
-                  <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.CONVERTER' | translate}}"
-                    >{{conversion.converter.name}}</ui-select-match
-                  >
-                  <ui-select-choices
-                    ng-hide="!$select.open"
-                    refresh-delay="0"
-                    refresh="vm.getConverters($select.search)"
-                    repeat="x in vm.options.converters | propsFilter: {name: $select.search}"
-                  >
-                    <div ng-bind-html="x.name | highlight: $select.search"></div>
-                  </ui-select-choices>
-                  <ui-select-no-choice>
-                    <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
-                  </ui-select-no-choice>
-                </ui-select>
-              </div>
-              <div ng-if="vm.fields.length">
-                <hr class="small" />
-                <formly-form
-                  form="vm.form"
-                  model="vm.currentConversion.data"
-                  fields="vm.currentConversion.converter.pathField"
-                  options="{}"
-                ></formly-form>
-                <formly-form
-                  form="vm.form"
-                  model="vm.currentConversion.data"
-                  fields="vm.fields"
-                  options="{}"
-                ></formly-form>
-              </div>
-              <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
-                <label class="control-label"> {{'PROFILE' | translate}} </label>
-                <br />
+    <div class="parent">
+      <div class="div1">
+        <uib-tabset active="vm.activeTab" type="pills">
+          <uib-tab
+            class="uibalt"
+            sortable-tab
+            ng-repeat="conversion in vm.conversions track by $index"
+            ng-click="vm.updateConverterForm(conversion)"
+            index="'conversion' + $index"
+            heading="{{conversion.name}}"
+          >
+            <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
+              <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
+                <uib-accordion-heading> {{'CONVERSION' | translate}} </uib-accordion-heading>
+                <div>
+                  <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
+                  <div>
+                    <ui-select
+                      ng-model="conversion.converter"
+                      on-select="vm.updateConverterForm(conversion)"
+                      theme="bootstrap"
+                      sortable="true"
+                      close-on-select="true"
+                      append-to-body="true"
+                    >
+                      <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.CONVERTER' | translate}}"
+                        >{{conversion.converter.name}}</ui-select-match
+                      >
+                      <ui-select-choices
+                        ng-hide="!$select.open"
+                        refresh-delay="0"
+                        refresh="vm.getConverters($select.search)"
+                        repeat="x in vm.options.converters | propsFilter: {name: $select.search}"
+                      >
+                        <div ng-bind-html="x.name | highlight: $select.search"></div>
+                      </ui-select-choices>
+                      <ui-select-no-choice>
+                        <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+                      </ui-select-no-choice>
+                    </ui-select>
+                  </div>
+                  <div ng-if="vm.fields.length">
+                    <hr class="small" />
+                    <formly-form
+                      form="vm.form"
+                      model="vm.currentConversion.data"
+                      fields="vm.currentConversion.converter.pathField"
+                      options="{}"
+                    ></formly-form>
+                    <formly-form
+                      form="vm.form"
+                      model="vm.currentConversion.data"
+                      fields="vm.fields"
+                      options="{}"
+                    ></formly-form>
+                  </div>
+                  <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+                    <label class="control-label"> {{'PROFILE' | translate}} </label>
+                    <br />
 
-                <select class="form-control" ng-change="unitChanged()" ng-model="dunit">
-                  <option ng-repeat="item in vm.profilelist" ng-value="item.id">
-                    {{item.name}}
-                  </option>
-                </select>
+                    <select
+                      class="form-control"
+                      ng-model="selectedProfile"
+                      ng-options="item.name for item in vm.profilelist"
+                      ng-change="SelectedRow(selectedProfile)"
+                    ></select>
+                    <div>
+                      <br />
+                      <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>
+                      <p>Validation description text</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <br />
-              <div>
-                <label> {{'TOOL_DESCRIPTION' | translate}} </label>
-                <p>Tool description text</p>
-              </div>
-              <br />
-              <br />
-
-              <br />
-              <div>
-                <label class="control-label"> {{'VALIDATION_DESCRIPTION' | translate}} </label>
-                <p>Validation description text</p>
-              </div>
-              <br />
-            </div>
-          </div>
-        </uib-accordion>
-      </uib-tab>
-      <uib-tab
-        ng-click="vm.addConverter()"
-        uib-tooltip="{{'CONVERSION_VIEW.ADD_CONVERTER' | translate}}"
-        tooltip-placement="auto top"
-        tooltip-append-to-body="true"
-        index="'new_converter'"
-      >
-        <uib-tab-heading>
-          <i class="fas fa-plus"></i>
-        </uib-tab-heading>
-      </uib-tab>
-    </uib-tabset>
-    <hr class="small" />
-    <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
-    <div class="flex-row justify-content-end">
-      <button
-        ng-if="vm.conversions.length > 1"
-        class="btn btn-danger"
-        ng-click="vm.removeConversionModal(vm.currentConversion)"
-      >
-        {{'REMOVE' | translate}}
-      </button>
-      <button
-        class="btn btn-primary"
-        ng-disabled="vm.currentConversion.converter === null && vm.conversions.length === 1"
-        ng-click="vm.startConversion()"
-      >
-        {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
-      </button>
+              
+            </uib-accordion>
+          </uib-tab>
+          <uib-tab
+            class="uibaltplus"
+            ng-click="vm.addConverter()"
+            uib-tooltip="{{'CONVERSION_VIEW.ADD_CONVERTER' | translate}}"
+            tooltip-placement="auto top"
+            tooltip-append-to-body="true"
+            index="'new_converter'"
+          >
+            <uib-tab-heading>
+              <i class="fas fa-plus"></i>
+            </uib-tab-heading>
+          </uib-tab>
+        </uib-tabset>
+      </div>
+      <div class="div2">
+        <br/>
+        <br/>
+        <br/>
+        <p>{{vm.currentConversion.converter.description}}</p>
+        <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
+        <div class="flex-row justify-content-end">
+          <button
+            ng-if="vm.conversions.length > 1"
+            class="btn btn-danger"
+            ng-click="vm.removeConversionModal(vm.currentConversion)"
+          >
+            {{'REMOVE' | translate}}
+          </button>
+          <button
+            class="btn btn-primary"
+            ng-disabled="vm.currentConversion.converter === null && vm.conversions.length === 1"
+            ng-click="vm.startConversion()"
+          >
+            {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
+          </button>
+        </div>
+      </div>
     </div>
   </form>
   <br />

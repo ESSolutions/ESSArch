@@ -8,7 +8,7 @@ class ActionToolSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActionTool
-        fields = ('name', 'form',)
+        fields = ('name', 'form', 'description')
 
 
 class ValidationSerializer(serializers.ModelSerializer):
