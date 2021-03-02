@@ -8,6 +8,7 @@ from subprocess import PIPE, Popen
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import FileExtensionValidator
 
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
@@ -31,8 +32,14 @@ class ExternalTool(models.Model):
         PYTHON_ENV = 'python'
         DOCKER_ENV = 'docker'
 
+    STYLESHEET = 'stylesheet'
+    TYPE_CHOICES = (
+        (STYLESHEET, _('stylesheet')),
+    )
+
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
+    description = models.TextField(_('description'), blank=True)
     path = models.TextField(_('path'))
     cmd = models.TextField(_('options or command'))
     enabled = models.BooleanField(_('enabled'), default=True)
@@ -41,6 +48,8 @@ class ExternalTool(models.Model):
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
     form = models.JSONField(_('form'), null=True, blank=True)
+    file = models.FileField(upload_to='stylesheets/', validators=[FileExtensionValidator(allowed_extensions=['xslt'])],
+                            null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -110,7 +119,11 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
+<<<<<<< HEAD
     def _run_python(self, filepath, rootdir, options, t=None, ip=None):
+=======
+    def _run_python(self, filepath, rootdir, options, t=None, ip=None, context=None):
+>>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -120,7 +133,11 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
+<<<<<<< HEAD
                 p = getattr(importlib.import_module(module), task)(task=t, ip=ip)
+=======
+                p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
+>>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
                 elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
@@ -170,13 +187,21 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
+<<<<<<< HEAD
     def run(self, filepath, rootdir, options, t=None, ip=None):
+=======
+    def run(self, filepath, rootdir, options, t=None, ip=None, context=None):
+>>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
             return self._run_application(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
             return self._run_docker(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
+<<<<<<< HEAD
             return self._run_python(filepath, rootdir, options, t, ip)
+=======
+            return self._run_python(filepath, rootdir, options, t, ip, context)
+>>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
 
         raise ValueError('Unknown tool type')
 

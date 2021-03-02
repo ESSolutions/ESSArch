@@ -40,7 +40,11 @@ export default class AccessModalInstanceCtrl {
         tar: $ctrl.data.request.type === 'get_tar',
         extracted: $ctrl.data.request.type === 'get',
         new: $ctrl.data.request.type === 'get_as_new',
+<<<<<<< HEAD
         edit: $ctrl.data.request.type === 'edit',
+=======
+        edit:$ctrl.data.request.type === 'edit',
+>>>>>>> bb808207c32912d106cd303bfc47d56f0f3d8ea5
         package_xml: $ctrl.data.request.package_xml,
         aic_xml: $ctrl.data.request.aic_xml,
       };

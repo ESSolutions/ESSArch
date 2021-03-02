@@ -20,6 +20,13 @@
               ng-submit="submitRequest(ip, vm.request)"
             >
               <div class="request-type">
+
+                <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="edit" />
+                    <i class="fas fa-wrench"></i> {{'GET_AS_EDITABLE' | translate}}
+                  </label>
+                </div>
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="edit" />
