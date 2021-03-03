@@ -68,9 +68,11 @@ export default class StateTreeActionCtrl {
 
       $scope.statusViewUpdate($scope.ip);
       $interval.cancel(stateInterval);
+      /*
       stateInterval = $interval(function () {
         $scope.statusViewUpdate($scope.ip);
       }, appConfig.stateInterval);
+      */
     };
 
     vm.$onDestroy = function () {
