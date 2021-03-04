@@ -1631,7 +1631,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
             package_xml=data.get('package_xml', False),
             aic_xml=data.get('aic_xml', False),
-            edit=data.get('edit',False),
+            edit=data.get('edit', False),
         )
         workflow.run()
         return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
@@ -2275,76 +2275,117 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise Conflict('IP with id {} already exists'.format(pk))
 
         reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
-        xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
+        uip = Path.objects.get(entity="ingest_unidentified").value # This does not do anything particular right now
+        # other than setting a nut null value for package_mets_path. Plausible use when an UIP is a proper SIP but SA
+        # is not registred in the preservation system
+        xmlfile = os.path.join(uip, "%s.xml" % pk)
 
-        if not os.path.isfile(xmlfile):
-            logger.warning('Tried to receive IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
-            raise exceptions.NotFound('%s does not exist' % xmlfile)
-        try:
-            container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
-        except etree.LxmlError:
-            logger.warning('Tried to receive IP with invalid XML file %s' % xmlfile, extra={'user': request.user.pk})
-            raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
-
-        if not os.path.isfile(container):
-            logger.warning(
-                'Tried to receive IP with missing container file %s' % container,
-                extra={'user': request.user.pk}
-            )
-            raise exceptions.NotFound('%s does not exist' % container)
-
-        if existing_sip is None:
-            if organization is None:
-                raise exceptions.ParseError('You must be part of an organization to receive IP')
-
-            parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
-            provided_sa = request.data.get('submission_agreement')
-            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
-
-            if parsed_sa is not None and provided_sa is not None:
-                if provided_sa == parsed_sa:
-                    sa = provided_sa
-                else:
-                    raise exceptions.ParseError(detail='Must use SA specified in XML')
-            elif any([parsed_sa, provided_sa]):
-                sa = parsed_sa or provided_sa
-            else:
+        if os.path.isdir(os.path.join(reception, pk)):
+            ip_is_directory = True
+            # A directory with the given id exists, try to prepare it
+            sa = request.data.get('submission_agreement')
+            if sa is None:
                 raise exceptions.ParseError(detail='Missing parameter submission_agreement')
-
-            try:
-                sa = SubmissionAgreement.objects.get(pk=sa)
-            except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
-                raise exceptions.ParseError(e)
-
+            sa = SubmissionAgreement.objects.get(pk=sa)
+            parsed = {'label': pk}
+            container = os.path.join(reception, pk)
             ip = InformationPackage.objects.create(
                 object_identifier_value=pk,
+                package_type=InformationPackage.SIP,
+                state='Prepared',
+                responsible=request.user,
                 submission_agreement=sa,
+                submission_agreement_locked=True,
                 object_path=container,
+                label=parsed.get('label'),
                 package_mets_path=xmlfile,
             )
-            parse_submit_description_from_ip(ip)
-
-            member = Member.objects.get(django_user=request.user)
             user_perms = perms.pop('owner', [])
-
-            organization.assign_object(ip, custom_permissions=perms)
-            organization.add_object(ip)
-
+            member = Member.objects.get(django_user=request.user)
             for perm in user_perms:
                 perm_name = get_permission_name(perm, ip)
                 assign_perm(perm_name, member.django_user, ip)
-        else:
-            ip = existing_sip
-            sa = ip.submission_agreement
+            try:
+                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
+                                        wait=wait_random_exponential(multiplier=1, max=60)):
+                    with attempt:
+                        ProfileIP.objects.filter(ip=ip).delete()
+                        sa.lock_to_information_package(ip, request.user)
+            except RetryError:
+                pass
 
-        try:
-            for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                    wait=wait_random_exponential(multiplier=1, max=60)):
-                with attempt:
-                    ProfileIP.objects.filter(ip=ip).delete()
-                    sa.lock_to_information_package(ip, request.user)
-        except RetryError:
-            pass
+        else:
+            xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
+            ip_is_directory = False
+
+            if not os.path.isfile(xmlfile):
+                logger.warning('Tried to receive IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
+                raise exceptions.NotFound('%s does not exist' % xmlfile)
+            try:
+                container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
+            except etree.LxmlError:
+                logger.warning('Tried to receive IP with invalid XML file %s' % xmlfile, extra={'user': request.user.pk})
+                raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
+
+            if not os.path.isfile(container):
+                logger.warning(
+                    'Tried to receive IP with missing container file %s' % container,
+                    extra={'user': request.user.pk}
+                )
+                raise exceptions.NotFound('%s does not exist' % container)
+
+            if existing_sip is None:
+                if organization is None:
+                    raise exceptions.ParseError('You must be part of an organization to receive IP')
+
+                parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
+                provided_sa = request.data.get('submission_agreement')
+                parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+
+                if parsed_sa is not None and provided_sa is not None:
+                    if provided_sa == parsed_sa:
+                        sa = provided_sa
+                    else:
+                        raise exceptions.ParseError(detail='Must use SA specified in XML')
+                elif any([parsed_sa, provided_sa]):
+                    sa = parsed_sa or provided_sa
+                else:
+                    raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+
+                try:
+                    sa = SubmissionAgreement.objects.get(pk=sa)
+                except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
+                    raise exceptions.ParseError(e)
+
+                ip = InformationPackage.objects.create(
+                    object_identifier_value=pk,
+                    submission_agreement=sa,
+                    object_path=container,
+                    package_mets_path=xmlfile,
+                )
+                parse_submit_description_from_ip(ip)
+
+                member = Member.objects.get(django_user=request.user)
+                user_perms = perms.pop('owner', [])
+
+                organization.assign_object(ip, custom_permissions=perms)
+                organization.add_object(ip)
+
+                for perm in user_perms:
+                    perm_name = get_permission_name(perm, ip)
+                    assign_perm(perm_name, member.django_user, ip)
+            else:
+                ip = existing_sip
+                sa = ip.submission_agreement
+
+            try:
+                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
+                                        wait=wait_random_exponential(multiplier=1, max=60)):
+                    with attempt:
+                        ProfileIP.objects.filter(ip=ip).delete()
+                        sa.lock_to_information_package(ip, request.user)
+            except RetryError:
+                pass
 
         if sa.profile_aic_description is None:
             raise exceptions.ParseError('Submission agreement missing AIC Description profile')
@@ -2375,7 +2416,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.responsible = request.user
         ip.save()
 
-        return ip
+        return (ip, ip_is_directory)
 
     @permission_required_or_403(['ip.receive'])
     @method_decorator(feature_enabled_or_404('receive'))
@@ -2389,8 +2430,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 package_type=InformationPackage.AIP,
                 state='At reception',
             )
+            ip_is_directory = False
         except InformationPackage.DoesNotExist:
-            ip = self._prepare(request, pk)
+            ip, ip_is_directory = self._prepare(request, pk)
 
         with transaction.atomic():
             ip.state = 'Receiving'
@@ -2404,57 +2446,82 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             has_cts = cts is not None and os.path.exists(cts)
 
             aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
-            workflow_spec = [
-                {
-                    "step": True,
-                    "name": "Validation",
-                    "children": [
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                            "label": "Validate package-mets",
-                            "params": {
-                                "xml_filename": "{{_PACKAGE_METS_PATH}}",
-                            }
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                            "label": "Diff-check against package-mets",
-                            "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                            "label": "Validate cts",
-                            "if": has_cts,
-                            "run_if": "{{_CTS_PATH | path_exists}}",
-                            "params": {
-                                "xml_filename": "{{_CTS_PATH}}",
-                                "schema_filename": "{{_CTS_SCHEMA_PATH}}",
-                            }
-                        },
-                    ]
-                },
-                {
-                    "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                    "label": "Create Physical Model",
-                    'params': {'root': aip_object_path}
-                },
-                {
-                    "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
-                    "label": "Receive SIP",
-                    "params": {
-                        'purpose': request.data.get('purpose'),
-                    }
-                },
-                {
-                    "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
-                    "label": "Update IP size and file count",
-                },
-                {
-                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                    "label": "Set status to received",
-                    "args": ["Received"],
-                },
-            ]
+
+            if ip_is_directory:
+                workflow_spec = [
+
+                    {
+                        "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                        "label": "Create Physical Model",
+                        'params': {'root': aip_object_path}
+                    },
+                    {
+                        "name": "ESSArch_Core.preingest.tasks.ReceiveIP",
+                        "label": "Receive IP",
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                        "label": "Update IP size and file count",
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to received",
+                        "args": ["Received"],
+                    },
+                ]
+            else:
+                workflow_spec = [
+                    {
+                        "step": True,
+                        "name": "Validation",
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate package-mets",
+                                "params": {
+                                    "xml_filename": "{{_PACKAGE_METS_PATH}}",
+                                }
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                                "label": "Diff-check against package-mets",
+                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                                "label": "Validate cts",
+                                "if": has_cts,
+                                "run_if": "{{_CTS_PATH | path_exists}}",
+                                "params": {
+                                    "xml_filename": "{{_CTS_PATH}}",
+                                    "schema_filename": "{{_CTS_SCHEMA_PATH}}",
+                                }
+                            },
+                        ]
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                        "label": "Create Physical Model",
+                        'params': {'root': aip_object_path}
+                    },
+                    {
+                        "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
+                        "label": "Receive SIP",
+                        "params": {
+                            'purpose': request.data.get('purpose'),
+                        }
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                        "label": "Update IP size and file count",
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to received",
+                        "args": ["Received"],
+                    },
+                ]
+
             workflow = create_workflow(workflow_spec, ip)
             workflow.name = "Receive SIP"
             workflow.information_package = ip
