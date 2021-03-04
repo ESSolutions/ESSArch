@@ -507,17 +507,11 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
-    policy = StoragePolicySerializer()
-    # organization = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
     submission_agreement = serializers.PrimaryKeyRelatedField(
         queryset=SubmissionAgreement.objects.all(),
         pk_field=serializers.UUIDField(format='hex_verbose'),
     )
-    # submission_agreement_data = serializers.SerializerMethodField()
-    # submission_agreement_data_versions = serializers.ListField(
-    #    child=serializers.PrimaryKeyRelatedField(read_only=True)
-    # )
-    # profiles = ProfileIPSerializer(source='profileip_set', many=True)
 
     def get_organization(self, obj):
         try:
@@ -527,71 +521,10 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         except IndexError:
             return None
 
-    def get_submission_agreement_data(self, obj):
-        if obj.submission_agreement_data is not None:
-            serializer = SubmissionAgreementIPDataSerializer(obj.submission_agreement_data)
-            data = serializer.data
-        else:
-            data = {'data': {}}
-
-        extra_data = fill_specification_data(ip=obj, sa=obj.submission_agreement)
-
-        for field in getattr(obj.submission_agreement, 'template', []):
-            if field['key'] in extra_data:
-                data['data'][field['key']] = extra_data[field['key']]
-
-        return data
-
-    def create_storage_method(self, data):
-        if data is None:
-            return None
-
-        storage_method_target_set_data = data.pop('storage_method_target_relations')
-        storage_method, _ = StorageMethod.objects.update_or_create(
-            id=data['id'],
-            defaults=data
-        )
-
-        for storage_method_target_data in storage_method_target_set_data:
-            storage_target_data = storage_method_target_data.pop('storage_target')
-            storage_target_data.pop('remote_server', None)
-            storage_target, _ = StorageTarget.objects.update_or_create(
-                id=storage_target_data['id'],
-                defaults=storage_target_data
-            )
-            storage_method_target_data['storage_method'] = storage_method
-            storage_method_target_data['storage_target'] = storage_target
-            storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
-                id=storage_method_target_data['id'],
-                defaults=storage_method_target_data
-            )
-
-        return storage_method
-
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
         aic_data['last_changed_local'] = timezone.now
         aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
-
-        policy_data = validated_data.pop('policy')
-        storage_method_set_data = policy_data.pop('storage_methods')
-
-        cache_storage_data = policy_data.pop('cache_storage')
-        ingest_path_data = policy_data.pop('ingest_path')
-
-        cache_storage = self.create_storage_method(cache_storage_data)
-        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
-
-        policy_data['cache_storage'] = cache_storage
-        policy_data['ingest_path'] = ingest_path
-
-        policy, _ = StoragePolicy.objects.update_or_create(policy_id=policy_data['policy_id'],
-                                                           defaults=policy_data)
-
-        for storage_method_data in storage_method_set_data:
-            storage_method = self.create_storage_method(storage_method_data)
-            policy.storage_methods.add(storage_method)
-            # add to policy, dummy
 
         request = self.context.get("request")
         if request and hasattr(request, "user"):
@@ -600,7 +533,6 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             user = User.objects.get(username="system")
 
         validated_data['aic'] = aic
-        # validated_data['policy'] = policy
         validated_data['responsible'] = user
         validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
@@ -617,7 +549,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'appraisal_date', 'policy', 'submission_agreement',
+            'start_date', 'end_date', 'appraisal_date', 'submission_agreement', 'organization',
             # 'start_date', 'end_date', 'appraisal_date', 'profiles', 'policy', 'organization', 'submission_agreement',
             # 'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
         )

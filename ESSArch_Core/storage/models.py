@@ -854,7 +854,7 @@ class StorageObject(models.Model):
                 # by master to write to its temp directory
                 temp_dir = Path.objects.get(entity='temp').value
 
-                user, passw, host = storage_target.master_server.split(',')
+                host, user, passw = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)
