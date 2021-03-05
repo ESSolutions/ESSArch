@@ -117,11 +117,12 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     OrderTypeSerializer,
     OrderWriteSerializer,
+    SaveActionToolSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
 from ESSArch_Core.mixins import PaginatedViewMixin
-from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
+from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement,Profile
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.util import (
@@ -245,7 +246,9 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
             tool_name = converter['name']
 
             # ensure that tool exists
-            ActionTool.objects.get(name=tool_name)
+            action_tool = ActionTool.objects.get(name=tool_name)
+            print("Type", action_tool.type)
+            print("Path", action_tool.path)
 
             pattern = converter['path']
             options = converter['options']
@@ -258,6 +261,43 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
         workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
         workflow.run()
+        return Response()
+
+    @action(detail=True, methods=['post'], url_path='actiontool_save')
+    def save_actiontool(self, request, pk=None):
+        workarea: Workarea = self.get_object()
+
+        serializer = SaveActionToolSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [
+            {
+                "step": True,
+                "name": "Action tool",
+                "children": []
+            }
+        ]
+        for converter in serializer.validated_data['actions']:
+            tool_name = converter['name']
+            pattern = converter['path']
+            options = converter['options']
+
+            workflow_spec[0]['children'].append({
+                "name": "ESSArch_Core.fixity.action.tasks.Action",
+                "label": tool_name,
+                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+            })
+
+        dct = {
+            'name': 'Action Workflow Xyz',
+            'profile_type': 'action_workflow',
+            'type': 'Action Workflow',
+            'status': 'Draft',
+            'label': 'Action workflow profile for actions Xx',
+            'specification': workflow_spec,
+        }
+
+        profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
         return Response()
 
     @action(detail=True, methods=['post'], url_path='validate')
@@ -916,6 +956,43 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         workflow = create_workflow(workflow_spec, eager=False, ip=ip)
         workflow.run()
+        return Response()
+
+    @action(detail=True, methods=['post'], url_path='actiontool_save')
+    def save_actiontool(self, request, pk=None):
+        workarea: Workarea = self.get_object()
+
+        serializer = SaveActionToolSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [
+            {
+                "step": True,
+                "name": "Action tool",
+                "children": []
+            }
+        ]
+        for converter in serializer.validated_data['actions']:
+            tool_name = converter['name']
+            pattern = converter['path']
+            options = converter['options']
+
+            workflow_spec[0]['children'].append({
+                "name": "ESSArch_Core.fixity.action.tasks.Action",
+                "label": tool_name,
+                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+            })
+
+        dct = {
+            'name': 'Action Workflow Xyz',
+            'profile_type': 'action_workflow',
+            'type': 'Action Workflow',
+            'status': 'Draft',
+            'label': 'Action workflow profile for actions Xx',
+            'specification': workflow_spec,
+        }
+
+        profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
         return Response()
 
     @lock_obj(blocking_timeout=0.1)

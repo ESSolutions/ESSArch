@@ -441,6 +441,16 @@ class ActionToolSerializer(serializers.Serializer):
     actions = serializers.ListField(child=ActionSerializer())
 
 
+class SaveActionSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    path = serializers.CharField(allow_blank=True)
+    options = serializers.JSONField()
+
+class SaveActionToolSerializer(serializers.Serializer):
+    actions = serializers.ListField(child=SaveActionSerializer())
+
+
+
 class InformationPackageAICSerializer(DynamicModelSerializer):
     information_packages = InformationPackageSerializer(read_only=True, many=True)
     package_type = serializers.ChoiceField(choices=((1, 'AIC'),))
