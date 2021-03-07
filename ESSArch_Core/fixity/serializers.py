@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ESSArch_Core.fixity.models import ActionTask, ActionTool, Validation
+from ESSArch_Core.fixity.models import ActionTool, Validation
 
 
 class ActionToolSerializer(serializers.ModelSerializer):
@@ -14,7 +14,7 @@ class SaveActionToolSerializer(serializers.ModelSerializer):
     form = serializers.JSONField(read_only=True)
 
     class Meta:
-        model = ActionTask
+        model = ActionTool
         fields = ('name', 'form',)
 
 
