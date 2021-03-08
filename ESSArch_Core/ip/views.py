@@ -247,17 +247,29 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
             # ensure that tool exists
             action_tool = ActionTool.objects.get(name=tool_name)
-            print("Type", action_tool.type)
-            print("Path", action_tool.path)
 
-            pattern = converter['path']
             options = converter['options']
+            pattern = None
 
-            workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.action.tasks.Action",
-                "label": tool_name,
-                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
-            })
+            if 'path' in converter:
+                pattern = converter['path']
+
+            if action_tool.environment == "task":
+                tool_cmd = json.loads(action_tool.cmd)
+                tool_cmd.update(options)
+
+                workflow_spec[0]['children'].append({
+                    "name": action_tool.path,
+                    "label": tool_name,
+                    "params": tool_cmd
+                })
+
+            else:
+                workflow_spec[0]['children'].append({
+                    "name": "ESSArch_Core.fixity.action.tasks.Action",
+                    "label": tool_name,
+                    "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+                })
 
         workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
         workflow.run()
@@ -279,8 +291,11 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         ]
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
-            pattern = converter['path']
+
             options = converter['options']
+            pattern = None
+            if 'path' in converter:
+                pattern = converter['path']
 
             workflow_spec[0]['children'].append({
                 "name": "ESSArch_Core.fixity.action.tasks.Action",
@@ -943,16 +958,32 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             tool_name = converter['name']
 
             # ensure that tool exists
-            ActionTool.objects.get(name=tool_name)
+            action_tool = ActionTool.objects.get(name=tool_name)
 
-            pattern = converter['path']
             options = converter['options']
+            pattern = None
 
-            workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.action.tasks.Action",
-                "label": tool_name,
-                "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
-            })
+            if 'path' in converter:
+                pattern = converter['path']
+
+            if action_tool.environment == "task":
+                tool_cmd = json.loads(action_tool.cmd)
+                tool_cmd.update(options)
+
+                workflow_spec[0]['children'].append({
+                    "name": action_tool.path,
+                    "label": tool_name,
+                    "params": tool_cmd
+                })
+
+            else:
+                workflow_spec[0]['children'].append({
+                    "name": "ESSArch_Core.fixity.action.tasks.Action",
+                    "label": tool_name,
+                    "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
+                })
+
+
 
         workflow = create_workflow(workflow_spec, eager=False, ip=ip)
         workflow.run()
@@ -974,8 +1005,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ]
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
-            pattern = converter['path']
             options = converter['options']
+
+            if 'path' in converter:
+                pattern = converter['path']
 
             workflow_spec[0]['children'].append({
                 "name": "ESSArch_Core.fixity.action.tasks.Action",

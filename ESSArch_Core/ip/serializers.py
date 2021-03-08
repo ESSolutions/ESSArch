@@ -433,7 +433,7 @@ class WorkareaSerializer(serializers.ModelSerializer):
 
 class ActionSerializer(serializers.Serializer):
     name = serializers.CharField()
-    path = serializers.CharField(allow_blank=True)
+    path = serializers.CharField(allow_blank=True, required=False)
     options = serializers.JSONField()
 
 
@@ -443,7 +443,7 @@ class ActionToolSerializer(serializers.Serializer):
 
 class SaveActionSerializer(serializers.Serializer):
     name = serializers.CharField()
-    path = serializers.CharField(allow_blank=True)
+    path = serializers.CharField(allow_blank=True, required=False)
     options = serializers.JSONField()
 
 class SaveActionToolSerializer(serializers.Serializer):
