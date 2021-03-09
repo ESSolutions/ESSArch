@@ -38,6 +38,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     CANNOT_RECEIVE_ERROR: 'Ogiltig leveransöverenskommelse i XML-fil',
     CHANGE_PASSWORD: 'Ändra lösenord',
     CHANGED: 'Ändrad',
+    CHECKPOINT: 'Checkpoint',
     CHOOSELANGUAGE: 'Välj språk',
     CITY: 'Stad',
     CLEAR_ALL: 'Avmarkera alla',

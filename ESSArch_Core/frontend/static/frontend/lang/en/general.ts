@@ -38,6 +38,7 @@ const general = ($translateProvider) => {
     CANNOT_RECEIVE_ERROR: 'Invalid submission agreement in XML-file',
     CHANGE_PASSWORD: 'Change Password',
     CHANGED: 'Changed',
+    CHECKPOINT: 'Checkpoint',
     CHOOSELANGUAGE: 'Choose preferred language',
     CITY: 'City',
     CLEAR_ALL: 'Clear all',
