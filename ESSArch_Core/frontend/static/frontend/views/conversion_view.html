@@ -90,9 +90,28 @@
         
       </div>
       <div class="div2">
+        <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+          <label class="control-label"> {{'PROFILE' | translate}} </label>
+          <br />
+
+          <select
+            class="form-control"
+            ng-model="selectedProfile"
+            ng-options="item.name for item in vm.profilelist"
+            ng-change="SelectedRow(selectedProfile)"
+          ></select>
+        </div>
         <br/>
-        <br/>
-        
+        <button
+        class="btn btn-primary"
+      >
+        {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+      </button>
+      <button
+        class="btn btn-primary"
+      >
+        {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
+      </button>
         <hr class="small" />
 
         
@@ -113,7 +132,6 @@
           >
             {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
           </button>
-          
         </div>
       </div>
     </div>

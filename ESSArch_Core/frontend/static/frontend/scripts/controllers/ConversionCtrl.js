@@ -8,13 +8,11 @@ export default class ConversionCtrl {
     vm.profiles = [];
     vm.profilelist = [];
     var profilelist = [];
-    var dianaaudiocontext = null;
     vm.showProfiles = false;
 
     vm.profileChosen = null;
 
     vm.profile = [];
-    const ipToSearch = 'a44ad659-07f2-420c-aa80-f2d55df99970';
 
     vm.$onInit = function () {
       vm.profilesLoading = true;
@@ -28,35 +26,15 @@ export default class ConversionCtrl {
           const pdata = response.data;
           var profile = null;
           for (var j = 0; j < pdata.length; j++) {
-            if (pdata[j].profile_type.includes('validation')) {
-              profile = {
-                id: pdata[j].id,
-                name: pdata[j].name,
-              };
-
-              profilelist.push(profile);
+            if (pdata[j].profile_type.includes('action_workflow')) {
+              profilelist.push(pdata[j]);
             }
           }
-
+          vm.profilelist = profilelist;
           vm.profilesLoading = false;
         })
         .catch(() => {
           vm.profilesLoading = false;
-        });
-
-      vm.contextLoading = true;
-      $http({
-        url: appConfig.djangoUrl + 'profiles/450fcd19-d798-4e04-b392-575490103284/',
-        method: 'GET',
-        params: {pager: 'none'},
-      })
-        .then(function (response) {
-          const pdata = response.data;
-          dianaaudiocontext = pdata.specification.mediaconch[0].context;
-          vm.contextLoading = false;
-        })
-        .catch(() => {
-          vm.contextLoading = false;
         });
     };
 
@@ -80,13 +58,6 @@ export default class ConversionCtrl {
       },
     ];
 
-    vm.arrlist = [
-      {
-        userid: 1,
-        name: 'Diana Video',
-      },
-    ];
-
     vm.currentConversion = vm.conversions[0];
     vm.updateConverterForm = (conversion) => {
       vm.currentConversion = conversion;
@@ -107,36 +78,6 @@ export default class ConversionCtrl {
           return converter;
         });
         return vm.options.converters;
-      });
-    };
-
-    vm.getTFromREST = function (information_package) {
-      var tids = [];
-      return $http({
-        url: appConfig.djangoUrl + 'tasks/',
-        method: 'GET',
-        params: {pager: 'none', information_package: information_package},
-      }).then(function (response) {
-        const tdata = response.data;
-        for (var i = 0; i < tdata.length; i++) {
-          if (tdata[i].information_package == information_package && !angular.equals([], tdata[i].args)) {
-            tids.push(tdata[i]);
-          }
-        }
-        return tids;
-      });
-    };
-
-    vm.getValidationFromREST = function (task) {
-      var fname = '';
-      return $http({
-        url: appConfig.djangoUrl + 'validations/',
-        method: 'GET',
-        params: {pager: 'none', task},
-      }).then(function (response) {
-        const vdata = response.data;
-
-        return vdata;
       });
     };
 
@@ -187,47 +128,27 @@ export default class ConversionCtrl {
     };
 
     $scope.SelectedRow = function (selectedProfile) {
-      console.log('item selected');
-      console.log(selectedProfile);
-      vm.profileChosen = selectedProfile;
-      //vm.profilesLoading = true;
-
       $http({
-        url: appConfig.djangoUrl + 'externalTool-description/',
+        url: appConfig.djangoUrl + 'profiles/' + selectedProfile.id + '/',
         method: 'GET',
         params: {pager: 'none'},
       })
         .then(function (response) {
-          const pdata = response.data;
-          /*
-          var profile = null;
-          for (var j = 0; j < pdata.length; j++) {
-            
-            if (pdata[j].profile_type.includes('validation')) {
-              profile = {
-                id: pdata[j].id,
-                name: pdata[j].name,
-              };
-
-              profilelist.push(profile);
-            }
-            
-          }
-*/
-          console.log(pdata);
-          for (var j = 0; j < pdata.length; j++) {
-            console.log(pdata[j].actionTool.name);
-          }
-          //vm.profilesLoading = false;
+          console.log(response.data.specification);
         })
         .catch(() => {
-          //vm.profilesLoading = false;
+          console.log('Caught error');
         });
+
+      for (var i = 0; i < tdata.length; i++) {
+        if (tdata[i].information_package == information_package && !angular.equals([], tdata[i].args)) {
+          tids.push(tdata[i]);
+        }
+      }
+
+      vm.conversions;
     };
     vm.startConversion = () => {
-      console.log('vm.profileChosen');
-      console.log(vm.profileChosen);
-
       if (vm.form.$invalid) {
         vm.form.$setSubmitted();
         return;
@@ -252,6 +173,7 @@ export default class ConversionCtrl {
           };
         }),
       });
+
       const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
       const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
       $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {

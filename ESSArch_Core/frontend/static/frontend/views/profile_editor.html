@@ -1,43 +1,6 @@
 <div class="profile-editor">
   <div ng-if="select" id="select-view" class="select-view">
     <div class="sa-table table-container">
-      <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
-      <div>
-        <ui-select
-          ng-model="conversion.converter"
-          on-select="vm.updateConverterForm(conversion)"
-          theme="bootstrap"
-          sortable="true"
-          close-on-select="true"
-          append-to-body="true"
-        >
-          <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.CONVERTER' | translate}}"
-            >{{conversion.converter.name}}</ui-select-match
-          >
-          <ui-select-choices
-            ng-hide="!$select.open"
-            refresh-delay="0"
-            refresh="vm.getConverters($select.search)"
-            repeat="x in vm.options.converters | propsFilter: {name: $select.search}"
-          >
-            <div ng-bind-html="x.name | highlight: $select.search"></div>
-          </ui-select-choices>
-          <ui-select-no-choice>
-            <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
-          </ui-select-no-choice>
-        </ui-select>
-      </div>
-      <div ng-if="vm.fields.length">
-        <hr class="small" />
-        <formly-form
-          form="vm.form"
-          model="vm.currentConversion.data"
-          fields="vm.currentConversion.converter.pathField"
-          options="{}"
-        ></formly-form>
-        <formly-form form="vm.form" model="vm.currentConversion.data" fields="vm.fields" options="{}"></formly-form>
-      </div>
-      <br />
       <table ng-if="!saAlert && saProfile" style="margin-top: 20px" class="table table-striped">
         <thead>
           <tr>
