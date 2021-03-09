@@ -58,20 +58,8 @@
                       options="{}"
                     ></formly-form>
                   </div>
-                  <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
-                    <label class="control-label"> {{'PROFILE' | translate}} </label>
-                    <br />
-
-                    <select
-                      class="form-control"
-                      ng-model="selectedProfile"
-                      ng-options="item.name for item in vm.profilelist"
-                      ng-change="SelectedRow(selectedProfile)"
-                    ></select>
-                  </div>
                 </div>
               </div>
-              
             </uib-accordion>
           </uib-tab>
           <uib-tab
@@ -87,36 +75,44 @@
             </uib-tab-heading>
           </uib-tab>
         </uib-tabset>
-        
       </div>
       <div class="div2">
-        <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
-          <label class="control-label"> {{'PROFILE' | translate}} </label>
-          <br />
+        <div>
+          <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+            <label class="control-label"> Select workflow profile </label>
+            <br />
 
-          <select
-            class="form-control"
-            ng-model="selectedProfile"
-            ng-options="item.name for item in vm.profilelist"
-            ng-change="SelectedRow(selectedProfile)"
-          ></select>
+            <select
+              class="form-control"
+              ng-model="selectedProfile"
+              ng-options="item.name for item in vm.profilelist"
+              ng-change="SelectedRow(selectedProfile)"
+            >
+              <option value="" disabled selected>Select workflow</option>
+            </select>
+          </div>
+          <br />
+          <button class="btn btn-primary" ng-click="vm.fetchClick()">
+            {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
+          </button>
         </div>
-        <br/>
-        <button
-        class="btn btn-primary"
-      >
-        {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-      </button>
-      <button
-        class="btn btn-primary"
-      >
-        {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
-      </button>
+        <div>
+          <hr class="small" />
+          <div>
+            <label class="control-label"
+              >Save this workflow <br />
+              <input type="text" class="form-control" ng-model="workflowName" placeholder="Name of workflow"
+            /></label>
+          </div>
+          <br />
+          <button class="btn btn-primary" ng-click="vm.saveClick(workflowName)">
+            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+          </button>
+        </div>
         <hr class="small" />
 
-        
         <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
-        <br/>
+        <br />
         <div class="flex-row justify-content-end">
           <button
             ng-if="vm.conversions.length > 1"

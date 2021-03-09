@@ -9,6 +9,7 @@ export default class ConversionCtrl {
     vm.profilelist = [];
     var profilelist = [];
     vm.showProfiles = false;
+    vm.selectedProfile = null;
 
     vm.profileChosen = null;
 
@@ -127,7 +128,34 @@ export default class ConversionCtrl {
       );
     };
 
+    vm.saveClick = (workflowName) => {
+      console.log('Hello from save workflow method');
+      console.log('Name of workflow');
+      console.log(workflowName);
+      console.log('Conversions to send');
+      for (var i = 0; i < vm.conversions.length; i++) {
+        console.log(vm.conversions[i]);
+      }
+    };
+
+    vm.fetchClick = () => {
+      console.log('Hello from fetch workflow method');
+      console.log('Selected profile');
+      $http({
+        url: appConfig.djangoUrl + 'profiles/' + vm.selectedProfile.id + '/',
+        method: 'GET',
+        params: {pager: 'none'},
+      })
+        .then(function (response) {
+          console.log(response.data.specification);
+        })
+        .catch(() => {
+          console.log('Caught error');
+        });
+    };
+
     $scope.SelectedRow = function (selectedProfile) {
+      vm.selectedProfile = selectedProfile;
       $http({
         url: appConfig.djangoUrl + 'profiles/' + selectedProfile.id + '/',
         method: 'GET',
@@ -139,12 +167,6 @@ export default class ConversionCtrl {
         .catch(() => {
           console.log('Caught error');
         });
-
-      for (var i = 0; i < tdata.length; i++) {
-        if (tdata[i].information_package == information_package && !angular.equals([], tdata[i].args)) {
-          tids.push(tdata[i]);
-        }
-      }
 
       vm.conversions;
     };
