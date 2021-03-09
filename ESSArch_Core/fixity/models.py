@@ -26,6 +26,7 @@ class ExternalTool(models.Model):
         COLLECTION_TOOL = 'collection'
         TRANSFORMATION_TOOL = 'transformation'
         VALIDATION_TOOL = 'validation'
+        WORKFLOW_TASK = 'workflow task'
 
     class EnvironmentType(models.TextChoices):
         CLI_ENV = 'cli'
@@ -41,7 +42,7 @@ class ExternalTool(models.Model):
     name = models.CharField(_('name'), max_length=255, unique=True)
     description = models.TextField(_('description'), blank=True)
     path = models.TextField(_('path'))
-    cmd = models.TextField(_('options or command'))
+    cmd = models.TextField(_('options, command or task'))
     enabled = models.BooleanField(_('enabled'), default=True)
     environment = models.CharField(_('environment'), max_length=20,
                                    default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)

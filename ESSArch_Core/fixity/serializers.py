@@ -10,6 +10,13 @@ class ActionToolSerializer(serializers.ModelSerializer):
         model = ActionTool
         fields = ('name', 'form', 'description')
 
+class SaveActionToolSerializer(serializers.ModelSerializer):
+    form = serializers.JSONField(read_only=True)
+
+    class Meta:
+        model = ActionTool
+        fields = ('name', 'form',)
+
 
 class ValidationSerializer(serializers.ModelSerializer):
     specification = serializers.JSONField(read_only=True)
