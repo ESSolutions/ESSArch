@@ -87,7 +87,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
     responsible = serializers.SlugRelatedField(
-        slug_field='username', queryset=User.objects.all(),
+        slug_field='username', queryset=User.objects.all(), required=False,
     )
 
     def get_params(self, obj):

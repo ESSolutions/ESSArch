@@ -11,8 +11,7 @@ from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
-from ESSArch_Core.configuration.models import EventType, Path, StoragePolicy
-from ESSArch_Core.configuration.serializers import StoragePolicySerializer
+from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import (
     Agent,
     AgentNote,
@@ -32,11 +31,6 @@ from ESSArch_Core.profiles.serializers import (
     SubmissionAgreementIPDataSerializer,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
-from ESSArch_Core.storage.models import (
-    StorageMethod,
-    StorageMethodTargetRelation,
-    StorageTarget,
-)
 from ESSArch_Core.tags.models import (
     Delivery,
     Structure,
