@@ -983,15 +983,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
                 })
 
-
-
         workflow = create_workflow(workflow_spec, eager=False, ip=ip)
         workflow.run()
         return Response()
 
     @action(detail=True, methods=['post'], url_path='actiontool_save')
     def save_actiontool(self, request, pk=None):
-        workarea: Workarea = self.get_object()
+        ip = self.get_object()
 
         serializer = SaveActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1006,6 +1004,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
             options = converter['options']
+            pattern = None
 
             if 'path' in converter:
                 pattern = converter['path']
@@ -1013,7 +1012,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workflow_spec[0]['children'].append({
                 "name": "ESSArch_Core.fixity.action.tasks.Action",
                 "label": tool_name,
-                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+                "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
             })
 
         dct = {
