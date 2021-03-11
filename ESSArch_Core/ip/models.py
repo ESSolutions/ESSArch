@@ -1768,6 +1768,8 @@ class InformationPackage(models.Model):
                 task.result = remote_data['result']
                 task.traceback = remote_data['traceback']
                 task.exception = remote_data['exception']
+                if task.status == 'SUCCESS':
+                    storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
                 task.save()
 
                 if task.status != celery_states.SUCCESS:
@@ -1782,6 +1784,8 @@ class InformationPackage(models.Model):
                 task.result = remote_data['result']
                 task.traceback = remote_data['traceback']
                 task.exception = remote_data['exception']
+                if task.status == 'SUCCESS':
+                    storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
                 task.save()
 
                 sleep(5)
@@ -1789,7 +1793,6 @@ class InformationPackage(models.Model):
             if task.status in celery_states.EXCEPTION_STATES:
                 task.reraise()
 
-            storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
         else:
             storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
 
