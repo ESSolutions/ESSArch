@@ -85,6 +85,8 @@ import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassi
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RemoveConversionModalInstanceCtrl from '../controllers/RemoveConversionModalInstanceCtrl';
+import ActionDetailsModalInstanceCtrl from '../controllers/ActionDetailsModalInstanceCtrl';
+import SaveWorkflowModalInstanceCtrl from '../controllers/SaveWorkflowModalInstanceCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RemoveStructureModalInstanceCtrl from '../controllers/RemoveStructureModalInstanceCtrl';
 import RemoveStructureUnitModalInstanceCtrl from '../controllers/RemoveStructureUnitModalInstanceCtrl';
@@ -944,6 +946,8 @@ export default angular
     ReceptionCtrl,
   ])
   .controller('RemoveConversionModalInstanceCtrl', ['$uibModalInstance', 'data', RemoveConversionModalInstanceCtrl])
+  .controller('ActionDetailsModalInstanceCtrl', ['$uibModalInstance', 'data', ActionDetailsModalInstanceCtrl])
+  .controller('SaveWorkflowModalInstanceCtrl', ['$uibModalInstance', 'data', SaveWorkflowModalInstanceCtrl])
   .controller('RemoveNodeModalInstanceCtrl', [
     'Search',
     '$translate',
