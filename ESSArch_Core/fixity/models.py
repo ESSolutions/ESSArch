@@ -6,9 +6,9 @@ from pathlib import PurePath
 from subprocess import PIPE, Popen
 
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import FileExtensionValidator
 
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
@@ -32,11 +32,10 @@ class ExternalTool(models.Model):
         CLI_ENV = 'cli'
         PYTHON_ENV = 'python'
         DOCKER_ENV = 'docker'
+        TASK_ENV = 'task'
 
     STYLESHEET = 'stylesheet'
-    TYPE_CHOICES = (
-        (STYLESHEET, _('stylesheet')),
-    )
+    TYPE_CHOICES = ((STYLESHEET, _('stylesheet')), )
 
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
@@ -44,13 +43,20 @@ class ExternalTool(models.Model):
     path = models.TextField(_('path'))
     cmd = models.TextField(_('options, command or task'))
     enabled = models.BooleanField(_('enabled'), default=True)
-    environment = models.CharField(_('environment'), max_length=20,
-                                   default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
-    file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
-    delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
+    environment = models.CharField(_('environment'),
+                                   max_length=20,
+                                   default=EnvironmentType.CLI_ENV,
+                                   choices=EnvironmentType.choices)
+    file_processing = models.BooleanField(_('file processing (pattern)'),
+                                          default=False)
+    delete_original = models.BooleanField(
+        _('remove orginal file after processing'), default=False)
     form = models.JSONField(_('form'), null=True, blank=True)
-    file = models.FileField(upload_to='stylesheets/', validators=[FileExtensionValidator(allowed_extensions=['xslt'])],
-                            null=True, blank=True)
+    file = models.FileField(
+        upload_to='stylesheets/',
+        validators=[FileExtensionValidator(allowed_extensions=['xslt'])],
+        null=True,
+        blank=True)
 
     def __str__(self):
         return self.name
@@ -62,21 +68,26 @@ class ExternalTool(models.Model):
 def ActionTool_form_default():
     return [
         dict({
-            "key": "path",
-            "type": "input",
-            "templateOptions": dict({
+            "key":
+            "path",
+            "type":
+            "input",
+            "templateOptions":
+            dict({
                 "label": "PATH_i18n",
                 "required": "true"
             }),
-            "expressionProperties": dict({
-                "templateOptions.label": "\"PATH\" | translate"
-            })
+            "expressionProperties":
+            dict({"templateOptions.label": "\"PATH\" | translate"})
         })
     ]
 
 
 class ActionTool(ExternalTool):
-    form = models.JSONField(_('form'), null=True, blank=True, default=ActionTool_form_default)
+    form = models.JSONField(_('form'),
+                            null=True,
+                            blank=True,
+                            default=ActionTool_form_default)
 
     class Meta:
         verbose_name = _('action tool')
@@ -85,9 +96,9 @@ class ActionTool(ExternalTool):
     def prepare_cmd(self, filepath, options):
         kwargs = {
             'input': filepath,  # 'test1/test2/kanin.jpg'
-            'input_basename': os.path.basename(filepath),   # 'kanin.jpg'
-            'input_dir': os.path.dirname(filepath),     # 'test1/test2'
-            'input_name': PurePath(filepath).stem,      # 'kanin'
+            'input_basename': os.path.basename(filepath),  # 'kanin.jpg'
+            'input_dir': os.path.dirname(filepath),  # 'test1/test2'
+            'input_name': PurePath(filepath).stem,  # 'kanin'
             'input_ext': ''.join(PurePath(filepath).suffixes)[1:],  # 'jpg'
         }
         kwargs.update(options)
@@ -105,10 +116,7 @@ class ActionTool(ExternalTool):
             out, err = p.communicate()
             if p.returncode != 0:
                 message = 'Command "{cmd}" exited with returncode "{returncode}" and error message "{err}"'.format(
-                    cmd=cmd,
-                    returncode=p.returncode,
-                    err=err
-                )
+                    cmd=cmd, returncode=p.returncode, err=err)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL:
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
@@ -120,7 +128,13 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_python(self, filepath, rootdir, options, t=None, ip=None, context=None):
+    def _run_python(self,
+                    filepath,
+                    rootdir,
+                    options,
+                    t=None,
+                    ip=None,
+                    context=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -130,31 +144,37 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-                p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
-                if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
+                p = getattr(importlib.import_module(module),
+                            task)(task=t, ip=ip, context=context)
+                if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(
+                        cmd, dict):
                     p.convert(**cmd)
-                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(
+                        cmd, tuple):
                     p.convert(*cmd)
-                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, dict):
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(
+                        cmd, dict):
                     p.collect(**cmd)
-                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(
+                        cmd, tuple):
                     p.collect(*cmd)
-                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, dict):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(
+                        cmd, dict):
                     p.transform(**cmd)
-                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(
+                        cmd, tuple):
                     p.transform(*cmd)
-                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, dict):
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(
+                        cmd, dict):
                     p.validate(**cmd)
-                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(
+                        cmd, tuple):
                     p.validate(*cmd)
                 else:
                     raise ValueError(cmd)
             except Exception as err:
                 message = 'Module "{module}" command "{cmd}" exited with error message "{err}"'.format(
-                    module=self.path,
-                    cmd=cmd,
-                    err=err
-                )
+                    module=self.path, cmd=cmd, err=err)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL:
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
@@ -171,11 +191,14 @@ class ActionTool(ExternalTool):
         client = docker.from_env()
         workdir = '/mnt/vol1'
 
-        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
+        cmd = self.prepare_cmd(
+            PurePath(filepath).relative_to(rootdir).as_posix(), options)
         client.containers.run(
             self.path,
             cmd,
-            volumes={os.path.abspath(rootdir): {'bind': workdir}},
+            volumes={os.path.abspath(rootdir): {
+                         'bind': workdir
+                     }},
             working_dir=workdir,
             remove=True,
         )
@@ -201,7 +224,9 @@ class Validation(models.Model):
     passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
     message = models.TextField(max_length=255, blank=True)
-    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
+    information_package = models.ForeignKey('ip.InformationPackage',
+                                            on_delete=models.CASCADE,
+                                            null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.CASCADE,
@@ -210,11 +235,16 @@ class Validation(models.Model):
     )
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
 
+
 class ActionToolProfileOrder(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     context = models.CharField(max_length=255)
-    profile = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE, null=True)
-    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
+    profile = models.ForeignKey('profiles.Profile',
+                                on_delete=models.CASCADE,
+                                null=True)
+    information_package = models.ForeignKey('ip.InformationPackage',
+                                            on_delete=models.CASCADE,
+                                            null=True)
 
     class Meta:
         ordering = ["-id"]
@@ -222,26 +252,37 @@ class ActionToolProfileOrder(models.Model):
     def __str__(self):
         return self.context
 
+
 class ActionToolProfileDescription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=255)
-    profile = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE, null=True)
-    
+    profile = models.ForeignKey('profiles.Profile',
+                                on_delete=models.CASCADE,
+                                null=True)
+
     class Meta:
         ordering = ["-id"]
+
 
 class ActionToolDescription(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     description = models.CharField(max_length=255)
-    actionTool = models.ForeignKey('fixity.ActionTool', on_delete=models.CASCADE, null=True)
+    actionTool = models.ForeignKey('fixity.ActionTool',
+                                   on_delete=models.CASCADE,
+                                   null=True)
 
     class Meta:
         ordering = ["-id"]
 
+
 class ActionToolProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey('profiles.Profile', on_delete=models.CASCADE, null=True)
-    actionTool = models.ForeignKey('fixity.ActionTool', on_delete=models.CASCADE, null=True)
+    profile = models.ForeignKey('profiles.Profile',
+                                on_delete=models.CASCADE,
+                                null=True)
+    actionTool = models.ForeignKey('fixity.ActionTool',
+                                   on_delete=models.CASCADE,
+                                   null=True)
 
     class Meta:
         ordering = ["-id"]
