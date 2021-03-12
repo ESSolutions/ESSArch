@@ -10,6 +10,9 @@ export default class ConversionCtrl {
     var profilelist = [];
     vm.showProfiles = false;
     vm.selectedProfile = null;
+    vm.profilespec = [];
+    vm.response = {text: [], path: []};
+    vm.savedWorkflow = '';
 
     vm.profileChosen = null;
 
@@ -25,7 +28,6 @@ export default class ConversionCtrl {
       })
         .then(function (response) {
           const pdata = response.data;
-          var profile = null;
           for (var j = 0; j < pdata.length; j++) {
             if (pdata[j].profile_type.includes('action_workflow')) {
               profilelist.push(pdata[j]);
@@ -97,6 +99,83 @@ export default class ConversionCtrl {
       });
     };
 
+    vm.actionDetailsModal = (value) => {
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/action_details_modal.html',
+        scope: $scope,
+        controller: 'ActionDetailsModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            value,
+          },
+        },
+      });
+      modalInstance.result.then(
+        () => {},
+        function () {}
+      );
+    };
+
+    vm.saveWorkflowModal = () => {
+      var workflow = vm.conversions;
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/save_workflow_modal.html',
+        scope: $scope,
+        controller: 'SaveWorkflowModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            workflow,
+          },
+        },
+      });
+      modalInstance.result.then(
+        (result) => {
+          if (vm.form.$invalid) {
+            vm.form.$setSubmitted();
+            return;
+          }
+          let conversions = vm.conversions.filter((a) => {
+            return a.conversion !== null;
+          });
+          if (conversions.length > 0) {
+            vm.conversions = conversions;
+          }
+          if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+            delete vm.flowOptions.purpose;
+          }
+          let data = angular.extend(vm.flowOptions, {
+            actions: vm.conversions.map((x) => {
+              let data = angular.copy(x.data);
+              delete data.path;
+              return {
+                name: x.converter.name,
+                options: data,
+                path: x.data.path,
+              };
+            }),
+            action_workflow_name: result.action_workflow_name,
+            action_workflow_status: result.action_workflow_status,
+          });
+
+          const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+          const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+          $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
+            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+            vm.savedWorkflow = 'Saved workflow ' + result.action_workflow_name;
+          });
+        },
+        function () {}
+      );
+    };
+
     vm.removeConversionModal = (conversion) => {
       var modalInstance = $uibModal.open({
         animation: true,
@@ -128,46 +207,27 @@ export default class ConversionCtrl {
       );
     };
 
-    vm.saveClick = (workflowName) => {
-      console.log('Hello from save workflow method');
-      console.log('Name of workflow');
-      console.log(workflowName);
-      console.log('Conversions to send');
-      for (var i = 0; i < vm.conversions.length; i++) {
-        console.log(vm.conversions[i]);
-      }
-    };
-
     vm.fetchClick = () => {
-      console.log('Hello from fetch workflow method');
-      console.log('Selected profile');
       $http({
         url: appConfig.djangoUrl + 'profiles/' + vm.selectedProfile.id + '/',
         method: 'GET',
         params: {pager: 'none'},
       })
         .then(function (response) {
-          console.log(response.data.specification);
+          var profilespec = response.data.specification[0].children;
+          for (var i = 0; i < profilespec.length; i++) {
+            vm.response.text.push(profilespec[i].args[0]);
+            vm.response.path.push(profilespec[i].args[1]);
+          }
+          vm.profilespec = profilespec;
         })
         .catch(() => {
           console.log('Caught error');
         });
     };
 
-    $scope.SelectedRow = function (selectedProfile) {
+    vm.SelectedRow = function (selectedProfile) {
       vm.selectedProfile = selectedProfile;
-      $http({
-        url: appConfig.djangoUrl + 'profiles/' + selectedProfile.id + '/',
-        method: 'GET',
-        params: {pager: 'none'},
-      })
-        .then(function (response) {
-          console.log(response.data.specification);
-        })
-        .catch(() => {
-          console.log('Caught error');
-        });
-
       vm.conversions;
     };
     vm.startConversion = () => {
@@ -184,17 +244,30 @@ export default class ConversionCtrl {
       if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
         delete vm.flowOptions.purpose;
       }
-      let data = angular.extend(vm.flowOptions, {
-        actions: vm.conversions.map((x) => {
-          let data = angular.copy(x.data);
-          delete data.path;
-          return {
-            name: x.converter.name,
-            options: data,
-            path: x.data.path,
-          };
-        }),
-      });
+      let data = null;
+      if(vm.profilespec.length>0){
+        data = angular.extend(vm.flowOptions, {
+          actions: vm.profilespec.map((x) => {
+            return {
+              name: x.args[0],
+              options: x.args[2],
+              path: x.args[1],
+            };
+          }),
+        });
+      }else {
+        data = angular.extend(vm.flowOptions, {
+          actions: vm.conversions.map((x) => {
+            let data = angular.copy(x.data);
+            delete data.path;
+            return {
+              name: x.converter.name,
+              options: data,
+              path: x.data.path,
+            };
+          }),
+        });
+      }
 
       const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
       const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;

@@ -75,6 +75,7 @@
             </uib-tab-heading>
           </uib-tab>
         </uib-tabset>
+        <div ng-if="vm.savedWorkflow.length > 0" class="alert alert-success" role="alert">{{vm.savedWorkflow}}</div>
       </div>
       <div class="div2">
         <div>
@@ -86,7 +87,7 @@
               class="form-control"
               ng-model="selectedProfile"
               ng-options="item.name for item in vm.profilelist"
-              ng-change="SelectedRow(selectedProfile)"
+              ng-change="vm.SelectedRow(selectedProfile)"
             >
               <option value="" disabled selected>Select workflow</option>
             </select>
@@ -96,18 +97,31 @@
             {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
           </button>
         </div>
-        <div>
-          <hr class="small" />
-          <div>
-            <label class="control-label"
-              >Save this workflow <br />
-              <input type="text" class="form-control" ng-model="workflowName" placeholder="Name of workflow"
-            /></label>
-          </div>
+        <div ng-if="vm.profilespec.length > 0">
           <br />
-          <button class="btn btn-primary" ng-click="vm.saveClick(workflowName)">
-            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-          </button>
+          <label class="control-label">Workflow</label>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Name</th>
+                <th scope="col">Path</th>
+                <th scope="col">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="value in vm.profilespec">
+                <td>{{$index}}</td>
+                <td>{{value.args[0]}}</td>
+                <td>{{value.args[1]}}</td>
+                <td>
+                  <button class="btn btn-info" ng-click="vm.actionDetailsModal(value)">
+                    {{'CONVERSION_VIEW.DETAILS' | translate}}
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <hr class="small" />
 
@@ -121,9 +135,11 @@
           >
             {{'REMOVE' | translate}}
           </button>
+          <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
+            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+          </button>
           <button
             class="btn btn-primary"
-            ng-disabled="vm.currentConversion.converter === null && vm.conversions.length === 1"
             ng-click="vm.startConversion()"
           >
             {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
