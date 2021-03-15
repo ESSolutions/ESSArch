@@ -78,11 +78,8 @@
         <div ng-if="vm.savedWorkflow.length > 0" class="alert alert-success" role="alert">{{vm.savedWorkflow}}</div>
       </div>
       <div class="div2">
-        <div>
-          <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
-            <label class="control-label"> Select workflow profile </label>
-            <br />
-
+        <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+          <div class="input-group">
             <select
               class="form-control"
               ng-model="selectedProfile"
@@ -91,11 +88,12 @@
             >
               <option value="" disabled selected>Select workflow</option>
             </select>
+            <span class="input-group-btn">
+              <button class="btn btn-default" type="button" ng-click="vm.fetchClick()">
+                {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
+              </button>
+            </span>
           </div>
-          <br />
-          <button class="btn btn-primary" ng-click="vm.fetchClick()">
-            {{'CONVERSION_VIEW.FETCH_WORKFLOW' | translate}}
-          </button>
         </div>
         <div ng-if="vm.profilespec.length > 0">
           <br />
@@ -124,7 +122,6 @@
           </table>
         </div>
         <hr class="small" />
-
         <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
         <br />
         <div class="flex-row justify-content-end">
@@ -138,10 +135,7 @@
           <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
             {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
           </button>
-          <button
-            class="btn btn-primary"
-            ng-click="vm.startConversion()"
-          >
+          <button class="btn btn-primary" ng-click="vm.startConversion()">
             {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
           </button>
         </div>
