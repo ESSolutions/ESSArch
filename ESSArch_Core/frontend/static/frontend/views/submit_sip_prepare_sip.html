@@ -8,8 +8,8 @@
     >
       <uib-tab
         index="'submit_sip'"
-        ng-if="(ip !== null && ip.state === 'Created') || (ips.length > 0 && vm.allIncludedWithState(ips, 'Created'))"
-        heading="{{'SUBMITSIP' | translate}}"
+        ng-if="(ip !== null && ip.state === 'Created') || ip.state === 'Submitted' || (ips.length > 0 && vm.allIncludedWithState(ips, 'Created'))"
+        heading="{{'SUBMIT_DELIVERY' | translate}}"
       >
         <div ng-if="vm.activeTab === 'submit_sip'">
           <div
@@ -21,7 +21,7 @@
             <div ng-if="ip !== null && ips.length == 0" id="edit-veiw" class="edit-view">
               <profile-editor
                 disabled="true"
-                ng-if="ip.state != 'Submitted'"
+                ng-if="ip.state == 'Created' || ip.state == 'Submitted'"
                 ip="ip"
                 types="{transfer_project: {disabled: false}, submit_description: {disabled: false}}"
               ></profile-editor>
@@ -66,28 +66,6 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
-        <div
-          ng-if="vm.activeTab === 'tasks'"
-          class="events-status-wrapper"
-          tabindex="-1"
-          ng-keydown="vm.contentViewsKeydownListener($event)"
-        >
-          <div class="status-view">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
-        <div
-          ng-if="vm.activeTab === 'events'"
-          class="events-status-wrapper"
-          tabindex="-1"
-          ng-keydown="vm.contentViewsKeydownListener($event)"
-        >
-          <event-table ip="ip"></event-table>
-        </div>
-      </uib-tab>
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && (row.responsible.id == auth.id || !row.responsible || row.permissions.includes('see_other_user_ip_files'))"
         index="'filebrowser'"
@@ -100,6 +78,33 @@
           ng-keydown="vm.contentViewsKeydownListener($event)"
         >
           <filebrowser ip="ip"></filebrowser>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
+          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div
+          ng-if="vm.activeTab === 'events'"
+          class="events-status-wrapper"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div
+          ng-if="vm.activeTab === 'tasks'"
+          class="events-status-wrapper"
+          tabindex="-1"
+          ng-keydown="vm.contentViewsKeydownListener($event)"
+        >
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>

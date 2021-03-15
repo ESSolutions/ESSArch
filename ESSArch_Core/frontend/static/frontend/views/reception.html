@@ -9,7 +9,7 @@
       <uib-tab
         index="'receive'"
         ng-if="isEnabled($root.features, 'receive') && checkPermission('ip.receive') && (ip.state == 'At reception' || vm.specificTabs.includes('receive'))"
-        heading="{{'RECEIVE' | translate}}"
+        heading="{{'RECEIVE_DELIVERY' | translate}}"
       >
         <div ng-if="vm.activeTab === 'receive'">
           <div class="select-sub-edit-eventlog-wrapper mb-base" ng-if="(ips.length === 0 && ip !== null)">
@@ -175,14 +175,17 @@
         </div>
       </uib-tab>
       <uib-tab
-        ng-if="ip !== null && ips.length == 0 && ip.state !== 'At reception'"
-        index="'tasks'"
-        heading="{{'TASKS' | translate}}"
+        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
+        index="'filebrowser'"
+        heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
       >
-        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
+        <div ng-if="vm.activeTab === 'filebrowser'" class="file-browser">
+          <filebrowser ip="ip"></filebrowser>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
+          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
         </div>
       </uib-tab>
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
@@ -191,12 +194,14 @@
         </div>
       </uib-tab>
       <uib-tab
-        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
-        index="'filebrowser'"
-        heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
+        ng-if="ip !== null && ips.length == 0 && ip.state == 'At reception'"
+        index="'tasks'"
+        heading="{{'TASKS' | translate}}"
       >
-        <div ng-if="vm.activeTab === 'filebrowser'" class="file-browser">
-          <filebrowser ip="ip"></filebrowser>
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>

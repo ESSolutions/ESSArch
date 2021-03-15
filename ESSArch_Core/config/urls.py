@@ -39,10 +39,6 @@ from ESSArch_Core.fixity.views import (
     SaveActionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
-    ActionToolProfileOrderViewSet,
-    ActionToolProfileDescriptionViewSet,
-    ActionToolDescriptionViewSet,
-    ActionToolProfileViewSet,
 )
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
@@ -156,8 +152,6 @@ router.register(r'deliveries', DeliveryViewSet).register(
     parents_query_lookups=['delivery'],
 )
 router.register(r'delivery-types', DeliveryTypeViewSet)
-router.register(r'action-tool-description', ActionToolDescriptionViewSet)
-router.register(r'action-tool-profile', ActionToolProfileViewSet)
 router.register(r'transfers', TransferViewSet).register(
     r'events',
     EventIPViewSet,
@@ -170,8 +164,6 @@ router.register(r'transfers', TransferViewSet).register(
     basename='transfer-structure-units',
     parents_query_lookups=['transfers'],
 )
-router.register(r'action-tool-profile-order', ActionToolProfileOrderViewSet)
-router.register(r'action-tool-profile-description', ActionToolProfileDescriptionViewSet)
 router.register(r'transfers', TransferViewSet).register(
     r'tags',
     TagVersionViewSet,

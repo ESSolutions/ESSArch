@@ -43,20 +43,16 @@ class ExternalTool(models.Model):
     path = models.TextField(_('path'))
     cmd = models.TextField(_('options, command or task'))
     enabled = models.BooleanField(_('enabled'), default=True)
-    environment = models.CharField(_('environment'),
-                                   max_length=20,
-                                   default=EnvironmentType.CLI_ENV,
-                                   choices=EnvironmentType.choices)
-    file_processing = models.BooleanField(_('file processing (pattern)'),
-                                          default=False)
-    delete_original = models.BooleanField(
-        _('remove orginal file after processing'), default=False)
+    environment = models.CharField(_('environment'), max_length=20, default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
+    file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
+    delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
     form = models.JSONField(_('form'), null=True, blank=True)
     file = models.FileField(
         upload_to='stylesheets/',
         validators=[FileExtensionValidator(allowed_extensions=['xslt'])],
         null=True,
-        blank=True)
+        blank=True
+    )
 
     def __str__(self):
         return self.name
@@ -234,55 +230,3 @@ class Validation(models.Model):
         related_name='validations',
     )
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-
-
-class ActionToolProfileOrder(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    context = models.CharField(max_length=255)
-    profile = models.ForeignKey('profiles.Profile',
-                                on_delete=models.CASCADE,
-                                null=True)
-    information_package = models.ForeignKey('ip.InformationPackage',
-                                            on_delete=models.CASCADE,
-                                            null=True)
-
-    class Meta:
-        ordering = ["-id"]
-
-    def __str__(self):
-        return self.context
-
-
-class ActionToolProfileDescription(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    description = models.CharField(max_length=255)
-    profile = models.ForeignKey('profiles.Profile',
-                                on_delete=models.CASCADE,
-                                null=True)
-
-    class Meta:
-        ordering = ["-id"]
-
-
-class ActionToolDescription(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    description = models.CharField(max_length=255)
-    actionTool = models.ForeignKey('fixity.ActionTool',
-                                   on_delete=models.CASCADE,
-                                   null=True)
-
-    class Meta:
-        ordering = ["-id"]
-
-
-class ActionToolProfile(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    profile = models.ForeignKey('profiles.Profile',
-                                on_delete=models.CASCADE,
-                                null=True)
-    actionTool = models.ForeignKey('fixity.ActionTool',
-                                   on_delete=models.CASCADE,
-                                   null=True)
-
-    class Meta:
-        ordering = ["-id"]
