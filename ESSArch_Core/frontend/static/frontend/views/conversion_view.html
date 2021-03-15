@@ -78,7 +78,7 @@
         <div ng-if="vm.savedWorkflow.length > 0" class="alert alert-success" role="alert">{{vm.savedWorkflow}}</div>
       </div>
       <div class="div2">
-        <div ng-if="vm.profilelist.length && vm.profilesLoading==false">
+        <div>
           <div class="input-group">
             <select
               class="form-control"
@@ -105,6 +105,7 @@
                 <th scope="col">Name</th>
                 <th scope="col">Path</th>
                 <th scope="col">Details</th>
+                <th scope="col">Delete</th>
               </tr>
             </thead>
             <tbody>
@@ -115,6 +116,11 @@
                 <td>
                   <button class="btn btn-info" ng-click="vm.actionDetailsModal(value)">
                     {{'CONVERSION_VIEW.DETAILS' | translate}}
+                  </button>
+                </td>
+                <td>
+                  <button class="btn btn-danger" ng-click="vm.deleteFromWorkflow(value)">
+                    {{'DELETE' | translate}}
                   </button>
                 </td>
               </tr>

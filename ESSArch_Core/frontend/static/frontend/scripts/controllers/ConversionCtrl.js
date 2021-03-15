@@ -99,6 +99,11 @@ export default class ConversionCtrl {
       });
     };
 
+    vm.deleteFromWorkflow = (value) => {
+      var index = vm.profilespec.indexOf(value);
+      vm.profilespec.splice(index, 1);
+    };
+
     vm.actionDetailsModal = (value) => {
       var modalInstance = $uibModal.open({
         animation: true,
@@ -245,7 +250,7 @@ export default class ConversionCtrl {
         delete vm.flowOptions.purpose;
       }
       let data = null;
-      if(vm.profilespec.length>0){
+      if (vm.profilespec.length > 0) {
         data = angular.extend(vm.flowOptions, {
           actions: vm.profilespec.map((x) => {
             return {
@@ -255,7 +260,7 @@ export default class ConversionCtrl {
             };
           }),
         });
-      }else {
+      } else {
         data = angular.extend(vm.flowOptions, {
           actions: vm.conversions.map((x) => {
             let data = angular.copy(x.data);
