@@ -235,6 +235,7 @@ export default class ConversionCtrl {
       vm.selectedProfile = selectedProfile;
       vm.conversions;
     };
+
     vm.startConversion = () => {
       if (vm.form.$invalid) {
         vm.form.$setSubmitted();
@@ -249,30 +250,49 @@ export default class ConversionCtrl {
       if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
         delete vm.flowOptions.purpose;
       }
-      let data = null;
-      if (vm.profilespec.length > 0) {
-        data = angular.extend(vm.flowOptions, {
-          actions: vm.profilespec.map((x) => {
-            return {
-              name: x.args[0],
-              options: x.args[2],
-              path: x.args[1],
-            };
-          }),
-        });
-      } else {
-        data = angular.extend(vm.flowOptions, {
-          actions: vm.conversions.map((x) => {
-            let data = angular.copy(x.data);
-            delete data.path;
-            return {
-              name: x.converter.name,
-              options: data,
-              path: x.data.path,
-            };
-          }),
-        });
+      let data = angular.extend(vm.flowOptions, {
+        actions: vm.conversions.map((x) => {
+          let data = angular.copy(x.data);
+          delete data.path;
+          return {
+            name: x.converter.name,
+            options: data,
+            path: x.data.path,
+          };
+        }),
+      });
+
+      const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+      const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+      $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
+        $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+      });
+    };
+
+    vm.startPresetConversion = () => {
+      if (vm.form.$invalid) {
+        vm.form.$setSubmitted();
+        return;
       }
+      let conversions = vm.conversions.filter((a) => {
+        return a.conversion !== null;
+      });
+      if (conversions.length > 0) {
+        vm.conversions = conversions;
+      }
+      if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+        delete vm.flowOptions.purpose;
+      }
+      let data = null;
+      data = angular.extend(vm.flowOptions, {
+        actions: vm.profilespec.map((x) => {
+          return {
+            name: x.args[0],
+            options: x.args[2],
+            path: x.args[1],
+          };
+        }),
+      });
 
       const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
       const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;

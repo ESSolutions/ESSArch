@@ -11,6 +11,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       DETAILS: 'View details',
       ACTION_DETAILS: 'Action Details',
       SAVE_WORKFLOW_DETAILS: 'Save Workflow Details',
+      RUN_PRESET_WORKFLOW: 'Run preset workflow',
     },
     CONVERSION: 'Actions',
     NONE_SELECTED: 'None selected',
