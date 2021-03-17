@@ -6,9 +6,11 @@ export default class SaveWorkflowModalInstanceCtrl {
     $ctrl.workflowName = '';
     $ctrl.status = '';
     $ctrl.save = function () {
-      $ctrl.res.action_workflow_name = $ctrl.workflowName;
-      $ctrl.res.action_workflow_status = $ctrl.status;
-      $uibModalInstance.close($ctrl.res);
+      if ($ctrl.workflowName.length > 0 && $ctrl.status.length > 0) {
+        $ctrl.res.action_workflow_name = $ctrl.workflowName;
+        $ctrl.res.action_workflow_status = $ctrl.status;
+        $uibModalInstance.close($ctrl.res);
+      }
     };
     $ctrl.cancel = function () {
       $uibModalInstance.dismiss('cancel');
