@@ -29,6 +29,8 @@ profile_types = [
 ]
 
 lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
+lowercase_profile_types_no_action_workflow = [
+    x.lower().replace(' ', '_') for x in profile_types if x.lower().replace(' ', '_') != "action_workflow"]
 
 
 class LazyDict(Mapping):

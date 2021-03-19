@@ -145,7 +145,8 @@ from ESSArch_Core.util import (
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessStepChildrenSerializer, )
+    ProcessStepChildrenSerializer,
+)
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
@@ -503,8 +504,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def annotate_generations(qs):
         lower_higher = InformationPackage.objects.filter(
             Q(aic=OuterRef('aic')),
-            Q(Q(workareas=None)
-              | Q(workareas__read_only=True))).order_by().values('aic')
+            Q(Q(workareas=None) |
+              Q(workareas__read_only=True))).order_by().values('aic')
         lower_higher = lower_higher.annotate(min_gen=Min('generation'),
                                              max_gen=Max('generation'))
 
@@ -571,8 +572,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')),
-                Q(Q(workareas=None)
-                  | Q(workareas__read_only=True))).order_by().values('aic')
+                Q(Q(workareas=None) |
+                  Q(workareas__read_only=True))).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'),
                                                  max_gen=Max('generation'))
 
@@ -663,14 +664,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'submission_agreement__policy__ingest_path').prefetch_related(
                     'agents',
                     'steps',
-                    Prefetch('workareas',
-                             queryset=workareas,
-                             to_attr='prefetched_workareas'),
-                    Prefetch(
-                        'profileip_set',
-                        queryset=profile_ips,
-                    ),
-                )
+                    Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
+                    Prefetch('profileip_set', queryset=profile_ips)
+            )
+
             qs = self.annotate_generations(self.apply_filters(qs))
 
             self.queryset = qs
@@ -682,8 +679,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')),
-                Q(Q(workareas=None)
-                  | Q(workareas__read_only=True))).order_by().values('aic')
+                Q(Q(workareas=None) |
+                  Q(workareas__read_only=True))).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'),
                                                  max_gen=Max('generation'))
 
@@ -1442,8 +1439,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         checker = ObjectPermissionChecker(self.request.user)
         if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
-            checker.prefetch_perms(self.outer_queryset.distinct()
-                                   | self.inner_queryset.distinct())
+            checker.prefetch_perms(self.outer_queryset.distinct() |
+                                   self.inner_queryset.distinct())
         else:
             checker.prefetch_perms(self.queryset)
 
@@ -2561,8 +2558,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             request.user).filter(
                 Q(
                     Q(package_type=InformationPackage.AIP,
-                      state__in=['At reception', 'Receiving'])
-                    | Q(package_type=InformationPackage.SIP,
+                      state__in=['At reception', 'Receiving']) |
+                    Q(package_type=InformationPackage.SIP,
                         state__in=['Transferring', 'Transferred'])),
                 **conditions)
         serializer = InformationPackageSerializer(data=from_db,
@@ -3287,11 +3284,10 @@ class WorkareaViewSet(InformationPackageViewSet):
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
-        lower_higher = InformationPackage.objects.visible_to_user(
-            user).annotate(
-                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-            ).filter(workarea_exists=True, aic=OuterRef('aic')).exclude(
-                package_type=InformationPackage.AIC).order_by().values('aic')
+        lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
+            workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
+        ).filter(workarea_exists=True, aic=OuterRef('aic')
+                 ).exclude(package_type=InformationPackage.AIC).order_by().values('aic')
 
         if not see_all:
             lower_higher = lower_higher.filter(workareas__user=user)
@@ -3346,8 +3342,8 @@ class WorkareaViewSet(InformationPackageViewSet):
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')),
-                Q(Q(workareas=None)
-                  | Q(workareas__read_only=True))).order_by().values('aic')
+                Q(Q(workareas=None) |
+                  Q(workareas__read_only=True))).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'),
                                                  max_gen=Max('generation'))
 
