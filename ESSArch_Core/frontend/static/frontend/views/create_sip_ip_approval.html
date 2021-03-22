@@ -28,12 +28,12 @@
                 preservation_metadata: {disabled: false},
               }"
             ></profile-editor>
-            <div id="edit-view" class="edit-view" ng-class="{'border-none': ips.length > 0}">
+            <div class="wrap-view">
               <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
+              <br />
               <div ng-include src="'static/frontend/views/file_conversion.html'"></div>
-            </div>
-            <div class="eventlog-view">
-              <form ng-submit="vm.createSipModal(ip)" class="eventlog-form">
+
+              <form ng-submit="vm.createSipModal(ip)">
                 <button
                   type="submit"
                   ng-dblClick=""

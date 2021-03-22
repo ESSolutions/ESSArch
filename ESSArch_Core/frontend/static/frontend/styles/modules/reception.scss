@@ -19,24 +19,24 @@
 }
 
 .uibalt a.ng-binding {
-	background-color: #A8B5BE;
+  background-color: #a8b5be;
   border-radius: 50%;
 }
 
 .uibalt.active a.ng-binding {
   color: #000 !important;
-	background-color: #207FDD !important;
+  background-color: #207fdd !important;
   border-radius: 50%;
 }
 
 .uibaltplus a.ng-binding {
   color: white;
-	background-color: #55BB58 !important;
+  background-color: #55bb58 !important;
 }
 
 .uibaltplus.active a.ng-binding {
   color: white !important;
-	background-color: #55BB58 !important;
+  background-color: #55bb58 !important;
 }
 .helper {
   background: white;
@@ -156,25 +156,6 @@ input[type='checkbox'] {
   justify-content: flex-end;
   align-items: center;
   margin-left: 10px;
-}
-.validator-choices {
-  border-bottom-style: solid;
-  border-bottom-width: 1px;
-  border-bottom-color: $border-color;
-  .formly {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: flex-start;
-    min-height: 70px;
-    .formly-field {
-      min-width: 105px;
-      width: 10%;
-    }
-    select {
-      width: 170px;
-    }
-  }
 }
 
 .receive-footer {
