@@ -52,7 +52,7 @@ export default class ConversionCtrl {
         },
       },
     ];
-
+*/
     let tabNumber = 0;
     vm.conversions = [
       {
@@ -282,6 +282,11 @@ export default class ConversionCtrl {
       if (conversions.length > 0) {
         vm.conversions = conversions;
       }
+      if (vm.purposeField) {
+        console.log('vm.purposeField');
+        console.log(vm.purposeField);
+      }
+
       if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
         delete vm.flowOptions.purpose;
       }
@@ -306,6 +311,8 @@ export default class ConversionCtrl {
               datacustom = angular.extend(vm.flowOptions, {
                 actions: vm.conversions.map((x) => {
                   let data = angular.copy(x.data);
+                  console.log('data');
+                  console.log(data);
                   delete data.path;
                   return {
                     name: x.converter.name,
