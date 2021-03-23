@@ -1,4 +1,4 @@
-<div class="conversion-view">
+<div class="conversion-view" style="margin: 5px">
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
@@ -55,6 +55,12 @@
                       form="vm.form"
                       model="vm.currentConversion.data"
                       fields="vm.fields"
+                      options="{}"
+                    ></formly-form>
+                    <formly-form
+                      form="vm.form"
+                      model="vm.currentConversion.data"
+                      fields="vm.purposeField"
                       options="{}"
                     ></formly-form>
                   </div>
@@ -123,8 +129,6 @@
             </tbody>
           </table>
         </div>
-        <hr class="small" />
-        <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
         <br />
         <div class="flex-row justify-content-end">
           <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">

@@ -110,7 +110,7 @@
       </uib-tab>
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
         <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view">
+          <div class="status-view" style="margin: 5px">
             <state-tree-view ip="ip"></state-tree-view>
           </div>
         </div>

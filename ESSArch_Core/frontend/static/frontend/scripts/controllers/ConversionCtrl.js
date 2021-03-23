@@ -13,6 +13,7 @@ export default class ConversionCtrl {
     vm.profilespec = [];
     vm.response = {text: [], path: []};
     vm.savedWorkflow = '';
+    vm.purposeField = [];
 
     vm.profileChosen = null;
 
@@ -41,6 +42,7 @@ export default class ConversionCtrl {
         });
     };
 
+    /*
     vm.purposeField = [
       {
         key: 'purpose',
