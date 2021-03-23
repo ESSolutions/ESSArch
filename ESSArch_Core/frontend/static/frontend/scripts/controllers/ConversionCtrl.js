@@ -283,22 +283,57 @@ export default class ConversionCtrl {
       if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
         delete vm.flowOptions.purpose;
       }
-      let data = null;
-      data = angular.extend(vm.flowOptions, {
-        actions: vm.profilespec.map((x) => {
-          return {
-            name: x.args[0],
-            options: x.args[2],
-            path: x.args[1],
-          };
-        }),
-      });
+      let datapreset = null;
+      let datacustom = null;
+      if (vm.profilespec.length > 0) {
+        datapreset = angular.extend(vm.flowOptions, {
+          actions: vm.profilespec.map((x) => {
+            return {
+              name: x.args[0],
+              options: x.args[2],
+              path: x.args[1],
+            };
+          }),
+        });
+      }
 
+      if (vm.conversions.length > 0) {
+        if (vm.conversions[0].converter !== null) {
+          if (vm.conversions[0].converter.name !== null) {
+            try {
+              datacustom = angular.extend(vm.flowOptions, {
+                actions: vm.conversions.map((x) => {
+                  let data = angular.copy(x.data);
+                  delete data.path;
+                  return {
+                    name: x.converter.name,
+                    options: data,
+                    path: x.data.path,
+                  };
+                }),
+              });
+            } catch (e) {
+              console.log('Exited with error');
+              console.log(e);
+            }
+          }
+        }
+      }
+      let data = null;
       const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
       const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-      $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
-        $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-      });
+      if (datacustom) {
+        data = datacustom;
+        $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
+          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+        });
+      }
+      if (datapreset) {
+        data = datapreset;
+        $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
+          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+        });
+      }
     };
   }
 }
