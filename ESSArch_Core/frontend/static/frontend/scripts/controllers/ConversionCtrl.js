@@ -1,5 +1,5 @@
 export default class ConversionCtrl {
-  constructor($scope, $rootScope, appConfig, $translate, $http, $timeout, $uibModal) {
+  constructor($scope, $rootScope, appConfig, $translate, $http, $timeout, $uibModal, Notifications) {
     const vm = this;
     vm.flowOptions = {};
     vm.options = {converters: []};
@@ -12,7 +12,6 @@ export default class ConversionCtrl {
     vm.selectedProfile = null;
     vm.profilespec = [];
     vm.response = {text: [], path: []};
-    vm.savedWorkflow = '';
 
     vm.profileChosen = null;
 
@@ -174,7 +173,7 @@ export default class ConversionCtrl {
           const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
           $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-            vm.savedWorkflow = 'Saved workflow ' + result.action_workflow_name;
+            Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
           });
         },
         function () {}
