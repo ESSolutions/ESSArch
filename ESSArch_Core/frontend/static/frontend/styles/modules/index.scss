@@ -28,10 +28,7 @@ body {
   overflow: hidden;
   margin: 0px;
   padding: 0px;
-  margin-left: 15px;
-  margin-right: 15px;
-  margin-top: 5px;
-  margin-bottom: 15px;
+  margin: 15px;
 }
 
 .wrap-view .btn-primary {
@@ -481,6 +478,7 @@ main {
 .clickable {
   cursor: pointer;
 }
+
 .select-sub-edit-eventlog-wrapper {
   @include container;
   position: relative;
@@ -678,6 +676,7 @@ input[type='checkbox'] {
       }
     }
   }
+  display: inline-block;
 }
 
 .submit-button {
