@@ -13,7 +13,6 @@ export default class ConversionCtrl {
     vm.profilespec = [];
     vm.response = {text: [], path: []};
     vm.savedWorkflow = '';
-    vm.purposeField = [];
 
     vm.profileChosen = null;
 
@@ -42,7 +41,6 @@ export default class ConversionCtrl {
         });
     };
 
-    /*
     vm.purposeField = [
       {
         key: 'purpose',
@@ -52,7 +50,7 @@ export default class ConversionCtrl {
         },
       },
     ];
-*/
+
     let tabNumber = 0;
     vm.conversions = [
       {
@@ -238,39 +236,6 @@ export default class ConversionCtrl {
       vm.conversions;
     };
 
-    vm.startConversion = () => {
-      if (vm.form.$invalid) {
-        vm.form.$setSubmitted();
-        return;
-      }
-      let conversions = vm.conversions.filter((a) => {
-        return a.conversion !== null;
-      });
-      if (conversions.length > 0) {
-        vm.conversions = conversions;
-      }
-      if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
-        delete vm.flowOptions.purpose;
-      }
-      let data = angular.extend(vm.flowOptions, {
-        actions: vm.conversions.map((x) => {
-          let data = angular.copy(x.data);
-          delete data.path;
-          return {
-            name: x.converter.name,
-            options: data,
-            path: x.data.path,
-          };
-        }),
-      });
-
-      const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-      const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-      $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
-        $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-      });
-    };
-
     vm.startPresetConversion = () => {
       if (vm.form.$invalid) {
         vm.form.$setSubmitted();
@@ -281,10 +246,6 @@ export default class ConversionCtrl {
       });
       if (conversions.length > 0) {
         vm.conversions = conversions;
-      }
-      if (vm.purposeField) {
-        console.log('vm.purposeField');
-        console.log(vm.purposeField);
       }
 
       if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {

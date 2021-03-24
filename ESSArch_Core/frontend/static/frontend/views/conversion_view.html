@@ -57,15 +57,11 @@
                       fields="vm.fields"
                       options="{}"
                     ></formly-form>
-                    <formly-form
-                      form="vm.form"
-                      model="vm.currentConversion.data"
-                      fields="vm.purposeField"
-                      options="{}"
-                    ></formly-form>
                   </div>
                 </div>
               </div>
+              <hr class="small" />
+              <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
             </uib-accordion>
           </uib-tab>
           <uib-tab
@@ -80,8 +76,8 @@
               <i class="fas fa-plus"></i>
             </uib-tab-heading>
           </uib-tab>
+          <div ng-if="vm.savedWorkflow.length > 0" class="alert alert-success" role="alert">{{vm.savedWorkflow}}</div>
         </uib-tabset>
-        <div ng-if="vm.savedWorkflow.length > 0" class="alert alert-success" role="alert">{{vm.savedWorkflow}}</div>
       </div>
       <div class="div2">
         <div class="search-prepare-wrapper">
@@ -98,7 +94,7 @@
           </button>
         </div>
         <div ng-if="vm.profilespec.length > 0">
-          <br />
+          <hr class="small" />
           <label class="control-label">Workflow</label>
           <table class="table">
             <thead>
@@ -129,7 +125,7 @@
             </tbody>
           </table>
         </div>
-        <br />
+        <hr class="small" />
         <div class="flex-row justify-content-end">
           <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
             {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
