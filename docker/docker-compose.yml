@@ -68,6 +68,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - essarch
     networks:
       - essarch
 
@@ -99,6 +100,7 @@ services:
       - rabbitmq
       - redis
       - elasticsearch
+      - essarch
     networks:
       - essarch
 
