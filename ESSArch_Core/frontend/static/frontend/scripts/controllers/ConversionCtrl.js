@@ -18,6 +18,10 @@ export default class ConversionCtrl {
     vm.profile = [];
 
     vm.$onInit = function () {
+      vm.getProfiles();
+    };
+
+    vm.getProfiles = () => {
       vm.profilesLoading = true;
 
       $http({
@@ -27,6 +31,7 @@ export default class ConversionCtrl {
       })
         .then(function (response) {
           const pdata = response.data;
+          profilelist = [];
           for (var j = 0; j < pdata.length; j++) {
             if (pdata[j].profile_type.includes('action_workflow')) {
               profilelist.push(pdata[j]);

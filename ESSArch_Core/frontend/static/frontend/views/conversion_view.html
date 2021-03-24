@@ -79,10 +79,11 @@
         </uib-tabset>
       </div>
       <div class="div2">
-        <div class="search-prepare-wrapper">
+        <div class="search-prepare-wrapper" ng-if="vm.profilelist.length > 1">
           <select
             class="form-control"
             ng-model="selectedProfile"
+            ng-click="vm.getProfiles()"
             ng-options="item.name for item in vm.profilelist"
             ng-change="vm.SelectedRow(selectedProfile)"
           >
