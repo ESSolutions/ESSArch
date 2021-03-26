@@ -127,18 +127,18 @@
         </div>
         <hr class="small" />
         <div class="flex-row justify-content-end">
-          <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
-            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-          </button>
-          <button class="btn btn-primary" ng-click="vm.startPresetConversion()">
-            {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
-          </button>
           <button
             ng-if="vm.conversions.length > 1"
             class="btn btn-danger"
             ng-click="vm.removeConversionModal(vm.currentConversion)"
           >
             {{'REMOVE' | translate}}
+          </button>
+          <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
+            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+          </button>
+          <button class="btn btn-primary" ng-click="vm.startPresetConversion()">
+            {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
           </button>
         </div>
       </div>
