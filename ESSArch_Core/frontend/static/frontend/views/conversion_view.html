@@ -9,7 +9,7 @@
             ng-repeat="conversion in vm.conversions track by $index"
             ng-click="vm.updateConverterForm(conversion)"
             index="'conversion' + $index"
-            heading="{{$index}}"
+            heading="{{$index+1}}"
           >
             <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
               <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
