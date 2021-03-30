@@ -9,7 +9,7 @@
             ng-repeat="conversion in vm.conversions track by $index"
             ng-click="vm.updateConverterForm(conversion)"
             index="'conversion' + $index"
-            heading="{{conversion.name}}"
+            heading="{{$index}}"
           >
             <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
               <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
@@ -130,7 +130,7 @@
           <button
             ng-if="vm.conversions.length > 1"
             class="btn btn-danger"
-            ng-click="vm.removeConversionModal(vm.currentConversion)"
+            ng-click="vm.removeConversionModal(vm.currentConversion, $index, $event)"
           >
             {{'REMOVE' | translate}}
           </button>

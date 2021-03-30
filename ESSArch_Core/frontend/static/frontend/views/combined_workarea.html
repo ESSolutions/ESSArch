@@ -6,7 +6,7 @@
       active="vm.activeTab"
       class="tabs tabs-style-bar"
     >
-      <uib-tab index="'workarea'" ng-if="vm.specificTabs.includes('workarea')" heading="{{'MANAGE' | translate}}">
+      <uib-tab index="'workarea'" heading="{{'MANAGE' | translate}}">
         <div ng-if="vm.activeTab === 'workarea'">
           <div
             ng-if="requestForm"
@@ -21,22 +21,20 @@
               ng-submit="submitRequest(ip, vm.request)"
             >
               <div class="request-type">
-                <div ng-if="checkPermission('ip.diff_check') && !ip.workarea[0].read_only">
+                <div ng-if="checkPermission('ip.diff_check')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="diff_check" />
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
-                <div
-                  ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve')) && !ip.workarea[0].read_only"
-                >
+                <div ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve'))">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="preserve" />
                     {{'PRESERVE' | translate}}
                   </label>
                 </div>
                 <div
-                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea')) && !ip.workarea[0].read_only"
+                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea'))"
                 >
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
@@ -125,7 +123,7 @@
           ></filebrowser>
           <div
             id="file-upload"
-            ng-if="!ip.workarea[0].read_only && (ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+            ng-if="(ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
             ng-include
             src="'static/frontend/views/file_upload.html'"
           ></div>
