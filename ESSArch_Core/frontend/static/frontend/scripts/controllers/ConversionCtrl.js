@@ -12,6 +12,7 @@ export default class ConversionCtrl {
     vm.selectedProfile = null;
     vm.profilespec = [];
     vm.response = {text: [], path: []};
+    vm.loadPage = false;
 
     vm.profileChosen = null;
 
@@ -19,6 +20,7 @@ export default class ConversionCtrl {
 
     vm.$onInit = function () {
       vm.getProfiles();
+      vm.loadPage = true;
     };
 
     vm.getProfiles = () => {
@@ -89,6 +91,7 @@ export default class ConversionCtrl {
     };
 
     vm.addConverter = () => {
+      vm.loadPage = false;
       tabNumber++;
       let val = {
         id: tabNumber,
@@ -101,6 +104,7 @@ export default class ConversionCtrl {
         vm.activeTab = 'conversion' + tabNumber;
         vm.updateConverterForm(val);
       });
+      vm.loadPage = true;
     };
 
     vm.deleteFromWorkflow = (value) => {

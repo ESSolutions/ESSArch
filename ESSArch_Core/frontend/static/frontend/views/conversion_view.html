@@ -1,4 +1,4 @@
-<div class="conversion-view" style="margin: 5px">
+<div class="conversion-view" style="margin: 5px; position: relative; height: 650px" ng-if="vm.conversions.length > 0">
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
@@ -79,7 +79,7 @@
         </uib-tabset>
       </div>
       <div class="div2">
-        <div class="search-prepare-wrapper" ng-if="vm.profilelist.length > 1">
+        <div class="search-prepare-wrapper" ng-if="(vm.profilelist.length > 1)">
           <select
             class="form-control"
             ng-model="selectedProfile"
@@ -125,23 +125,22 @@
             </tbody>
           </table>
         </div>
-        <hr class="small" />
-        <div class="flex-row justify-content-end">
-          <button
-            ng-if="vm.conversions.length > 1"
-            class="btn btn-danger"
-            ng-click="vm.removeConversionModal(vm.currentConversion, $index, $event)"
-          >
-            {{'REMOVE' | translate}}
-          </button>
-          <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
-            {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-          </button>
-          <button class="btn btn-primary" ng-click="vm.startPresetConversion()">
-            {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
-          </button>
-        </div>
       </div>
+    </div>
+    <div class="flex-row justify-content-end" style="position: absolute; bottom: 5px; right: 5px">
+      <button
+        ng-if="(vm.conversions.length > 1)&&(vm.loadPage)"
+        class="btn btn-danger"
+        ng-click="vm.removeConversionModal(vm.currentConversion, $index, $event)"
+      >
+        {{'REMOVE' | translate}}
+      </button>
+      <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()" ng-if="vm.loadPage">
+        {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+      </button>
+      <button class="btn btn-primary" ng-click="vm.startPresetConversion()" ng-if="vm.loadPage">
+        {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
+      </button>
     </div>
   </form>
   <br />
