@@ -413,9 +413,10 @@ def Transform(self, backend, path=None):
 
 
 @app.task(bind=True)
-def Validate(self, backend, path=None, context=None, include=None, exclude=None, required=False, **kwargs):
+def Validate(self, backend, path=None, context=None, include=None,
+             exclude=None, options=None, required=False, **kwargs):
+
     validators = []
-    options = kwargs
     ip = self.get_information_package()
 
     if path is None and ip is not None:
@@ -426,15 +427,21 @@ def Validate(self, backend, path=None, context=None, include=None, exclude=None,
     backend = get_validator(backend)
 
     if include:
+        if isinstance(include, str):
+            include = include.split(',')
+
         include = [os.path.join(path, included) for included in include]
 
     if exclude:
+        if isinstance(exclude, str):
+            exclude = exclude.split(',')
+
         exclude = [os.path.join(path, excluded) for excluded in exclude]
 
     validator_instance = backend(context=context,
                                  include=include,
                                  exclude=exclude,
-                                 options=options['options'],
+                                 options=options,
                                  data=profile_data,
                                  required=required,
                                  task=self.get_processtask(),
