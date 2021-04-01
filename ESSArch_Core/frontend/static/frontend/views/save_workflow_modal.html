@@ -1,0 +1,38 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{'CONVERSION_VIEW.SAVE_WORKFLOW_DETAILS' | translate}}</h3>
+</div>
+<div class="modal-body" id="modal-body">
+  <form novalidate class="simple-form" name="myForm">
+    <label class="control-label"
+      >Name<br />
+      <span>
+        <input
+          type="text"
+          name="name"
+          class="form-control"
+          ng-model="$ctrl.workflowName"
+          placeholder="Name of workflow"
+          ng-required="true" /></span
+    ></label>
+
+    <label class="control-label"
+      >Status<br />
+      <span>
+        <input
+          type="text"
+          name="status"
+          class="form-control"
+          ng-model="$ctrl.status"
+          placeholder="Status of workflow"
+          ng-required="true" /></span
+    ></label>
+    <br />
+    <span ng-show="myForm.name.$invalid" class="req"> Name is a required field. </span>
+    <br />
+    <span ng-show="myForm.status.$invalid" class="req"> Status is a required field. </span>
+  </form>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" ng-click="$ctrl.save()">Save</button>
+  <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">Cancel</button>
+</div>

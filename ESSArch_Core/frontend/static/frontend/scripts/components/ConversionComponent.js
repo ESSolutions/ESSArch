@@ -2,7 +2,17 @@ import ConversionCtrl from '../controllers/ConversionCtrl';
 
 export default {
   templateUrl: 'static/frontend/views/conversion_view.html',
-  controller: ['$scope', '$rootScope', 'appConfig', '$translate', '$http', '$timeout', '$uibModal', ConversionCtrl],
+  controller: [
+    '$scope',
+    '$rootScope',
+    'appConfig',
+    '$translate',
+    '$http',
+    '$timeout',
+    '$uibModal',
+    'Notifications',
+    ConversionCtrl,
+  ],
   controllerAs: 'vm',
   bindings: {
     ip: '<',

@@ -9,7 +9,7 @@
       <uib-tab
         index="'approval'"
         ng-if="ip.state == 'Received' || vm.specificTabs.includes('approval')"
-        heading="{{'APPROVAL' | translate}}"
+        heading="{{'MANAGE' | translate}}"
       >
         <div ng-if="vm.activeTab === 'approval'">
           <div class="request-layout" tabindex="-1" ng-keydown="vm.contentViewsKeydownListener($event)">
@@ -20,7 +20,6 @@
               ng-submit="submitRequest(ip, vm.request)"
             >
               <div class="request-type">
-
                 <div ng-if="checkPermission('ip.add_to_ingest_workarea')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="edit" />
@@ -108,27 +107,11 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
-        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
-          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
-        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
-        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
-          <event-table ip="ip"></event-table>
-        </div>
-      </uib-tab>
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
         index="'filebrowser'"
         heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
+        ng-click="filebrowserClick(ip)"
       >
         <div
           ng-if="vm.activeTab === 'filebrowser'"
@@ -137,6 +120,25 @@
           ng-keydown="vm.contentViewsKeydownListener($event)"
         >
           <filebrowser ip="ip"></filebrowser>
+          <!--user="vm.organizationMember.current" browserstate="vm.browserstate"></filebrowser>-->
+          <!--<div id="file-upload" ng-include src="'static/frontend/views/file_upload.html'"></div>-->
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
+          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view" style="margin: 5px">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>

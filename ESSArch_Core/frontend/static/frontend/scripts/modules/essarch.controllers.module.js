@@ -4,6 +4,7 @@ import AccessCtrl from '../controllers/AccessCtrl';
 import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
 import AccessWorkareaCtrl from '../controllers/AccessWorkareaCtrl';
+import ActionModalCtrl from '../controllers/ActionModalCtrl';
 import AddNodeModalInstanceCtrl from '../controllers/AddNodeModalInstanceCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
 import AgentModalInstanceCtrl from '../controllers/AgentModalInstanceCtrl';
@@ -84,6 +85,8 @@ import UnpublishClassificationStructureCtrl from '../controllers/UnpublishClassi
 import ReceiveModalInstanceCtrl from '../controllers/ReceiveModalInstanceCtrl';
 import ReceptionCtrl from '../controllers/ReceptionCtrl';
 import RemoveConversionModalInstanceCtrl from '../controllers/RemoveConversionModalInstanceCtrl';
+import ActionDetailsModalInstanceCtrl from '../controllers/ActionDetailsModalInstanceCtrl';
+import SaveWorkflowModalInstanceCtrl from '../controllers/SaveWorkflowModalInstanceCtrl';
 import RemoveNodeModalInstanceCtrl from '../controllers/RemoveNodeModalInstanceCtrl';
 import RemoveStructureModalInstanceCtrl from '../controllers/RemoveStructureModalInstanceCtrl';
 import RemoveStructureUnitModalInstanceCtrl from '../controllers/RemoveStructureUnitModalInstanceCtrl';
@@ -118,6 +121,7 @@ import VersionCtrl from '../controllers/VersionCtrl';
 import VersionModalInstanceCtrl from '../controllers/VersionModalInstanceCtrl';
 import WorkareaCtrl from '../controllers/WorkareaCtrl';
 import StateTreeCtrl from '../controllers/StateTreeCtrl';
+import StateTreeActionCtrl from '../controllers/StateTreeActionCtrl';
 
 import {permission, uiPermission} from 'angular-permission';
 import uiRouter from '@uirouter/angularjs';
@@ -175,6 +179,7 @@ export default angular
     AccessIpCtrl,
   ])
   .controller('AccessWorkareaCtrl', ['$scope', '$controller', AccessWorkareaCtrl])
+  .controller('ActionModalCtrl', ['$scope', '$rootScope', '$uibModalInstance', 'currentStepTask', ActionModalCtrl])
   .controller('AddNodeModalInstanceCtrl', [
     'Search',
     '$translate',
@@ -941,6 +946,8 @@ export default angular
     ReceptionCtrl,
   ])
   .controller('RemoveConversionModalInstanceCtrl', ['$uibModalInstance', 'data', RemoveConversionModalInstanceCtrl])
+  .controller('ActionDetailsModalInstanceCtrl', ['$uibModalInstance', 'data', ActionDetailsModalInstanceCtrl])
+  .controller('SaveWorkflowModalInstanceCtrl', ['$uibModalInstance', 'data', SaveWorkflowModalInstanceCtrl])
   .controller('RemoveNodeModalInstanceCtrl', [
     'Search',
     '$translate',
@@ -1231,6 +1238,24 @@ export default angular
     '$transitions',
     'listViewService',
     StateTreeCtrl,
+  ])
+  .controller('StateTreeActionCtrl', [
+    '$scope',
+    '$translate',
+    'Step',
+    'Task',
+    'appConfig',
+    '$timeout',
+    '$interval',
+    'PermPermissionStore',
+    '$q',
+    '$uibModal',
+    '$log',
+    'StateTree',
+    '$rootScope',
+    '$transitions',
+    'listViewService',
+    StateTreeActionCtrl,
   ])
   .controller('StorageMigrationCtrl', [
     '$rootScope',

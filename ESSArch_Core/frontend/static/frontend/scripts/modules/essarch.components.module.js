@@ -26,6 +26,7 @@ import SaEditorComponent from '../components/SaEditorComponent';
 import searchFilter from '../components/SearchFilterComponent';
 import search from '../components/SearchComponent';
 import StateTreeView from '../components/StateTreeViewComponent';
+import StateTreeActionView from '../components/StateTreeActionViewComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
@@ -53,6 +54,7 @@ export default angular
   .component('saEditor', SaEditorComponent)
   .component('resultField', resultField)
   .component('stateTreeView', StateTreeView)
+  .component('stateTreeActionView', StateTreeActionView)
   .component('sysInfoComponent', sysInfoComponent)
   .component('search', search)
   .component('searchFilter', searchFilter)

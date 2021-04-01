@@ -117,12 +117,15 @@ from ESSArch_Core.ip.serializers import (
     OrderSerializer,
     OrderTypeSerializer,
     OrderWriteSerializer,
-    SaveActionToolSerializer,
     WorkareaSerializer,
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
 from ESSArch_Core.mixins import PaginatedViewMixin
-from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement,Profile
+from ESSArch_Core.profiles.models import (
+    Profile,
+    ProfileIP,
+    SubmissionAgreement,
+)
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search import DEFAULT_MAX_RESULT_WINDOW
 from ESSArch_Core.util import (
@@ -142,8 +145,7 @@ from ESSArch_Core.util import (
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessStepChildrenSerializer,
-)
+    ProcessStepChildrenSerializer, )
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
@@ -152,17 +154,24 @@ User = get_user_model()
 class AgentViewSet(viewsets.ModelViewSet):
     queryset = Agent.objects.all()
     serializer_class = AgentSerializer
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
+    filter_backends = (
+        filters.OrderingFilter,
+        DjangoFilterBackend,
+        SearchFilter,
+    )
     filterset_class = AgentFilter
 
 
 class ConsignMethodViewSet(viewsets.ModelViewSet):
     queryset = ConsignMethod.objects.all()
     serializer_class = ConsignMethodSerializer
-    permission_classes = (ActionPermissions,)
-    filter_backends = (filters.OrderingFilter, SearchFilter,)
-    ordering_fields = ('name',)
-    search_fields = ('name',)
+    permission_classes = (ActionPermissions, )
+    filter_backends = (
+        filters.OrderingFilter,
+        SearchFilter,
+    )
+    ordering_fields = ('name', )
+    search_fields = ('name', )
 
 
 class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -171,16 +180,22 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = EventIP.objects.all()
     serializer_class = EventIPSerializer
-    permission_classes = (ActionPermissions,)
+    permission_classes = (ActionPermissions, )
     filterset_class = EventIPFilter
     filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
+        filters.OrderingFilter,
+        DjangoFilterBackend,
+        SearchFilter,
     )
     ordering_fields = (
-        'id', 'eventType', 'eventOutcomeDetailNote', 'eventOutcome',
-        'linkingAgentIdentifierValue', 'eventDateTime',
+        'id',
+        'eventType',
+        'eventOutcomeDetailNote',
+        'eventOutcome',
+        'linkingAgentIdentifierValue',
+        'eventDateTime',
     )
-    search_fields = ('eventOutcomeDetailNote',)
+    search_fields = ('eventOutcomeDetailNote', )
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -201,7 +216,8 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         delivery = parents_query_dict.pop('delivery', None)
 
         if delivery is not None:
-            queryset = queryset.filter(Q(delivery=delivery) | Q(transfer__delivery=delivery))
+            queryset = queryset.filter(
+                Q(delivery=delivery) | Q(transfer__delivery=delivery))
 
         if parents_query_dict:
             try:
@@ -212,9 +228,10 @@ class EventIPViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             return queryset
 
 
-class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewSet):
+class WorkareaEntryViewSet(mixins.DestroyModelMixin,
+                           viewsets.ReadOnlyModelViewSet):
     queryset = Workarea.objects.all()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, )
     serializer_class = WorkareaSerializer
 
     def get_queryset(self):
@@ -234,13 +251,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
+        workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
@@ -266,53 +277,19 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
             else:
                 workflow_spec[0]['children'].append({
-                    "name": "ESSArch_Core.fixity.action.tasks.Action",
-                    "label": tool_name,
-                    "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
+                    "name":
+                    "ESSArch_Core.fixity.action.tasks.Action",
+                    "label":
+                    tool_name,
+                    "args": [
+                        tool_name, pattern, workarea.path, options,
+                        request.data.get('purpose')
+                    ]
                 })
 
         workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
         workflow.run()
-        return Response()
 
-    @action(detail=True, methods=['post'], url_path='actiontool_save')
-    def save_actiontool(self, request, pk=None):
-        workarea: Workarea = self.get_object()
-
-        serializer = SaveActionToolSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
-
-            options = converter['options']
-            pattern = None
-            if 'path' in converter:
-                pattern = converter['path']
-
-            workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.action.tasks.Action",
-                "label": tool_name,
-                "args": [tool_name, pattern, workarea.path, options, request.data.get('purpose')]
-            })
-
-        dct = {
-            'name': 'Action Workflow Xyz',
-            'profile_type': 'action_workflow',
-            'type': 'Action Workflow',
-            'status': 'Draft',
-            'label': 'Action workflow profile for actions Xx',
-            'specification': workflow_spec,
-        }
-
-        profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
         return Response()
 
     @action(detail=True, methods=['post'], url_path='validate')
@@ -322,12 +299,15 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         task_name = "ESSArch_Core.tasks.ValidateWorkarea"
 
         if ip.get_profile('validation') is None:
-            raise exceptions.ParseError("IP does not have a \"validation\" profile")
-
-        if ProcessTask.objects.filter(information_package=ip, name=task_name, time_done__isnull=True).exists():
             raise exceptions.ParseError(
-                '"{objid}" is already being validated'.format(objid=ip.object_identifier_value)
-            )
+                "IP does not have a \"validation\" profile")
+
+        if ProcessTask.objects.filter(information_package=ip,
+                                      name=task_name,
+                                      time_done__isnull=True).exists():
+            raise exceptions.ParseError(
+                '"{objid}" is already being validated'.format(
+                    objid=ip.object_identifier_value))
 
         ip.validation_set.all().delete()
 
@@ -335,14 +315,19 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         validators = request.data.get('validators', {})
         available_validators = AVAILABLE_VALIDATORS.keys()
 
-        if not any(selected in available_validators for selected in validators):
+        if not any(selected in available_validators
+                   for selected in validators):
             raise exceptions.ParseError('No valid validator selected')
 
         for selected in validators:
             if selected not in available_validators:
-                raise exceptions.ParseError('Validator "%s" not found' % selected)
-            if selected not in ip.get_profile('validation').specification.keys():
-                raise exceptions.ParseError('Validator "%s" not specified in validation profile' % selected)
+                raise exceptions.ParseError('Validator "%s" not found' %
+                                            selected)
+            if selected not in ip.get_profile(
+                    'validation').specification.keys():
+                raise exceptions.ParseError(
+                    'Validator "%s" not specified in validation profile' %
+                    selected)
 
         params = {'validators': validators, 'stop_at_failure': stop_at_failure}
 
@@ -364,27 +349,29 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         ip = workarea.ip
 
         if ip.state.lower() in ('transforming', 'transformed'):
-            raise exceptions.ParseError(
-                "\"{ip}\" already {state}".format(ip=ip.object_identifier_value, state=ip.state.lower())
-            )
+            raise exceptions.ParseError("\"{ip}\" already {state}".format(
+                ip=ip.object_identifier_value, state=ip.state.lower()))
 
         transformer = request.data.get('transformer')
         if transformer is None:
             raise exceptions.ParseError("Missing transformer parameter")
 
         if transformer not in AVAILABLE_TRANSFORMERS:
-            raise exceptions.ParseError("Transformer {} not in config".format(transformer))
+            raise exceptions.ParseError(
+                "Transformer {} not in config".format(transformer))
 
         if ip.get_profile('validation') is not None:
-            for validator, successful in workarea.successfully_validated.items():
+            for validator, successful in workarea.successfully_validated.items(
+            ):
                 if successful is not True:
                     raise exceptions.ParseError(
-                        "\"{ip}\" hasn't been successfully validated with \"{validator}\"".format(
-                            ip=ip.object_identifier_value, validator=validator
-                        )
-                    )
+                        "\"{ip}\" hasn't been successfully validated with \"{validator}\""
+                        .format(ip=ip.object_identifier_value,
+                                validator=validator))
 
-        step = ProcessStep.objects.create(name="Transform", eager=False, information_package=ip)
+        step = ProcessStep.objects.create(name="Transform",
+                                          eager=False,
+                                          information_package=ip)
         pos = 0
 
         ProcessTask.objects.create(
@@ -444,18 +431,36 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     logger = logging.getLogger('essarch.InformationPackageViewSet')
 
     queryset = InformationPackage.objects.none()
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, )
     serializer_class = InformationPackageSerializer
-    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
+    filter_backends = (
+        filters.OrderingFilter,
+        DjangoFilterBackend,
+        SearchFilter,
+    )
     ordering_fields = (
-        'label', 'responsible', 'create_date', 'state',
-        'id', 'object_identifier_value', 'start_date', 'end_date',
+        'label',
+        'responsible',
+        'create_date',
+        'state',
+        'id',
+        'object_identifier_value',
+        'start_date',
+        'end_date',
     )
     search_fields = (
-        '=id', 'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
-        'aic__object_identifier_value', 'aic__label',
+        '=id',
+        'object_identifier_value',
+        'label',
+        'responsible__first_name',
+        'responsible__last_name',
+        'responsible__username',
+        'state',
+        'submission_agreement__name',
+        'start_date',
+        'end_date',
+        'aic__object_identifier_value',
+        'aic__label',
     )
     filterset_class = InformationPackageFilter
 
@@ -478,8 +483,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             'Expected view %s to be called with a URL keyword argument '
             'named "%s". Fix your URL conf, or set the `.lookup_field` '
             'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
-        )
+            (self.__class__.__name__, lookup_url_kwarg))
 
         lookup_field = self.lookup_field
 
@@ -498,12 +502,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @staticmethod
     def annotate_generations(qs):
         lower_higher = InformationPackage.objects.filter(
-            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-        ).order_by().values('aic')
-        lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+            Q(aic=OuterRef('aic')),
+            Q(Q(workareas=None)
+              | Q(workareas__read_only=True))).order_by().values('aic')
+        lower_higher = lower_higher.annotate(min_gen=Min('generation'),
+                                             max_gen=Max('generation'))
 
-        return qs.annotate(first_generation=InformationPackageViewSet.first_generation_case(lower_higher),
-                           last_generation=InformationPackageViewSet.last_generation_case(lower_higher))
+        return qs.annotate(
+            first_generation=InformationPackageViewSet.first_generation_case(
+                lower_higher),
+            last_generation=InformationPackageViewSet.last_generation_case(
+                lower_higher))
 
     def annotate_filtered_first_generation(self, qs, user):
         lower_higher = InformationPackage.objects.visible_to_user(user).filter(
@@ -512,13 +521,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ).order_by().values('aic')
         lower_higher = self.apply_filters(queryset=lower_higher).order_by()
         lower_higher = lower_higher.annotate(min_gen=Min('generation'))
-        return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
+        return qs.annotate(
+            filtered_first_generation=self.first_generation_case(lower_higher))
 
     def get_related(self, qs, workareas):
         qs = qs.select_related('responsible')
         return qs.prefetch_related(
-            Prefetch('agents', queryset=Agent.objects.prefetch_related('notes'), to_attr='prefetched_agents'),
-            'steps', Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'))
+            Prefetch('agents',
+                     queryset=Agent.objects.prefetch_related('notes'),
+                     to_attr='prefetched_agents'), 'steps',
+            Prefetch('workareas',
+                     queryset=workareas,
+                     to_attr='prefetched_workareas'))
 
     def get_queryset(self):
         view_type = self.request.query_params.get('view_type', 'aic')
@@ -532,60 +546,73 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 workarea_params[key_suffix] = val
 
         workareas = Workarea.objects.all()
-        workareas = WorkareaEntryFilter(data=workarea_params, queryset=workareas, request=self.request).qs
+        workareas = WorkareaEntryFilter(data=workarea_params,
+                                        queryset=workareas,
+                                        request=self.request).qs
         if not see_all:
             workareas = workareas.filter(user=self.request.user)
 
         if not self.detail and view_type == 'aic':
-            simple_inner = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            )
-            simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
+            simple_inner = InformationPackage.objects.visible_to_user(
+                user).filter(
+                    Q(Q(workareas=None) | Q(workareas__read_only=True)), )
+            simple_inner = self.apply_filters(simple_inner).order_by(
+                *InformationPackage._meta.ordering)
 
-            inner = simple_inner.select_related('responsible').prefetch_related(
-                'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
-            )
-            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
+            inner = simple_inner.select_related(
+                'responsible').prefetch_related(
+                    'agents', 'steps',
+                    Prefetch('workareas',
+                             queryset=workareas,
+                             to_attr='prefetched_workareas'))
+            dips_and_sips = inner.filter(package_type__in=[
+                InformationPackage.DIP, InformationPackage.SIP
+            ]).distinct()
 
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-            ).order_by().values('aic')
-            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+                Q(aic=OuterRef('aic')),
+                Q(Q(workareas=None)
+                  | Q(workareas__read_only=True))).order_by().values('aic')
+            lower_higher = lower_higher.annotate(min_gen=Min('generation'),
+                                                 max_gen=Max('generation'))
 
-            inner = inner.annotate(first_generation=self.first_generation_case(lower_higher),
-                                   last_generation=self.last_generation_case(lower_higher))
+            inner = inner.annotate(
+                first_generation=self.first_generation_case(lower_higher),
+                last_generation=self.last_generation_case(lower_higher))
 
-            simple_outer = InformationPackage.objects.annotate(
-                has_ip=Exists(
-                    simple_inner.only('id').filter(
-                        aic=OuterRef('pk')
-                    )
-                )
-            ).filter(
-                package_type=InformationPackage.AIC, has_ip=True
-            )
+            simple_outer = InformationPackage.objects.annotate(has_ip=Exists(
+                simple_inner.only('id').filter(aic=OuterRef('pk')))).filter(
+                    package_type=InformationPackage.AIC, has_ip=True)
             profile_ips = ProfileIP.objects.select_related(
-                'profile', 'ip', 'data',
+                'profile',
+                'ip',
+                'data',
             ).prefetch_related('data_versions')
 
             inner = inner.prefetch_related(
-                Prefetch('profileip_set', queryset=profile_ips,)
-            )
+                Prefetch(
+                    'profileip_set',
+                    queryset=profile_ips,
+                ))
             simple_outer = simple_outer.prefetch_related(
-                Prefetch('profileip_set', queryset=profile_ips,)
-            )
+                Prefetch(
+                    'profileip_set',
+                    queryset=profile_ips,
+                ))
 
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(
+                Prefetch('information_packages', queryset=inner)).distinct()
 
-            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
-            self.outer_queryset = simple_outer.distinct() | dips_and_sips.distinct()
+            self.queryset = self.apply_ordering_filters(
+                aics) | self.apply_filters(dips_and_sips)
+            self.outer_queryset = simple_outer.distinct(
+            ) | dips_and_sips.distinct()
             self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            ).exclude(package_type=InformationPackage.AIC)
+                Q(Q(workareas=None) | Q(workareas__read_only=True)), ).exclude(
+                    package_type=InformationPackage.AIC)
 
             simple = self.apply_filters(filtered)
 
@@ -599,15 +626,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
 
             profile_ips = ProfileIP.objects.select_related(
-                'profile', 'ip', 'data',
+                'profile',
+                'ip',
+                'data',
             ).prefetch_related('data_versions')
 
-            inner = simple.filter(filtered_first_generation=False).prefetch_related(
-                Prefetch('profileip_set', queryset=profile_ips,)
-            )
-            outer = simple.filter(filtered_first_generation=True).prefetch_related(
-                Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            inner = simple.filter(
+                filtered_first_generation=False).prefetch_related(
+                    Prefetch(
+                        'profileip_set',
+                        queryset=profile_ips,
+                    ))
+            outer = simple.filter(
+                filtered_first_generation=True).prefetch_related(
+                    Prefetch('aic__information_packages',
+                             queryset=inner)).distinct()
 
             self.inner_queryset = simple
             self.outer_queryset = simple
@@ -615,21 +648,29 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return self.queryset
         elif not self.detail and view_type == 'flat':
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            ).exclude(package_type=InformationPackage.AIC)
-            qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
+                Q(Q(workareas=None) | Q(workareas__read_only=True)), ).exclude(
+                    package_type=InformationPackage.AIC)
+            qs = self.apply_filters(qs).order_by(
+                *InformationPackage._meta.ordering)
 
             profile_ips = ProfileIP.objects.select_related(
-                'profile', 'ip', 'data',
+                'profile',
+                'ip',
+                'data',
             ).prefetch_related('data_versions')
             qs = qs.select_related(
                 'responsible', 'submission_agreement__policy__cache_storage',
-                'submission_agreement__policy__ingest_path'
-            ).prefetch_related(
-                'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
-                Prefetch('profileip_set', queryset=profile_ips,),
-            )
+                'submission_agreement__policy__ingest_path').prefetch_related(
+                    'agents',
+                    'steps',
+                    Prefetch('workareas',
+                             queryset=workareas,
+                             to_attr='prefetched_workareas'),
+                    Prefetch(
+                        'profileip_set',
+                        queryset=profile_ips,
+                    ),
+                )
             qs = self.annotate_generations(self.apply_filters(qs))
 
             self.queryset = qs
@@ -640,21 +681,24 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-            ).order_by().values('aic')
-            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+                Q(aic=OuterRef('aic')),
+                Q(Q(workareas=None)
+                  | Q(workareas__read_only=True))).order_by().values('aic')
+            lower_higher = lower_higher.annotate(min_gen=Min('generation'),
+                                                 max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            )
+                Q(Q(workareas=None) | Q(workareas__read_only=True)), )
 
             qs = self.apply_filters(qs)
-            qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
-                             last_generation=self.last_generation_case(lower_higher))
+            qs = qs.annotate(
+                first_generation=self.first_generation_case(lower_higher),
+                last_generation=self.last_generation_case(lower_higher))
             qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
-            )
+                Prefetch('workareas',
+                         queryset=workareas,
+                         to_attr='prefetched_workareas'))
             self.queryset = qs.distinct()
             return self.queryset
 
@@ -664,7 +708,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def change_organization(self, request, pk=None):
         ip = self.get_object()
 
-        serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
+        serializer = ChangeOrganizationSerializer(data=request.data,
+                                                  context={'request': request})
         serializer.is_valid(raise_exception=True)
         org = serializer.validated_data['organization']
 
@@ -677,7 +722,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         hidden = request.query_params.get('hidden')
 
         steps = ip.steps.filter(parent_step__information_package__isnull=True)
-        tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
+        tasks = ip.processtask_set.filter(
+            processstep__information_package__isnull=True)
 
         if hidden is not None:
             hidden = string_to_bool(hidden)
@@ -689,9 +735,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             steps = steps.filter(query)
             tasks = tasks.filter(query)
 
-        flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
+        flow = sorted(itertools.chain(steps, tasks),
+                      key=lambda x: (x.time_created, x.get_pos()))
 
-        serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
+        serializer = ProcessStepChildrenSerializer(
+            data=flow, many=True, context={'request': request})
         serializer.is_valid()
         return Response(serializer.data)
 
@@ -731,7 +779,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         responsible = self.request.user
 
         if responsible.user_profile.current_organization is None:
-            raise exceptions.ParseError('You must be part of an organization to prepare an IP')
+            raise exceptions.ParseError(
+                'You must be part of an organization to prepare an IP')
 
         if data['package_type'] == InformationPackage.SIP:
             prepare_path = Path.objects.get(entity="preingest").value
@@ -739,12 +788,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             prepare_path = Path.objects.get(entity="disseminations").value
 
         if object_identifier_value:
-            ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
+            ip_exists = InformationPackage.objects.filter(
+                object_identifier_value=object_identifier_value).exists()
             if ip_exists:
-                raise Conflict('IP with object identifer value "%s" already exists' % object_identifier_value)
+                raise Conflict(
+                    'IP with object identifer value "%s" already exists' %
+                    object_identifier_value)
 
-            if os.path.exists(os.path.join(prepare_path, object_identifier_value)):
-                raise Conflict('IP with identifier "%s" already exists on disk' % object_identifier_value)
+            if os.path.exists(
+                    os.path.join(prepare_path, object_identifier_value)):
+                raise Conflict(
+                    'IP with identifier "%s" already exists on disk' %
+                    object_identifier_value)
 
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         try:
@@ -767,7 +822,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     'agent': request.user.username,
                     'outcome': EventIP.SUCCESS
                 }
-                self.logger.info("Prepared {obj}".format(obj=ip.object_identifier_value), extra=extra)
+                self.logger.info(
+                    "Prepared {obj}".format(obj=ip.object_identifier_value),
+                    extra=extra)
 
                 member = Member.objects.get(django_user=responsible)
                 user_perms = perms.pop('owner', [])
@@ -779,7 +836,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     perm_name = get_permission_name(perm, ip)
                     assign_perm(perm_name, member.django_user, ip)
 
-                obj_path = normalize_path(os.path.join(prepare_path, ip.object_identifier_value))
+                obj_path = normalize_path(
+                    os.path.join(prepare_path, ip.object_identifier_value))
                 os.mkdir(obj_path)
                 ip.object_path = obj_path
                 ip.save()
@@ -797,7 +855,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 pass
             raise
 
-        return Response({"detail": "Prepared IP"}, status=status.HTTP_201_CREATED)
+        return Response({"detail": "Prepared IP"},
+                        status=status.HTTP_201_CREATED)
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
@@ -814,24 +873,33 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('IP requires locked SA to be prepared')
 
         if ip.package_type == InformationPackage.SIP:
-            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_sip).exists():
-                raise exceptions.ParseError('Information package missing SIP profile')
+            if not ProfileIP.objects.filter(ip=ip,
+                                            profile=sa.profile_sip).exists():
+                raise exceptions.ParseError(
+                    'Information package missing SIP profile')
 
-            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_submit_description).exists():
-                raise exceptions.ParseError('Information package missing Submit Description profile')
+            if not ProfileIP.objects.filter(
+                    ip=ip, profile=sa.profile_submit_description).exists():
+                raise exceptions.ParseError(
+                    'Information package missing Submit Description profile')
 
         elif ip.package_type == InformationPackage.DIP:
-            if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_dip).exists():
-                raise exceptions.ParseError('Information package missing DIP profile')
+            if not ProfileIP.objects.filter(ip=ip,
+                                            profile=sa.profile_dip).exists():
+                raise exceptions.ParseError(
+                    'Information package missing DIP profile')
 
-        if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
-            raise exceptions.ParseError('Information package missing Transfer Project profile')
+        if not ProfileIP.objects.filter(
+                ip=ip, profile=sa.profile_transfer_project).exists():
+            raise exceptions.ParseError(
+                'Information package missing Transfer Project profile')
 
         for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
             try:
                 profile_ip.clean()
             except ValidationError as e:
-                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+                raise exceptions.ParseError('%s: %s' %
+                                            (profile_ip.profile.name, str(e)))
 
             profile_ip.LockedBy = request.user
             profile_ip.save()
@@ -852,11 +920,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-    @action(detail=True, methods=['get', 'post'], url_path='upload', permission_classes=[CanUpload])
+    @action(detail=True,
+            methods=['get', 'post'],
+            url_path='upload',
+            permission_classes=[CanUpload])
     def upload(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading']:
-            raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared" or "Uploading"')
 
         ip.state = "Uploading"
         ip.save()
@@ -868,7 +940,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         chunk_nr = data.get('flowChunkNumber')
         chunk_path = "%s_%s" % (path, chunk_nr)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(
+            Path.objects.get(entity='temp').value, 'file_upload')
         full_chunk_path = os.path.join(temp_path, str(ip.pk), chunk_path)
 
         if request.method == 'GET':
@@ -890,13 +963,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             return Response("Uploaded chunk", status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'], url_path='merge-uploaded-chunks', permission_classes=[CanUpload])
+    @action(detail=True,
+            methods=['post'],
+            url_path='merge-uploaded-chunks',
+            permission_classes=[CanUpload])
     def merge_uploaded_chunks(self, request, pk=None):
         ip = self.get_object()
         if ip.state != 'Uploading':
             raise exceptions.ParseError('IP must be in state "Uploading"')
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(
+            Path.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(ip.pk), request.data['path'])
         filepath = os.path.join(ip.object_path, request.data['path'])
 
@@ -908,30 +985,41 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound('No chunks found')
 
         logger = logging.getLogger('essarch')
-        extra = {'event_type': 50700, 'object': str(ip.pk), 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
+        extra = {
+            'event_type': 50700,
+            'object': str(ip.pk),
+            'agent': request.user.username,
+            'outcome': EventIP.SUCCESS
+        }
         logger.info("Uploaded %s" % filepath, extra=extra)
 
         return Response("Merged chunks")
 
     @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='set-uploaded', permission_classes=[CanSetUploaded])
+    @action(detail=True,
+            methods=['post'],
+            url_path='set-uploaded',
+            permission_classes=[CanSetUploaded])
     def set_uploaded(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading']:
-            raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared" or "Uploading"')
 
         # delete temp files
         try:
-            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            temp_path = os.path.join(
+                Path.objects.get(entity='temp').value, 'file_upload',
+                str(ip.pk))
             shutil.rmtree(temp_path)
         except FileNotFoundError:
             pass
 
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
+            label="Update IP size and file count",
             eager=False,
-            information_package=ip
-        ).run()
+            information_package=ip).run()
 
         ip.state = "Uploaded"
         ip.save()
@@ -941,18 +1029,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def actiontool(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading', 'Received']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading" or "Received"')
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading" or "Received"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
+        workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
@@ -969,40 +1052,46 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
                 tool_cmd.update(options)
-
                 workflow_spec[0]['children'].append({
                     "name": action_tool.path,
                     "label": tool_name,
                     "params": tool_cmd
                 })
-
             else:
                 workflow_spec[0]['children'].append({
-                    "name": "ESSArch_Core.fixity.action.tasks.Action",
-                    "label": tool_name,
-                    "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
+                    "name":
+                    "ESSArch_Core.fixity.action.tasks.Action",
+                    "label":
+                    tool_name,
+                    "args": [
+                        tool_name, pattern, ip.object_path, options,
+                        request.data.get('purpose')
+                    ]
                 })
 
         workflow = create_workflow(workflow_spec, eager=False, ip=ip)
         workflow.run()
+
         return Response()
 
     @action(detail=True, methods=['post'], url_path='actiontool_save')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
+        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading" or "Received"')
 
-        serializer = SaveActionToolSerializer(data=request.data)
+        serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
+        workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
+
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
+
+            # ensure that tool exists
+            ActionTool.objects.get(name=tool_name)
+
             options = converter['options']
             pattern = None
 
@@ -1010,25 +1099,36 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 pattern = converter['path']
 
             workflow_spec[0]['children'].append({
-                "name": "ESSArch_Core.fixity.action.tasks.Action",
-                "label": tool_name,
-                "args": [tool_name, pattern, ip.object_path, options, request.data.get('purpose')]
+                "name":
+                "ESSArch_Core.fixity.action.tasks.Action",
+                "label":
+                tool_name,
+                "args":
+                [tool_name, pattern, options,
+                 request.data.get('purpose')]
             })
 
+        # Save action workflow profile
+        action_workflow_name = request.data.get('action_workflow_name')
+        action_workflow_status = request.data.get('action_workflow_status')
         dct = {
-            'name': 'Action Workflow Xyz',
+            'name': action_workflow_name,
             'profile_type': 'action_workflow',
             'type': 'Action Workflow',
-            'status': 'Draft',
-            'label': 'Action workflow profile for actions Xx',
+            'status': action_workflow_status,
+            'label': action_workflow_name,
             'specification': workflow_spec,
         }
 
-        profile, _ = Profile.objects.update_or_create(name=dct['name'], defaults=dct)
+        Profile.objects.update_or_create(name=dct['name'], defaults=dct)
+
         return Response()
 
     @lock_obj(blocking_timeout=0.1)
-    @action(detail=True, methods=['post'], url_path='create', permission_classes=[CanCreateSIP])
+    @action(detail=True,
+            methods=['post'],
+            url_path='create',
+            permission_classes=[CanCreateSIP])
     def create_ip(self, request, pk=None):
         """
         Creates the specified information package
@@ -1041,7 +1141,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip = self.get_object()
 
         if ip.state != "Uploaded":
-            raise exceptions.ParseError("The IP (%s) is in the state '%s' but should be 'Uploaded'" % (pk, ip.state))
+            raise exceptions.ParseError(
+                "The IP (%s) is in the state '%s' but should be 'Uploaded'" %
+                (pk, ip.state))
 
         ip.state = 'Creating'
         ip.save()
@@ -1049,20 +1151,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         generate_premis = ip.profile_locked('preservation_metadata')
 
         convert_files = request.data.get('file_conversion', False)
-        file_format_map = {
-            'doc': 'pdf',
-            'docx': 'pdf'
-        }
+        file_format_map = {'doc': 'pdf', 'docx': 'pdf'}
 
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', True)
-        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
+        validate_logical_physical_representation = validators.get(
+            'validate_logical_physical_representation', True)
         cts = ip.get_content_type_file()
         has_cts = cts is not None and os.path.exists(cts)
-        has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
+        has_representations = find_destination("representations",
+                                               ip.get_structure(),
+                                               ip.object_path)[1] is not None
 
         dst_dir = Path.objects.cached('entity', 'preingest', 'value')
-        dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
+        dst_filename = ip.object_identifier_value + '.' + ip.get_container_format(
+        ).lower()
         dst = os.path.join(dst_dir, dst_filename)
 
         workflow_spec = [
@@ -1077,8 +1180,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label": "Download Schemas",
             },
             {
-                "step": True,
-                "name": "Create Log File",
+                "step":
+                True,
+                "name":
+                "Create Log File",
                 "children": [
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
@@ -1089,10 +1194,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "label": "Add events to xml file",
                     },
                     {
-                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                        "name":
+                        "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
                         "label": "Add premis IP object to xml file",
                     },
-
                 ]
             },
             {
@@ -1105,55 +1210,61 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label": "Generate content-mets",
             },
             {
-                "step": True,
-                "name": "Validation",
-                "if": any([validate_xml_file, validate_logical_physical_representation]),
-                "children": [
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "if": validate_xml_file,
-                        "label": "Validate content-mets",
-                        "params": {
-                            "xml_filename": "{{_CONTENT_METS_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "if": generate_premis and validate_xml_file,
-                        "label": "Validate premis",
-                        "params": {
-                            "xml_filename": "{{_PREMIS_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "label": "Validate cts",
-                        "if": has_cts and validate_xml_file,
-                        "run_if": "{{_CTS_PATH | path_exists}}",
-                        "params": {
-                            "xml_filename": "{{_CTS_PATH}}",
-                            "schema_filename": "{{_CTS_SCHEMA_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
-                        "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                        "if": generate_premis,
-                        "label": "Compare premis and content-mets",
-                        "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
-                        "params": {'recursive': False},
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                        "if": has_representations and generate_premis,
-                        "label": "Compare representation premis and mets",
+                "step":
+                True,
+                "name":
+                "Validation",
+                "if":
+                any([
+                    validate_xml_file, validate_logical_physical_representation
+                ]),
+                "children": [{
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "if": validate_xml_file,
+                    "label": "Validate content-mets",
+                    "params": {
+                        "xml_filename": "{{_CONTENT_METS_PATH}}",
                     }
-                ]
+                }, {
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "if": generate_premis and validate_xml_file,
+                    "label": "Validate premis",
+                    "params": {
+                        "xml_filename": "{{_PREMIS_PATH}}",
+                    }
+                }, {
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "label": "Validate cts",
+                    "if": has_cts and validate_xml_file,
+                    "run_if": "{{_CTS_PATH | path_exists}}",
+                    "params": {
+                        "xml_filename": "{{_CTS_PATH}}",
+                        "schema_filename": "{{_CTS_SCHEMA_PATH}}",
+                    }
+                }, {
+                    "name":
+                    "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                    "if":
+                    validate_logical_physical_representation,
+                    "label":
+                    "Diff-check against content-mets",
+                    "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                }, {
+                    "name":
+                    "ESSArch_Core.tasks.CompareXMLFiles",
+                    "if":
+                    generate_premis,
+                    "label":
+                    "Compare premis and content-mets",
+                    "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                    "params": {
+                        'recursive': False
+                    },
+                }, {
+                    "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                    "if": has_representations and generate_premis,
+                    "label": "Compare representation premis and mets",
+                }]
             },
             {
                 "name": "ESSArch_Core.ip.tasks.CreateContainer",
@@ -1186,7 +1297,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='submit', permission_classes=[CanSubmitSIP])
+    @action(detail=True,
+            methods=['post'],
+            url_path='submit',
+            permission_classes=[CanSubmitSIP])
     def submit(self, request, pk=None):
         """
         Submits the specified information package
@@ -1200,9 +1314,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if ip.state != "Created":
             return Response(
-                "The IP (%s) is in the state '%s' but should be 'Created'" % (pk, ip.state),
-                status=status.HTTP_400_BAD_REQUEST
-            )
+                "The IP (%s) is in the state '%s' but should be 'Created'" %
+                (pk, ip.state),
+                status=status.HTTP_400_BAD_REQUEST)
 
         ip.state = 'Submitting'
         ip.save()
@@ -1210,16 +1324,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         sd_profile = ip.get_profile('submit_description')
 
         if sd_profile is None:
-            return Response(
-                "The IP (%s) has no submit description profile" % pk,
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response("The IP (%s) has no submit description profile" %
+                            pk,
+                            status=status.HTTP_400_BAD_REQUEST)
 
         recipient = ip.get_email_recipient()
 
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', False)
-        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', False)
+        validate_logical_physical_representation = validators.get(
+            'validate_logical_physical_representation', False)
 
         workflow_spec = [
             {
@@ -1235,7 +1349,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 }
             },
             {
-                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                "name":
+                "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                 "if": validate_logical_physical_representation,
                 "label": "Diff-check against package-mets",
                 "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
@@ -1327,7 +1442,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         checker = ObjectPermissionChecker(self.request.user)
         if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
-            checker.prefetch_perms(self.outer_queryset.distinct() | self.inner_queryset.distinct())
+            checker.prefetch_perms(self.outer_queryset.distinct()
+                                   | self.inner_queryset.distinct())
         else:
             checker.prefetch_perms(self.queryset)
 
@@ -1345,12 +1461,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], url_path='add-from-master')
     def add_from_master(self, request, pk=None):
         serializer = InformationPackageFromMasterSerializer(
-            data=request.data, context={'request': request},
+            data=request.data,
+            context={'request': request},
         )
         serializer.is_valid(raise_exception=True)
         ip = serializer.save()
 
-        return Response(reverse('informationpackage-detail', args=(ip.pk,)))
+        return Response(reverse('informationpackage-detail', args=(ip.pk, )))
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
@@ -1380,7 +1497,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         upload_id = request.data.get('upload_id', uuid.uuid4().hex)
         return Response({'upload_id': upload_id})
 
-    @action(detail=False, methods=['post'], url_path='add-file-from-master_complete')
+    @action(detail=False,
+            methods=['post'],
+            url_path='add-file-from-master_complete')
     def add_file_from_master_complete(self, request, pk=None):
         temp_dir = Path.objects.get(entity='temp').value
         dst = request.data.get('dst') or temp_dir
@@ -1403,12 +1522,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip = self.get_object()
 
         if not request.user.has_perm('delete_informationpackage', ip):
-            raise exceptions.PermissionDenied('You do not have permission to delete this IP')
+            raise exceptions.PermissionDenied(
+                'You do not have permission to delete this IP')
 
-        self.logger.info(
-            'Request issued to delete %s %s' % (ip.get_package_type_display(), pk),
-            extra={'user': request.user.pk}
-        )
+        self.logger.info('Request issued to delete %s %s' %
+                         (ip.get_package_type_display(), pk),
+                         extra={'user': request.user.pk})
 
         if ip.package_type == InformationPackage.AIC:
             raise exceptions.ParseError(detail='AICs cannot be deleted')
@@ -1428,7 +1547,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if ip.archived:
             if not request.user.has_perm('delete_archived', ip):
-                raise exceptions.PermissionDenied('You do not have permission to delete archived IPs')
+                raise exceptions.PermissionDenied(
+                    'You do not have permission to delete archived IPs')
 
         t = ProcessTask.objects.create(
             name='ESSArch_Core.ip.tasks.DeleteInformationPackage',
@@ -1441,7 +1561,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             responsible=request.user,
         )
         t.run()
-        return Response({"detail": "Deleting information package", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
+        return Response(
+            {
+                "detail": "Deleting information package",
+                "task": t.pk
+            },
+            status=status.HTTP_202_ACCEPTED)
 
     @action(detail=True, methods=['get', 'post'], url_path='ead-editor')
     def ead_editor(self, request, pk=None):
@@ -1449,12 +1574,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         try:
             structure = ip.get_profile('sip').structure
         except AttributeError:
-            return Response("No SIP profile for IP created yet", status=status.HTTP_400_BAD_REQUEST)
+            return Response("No SIP profile for IP created yet",
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        ead_dir, ead_name = find_destination("archival_description_file", structure)
+        ead_dir, ead_name = find_destination("archival_description_file",
+                                             structure)
 
         if ead_name is None:
-            return Response("No EAD file for IP found", status=status.HTTP_404_NOT_FOUND)
+            return Response("No EAD file for IP found",
+                            status=status.HTTP_404_NOT_FOUND)
 
         xmlfile = os.path.join(ip.object_path, ead_dir, ead_name)
 
@@ -1498,7 +1626,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workflow = create_workflow(workflow, ip, name='Receive from workarea')
         workflow.run()
 
-        return Response({'detail': 'Receiving %s' % str(ip.pk)}, status=status.HTTP_202_ACCEPTED)
+        return Response({'detail': 'Receiving %s' % str(ip.pk)},
+                        status=status.HTTP_202_ACCEPTED)
 
     @action(detail=True, methods=['post'], url_path='preserve')
     def preserve(self, request, pk=None):
@@ -1514,8 +1643,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             reception_dir = Path.objects.get(entity='ingest_reception').value
             ingest_dir = ip.policy.ingest_path.value
-            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+            ip_reception_path = os.path.join(reception_dir,
+                                             ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir,
+                                          ip.object_identifier_value)
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -1524,7 +1655,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 try:
                     profile_ip.clean()
                 except ValidationError as e:
-                    raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+                    raise exceptions.ParseError(
+                        '%s: %s' % (profile_ip.profile.name, str(e)))
 
                 profile_ip.LockedBy = request.user
                 profile_ip.save()
@@ -1533,11 +1665,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             generate_premis = ip.profile_locked('preservation_metadata')
             has_representations = find_destination(
-                "representations", ip.get_structure(), ip.object_path,
+                "representations",
+                ip.get_structure(),
+                ip.object_path,
             )[1] is not None
 
             # remove existing premis and mets paths:
-            mets_path = os.path.join(ip.object_path, ip.get_content_mets_file_path())
+            mets_path = os.path.join(ip.object_path,
+                                     ip.get_content_mets_file_path())
             try:
                 os.remove(mets_path)
             except FileNotFoundError:
@@ -1546,7 +1681,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ip.update_sip_data()
 
             if generate_premis:
-                premis_profile_data = ip.get_profile_data('preservation_metadata')
+                premis_profile_data = ip.get_profile_data(
+                    'preservation_metadata')
                 data = fill_specification_data(premis_profile_data, ip=ip)
                 premis_path = parseContent(ip.get_premis_file_path(), data)
                 try:
@@ -1556,19 +1692,24 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             workflow = [
                 {
-                    "step": True,
-                    "name": "Generate AIP",
+                    "step":
+                    True,
+                    "name":
+                    "Generate AIP",
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
                             "label": "Download Schemas",
                         },
                         {
-                            "step": True,
-                            "name": "Create Log File",
+                            "step":
+                            True,
+                            "name":
+                            "Create Log File",
                             "children": [
                                 {
-                                    "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
+                                    "name":
+                                    "ESSArch_Core.ip.tasks.GenerateEventsXML",
                                     "label": "Generate events xml file",
                                 },
                                 {
@@ -1576,10 +1717,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                                     "label": "Add events to xml file",
                                 },
                                 {
-                                    "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
-                                    "label": "Add premis IP object to xml file",
+                                    "name":
+                                    "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                                    "label":
+                                    "Add premis IP object to xml file",
                                 },
-
                             ]
                         },
                         {
@@ -1588,48 +1730,55 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                             "label": "Generate premis",
                         },
                         {
-                            "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
+                            "name":
+                            "ESSArch_Core.ip.tasks.GenerateContentMets",
                             "label": "Generate content-mets",
                         },
                     ]
                 },
                 {
-                    "step": True,
-                    "name": "Validate AIP",
-                    "children": [
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                            "label": "Validate content-mets",
-                            "params": {
-                                "xml_filename": "{{_CONTENT_METS_PATH}}",
-                            }
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                            "if": generate_premis,
-                            "label": "Validate premis",
-                            "params": {
-                                "xml_filename": "{{_PREMIS_PATH}}",
-                            }
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                            "label": "Diff-check against content-mets",
-                            "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                            "if": generate_premis,
-                            "label": "Compare premis and content-mets",
-                            "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
-                            "params": {'recursive': False},
-                        },
-                        {
-                            "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                            "if": has_representations and generate_premis,
-                            "label": "Compare representation premis and mets",
+                    "step":
+                    True,
+                    "name":
+                    "Validate AIP",
+                    "children": [{
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "label": "Validate content-mets",
+                        "params": {
+                            "xml_filename": "{{_CONTENT_METS_PATH}}",
                         }
-                    ]
+                    }, {
+                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                        "if": generate_premis,
+                        "label": "Validate premis",
+                        "params": {
+                            "xml_filename": "{{_PREMIS_PATH}}",
+                        }
+                    }, {
+                        "name":
+                        "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "label":
+                        "Diff-check against content-mets",
+                        "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                    }, {
+                        "name":
+                        "ESSArch_Core.tasks.CompareXMLFiles",
+                        "if":
+                        generate_premis,
+                        "label":
+                        "Compare premis and content-mets",
+                        "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                        "params": {
+                            'recursive': False
+                        },
+                    }, {
+                        "name":
+                        "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                        "if":
+                        has_representations and generate_premis,
+                        "label":
+                        "Compare representation premis and mets",
+                    }]
                 },
                 {
                     "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
@@ -1639,8 +1788,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workflow += ip.create_preservation_workflow()
             workflow += [
                 {
-                    "name": "ESSArch_Core.ip.tasks.CreateReceipt",
-                    "label": "Create receipt",
+                    "name":
+                    "ESSArch_Core.ip.tasks.CreateReceipt",
+                    "label":
+                    "Create receipt",
                     "args": [
                         None,
                         "xml",
@@ -1671,9 +1822,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     "args": [ip_ingest_path]
                 },
             ]
-            workflow = create_workflow(workflow, ip, name='Preserve Information Package')
+            workflow = create_workflow(workflow,
+                                       ip,
+                                       name='Preserve Information Package')
         workflow.run()
-        return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({
+            'detail': 'Preserving %s...' % ip.object_identifier_value,
+            'step': workflow.pk
+        })
 
     @transaction.atomic
     @action(detail=True, methods=['post'])
@@ -1681,7 +1837,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip = self.get_object()
 
         if ip.state != 'Received' and not ip.archived:
-            raise exceptions.ParseError('IP must either have state "Received" or be archived to be accessed')
+            raise exceptions.ParseError(
+                'IP must either have state "Received" or be archived to be accessed'
+            )
 
         data = request.data
 
@@ -1696,26 +1854,36 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('Need at least one option set to true')
 
         if data.get('extracted') and data.get('tar'):
-            raise exceptions.ParseError('"extracted" and "tar" cannot both be true')
+            raise exceptions.ParseError(
+                '"extracted" and "tar" cannot both be true')
 
         if data.get('new'):
             if ip.package_type != InformationPackage.AIP:
-                raise exceptions.ParseError('{} is not an AIP'.format(ip.object_identifier_value))
+                raise exceptions.ParseError('{} is not an AIP'.format(
+                    ip.object_identifier_value))
 
             if request.user.user_profile.current_organization is None:
-                raise exceptions.ParseError('You must be part of an organization to create a new generation of an IP')
+                raise exceptions.ParseError(
+                    'You must be part of an organization to create a new generation of an IP'
+                )
 
-            if ip.archived and not request.user.has_perm('get_from_storage_as_new', ip):
-                raise exceptions.PermissionDenied('You do not have permission to create new generations of this IP')
+            if ip.archived and not request.user.has_perm(
+                    'get_from_storage_as_new', ip):
+                raise exceptions.PermissionDenied(
+                    'You do not have permission to create new generations of this IP'
+                )
 
-            if not ip.archived and not request.user.has_perm('add_to_ingest_workarea_as_new', ip):
-                raise exceptions.PermissionDenied('You do not have permission to create new generations of this IP')
+            if not ip.archived and not request.user.has_perm(
+                    'add_to_ingest_workarea_as_new', ip):
+                raise exceptions.PermissionDenied(
+                    'You do not have permission to create new generations of this IP'
+                )
 
             if ip.new_version_in_progress() is not None:
                 working_user = ip.new_version_in_progress().ip.responsible
                 raise exceptions.ParseError(
-                    'User %s already has a new generation in their workarea' % working_user.username
-                )
+                    'User %s already has a new generation in their workarea' %
+                    working_user.username)
 
             data['extracted'] = True
 
@@ -1725,9 +1893,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ingest_path = Path.objects.get(entity='ingest_workarea')
         access_path = Path.objects.get(entity='access_workarea')
 
-        ip_already_in_workarea = ip_workarea.exists() and (
-            ip_workarea.filter(type=workarea_type).exists() or ingest_path == access_path
-        )
+        ip_already_in_workarea = ip_workarea.exists() and (ip_workarea.filter(
+            type=workarea_type).exists() or ingest_path == access_path)
 
         if not data.get('new') and ip_already_in_workarea:
             raise Conflict('IP already in workarea')
@@ -1743,28 +1910,37 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             edit=data.get('edit', False),
         )
         workflow.run()
-        return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({
+            'detail': 'Accessing %s...' % ip.object_identifier_value,
+            'step': workflow.pk
+        })
 
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
         dip = InformationPackage.objects.get(pk=pk)
 
         if dip.package_type != InformationPackage.DIP:
-            raise exceptions.ParseError('"%s" is not a DIP, it is a %s' % (dip, dip.package_type))
+            raise exceptions.ParseError('"%s" is not a DIP, it is a %s' %
+                                        (dip, dip.package_type))
 
         if dip.state != 'Prepared':
-            raise exceptions.ParseError('"%s" is not in the "Prepared" state' % dip)
+            raise exceptions.ParseError('"%s" is not in the "Prepared" state' %
+                                        dip)
 
         validators = request.data.get('validators', {})
         validate_xml_file = validators.get('validate_xml_file', True)
-        validate_logical_physical_representation = validators.get('validate_logical_physical_representation', True)
+        validate_logical_physical_representation = validators.get(
+            'validate_logical_physical_representation', True)
 
         generate_premis = dip.profile_locked('preservation_metadata')
-        has_representations = find_destination("representations", dip.get_structure(), dip.object_path)[1] is not None
+        has_representations = find_destination("representations",
+                                               dip.get_structure(),
+                                               dip.object_path)[1] is not None
 
         dst = os.path.join(
             os.path.dirname(dip.object_path),
-            dip.object_identifier_value + '.' + dip.get_container_format().lower(),
+            dip.object_identifier_value + '.' +
+            dip.get_container_format().lower(),
         )
 
         order_path = Path.objects.get(entity='orders').value
@@ -1775,8 +1951,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label": "Download Schemas",
             },
             {
-                "step": True,
-                "name": "Create Log File",
+                "step":
+                True,
+                "name":
+                "Create Log File",
                 "children": [
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
@@ -1787,10 +1965,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "label": "Add events to xml file",
                     },
                     {
-                        "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                        "name":
+                        "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
                         "label": "Add premis IP object to xml file",
                     },
-
                 ]
             },
             {
@@ -1803,45 +1981,52 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label": "Generate content-mets",
             },
             {
-                "step": True,
-                "name": "Validation",
-                "if": any([validate_xml_file, validate_logical_physical_representation]),
-                "children": [
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "if": validate_xml_file,
-                        "label": "Validate content-mets",
-                        "params": {
-                            "xml_filename": "{{_CONTENT_METS_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                        "if": generate_premis and validate_xml_file,
-                        "label": "Validate premis",
-                        "params": {
-                            "xml_filename": "{{_PREMIS_PATH}}",
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
-                        "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.CompareXMLFiles",
-                        "if": generate_premis and validate_xml_file,
-                        "label": "Compare premis and content-mets",
-                        "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
-                        "params": {'recursive': False},
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
-                        "if": has_representations and generate_premis,
-                        "label": "Compare representation premis and mets",
+                "step":
+                True,
+                "name":
+                "Validation",
+                "if":
+                any([
+                    validate_xml_file, validate_logical_physical_representation
+                ]),
+                "children": [{
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "if": validate_xml_file,
+                    "label": "Validate content-mets",
+                    "params": {
+                        "xml_filename": "{{_CONTENT_METS_PATH}}",
                     }
-                ]
+                }, {
+                    "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                    "if": generate_premis and validate_xml_file,
+                    "label": "Validate premis",
+                    "params": {
+                        "xml_filename": "{{_PREMIS_PATH}}",
+                    }
+                }, {
+                    "name":
+                    "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                    "if":
+                    validate_logical_physical_representation,
+                    "label":
+                    "Diff-check against content-mets",
+                    "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
+                }, {
+                    "name":
+                    "ESSArch_Core.tasks.CompareXMLFiles",
+                    "if":
+                    generate_premis and validate_xml_file,
+                    "label":
+                    "Compare premis and content-mets",
+                    "args": ["{{_PREMIS_PATH}}", "{{_CONTENT_METS_PATH}}"],
+                    "params": {
+                        'recursive': False
+                    },
+                }, {
+                    "name": "ESSArch_Core.tasks.CompareRepresentationXMLFiles",
+                    "if": has_representations and generate_premis,
+                    "label": "Compare representation premis and mets",
+                }]
             },
             {
                 "name": "ESSArch_Core.ip.tasks.CreateContainer",
@@ -1849,19 +2034,23 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "args": [dip.object_path, dst]
             },
             {
-                "step": True,
-                "name": "Add to orders",
-                "if": dip.orders.exists(),
-                "children": [
-                    {
-                        "name": "ESSArch_Core.tasks.CopyFile",
-                        "label": "Add to order {}".format(order.label),
-                        "args": [
-                            dst,
-                            os.path.join(order_path, str(order.pk), os.path.basename(dst)),
-                        ]
-                    } for order in dip.orders.all()
-                ],
+                "step":
+                True,
+                "name":
+                "Add to orders",
+                "if":
+                dip.orders.exists(),
+                "children": [{
+                    "name":
+                    "ESSArch_Core.tasks.CopyFile",
+                    "label":
+                    "Add to order {}".format(order.label),
+                    "args": [
+                        dst,
+                        os.path.join(order_path, str(order.pk),
+                                     os.path.basename(dst)),
+                    ]
+                } for order in dip.orders.all()],
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPPath",
@@ -1896,10 +2085,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip = self.get_object()
         path = ip.object_path
         if ip.package_type != InformationPackage.DIP:
-            raise exceptions.ParseError('Cannot download IP of package type {}'.format(ip.get_package_type_display()))
+            raise exceptions.ParseError(
+                'Cannot download IP of package type {}'.format(
+                    ip.get_package_type_display()))
 
         if ip.state != 'Created':
-            raise exceptions.ParseError("Cannot download IP that is not in 'Created' state")
+            raise exceptions.ParseError(
+                "Cannot download IP that is not in 'Created' state")
 
         fid = FormatIdentifier(allow_unknown_file_types=True)
         content_type = fid.get_mimetype(path)
@@ -1914,7 +2106,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             name=os.path.basename(path),
         )
 
-    @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
+    @action(detail=True,
+            methods=['delete', 'get', 'post'],
+            permission_classes=[IsResponsibleOrCanSeeAllFiles])
     def files(self, request, pk=None):
         ip = self.get_object()
         download = request.query_params.get('download', False)
@@ -1922,7 +2116,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if ip.archived:
             if request.method in ['DELETE', 'POST']:
-                raise exceptions.ParseError('You cannot modify preserved content')
+                raise exceptions.ParseError(
+                    'You cannot modify preserved content')
             # check if path exists
             path = request.query_params.get('path', '').rstrip('/')
             s = Search(index=['directory', 'document'])
@@ -1932,11 +2127,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if path != '':
                 dirname = os.path.dirname(path)
                 basename = os.path.basename(path)
-                q = ElasticQ('bool',
-                             should=[ElasticQ('bool', must=[ElasticQ('term', **{'href': dirname}),
-                                                            ElasticQ('term', **{'name.keyword': basename})]),
-                                     ElasticQ('bool', must=[ElasticQ('term', **{'href': dirname}),
-                                                            ElasticQ('match', filename=basename)])])
+                q = ElasticQ(
+                    'bool',
+                    should=[
+                        ElasticQ('bool',
+                                 must=[
+                                     ElasticQ('term', **{'href': dirname}),
+                                     ElasticQ('term',
+                                              **{'name.keyword': basename})
+                                 ]),
+                        ElasticQ('bool',
+                                 must=[
+                                     ElasticQ('term', **{'href': dirname}),
+                                     ElasticQ('match', filename=basename)
+                                 ])
+                    ])
 
                 s = s.query(q)
                 hits = s.execute()
@@ -1949,22 +2154,27 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 if hit.meta.index.startswith('document'):
                     fid = FormatIdentifier(allow_unknown_file_types=True)
                     content_type = fid.get_mimetype(path)
-                    return generate_file_response(
-                        ip.open_file(path, 'rb'),
-                        content_type=content_type,
-                        force_download=download, name=path
-                    )
+                    return generate_file_response(ip.open_file(path, 'rb'),
+                                                  content_type=content_type,
+                                                  force_download=download,
+                                                  name=path)
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])
-            s = s.filter('term', **{'ip': str(ip.pk)}).query('term', **{'href': path})
+            s = s.filter('term', **{
+                'ip': str(ip.pk)
+            }).query('term', **{'href': path})
 
             if self.paginator is not None:
                 # Paginate in search engine
-                params = {key: value[0] for (key, value) in dict(request.query_params).items()}
+                params = {
+                    key: value[0]
+                    for (key, value) in dict(request.query_params).items()
+                }
 
                 number = params.get(self.paginator.pager.page_query_param, 1)
-                size = params.get(self.paginator.pager.page_size_query_param, 10)
+                size = params.get(self.paginator.pager.page_size_query_param,
+                                  10)
 
                 try:
                     number = int(number)
@@ -1977,10 +2187,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 offset = (number - 1) * size
                 try:
                     max_results = int(
-                        Index('document').get_settings()['document']['settings']['index'].get(
-                            'max_result_window', DEFAULT_MAX_RESULT_WINDOW
-                        )
-                    )
+                        Index('document').get_settings()['document']
+                        ['settings']['index'].get('max_result_window',
+                                                  DEFAULT_MAX_RESULT_WINDOW))
                 except KeyError:
                     max_results = DEFAULT_MAX_RESULT_WINDOW
 
@@ -1991,7 +2200,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             except TransportError:
                 if self.paginator is not None:
                     if offset + size > max_results:
-                        raise exceptions.ParseError("Can't show more than {max} results".format(max=max_results))
+                        raise exceptions.ParseError(
+                            "Can't show more than {max} results".format(
+                                max=max_results))
 
                 raise
 
@@ -2019,7 +2230,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 results_list.append(d)
 
             if self.paginator is not None:
-                return Response(results_list, headers={'Count': results.hits.total['value']})
+                return Response(results_list,
+                                headers={'Count': results.hits.total['value']})
 
             return Response(results_list)
 
@@ -2055,7 +2267,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
 
         if request.method == 'POST':
-            if ip.package_type not in [InformationPackage.DIP, InformationPackage.SIP]:
+            if ip.package_type not in [
+                    InformationPackage.DIP, InformationPackage.SIP
+            ]:
                 raise exceptions.MethodNotAllowed(request.method)
 
             try:
@@ -2079,25 +2293,34 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     os.makedirs(fullpath)
                 except OSError as e:
                     if e.errno == errno.EEXIST:
-                        raise exceptions.ParseError('Directory %s already exists' % path)
+                        raise exceptions.ParseError(
+                            'Directory %s already exists' % path)
 
                     raise
             elif pathtype == 'file':
                 open(fullpath, 'a').close()
             else:
-                raise exceptions.ParseError('Type must be either "file" or "dir"')
+                raise exceptions.ParseError(
+                    'Type must be either "file" or "dir"')
 
             return Response(path, status=status.HTTP_201_CREATED)
 
-        return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
+        return ip.get_path_response(path,
+                                    request,
+                                    force_download=download,
+                                    paginator=self.paginator)
 
     @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
+    @action(detail=True,
+            methods=['post'],
+            url_path='unlock-profile',
+            permission_classes=[CanUnlockProfile])
     def unlock_profile(self, request, pk=None):
         ip = self.get_object()
 
         if ip.state in ['Submitting', 'Submitted']:
-            raise exceptions.ParseError('Cannot unlock profiles in an IP that is %s' % ip.state)
+            raise exceptions.ParseError(
+                'Cannot unlock profiles in an IP that is %s' % ip.state)
 
         try:
             ptype = request.data["type"]
@@ -2107,9 +2330,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.unlock_profile(ptype)
 
         return Response({
-            'detail': 'Unlocking profile with type "%s" in IP "%s"' % (
-                ptype, ip.pk
-            )
+            'detail':
+            'Unlocking profile with type "%s" in IP "%s"' % (ptype, ip.pk)
         })
 
     @transaction.atomic
@@ -2120,17 +2342,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         prepare = Path.objects.get(entity="ingest_workarea").value
         xmlfile = os.path.join(prepare, "%s.xml" % pk)
 
-        step = ProcessStep.objects.create(
-            name="Validation",
-            information_package=ip
-        )
+        step = ProcessStep.objects.create(name="Validation",
+                                          information_package=ip)
 
         step.add_tasks(
             ProcessTask.objects.create(
                 name="ESSArch_Core.tasks.ValidateXMLFile",
-                params={
-                    "xml_filename": xmlfile
-                },
+                params={"xml_filename": xmlfile},
                 log=EventIP,
                 information_package=ip,
                 responsible=self.request.user,
@@ -2146,8 +2364,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 processstep_pos=0,
                 information_package=ip,
                 responsible=self.request.user,
-            )
-        )
+            ))
 
         step.run()
 
@@ -2156,12 +2373,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         ip = self.get_object()
 
-        if any(field in request.data for field in ['submission_agreement', 'submission_agreement_data']):
+        if any(field in request.data for field in
+               ['submission_agreement', 'submission_agreement_data']):
             if ip.submission_agreement_locked:
-                return Response("SA connected to IP is locked", status=status.HTTP_400_BAD_REQUEST)
+                return Response("SA connected to IP is locked",
+                                status=status.HTTP_400_BAD_REQUEST)
 
         partial = kwargs.pop('partial', False)
-        serializer = self.get_serializer(ip, data=request.data, partial=partial)
+        serializer = self.get_serializer(ip,
+                                         data=request.data,
+                                         partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
@@ -2177,10 +2398,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 class OrderTypeViewSet(viewsets.ModelViewSet):
     queryset = OrderType.objects.all()
     serializer_class = OrderTypeSerializer
-    permission_classes = (ActionPermissions,)
-    filter_backends = (filters.OrderingFilter, SearchFilter,)
-    ordering_fields = ('name',)
-    search_fields = ('name',)
+    permission_classes = (ActionPermissions, )
+    filter_backends = (
+        filters.OrderingFilter,
+        SearchFilter,
+    )
+    ordering_fields = ('name', )
+    search_fields = ('name', )
 
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -2222,9 +2446,15 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
     search_fields = (
-        'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
+        'object_identifier_value',
+        'label',
+        'responsible__first_name',
+        'responsible__last_name',
+        'responsible__username',
+        'state',
+        'submission_agreement__name',
+        'start_date',
+        'end_date',
     )
 
     permission_classes = ()
@@ -2237,7 +2467,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def find_xml_files(self, path):
         for xmlfile in glob.glob(os.path.join(path, "*.xml")):
-            if os.path.isfile(xmlfile) and not xmlfile.endswith('_ipevents.xml'):
+            if os.path.isfile(
+                    xmlfile) and not xmlfile.endswith('_ipevents.xml'):
                 yield xmlfile
 
     def get_container_for_xml(self, xmlfile):
@@ -2250,21 +2481,20 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         for xmlfile in self.find_xml_files(path):
             try:
-                container = os.path.join(path, self.get_container_for_xml(xmlfile))
+                container = os.path.join(path,
+                                         self.get_container_for_xml(xmlfile))
             except etree.LxmlError:
                 continue
 
             ip_id = os.path.splitext(os.path.basename(xmlfile))[0]
             existing_ips = InformationPackage.objects.filter(
-                object_identifier_value=ip_id
-            ).exclude(
-                state="Submitted"
-            )
+                object_identifier_value=ip_id).exclude(state="Submitted")
 
             if existing_ips.exists():
                 continue
 
-            ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
+            ip = parse_submit_description(xmlfile,
+                                          srcdir=os.path.split(container)[0])
 
             ip['container'] = container
             ip['xml'] = xmlfile
@@ -2283,7 +2513,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             if not os.path.isdir(os.path.join(path, d)):
                 continue
 
-            if InformationPackage.objects.filter(object_identifier_value=d).exists():
+            if InformationPackage.objects.filter(
+                    object_identifier_value=d).exists():
                 continue
 
             ip = {
@@ -2301,44 +2532,53 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def list(self, request):
         filterset_fields = [
-            "label", "object_identifier_value", "responsible",
-            "create_date", "object_size", "start_date", "end_date"
+            "label", "object_identifier_value", "responsible", "create_date",
+            "object_size", "start_date", "end_date"
         ]
 
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        reception = Path.objects.values_list(
+            'value', flat=True).get(entity='ingest_reception')
 
         contained = self.get_contained_packages(reception)
         extracted = self.get_extracted_packages(reception)
         ips = contained + extracted
 
         # Remove all keys not in filterset_fields
-        conditions = {key: value for (key, value) in request.query_params.items() if key in filterset_fields}
+        conditions = {
+            key: value
+            for (key, value) in request.query_params.items()
+            if key in filterset_fields
+        }
 
         # Filter ips based on conditions
-        new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
+        new_ips = list(
+            filter(
+                lambda ip: all(
+                    (v in str(ip.get(k)) for (k, v) in conditions.items())),
+                ips))
 
-        from_db = InformationPackage.objects.visible_to_user(request.user).filter(
-            Q(
+        from_db = InformationPackage.objects.visible_to_user(
+            request.user).filter(
                 Q(
-                    package_type=InformationPackage.AIP,
-                    state__in=['At reception', 'Receiving']
-                ) |
-                Q(
-                    package_type=InformationPackage.SIP,
-                    state__in=['Transferring', 'Transferred']
-                )
-            ),
-            **conditions
-        )
-        serializer = InformationPackageSerializer(
-            data=from_db, many=True, context={'request': request, 'view': self}
-        )
+                    Q(package_type=InformationPackage.AIP,
+                      state__in=['At reception', 'Receiving'])
+                    | Q(package_type=InformationPackage.SIP,
+                        state__in=['Transferring', 'Transferred'])),
+                **conditions)
+        serializer = InformationPackageSerializer(data=from_db,
+                                                  many=True,
+                                                  context={
+                                                      'request': request,
+                                                      'view': self
+                                                  })
         serializer.is_valid()
 
         # Remove IPs from new_ips if they already are in the database
         db_ip_ids = from_db.filter(
-            object_identifier_value__in=[i['id'] for i in new_ips]
-        ).values_list('object_identifier_value', flat=True)
+            object_identifier_value__in=[i['id']
+                                         for i in new_ips]).values_list(
+                                             'object_identifier_value',
+                                             flat=True)
         new_ips = [ip for ip in new_ips if ip['id'] not in db_ip_ids]
 
         new_ips.extend(serializer.data)
@@ -2350,7 +2590,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return Response(new_ips)
 
     def retrieve(self, request, pk=None):
-        path = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        path = Path.objects.values_list(
+            'value', flat=True).get(entity='ingest_reception')
         fullpath = os.path.join(path, "%s.xml" % pk)
 
         if not os.path.exists(fullpath):
@@ -2360,7 +2601,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     package_type=InformationPackage.AIP,
                     state='Receiving',
                 )
-                return Response(InformationPackageDetailSerializer(instance=ip).data)
+                return Response(
+                    InformationPackageDetailSerializer(instance=ip).data)
             except InformationPackage.DoesNotExist:
                 raise exceptions.NotFound
 
@@ -2373,18 +2615,22 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         organization = request.user.user_profile.current_organization
 
         existing_non_sip = InformationPackage.objects.filter(
-            object_identifier_value=pk,
-        ).exclude(package_type=InformationPackage.SIP).first()
+            object_identifier_value=pk, ).exclude(
+                package_type=InformationPackage.SIP).first()
         existing_sip = InformationPackage.objects.filter(
-            object_identifier_value=pk, package_type=InformationPackage.SIP
-        ).first()
+            object_identifier_value=pk,
+            package_type=InformationPackage.SIP).first()
 
         if existing_non_sip is not None:
-            logger.warning('Tried to receive IP with id %s which already exists' % pk, extra={'user': request.user.pk})
+            logger.warning(
+                'Tried to receive IP with id %s which already exists' % pk,
+                extra={'user': request.user.pk})
             raise Conflict('IP with id {} already exists'.format(pk))
 
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
-        uip = Path.objects.get(entity="ingest_unidentified").value # This does not do anything particular right now
+        reception = Path.objects.values_list(
+            'value', flat=True).get(entity='ingest_reception')
+        uip = Path.objects.get(entity="ingest_unidentified").value
+        # This does not do anything particular right now
         # other than setting a nut null value for package_mets_path. Plausible use when an UIP is a proper SIP but SA
         # is not registred in the preservation system
         xmlfile = os.path.join(uip, "%s.xml" % pk)
@@ -2394,7 +2640,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             # A directory with the given id exists, try to prepare it
             sa = request.data.get('submission_agreement')
             if sa is None:
-                raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+                raise exceptions.ParseError(
+                    detail='Missing parameter submission_agreement')
             sa = SubmissionAgreement.objects.get(pk=sa)
             parsed = {'label': pk}
             container = os.path.join(reception, pk)
@@ -2415,8 +2662,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 perm_name = get_permission_name(perm, ip)
                 assign_perm(perm_name, member.django_user, ip)
             try:
-                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(multiplier=1, max=60)):
+                for attempt in Retrying(reraise=True,
+                                        stop=stop_after_delay(30),
+                                        wait=wait_random_exponential(
+                                            multiplier=1, max=60)):
                     with attempt:
                         ProfileIP.objects.filter(ip=ip).delete()
                         sa.lock_to_information_package(ip, request.user)
@@ -2428,42 +2677,55 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ip_is_directory = False
 
             if not os.path.isfile(xmlfile):
-                logger.warning('Tried to receive IP with missing XML file %s' % xmlfile, extra={'user': request.user.pk})
+                logger.warning('Tried to receive IP with missing XML file %s' %
+                               xmlfile,
+                               extra={'user': request.user.pk})
                 raise exceptions.NotFound('%s does not exist' % xmlfile)
             try:
-                container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
+                container = normalize_path(
+                    os.path.join(reception,
+                                 self.get_container_for_xml(xmlfile)))
             except etree.LxmlError:
-                logger.warning('Tried to receive IP with invalid XML file %s' % xmlfile, extra={'user': request.user.pk})
+                logger.warning('Tried to receive IP with invalid XML file %s' %
+                               xmlfile,
+                               extra={'user': request.user.pk})
                 raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
 
             if not os.path.isfile(container):
                 logger.warning(
-                    'Tried to receive IP with missing container file %s' % container,
-                    extra={'user': request.user.pk}
-                )
+                    'Tried to receive IP with missing container file %s' %
+                    container,
+                    extra={'user': request.user.pk})
                 raise exceptions.NotFound('%s does not exist' % container)
 
             if existing_sip is None:
                 if organization is None:
-                    raise exceptions.ParseError('You must be part of an organization to receive IP')
+                    raise exceptions.ParseError(
+                        'You must be part of an organization to receive IP')
 
-                parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
+                parsed = parse_submit_description(
+                    xmlfile, srcdir=os.path.dirname(container))
                 provided_sa = request.data.get('submission_agreement')
-                parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+                parsed_sa = parsed.get('altrecordids',
+                                       {}).get('SUBMISSIONAGREEMENT',
+                                               [None])[0]
 
                 if parsed_sa is not None and provided_sa is not None:
                     if provided_sa == parsed_sa:
                         sa = provided_sa
                     else:
-                        raise exceptions.ParseError(detail='Must use SA specified in XML')
+                        raise exceptions.ParseError(
+                            detail='Must use SA specified in XML')
                 elif any([parsed_sa, provided_sa]):
                     sa = parsed_sa or provided_sa
                 else:
-                    raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+                    raise exceptions.ParseError(
+                        detail='Missing parameter submission_agreement')
 
                 try:
                     sa = SubmissionAgreement.objects.get(pk=sa)
-                except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
+                except (ValueError, ValidationError,
+                        SubmissionAgreement.DoesNotExist) as e:
                     raise exceptions.ParseError(e)
 
                 ip = InformationPackage.objects.create(
@@ -2488,8 +2750,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 sa = ip.submission_agreement
 
             try:
-                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(multiplier=1, max=60)):
+                for attempt in Retrying(reraise=True,
+                                        stop=stop_after_delay(30),
+                                        wait=wait_random_exponential(
+                                            multiplier=1, max=60)):
                     with attempt:
                         ProfileIP.objects.filter(ip=ip).delete()
                         sa.lock_to_information_package(ip, request.user)
@@ -2497,16 +2761,20 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 pass
 
         if sa.profile_aic_description is None:
-            raise exceptions.ParseError('Submission agreement missing AIC Description profile')
+            raise exceptions.ParseError(
+                'Submission agreement missing AIC Description profile')
 
         if sa.profile_aip is None:
-            raise exceptions.ParseError('Submission agreement missing AIP profile')
+            raise exceptions.ParseError(
+                'Submission agreement missing AIP profile')
 
         if sa.profile_aip_description is None:
-            raise exceptions.ParseError('Submission agreement missing AIP Description profile')
+            raise exceptions.ParseError(
+                'Submission agreement missing AIP Description profile')
 
         if sa.profile_dip is None:
-            raise exceptions.ParseError('Submission agreement missing DIP profile')
+            raise exceptions.ParseError(
+                'Submission agreement missing DIP profile')
 
         ip.sip_objid = pk
         ip.sip_path = pk
@@ -2554,15 +2822,17 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             cts = ip.get_content_type_file()
             has_cts = cts is not None and os.path.exists(cts)
 
-            aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+            aip_object_path = os.path.join(ip.policy.ingest_path.value,
+                                           ip.object_identifier_value)
 
             if ip_is_directory:
                 workflow_spec = [
-
                     {
                         "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
                         "label": "Create Physical Model",
-                        'params': {'root': aip_object_path}
+                        'params': {
+                            'root': aip_object_path
+                        }
                     },
                     {
                         "name": "ESSArch_Core.preingest.tasks.ReceiveIP",
@@ -2581,8 +2851,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             else:
                 workflow_spec = [
                     {
-                        "step": True,
-                        "name": "Validation",
+                        "step":
+                        True,
+                        "name":
+                        "Validation",
                         "children": [
                             {
                                 "name": "ESSArch_Core.tasks.ValidateXMLFile",
@@ -2592,9 +2864,11 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                                 }
                             },
                             {
-                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                                "name":
+                                "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                                 "label": "Diff-check against package-mets",
-                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
+                                "args":
+                                ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
                             },
                             {
                                 "name": "ESSArch_Core.tasks.ValidateXMLFile",
@@ -2611,7 +2885,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     {
                         "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
                         "label": "Create Physical Model",
-                        'params': {'root': aip_object_path}
+                        'params': {
+                            'root': aip_object_path
+                        }
                     },
                     {
                         "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
@@ -2637,21 +2913,27 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             workflow.save()
             workflow.run()
             logger.info(
-                'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
+                'Started receiving {objid} from reception'.format(
+                    objid=ip.object_identifier_value),
                 extra={'user': request.user.pk},
             )
-            return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+            return Response(
+                {'detail': 'Receiving %s' % ip.object_identifier_value})
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @method_decorator(feature_enabled_or_404('transfer'))
-    @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
+    @action(detail=True,
+            methods=['post'],
+            url_path='transfer',
+            permission_classes=[CanTransferSIP])
     def transfer(self, request, pk=None):
         logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
         organization = request.user.user_profile.current_organization
 
-        existing_ip = InformationPackage.objects.filter(object_identifier_value=pk).first()
+        existing_ip = InformationPackage.objects.filter(
+            object_identifier_value=pk).first()
 
         if existing_ip is not None:
             ip = existing_ip
@@ -2673,51 +2955,58 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 },
             ]
         else:
-            reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+            reception = Path.objects.values_list(
+                'value', flat=True).get(entity='ingest_reception')
             xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
 
             if not os.path.isfile(xmlfile):
                 logger.warning(
                     'Tried to transfer IP with missing XML file %s' % xmlfile,
-                    extra={'user': request.user.pk}
-                )
+                    extra={'user': request.user.pk})
                 raise exceptions.NotFound('%s does not exist' % xmlfile)
             try:
-                container = normalize_path(os.path.join(reception, self.get_container_for_xml(xmlfile)))
+                container = normalize_path(
+                    os.path.join(reception,
+                                 self.get_container_for_xml(xmlfile)))
             except etree.LxmlError:
                 logger.warning(
                     'Tried to transfer IP with invalid XML file %s' % xmlfile,
-                    extra={'user': request.user.pk}
-                )
+                    extra={'user': request.user.pk})
                 raise exceptions.ParseError('Invalid XML file, %s' % xmlfile)
 
             if not os.path.isfile(container):
                 logger.warning(
-                    'Tried to transfer IP with missing container file %s' % container,
-                    extra={'user': request.user.pk}
-                )
+                    'Tried to transfer IP with missing container file %s' %
+                    container,
+                    extra={'user': request.user.pk})
                 raise exceptions.NotFound('%s does not exist' % container)
 
             if organization is None:
-                raise exceptions.ParseError('You must be part of an organization to transfer IP')
+                raise exceptions.ParseError(
+                    'You must be part of an organization to transfer IP')
 
-            parsed = parse_submit_description(xmlfile, srcdir=os.path.dirname(container))
+            parsed = parse_submit_description(
+                xmlfile, srcdir=os.path.dirname(container))
             provided_sa = request.data.get('submission_agreement')
-            parsed_sa = parsed.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+            parsed_sa = parsed.get('altrecordids',
+                                   {}).get('SUBMISSIONAGREEMENT', [None])[0]
 
             if parsed_sa is not None and provided_sa is not None:
                 if provided_sa == parsed_sa:
                     sa = provided_sa
                 else:
-                    raise exceptions.ParseError(detail='Must use SA specified in XML')
+                    raise exceptions.ParseError(
+                        detail='Must use SA specified in XML')
             elif any([parsed_sa, provided_sa]):
                 sa = parsed_sa or provided_sa
             else:
-                raise exceptions.ParseError(detail='Missing parameter submission_agreement')
+                raise exceptions.ParseError(
+                    detail='Missing parameter submission_agreement')
 
             try:
                 sa = SubmissionAgreement.objects.get(pk=sa)
-            except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
+            except (ValueError, ValidationError,
+                    SubmissionAgreement.DoesNotExist) as e:
                 raise exceptions.ParseError(e)
 
             ip = InformationPackage.objects.create(
@@ -2746,8 +3035,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     "args": ["Transferring"],
                 },
                 {
-                    "step": True,
-                    "name": "Create Log File",
+                    "step":
+                    True,
+                    "name":
+                    "Create Log File",
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.GenerateEventsXML",
@@ -2758,10 +3049,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                             "label": "Add events to xml file",
                         },
                         {
-                            "name": "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
+                            "name":
+                            "ESSArch_Core.ip.tasks.AddPremisIPObjectElementToEventsFile",
                             "label": "Add premis IP object to xml file",
                         },
-
                     ]
                 },
                 {
@@ -2789,7 +3080,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         if os.path.isdir(os.path.join(reception, pk)):
             path = os.path.join(reception, pk, path)
-            return list_files(path, force_download=download, paginator=self.paginator, request=request)
+            return list_files(path,
+                              force_download=download,
+                              paginator=self.paginator,
+                              request=request)
 
         xml = os.path.join(reception, "%s.xml" % pk)
 
@@ -2801,7 +3095,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         if len(path):
             path = os.path.join(os.path.dirname(container), path)
-            return list_files(path, download, paginator=self.paginator, request=request)
+            return list_files(path,
+                              download,
+                              paginator=self.paginator,
+                              request=request)
 
         entry = {
             "name": os.path.basename(container),
@@ -2880,12 +3177,20 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def parse_unidentified_ip(self, container_file):
         ip = {
-            'object_identifier_value': os.path.basename(container_file),
-            'label': os.path.basename(container_file),
-            'create_date': str(timestamp_to_datetime(creation_date(container_file)).isoformat()),
-            'state': 'Unidentified',
-            'status': 0,
-            'step_state': celery_states.SUCCESS,
+            'object_identifier_value':
+            os.path.basename(container_file),
+            'label':
+            os.path.basename(container_file),
+            'create_date':
+            str(
+                timestamp_to_datetime(
+                    creation_date(container_file)).isoformat()),
+            'state':
+            'Unidentified',
+            'status':
+            0,
+            'step_state':
+            celery_states.SUCCESS,
         }
 
         for xmlfile in glob.glob(os.path.join(self.uip, "*.xml")):
@@ -2894,7 +3199,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 root = doc.getroot()
 
                 el = root.xpath('.//*[local-name()="%s"]' % "FLocat")[0]
-                if ip['label'] == get_value_from_path(el, "@href").split('file:///')[1]:
+                if ip['label'] == get_value_from_path(
+                        el, "@href").split('file:///')[1]:
                     raise exceptions.NotFound()
 
         return ip
@@ -2912,10 +3218,12 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return ip
 
     def get_xml_files(self):
-        return glob.glob(os.path.join(self.reception, "*.xml")) + glob.glob(os.path.join(self.uip, "*.xml"))
+        return glob.glob(os.path.join(self.reception, "*.xml")) + glob.glob(
+            os.path.join(self.uip, "*.xml"))
 
     def get_container_files(self):
-        return glob.glob(os.path.join(self.uip, "*.tar")) + glob.glob(os.path.join(self.uip, "*.zip"))
+        return glob.glob(os.path.join(self.uip, "*.tar")) + glob.glob(
+            os.path.join(self.uip, "*.zip"))
 
     def get_directories(self):
         return get_immediate_subdirectories(self.reception)
@@ -2929,22 +3237,19 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         container_file = os.path.join(uip, fname)
 
         if not os.path.isfile(container_file):
-            return Response(
-                {'status': '%s does not exist' % container_file},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'status': '%s does not exist' % container_file},
+                            status=status.HTTP_400_BAD_REQUEST)
 
-        spec = json.loads(open(
-            os.path.join(settings.BASE_DIR, 'templates/SDTemplate.json')
-        ).read())
+        spec = json.loads(
+            open(os.path.join(settings.BASE_DIR,
+                              'templates/SDTemplate.json')).read())
 
         objid = os.path.splitext(fname)[0]
 
         spec_data['_OBJID'] = spec_data.pop('ObjectIdentifierValue', objid)
         spec_data['_OBJLABEL'] = spec_data.pop('LABEL', objid)
         spec_data['_IP_CREATEDATE'] = timestamp_to_datetime(
-            creation_date(container_file)
-        ).isoformat()
+            creation_date(container_file)).isoformat()
 
         infoxml = '%s.xml' % objid
         infoxml = os.path.join(uip, infoxml)
@@ -2953,7 +3258,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             name='ESSArch_Core.tasks.GenerateXML',
             params={
                 'filesToCreate': {
-                    infoxml: {'spec': spec, 'data': spec_data}
+                    infoxml: {
+                        'spec': spec,
+                        'data': spec_data
+                    }
                 },
                 'folderToParse': container_file,
             },
@@ -2979,25 +3287,27 @@ class WorkareaViewSet(InformationPackageViewSet):
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
-        lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
-            workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-        ).filter(workarea_exists=True, aic=OuterRef('aic')).exclude(
-            package_type=InformationPackage.AIC
-        ).order_by().values('aic')
+        lower_higher = InformationPackage.objects.visible_to_user(
+            user).annotate(
+                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
+            ).filter(workarea_exists=True, aic=OuterRef('aic')).exclude(
+                package_type=InformationPackage.AIC).order_by().values('aic')
 
         if not see_all:
             lower_higher = lower_higher.filter(workareas__user=user)
 
         lower_higher = self.apply_filters(lower_higher).order_by()
         lower_higher = lower_higher.annotate(min_gen=Min('generation'))
-        return qs.annotate(filtered_first_generation=self.first_generation_case(lower_higher))
+        return qs.annotate(
+            filtered_first_generation=self.first_generation_case(lower_higher))
 
     def get_related(self, qs, workareas):
         qs = qs.select_related('responsible')
         return qs.prefetch_related(
             'agents', 'steps',
-            Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
-        )
+            Prefetch('workareas',
+                     queryset=workareas,
+                     to_attr='prefetched_workareas'))
 
     def get_queryset(self):
         view_type = self.request.query_params.get('view_type', 'aic')
@@ -3011,57 +3321,70 @@ class WorkareaViewSet(InformationPackageViewSet):
                 workarea_params[key_suffix] = val
 
         workareas = Workarea.objects.all()
-        workareas = WorkareaEntryFilter(data=workarea_params, queryset=workareas, request=self.request).qs
+        workareas = WorkareaEntryFilter(data=workarea_params,
+                                        queryset=workareas,
+                                        request=self.request).qs
         if not see_all:
             workareas = workareas.filter(user=self.request.user)
 
         if self.action == 'list' and view_type == 'aic':
-            simple_inner = InformationPackage.objects.visible_to_user(user).annotate(
-                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-            ).filter(workarea_exists=True, active=True)
+            simple_inner = InformationPackage.objects.visible_to_user(
+                user).annotate(
+                    workarea_exists=Exists(workareas.filter(
+                        ip=OuterRef('pk')))).filter(workarea_exists=True,
+                                                    active=True)
 
             simple_inner = self.apply_filters(simple_inner)
 
-            inner = simple_inner.select_related('responsible').prefetch_related(
-                'agents', 'steps',
-                Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
-            )
+            inner = simple_inner.select_related(
+                'responsible').prefetch_related(
+                    'agents', 'steps',
+                    Prefetch('workareas',
+                             queryset=workareas,
+                             to_attr='prefetched_workareas'))
             dips = inner.filter(package_type=InformationPackage.DIP).distinct()
 
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-            ).order_by().values('aic')
-            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+                Q(aic=OuterRef('aic')),
+                Q(Q(workareas=None)
+                  | Q(workareas__read_only=True))).order_by().values('aic')
+            lower_higher = lower_higher.annotate(min_gen=Min('generation'),
+                                                 max_gen=Max('generation'))
 
-            inner = inner.annotate(first_generation=self.first_generation_case(lower_higher),
-                                   last_generation=self.last_generation_case(lower_higher))
+            inner = inner.annotate(
+                first_generation=self.first_generation_case(lower_higher),
+                last_generation=self.last_generation_case(lower_higher))
 
-            simple_outer = InformationPackage.objects.annotate(
-                has_ip=Exists(simple_inner.only('id').filter(aic=OuterRef('pk')))
-            ).filter(package_type=InformationPackage.AIC, has_ip=True)
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            simple_outer = InformationPackage.objects.annotate(has_ip=Exists(
+                simple_inner.only('id').filter(aic=OuterRef('pk')))).filter(
+                    package_type=InformationPackage.AIC, has_ip=True)
+            aics = simple_outer.prefetch_related(
+                Prefetch('information_packages', queryset=inner)).distinct()
 
             self.queryset = aics | dips
             self.outer_queryset = simple_outer.distinct() | dips.distinct()
             self.inner_queryset = simple_inner
             return self.queryset
         elif self.action == 'list' and view_type == 'ip':
-            filtered = InformationPackage.objects.visible_to_user(user).annotate(
-                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-            ).filter(workarea_exists=True, active=True).exclude(
-                package_type=InformationPackage.AIC
-            )
+            filtered = InformationPackage.objects.visible_to_user(
+                user).annotate(
+                    workarea_exists=Exists(workareas.filter(
+                        ip=OuterRef('pk')))).filter(
+                            workarea_exists=True, active=True).exclude(
+                                package_type=InformationPackage.AIC)
 
             simple = self.apply_filters(filtered)
 
             simple = self.annotate_generations(simple)
-            simple = self.annotate_filtered_first_generation(simple, workareas, user, see_all)
+            simple = self.annotate_filtered_first_generation(
+                simple, workareas, user, see_all)
             simple = self.get_related(simple, workareas)
 
             inner = simple.filter(filtered_first_generation=False)
-            outer = simple.filter(filtered_first_generation=True).prefetch_related(
-                Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            outer = simple.filter(
+                filtered_first_generation=True).prefetch_related(
+                    Prefetch('aic__information_packages',
+                             queryset=inner)).distinct()
 
             self.inner_queryset = simple
             self.outer_queryset = simple
@@ -3069,31 +3392,30 @@ class WorkareaViewSet(InformationPackageViewSet):
             return self.queryset
         elif self.action == 'list' and view_type == 'flat':
             qs = InformationPackage.objects.visible_to_user(user).annotate(
-                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-            ).filter(workarea_exists=True, active=True).exclude(
-                package_type=InformationPackage.AIC
-            )
+                workarea_exists=Exists(workareas.filter(
+                    ip=OuterRef('pk')))).filter(
+                        workarea_exists=True, active=True).exclude(
+                            package_type=InformationPackage.AIC)
             qs = self.annotate_generations(self.apply_filters(qs))
             self.queryset = qs.distinct()
             return self.queryset
 
         if self.action == 'retrieve':
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic'))
-            ).order_by().values('aic')
-            lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
+                Q(aic=OuterRef('aic'))).order_by().values('aic')
+            lower_higher = lower_higher.annotate(min_gen=Min('generation'),
+                                                 max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                active=True,
-            )
+                active=True, )
 
             qs = self.apply_filters(qs)
-            qs = qs.annotate(first_generation=self.first_generation_case(lower_higher),
-                             last_generation=self.last_generation_case(lower_higher))
+            qs = qs.annotate(
+                first_generation=self.first_generation_case(lower_higher),
+                last_generation=self.last_generation_case(lower_higher))
             qs = qs.select_related('responsible').prefetch_related(
                 'agents', 'steps',
-                Prefetch('workareas', to_attr='prefetched_workareas')
-            )
+                Prefetch('workareas', to_attr='prefetched_workareas'))
 
             self.queryset = qs.distinct()
 
@@ -3101,32 +3423,37 @@ class WorkareaViewSet(InformationPackageViewSet):
 
 
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated, )
 
     def get_user(self, request):
         requested_user = self.request.query_params.get('user')
-        if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
+        if requested_user in EMPTY_VALUES or requested_user == str(
+                request.user.pk):
             return request.user
 
         if not self.request.user.has_perm('ip.see_all_in_workspaces'):
-            raise exceptions.PermissionDenied('No permission to see files in other users workspaces')
+            raise exceptions.PermissionDenied(
+                'No permission to see files in other users workspaces')
 
         try:
             user_id = self.request.query_params['user']
             organization = self.request.user.user_profile.current_organization
             organization_users = organization.get_members(subgroups=True)
-            user = User.objects.get(pk=user_id, essauth_member__in=organization_users)
+            user = User.objects.get(pk=user_id,
+                                    essauth_member__in=organization_users)
             return user
         except User.DoesNotExist:
             raise exceptions.NotFound('User not found in organization')
 
     def validate_workarea(self, area_type):
-        workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
+        workarea_type_reverse = dict(
+            (v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
 
         try:
             workarea_type_reverse[area_type]
         except KeyError:
-            raise exceptions.ParseError('Workarea of type "%s" does not exist' % area_type)
+            raise exceptions.ParseError(
+                'Workarea of type "%s" does not exist' % area_type)
 
     def validate_path(self, path, root, existence=True):
         relpath = os.path.relpath(path, root)
@@ -3146,7 +3473,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
@@ -3164,7 +3493,10 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             else:
                 raise
 
-        return list_files(fullpath, force_download, paginator=self.paginator, request=request)
+        return list_files(fullpath,
+                          force_download,
+                          paginator=self.paginator,
+                          request=request)
 
     @action(detail=False, methods=['post'], url_path='add-directory')
     def add_directory(self, request):
@@ -3176,7 +3508,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
 
         path = os.path.join(root, request.data.get('path', ''))
         self.validate_path(path, root, existence=False)
@@ -3184,13 +3518,15 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         relative_root = path[len(root) + 1:].split('/')[0]
 
         try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
+            workarea_obj = Workarea.objects.get(
+                ip__object_identifier_value=relative_root)
         except Workarea.DoesNotExist:
             raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
-            raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
+            raise exceptions.MethodNotAllowed(method=request.method,
+                                              detail=detail)
 
         try:
             os.makedirs(path)
@@ -3210,7 +3546,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
 
         path = os.path.join(root, request.data.get('path', ''))
         self.validate_path(path, root)
@@ -3218,13 +3556,15 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         relative_root = path[len(root) + 1:].split('/')[0]
 
         try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
+            workarea_obj = Workarea.objects.get(
+                ip__object_identifier_value=relative_root)
         except Workarea.DoesNotExist:
             raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
-            raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
+            raise exceptions.MethodNotAllowed(method=request.method,
+                                              detail=detail)
 
         try:
             shutil.rmtree(path)
@@ -3246,7 +3586,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
 
         data = request.GET if request.method == 'GET' else request.data
         dst = data.get('destination', '').strip('/ ')
@@ -3255,13 +3597,15 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         relative_root = os.path.join(root, dst)[len(root) + 1:].split('/')[0]
 
         try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
+            workarea_obj = Workarea.objects.get(
+                ip__object_identifier_value=relative_root)
         except Workarea.DoesNotExist:
             raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
-            raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
+            raise exceptions.MethodNotAllowed(method=request.method,
+                                              detail=detail)
 
         relative_path = data.get('flowRelativePath', '')
         if len(relative_path) == 0:
@@ -3275,8 +3619,10 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         path = os.path.join(dst, relative_path)
         chunk_path = "%s_%s" % (path, chunk_nr)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
-        full_chunk_path = os.path.join(temp_path, str(workarea_obj.pk), chunk_path)
+        temp_path = os.path.join(
+            Path.objects.get(entity='temp').value, 'file_upload')
+        full_chunk_path = os.path.join(temp_path, str(workarea_obj.pk),
+                                       chunk_path)
 
         if request.method == 'GET':
             if os.path.exists(full_chunk_path):
@@ -3307,7 +3653,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
         relative_path = request.data.get('path', '')
 
         if len(relative_path) == 0:
@@ -3320,15 +3668,18 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         relative_root = path[len(root) + 1:].split('/')[0]
 
         try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
+            workarea_obj = Workarea.objects.get(
+                ip__object_identifier_value=relative_root)
         except Workarea.DoesNotExist:
             raise exceptions.NotFound
 
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
-        chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
+        temp_path = os.path.join(
+            Path.objects.get(entity='temp').value, 'file_upload')
+        chunks_path = os.path.join(temp_path, str(workarea_obj.pk),
+                                   relative_path)
 
         try:
             merge_file_chunks(chunks_path, path)
@@ -3347,7 +3698,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         user = self.get_user(request)
 
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(
+            Path.objects.get(entity=workarea + '_workarea').value,
+            user.username)
 
         try:
             dip = self.request.data['dip']
@@ -3355,13 +3708,14 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Missing dip parameter')
 
         try:
-            ip = InformationPackage.objects.get(pk=dip, package_type=InformationPackage.DIP)
+            ip = InformationPackage.objects.get(
+                pk=dip, package_type=InformationPackage.DIP)
 
             permission = IsResponsibleOrReadOnly()
             if not permission.has_object_permission(request, self, ip):
-                self.permission_denied(
-                    request, message=getattr(permission, 'message', None)
-                )
+                self.permission_denied(request,
+                                       message=getattr(permission, 'message',
+                                                       None))
         except InformationPackage.DoesNotExist:
             raise exceptions.ParseError('DIP "%s" does not exist' % dip)
 

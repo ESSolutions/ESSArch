@@ -417,6 +417,7 @@ def Validate(self, backend, path=None, context=None, include=None,
              exclude=None, options=None, required=False, **kwargs):
 
     validators = []
+
     ip = self.get_information_package()
 
     if path is None and ip is not None:
@@ -427,6 +428,7 @@ def Validate(self, backend, path=None, context=None, include=None,
     backend = get_validator(backend)
 
     if include:
+
         if isinstance(include, str):
             include = include.split(',')
 
