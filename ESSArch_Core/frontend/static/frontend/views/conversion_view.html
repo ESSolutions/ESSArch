@@ -1,4 +1,4 @@
-<div class="conversion-view" style="margin: 5px; position: relative; height: 650px" ng-if="vm.conversions.length > 0">
+<div class="conversion-view" style="margin: 5px; position: relative; height: 650px">
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
@@ -79,14 +79,8 @@
         </uib-tabset>
       </div>
       <div class="div2">
-        <div class="search-prepare-wrapper" ng-if="(vm.profilelist.length > 1)">
-          <select
-            class="form-control"
-            ng-model="selectedProfile"
-            ng-click="vm.getProfiles()"
-            ng-options="item.name for item in vm.profilelist"
-            ng-change="vm.SelectedRow(selectedProfile)"
-          >
+        <div class="search-prepare-wrapper">
+          <select class="form-control" ng-model="selectedProfile" ng-options="item.name for item in vm.profilelist">
             <option value="" disabled selected>Select workflow</option>
           </select>
           <button class="btn btn-primary btn-small" type="button" ng-click="vm.fetchClick()">
@@ -129,16 +123,16 @@
     </div>
     <div class="flex-row justify-content-end" style="position: absolute; bottom: 5px; right: 5px">
       <button
-        ng-if="(vm.conversions.length > 1)&&(vm.loadPage)"
+        ng-if="vm.conversions.length > 1"
         class="btn btn-danger"
         ng-click="vm.removeConversionModal(vm.currentConversion, $index, $event)"
       >
         {{'REMOVE' | translate}}
       </button>
-      <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()" ng-if="vm.loadPage">
+      <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
         {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
       </button>
-      <button class="btn btn-primary" ng-click="vm.startPresetConversion()" ng-if="vm.loadPage">
+      <button class="btn btn-primary" ng-click="vm.startPresetConversion()">
         {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
       </button>
     </div>

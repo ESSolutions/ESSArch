@@ -9,18 +9,17 @@ export default class ConversionCtrl {
     vm.profilelist = [];
     var profilelist = [];
     vm.showProfiles = false;
-    vm.selectedProfile = null;
     vm.profilespec = [];
     vm.response = {text: [], path: []};
-    vm.loadPage = false;
 
     vm.profileChosen = null;
 
     vm.profile = [];
+    $scope.selectedProfile = {};
+    $scope.selectedProfile = vm.profilelist[0];
 
     vm.$onInit = function () {
       vm.getProfiles();
-      vm.loadPage = true;
     };
 
     vm.getProfiles = () => {
@@ -91,7 +90,6 @@ export default class ConversionCtrl {
     };
 
     vm.addConverter = () => {
-      vm.loadPage = false;
       tabNumber++;
       let val = {
         id: tabNumber,
@@ -104,7 +102,6 @@ export default class ConversionCtrl {
         vm.activeTab = 'conversion' + tabNumber;
         vm.updateConverterForm(val);
       });
-      vm.loadPage = true;
     };
 
     vm.deleteFromWorkflow = (value) => {
@@ -222,7 +219,7 @@ export default class ConversionCtrl {
 
     vm.fetchClick = () => {
       $http({
-        url: appConfig.djangoUrl + 'profiles/' + vm.selectedProfile.id + '/',
+        url: appConfig.djangoUrl + 'profiles/' + $scope.selectedProfile.id + '/',
         method: 'GET',
         params: {pager: 'none'},
       })
@@ -237,11 +234,6 @@ export default class ConversionCtrl {
         .catch(() => {
           console.log('Caught error');
         });
-    };
-
-    vm.SelectedRow = function (selectedProfile) {
-      vm.selectedProfile = selectedProfile;
-      vm.conversions;
     };
 
     vm.startPresetConversion = () => {
@@ -261,17 +253,6 @@ export default class ConversionCtrl {
       }
       let datapreset = null;
       let datacustom = null;
-      if (vm.profilespec.length > 0) {
-        datapreset = angular.extend(vm.flowOptions, {
-          actions: vm.profilespec.map((x) => {
-            return {
-              name: x.args[0],
-              options: x.args[2],
-              path: x.args[1],
-            };
-          }),
-        });
-      }
 
       if (vm.conversions.length > 0) {
         if (vm.conversions[0].converter !== null) {
@@ -280,8 +261,6 @@ export default class ConversionCtrl {
               datacustom = angular.extend(vm.flowOptions, {
                 actions: vm.conversions.map((x) => {
                   let data = angular.copy(x.data);
-                  console.log('data');
-                  console.log(data);
                   delete data.path;
                   return {
                     name: x.converter.name,
@@ -297,18 +276,50 @@ export default class ConversionCtrl {
           }
         }
       }
-      let data = null;
-      const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-      const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-      if (datacustom) {
-        data = datacustom;
-        $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
-          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+      if (vm.profilespec.length > 0) {
+        vm.flowOptions = {};
+        datapreset = angular.extend(vm.flowOptions, {
+          actions: vm.profilespec.map((x) => {
+            return {
+              name: x.args[0],
+              options: x.args[2],
+              path: x.args[1],
+            };
+          }),
         });
       }
-      if (datapreset) {
-        data = datapreset;
-        $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/', data).then(() => {
+      const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+      const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+      if (datacustom && datapreset) {
+        $http({
+          method: 'POST',
+          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+          data: datacustom,
+        })
+          .then(() => {
+            $http({
+              method: 'POST',
+              url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+              data: datapreset,
+            });
+          })
+          .then(() => {
+            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          });
+      } else if (datapreset) {
+        $http({
+          method: 'POST',
+          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+          data: datapreset,
+        }).then(() => {
+          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+        });
+      } else if (datacustom) {
+        $http({
+          method: 'POST',
+          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+          data: datacustom,
+        }).then(() => {
           $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
         });
       }
