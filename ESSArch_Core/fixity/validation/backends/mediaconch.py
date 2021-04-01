@@ -2,7 +2,6 @@ import errno
 import logging
 import os
 import traceback
-from django.conf import settings
 from subprocess import PIPE, Popen
 
 import click
@@ -10,7 +9,7 @@ from django.utils import timezone
 from lxml import etree
 
 from ESSArch_Core.exceptions import ValidationError
-from ESSArch_Core.fixity.models import Validation, ActionTool
+from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
 
@@ -28,7 +27,7 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
         reporter=reporting_element, format=output_format, policy=policy, filename=filename
     )
     logger.debug(cmd)
-    #todo Remove shell=True
+    # todo Remove shell=True
     p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     return out, err, p.returncode
@@ -82,17 +81,15 @@ class MediaconchValidator(BaseValidator):
             passed = get_outcome(root)
             message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
 
-            action_tool = ActionTool.objects.get(name="mediaconch")
-            if action_tool.file:
-                xslt_path = os.path.join(settings.MEDIA_ROOT, str(action_tool.file))
-                xslt = etree.parse(xslt_path)
+            if self.stylesheet:
+                xslt = etree.parse(self.stylesheet)
                 transform = etree.XSLT(xslt)
                 message = transform(root)
-
 
             if not passed:
                 logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
                 raise ValidationError(message)
+
         except Exception:
             val_obj.message = f'<pre>{traceback.format_exc()}</pre>'
             raise
