@@ -414,7 +414,8 @@ def Transform(self, backend, path=None):
 
 @app.task(bind=True)
 def Validate(self, backend, path=None, context=None, include=None,
-             exclude=None, options=None, required=False, **kwargs):
+             exclude=None, options=None, required=False, stylesheet=None,
+             **kwargs):
 
     validators = []
 
@@ -448,7 +449,8 @@ def Validate(self, backend, path=None, context=None, include=None,
                                  required=required,
                                  task=self.get_processtask(),
                                  ip=ip,
-                                 responsible=user
+                                 responsible=user,
+                                 stylesheet=stylesheet
                                  )
 
     validators.append(validator_instance)
