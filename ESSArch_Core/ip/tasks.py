@@ -423,7 +423,7 @@ def Validate(self, backend, path=None, context=None, include=None,
 
     if path is None and ip is not None:
         path = ip.object_path
-
+    backend_name = backend
     user = User.objects.filter(pk=self.responsible).first()
     profile_data = fill_specification_data(data=options, ip=ip)
     backend = get_validator(backend)
@@ -459,6 +459,16 @@ def Validate(self, backend, path=None, context=None, include=None,
                        validators=validators,
                        ip=ip,
                        responsible=user)
+
+    Notification.objects.create(
+        message='{backend} job done for "{ip}"'.format(
+            backend=backend_name,
+            ip=ip.object_identifier_value
+        ),
+        level=logging.INFO,
+        user_id=self.responsible,
+        refresh=True
+    )
 
 
 @app.task(bind=True)
