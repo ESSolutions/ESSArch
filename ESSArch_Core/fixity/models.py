@@ -6,7 +6,6 @@ from pathlib import PurePath
 from subprocess import PIPE, Popen
 
 from django.contrib.auth import get_user_model
-from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -33,9 +32,6 @@ class ExternalTool(models.Model):
         DOCKER_ENV = 'docker'
         TASK_ENV = 'task'
 
-    STYLESHEET = 'stylesheet'
-    TYPE_CHOICES = ((STYLESHEET, _('stylesheet')), )
-
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
     description = models.TextField(_('description'), blank=True)
@@ -46,12 +42,6 @@ class ExternalTool(models.Model):
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
     form = models.JSONField(_('form'), null=True, blank=True)
-    file = models.FileField(
-        upload_to='stylesheets/',
-        validators=[FileExtensionValidator(allowed_extensions=['xslt'])],
-        null=True,
-        blank=True
-    )
 
     def __str__(self):
         return self.name
