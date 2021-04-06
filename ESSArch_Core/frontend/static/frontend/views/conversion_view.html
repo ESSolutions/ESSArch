@@ -86,7 +86,7 @@
                     </ui-select>
                   </div>
                   <br />
-                  <p>{{vm.currentConversion.converter.description}}</p>
+                  <p ng-bind-html="vm.currentConversion.converter.description"></p>
                   <div ng-if="vm.fields.length">
                     <hr class="small" />
                     <formly-form
