@@ -2,7 +2,7 @@
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
-        <div class="search-prepare-wrapper">
+        <div class="search-prepare-wrapper" style="margin-top: 15px">
           <select
             class="form-control"
             ng-model="selectedProfile"
@@ -27,18 +27,17 @@
             </thead>
             <tbody>
               <tr ng-repeat="value in vm.profilespec">
-                <td>{{$index}}</td>
+                <td>{{$index+1}}</td>
                 <td>{{value.args[0]}}</td>
                 <td>{{value.args[1]}}</td>
                 <td>
-                  <button class="btn btn-info" ng-click="vm.actionDetailsModal(value)">
-                    {{'CONVERSION_VIEW.DETAILS' | translate}}
-                  </button>
+                  <button class="fas fa-edit btn btn-default btn-sm" ng-click="vm.actionDetailsModal(value)"></button>
                 </td>
                 <td>
-                  <button class="btn btn-danger" ng-click="vm.deleteFromWorkflow(value)">
-                    {{'DELETE' | translate}}
-                  </button>
+                  <button
+                    class="fas fa-trash-alt btn btn-default btn-sm"
+                    ng-click="vm.deleteFromWorkflow(value)"
+                  ></button>
                 </td>
               </tr>
             </tbody>
@@ -46,7 +45,7 @@
         </div>
       </div>
       <div class="div2">
-        <uib-tabset active="vm.activeTab" type="pills">
+        <uib-tabset active="vm.activeTab" type="pills" style="margin-top: 0px">
           <uib-tab
             class="uibalt"
             sortable-tab
