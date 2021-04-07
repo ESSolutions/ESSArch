@@ -3,7 +3,6 @@
     <div class="parent">
       <div class="div1">
         <div class="panel panel-default" style="margin-top: 20px">
-          <div class="panel-heading" style="font-size: 15px">Workflow</div>
           <div class="panel-body">
             <div class="search-prepare-wrapper">
               <select
@@ -12,7 +11,7 @@
                 ng-change="vm.fetchClick()"
                 ng-options="item.name for item in vm.profilelist"
               >
-                <option value="" disabled selected>Select workflow</option>
+                <option value="" disabled selected>{{'CONVERSION_VIEW.SELECT_WORKFLOW' | translate}}</option>
               </select>
             </div>
             <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">

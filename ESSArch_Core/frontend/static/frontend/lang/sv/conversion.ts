@@ -13,6 +13,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ACTION_DETAILS: 'Detaljer om arbetsflöde',
       SAVE_WORKFLOW_DETAILS: 'Spara arbetsflöde',
       RUN_PRESET_WORKFLOW: 'Kör förinställt arbetsflöde',
+      SELECT_WORKFLOW: 'Välj arbetsflöde',
     },
     CONVERSION: 'Åtgärd',
     NONE_SELECTED: 'Ingen vald',
