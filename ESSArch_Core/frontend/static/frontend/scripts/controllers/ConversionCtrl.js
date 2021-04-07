@@ -229,6 +229,7 @@ export default class ConversionCtrl {
           $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
             Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+            vm.getProfiles();
           });
         },
         function () {}

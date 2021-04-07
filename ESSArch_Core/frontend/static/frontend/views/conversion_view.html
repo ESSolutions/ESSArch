@@ -2,64 +2,84 @@
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
-        <div class="search-prepare-wrapper" style="margin-top: 15px">
-          <select
-            class="form-control"
-            ng-model="selectedProfile"
-            ng-change="vm.fetchClick()"
-            ng-options="item.name for item in vm.profilelist"
-          >
-            <option value="" disabled selected>Select workflow</option>
-          </select>
-        </div>
-        <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
-          <hr class="small" />
-          <label class="control-label">Workflow</label>
-          <table class="table">
-            <thead>
-              <tr>
-                <th scope="col">#</th>
-                <th scope="col">Name</th>
-                <th scope="col">Path</th>
-                <th scope="col">Details</th>
-                <th scope="col">Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr ng-repeat="value in vm.profilespec">
-                <td>{{$index+1}}</td>
-                <td>{{value.args[0]}}</td>
-                <td>{{value.args[1]}}</td>
-                <td>
-                  <button class="fas fa-edit btn btn-default btn-sm" ng-click="vm.actionDetailsModal(value)"></button>
-                </td>
-                <td>
-                  <button
-                    class="fas fa-trash-alt btn btn-default btn-sm"
-                    ng-click="vm.deleteFromWorkflow(value)"
-                  ></button>
-                </td>
-              </tr>
-              <tr ng-repeat="value in vm.addedActions track by $index">
-                <td>{{vm.profilespec.length+$index+1}}</td>
-                <td>{{value.name}}</td>
-                <td>{{value.path}}</td>
-                <td>
-                  <button class="fas fa-edit btn btn-default btn-sm" ng-click="vm.actionDetailsModal(value)"></button>
-                </td>
-                <td>
-                  <button
-                    class="fas fa-trash-alt btn btn-default btn-sm"
-                    ng-click="vm.deleteAddedFromWorkflow(value)"
-                  ></button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="panel panel-default" style="margin-top: 20px">
+          <div class="panel-heading" style="font-size: 15px">Workflow</div>
+          <div class="panel-body">
+            <div class="search-prepare-wrapper">
+              <select
+                class="form-control"
+                ng-model="selectedProfile"
+                ng-change="vm.fetchClick()"
+                ng-options="item.name for item in vm.profilelist"
+              >
+                <option value="" disabled selected>Select workflow</option>
+              </select>
+            </div>
+            <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
+              <hr class="small" />
+              <label class="control-label">Workflow</label>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Path</th>
+                    <th scope="col">Details</th>
+                    <th scope="col">Delete</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="value in vm.profilespec">
+                    <td>{{$index+1}}</td>
+                    <td>{{value.args[0]}}</td>
+                    <td>{{value.args[1]}}</td>
+                    <td>
+                      <button
+                        class="fas fa-edit btn btn-default btn-sm"
+                        ng-click="vm.actionDetailsModal(value)"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="fas fa-trash-alt btn btn-default btn-sm"
+                        ng-click="vm.deleteFromWorkflow(value)"
+                      ></button>
+                    </td>
+                  </tr>
+                  <tr ng-repeat="value in vm.addedActions track by $index">
+                    <td>{{vm.profilespec.length+$index+1}}</td>
+                    <td>{{value.name}}</td>
+                    <td>{{value.path}}</td>
+                    <td>
+                      <button
+                        class="fas fa-edit btn btn-default btn-sm"
+                        ng-click="vm.actionDetailsModal(value)"
+                      ></button>
+                    </td>
+                    <td>
+                      <button
+                        class="fas fa-trash-alt btn btn-default btn-sm"
+                        ng-click="vm.deleteAddedFromWorkflow(value)"
+                      ></button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="flex-row justify-content-end" style="margin-bottom: 15px; margin-right: 15px; margin-top: 10px">
+            <button
+              class="btn btn-primary"
+              ng-click="vm.saveWorkflowModal()"
+              ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+            >
+              {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+            </button>
+          </div>
         </div>
       </div>
       <div class="div2">
-        <uib-tabset active="vm.activeTab" type="pills" style="margin-top: 0px">
+        <uib-tabset active="vm.activeTab" type="pills" style="margin-top: 1px">
           <uib-tab
             class="uibalt"
             sortable-tab
@@ -70,9 +90,15 @@
             style="display: none"
           >
             <uib-accordion ng-if="vm.activeTab === 'conversion' + $index" close-others="false" class="p-base">
-              <div uib-accordion-group class="panel-default" is-open="true" heading="{{'CONVERSION' | translate}}">
+              <div
+                uib-accordion-group
+                class="panel panel-default"
+                is-open="true"
+                heading="{{'CONVERSION' | translate}}"
+                style="font-size: 15px"
+              >
                 <uib-accordion-heading> {{'CONVERSION' | translate}} </uib-accordion-heading>
-                <div>
+                <div style="margin-bottom: 0px; padding-bottom: 0px">
                   <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
                   <div>
                     <ui-select
@@ -117,6 +143,11 @@
                     ></formly-form>
                   </div>
                 </div>
+                <div class="flex-row justify-content-end">
+                  <button class="btn btn-primary" ng-click="vm.newToList()">
+                    {{'CONVERSION_VIEW.ADD_TO_LIST' | translate}}
+                  </button>
+                </div>
               </div>
               <hr class="small" />
               <formly-form form="vm.form" model="vm.flowOptions" fields="vm.purposeField" options="{}"></formly-form>
@@ -128,19 +159,11 @@
     <div class="flex-row justify-content-end" style="position: absolute; bottom: 5px; right: 5px">
       <button
         class="btn btn-primary"
-        ng-click="vm.saveWorkflowModal()"
-        ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
-      >
-        {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-      </button>
-      <button
-        class="btn btn-primary"
         ng-click="vm.startPresetConversion()"
         ng-disabled="(!vm.profilespec.length > 0) && (!vm.addedActions.length > 0)"
       >
         {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
       </button>
-      <button class="btn btn-primary" ng-click="vm.newToList()">{{'CONVERSION_VIEW.ADD_TO_LIST' | translate}}</button>
     </div>
   </form>
   <br />
