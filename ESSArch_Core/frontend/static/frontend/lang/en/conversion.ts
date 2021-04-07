@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CONVERTER: 'Tools',
       REMOVE_CONVERSION: 'Remove action',
       RUN_CONVERSIONS: 'Run actions',
+      ADD_TO_LIST: 'Add to list',
       SAVE_WORKFLOW: 'Save workflow',
       FETCH_WORKFLOW: 'Fetch workflow',
       DETAILS: 'View details',

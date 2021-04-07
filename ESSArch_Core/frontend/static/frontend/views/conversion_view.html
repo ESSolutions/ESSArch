@@ -12,7 +12,7 @@
             <option value="" disabled selected>Select workflow</option>
           </select>
         </div>
-        <div ng-if="vm.profilespec.length > 0">
+        <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
           <hr class="small" />
           <label class="control-label">Workflow</label>
           <table class="table">
@@ -37,6 +37,20 @@
                   <button
                     class="fas fa-trash-alt btn btn-default btn-sm"
                     ng-click="vm.deleteFromWorkflow(value)"
+                  ></button>
+                </td>
+              </tr>
+              <tr ng-repeat="value in vm.addedActions track by $index">
+                <td>{{vm.profilespec.length+$index+1}}</td>
+                <td>{{value.name}}</td>
+                <td>{{value.path}}</td>
+                <td>
+                  <button class="fas fa-edit btn btn-default btn-sm" ng-click="vm.actionDetailsModal(value)"></button>
+                </td>
+                <td>
+                  <button
+                    class="fas fa-trash-alt btn btn-default btn-sm"
+                    ng-click="vm.deleteAddedFromWorkflow(value)"
                   ></button>
                 </td>
               </tr>
@@ -113,18 +127,20 @@
     </div>
     <div class="flex-row justify-content-end" style="position: absolute; bottom: 5px; right: 5px">
       <button
-        ng-if="vm.conversions.length > 1"
-        class="btn btn-danger"
-        ng-click="vm.removeConversionModal(vm.currentConversion, $index, $event)"
+        class="btn btn-primary"
+        ng-click="vm.saveWorkflowModal()"
+        ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
       >
-        {{'REMOVE' | translate}}
-      </button>
-      <button class="btn btn-primary" ng-click="vm.saveWorkflowModal()">
         {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
       </button>
-      <button class="btn btn-primary" ng-click="vm.startPresetConversion()">
+      <button
+        class="btn btn-primary"
+        ng-click="vm.startPresetConversion()"
+        ng-disabled="(!vm.profilespec.length > 0) && (!vm.addedActions.length > 0)"
+      >
         {{'CONVERSION_VIEW.RUN_CONVERSIONS' | translate}}
       </button>
+      <button class="btn btn-primary" ng-click="vm.newToList()">{{'CONVERSION_VIEW.ADD_TO_LIST' | translate}}</button>
     </div>
   </form>
   <br />

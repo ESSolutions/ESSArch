@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       CONVERTER: 'Verktyg',
       REMOVE_CONVERSION: 'Ta bort åtgärd',
       RUN_CONVERSIONS: 'Kör åtgärder',
+      ADD_TO_LIST: 'Lägg till lista',
       SAVE_WORKFLOW: 'Spara arbetsflöde',
       FETCH_WORKFLOW: 'Hämta arbetsflöde',
       DETAILS: 'Se detaljer',
