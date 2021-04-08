@@ -74,6 +74,13 @@
             >
               {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
             </button>
+            <button
+              class="btn btn-primary"
+              ng-click="vm.saveAsWorkflowModal()"
+              ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+            >
+              {{'CONVERSION_VIEW.SAVE_AS_WORKFLOW' | translate}}
+            </button>
           </div>
         </div>
       </div>

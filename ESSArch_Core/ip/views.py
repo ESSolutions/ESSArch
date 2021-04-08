@@ -145,7 +145,8 @@ from ESSArch_Core.util import (
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessStepChildrenSerializer, )
+    ProcessStepChildrenSerializer,
+)
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
@@ -1074,7 +1075,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-    @action(detail=True, methods=['post'], url_path='actiontool_save')
+    @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading', 'Received']:
@@ -1121,6 +1122,62 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         }
 
         Profile.objects.update_or_create(name=dct['name'], defaults=dct)
+
+        return Response()
+
+    @action(detail=True, methods=['put'], url_path='actiontool_save')
+    def save_actiontool_copy(self, request, pk=None):
+        # do something else with obj if need be
+        ip = self.get_object()
+        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading" or "Received"')
+
+        serializer = ActionToolSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
+
+        for converter in serializer.validated_data['actions']:
+            tool_name = converter['name']
+
+            # ensure that tool exists
+            ActionTool.objects.get(name=tool_name)
+
+            options = converter['options']
+            pattern = None
+
+            if 'path' in converter:
+                pattern = converter['path']
+
+            workflow_spec[0]['children'].append({
+                "name":
+                "ESSArch_Core.fixity.action.tasks.Action",
+                "label":
+                tool_name,
+                "args":
+                [tool_name, pattern, options,
+                 request.data.get('purpose')]
+            })
+
+        # Save action workflow profile
+        action_workflow_name = request.data.get('action_workflow_name')
+        action_workflow_status = request.data.get('action_workflow_status')
+        dct = {
+            'name': action_workflow_name,
+            'profile_type': 'action_workflow',
+            'type': 'Action Workflow',
+            'status': action_workflow_status,
+            'label': action_workflow_name,
+            'specification': workflow_spec,
+        }
+
+        try:
+            obj = Profile.objects.get(name=dct['name'])
+            obj.field = dct
+            obj.save()
+        except Profile.DoesNotExist:
+            obj = Profile.objects.create(field=dct)
 
         return Response()
 
