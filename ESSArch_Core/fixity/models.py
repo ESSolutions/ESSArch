@@ -38,7 +38,8 @@ class ExternalTool(models.Model):
     path = models.TextField(_('path'))
     cmd = models.TextField(_('options, or command'))
     enabled = models.BooleanField(_('enabled'), default=True)
-    environment = models.CharField(_('environment'), max_length=20, default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
+    environment = models.CharField(_('environment'), max_length=20,
+                                   default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
     file_processing = models.BooleanField(_('file processing (pattern)'), default=False)
     delete_original = models.BooleanField(_('remove orginal file after processing'), default=False)
     form = models.JSONField(_('form'), null=True, blank=True)
@@ -182,8 +183,8 @@ class ActionTool(ExternalTool):
             self.path,
             cmd,
             volumes={os.path.abspath(rootdir): {
-                         'bind': workdir
-                     }},
+                'bind': workdir
+            }},
             working_dir=workdir,
             remove=True,
         )

@@ -26,7 +26,6 @@ body {
 
 .wrap-view {
   overflow: hidden;
-  margin: 0px;
   padding: 0px;
   margin: 15px;
 }
@@ -603,11 +602,6 @@ main {
 }
 
 .eventlog-view {
-  margin-left: 15px;
-  margin-right: 15px;
-  margin-top: 5px;
-  margin-bottom: 5px;
-
   display: flex;
   flex-direction: row;
   margin: 5px;

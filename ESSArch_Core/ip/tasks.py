@@ -33,18 +33,20 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.essxml.util import parse_submit_description
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.fixity.validation import get_backend as get_validator
-from ESSArch_Core.fixity.validation import _validate_directory as validate_directory
+from ESSArch_Core.fixity.validation import (
+    _validate_directory as validate_directory,
+    get_backend as get_validator,
+)
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import (
     download_schemas,
+    fill_specification_data,
     generate_aic_mets,
     generate_content_mets,
     generate_events_xml,
     generate_package_mets,
     generate_premis,
     parse_submit_description_from_ip,
-    fill_specification_data,
 )
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.storage.copy import copy_file, enough_space_available

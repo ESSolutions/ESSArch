@@ -1,5 +1,4 @@
 <div class="action-workflow">
-
   <form name="vm.form">
     <div>
       <label class="control-label"> {{'CONVERSION_VIEW.CONVERTER' | translate}} </label>
@@ -13,9 +12,8 @@
           append-to-body="true"
         >
           <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.CONVERTER' | translate}}"
-          >{{profiles.profile.name}}
-          </ui-select-match
-          >
+            >{{profiles.profile.name}}
+          </ui-select-match>
           <ui-select-choices
             ng-hide="!$select.open"
             refresh-delay="0"
@@ -28,9 +26,8 @@
             <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
           </ui-select-no-choice>
         </ui-select>
-     {{profiles.profile.}}
+        {{profiles.profile.}}
       </div>
     </div>
   </form>
-
 </div>
