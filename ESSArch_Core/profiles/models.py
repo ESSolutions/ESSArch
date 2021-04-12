@@ -262,6 +262,9 @@ class SubmissionAgreement(models.Model):
     profile_validation = models.ForeignKey(
         'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa'
     )
+    profile_action_workflow = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='action_workflow_sa'
+    )
 
     template = models.JSONField(default=list)
 
