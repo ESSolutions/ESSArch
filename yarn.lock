@@ -1588,12 +1588,12 @@ angular-smart-table@~2.1.11:
   resolved "https://registry.yarnpkg.com/angular-smart-table/-/angular-smart-table-2.1.11.tgz#d0ca625f5bfb873bf3748ab861c82892e42ddfa2"
   integrity sha512-8ZSGygQqVBkpPDzb0382ujK1eOr8fnePXpzq+sUBkUsvRaEgMeY6VoFpWmg106472mD6oMNXIW9+VDQKllXa0w==
 
-angular-translate-loader-static-files@^2.18.1:
-  version "2.18.3"
-  resolved "https://registry.yarnpkg.com/angular-translate-loader-static-files/-/angular-translate-loader-static-files-2.18.3.tgz#5eff2a19621ca46d68ec280e20af8f8493c79db6"
-  integrity sha512-B5hD7aWjFr2TZ6YTnmoTFSscI+eDOXSi3GksyTvtqs4cPZI2lgnO38/Pm1gfN1wpUQcs2Rm/V+z8n58TERZyBQ==
+angular-translate-loader-static-files@^2.18.4:
+  version "2.18.4"
+  resolved "https://registry.yarnpkg.com/angular-translate-loader-static-files/-/angular-translate-loader-static-files-2.18.4.tgz#98245295ea163e43fd2310f832cf0ae0d8b25d71"
+  integrity sha512-/UFIuyDLyHUsWS523K1jIW96kOCdEPHUAEFnqcRf0PsXOpp9PR6NH7j5NEV4QImPhdjtvFwHDa2VpBgUDRJcxw==
   dependencies:
-    angular-translate "~2.18.3"
+    angular-translate "~2.18.4"
 
 angular-translate-storage-cookie@~2.18.1:
   version "2.18.3"
@@ -1603,17 +1603,10 @@ angular-translate-storage-cookie@~2.18.1:
     angular-cookies ">=1.2.26 <1.9"
     angular-translate "~2.18.3"
 
-angular-translate@^2.11.0:
-  version "2.18.2"
-  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.2.tgz#2a26653d179f7043c0ffa66fdf65155d01c82e06"
-  integrity sha512-aAtNieh0fUv6yM6vKuWsdswT0BbOf6kvsu+QZ15Fp10rKEienMs3M8aPWyd9IVZ5pA1GaRJir6T8OvWGG4J+Fw==
-  dependencies:
-    angular "^1.7.9"
-
-angular-translate@~2.18.1, angular-translate@~2.18.3:
-  version "2.18.3"
-  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.3.tgz#e1c1b4e985bb6492063a0ac744e0f6b21a44403c"
-  integrity sha512-ziEi1nTaNIsdn3iKpcALaSFjM9CjwvoIWE/EKepajB/6qT5oB3K1IU5VcaH7Bd0scNRfaJpW+qUD6nsHWDEZ6A==
+angular-translate@^2.11.0, angular-translate@~2.18.1, angular-translate@~2.18.3, angular-translate@~2.18.4:
+  version "2.18.4"
+  resolved "https://registry.yarnpkg.com/angular-translate/-/angular-translate-2.18.4.tgz#8dba3921cc75d0601891c1f0e9d320aa7cef17bd"
+  integrity sha512-KohNrkH6J9PK+VW0L/nsRTcg5Fw70Ajwwe3Jbfm54Pf9u9Fd+wuingoKv+h45mKf38eT+Ouu51FPua8VmZNoCw==
   dependencies:
     angular "^1.8.0"
 
@@ -1640,7 +1633,7 @@ angular-websocket@^2.0.1:
     angular "*"
     ws "^1.0.0"
 
-angular@*, angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.7.9, angular@^1.8.0, angular@^1.x, angular@~1.4, angular@~1.8:
+angular@*, angular@>=1.4.8, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.8.0, angular@^1.x, angular@~1.4, angular@~1.8:
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.8.0.tgz#b1ec179887869215cab6dfd0df2e42caa65b1b51"
   integrity sha512-VdaMx+Qk0Skla7B5gw77a8hzlcOakwF8mjlW13DpIWIDlfqwAbSSLfd8N/qZnzEmQF4jC4iofInd3gE7vL8ZZg==
