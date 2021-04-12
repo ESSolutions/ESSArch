@@ -11,7 +11,7 @@
     "@types/angular-formly": "^7.2.34",
     "@types/angular-permission": "^2.3.22",
     "@types/angular-translate": "^2.16.0",
-    "@types/jquery": "^3.3.33",
+    "@types/jquery": "^3.5.5",
     "@types/lodash": "^4.14.161",
     "@types/ua-parser-js": "^0.7.33",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
