@@ -37,7 +37,7 @@ lxml==4.6.2
 msoffcrypto-tool==4.10.1
 natsort==7.0.1
 opf-fido==1.4.0
-pyfakefs==4.0.2
+pyfakefs==4.4.0
 python-dateutil==2.8.0
 pywin32==228;platform_system=='Windows'
 redis==3.3.8
