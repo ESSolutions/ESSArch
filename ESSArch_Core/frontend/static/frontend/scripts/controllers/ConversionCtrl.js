@@ -111,7 +111,7 @@ export default class ConversionCtrl {
       var index = vm.profilespec.indexOf(value);
       vm.profilespec.splice(index, 1);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 1) {
+      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
         vm.workflowActive = false;
       }
     };
@@ -120,7 +120,7 @@ export default class ConversionCtrl {
       var index = vm.addedActions.indexOf(value);
       vm.addedActions.splice(index, 1);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 1) {
+      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
         vm.workflowActive = false;
       }
     };
@@ -146,94 +146,190 @@ export default class ConversionCtrl {
       );
     };
 
+    vm.saveAsWorkflowModal = () => {
+      if (vm.profilespec.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
+        var workflow = vm.conversions;
+        var currentProfile = null;
+        var modalInstance = $uibModal.open({
+          animation: true,
+          ariaLabelledBy: 'modal-title',
+          ariaDescribedBy: 'modal-body',
+          templateUrl: 'static/frontend/views/save_workflow_modal.html',
+          scope: $scope,
+          controller: 'SaveWorkflowModalInstanceCtrl',
+          controllerAs: '$ctrl',
+          resolve: {
+            data: {
+              workflow,
+            },
+            test: {
+              currentProfile,
+            },
+          },
+        });
+        modalInstance.result.then(
+          (result) => {
+            let data = null;
+
+            if (vm.form.$invalid) {
+              vm.form.$setSubmitted();
+              return;
+            }
+            let conversions = vm.conversions.filter((a) => {
+              return a.conversion !== null;
+            });
+            if (conversions.length > 0) {
+              vm.conversions = conversions;
+            }
+            if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+              delete vm.flowOptions.purpose;
+            }
+            vm.flowOptions = {};
+            let datapreset = null;
+            let datanewactions = null;
+
+            if (vm.profilespec.length > 0) {
+              vm.flowOptions = {};
+              datapreset = angular.extend(vm.flowOptions, {
+                actions: vm.profilespec.map((x) => {
+                  return {
+                    name: x.args[0],
+                    options: x.args[2],
+                    path: x.args[1],
+                  };
+                }),
+                action_workflow_name: result.action_workflow_name,
+                action_workflow_status: result.action_workflow_status,
+              });
+            }
+
+            if (vm.addedActions.length > 0) {
+              vm.flowOptions = {};
+              datanewactions = angular.extend(vm.flowOptions, {
+                actions: vm.addedActions.map((x) => {
+                  return {
+                    name: x.name,
+                    options: x.options,
+                    path: x.path,
+                  };
+                }),
+                action_workflow_name: result.action_workflow_name,
+                action_workflow_status: result.action_workflow_status,
+              });
+            }
+
+            if (vm.profilespec.length > 0 && vm.addedActions.length > 0) {
+              datapreset.actions = datapreset.actions.concat(datanewactions.actions);
+              data = datapreset;
+            } else if (vm.addedActions.length > 0) {
+              data = datanewactions;
+            } else if (vm.profilespec.length > 0) {
+              data = datapreset;
+            }
+
+            const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+            const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+            $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save_as/', data).then(() => {
+              $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+              Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+              vm.getProfiles();
+            });
+          },
+          function () {}
+        );
+      }
+    };
+
     vm.saveWorkflowModal = () => {
       if (vm.profilespec.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
-      }
-      var workflow = vm.conversions;
-      var modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/save_workflow_modal.html',
-        scope: $scope,
-        controller: 'SaveWorkflowModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        resolve: {
-          data: {
-            workflow,
+        var workflow = vm.conversions;
+        var currentProfile = $scope.selectedProfile;
+        var modalInstance = $uibModal.open({
+          animation: true,
+          ariaLabelledBy: 'modal-title',
+          ariaDescribedBy: 'modal-body',
+          templateUrl: 'static/frontend/views/save_workflow_modal.html',
+          scope: $scope,
+          controller: 'SaveWorkflowModalInstanceCtrl',
+          controllerAs: '$ctrl',
+          resolve: {
+            data: {
+              workflow,
+              currentProfile,
+            },
           },
-        },
-      });
-      modalInstance.result.then(
-        (result) => {
-          let data = null;
+        });
+        modalInstance.result.then(
+          (result) => {
+            let data = null;
 
-          if (vm.form.$invalid) {
-            vm.form.$setSubmitted();
-            return;
-          }
-          let conversions = vm.conversions.filter((a) => {
-            return a.conversion !== null;
-          });
-          if (conversions.length > 0) {
-            vm.conversions = conversions;
-          }
-          if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
-            delete vm.flowOptions.purpose;
-          }
-          vm.flowOptions = {};
-          let datapreset = null;
-          let datanewactions = null;
-
-          if (vm.profilespec.length > 0) {
-            vm.flowOptions = {};
-            datapreset = angular.extend(vm.flowOptions, {
-              actions: vm.profilespec.map((x) => {
-                return {
-                  name: x.args[0],
-                  options: x.args[2],
-                  path: x.args[1],
-                };
-              }),
-              action_workflow_name: result.action_workflow_name,
-              action_workflow_status: result.action_workflow_status,
+            if (vm.form.$invalid) {
+              vm.form.$setSubmitted();
+              return;
+            }
+            let conversions = vm.conversions.filter((a) => {
+              return a.conversion !== null;
             });
-          }
-
-          if (vm.addedActions.length > 0) {
+            if (conversions.length > 0) {
+              vm.conversions = conversions;
+            }
+            if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+              delete vm.flowOptions.purpose;
+            }
             vm.flowOptions = {};
-            datanewactions = angular.extend(vm.flowOptions, {
-              actions: vm.addedActions.map((x) => {
-                return {
-                  name: x.name,
-                  options: x.options,
-                  path: x.path,
-                };
-              }),
-              action_workflow_name: result.action_workflow_name,
-              action_workflow_status: result.action_workflow_status,
+            let datapreset = null;
+            let datanewactions = null;
+
+            if (vm.profilespec.length > 0) {
+              vm.flowOptions = {};
+              datapreset = angular.extend(vm.flowOptions, {
+                actions: vm.profilespec.map((x) => {
+                  return {
+                    name: x.args[0],
+                    options: x.args[2],
+                    path: x.args[1],
+                  };
+                }),
+                action_workflow_name: result.action_workflow_name,
+                action_workflow_status: result.action_workflow_status,
+              });
+            }
+
+            if (vm.addedActions.length > 0) {
+              vm.flowOptions = {};
+              datanewactions = angular.extend(vm.flowOptions, {
+                actions: vm.addedActions.map((x) => {
+                  return {
+                    name: x.name,
+                    options: x.options,
+                    path: x.path,
+                  };
+                }),
+                action_workflow_name: result.action_workflow_name,
+                action_workflow_status: result.action_workflow_status,
+              });
+            }
+
+            if (vm.profilespec.length > 0 && vm.addedActions.length > 0) {
+              datapreset.actions = datapreset.actions.concat(datanewactions.actions);
+              data = datapreset;
+            } else if (vm.addedActions.length > 0) {
+              data = datanewactions;
+            } else if (vm.profilespec.length > 0) {
+              data = datapreset;
+            }
+
+            const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+            const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+            $http.put(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
+              $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+              Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+              vm.getProfiles();
             });
-          }
-
-          if (vm.profilespec.length > 0 && vm.addedActions.length > 0) {
-            datapreset.actions = datapreset.actions.concat(datanewactions.actions);
-            data = datapreset;
-          } else if (vm.addedActions.length > 0) {
-            data = datanewactions;
-          } else if (vm.profilespec.length > 0) {
-            data = datapreset;
-          }
-
-          const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-          const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-          $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
-            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-            Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
-            vm.getProfiles();
-          });
-        },
-        function () {}
-      );
+          },
+          function () {}
+        );
+      }
     };
 
     vm.removeConversionModal = (conversion) => {

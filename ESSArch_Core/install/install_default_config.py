@@ -263,7 +263,8 @@ def installDefaultUsers():
         ['view_submissionagreement', 'profiles', 'submissionagreement'],  # Can view submission agreement
         ['view_profile', 'profiles', 'profile'],  # Can view profile
         ['view_profileip', 'profiles', 'profileip'],  # Can view profile ip
-        ['view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can view submission agreement ip data
+        ['view_submissionagreementipdata', 'profiles',
+            'submissionagreementipdata'],  # Can view submission agreement ip data
         ['view_appraisaljob', 'maintenance', 'appraisaljob'],  # Can view appraisal job
         ['view_appraisaljobentry', 'maintenance', 'appraisaljobentry'],  # Can view appraisal job entry
         ['view_conversionjob', 'maintenance', 'conversionjob'],  # Can view conversion job
@@ -320,7 +321,8 @@ def installDefaultUsers():
         ['add_eventip', 'ip', 'eventip'],  # Can add Events related to IP
         ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
         ['add_profileipdata', 'profiles', 'profileipdata'],  # Can add profile ip data
-        ['add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can add submission agreement ip data
+        ['add_submissionagreementipdata', 'profiles',
+            'submissionagreementipdata'],  # Can add submission agreement ip data
     ]
 
     for p in permission_list_user:
@@ -360,7 +362,8 @@ def installDefaultUsers():
         ['preserve', 'ip', 'informationpackage'],  # Can preserve IP
         ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
         ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
-        ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea
+        ['add_to_ingest_workarea_as_new', 'ip',
+            'informationpackage'],  # Can add IP as new generation to ingest workarea
         ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
         ['delete_first_generation', 'ip', 'informationpackage'],  # Can delete first generation of IP
         ['delete_last_generation', 'ip', 'informationpackage'],  # Can delete last generation of IP
@@ -368,7 +371,8 @@ def installDefaultUsers():
         ['add_eventip', 'ip', 'eventip'],  # Can add Events related to IP
         ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
         ['add_profileipdata', 'profiles', 'profileipdata'],  # Can add profile ip data
-        ['add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can add submission agreement ip data
+        ['add_submissionagreementipdata', 'profiles',
+            'submissionagreementipdata'],  # Can add submission agreement ip data
     ]
 
     for p in permission_list_user:
@@ -414,7 +418,8 @@ def installDefaultUsers():
         ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
         ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
         ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
-        ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea
+        ['add_to_ingest_workarea_as_new', 'ip',
+            'informationpackage'],  # Can add IP as new generation to ingest workarea
         ['diff-check', 'ip', 'informationpackage'],  # Can diff-check IP
         ['query', 'ip', 'informationpackage'],  # Can query IP
         ['delete_first_generation', 'ip', 'informationpackage'],  # Can delete first generation of IP
@@ -446,7 +451,8 @@ def installDefaultUsers():
         ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
         ['view_profileip', 'profiles', 'profileip'],  # Can view profile ip
         ['add_profileipdata', 'profiles', 'profileipdata'],  # Can add profile ip data
-        ['view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can view submission agreement ip data
+        ['view_submissionagreementipdata', 'profiles',
+            'submissionagreementipdata'],  # Can view submission agreement ip data
         ['add_extensionpackage', 'ProfileMaker', 'extensionpackage'],  # Can add extension package
         ['add_appraisaljob', 'maintenance', 'appraisaljob'],  # Can add appraisal job
         ['change_appraisaljob', 'maintenance', 'appraisaljob'],  # Can change appraisal job
@@ -565,8 +571,10 @@ def installDefaultUsers():
         ['delete_agenttaglink', 'agents', 'agenttaglink'],  # Can delete Agent node relation
         ['view_agenttaglink', 'agents', 'agenttaglink'],  # Can view Agent node relation
         ['add_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can add agent tag relation type
-        ['change_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can change agent tag relation type
-        ['delete_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can delete agent tag relation type
+        ['change_agenttaglinkrelationtype', 'agents',
+            'agenttaglinkrelationtype'],  # Can change agent tag relation type
+        ['delete_agenttaglinkrelationtype', 'agents',
+            'agenttaglinkrelationtype'],  # Can delete agent tag relation type
         ['view_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can view agent tag relation type
         ['add_agenttype', 'agents', 'agenttype'],  # Can add agent type
         ['change_agenttype', 'agents', 'agenttype'],  # Can change agent type
@@ -606,7 +614,8 @@ def installDefaultUsers():
         ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
         ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
         ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
-        ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea
+        ['add_to_ingest_workarea_as_new', 'ip',
+            'informationpackage'],  # Can add IP as new generation to ingest workarea
         ['diff-check', 'ip', 'informationpackage'],  # Can diff-check IP
         ['query', 'ip', 'informationpackage'],  # Can query IP
         ['delete_first_generation', 'ip', 'informationpackage'],  # Can delete first generation of IP
@@ -644,9 +653,12 @@ def installDefaultUsers():
         ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
         ['view_profileip', 'profiles', 'profileip'],  # Can view profile ip
         ['add_profileipdata', 'profiles', 'profileipdata'],  # Can add profile ip data
-        ['change_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can change submission agreement ip data
-        ['delete_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can delete submission agreement ip data
-        ['view_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can view submission agreement ip data
+        # Can change submission agreement ip data
+        ['change_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],
+        # Can delete submission agreement ip data
+        ['delete_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],
+        ['view_submissionagreementipdata', 'profiles',
+            'submissionagreementipdata'],  # Can view submission agreement ip data
         ['add_extensionpackage', 'ProfileMaker', 'extensionpackage'],  # Can add extension package
         ['add_appraisaljob', 'maintenance', 'appraisaljob'],  # Can add appraisal job
         ['change_appraisaljob', 'maintenance', 'appraisaljob'],  # Can change appraisal job
@@ -872,9 +884,12 @@ def installDefaultUsers():
         ['add_storagemethod', 'storage', 'storagemethod'],  # Can add storage method
         ['change_storagemethod', 'storage', 'storagemethod'],  # Can change storage method
         ['delete_storagemethod', 'storage', 'storagemethod'],  # Can delete storage method
-        ['add_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can add Storage Method/Target Relation
-        ['change_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can change Storage Method/Target Relation
-        ['delete_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can delete Storage Method/Target Relation
+        # Can add Storage Method/Target Relation
+        ['add_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],
+        # Can change Storage Method/Target Relation
+        ['change_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],
+        # Can delete Storage Method/Target Relation
+        ['delete_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],
         ['storage_migration', 'storage', 'storageobject'],  # Storage migration
         ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance
         ['storage_management', 'storage', 'storageobject'],  # Storage management
@@ -893,7 +908,7 @@ def installDefaultUsers():
 
     for p in permission_list_user:
         p_obj = Permission.objects.get(
-            codename=p[0], 
+            codename=p[0],
             content_type__app_label=p[1],
             content_type__model=p[2],
         )
@@ -915,7 +930,7 @@ def installDefaultUsers():
     user_producer, created = User.objects.get_or_create(
         first_name='Producer', last_name='Lastname',
         username='producer', email='producer@essolutions.se'
-        )
+    )
     if created:
         user_producer.set_password('producer')
         user_producer.save()

@@ -3,7 +3,7 @@ export default class ActionWorkflowCtrl {
     const vm = this;
     vm.options = {profiles: []};
 
-     vm.getProfiles = function (search) {
+    vm.getProfiles = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'profiles/?type=action_workflow',
         method: 'GET',
@@ -15,6 +15,5 @@ export default class ActionWorkflowCtrl {
         return vm.options.profiles;
       });
     };
-
-    }}
-
+  }
+}

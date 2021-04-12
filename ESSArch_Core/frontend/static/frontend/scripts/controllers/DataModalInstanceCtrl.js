@@ -7,8 +7,9 @@ export default class DataModalInstanceCtrl {
     $scope.prepareAlert = null;
     $ctrl.data = data;
 
-    $scope.trustAsHtml = function(string) {
-    return $sce.trustAsHtml(string); };
+    $scope.trustAsHtml = function (string) {
+      return $sce.trustAsHtml(string);
+    };
 
     $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null) {
