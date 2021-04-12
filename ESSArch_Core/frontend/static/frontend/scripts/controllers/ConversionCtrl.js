@@ -111,7 +111,7 @@ export default class ConversionCtrl {
       var index = vm.profilespec.indexOf(value);
       vm.profilespec.splice(index, 1);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 1) {
+      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
         vm.workflowActive = false;
       }
     };
@@ -120,7 +120,7 @@ export default class ConversionCtrl {
       var index = vm.addedActions.indexOf(value);
       vm.addedActions.splice(index, 1);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 1) {
+      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
         vm.workflowActive = false;
       }
     };
