@@ -16,7 +16,7 @@
     "@types/ua-parser-js": "^0.7.33",
     "@typescript-eslint/eslint-plugin": "^4.1.1",
     "@typescript-eslint/parser": "^4.1.1",
-    "@uirouter/angularjs": "~1.0.22",
+    "@uirouter/angularjs": "~1.0.29",
     "angular": "~1.8",
     "angular-animate": "~1.8.0",
     "angular-bootstrap-contextmenu": "~1.2.1",
