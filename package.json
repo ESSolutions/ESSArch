@@ -55,7 +55,7 @@
     "eslint": "^7.9.0",
     "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-angular": "^4.0.1",
-    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
     "expose-loader": "^0.7.5",
     "file-loader": "^6.1.0",
     "fork-ts-checker-webpack-plugin": "^5.2.0",
