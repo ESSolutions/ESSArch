@@ -172,7 +172,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_docker(self, filepath, rootdir, options, t):
+    def _run_docker(self, filepath, rootdir, options, t=None, ip=None):
         import docker
         client = docker.from_env()
         workdir = '/mnt/vol1'
