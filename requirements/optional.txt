@@ -1,7 +1,7 @@
 django-auth-ldap==2.1.0
 djangosaml2==0.18.1
 unoconv==0.9.0
-comtypes==1.1.7;platform_system=='Windows'
+comtypes==1.1.9;platform_system=='Windows'
 wfastcgi==3.0.0
 django-mssql-backend==2.8.1
 mysqlclient==2.0.3
