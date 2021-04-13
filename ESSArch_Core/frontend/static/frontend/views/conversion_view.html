@@ -69,6 +69,13 @@
           </div>
           <div class="flex-row justify-content-end" style="margin-bottom: 15px; margin-right: 15px; margin-top: 10px">
             <button
+              class="btn btn-default"
+              ng-click="vm.cancelWorkflow()"
+              ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+            >
+              {{'CONVERSION_VIEW.CANCEL' | translate}}
+            </button>
+            <button
               class="btn btn-primary"
               ng-click="vm.saveWorkflowModal()"
               ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"

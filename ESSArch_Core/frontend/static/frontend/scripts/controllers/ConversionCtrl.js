@@ -136,8 +136,11 @@ export default class ConversionCtrl {
 
     vm.updateCache = function () {
       vm.put('selectedProfile', $scope.selectedProfile);
-
-      vm.put('nameOfWorkflow', $scope.selectedProfile.name);
+      if ($scope.selectedProfile) {
+        vm.put('nameOfWorkflow', $scope.selectedProfile.name);
+      } else {
+        vm.put('nameOfWorkflow', '');
+      }
 
       vm.put('profilespec', vm.profilespec);
 
@@ -271,6 +274,13 @@ export default class ConversionCtrl {
           function () {}
         );
       }
+      vm.updateCache();
+    };
+
+    vm.cancelWorkflow = () => {
+      vm.profilespec = [];
+      vm.addedActions = [];
+      $scope.selectedProfile = null;
       vm.updateCache();
     };
 
