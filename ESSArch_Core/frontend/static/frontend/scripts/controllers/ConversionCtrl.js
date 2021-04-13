@@ -1,5 +1,5 @@
 export default class ConversionCtrl {
-  constructor($scope, $rootScope, appConfig, $translate, $http, $timeout, $uibModal, Notifications) {
+  constructor($scope, $rootScope, appConfig, $translate, $http, $timeout, $uibModal, Notifications, $cacheFactory) {
     const vm = this;
     vm.flowOptions = {};
     vm.options = {converters: []};
@@ -19,9 +19,23 @@ export default class ConversionCtrl {
     vm.profile = [];
     $scope.selectedProfile = {};
     $scope.selectedProfile = vm.profilelist[0];
+    vm.cache = $cacheFactory.get('cacheId') || $cacheFactory('cacheId');
 
     vm.$onInit = function () {
       vm.getProfiles();
+
+      if (vm.cache.get('ip.id') === vm.ip.id) {
+        if (vm.cache.get('addedActions')) {
+          vm.addedActions = vm.cache.get('addedActions');
+        }
+        if (vm.cache.get('profilespec')) {
+          vm.profilespec = vm.cache.get('profilespec');
+        }
+        if (vm.cache.get('nameOfWorkflow')) {
+          vm.nameOfWorkflow = vm.cache.get('nameOfWorkflow');
+        }
+      }
+
       vm.workflowActive = false;
     };
 
@@ -107,6 +121,10 @@ export default class ConversionCtrl {
       });
     };
 
+    vm.put = function (key, value) {
+      vm.cache.put(key, value);
+    };
+
     vm.deleteFromWorkflow = (value) => {
       var index = vm.profilespec.indexOf(value);
       vm.profilespec.splice(index, 1);
@@ -116,13 +134,28 @@ export default class ConversionCtrl {
       }
     };
 
-    vm.deleteAddedFromWorkflow = (value) => {
-      var index = vm.addedActions.indexOf(value);
-      vm.addedActions.splice(index, 1);
+    vm.updateCache = function () {
+      vm.put('selectedProfile', $scope.selectedProfile);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
-        vm.workflowActive = false;
+      vm.put('nameOfWorkflow', $scope.selectedProfile.name);
+
+      vm.put('profilespec', vm.profilespec);
+
+      vm.put('addedActions', vm.addedActions);
+
+      vm.put('ip.id', vm.ip.id);
+    };
+
+    vm.deleteAddedFromWorkflow = (value) => {
+      if (vm.addedActions.length > 0) {
+        var index = vm.addedActions.indexOf(value);
+        vm.addedActions.splice(index, 1);
+
+        if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
+          vm.workflowActive = false;
+        }
       }
+      vm.updateCache();
     };
 
     vm.actionDetailsModal = (value) => {
@@ -238,6 +271,7 @@ export default class ConversionCtrl {
           function () {}
         );
       }
+      vm.updateCache();
     };
 
     vm.saveWorkflowModal = () => {
@@ -372,6 +406,9 @@ export default class ConversionCtrl {
         .then(function (response) {
           vm.profilespec = response.data.specification[0].children;
         })
+        .then(function () {
+          vm.updateCache();
+        })
         .catch(() => {
           console.log('Caught error');
         });
@@ -419,6 +456,8 @@ export default class ConversionCtrl {
       addAction.data = data;
 
       vm.addedActions.push(addAction);
+
+      vm.updateCache();
 
       vm.workflowActive = true;
     };
@@ -484,6 +523,9 @@ export default class ConversionCtrl {
             });
           })
           .then(() => {
+            vm.updateCache();
+          })
+          .then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
           });
       } else if (datapreset) {
@@ -491,17 +533,25 @@ export default class ConversionCtrl {
           method: 'POST',
           url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
           data: datapreset,
-        }).then(() => {
-          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-        });
+        })
+          .then(() => {
+            vm.updateCache();
+          })
+          .then(() => {
+            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          });
       } else if (datanewactions) {
         $http({
           method: 'POST',
           url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
           data: datanewactions,
-        }).then(() => {
-          $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-        });
+        })
+          .then(() => {
+            vm.updateCache();
+          })
+          .then(() => {
+            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          });
       }
     };
   }

@@ -16,7 +16,8 @@
             </div>
             <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
               <hr class="small" />
-              <label class="control-label">Workflow</label>
+              <label ng-if="vm.nameOfWorkflow" class="control-label">Editing Workflow {{vm.nameOfWorkflow}}</label>
+              <label ng-if="!vm.nameOfWorkflow" class="control-label">Creating Workflow</label>
               <table class="table">
                 <thead>
                   <tr>
