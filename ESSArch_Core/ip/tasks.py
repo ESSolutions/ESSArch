@@ -33,18 +33,20 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
 from ESSArch_Core.essxml.util import parse_submit_description
 from ESSArch_Core.fixity.receipt import get_backend as get_receipt_backend
 from ESSArch_Core.fixity.transformation import get_backend as get_transformer
-from ESSArch_Core.fixity.validation import get_backend as get_validator
-from ESSArch_Core.fixity.validation import _validate_directory as validate_directory
+from ESSArch_Core.fixity.validation import (
+    _validate_directory as validate_directory,
+    get_backend as get_validator,
+)
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
 from ESSArch_Core.ip.utils import (
     download_schemas,
+    fill_specification_data,
     generate_aic_mets,
     generate_content_mets,
     generate_events_xml,
     generate_package_mets,
     generate_premis,
     parse_submit_description_from_ip,
-    fill_specification_data,
 )
 from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.storage.copy import copy_file, enough_space_available
@@ -413,33 +415,44 @@ def Transform(self, backend, path=None):
 
 
 @app.task(bind=True)
-def Validate(self, backend, path=None, context=None, include=None, exclude=None, required=False, **kwargs):
+def Validate(self, backend, path=None, context=None, include=None,
+             exclude=None, options=None, required=False, stylesheet=None,
+             **kwargs):
+
     validators = []
-    options = kwargs
+
     ip = self.get_information_package()
 
     if path is None and ip is not None:
         path = ip.object_path
-
+    backend_name = backend
     user = User.objects.filter(pk=self.responsible).first()
     profile_data = fill_specification_data(data=options, ip=ip)
     backend = get_validator(backend)
 
     if include:
+
+        if isinstance(include, str):
+            include = include.split(',')
+
         include = [os.path.join(path, included) for included in include]
 
     if exclude:
+        if isinstance(exclude, str):
+            exclude = exclude.split(',')
+
         exclude = [os.path.join(path, excluded) for excluded in exclude]
 
     validator_instance = backend(context=context,
                                  include=include,
                                  exclude=exclude,
-                                 options=options['options'],
+                                 options=options,
                                  data=profile_data,
                                  required=required,
                                  task=self.get_processtask(),
                                  ip=ip,
-                                 responsible=user
+                                 responsible=user,
+                                 stylesheet=stylesheet
                                  )
 
     validators.append(validator_instance)
@@ -448,6 +461,16 @@ def Validate(self, backend, path=None, context=None, include=None, exclude=None,
                        validators=validators,
                        ip=ip,
                        responsible=user)
+
+    Notification.objects.create(
+        message='{backend} job done for "{ip}"'.format(
+            backend=backend_name,
+            ip=ip.object_identifier_value
+        ),
+        level=logging.INFO,
+        user_id=self.responsible,
+        refresh=True
+    )
 
 
 @app.task(bind=True)

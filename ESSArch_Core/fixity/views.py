@@ -6,15 +6,13 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.fixity.filters import ValidationFilter
-from ESSArch_Core.fixity.models import ActionTool, Validation 
+from ESSArch_Core.fixity.models import ActionTool, Validation
 from ESSArch_Core.fixity.serializers import (
-    SaveActionToolSerializer,
     ActionToolSerializer,
+    SaveActionToolSerializer,
     ValidationFilesSerializer,
     ValidationSerializer,
 )
-
-from django.views.generic import ListView
 
 
 class ActionToolViewSet(viewsets.ReadOnlyModelViewSet):

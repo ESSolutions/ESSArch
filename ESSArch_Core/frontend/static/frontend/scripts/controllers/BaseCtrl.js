@@ -832,7 +832,7 @@ export default class BaseCtrl {
         tar: request.type === 'get_tar',
         extracted: request.type === 'get',
         new: request.type === 'get_as_new',
-        edit:$ctrl.data.request.type === 'edit',
+        edit: $ctrl.data.request.type === 'edit',
         package_xml: request.package_xml,
         aic_xml: request.aic_xml,
       };

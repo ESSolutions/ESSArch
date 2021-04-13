@@ -664,10 +664,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'submission_agreement__policy__ingest_path').prefetch_related(
                     'agents',
                     'steps',
+<<<<<<< HEAD
                     Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
                     Prefetch('profileip_set', queryset=profile_ips)
             )
 
+=======
+                    Prefetch('workareas',
+                             queryset=workareas,
+                             to_attr='prefetched_workareas'),
+                    Prefetch(
+                        'profileip_set',
+                        queryset=profile_ips,
+                    ),
+            )
+>>>>>>> action_dev
             qs = self.annotate_generations(self.apply_filters(qs))
 
             self.queryset = qs
@@ -1071,7 +1082,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-    @action(detail=True, methods=['post'], url_path='actiontool_save')
+    @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
         if ip.state not in ['Prepared', 'Uploading', 'Received']:
@@ -1118,6 +1129,62 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         }
 
         Profile.objects.update_or_create(name=dct['name'], defaults=dct)
+
+        return Response()
+
+    @action(detail=True, methods=['put'], url_path='actiontool_save')
+    def save_actiontool_copy(self, request, pk=None):
+        # do something else with obj if need be
+        ip = self.get_object()
+        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading" or "Received"')
+
+        serializer = ActionToolSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
+
+        for converter in serializer.validated_data['actions']:
+            tool_name = converter['name']
+
+            # ensure that tool exists
+            ActionTool.objects.get(name=tool_name)
+
+            options = converter['options']
+            pattern = None
+
+            if 'path' in converter:
+                pattern = converter['path']
+
+            workflow_spec[0]['children'].append({
+                "name":
+                "ESSArch_Core.fixity.action.tasks.Action",
+                "label":
+                tool_name,
+                "args":
+                [tool_name, pattern, options,
+                 request.data.get('purpose')]
+            })
+
+        # Save action workflow profile
+        action_workflow_name = request.data.get('action_workflow_name')
+        action_workflow_status = request.data.get('action_workflow_status')
+        dct = {
+            'name': action_workflow_name,
+            'profile_type': 'action_workflow',
+            'type': 'Action Workflow',
+            'status': action_workflow_status,
+            'label': action_workflow_name,
+            'specification': workflow_spec,
+        }
+
+        try:
+            obj = Profile.objects.get(name=dct['name'])
+            obj.field = dct
+            obj.save()
+        except Profile.DoesNotExist:
+            obj = Profile.objects.create(field=dct)
 
         return Response()
 
@@ -3284,10 +3351,11 @@ class WorkareaViewSet(InformationPackageViewSet):
         return self.http_method_not_allowed(request, *args, **kwargs)
 
     def annotate_filtered_first_generation(self, qs, workareas, user, see_all):
-        lower_higher = InformationPackage.objects.visible_to_user(user).annotate(
-            workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
-        ).filter(workarea_exists=True, aic=OuterRef('aic')
-                 ).exclude(package_type=InformationPackage.AIC).order_by().values('aic')
+        lower_higher = InformationPackage.objects.visible_to_user(
+            user).annotate(
+                workarea_exists=Exists(workareas.filter(ip=OuterRef('pk')))
+        ).filter(workarea_exists=True, aic=OuterRef('aic')).exclude(
+                package_type=InformationPackage.AIC).order_by().values('aic')
 
         if not see_all:
             lower_higher = lower_higher.filter(workareas__user=user)
