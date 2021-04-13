@@ -23,7 +23,6 @@
                   <tr>
                     <th scope="col">#</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Path</th>
                     <th scope="col">Details</th>
                     <th scope="col">Delete</th>
                   </tr>
@@ -32,7 +31,6 @@
                   <tr ng-repeat="value in vm.profilespec">
                     <td>{{$index+1}}</td>
                     <td>{{value.args[0]}}</td>
-                    <td>{{value.args[1]}}</td>
                     <td>
                       <button
                         class="fas fa-edit btn btn-default btn-sm"
@@ -48,8 +46,10 @@
                   </tr>
                   <tr ng-repeat="value in vm.addedActions track by $index">
                     <td>{{vm.profilespec.length+$index+1}}</td>
-                    <td>{{value.name}}</td>
-                    <td>{{value.path}}</td>
+                    <td>
+                      {{value.name}}
+                      <p class="text-secondary">{{'CONVERSION_VIEW.NEW' | translate}}!</p>
+                    </td>
                     <td>
                       <button
                         class="fas fa-edit btn btn-default btn-sm"

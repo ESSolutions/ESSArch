@@ -16,6 +16,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       RUN_PRESET_WORKFLOW: 'Run preset workflow',
       SELECT_WORKFLOW: 'Select workflow',
       CANCEL: 'Cancel',
+      NEW: 'New',
     },
     CONVERSION: 'Actions',
     NONE_SELECTED: 'None selected',

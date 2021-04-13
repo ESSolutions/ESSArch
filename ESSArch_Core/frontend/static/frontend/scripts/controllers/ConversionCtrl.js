@@ -417,6 +417,7 @@ export default class ConversionCtrl {
           vm.profilespec = response.data.specification[0].children;
         })
         .then(function () {
+          vm.nameOfWorkflow = $scope.selectedProfile.name;
           vm.updateCache();
         })
         .catch(() => {

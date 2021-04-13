@@ -16,6 +16,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       RUN_PRESET_WORKFLOW: 'Kör förinställt arbetsflöde',
       SELECT_WORKFLOW: 'Välj arbetsflöde',
       CANCEL: 'Avbryt',
+      NEW: 'Ny',
     },
     CONVERSION: 'Åtgärd',
     NONE_SELECTED: 'Ingen vald',
