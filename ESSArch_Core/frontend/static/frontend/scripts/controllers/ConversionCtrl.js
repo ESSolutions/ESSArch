@@ -219,7 +219,7 @@ export default class ConversionCtrl {
 
     vm.saveAsWorkflowModal = () => {
       if (vm.profilespec.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
-        var workflow = vm.conversions;
+        var workflow = null;
         var currentProfile = null;
         var modalInstance = $uibModal.open({
           animation: true,
@@ -335,7 +335,7 @@ export default class ConversionCtrl {
 
     vm.saveWorkflowModal = () => {
       if (vm.profilespec.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
-        var workflow = vm.conversions;
+        var workflow = $scope.selectedProfile;
         var currentProfile = $scope.selectedProfile;
         var modalInstance = $uibModal.open({
           animation: true,
