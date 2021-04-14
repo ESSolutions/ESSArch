@@ -58,7 +58,9 @@ export default class ConversionCtrl {
           vm.profilelist = profilelist;
           vm.profilesLoading = false;
         })
-        .catch(() => {
+        .catch(function (data) {
+          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data, 'error');
+          $log.error('Error getting profiles from server: ' + data);
           vm.profilesLoading = false;
         });
     };
@@ -98,12 +100,17 @@ export default class ConversionCtrl {
         url: appConfig.djangoUrl + 'action-tools/',
         method: 'GET',
         params: {search: search, pager: 'none'},
-      }).then(function (response) {
-        vm.options.converters = response.data.map((converter) => {
-          return converter;
+      })
+        .then(function (response) {
+          vm.options.converters = response.data.map((converter) => {
+            return converter;
+          });
+          return vm.options.converters;
+        })
+        .catch(function (data) {
+          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_ACTION_TOOLS') + ' ' + data, 'error');
+          $log.error('Error getting action tools from server: ' + data);
         });
-        return vm.options.converters;
-      });
     };
 
     vm.addConverter = () => {
@@ -129,7 +136,10 @@ export default class ConversionCtrl {
       var index = vm.profilespec.indexOf(value);
       vm.profilespec.splice(index, 1);
 
-      if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
+      if (vm.profilespec.length < 1 && vm.addedActions.length < 1) {
+        vm.profilespec = [];
+        vm.addedActions = [];
+        vm.updateCache();
         vm.workflowActive = false;
       }
     };
@@ -154,7 +164,10 @@ export default class ConversionCtrl {
         var index = vm.addedActions.indexOf(value);
         vm.addedActions.splice(index, 1);
 
-        if (vm.profilespec.length < 1 && vm.addedActions.length > 0) {
+        if (vm.profilespec.length < 1 && vm.addedActions.length < 1) {
+          vm.profilespec = [];
+          vm.addedActions = [];
+          vm.updateCache();
           vm.workflowActive = false;
         }
       }
@@ -265,11 +278,17 @@ export default class ConversionCtrl {
 
             const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
             const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-            $http.post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save_as/', data).then(() => {
-              $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-              Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
-              vm.getProfiles();
-            });
+            $http
+              .post(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save_as/', data)
+              .then(() => {
+                $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+                vm.getProfiles();
+              })
+              .catch(function (data) {
+                Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') + ' ' + data, 'error');
+                $log.error('Error posting workflow to server: ' + data);
+              });
           },
           function () {}
         );
@@ -365,11 +384,17 @@ export default class ConversionCtrl {
 
             const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
             const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-            $http.put(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data).then(() => {
-              $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-              Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
-              vm.getProfiles();
-            });
+            $http
+              .put(appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool_save/', data)
+              .then(() => {
+                $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+                vm.getProfiles();
+              })
+              .catch(function (data) {
+                Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_PUT_WORKFLOW') + ' ' + data, 'error');
+                $log.error('Error saving workflow update on server: ' + data);
+              });
           },
           function () {}
         );
@@ -420,8 +445,9 @@ export default class ConversionCtrl {
           vm.nameOfWorkflow = $scope.selectedProfile.name;
           vm.updateCache();
         })
-        .catch(() => {
-          console.log('Caught error');
+        .catch(function (data) {
+          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data, 'error');
+          $log.error('Error getting profiles from server: ' + data);
         });
 
       vm.workflowActive = true;
@@ -538,6 +564,10 @@ export default class ConversionCtrl {
           })
           .then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          })
+          .catch(function (data) {
+            Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') + ' ' + data, 'error');
+            $log.error('Problem running actions. Error from server: ' + data);
           });
       } else if (datapreset) {
         $http({
@@ -562,6 +592,10 @@ export default class ConversionCtrl {
           })
           .then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          })
+          .catch(function (data) {
+            Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') + ' ' + data, 'error');
+            $log.error('Problem running actions. Error from server: ' + data);
           });
       }
     };
