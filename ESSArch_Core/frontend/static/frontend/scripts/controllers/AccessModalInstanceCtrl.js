@@ -21,13 +21,13 @@ export default class AccessModalInstanceCtrl {
     $ctrl.accessTitle = function (type) {
       switch (type) {
         case 'get':
-          return 'GET';
+          return 'PROCESS_AS_READ_ONLY';
         case 'get_tar':
-          return 'GET_AS_CONTAINER';
+          return 'RETRIEVE_AS_CONTAINER';
         case 'get_as_new':
-          return 'GET_AS_NEW_GENERATION';
+          return 'PROCESS_AS_NEW_GENERATION';
         case 'edit':
-          return 'GET_AS_EDITABLE';
+          return 'PROCESS_AS_EDITABLE';
         default:
           return 'GET';
       }
