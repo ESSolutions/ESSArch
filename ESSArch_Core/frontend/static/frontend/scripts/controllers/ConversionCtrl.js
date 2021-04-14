@@ -471,27 +471,40 @@ export default class ConversionCtrl {
     };
 
     vm.fetchClick = () => {
-      $http({
-        url: appConfig.djangoUrl + 'profiles/' + $scope.selectedProfile.id + '/',
-        method: 'GET',
-        params: {pager: 'none'},
-      })
-        .then(function (response) {
-          vm.profilespec = response.data.specification[0].children;
-        })
-        .then(function () {
-          vm.nameOfWorkflow = $scope.selectedProfile.name;
-          vm.updateCache();
-        })
-        .catch(function (data) {
-          Notifications.add(
-            $translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data.statusText + '(' + data.status + ')',
-            'error'
-          );
-          $log.error('Error getting profiles from server: ' + angular.toJson(data));
-        });
+      if (!angular.isUndefined($scope.selectedProfile) && $scope.selectedProfile !== null) {
+        if (
+          !angular.isUndefined($scope.selectedProfile.id) &&
+          $scope.selectedProfile.id !== null &&
+          $scope.selectedProfile.id !== ''
+        ) {
+          $http({
+            url: appConfig.djangoUrl + 'profiles/' + $scope.selectedProfile.id + '/',
+            method: 'GET',
+            params: {pager: 'none'},
+          })
+            .then(function (response) {
+              vm.profilespec = response.data.specification[0].children;
+            })
+            .then(function () {
+              vm.nameOfWorkflow = $scope.selectedProfile.name;
+              vm.updateCache();
+            })
+            .catch(function (data) {
+              Notifications.add(
+                $translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') +
+                  ' ' +
+                  data.statusText +
+                  '(' +
+                  data.status +
+                  ')',
+                'error'
+              );
+              $log.error('Error getting profiles from server: ' + angular.toJson(data));
+            });
 
-      vm.workflowActive = true;
+          vm.workflowActive = true;
+        }
+      }
     };
 
     vm.newToList = () => {
