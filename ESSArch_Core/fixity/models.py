@@ -54,26 +54,21 @@ class ExternalTool(models.Model):
 def ActionTool_form_default():
     return [
         dict({
-            "key":
-            "path",
-            "type":
-            "input",
-            "templateOptions":
-            dict({
+            "key": "path",
+            "type": "input",
+            "templateOptions": dict({
                 "label": "PATH_i18n",
                 "required": "true"
             }),
-            "expressionProperties":
-            dict({"templateOptions.label": "\"PATH\" | translate"})
+            "expressionProperties": dict({
+                "templateOptions.label": "\"PATH\" | translate"
+            })
         })
     ]
 
 
 class ActionTool(ExternalTool):
-    form = models.JSONField(_('form'),
-                            null=True,
-                            blank=True,
-                            default=ActionTool_form_default)
+    form = models.JSONField(_('form'), null=True, blank=True, default=ActionTool_form_default)
 
     class Meta:
         verbose_name = _('action tool')
@@ -82,9 +77,9 @@ class ActionTool(ExternalTool):
     def prepare_cmd(self, filepath, options):
         kwargs = {
             'input': filepath,  # 'test1/test2/kanin.jpg'
-            'input_basename': os.path.basename(filepath),  # 'kanin.jpg'
-            'input_dir': os.path.dirname(filepath),  # 'test1/test2'
-            'input_name': PurePath(filepath).stem,  # 'kanin'
+            'input_basename': os.path.basename(filepath),   # 'kanin.jpg'
+            'input_dir': os.path.dirname(filepath),     # 'test1/test2'
+            'input_name': PurePath(filepath).stem,      # 'kanin'
             'input_ext': ''.join(PurePath(filepath).suffixes)[1:],  # 'jpg'
         }
         kwargs.update(options)
@@ -102,7 +97,10 @@ class ActionTool(ExternalTool):
             out, err = p.communicate()
             if p.returncode != 0:
                 message = 'Command "{cmd}" exited with returncode "{returncode}" and error message "{err}"'.format(
-                    cmd=cmd, returncode=p.returncode, err=err)
+                    cmd=cmd,
+                    returncode=p.returncode,
+                    err=err
+                )
                 if self.type == ExternalTool.Type.CONVERSION_TOOL:
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
@@ -114,13 +112,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_python(self,
-                    filepath,
-                    rootdir,
-                    options,
-                    t=None,
-                    ip=None,
-                    context=None):
+    def _run_python(self, filepath, rootdir, options, t=None, ip=None, context=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -130,37 +122,31 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-                p = getattr(importlib.import_module(module),
-                            task)(task=t, ip=ip, context=context)
-                if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(
-                        cmd, dict):
+                p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
+                if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
-                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(
-                        cmd, tuple):
+                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
                     p.convert(*cmd)
-                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(
-                        cmd, dict):
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, dict):
                     p.collect(**cmd)
-                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(
-                        cmd, tuple):
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, tuple):
                     p.collect(*cmd)
-                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(
-                        cmd, dict):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, dict):
                     p.transform(**cmd)
-                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(
-                        cmd, tuple):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, tuple):
                     p.transform(*cmd)
-                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(
-                        cmd, dict):
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, dict):
                     p.validate(**cmd)
-                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(
-                        cmd, tuple):
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, tuple):
                     p.validate(*cmd)
                 else:
                     raise ValueError(cmd)
             except Exception as err:
                 message = 'Module "{module}" command "{cmd}" exited with error message "{err}"'.format(
-                    module=self.path, cmd=cmd, err=err)
+                    module=self.path,
+                    cmd=cmd,
+                    err=err
+                )
                 if self.type == ExternalTool.Type.CONVERSION_TOOL:
                     raise ConversionError(message)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL:
@@ -177,14 +163,11 @@ class ActionTool(ExternalTool):
         client = docker.from_env()
         workdir = '/mnt/vol1'
 
-        cmd = self.prepare_cmd(
-            PurePath(filepath).relative_to(rootdir).as_posix(), options)
+        cmd = self.prepare_cmd(PurePath(filepath).relative_to(rootdir).as_posix(), options)
         client.containers.run(
             self.path,
             cmd,
-            volumes={os.path.abspath(rootdir): {
-                'bind': workdir
-            }},
+            volumes={os.path.abspath(rootdir): {'bind': workdir}},
             working_dir=workdir,
             remove=True,
         )
@@ -210,9 +193,7 @@ class Validation(models.Model):
     passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
     message = models.TextField(max_length=255, blank=True)
-    information_package = models.ForeignKey('ip.InformationPackage',
-                                            on_delete=models.CASCADE,
-                                            null=True)
+    information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.CASCADE,
