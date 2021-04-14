@@ -12,6 +12,7 @@ export default {
     '$uibModal',
     'Notifications',
     '$cacheFactory',
+    '$log',
     ConversionCtrl,
   ],
   controllerAs: 'vm',

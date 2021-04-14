@@ -1,5 +1,16 @@
 export default class ConversionCtrl {
-  constructor($scope, $rootScope, appConfig, $translate, $http, $timeout, $uibModal, Notifications, $cacheFactory) {
+  constructor(
+    $scope,
+    $rootScope,
+    appConfig,
+    $translate,
+    $http,
+    $timeout,
+    $uibModal,
+    Notifications,
+    $cacheFactory,
+    $log
+  ) {
     const vm = this;
     vm.flowOptions = {};
     vm.options = {converters: []};
@@ -59,8 +70,11 @@ export default class ConversionCtrl {
           vm.profilesLoading = false;
         })
         .catch(function (data) {
-          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data, 'error');
-          $log.error('Error getting profiles from server: ' + data);
+          Notifications.add(
+            $translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data.statusText + '(' + data.status + ')',
+            'error'
+          );
+          $log.error('Error getting profiles from server: ' + angular.toJson(data));
           vm.profilesLoading = false;
         });
     };
@@ -108,8 +122,16 @@ export default class ConversionCtrl {
           return vm.options.converters;
         })
         .catch(function (data) {
-          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_ACTION_TOOLS') + ' ' + data, 'error');
-          $log.error('Error getting action tools from server: ' + data);
+          Notifications.add(
+            $translate.instant('CONVERSION_VIEW.ERROR_GET_ACTION_TOOLS') +
+              ' ' +
+              data.statusText +
+              '(' +
+              data.status +
+              ')',
+            'error'
+          );
+          $log.error('Error getting action tools from server: ' + angular.toJson(data));
         });
     };
 
@@ -286,8 +308,16 @@ export default class ConversionCtrl {
                 vm.getProfiles();
               })
               .catch(function (data) {
-                Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') + ' ' + data, 'error');
-                $log.error('Error posting workflow to server: ' + data);
+                Notifications.add(
+                  $translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') +
+                    ' ' +
+                    data.statusText +
+                    '(' +
+                    data.status +
+                    ')',
+                  'error'
+                );
+                $log.error('Error posting workflow to server: ' + angular.toJson(data));
               });
           },
           function () {}
@@ -392,8 +422,16 @@ export default class ConversionCtrl {
                 vm.getProfiles();
               })
               .catch(function (data) {
-                Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_PUT_WORKFLOW') + ' ' + data, 'error');
-                $log.error('Error saving workflow update on server: ' + data);
+                Notifications.add(
+                  $translate.instant('CONVERSION_VIEW.ERROR_PUT_WORKFLOW') +
+                    ' ' +
+                    data.statusText +
+                    '(' +
+                    data.status +
+                    ')',
+                  'error'
+                );
+                $log.error('Error saving workflow update on server: ' + angular.toJson(data));
               });
           },
           function () {}
@@ -446,8 +484,11 @@ export default class ConversionCtrl {
           vm.updateCache();
         })
         .catch(function (data) {
-          Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data, 'error');
-          $log.error('Error getting profiles from server: ' + data);
+          Notifications.add(
+            $translate.instant('CONVERSION_VIEW.ERROR_GET_PROFILES') + ' ' + data.statusText + '(' + data.status + ')',
+            'error'
+          );
+          $log.error('Error getting profiles from server: ' + angular.toJson(data));
         });
 
       vm.workflowActive = true;
@@ -566,8 +607,16 @@ export default class ConversionCtrl {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
           })
           .catch(function (data) {
-            Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') + ' ' + data, 'error');
-            $log.error('Problem running actions. Error from server: ' + data);
+            Notifications.add(
+              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                ' ' +
+                data.statusText +
+                '(' +
+                data.status +
+                ')',
+              'error'
+            );
+            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
           });
       } else if (datapreset) {
         $http({
@@ -580,6 +629,18 @@ export default class ConversionCtrl {
           })
           .then(() => {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+          })
+          .catch(function (data) {
+            Notifications.add(
+              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                ' ' +
+                data.statusText +
+                '(' +
+                data.status +
+                ')',
+              'error'
+            );
+            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
           });
       } else if (datanewactions) {
         $http({
@@ -594,8 +655,16 @@ export default class ConversionCtrl {
             $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
           })
           .catch(function (data) {
-            Notifications.add($translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') + ' ' + data, 'error');
-            $log.error('Problem running actions. Error from server: ' + data);
+            Notifications.add(
+              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                ' ' +
+                data.statusText +
+                '(' +
+                data.status +
+                ')',
+              'error'
+            );
+            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
           });
       }
     };
