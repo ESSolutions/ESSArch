@@ -305,6 +305,7 @@ jobs:
 
           ACCEPT_EULA: Y
           SA_PASSWORD: MyPassword42
+          MSSQL_PID: Enterprise
         ports:
           - 13306:${{ matrix.port }}
         options: >-
@@ -372,9 +373,9 @@ jobs:
 
           docker ps -a
           echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
-          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q GO
+          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
           echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
-          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q GO
+          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
 
           python -m pip install --upgrade pip wheel setuptools
 
@@ -404,7 +405,11 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q GO
+          docker ps -a
+          echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
+          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
+          echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
+          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
           date
           sleep 5
           coverage run manage.py test --verbosity=2
