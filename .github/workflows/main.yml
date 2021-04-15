@@ -362,7 +362,6 @@ jobs:
 
       - name: Install
         run: |
-          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q GO
           docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
           docker restart elasticsearch
 
@@ -370,6 +369,12 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev mssql-tools
+
+          docker ps -a
+          echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
+          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q GO
+          echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
+          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q GO
 
           python -m pip install --upgrade pip wheel setuptools
 
