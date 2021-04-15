@@ -270,7 +270,7 @@ jobs:
             database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
             image: mcr.microsoft.com/mssql/server:2019-latest
             port: 1433
-            health_cmd: true
+            health_cmd: '/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null'
 
     services:
       elasticsearch:
