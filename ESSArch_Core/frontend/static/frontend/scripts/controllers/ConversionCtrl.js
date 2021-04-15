@@ -307,6 +307,9 @@ export default class ConversionCtrl {
                 Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
                 vm.getProfiles();
               })
+              .then(() => {
+                vm.cancelWorkflow();
+              })
               .catch(function (data) {
                 Notifications.add(
                   $translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') +
@@ -323,12 +326,12 @@ export default class ConversionCtrl {
           function () {}
         );
       }
-      vm.updateCache();
     };
 
     vm.cancelWorkflow = () => {
       vm.profilespec = [];
       vm.addedActions = [];
+      vm.nameOfWorkflow = '';
       $scope.selectedProfile = null;
       vm.updateCache();
     };
@@ -420,6 +423,9 @@ export default class ConversionCtrl {
                 $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
                 Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
                 vm.getProfiles();
+              })
+              .then(() => {
+                vm.cancelWorkflow();
               })
               .catch(function (data) {
                 Notifications.add(
