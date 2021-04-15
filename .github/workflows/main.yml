@@ -41,7 +41,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Set up Node
         uses: actions/setup-node@v1
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install
         run: |
@@ -164,10 +164,10 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v1
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Get yarn cache
         id: yarn_cache
@@ -262,12 +262,12 @@ jobs:
             port: 3306
             health_cmd: mysqladmin ping --user=root -ppassword
           - db: postgres
-            database_url: 'postgres://postgres:postgres@localhost:13306/essarch?isolation_level=read committed'
+            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=read committed'
             image: postgres
             port: 5432
             health_cmd: pg_isready
           - db: mssql
-            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+            database_url: 'mssql://SA:MyPassword42@127.0.0.1:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
             image: mcr.microsoft.com/mssql/server:2019-latest
             port: 1433
             health_cmd: true
@@ -305,7 +305,6 @@ jobs:
 
           ACCEPT_EULA: Y
           SA_PASSWORD: MyPassword42
-          MSSQL_PID: Enterprise
         ports:
           - 13306:${{ matrix.port }}
         options: >-
@@ -333,10 +332,10 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9
 
       - name: Get yarn cache
         id: yarn_cache
@@ -371,12 +370,6 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev mssql-tools
 
-          docker ps -a
-          echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
-          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
-          echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
-          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
-
           python -m pip install --upgrade pip wheel setuptools
 
           # Pin six to avoid dependency errors,
@@ -405,13 +398,6 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          docker ps -a
-          echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
-          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
-          echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
-          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
-          date
-          sleep 5
           coverage run manage.py test --verbosity=2
       - name: Report code coverage
         run: |
