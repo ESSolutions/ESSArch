@@ -375,7 +375,7 @@ jobs:
           echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
           docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
           echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
-          /opt/mssql-tools/bin/sqlcmd -S localhost:13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
+          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
 
           python -m pip install --upgrade pip wheel setuptools
 
@@ -407,9 +407,9 @@ jobs:
         run: |
           docker ps -a
           echo "test - docker exec mssql1 /opt/mssql-tools/bin/sqlcmd"
-          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
+          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
           echo "test - /opt/mssql-tools/bin/sqlcmd via 13306"
-          /opt/mssql-tools/bin/sqlcmd -S localhost:13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
+          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,13306 -U SA -P MyPassword42 -Q 'SELECT @@VERSION'
           date
           sleep 5
           coverage run manage.py test --verbosity=2
