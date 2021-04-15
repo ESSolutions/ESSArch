@@ -267,10 +267,18 @@ jobs:
             port: 5432
             health_cmd: pg_isready
           - db: mssql
-            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server&timeout=60'
-            image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+            image: mcr.microsoft.com/mssql/server:2019-latest
+            environment:
+              SA_PASSWORD: 'MyPassword42'
+              ACCEPT_EULA: 'Y'
             port: 1433
-            health_cmd: true
+            healthcheck:
+              test: /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$${SA_PASSWORD}" -Q "SELECT 1" -b -o /dev/null
+              interval: 10s
+              timeout: 3s
+              retries: 10
+              start_period: 10s
 
     services:
       elasticsearch:
