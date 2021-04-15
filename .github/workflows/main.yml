@@ -267,7 +267,7 @@ jobs:
             port: 5432
             health_cmd: pg_isready
           - db: mssql
-            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+            database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server&timeout=60'
             image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
             port: 1433
             health_cmd: true
