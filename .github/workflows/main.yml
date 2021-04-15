@@ -268,7 +268,7 @@ jobs:
             health_cmd: pg_isready
           - db: mssql
             database_url: 'mssql://SA:MyPassword42@localhost:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
-            image: mcr.microsoft.com/mssql/server:2017-latest
+            image: mcr.microsoft.com/mssql/server:2019-latest
             port: 1433
             health_cmd: true
 
@@ -309,6 +309,7 @@ jobs:
           - 13306:${{ matrix.port }}
         options: >-
           -it
+          --name="${{ matrix.db }}1"
           --health-cmd="${{ matrix.health_cmd }}"
           --health-interval 2s
           --health-timeout 10s
@@ -361,6 +362,7 @@ jobs:
 
       - name: Install
         run: |
+          docker exec mssql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P MyPassword42 -Q GO
           docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
           docker restart elasticsearch
 
@@ -397,8 +399,7 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          ls -l /opt
-          /opt/mssql-tools/bin/sqlcmd -S localhost:13306 -U SA -P MyPassword42 -Q GO
+          /opt/mssql-tools/bin/sqlcmd -S localhost,13306 -U SA -P MyPassword42 -Q GO
           date
           sleep 5
           coverage run manage.py test --verbosity=2
