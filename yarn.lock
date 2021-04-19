@@ -1538,10 +1538,10 @@ angular-link-header-parser@^1.0.3:
   dependencies:
     uri-util "~1.1.0"
 
-angular-messages@~1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.8.0.tgz#dcdb8ea7d85a939526921e8cf05950601dc2b8fb"
-  integrity sha512-LSlyTv80y1vg8Cfdz+RJ0BrraWkq0qsOZHyrHFT8NyYWC5yp6HQabvZvTpKv9YA+6o05wwAU90qXHSrnUlSflA==
+angular-messages@~1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/angular-messages/-/angular-messages-1.8.2.tgz#47f0cf913030bc2231423ab9388acc14dd931837"
+  integrity sha512-M1qNh/30cLJi4yJJ+3YB8saPonRcavz5Dquqz0T/aUySKJhIkUoeCkmF+BcLH4SJ5PBp04yy4CZUUeNRVi7jZA==
 
 angular-mocks@~1.8.0:
   version "1.8.0"

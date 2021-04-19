@@ -28,7 +28,7 @@
     "angular-formly": "~8.4.1",
     "angular-formly-templates-bootstrap": "^6.5.1",
     "angular-link-header-parser": "^1.0.3",
-    "angular-messages": "~1.8.0",
+    "angular-messages": "~1.8.2",
     "angular-mocks": "~1.8.0",
     "angular-permission": "~6.0.0",
     "angular-pretty-xml": "^0.1.1",
