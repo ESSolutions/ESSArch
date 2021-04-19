@@ -26,6 +26,7 @@ export default class SaveWorkflowModalInstanceCtrl {
         $ctrl.res.action_workflow_name = $ctrl.workflowName;
         $ctrl.res.action_workflow_status = $ctrl.status;
         $uibModalInstance.close($ctrl.res);
+        $uibModalInstance.dismiss('cancel');
       }
     };
     $ctrl.cancel = function () {

@@ -23,6 +23,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ERROR_PUT_WORKFLOW: 'Error sending workflow update to server:',
       ERROR_RUN_ACTIONS: 'Problem running actions. Error from server:',
       ERROR_ADDING_TO_LIST: 'Error adding action to list:',
+      CHECK_RUN: 'Are you sure you would like to run this workflow?',
+      CHECK_SAVE: 'Are you sure you would like to save this workflow?',
     },
     CONVERSION: 'Actions',
     NONE_SELECTED: 'None selected',

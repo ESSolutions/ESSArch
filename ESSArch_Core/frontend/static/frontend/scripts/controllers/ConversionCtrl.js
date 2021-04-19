@@ -298,90 +298,120 @@ export default class ConversionCtrl {
         });
         modalInstance.result.then(
           (result) => {
-            let data = null;
+            var check = $uibModal.open({
+              animation: true,
+              ariaLabelledBy: 'modal-title',
+              ariaDescribedBy: 'modal-body',
+              templateUrl: 'static/frontend/views/are_you_sure_modal.html',
+              scope: $scope,
+              controller: [
+                '$scope',
+                '$uibModalInstance',
+                '$translate',
+                function ($scope, $uibModalInstance) {
+                  $scope.save = true;
+                  $scope.cancel = function () {
+                    $uibModalInstance.dismiss('cancel');
+                    $scope.save = false;
+                    return false;
+                  };
 
-            if (vm.form.$invalid) {
-              vm.form.$setSubmitted();
-              return;
-            }
-            let conversions = vm.conversions.filter((a) => {
-              return a.conversion !== null;
+                  $scope.yes = function () {
+                    let data = null;
+
+                    if (vm.form.$invalid) {
+                      vm.form.$setSubmitted();
+                      return;
+                    }
+                    let conversions = vm.conversions.filter((a) => {
+                      return a.conversion !== null;
+                    });
+                    if (conversions.length > 0) {
+                      vm.conversions = conversions;
+                    }
+                    if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+                      delete vm.flowOptions.purpose;
+                    }
+                    vm.flowOptions = {};
+                    let datapreset = null;
+                    let datanewactions = null;
+
+                    if (vm.profilespec.length > 0) {
+                      vm.flowOptions = {};
+                      datapreset = angular.extend(vm.flowOptions, {
+                        actions: vm.profilespec.map((x) => {
+                          return {
+                            name: x.args[0],
+                            options: x.args[2],
+                            conversion: x.args[4],
+                            path: x.args[1],
+                          };
+                        }),
+                        action_workflow_name: result.action_workflow_name,
+                        action_workflow_status: result.action_workflow_status,
+                      });
+                    }
+
+                    if (vm.addedActions.length > 0) {
+                      vm.flowOptions = {};
+                      datanewactions = angular.extend(vm.flowOptions, {
+                        actions: vm.addedActions.map((x) => {
+                          return {
+                            name: x.name,
+                            options: x.options,
+                            conversions: x.conversions.converter.name,
+                            path: x.path,
+                          };
+                        }),
+                        action_workflow_name: result.action_workflow_name,
+                        action_workflow_status: result.action_workflow_status,
+                      });
+                    }
+
+                    if (vm.profilespec.length > 0 && vm.addedActions.length > 0) {
+                      datapreset.actions = datapreset.actions.concat(datanewactions.actions);
+                      data = datapreset;
+                    } else if (vm.addedActions.length > 0) {
+                      data = datanewactions;
+                    } else if (vm.profilespec.length > 0) {
+                      data = datapreset;
+                    }
+
+                    const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+                    const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+                    $http
+                      .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
+                      .then((response) => {
+                        $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                        Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+                        vm.getProfiles();
+                      })
+                      .then(() => {
+                        vm.cancelWorkflow();
+                      })
+                      .catch(function (data) {
+                        Notifications.add(
+                          $translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') +
+                            ' ' +
+                            data.statusText +
+                            '(' +
+                            data.status +
+                            ')',
+                          'error'
+                        );
+                        $log.error('Error posting workflow to server: ' + angular.toJson(data));
+                      });
+                    $uibModalInstance.dismiss('cancel');
+                    $scope.save = false;
+                    return true;
+                  };
+                },
+              ],
             });
-            if (conversions.length > 0) {
-              vm.conversions = conversions;
-            }
-            if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
-              delete vm.flowOptions.purpose;
-            }
-            vm.flowOptions = {};
-            let datapreset = null;
-            let datanewactions = null;
-
-            if (vm.profilespec.length > 0) {
-              vm.flowOptions = {};
-              datapreset = angular.extend(vm.flowOptions, {
-                actions: vm.profilespec.map((x) => {
-                  return {
-                    name: x.args[0],
-                    options: x.args[2],
-                    conversion: x.args[4],
-                    path: x.args[1],
-                  };
-                }),
-                action_workflow_name: result.action_workflow_name,
-                action_workflow_status: result.action_workflow_status,
-              });
-            }
-
-            if (vm.addedActions.length > 0) {
-              vm.flowOptions = {};
-              datanewactions = angular.extend(vm.flowOptions, {
-                actions: vm.addedActions.map((x) => {
-                  return {
-                    name: x.name,
-                    options: x.options,
-                    conversions: x.conversions.converter.name,
-                    path: x.path,
-                  };
-                }),
-                action_workflow_name: result.action_workflow_name,
-                action_workflow_status: result.action_workflow_status,
-              });
-            }
-
-            if (vm.profilespec.length > 0 && vm.addedActions.length > 0) {
-              datapreset.actions = datapreset.actions.concat(datanewactions.actions);
-              data = datapreset;
-            } else if (vm.addedActions.length > 0) {
-              data = datanewactions;
-            } else if (vm.profilespec.length > 0) {
-              data = datapreset;
-            }
-
-            const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-            const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-            $http
-              .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
-              .then((response) => {
-                $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-                Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
-                vm.getProfiles();
-              })
-              .then(() => {
-                vm.cancelWorkflow();
-              })
-              .catch(function (data) {
-                Notifications.add(
-                  $translate.instant('CONVERSION_VIEW.ERROR_POST_WORKFLOW') +
-                    ' ' +
-                    data.statusText +
-                    '(' +
-                    data.status +
-                    ')',
-                  'error'
-                );
-                $log.error('Error posting workflow to server: ' + angular.toJson(data));
-              });
+            check.result.then(
+              () => {},
+              function () {}
+            );
           },
           function () {}
         );
@@ -391,6 +421,7 @@ export default class ConversionCtrl {
     vm.cancelWorkflow = () => {
       vm.profilespec = [];
       vm.addedActions = [];
+      vm.collectedActions = [];
       vm.mergeArrays();
       vm.nameOfWorkflow = '';
       $scope.selectedProfile = null;
@@ -401,7 +432,6 @@ export default class ConversionCtrl {
     vm.saveWorkflowModal = () => {
       if (vm.profilespec.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
         var workflow = $scope.selectedProfile;
-        var currentProfile = $scope.selectedProfile;
         var modalInstance = $uibModal.open({
           animation: true,
           ariaLabelledBy: 'modal-title',
@@ -413,93 +443,123 @@ export default class ConversionCtrl {
           resolve: {
             data: {
               workflow,
-              currentProfile,
             },
           },
         });
         modalInstance.result.then(
           (result) => {
-            let data = null;
+            var check = $uibModal.open({
+              animation: true,
+              ariaLabelledBy: 'modal-title',
+              ariaDescribedBy: 'modal-body',
+              templateUrl: 'static/frontend/views/are_you_sure_modal.html',
+              scope: $scope,
+              controller: [
+                '$scope',
+                '$uibModalInstance',
+                '$translate',
+                function ($scope, $uibModalInstance) {
+                  $scope.save = true;
+                  $scope.cancel = function () {
+                    $uibModalInstance.dismiss('cancel');
+                    $scope.save = false;
+                    return false;
+                  };
 
-            if (vm.form.$invalid) {
-              vm.form.$setSubmitted();
-              return;
-            }
-            let conversions = vm.conversions.filter((a) => {
-              return a.conversion !== null;
+                  $scope.yes = function () {
+                    let data = null;
+
+                    if (vm.form.$invalid) {
+                      vm.form.$setSubmitted();
+                      return;
+                    }
+                    let conversions = vm.conversions.filter((a) => {
+                      return a.conversion !== null;
+                    });
+                    if (conversions.length > 0) {
+                      vm.conversions = conversions;
+                    }
+                    if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+                      delete vm.flowOptions.purpose;
+                    }
+                    vm.flowOptions = {};
+                    let datapreset = null;
+                    let datanewactions = null;
+
+                    if (vm.objectsFromAPI.length > 0) {
+                      vm.flowOptions = {};
+                      datapreset = angular.extend(vm.flowOptions, {
+                        actions: vm.objectsFromAPI.map((x) => {
+                          return {
+                            name: x.args[0],
+                            options: x.args[2],
+                            path: x.args[1],
+                          };
+                        }),
+                        action_workflow_name: result.action_workflow_name,
+                        action_workflow_status: result.action_workflow_status,
+                      });
+                    }
+
+                    if (vm.newObjects.length > 0) {
+                      vm.flowOptions = {};
+                      datanewactions = angular.extend(vm.flowOptions, {
+                        actions: vm.newObjects.map((x) => {
+                          return {
+                            name: x.name,
+                            options: x.options,
+                            path: x.path,
+                          };
+                        }),
+                        action_workflow_name: result.action_workflow_name,
+                        action_workflow_status: result.action_workflow_status,
+                      });
+                    }
+
+                    if (vm.objectsFromAPI.length > 0 && vm.newObjects.length > 0) {
+                      datapreset.actions = datapreset.actions.concat(datanewactions.actions);
+                      data = datapreset;
+                    } else if (vm.newObjects.length > 0) {
+                      data = datanewactions;
+                    } else if (vm.objectsFromAPI.length > 0) {
+                      data = datapreset;
+                    }
+
+                    $http
+                      .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
+                      .then((response) => {
+                        $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                        Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
+                        vm.getProfiles();
+                        vm.resetNewAndCollectedObjects();
+                      })
+                      .then(() => {
+                        vm.cancelWorkflow();
+                      })
+                      .catch(function (data) {
+                        Notifications.add(
+                          $translate.instant('CONVERSION_VIEW.ERROR_PUT_WORKFLOW') +
+                            ' ' +
+                            data.statusText +
+                            '(' +
+                            data.status +
+                            ')',
+                          'error'
+                        );
+                        $log.error('Error saving workflow update on server: ' + angular.toJson(data));
+                      });
+
+                    $uibModalInstance.dismiss('cancel');
+                    $scope.save = false;
+                    return true;
+                  };
+                },
+              ],
             });
-            if (conversions.length > 0) {
-              vm.conversions = conversions;
-            }
-            if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
-              delete vm.flowOptions.purpose;
-            }
-            vm.flowOptions = {};
-            let datapreset = null;
-            let datanewactions = null;
-
-            if (vm.objectsFromAPI.length > 0) {
-              vm.flowOptions = {};
-              datapreset = angular.extend(vm.flowOptions, {
-                actions: vm.objectsFromAPI.map((x) => {
-                  return {
-                    name: x.args[0],
-                    options: x.args[2],
-                    path: x.args[1],
-                  };
-                }),
-                action_workflow_name: result.action_workflow_name,
-                action_workflow_status: result.action_workflow_status,
-              });
-            }
-
-            if (vm.newObjects.length > 0) {
-              vm.flowOptions = {};
-              datanewactions = angular.extend(vm.flowOptions, {
-                actions: vm.newObjects.map((x) => {
-                  return {
-                    name: x.name,
-                    options: x.options,
-                    path: x.path,
-                  };
-                }),
-                action_workflow_name: result.action_workflow_name,
-                action_workflow_status: result.action_workflow_status,
-              });
-            }
-
-            if (vm.objectsFromAPI.length > 0 && vm.newObjects.length > 0) {
-              datapreset.actions = datapreset.actions.concat(datanewactions.actions);
-              data = datapreset;
-            } else if (vm.newObjects.length > 0) {
-              data = datanewactions;
-            } else if (vm.objectsFromAPI.length > 0) {
-              data = datapreset;
-            }
-
-            $http
-              .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
-              .then((response) => {
-                $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-                Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
-                vm.getProfiles();
-                vm.resetNewAndCollectedObjects();
-              })
-              .then(() => {
-                vm.cancelWorkflow();
-              })
-              .catch(function (data) {
-                Notifications.add(
-                  $translate.instant('CONVERSION_VIEW.ERROR_PUT_WORKFLOW') +
-                    ' ' +
-                    data.statusText +
-                    '(' +
-                    data.status +
-                    ')',
-                  'error'
-                );
-                $log.error('Error saving workflow update on server: ' + angular.toJson(data));
-              });
+            check.result.then(
+              () => {},
+              function () {}
+            );
           },
           function () {}
         );
@@ -639,136 +699,167 @@ export default class ConversionCtrl {
     };
 
     vm.startPresetConversion = () => {
-      if (vm.form.$invalid) {
-        vm.form.$setSubmitted();
-        return;
-      }
-      let conversions = vm.conversions.filter((a) => {
-        return a.conversion !== null;
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/are_you_sure_modal.html',
+        scope: $scope,
+        controller: [
+          '$scope',
+          '$uibModalInstance',
+          '$translate',
+          function ($scope, $uibModalInstance) {
+            $scope.run = true;
+            $scope.cancel = function () {
+              $uibModalInstance.dismiss('cancel');
+              $scope.run = false;
+              return false;
+            };
+
+            $scope.yes = function () {
+              $uibModalInstance.dismiss('cancel');
+              if (vm.form.$invalid) {
+                vm.form.$setSubmitted();
+                return;
+              }
+              let conversions = vm.conversions.filter((a) => {
+                return a.conversion !== null;
+              });
+              if (conversions.length > 0) {
+                vm.conversions = conversions;
+              }
+
+              if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
+                delete vm.flowOptions.purpose;
+              }
+              let datapreset = null;
+              let datanewactions = null;
+              vm.resetNewAndCollectedObjects();
+
+              if (vm.objectsFromAPI.length > 0) {
+                vm.flowOptions = {};
+                datapreset = angular.extend(vm.flowOptions, {
+                  actions: vm.objectsFromAPI.map((x) => {
+                    return {
+                      name: x.args[0],
+                      options: x.args[2],
+                      path: x.args[1],
+                    };
+                  }),
+                });
+              }
+
+              if (vm.newObjects.length > 0) {
+                vm.flowOptions = {};
+                datanewactions = angular.extend(vm.flowOptions, {
+                  actions: vm.newObjects.map((x) => {
+                    return {
+                      name: x.name,
+                      options: x.options,
+                      path: x.path,
+                    };
+                  }),
+                });
+              }
+
+              const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
+              const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
+
+              if (datanewactions && datapreset) {
+                $http({
+                  method: 'POST',
+                  url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+                  data: datanewactions,
+                })
+                  .then(() => {
+                    $http({
+                      method: 'POST',
+                      url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+                      data: datapreset,
+                    });
+                  })
+                  .then(() => {
+                    vm.updateCache();
+                    vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                  })
+                  .catch(function (data) {
+                    Notifications.add(
+                      $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                        ' ' +
+                        data.statusText +
+                        '(' +
+                        data.status +
+                        ')',
+                      'error'
+                    );
+                    $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
+                  });
+              } else if (datapreset) {
+                $http({
+                  method: 'POST',
+                  url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+                  data: datapreset,
+                })
+                  .then(() => {
+                    vm.updateCache();
+                    vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                  })
+                  .catch(function (data) {
+                    Notifications.add(
+                      $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                        ' ' +
+                        data.statusText +
+                        '(' +
+                        data.status +
+                        ')',
+                      'error'
+                    );
+                    $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
+                  });
+              } else if (datanewactions) {
+                $http({
+                  method: 'POST',
+                  url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
+                  data: datanewactions,
+                })
+                  .then(() => {
+                    vm.updateCache();
+                    vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
+                  })
+                  .catch(function (data) {
+                    Notifications.add(
+                      $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
+                        ' ' +
+                        data.statusText +
+                        '(' +
+                        data.status +
+                        ')',
+                      'error'
+                    );
+                    $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
+                  });
+              }
+              return true;
+            };
+          },
+        ],
       });
-      if (conversions.length > 0) {
-        vm.conversions = conversions;
-      }
-
-      if (!angular.isUndefined(vm.flowOptions.purpose) && vm.flowOptions.purpose === '') {
-        delete vm.flowOptions.purpose;
-      }
-      let datapreset = null;
-      let datanewactions = null;
-      vm.resetNewAndCollectedObjects();
-
-      if (vm.objectsFromAPI.length > 0) {
-        vm.flowOptions = {};
-        datapreset = angular.extend(vm.flowOptions, {
-          actions: vm.objectsFromAPI.map((x) => {
-            return {
-              name: x.args[0],
-              options: x.args[2],
-              path: x.args[1],
-            };
-          }),
-        });
-      }
-
-      if (vm.newObjects.length > 0) {
-        vm.flowOptions = {};
-        datanewactions = angular.extend(vm.flowOptions, {
-          actions: vm.newObjects.map((x) => {
-            return {
-              name: x.name,
-              options: x.options,
-              path: x.path,
-            };
-          }),
-        });
-      }
-
-      const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-      const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
-
-      if (datanewactions && datapreset) {
-        $http({
-          method: 'POST',
-          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
-          data: datanewactions,
-        })
-          .then(() => {
-            $http({
-              method: 'POST',
-              url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
-              data: datapreset,
-            });
-          })
-          .then(() => {
-            vm.updateCache();
-            vm.resetNewAndCollectedObjects();
-          })
-          .then(() => {
-            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-          })
-          .catch(function (data) {
-            Notifications.add(
-              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
-                ' ' +
-                data.statusText +
-                '(' +
-                data.status +
-                ')',
-              'error'
-            );
-            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
-          });
-      } else if (datapreset) {
-        $http({
-          method: 'POST',
-          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
-          data: datapreset,
-        })
-          .then(() => {
-            vm.updateCache();
-            vm.resetNewAndCollectedObjects();
-          })
-          .then(() => {
-            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-          })
-          .catch(function (data) {
-            Notifications.add(
-              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
-                ' ' +
-                data.statusText +
-                '(' +
-                data.status +
-                ')',
-              'error'
-            );
-            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
-          });
-      } else if (datanewactions) {
-        $http({
-          method: 'POST',
-          url: appConfig.djangoUrl + baseUrl + '/' + id + '/actiontool/',
-          data: datanewactions,
-        })
-          .then(() => {
-            vm.updateCache();
-            vm.resetNewAndCollectedObjects();
-          })
-          .then(() => {
-            $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
-          })
-          .catch(function (data) {
-            Notifications.add(
-              $translate.instant('CONVERSION_VIEW.ERROR_RUN_ACTIONS') +
-                ' ' +
-                data.statusText +
-                '(' +
-                data.status +
-                ')',
-              'error'
-            );
-            $log.error('Problem running actions. Error from server: ' + angular.toJson(data));
-          });
-      }
+      modalInstance.result.then(
+        () => {
+          $scope.run = false;
+        },
+        function () {}
+      );
     };
   }
 }

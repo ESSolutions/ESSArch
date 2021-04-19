@@ -23,6 +23,8 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ERROR_PUT_WORKFLOW: 'Fel när uppdatering av arbetsflöde sparas. Meddelande från server:',
       ERROR_RUN_ACTIONS: 'Fel när verktyg ska köras. Felmeddelande från server:',
       ERROR_ADDING_TO_LIST: 'Fel när verktyg läggs till lista:',
+      CHECK_RUN: 'Är du säker på att du vill köra detta arbetsflöde?',
+      CHECK_SAVE: 'Är du säker på att du vill spara detta arbetsflöde?',
     },
     CONVERSION: 'Åtgärd',
     NONE_SELECTED: 'Ingen vald',
