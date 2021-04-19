@@ -22,7 +22,7 @@
     "angular-bootstrap-contextmenu": "~1.2.1",
     "angular-bootstrap-grid-tree": "~0.4.0",
     "angular-clipboard": "^1.7.0",
-    "angular-cookies": "~1.8.0",
+    "angular-cookies": "~1.8.2",
     "angular-date-time-input": "^1.2.1",
     "angular-filesize-filter": "^0.1.3",
     "angular-formly": "~8.4.1",
