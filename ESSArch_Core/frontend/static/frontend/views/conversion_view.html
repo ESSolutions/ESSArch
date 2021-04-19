@@ -1,4 +1,4 @@
-<div class="conversion-view" style="margin: 5px; position: relative; height: 650px">
+<div class="conversion-view" style="margin: 5px">
   <form name="vm.form">
     <div class="parent">
       <div class="div1">
@@ -30,9 +30,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr ng-repeat="value in vm.profilespec">
+                  <tr ng-repeat="value in vm.collectedActions track by $index">
                     <td>{{$index+1}}</td>
-                    <td>{{value.args[0]}}</td>
+                    <td ng-if="value.args !== undefined">{{value.args[0]}}</td>
+                    <td ng-if="value.conversions">{{value.name}}</td>
                     <td>
                       <button
                         class="fas fa-edit btn btn-default btn-sm"
@@ -41,25 +42,12 @@
                     </td>
                     <td>
                       <button
+                        ng-if="value.args !== undefined"
                         class="fas fa-trash-alt btn btn-default btn-sm"
                         ng-click="vm.deleteFromWorkflow(value)"
                       ></button>
-                    </td>
-                  </tr>
-                  <tr ng-repeat="value in vm.addedActions track by $index">
-                    <td>{{vm.profilespec.length+$index+1}}</td>
-                    <td>
-                      {{value.name}}
-                      <p class="text-secondary">{{'CONVERSION_VIEW.NEW' | translate}}!</p>
-                    </td>
-                    <td>
                       <button
-                        class="fas fa-edit btn btn-default btn-sm"
-                        ng-click="vm.actionDetailsModal(value)"
-                      ></button>
-                    </td>
-                    <td>
-                      <button
+                        ng-if="value.conversions"
                         class="fas fa-trash-alt btn btn-default btn-sm"
                         ng-click="vm.deleteAddedFromWorkflow(value)"
                       ></button>
@@ -172,7 +160,7 @@
         </uib-tabset>
       </div>
     </div>
-    <div class="flex-row justify-content-end" style="position: absolute; bottom: 5px; right: 5px">
+    <div class="flex-row justify-content-end" style="bottom: 5px; right: 5px">
       <button
         class="btn btn-primary"
         ng-click="vm.startPresetConversion()"
