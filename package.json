@@ -18,7 +18,7 @@
     "@typescript-eslint/parser": "^4.1.1",
     "@uirouter/angularjs": "~1.0.22",
     "angular": "~1.8",
-    "angular-animate": "~1.8.0",
+    "angular-animate": "~1.8.2",
     "angular-bootstrap-contextmenu": "~1.2.1",
     "angular-bootstrap-grid-tree": "~0.4.0",
     "angular-clipboard": "^1.7.0",
