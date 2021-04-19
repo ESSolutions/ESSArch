@@ -2,21 +2,25 @@
   <div class="modal-heading">
     <h3 class="modal-title" id="modal-title">{{'CONVERSION_VIEW.ACTION_DETAILS' | translate}}</h3>
   </div>
-  <div class="conversion-view" style="margin-right: 15px; margin-left: 15px; margin-top: 10px">
-    <form name="form">
+  <form name="form">
+    <div class="conversion-view" style="margin-right: 15px; margin-left: 15px; margin-top: 10px">
       <div ng-if="fields.length">
         <hr class="small" />
         <formly-form form="form" model="keep" fields="fields" options="{}"></formly-form>
-    </form>
- 
-  <div class="flex-row justify-content-end" style="margin-bottom: 15px;">
-      <button class="btn btn-default" type="button" ng-click="cancel()">{{'CONVERSION_VIEW.CANCEL' | translate}}</button>
-      <button
-      class="btn btn-primary"
-      ng-click="save()"
-      ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
-    >
-      {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-    </button>
-  </div>
+      </div>
+
+      <div class="flex-row justify-content-end" style="margin-bottom: 15px">
+        <button class="btn btn-default" type="button" ng-click="cancel()">
+          {{'CONVERSION_VIEW.CANCEL' | translate}}
+        </button>
+        <button
+          class="btn btn-primary"
+          ng-click="save()"
+          ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+        >
+          {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
