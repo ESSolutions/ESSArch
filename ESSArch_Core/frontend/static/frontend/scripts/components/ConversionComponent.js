@@ -11,6 +11,8 @@ export default {
     '$timeout',
     '$uibModal',
     'Notifications',
+    '$cacheFactory',
+    '$log',
     ConversionCtrl,
   ],
   controllerAs: 'vm',

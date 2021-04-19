@@ -962,19 +962,20 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Ingest Workarea']:
             raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploading" or "Received"')
+                'IP must be in state "Prepared", "Uploading", "Received" or "Ingest Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+
+        conversions = None
 
         workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
 
-            # ensure that tool exists
             ActionTool.objects.get(name=tool_name)
 
             options = converter['options']
@@ -982,6 +983,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             if 'path' in converter:
                 pattern = converter['path']
+            if 'conversions' in converter:
+                conversions = converter['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
@@ -989,7 +992,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label":
                 tool_name,
                 "args":
-                [tool_name, pattern, options,
+                [tool_name, pattern, options, conversions,
                  request.data.get('purpose')]
             })
 
@@ -1011,11 +1014,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['put'], url_path='actiontool_save')
     def save_actiontool_copy(self, request, pk=None):
-        # do something else with obj if need be
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received']:
+        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Ingest Workarea']:
             raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploading" or "Received"')
+                'IP must be in state "Prepared", "Uploading", "Received" or "Ingest Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1033,6 +1035,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             if 'path' in converter:
                 pattern = converter['path']
+            if 'conversions' in converter:
+                conversions = converter['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
@@ -1040,7 +1044,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "label":
                 tool_name,
                 "args":
-                [tool_name, pattern, options,
+                [tool_name, pattern, options, conversions,
                  request.data.get('purpose')]
             })
 
@@ -1055,7 +1059,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             'label': action_workflow_name,
             'specification': workflow_spec,
         }
-
         try:
             obj = Profile.objects.get(name=dct['name'])
             obj.field = dct
