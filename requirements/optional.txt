@@ -5,5 +5,5 @@ comtypes==1.1.7;platform_system=='Windows'
 wfastcgi==3.0.0
 django-mssql-backend==2.8.1
 mysqlclient==2.0.3
-psycopg2==2.8.5
+psycopg2==2.8.6
 python-logstash-async==1.6.4
