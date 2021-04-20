@@ -353,8 +353,8 @@ class UserProfile(models.Model):
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
     language = models.CharField(max_length=10, default='')
     ip_list_columns = PickledObjectField(default=default_ip_list_columns)
-    ip_list_view_type = models.CharField(max_length=10, choices=FILE_BROWSER_LIST_VIEW_CHOICES, default=LIST,)
-    file_browser_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP, )
+    ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
+    file_browser_view_type = models.CharField(max_length=10, choices=FILE_BROWSER_LIST_VIEW_CHOICES, default=LIST, )
     notifications_enabled = models.BooleanField(default=True)
 
     class Meta:

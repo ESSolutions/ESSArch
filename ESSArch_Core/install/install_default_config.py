@@ -21,6 +21,8 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
+import os
+
 import click
 import django
 
@@ -31,6 +33,7 @@ from pydoc import locate  # noqa isort:skip
 from django.conf import settings  # noqa isort:skip
 from django.contrib.auth import get_user_model  # noqa isort:skip
 from django.contrib.auth.models import Permission  # noqa isort:skip
+from django.db.models import Q  # noqa isort:skip
 from groups_manager.models import GroupType  # noqa isort:skip
 from elasticsearch.client import IngestClient  # noqa isort:skip
 from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
@@ -47,6 +50,11 @@ from ESSArch_Core.storage.models import (  # noqa isort:skip
 )
 
 User = get_user_model()
+
+if hasattr(settings, 'ESSARCH_DIR'):
+    ESSARCH_DIR = settings.ESSARCH_DIR
+else:
+    ESSARCH_DIR = '/ESSArch'
 
 
 def installDefaultConfiguration():
@@ -236,8 +244,10 @@ def installDefaultUsers():
     #
 
     try:
-        role_user = GroupMemberRole.objects.get(codename='User')
-        click.secho("-> role 'User' already exist", fg='red')
+        role_user = GroupMemberRole.objects.get(Q(codename='User') | Q(codename='user'))
+        click.secho("-> role 'User' or 'user' already exist", fg='red')
+    except GroupMemberRole.MultipleObjectsReturned:
+        click.secho("-> multiple roles exists for 'User' or 'user' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'User'")
         role_user, _ = GroupMemberRole.objects.get_or_create(codename='User')
@@ -316,7 +326,7 @@ def installDefaultUsers():
             ['add_eventip', 'ip', 'eventip'],  # Can add Events related to IP
             ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
             ['add_profileipdata', 'profiles', 'profileipdata'],  # Can add profile ip data
-            ['add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can add submission agreement ip data
+            ['add_submissionagreementipdata', 'profiles', 'submissionagreementipdata'],  # Can add submission agreement ip data # noqa isort:skip
         ]
 
         for p in permission_list_user:
@@ -404,7 +414,7 @@ def installDefaultUsers():
             ['view_agentrelation', 'agents', 'agentrelation'],  # Can view agent relation
             ['view_agentrelationtype', 'agents', 'agentrelationtype'],  # Can view agent relation type
             ['view_agenttaglink', 'agents', 'agenttaglink'],  # Can view Agent node relation
-            ['view_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can view agent tag relation type
+            ['view_agenttaglinkrelationtype', 'agents', 'agenttaglinkrelationtype'],  # Can view agent tag relation type    # noqa isort:skip
             ['view_agenttype', 'agents', 'agenttype'],  # Can view agent type
             ['view_authoritytype', 'agents', 'authoritytype'],  # Can view authority type
             ['view_mainagenttype', 'agents', 'mainagenttype'],  # Can view main agent type
@@ -522,8 +532,10 @@ def installDefaultUsers():
             role_archivist.permissions.add(p_obj)
 
     try:
-        role_administrator = GroupMemberRole.objects.get(codename='Administrator')
-        click.secho("-> role 'Administrator' already exist", fg='red')
+        role_administrator = GroupMemberRole.objects.get(Q(codename='Administrator') | Q(codename='admin'))
+        click.secho("-> role 'Administrator' or 'admin' already exist", fg='red')
+    except GroupMemberRole.MultipleObjectsReturned:
+        click.secho("-> multiple roles exists for 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Administrator'")
         role_administrator, _ = GroupMemberRole.objects.get_or_create(codename='Administrator')
@@ -833,8 +845,11 @@ def installDefaultUsers():
             role_administrator.permissions.add(p_obj)
 
     try:
-        role_system_administrator = GroupMemberRole.objects.get(codename='System Administrator')
-        click.secho("-> role 'System Administrator' already exist", fg='red')
+        role_system_administrator = GroupMemberRole.objects.get(
+            Q(codename='System Administrator') | Q(codename='sysadmin'))
+        click.secho("-> role 'System Administrator' or 'sysadmin' already exist", fg='red')
+    except GroupMemberRole.MultipleObjectsReturned:
+        click.secho("-> multiple roles exists for 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'System Administrator'")
         role_system_administrator, _ = GroupMemberRole.objects.get_or_create(codename='System Administrator')
@@ -1049,22 +1064,22 @@ def installDefaultPaths():
     click.echo("Installing paths...")
 
     dct = {
-        'mimetypes_definitionfile': '/ESSArch/config/mime.types',
-        'preingest': '/ESSArch/data/preingest/packages',
-        'preingest_reception': '/ESSArch/data/preingest/reception',
-        'ingest': '/ESSArch/data/ingest/packages',
-        'ingest_reception': '/ESSArch/data/ingest/reception',
-        'ingest_transfer': '/ESSArch/data/ingest/transfer',
-        'ingest_unidentified': '/ESSArch/data/ingest/uip',
-        'access_workarea': '/ESSArch/data/workspace',
-        'ingest_workarea': '/ESSArch/data/workspace',
-        'disseminations': '/ESSArch/data/disseminations',
-        'orders': '/ESSArch/data/orders',
-        'verify': '/ESSArch/data/verify',
-        'temp': '/ESSArch/data/temp',
-        'appraisal_reports': '/ESSArch/data/reports/appraisal',
-        'conversion_reports': '/ESSArch/data/reports/conversion',
-        'receipts': '/ESSArch/data/receipts',
+        'mimetypes_definitionfile': os.path.join(ESSARCH_DIR, 'config/mime.types'),
+        'preingest': os.path.join(ESSARCH_DIR, 'data/preingest/packages'),
+        'preingest_reception': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
+        'ingest': os.path.join(ESSARCH_DIR, 'data/ingest/packages'),
+        'ingest_reception': os.path.join(ESSARCH_DIR, 'data/ingest/reception'),
+        'ingest_transfer': os.path.join(ESSARCH_DIR, 'data/ingest/transfer'),
+        'ingest_unidentified': os.path.join(ESSARCH_DIR, 'data/ingest/uip'),
+        'access_workarea': os.path.join(ESSARCH_DIR, 'data/workspace'),
+        'ingest_workarea': os.path.join(ESSARCH_DIR, 'data/workspace'),
+        'disseminations': os.path.join(ESSARCH_DIR, 'data/disseminations'),
+        'orders': os.path.join(ESSARCH_DIR, 'data/orders'),
+        'verify': os.path.join(ESSARCH_DIR, 'data/verify'),
+        'temp': os.path.join(ESSARCH_DIR, 'data/temp'),
+        'appraisal_reports': os.path.join(ESSARCH_DIR, 'data/reports/appraisal'),
+        'conversion_reports': os.path.join(ESSARCH_DIR, 'data/reports/conversion'),
+        'receipts': os.path.join(ESSARCH_DIR, 'data/receipts'),
     }
 
     for key in dct:
@@ -1092,7 +1107,7 @@ def installDefaultStoragePolicies():
             defaults={
                 'status': True,
                 'type': DISK,
-                'target': '/ESSArch/data/store/cache',
+                'target': os.path.join(ESSARCH_DIR, 'data/store/cache'),
             }
         )
 
@@ -1171,7 +1186,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': '/ESSArch/data/store/disk1',
+            'target': os.path.join(ESSARCH_DIR, 'data/store/disk1'),
         }
     )
 
@@ -1194,7 +1209,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': '/ESSArch/data/store/longterm_disk1',
+            'target': os.path.join(ESSARCH_DIR, 'data/store/longterm_disk1'),
         }
     )
 
