@@ -6,7 +6,28 @@
     <div class="conversion-view" style="margin-right: 15px; margin-left: 15px; margin-top: 10px">
       <div ng-if="fields.length">
         <hr class="small" />
-        <formly-form form="form" model="keep" fields="fields" options="{}"></formly-form>
+        <formly-form
+          ng-if="!receiverdata"
+          form="form"
+          model="data.conversions.data"
+          fields="data.conversions.converter.pathField"
+          options="{}"
+        ></formly-form>
+        <formly-form
+          ng-if="!receiverdata"
+          form="form"
+          model="data.conversions.data"
+          fields="fields"
+          options="{}"
+        ></formly-form>
+        <formly-form
+          ng-if="receiverdata"
+          form="form"
+          model="data.args[2]"
+          fields="data.path"
+          options="{}"
+        ></formly-form>
+        <formly-form ng-if="receiverdata" form="form" model="data.args[2]" fields="fields" options="{}"></formly-form>
       </div>
 
       <div class="flex-row justify-content-end" style="margin-bottom: 15px">
