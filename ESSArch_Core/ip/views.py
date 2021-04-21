@@ -2613,7 +2613,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                         }
                     },
                     {
-                        "name": "ESSArch_Core.preingest.tasks.ReceiveIP",
+                        "name": "ESSArch_Core.workflow.tasks.ReceiveDir",
                         "label": "Receive IP",
                     },
                     {
