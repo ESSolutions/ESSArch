@@ -236,8 +236,19 @@ export default class ConversionCtrl {
 
             if ($scope.data.args !== undefined) {
               for (let i = 0; i < vm.options.converters.length; i++) {
-                $scope.keep = data.value.args[2];
-                var string1 = $scope.data.args[0];
+                var string1 = $scope.data.label;
+                var string2 = vm.options.converters[i].name;
+                var result = string1.localeCompare(string2);
+                if (result === 0) {
+                  $scope.receiverdata = data.value.args[2];
+                  $scope.fields = vm.options.converters[i].form;
+                }
+              }
+            }
+
+            if ($scope.data.conversions) {
+              for (var i = 0; i < vm.options.converters.length; i++) {
+                var string1 = $scope.data.conversions.converter.name;
                 var string2 = vm.options.converters[i].name;
                 var result = string1.localeCompare(string2);
                 if (result === 0) {
@@ -246,20 +257,15 @@ export default class ConversionCtrl {
               }
             }
 
-            $scope.data = data.value;
-            $scope.flowOptions = {};
-
-            if ($scope.data.conversions) {
-              $scope.fields = $scope.data.conversions.converter.form;
-            }
-
             $scope.cancel = function () {
               $uibModalInstance.dismiss('cancel');
+              return;
             };
 
             $scope.save = function () {
               vm.saveWorkflowModal();
               $uibModalInstance.dismiss('cancel');
+              return;
             };
           },
         ],
@@ -340,12 +346,20 @@ export default class ConversionCtrl {
                       vm.flowOptions = {};
                       datapreset = angular.extend(vm.flowOptions, {
                         actions: vm.profilespec.map((x) => {
-                          return {
-                            name: x.args[0],
-                            options: x.args[2],
-                            conversion: x.args[4],
-                            path: x.args[1],
-                          };
+                          if (x.path) {
+                            return {
+                              name: x.name,
+                              options: x.options,
+                              conversions: x.conversions.converter.name,
+                              path: x.path,
+                            };
+                          } else {
+                            return {
+                              name: x.name,
+                              options: x.options,
+                              conversions: x.conversions.converter.name,
+                            };
+                          }
                         }),
                         action_workflow_name: result.action_workflow_name,
                         action_workflow_status: result.action_workflow_status,
@@ -356,12 +370,20 @@ export default class ConversionCtrl {
                       vm.flowOptions = {};
                       datanewactions = angular.extend(vm.flowOptions, {
                         actions: vm.addedActions.map((x) => {
-                          return {
-                            name: x.name,
-                            options: x.options,
-                            conversions: x.conversions.converter.name,
-                            path: x.path,
-                          };
+                          if (x.path) {
+                            return {
+                              name: x.name,
+                              options: x.options,
+                              conversions: x.conversions.converter.name,
+                              path: x.path,
+                            };
+                          } else {
+                            return {
+                              name: x.name,
+                              options: x.options,
+                              conversions: x.conversions.converter.name,
+                            };
+                          }
                         }),
                         action_workflow_name: result.action_workflow_name,
                         action_workflow_status: result.action_workflow_status,
@@ -490,11 +512,18 @@ export default class ConversionCtrl {
                       vm.flowOptions = {};
                       datapreset = angular.extend(vm.flowOptions, {
                         actions: vm.objectsFromAPI.map((x) => {
-                          return {
-                            name: x.args[0],
-                            options: x.args[2],
-                            path: x.args[1],
-                          };
+                          if (x.args[1]) {
+                            return {
+                              name: x.args[0],
+                              options: x.args[2],
+                              path: x.args[1],
+                            };
+                          } else {
+                            return {
+                              name: x.args[0],
+                              options: x.args[2],
+                            };
+                          }
                         }),
                         action_workflow_name: result.action_workflow_name,
                         action_workflow_status: result.action_workflow_status,
@@ -741,10 +770,16 @@ export default class ConversionCtrl {
                 vm.flowOptions = {};
                 datapreset = angular.extend(vm.flowOptions, {
                   actions: vm.objectsFromAPI.map((x) => {
+                    if (x.args[1]) {
+                      return {
+                        name: x.args[0],
+                        options: x.args[2],
+                        path: x.args[1],
+                      };
+                    }
                     return {
                       name: x.args[0],
                       options: x.args[2],
-                      path: x.args[1],
                     };
                   }),
                 });
