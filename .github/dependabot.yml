@@ -1,0 +1,296 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99
+  labels:
+  - python
+  - dependencies
+  ignore:
+  - dependency-name: boto3
+    versions:
+    - "> 1.10.9, < 1.11"
+  - dependency-name: boto3
+    versions:
+    - "> 1.9.218, < 1.10"
+  - dependency-name: boto3
+    versions:
+    - 1.16.59
+    - 1.16.63
+    - 1.17.12
+    - 1.17.17
+    - 1.17.22
+    - 1.17.27
+    - 1.17.3
+    - 1.17.33
+    - 1.17.39
+    - 1.17.44
+    - 1.17.49
+    - 1.17.53
+    - 1.17.7
+  - dependency-name: docutils
+    versions:
+    - "0.17"
+  - dependency-name: flake8
+    versions:
+    - 3.8.4
+    - 3.9.0
+  - dependency-name: weasyprint
+    versions:
+    - "52.2"
+    - "52.3"
+    - "52.4"
+  - dependency-name: comtypes
+    versions:
+    - 1.1.8
+    - 1.1.9
+  - dependency-name: djangosaml2
+    versions:
+    - 1.0.2
+    - 1.0.3
+    - 1.0.4
+    - 1.0.5
+    - 1.0.6.post1
+    - 1.0.7
+    - 1.1.0
+  - dependency-name: regex
+    versions:
+    - 2020.11.13
+    - 2021.3.17
+  - dependency-name: sphinx
+    versions:
+    - 3.4.3
+    - 3.5.0
+    - 3.5.1
+    - 3.5.2
+    - 3.5.3
+  - dependency-name: flake8-bugbear
+    versions:
+    - 20.11.1
+    - 21.3.1
+    - 21.3.2
+  - dependency-name: docker
+    versions:
+    - 4.4.1
+    - 4.4.3
+    - 4.4.4
+  - dependency-name: isort
+    versions:
+    - 5.7.0
+  - dependency-name: dj-rest-auth[with_social]
+    versions:
+    - 2.1.3
+  - dependency-name: tenacity
+    versions:
+    - 6.3.1
+  - dependency-name: sphinx-rtd-theme
+    versions:
+    - 0.5.1
+  - dependency-name: daphne
+    versions:
+    - 3.0.1
+  - dependency-name: asgiref
+    versions:
+    - 3.3.1
+  - dependency-name: django-auth-ldap
+    versions:
+    - 2.3.0
+  - dependency-name: cryptography
+    versions:
+    - 3.3.1
+    - 3.3.2
+    - 3.4.1
+    - 3.4.6
+  - dependency-name: drf-extensions
+    versions:
+    - 0.7.0
+  - dependency-name: django-json-widget
+    versions:
+    - 1.1.0
+  - dependency-name: coverage
+    versions:
+    - 5.3.1
+    - "5.4"
+  - dependency-name: djangorestframework
+    versions:
+    - 3.12.2
+  - dependency-name: wand
+    versions:
+    - 0.6.5
+  - dependency-name: cffi
+    versions:
+    - 1.14.4
+  - dependency-name: pyfakefs
+    versions:
+    - 4.3.3
+  - dependency-name: django-cors-headers
+    versions:
+    - 3.6.0
+  - dependency-name: mysqlclient
+    versions:
+    - 2.0.3
+  - dependency-name: lxml
+    versions:
+    - 4.6.2
+  rebase-strategy: disabled
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 99
+  ignore:
+  - dependency-name: "@babel/register"
+    versions:
+    - 7.12.10
+    - 7.12.13
+    - 7.13.14
+    - 7.13.8
+  - dependency-name: core-js
+    versions:
+    - 3.10.0
+    - 3.10.1
+    - 3.8.3
+    - 3.9.0
+    - 3.9.1
+  - dependency-name: mini-css-extract-plugin
+    versions:
+    - 1.3.4
+    - 1.3.5
+    - 1.3.6
+    - 1.3.8
+    - 1.3.9
+    - 1.4.0
+    - 1.4.1
+  - dependency-name: "@typescript-eslint/eslint-plugin"
+    versions:
+    - 4.14.0
+    - 4.14.1
+    - 4.14.2
+    - 4.15.0
+    - 4.15.1
+    - 4.15.2
+    - 4.16.1
+    - 4.17.0
+    - 4.18.0
+    - 4.19.0
+    - 4.20.0
+    - 4.21.0
+  - dependency-name: css-loader
+    versions:
+    - 5.0.1
+    - 5.0.2
+    - 5.1.0
+    - 5.1.1
+    - 5.1.2
+    - 5.1.3
+    - 5.2.0
+    - 5.2.1
+  - dependency-name: "@typescript-eslint/parser"
+    versions:
+    - 4.14.0
+    - 4.14.1
+    - 4.14.2
+    - 4.15.0
+    - 4.15.1
+    - 4.15.2
+    - 4.16.1
+    - 4.17.0
+    - 4.18.0
+    - 4.19.0
+    - 4.20.0
+    - 4.21.0
+  - dependency-name: "@babel/core"
+    versions:
+    - 7.12.10
+    - 7.12.13
+    - 7.12.16
+    - 7.12.17
+    - 7.13.10
+    - 7.13.13
+    - 7.13.14
+    - 7.13.15
+    - 7.13.8
+  - dependency-name: eslint
+    versions:
+    - 7.18.0
+    - 7.19.0
+    - 7.20.0
+    - 7.21.0
+    - 7.22.0
+    - 7.23.0
+    - 7.24.0
+  - dependency-name: fork-ts-checker-webpack-plugin
+    versions:
+    - 6.1.0
+    - 6.1.1
+    - 6.2.0
+    - 6.2.1
+  - dependency-name: stylelint
+    versions:
+    - 13.10.0
+    - 13.11.0
+    - 13.12.0
+    - 13.9.0
+  - dependency-name: eslint-config-prettier
+    versions:
+    - 7.2.0
+    - 8.0.0
+    - 8.1.0
+  - dependency-name: eslint-plugin-prettier
+    versions:
+    - 3.3.1
+  - dependency-name: ua-parser-js
+    versions:
+    - 0.7.23
+    - 0.7.24
+    - 0.7.26
+    - 0.7.27
+  - dependency-name: y18n
+    versions:
+    - 4.0.1
+  - dependency-name: "@babel/preset-env"
+    versions:
+    - 7.12.11
+    - 7.12.13
+    - 7.12.16
+    - 7.12.17
+    - 7.13.10
+    - 7.13.12
+    - 7.13.8
+    - 7.13.9
+  - dependency-name: ts-loader
+    versions:
+    - 8.0.14
+    - 8.0.15
+    - 8.0.17
+    - 8.0.18
+    - 8.1.0
+  - dependency-name: webpack-manifest-plugin
+    versions:
+    - 3.0.0
+    - 3.1.0
+  - dependency-name: typescript
+    versions:
+    - 4.1.3
+    - 4.1.5
+    - 4.2.2
+    - 4.2.3
+  - dependency-name: "@fortawesome/fontawesome-free"
+    versions:
+    - 5.15.2
+  - dependency-name: webpack-cli
+    versions:
+    - 4.4.0
+    - 4.5.0
+  - dependency-name: postcss-loader
+    versions:
+    - 4.2.0
+  - dependency-name: sass-loader
+    versions:
+    - 10.1.1
+  - dependency-name: "@types/angular"
+    versions:
+    - 1.8.0
+  rebase-strategy: disabled
