@@ -484,28 +484,27 @@ export default class ConversionCtrl {
               });
             }
 
-                    if (vm.newObjects.length > 0) {
-                      vm.flowOptions = {};
-                      datanewactions = angular.extend(vm.flowOptions, {
-                        actions: vm.newObjects.map((x) => {
-                          if (x.path) {
-                            return {
-                              name: x.name,
-                              options: x.options,
-                              path: x.path,
-                            };
-                          } else {
-                            return {
-                              name: x.name,
-                              options: x.options,
-                            };
-                          }
-                        }),
-                        action_workflow_name: result.action_workflow_name,
-                        action_workflow_status: result.action_workflow_status,
-                      });
-                    }
-
+            if (vm.newObjects.length > 0) {
+              vm.flowOptions = {};
+              datanewactions = angular.extend(vm.flowOptions, {
+                actions: vm.newObjects.map((x) => {
+                  if (x.path) {
+                    return {
+                      name: x.name,
+                      options: x.options,
+                      path: x.path,
+                    };
+                  } else {
+                    return {
+                      name: x.name,
+                      options: x.options,
+                    };
+                  }
+                }),
+                action_workflow_name: result.action_workflow_name,
+                action_workflow_status: result.action_workflow_status,
+              });
+            }
 
             if (vm.objectsFromAPI.length > 0 && vm.newObjects.length > 0) {
               datapreset.actions = datapreset.actions.concat(datanewactions.actions);
@@ -515,7 +514,6 @@ export default class ConversionCtrl {
             } else if (vm.objectsFromAPI.length > 0) {
               data = datapreset;
             }
-
 
             $http
               .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
@@ -637,19 +635,18 @@ export default class ConversionCtrl {
                   action_name = angular.copy(conversions_item.converter.name);
                   action_options = angular.copy(conversions_item.data);
                   action_path = angular.copy(conversions_item.data.path);
-                  if(action_path){
+                  if (action_path) {
                     return {
                       name: action_name,
                       options: action_options,
                       path: action_path,
                     };
-                  }else{
+                  } else {
                     return {
                       name: action_name,
                       options: action_options,
                     };
                   }
-                  
                 }),
               });
             } catch (e) {
