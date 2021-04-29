@@ -29,7 +29,6 @@ export default class ConversionCtrl {
     vm.profileChosen = null;
 
     vm.profile = [];
-    $scope.selectedProfile = {};
     $scope.selectedProfile = vm.profilelist[0];
     vm.cache = $cacheFactory.get('cacheId') || $cacheFactory('cacheId');
 
@@ -173,12 +172,13 @@ export default class ConversionCtrl {
       vm.profilespec.splice(index, 1);
       vm.mergeArrays();
       vm.resetNewAndCollectedObjects();
+      vm.updateCache();
       if (vm.profilespec.length < 1 && vm.addedActions.length < 1) {
         vm.profilespec = [];
         vm.addedActions = [];
         vm.mergeArrays();
-        vm.updateCache();
         vm.resetNewAndCollectedObjects();
+        vm.updateCache();
         vm.workflowActive = false;
       }
     };
@@ -383,11 +383,9 @@ export default class ConversionCtrl {
               data = datapreset;
             }
 
-            const id = vm.baseUrl === 'workareas' ? vm.ip.workarea[0].id : vm.ip.id;
-            const baseUrl = vm.baseUrl === 'workareas' ? 'workarea-entries' : vm.baseUrl;
             $http
               .post(appConfig.djangoUrl + vm.baseUrl + '/' + vm.ip.id + '/actiontool_save_as/', data)
-              .then((response) => {
+              .then(() => {
                 $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
                 Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
                 vm.getProfiles();
@@ -417,11 +415,13 @@ export default class ConversionCtrl {
       vm.profilespec = [];
       vm.addedActions = [];
       vm.collectedActions = [];
+      vm.objectsFromAPI = [];
+      vm.newObjects = [];
       vm.mergeArrays();
       vm.nameOfWorkflow = '';
       $scope.selectedProfile = null;
-      vm.updateCache();
       vm.resetNewAndCollectedObjects();
+      vm.updateCache();
     };
 
     vm.saveWorkflowModal = () => {
@@ -488,11 +488,18 @@ export default class ConversionCtrl {
               vm.flowOptions = {};
               datanewactions = angular.extend(vm.flowOptions, {
                 actions: vm.newObjects.map((x) => {
-                  return {
-                    name: x.name,
-                    options: x.options,
-                    path: x.path,
-                  };
+                  if (x.path) {
+                    return {
+                      name: x.name,
+                      options: x.options,
+                      path: x.path,
+                    };
+                  } else {
+                    return {
+                      name: x.name,
+                      options: x.options,
+                    };
+                  }
                 }),
                 action_workflow_name: result.action_workflow_name,
                 action_workflow_status: result.action_workflow_status,
@@ -521,9 +528,6 @@ export default class ConversionCtrl {
                 vm.updateCache();
                 vm.getProfiles();
                 vm.resetNewAndCollectedObjects();
-              })
-              .then(() => {
-                //vm.cancelWorkflow();
               })
               .catch(function (data) {
                 Notifications.add(
@@ -593,8 +597,10 @@ export default class ConversionCtrl {
             })
             .then(function () {
               vm.nameOfWorkflow = $scope.selectedProfile.name;
-              vm.updateCache();
               vm.resetNewAndCollectedObjects();
+            })
+            .then(function () {
+              vm.updateCache();
             })
             .catch(function (data) {
               Notifications.add(
@@ -629,11 +635,18 @@ export default class ConversionCtrl {
                   action_name = angular.copy(conversions_item.converter.name);
                   action_options = angular.copy(conversions_item.data);
                   action_path = angular.copy(conversions_item.data.path);
-                  return {
-                    name: action_name,
-                    options: action_options,
-                    path: action_path,
-                  };
+                  if (action_path) {
+                    return {
+                      name: action_name,
+                      options: action_options,
+                      path: action_path,
+                    };
+                  } else {
+                    return {
+                      name: action_name,
+                      options: action_options,
+                    };
+                  }
                 }),
               });
             } catch (e) {
@@ -655,9 +668,8 @@ export default class ConversionCtrl {
       vm.fields = [];
       vm.mergeArrays();
 
-      vm.updateCache();
-
       vm.resetNewAndCollectedObjects();
+      vm.updateCache();
 
       vm.workflowActive = true;
     };
@@ -763,8 +775,10 @@ export default class ConversionCtrl {
                     });
                   })
                   .then(() => {
-                    vm.updateCache();
                     vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    vm.updateCache();
                   })
                   .then(() => {
                     $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
@@ -788,8 +802,10 @@ export default class ConversionCtrl {
                   data: datapreset,
                 })
                   .then(() => {
-                    vm.updateCache();
                     vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    vm.updateCache();
                   })
                   .then(() => {
                     $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
@@ -813,8 +829,10 @@ export default class ConversionCtrl {
                   data: datanewactions,
                 })
                   .then(() => {
-                    vm.updateCache();
                     vm.resetNewAndCollectedObjects();
+                  })
+                  .then(() => {
+                    vm.updateCache();
                   })
                   .then(() => {
                     $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
