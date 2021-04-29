@@ -13,13 +13,7 @@
           fields="data.conversions.converter.pathField"
           options="{}"
         ></formly-form>
-        <formly-form
-          ng-if="!receiverdata"
-          form="form"
-          model="data.conversions.data"
-          fields="fields"
-          options="{}"
-        ></formly-form>
+        <formly-form ng-if="!receiverdata" form="form" model="data.options" fields="fields" options="{}"></formly-form>
         <formly-form
           ng-if="receiverdata"
           form="form"

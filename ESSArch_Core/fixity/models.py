@@ -200,4 +200,8 @@ class Validation(models.Model):
         null=True,
         related_name='validations',
     )
+
+    class Meta:
+        get_latest_by = ['time_done']
+
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
