@@ -11,7 +11,7 @@
                 ng-change="vm.fetchClick()"
                 ng-options="item.name for item in vm.profilelist"
               >
-                <option value="" disabled selected>{{'CONVERSION_VIEW.SELECT_WORKFLOW' | translate}}</option>
+                <option value="" selected disabled hidden>{{'CONVERSION_VIEW.SELECT_WORKFLOW' | translate}}</option>
               </select>
             </div>
             <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
