@@ -1235,6 +1235,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='add-from-master')
     def add_from_master(self, request, pk=None):
+        self.logger.debug(
+            'ip - views.py - add_from_master - request.data: %s' % (repr(request.data))
+        )
         serializer = InformationPackageFromMasterSerializer(
             data=request.data, context={'request': request},
         )

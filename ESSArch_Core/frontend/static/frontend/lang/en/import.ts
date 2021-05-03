@@ -18,6 +18,9 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       SA_EXISTS_DESC: 'Submission agreement with same ID already exists. Would you like to overwrite it?',
       SA_IMPORTED: 'Submission agreement "{{name}}" has been imported. \nID: {{id}}',
       SA_IS_PUBLISHED_CANNOT_BE_OVERWRITTEN: 'Submission Agreement {{name}} is Published and can not be overwritten',
+      STORAGEPOLICY_EXISTS: 'Storage policy exists',
+      STORAGEPOLICY_EXISTS_DESC: 'Storage policy with same ID already exists. Would you like to overwrite it?',
+      STORAGEPOLICY_IMPORTED: 'Storage policy: "{{name}}" has been imported. \nID: {{id}}',
     },
   });
 };

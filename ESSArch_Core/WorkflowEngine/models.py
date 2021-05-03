@@ -604,15 +604,17 @@ class ProcessTask(Process):
     def create_remote_copy(self, session, host):
         create_remote_task_url = urljoin(host, reverse('processtask-list'))
         params = copy.deepcopy(self.params)
-        params.pop('_options', None)
+        params['storage_object'] = str(params['storage_object']) if params.get('storage_object') is not None else None
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
+        responsible_username = self.responsible.username if self.responsible is not None else None
         data = {
             'id': str(self.pk),
             'name': self.name,
             'args': self.args,
-            'params': self.params,
+            'params': params,
             'eager': self.eager,
             'information_package': ip_id,
+            'responsible': responsible_username,
         }
         r = session.post(create_remote_task_url, json=data, timeout=60)
 
@@ -627,14 +629,16 @@ class ProcessTask(Process):
     def update_remote_copy(self, session, host):
         update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         params = copy.deepcopy(self.params)
-        params.pop('_options', None)
+        params['storage_object'] = str(params['storage_object']) if params.get('storage_object') is not None else None
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
+        responsible_username = self.responsible.username if self.responsible is not None else None
         data = {
             'name': self.name,
             'args': self.args,
-            'params': self.params,
+            'params': params,
             'eager': self.eager,
             'information_package': ip_id,
+            'responsible': responsible_username,
         }
         r = session.patch(update_remote_task_url, json=data, timeout=60)
 

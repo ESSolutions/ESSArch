@@ -1,0 +1,19 @@
+<div class="modal-heading">
+  <h3 class="modal-title" id="modal-title">{{ "IMPORT.STORAGEPOLICY_EXISTS" | translate }}</h3>
+</div>
+<form ng-submit="$ctrl.overwriteStoragePolicy()">
+  <div class="modal-body" id="modal-body">
+    <p for="label">{{ "IMPORT.STORAGEPOLICY_EXISTS_DESC" | translate }}</p>
+    <b>{{ "NAME" | translate }}: {{ $ctrl.profile.policy_name }}</b>
+    <br />
+    <b>ID: {{ $ctrl.profile.id }}</b>
+    <br />
+    <b ng-if="$ctrl.profile.policy_id">Policy ID: {{ $ctrl.profile.policy_id }}</b>
+    <br />
+    <b ng-if="$ctrl.profile.ais_project_id">AIS Policy ID: {{ $ctrl.profile.ais_project_id }}</b>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-primary" focused="true" type="submit">{{ "OK" | translate }}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{ "CANCEL" | translate }}</button>
+  </div>
+</form>

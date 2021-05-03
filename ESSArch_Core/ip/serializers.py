@@ -31,11 +31,6 @@ from ESSArch_Core.profiles.serializers import (
     SubmissionAgreementIPDataSerializer,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
-from ESSArch_Core.storage.models import (
-    StorageMethod,
-    StorageMethodTargetRelation,
-    StorageTarget,
-)
 from ESSArch_Core.tags.models import (
     Delivery,
     Structure,
@@ -506,29 +501,19 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'])
+    organization = serializers.SerializerMethodField()
+    submission_agreement = serializers.PrimaryKeyRelatedField(
+        queryset=SubmissionAgreement.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+    )
 
-    def create_storage_method(self, data):
-        storage_method_target_set_data = data.pop('storage_method_target_relations')
-        storage_method, _ = StorageMethod.objects.update_or_create(
-            id=data['id'],
-            defaults=data
-        )
-
-        for storage_method_target_data in storage_method_target_set_data:
-            storage_target_data = storage_method_target_data.pop('storage_target')
-            storage_target_data.pop('remote_server', None)
-            storage_target, _ = StorageTarget.objects.update_or_create(
-                id=storage_target_data['id'],
-                defaults=storage_target_data
-            )
-            storage_method_target_data['storage_method'] = storage_method
-            storage_method_target_data['storage_target'] = storage_target
-            storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
-                id=storage_method_target_data['id'],
-                defaults=storage_method_target_data
-            )
-
-        return storage_method
+    def get_organization(self, obj):
+        try:
+            return GroupSerializer(obj.org[0].group).data
+        except AttributeError:
+            return GroupSerializer(obj.generic_groups.first().group).data
+        except IndexError:
+            return None
 
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
@@ -553,12 +538,14 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'label', 'object_identifier_value', 'object_size',
             'object_path', 'package_type', 'responsible', 'create_date',
-            'object_num_items', 'entry_date', 'state', 'status', 'step_state',
+            'object_num_items', 'entry_date', 'state',
             'archived', 'cached', 'aic', 'generation',
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'appraisal_date',
+            'start_date', 'end_date', 'appraisal_date', 'submission_agreement', 'organization',
+            # 'start_date', 'end_date', 'appraisal_date', 'profiles', 'policy', 'organization', 'submission_agreement',
+            # 'submission_agreement_locked', 'submission_agreement_data', 'submission_agreement_data_versions',
         )
         extra_kwargs = {
             'id': {
@@ -570,6 +557,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
+        validators = []  # Remove a default "unique together" constraint.
 
 
 class NestedInformationPackageSerializer(InformationPackageSerializer):

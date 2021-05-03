@@ -286,7 +286,7 @@ class StorageMethodTargetRelation(models.Model):
             if StorageMethodTargetRelation.objects.filter(
                 storage_method=self.storage_method,
                 status=STORAGE_TARGET_STATUS_ENABLED,
-            ).exists():
+            ).count() > 1:
                 raise ValidationError(_('Only 1 target can be enabled for a storage method at a time'),)
         return super().save(*args, **kwargs)
 
@@ -586,7 +586,10 @@ class StorageMedium(models.Model):
         data = r.json()
         data.pop('location_status_display', None)
         data.pop('status_display', None)
-        data['storage_target_id'] = data.pop('storage_target')
+        if data.get('storage_target') is not None:
+            data['storage_target'] = StorageTarget.objects.get(
+                pk=data['storage_target'].pop('id'),
+            )
         if data.get('tape_drive') is not None:
             data['tape_drive'] = TapeDrive.create_from_remote_copy(
                 host, session, data['tape_drive'], create_storage_medium=False
@@ -851,7 +854,7 @@ class StorageObject(models.Model):
                 # by master to write to its temp directory
                 temp_dir = Path.objects.get(entity='temp').value
 
-                user, passw, host = storage_target.master_server.split(',')
+                host, user, passw = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)

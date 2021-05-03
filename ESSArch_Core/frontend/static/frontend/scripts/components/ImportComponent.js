@@ -13,6 +13,7 @@ export default {
     'Notifications',
     '$uibModal',
     '$translate',
+    'StoragePolicy',
     controller,
   ],
   controllerAs: 'vm',

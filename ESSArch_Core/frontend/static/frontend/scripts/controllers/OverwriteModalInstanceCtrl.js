@@ -1,5 +1,5 @@
 export default class OverwriteModalInstanceCtrl {
-  constructor($uibModalInstance, data, Profile, SA, Notifications, $translate) {
+  constructor($uibModalInstance, data, Profile, SA, Notifications, $translate, StoragePolicy) {
     const $ctrl = this;
     if (data.file) {
       $ctrl.file = data.file;
@@ -13,6 +13,18 @@ export default class OverwriteModalInstanceCtrl {
     $ctrl.overwriteProfile = function () {
       return Profile.update($ctrl.profile).$promise.then(function (resource) {
         Notifications.add($translate.instant('IMPORT.PROFILE_IMPORTED', resource), 'success', 5000, {isHtml: true});
+        $ctrl.data = {
+          status: 'overwritten',
+        };
+        $uibModalInstance.close($ctrl.data);
+        return resource;
+      });
+    };
+    $ctrl.overwriteStoragePolicy = function () {
+      return StoragePolicy.update($ctrl.profile).$promise.then(function (resource) {
+        Notifications.add($translate.instant('IMPORT.STORAGEPOLICY_IMPORTED', resource), 'success', 5000, {
+          isHtml: true,
+        });
         $ctrl.data = {
           status: 'overwritten',
         };

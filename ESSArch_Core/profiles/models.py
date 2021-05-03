@@ -199,6 +199,7 @@ class SubmissionAgreement(models.Model):
         'configuration.StoragePolicy',
         on_delete=models.PROTECT,
         related_name='submission_agreements',
+        verbose_name=_('storage policy'),
     )
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)

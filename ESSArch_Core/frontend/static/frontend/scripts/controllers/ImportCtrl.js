@@ -1,5 +1,5 @@
 export default class ImportCtrl {
-  constructor($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate) {
+  constructor($q, $rootScope, $scope, $http, IP, Profile, SA, Notifications, $uibModal, $translate, StoragePolicy) {
     const vm = this;
     $scope.angular = angular;
     vm.loadingSas = false;
@@ -65,6 +65,23 @@ export default class ImportCtrl {
                   vm.importingSa = false;
                   if (response.status == 409) {
                     profileExistsModal(data);
+                  }
+                  return response;
+                });
+            })
+          );
+        } else if (key === 'policy') {
+          promises.push(
+            $http.get(vm.url + '/api/storage-policies/' + sa[key] + '/', {headers: headers}).then(function (response) {
+              const data = response.data;
+              return StoragePolicy.new(data)
+                .$promise.then(function (response) {
+                  return response;
+                })
+                .catch(function (response) {
+                  vm.importingSa = false;
+                  if (response.status == 409) {
+                    storagePolicyExistsModal(data);
                   }
                   return response;
                 });
@@ -186,6 +203,24 @@ export default class ImportCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/modals/profile-exists-modal.html',
+        controller: 'OverwriteModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function () {
+            return {
+              profile: profile,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(function (data) {});
+    }
+    function storagePolicyExistsModal(profile) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/modals/storagePolicy-exists-modal.html',
         controller: 'OverwriteModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {

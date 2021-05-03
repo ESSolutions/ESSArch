@@ -34,6 +34,7 @@ from ESSArch_Core.configuration.models import (
     Site,
     StoragePolicy,
 )
+from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.storage.models import (
     StorageMethod,
     StorageMethodTargetRelation,
@@ -133,9 +134,79 @@ class StorageMethodSerializer(serializers.ModelSerializer):
 
 
 class StoragePolicySerializer(serializers.ModelSerializer):
-    cache_storage = StorageMethodSerializer()
+    cache_storage = StorageMethodSerializer(allow_null=True)
     storage_methods = StorageMethodSerializer(many=True)
     ingest_path = PathSerializer()
+
+    def create_storage_method(self, data):
+        if data is None:
+            return None
+
+        storage_method_target_set_data = data.pop('storage_method_target_relations')
+        storage_method, _ = StorageMethod.objects.update_or_create(
+            id=data['id'],
+            defaults=data
+        )
+
+        for storage_method_target_data in storage_method_target_set_data:
+            storage_target_data = storage_method_target_data.pop('storage_target')
+            storage_target_data.pop('remote_server', None)
+            storage_target, _ = StorageTarget.objects.update_or_create(
+                id=storage_target_data['id'],
+                defaults=storage_target_data
+            )
+            storage_method_target_data['storage_method'] = storage_method
+            storage_method_target_data['storage_target'] = storage_target
+            storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
+                id=storage_method_target_data['id'],
+                defaults=storage_method_target_data
+            )
+
+        return storage_method
+
+    def create(self, validated_data):
+        storage_method_set_data = validated_data.pop('storage_methods')
+        cache_storage_data = validated_data.pop('cache_storage')
+        ingest_path_data = validated_data.pop('ingest_path')
+
+        cache_storage = self.create_storage_method(cache_storage_data)
+        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
+
+        validated_data['cache_storage'] = cache_storage
+        validated_data['ingest_path'] = ingest_path
+
+        policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
+                                                           defaults=validated_data)
+
+        for storage_method_data in storage_method_set_data:
+            storage_method = self.create_storage_method(storage_method_data)
+            policy.storage_methods.add(storage_method)
+            # add to policy, dummy
+
+        return policy
+
+    def update(self, instance, validated_data):
+        storage_method_set_data = validated_data.pop('storage_methods')
+        cache_storage_data = validated_data.pop('cache_storage')
+        ingest_path_data = validated_data.pop('ingest_path')
+
+        cache_storage = self.create_storage_method(cache_storage_data)
+        ingest_path, _ = Path.objects.update_or_create(entity=ingest_path_data['entity'], defaults=ingest_path_data)
+
+        validated_data['cache_storage'] = cache_storage
+        validated_data['ingest_path'] = ingest_path
+
+        for storage_method_data in storage_method_set_data:
+            storage_method = self.create_storage_method(storage_method_data)
+            instance.storage_methods.add(storage_method)
+
+        return super().update(instance, validated_data)
+
+    def validate(self, data):
+        if self.instance is None and StoragePolicy.objects.filter(pk=data.get('id')).exists():
+            raise Conflict('Storage policy already exists')
+
+        return data
 
     class Meta:
         model = StoragePolicy
@@ -153,6 +224,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'id': {
+                'read_only': False,
                 'validators': [],
             },
             'policy_id': {
