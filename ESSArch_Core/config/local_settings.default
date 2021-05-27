@@ -4,3 +4,4 @@ DEBUG = {debug}
 SECRET_KEY = '{secret_key}'
 ENCRYPTION_KEY = {encryption_key}
 SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
