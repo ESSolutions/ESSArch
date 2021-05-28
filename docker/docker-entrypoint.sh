@@ -12,3 +12,5 @@ python ESSArch_Core/install/install_profiles_eark.py
 
 echo "Starting server"
 python manage.py runserver 0:8000
+essarch worker -l info -Q celery,file_operation,validation
+
