@@ -87,7 +87,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_ARCHIVE: 'Redigera arkiv',
       EDIT_ARCHIVE_CREATOR: 'Redigera arkivbildare',
       EDIT_CLASSIFICATION_STRUCTURE: 'Redigera struktur',
-      EDIT_DELIVERY: 'Edit accession',
+      EDIT_DELIVERY: 'Edit delivery',
       EDIT_FIELD: 'Ändra fält',
       EDIT_LOCATION: 'Redigera placering',
       EDIT_RELATED_ARCHIVE: 'Redigera relation till arkiv',
