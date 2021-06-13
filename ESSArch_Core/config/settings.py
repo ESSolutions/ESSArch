@@ -107,6 +107,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'ESSArch_Core.admin',
+    'ESSArch_Core.access',
     'ESSArch_Core.agents',
     'ESSArch_Core.api',
     'ESSArch_Core.auth',

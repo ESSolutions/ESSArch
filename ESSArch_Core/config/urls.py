@@ -4,6 +4,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
+from ESSArch_Core.access.views import (
+    AccessAidViewSet,
+    AccessAidTypeViewSet,
+)
+
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
     AgentNameTypeViewSet,
@@ -131,6 +136,8 @@ router.register(r'agents', AgentViewSet).register(
     basename='agent-archives',
     parents_query_lookups=['agent']
 )
+router.register(r'access-aids', AccessAidViewSet)
+router.register(r'access-aid-types', AccessAidTypeViewSet)
 router.register(r'agent-types', AgentTypeViewSet)
 router.register(r'agent-identifier-types', AgentIdentifierTypeViewSet)
 router.register(r'agent-name-types', AgentNameTypeViewSet)
