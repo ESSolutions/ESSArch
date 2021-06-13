@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import F, Prefetch
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -13,11 +14,14 @@ from ESSArch_Core.access.models import (
 from ESSArch_Core.access.serializers import (
     AccessAidSerializer,
     AccessAidTypeSerializer,
-    AccessAidWriteSerializer
+    AccessAidWriteSerializer,
+    AccessAidEditNodesSerializer,
+
 
 )
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.auth.permissions import ActionPermissions
+from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 
@@ -41,8 +45,6 @@ class AccessAidViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-
-
         return AccessAid.objects.for_user(user, []).all()
 
     def get_serializer_class(self):
@@ -50,6 +52,35 @@ class AccessAidViewSet(viewsets.ModelViewSet):
             return AccessAidWriteSerializer
 
         return self.serializer_class
+
+    @transaction.atomic
+    @permission_required_or_403('access.change_accessaid')
+    @action(detail=True, methods=['post'], url_path='add-nodes')
+    def add_structure_unit(self, request, pk=None):
+        access_aid = self.get_object()
+
+        serializer = AccessAidEditNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        access_aid.structure_units.add(*data['structure_units'])
+
+        return Response()
+
+    @transaction.atomic
+    @permission_required_or_403('access.change_accessaid')
+    @action(detail=True, methods=['post'], url_path='remove-nodes')
+    def remove_structure_unit(self, request, pk=None):
+        access_aid = self.get_object()
+
+        serializer = AccessAidEditNodesSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        access_aid.structure_units.remove(*data['structure_units'])
+
+        return Response()
+
 
 
 

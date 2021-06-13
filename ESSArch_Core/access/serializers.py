@@ -8,6 +8,12 @@ from ESSArch_Core.access.models import (
     AccessAid,
     AccessAidType
 )
+
+from ESSArch_Core.tags.models import (
+    StructureUnit
+)
+
+
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer
@@ -56,10 +62,6 @@ class AccessAidWriteSerializer(AccessAidSerializer):
         organization = user.user_profile.current_organization
         organization.assign_object(access_aid)
         organization.add_object(access_aid)
-        #access_aid = AccessAid.objects.create(**validated_data)
-
-        #org = self.context['request'].user.user_profile.current_organization
-        #org.add_object(access_aid)
 
         return access_aid
 
@@ -73,3 +75,10 @@ class AccessAidWriteSerializer(AccessAidSerializer):
                 end_date='end_date',
             )
         ]
+
+class AccessAidEditNodesSerializer(serializers.Serializer):
+    structure_units = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(
+            queryset=StructureUnit.objects.filter(structure__is_template=False),
+        )
+    )
