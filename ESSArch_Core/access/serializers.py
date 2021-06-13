@@ -23,6 +23,13 @@ class AccessAidSerializer(serializers.ModelSerializer):
     type = AccessAidTypeSerializer(read_only=True)
     organization = serializers.SerializerMethodField()
 
+    def get_organization(self, obj):
+        try:
+            serializer = GroupSerializer(instance=obj.get_organization().group)
+            return serializer.data
+        except GroupGenericObjects.DoesNotExist:
+            return None
+
     class Meta:
         model = AccessAid
         fields = (

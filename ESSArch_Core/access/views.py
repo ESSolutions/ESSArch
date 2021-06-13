@@ -41,7 +41,7 @@ class AccessAidViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        print("USER", user)
+
 
         return AccessAid.objects.for_user(user, []).all()
 
