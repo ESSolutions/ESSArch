@@ -143,16 +143,16 @@ def worker(queues, concurrency, hostname, loglevel, logfile, pidfile, pool):
 @click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
-@click.option('-s', '--schedulerfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
+@click.option('-s', '--schedule', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @cli.command()
 @initialize
-def beat(loglevel, logfile, pidfile, schedulerfile):
+def beat(loglevel, logfile, pidfile, schedule):
     from ESSArch_Core.config.celery import app
     app.Beat(
         logfile=logfile,
         loglevel=loglevel,
         pidfile=pidfile,
-        schedulerfile=schedulerfile
+        schedule=schedule
     ).run()
 
 
