@@ -29,7 +29,7 @@ export default class ConversionCtrl {
     vm.profileChosen = null;
 
     vm.profile = [];
-    $scope.selectedProfile = vm.profilelist[0];
+    vm.selectedProfile = vm.profilelist[0];
     vm.cache = $cacheFactory.get('cacheId') || $cacheFactory('cacheId');
 
     vm.$onInit = function () {
@@ -43,7 +43,7 @@ export default class ConversionCtrl {
           vm.profilespec = vm.cache.get('profilespec');
         }
         if (vm.cache.get('selectedProfile')) {
-          $scope.selectedProfile = vm.cache.get('selectedProfile');
+          vm.selectedProfile = vm.cache.get('selectedProfile');
         }
         if (vm.cache.get('nameOfWorkflow')) {
           vm.nameOfWorkflow = vm.cache.get('nameOfWorkflow');
@@ -189,9 +189,9 @@ export default class ConversionCtrl {
     };
 
     vm.updateCache = function () {
-      vm.put('selectedProfile', $scope.selectedProfile);
-      if ($scope.selectedProfile) {
-        vm.put('nameOfWorkflow', $scope.selectedProfile.name);
+      vm.put('selectedProfile', vm.selectedProfile);
+      if (vm.selectedProfile) {
+        vm.put('nameOfWorkflow', vm.selectedProfile.name);
       } else {
         vm.put('nameOfWorkflow', '');
       }
@@ -419,14 +419,14 @@ export default class ConversionCtrl {
       vm.newObjects = [];
       vm.mergeArrays();
       vm.nameOfWorkflow = '';
-      $scope.selectedProfile = null;
+      vm.selectedProfile = null;
       vm.resetNewAndCollectedObjects();
       vm.updateCache();
     };
 
     vm.saveWorkflowModal = () => {
       if (vm.objectsFromAPI.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
-        var workflow = $scope.selectedProfile;
+        var workflow = vm.selectedProfile;
         var modalInstance = $uibModal.open({
           animation: true,
           ariaLabelledBy: 'modal-title',
@@ -521,7 +521,7 @@ export default class ConversionCtrl {
                 $rootScope.$broadcast('REFRESH_LIST_VIEW', {});
                 Notifications.add('Saved workflow ' + result.action_workflow_name, 'success');
                 vm.nameOfWorkflow = result.action_workflow_name;
-                $scope.selectedProfile = {
+                vm.selectedProfile = {
                   name: result.action_workflow_name,
                   status: result.action_workflow_status,
                 };
@@ -579,14 +579,14 @@ export default class ConversionCtrl {
     };
 
     vm.fetchClick = () => {
-      if (!angular.isUndefined($scope.selectedProfile) && $scope.selectedProfile !== null) {
+      if (!angular.isUndefined(vm.selectedProfile) && vm.selectedProfile !== null) {
         if (
-          !angular.isUndefined($scope.selectedProfile.id) &&
-          $scope.selectedProfile.id !== null &&
-          $scope.selectedProfile.id !== ''
+          !angular.isUndefined(vm.selectedProfile.id) &&
+          vm.selectedProfile.id !== null &&
+          vm.selectedProfile.id !== ''
         ) {
           $http({
-            url: appConfig.djangoUrl + 'profiles/' + $scope.selectedProfile.id + '/',
+            url: appConfig.djangoUrl + 'profiles/' + vm.selectedProfile.id + '/',
             method: 'GET',
             params: {pager: 'none'},
           })
@@ -596,7 +596,7 @@ export default class ConversionCtrl {
               vm.mergeArrays();
             })
             .then(function () {
-              vm.nameOfWorkflow = $scope.selectedProfile.name;
+              vm.nameOfWorkflow = vm.selectedProfile.name;
               vm.resetNewAndCollectedObjects();
             })
             .then(function () {
