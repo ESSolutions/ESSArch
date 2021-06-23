@@ -84,12 +84,20 @@
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.access.createDip')"
-      ui-sref="home.access.createDip"
+      ui-sref="home.archivalDescriptions.searchaid"
       ng-class="{chosen: $state.current.name == 'home.access.createDip'}"
       class="nav-item sliding-middle-out"
       style="margin-left: 5px"
       ng-if="checkPermissions('home.access.createDip')"
       >{{'DISSEMINATION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.searchaid')"
+      ui-sref="home.access.searchaid"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px"
+      >{{'ACCESS_AIDS' | translate}}</a
     >
   </div>
   <div tabindex="-1" ng-if="'home.archivalDescriptions' | includedByState" class="sub-menu">
@@ -141,7 +149,6 @@
       ng-if="checkPermissions('home.archivalDescriptions.deliveries')"
       >{{'DELIVERIES' | translate}}</a
     >
-
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.search')"
