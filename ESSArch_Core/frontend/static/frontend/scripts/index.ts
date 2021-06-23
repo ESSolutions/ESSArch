@@ -521,6 +521,20 @@ angular
             },
           },
         })
+        .state('home.access.searchaid', {
+          url: '/search_aid',
+          templateUrl: '/static/frontend/views/search_aid_view.html',
+          controller: 'SearchAidCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.searchaid', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.archivalDescriptions.archiveCreators', {
           url: '/archive-creators/{id}',
           template: '<agents></agents>',

@@ -3,6 +3,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     ACCESS: {
       ACCESS: 'Åtkomst',
+      ADD_ACCESS_AID: 'Lägg till sökingång',
       ADD_FIELD: 'Lägg till fält',
       ADD_FIRST_LEVEL_LOCATION: 'Lägg till placering på första nivån',
       ADD_IDENTIFIER: 'Lägg till identifikator',
@@ -13,6 +14,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_RELATION: 'Lägg till relation',
       ADD_RELATION_TO_STRUCTURE_UNIT: 'Lägg till relation till strukturenhet',
       ADD_RULE: 'Lägg till regel',
+      ADD_SEARCH_AID: 'Lägg till sökingång',
       ADD_STRUCTURE_RULE: 'Lägg till ny regel för struktur',
       ADD_STRUCTURE_UNIT: 'Lägg till strukturenhet',
       ADD_TO_STRUCTURE: 'Lägg till under strukturenhet',
@@ -93,9 +95,11 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATED_ARCHIVE: 'Redigera relation till arkiv',
       EDIT_RELATED_ARCHIVE_CREATOR: 'Redigera relation till arkivbildare',
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Redigera relation till strukturenhet',
+      EDIT_SEARCH_AID: 'Redigera sökingång',
       EDIT_TRANSFER: 'Redigera leverans',
       END_DATE: 'Slutdatum',
       END_YEAR: 'Slutår',
+      ERASE_SEARCH_AID: 'Vill du radera denna sökingång?',
       EXPORT_ARCHIVE: 'Utskriftsbar arkivförteckning',
       EXPORT_OPTION: 'Typ av export',
       EXPORT_OMEKA: 'Export till omeka',

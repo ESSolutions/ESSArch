@@ -3,6 +3,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('en', {
     ACCESS: {
       ACCESS: 'Access',
+      ADD_ACCESS_AID: 'Add access aid',
       ADD_FIELD: 'Add field',
       ADD_FIRST_LEVEL_LOCATION: 'Add first level location',
       ADD_IDENTIFIER: 'Add identifier',
@@ -13,6 +14,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       ADD_RELATION: 'Add relation',
       ADD_RELATION_TO_STRUCTURE_UNIT: 'Add relation to structure unit',
       ADD_RULE: 'Add rule',
+      ADD_SEARCH_AID: 'Add search aid',
       ADD_STRUCTURE_RULE: 'Add new structure rule',
       ADD_STRUCTURE_UNIT: 'Add structure unit',
       ADD_TO_STRUCTURE: 'Add to structure unit',
@@ -89,9 +91,11 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EDIT_RELATED_ARCHIVE: 'Edit resource relation',
       EDIT_RELATED_ARCHIVE_CREATOR: 'Edit related authority record',
       EDIT_RELATION_TO_STRUCTURE_UNIT: 'Edit relation to structure unit',
+      EDIT_SEARCH_AID: 'Edit search aid',
       EDIT_TRANSFER: 'Edit transfer',
       END_DATE: 'End date',
       END_YEAR: 'End year',
+      ERASE_SEARCH_AID: 'Would you like to erase this search aid?',
       EXPORT_ARCHIVE: 'Printable finding aid',
       EXPORT_OPTION: 'Export option',
       EXPORT_OMEKA: 'Export to omeka',
