@@ -1,8 +1,10 @@
+//Controller for erasing search aids - complementing view erase_search_aid.html
 export default class EraseSearchAidModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, $q) {
     const $ctrl = this;
     $ctrl.name = data.aid.name;
 
+    //REST API erasing search aid
     $ctrl.remove = function () {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
@@ -18,6 +20,7 @@ export default class EraseSearchAidModalInstanceCtrl {
         });
     };
 
+    //Cancelling window
     $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
