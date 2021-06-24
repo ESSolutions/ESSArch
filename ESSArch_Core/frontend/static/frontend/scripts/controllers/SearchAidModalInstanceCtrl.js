@@ -1,3 +1,4 @@
+//Controller for editing search aids, combined with view edit_search_aid_modal.html
 export default class SearchAidModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, $q) {
     const $ctrl = this;
@@ -55,6 +56,7 @@ export default class SearchAidModalInstanceCtrl {
       },
     ];
 
+    //TODO: POST method should be exchanged with a PUT-method, after you have added one in backend
     $ctrl.submit = function (aid) {
       const u = angular.copy(aid);
 
@@ -75,6 +77,7 @@ export default class SearchAidModalInstanceCtrl {
         });
     };
 
+    //Function for cancelling module window
     $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
