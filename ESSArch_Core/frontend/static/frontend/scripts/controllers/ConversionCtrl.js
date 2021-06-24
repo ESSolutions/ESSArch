@@ -33,6 +33,7 @@ export default class ConversionCtrl {
     $scope.selectedProfile = vm.profilelist[0];
     vm.cache = $cacheFactory.get('cacheId') || $cacheFactory('cacheId');
 
+    //Get saved data from cache on init
     vm.$onInit = function () {
       vm.getProfiles();
 
@@ -64,6 +65,7 @@ export default class ConversionCtrl {
       }
     };
 
+    //Get profiles from database
     vm.getProfiles = () => {
       vm.profilesLoading = true;
 
@@ -123,6 +125,7 @@ export default class ConversionCtrl {
       }
     };
 
+    //Get action tools from database
     vm.getConverters = function (search) {
       return $http({
         url: appConfig.djangoUrl + 'action-tools/',
@@ -149,6 +152,7 @@ export default class ConversionCtrl {
         });
     };
 
+    //Add converter to action tool workflow
     vm.addConverter = () => {
       tabNumber++;
       let val = {
@@ -168,6 +172,7 @@ export default class ConversionCtrl {
       vm.cache.put(key, value);
     };
 
+    //Delete action from workflow
     vm.deleteFromWorkflow = (value) => {
       var index = vm.profilespec.indexOf(value);
       vm.profilespec.splice(index, 1);
@@ -188,6 +193,7 @@ export default class ConversionCtrl {
       vm.collectedActions = vm.profilespec.concat(vm.addedActions);
     };
 
+    //Update cache keeping data from view
     vm.updateCache = function () {
       vm.put('selectedProfile', $scope.selectedProfile);
       if ($scope.selectedProfile) {
@@ -205,6 +211,7 @@ export default class ConversionCtrl {
       vm.put('ip.id', vm.ip.id);
     };
 
+    //Delete action from workflow
     vm.deleteAddedFromWorkflow = (value) => {
       if (vm.addedActions.length > 0) {
         var index = vm.addedActions.indexOf(value);
@@ -224,6 +231,7 @@ export default class ConversionCtrl {
       vm.resetNewAndCollectedObjects();
     };
 
+    //Modal for viewing details about action
     vm.actionDetailsModal = (value, conversions) => {
       var modalInstance = $uibModal.open({
         animation: true,
@@ -288,6 +296,7 @@ export default class ConversionCtrl {
       );
     };
 
+    //Save as-functionality for Edit Workflow-view
     vm.saveAsWorkflowModal = () => {
       if (vm.objectsFromAPI.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
         var workflow = null;
@@ -413,6 +422,7 @@ export default class ConversionCtrl {
       }
     };
 
+    //Cancel workflow edit view
     vm.cancelWorkflow = () => {
       vm.profilespec = [];
       vm.addedActions = [];
@@ -424,6 +434,7 @@ export default class ConversionCtrl {
       vm.resetNewAndCollectedObjects();
     };
 
+    //Save-functionality for workflow edit view
     vm.saveWorkflowModal = () => {
       if (vm.objectsFromAPI.length > 0 || (vm.addedActions.length > 0 && vm.workflowActive)) {
         var workflow = $scope.selectedProfile;
@@ -574,6 +585,7 @@ export default class ConversionCtrl {
       );
     };
 
+    //Fetch profiles from database
     vm.fetchClick = () => {
       if (!angular.isUndefined($scope.selectedProfile) && $scope.selectedProfile !== null) {
         if (
@@ -614,6 +626,7 @@ export default class ConversionCtrl {
       }
     };
 
+    //Add action to workflow-list
     vm.newToList = () => {
       let data = null;
       var action_name = null;
@@ -662,6 +675,7 @@ export default class ConversionCtrl {
       vm.workflowActive = true;
     };
 
+    //Resets arrays keeping data on new objects vs originaly collected from database
     vm.resetNewAndCollectedObjects = () => {
       vm.newObjects = [];
       vm.objectsFromAPI = [];
@@ -675,6 +689,7 @@ export default class ConversionCtrl {
       }
     };
 
+    //Run actions - first checking if user is sure that he/she wants to run the workflow
     vm.startPresetConversion = () => {
       var modalInstance = $uibModal.open({
         animation: true,
