@@ -1,3 +1,4 @@
+//Controller for adding search aids - complementing view add_search_aid_modal.html
 export default class AddSearchAidModalInstanceCtrl {
   constructor($uibModalInstance, appConfig, data, $http, EditMode, $scope, $translate, $rootScope, $q) {
     const $ctrl = this;
@@ -7,6 +8,9 @@ export default class AddSearchAidModalInstanceCtrl {
     // note, these field types will need to be
     // pre-defined. See the pre-built and custom templates
     // http://docs.angular-formly.com/v6.4.0/docs/custom-templates
+
+    //Formly variables
+    //TODO: Add variable Type and Organisation to match db table
     $ctrl.aidFields = [
       {
         key: 'name',
@@ -55,6 +59,7 @@ export default class AddSearchAidModalInstanceCtrl {
       },
     ];
 
+    //Posts data from form to database
     $ctrl.submit = function (aid) {
       const u = angular.copy(aid);
 
@@ -75,6 +80,7 @@ export default class AddSearchAidModalInstanceCtrl {
         });
     };
 
+    //Cancel window
     $ctrl.cancel = function () {
       EditMode.disable();
       $uibModalInstance.dismiss('cancel');
