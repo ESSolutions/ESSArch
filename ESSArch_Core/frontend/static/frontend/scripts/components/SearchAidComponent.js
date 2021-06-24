@@ -1,3 +1,4 @@
+//Component for SearchAidCtrl
 import SearchAidCtrl from '../controllers/SearchAidCtrl';
 
 export default {
