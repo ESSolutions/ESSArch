@@ -1,7 +1,14 @@
 <div class="search-admin">
   <div class="content-wrapper">
     <div class="action-button" style="text-align: right">
-      <button class="btn btn-primary" ng-click="vm.createModal()">{{'ACCESS.ADD_ACCESS_AID' | translate}}</button>
+      <button
+        permission
+        permission-only="'access.add_accessaid'"
+        class="btn btn-primary"
+        ng-click="vm.createModal()"
+      >
+        {{'ACCESS.ADD_ACCESS_AID' | translate}}
+      </button>
     </div>
     <div class="list-view-table table-x-overflow">
       <table class="table table-striped">
@@ -12,8 +19,8 @@
             <th>{{'ACCESS.SECURITY_LEVEL' | translate}}</th>
             <th>{{'STATUS' | translate}}</th>
             <th>{{'TIME' | translate}}</th>
-            <th class="shrink">{{'EDIT' | translate}}</th>
-            <th class="white-space-nowrap shrink">{{'REMOVE' | translate}}</th>
+            <th permission permission-only="'access.change_accessaid'" class="shrink">{{'EDIT' | translate}}</th>
+            <th permission permission-only="'access.delete_accessaid'" class="white-space-nowrap shrink">{{'REMOVE' | translate}}</th>
           </tr>
         </thead>
         <tbody>
@@ -30,6 +37,7 @@
             <td>{{x.start_date |date:"yyyy-MM-dd"}} - {{x.end_date |date:"yyyy-MM-dd"}}</td>
             <td class="text-center shrink">
               <button
+                permission permission-only="'access.change_accessaid'"
                 class="btn btn-default fas fa-edit btn-sm"
                 ng-click="vm.editModal(x);"
                 uib-tooltip="{{'EDIT' | translate}}"
@@ -39,6 +47,7 @@
             </td>
             <td class="text-center shrink">
               <button
+                permission permission-only="'access.delete_accessaid'"
                 class="btn btn-default fas fa-trash-alt btn-sm"
                 ng-click="vm.eraseModal(x);"
                 uib-tooltip="{{'REMOVE' | translate}}"
