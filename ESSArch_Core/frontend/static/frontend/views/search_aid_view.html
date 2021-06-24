@@ -1,8 +1,10 @@
 <div class="search-admin">
   <div class="content-wrapper">
+    <!--Button for adding new search aids-->
     <div class="action-button" style="text-align: right">
       <button class="btn btn-primary" ng-click="vm.createModal()">{{'ACCESS.ADD_ACCESS_AID' | translate}}</button>
     </div>
+    <!--Listing search aids-->
     <div class="list-view-table table-x-overflow">
       <table class="table table-striped">
         <thead>
@@ -29,6 +31,7 @@
             <td>Online</td>
             <td>{{x.start_date |date:"yyyy-MM-dd"}} - {{x.end_date |date:"yyyy-MM-dd"}}</td>
             <td class="text-center shrink">
+              <!--Button for editing search aids-->
               <button
                 class="btn btn-default fas fa-edit btn-sm"
                 ng-click="vm.editModal(x);"
@@ -38,6 +41,7 @@
               ></button>
             </td>
             <td class="text-center shrink">
+              <!--Button for removing search aids-->
               <button
                 class="btn btn-default fas fa-trash-alt btn-sm"
                 ng-click="vm.eraseModal(x);"

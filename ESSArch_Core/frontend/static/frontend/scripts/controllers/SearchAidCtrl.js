@@ -1,3 +1,4 @@
+//Controller for list of search aids (connected to view search_aid_view.html)
 export default class SearchAidCtrl {
   constructor(
     $uibModal,
@@ -69,6 +70,7 @@ export default class SearchAidCtrl {
       vm.getSearchAids();
     };
 
+    //Collects search aids from db
     vm.getSearchAids = function () {
       $http
         .get(appConfig.djangoUrl + 'access-aids/')
@@ -81,6 +83,7 @@ export default class SearchAidCtrl {
         });
     };
 
+    //Starts edit window for search aids
     vm.editModal = function (aid) {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -108,6 +111,7 @@ export default class SearchAidCtrl {
       );
     };
 
+    //Starts erase window for search aids
     vm.eraseModal = function (aid) {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -135,6 +139,7 @@ export default class SearchAidCtrl {
       );
     };
 
+    //Starts window for registering new search aid connections
     vm.createModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
