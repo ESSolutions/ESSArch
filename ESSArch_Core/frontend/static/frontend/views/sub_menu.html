@@ -95,6 +95,7 @@
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.access.searchaid')"
       ui-sref="home.access.searchaid"
+      ng-class="{chosen: $state.current.name == 'home.access.searchaid'}"
       class="nav-item sliding-middle-out"
       style="margin-left: 5px"
       >{{'ACCESS_AIDS' | translate}}</a
