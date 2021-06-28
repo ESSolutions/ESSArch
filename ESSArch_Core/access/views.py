@@ -2,7 +2,7 @@ from django.db import transaction
 from django.db.models import F, Prefetch
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -42,6 +42,9 @@ class AccessAidViewSet(viewsets.ModelViewSet):
     queryset = AccessAid.objects.none()
     serializer_class = AccessAidSerializer
     permission_classes = (ActionPermissions,)
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend, SearchFilter,)
+    ordering_fields = ('name', 'type', 'security_level', 'start_date', 'end_date')
+    search_fields = ('=id', 'name')
 
     def get_queryset(self):
         user = self.request.user
