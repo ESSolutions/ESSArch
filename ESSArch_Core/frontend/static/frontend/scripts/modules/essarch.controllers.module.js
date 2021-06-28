@@ -1,5 +1,7 @@
 import * as angular from 'angular';
 
+import AccessAidCtrl from '../controllers/AccessAidCtrl';
+import AccessAidModalInstanceCtrl from '../controllers/AccessAidModalInstanceCtrl';
 import AccessCtrl from '../controllers/AccessCtrl';
 import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
@@ -7,7 +9,6 @@ import AccessWorkareaCtrl from '../controllers/AccessWorkareaCtrl';
 import ActionModalCtrl from '../controllers/ActionModalCtrl';
 import AddNodeModalInstanceCtrl from '../controllers/AddNodeModalInstanceCtrl';
 import AdministrationCtrl from '../controllers/AdministrationCtrl';
-import AddSearchAidModalInstanceCtrl from '../controllers/AddSearchAidModalInstanceCtrl';
 import AgentModalInstanceCtrl from '../controllers/AgentModalInstanceCtrl';
 import AgentArchiveRelationModalInstanceCtrl from '../controllers/AgentArchiveRelationModalInstanceCtrl';
 import AgentIdentifierModalInstanceCtrl from '../controllers/AgentIdentifierModalInstanceCtrl';
@@ -42,7 +43,6 @@ import DeliveryModalInstanceCtrl from '../controllers/DeliveryModalInstanceCtrl'
 import DownloadDipModalInstanceCtrl from '../controllers/DownloadDipModalInstanceCtrl';
 import EditNodeModalInstanceCtrl from '../controllers/EditNodeModalInstanceCtrl';
 import EditStructureUnitModalInstanceCtrl from '../controllers/EditStructureUnitModalInstanceCtrl';
-import EraseSearchAidModalInstanceCtrl from '../controllers/EraseSearchAidModalInstanceCtrl';
 import ExportNodeModalInstanceCtrl from '../controllers/ExportNodeModalInstanceCtrl';
 import ExportResultModalInstanceCtrl from '../controllers/ExportResultModalInstanceCtrl';
 import EventModalInstanceCtrl from '../controllers/EventModalInstanceCtrl';
@@ -98,8 +98,6 @@ import RobotInformationCtrl from '../controllers/RobotInformationCtrl';
 import SavedSearchModalInstanceCtrl from '../controllers/SavedSearchModalInstanceCtrl';
 import StatsReportModalInstanceCtrl from '../controllers/StatsReportModalInstanceCtrl';
 import SearchCtrl from '../controllers/SearchCtrl';
-import SearchAidCtrl from '../controllers/SearchAidCtrl';
-import SearchAidModalInstanceCtrl from '../controllers/SearchAidModalInstanceCtrl';
 import SearchDetailCtrl from '../controllers/SearchDetailCtrl';
 import SearchIpCtrl from '../controllers/SearchIpCtrl';
 import SpecificationItemModalInstanceCtrl from '../controllers/SpecificationItemModalInstanceCtrl';
@@ -169,6 +167,37 @@ export default angular
     'ui.dateTimeInput',
     'ui.select',
   ])
+    .controller('AccessAidCtrl', [
+    '$uibModal',
+    '$log',
+    '$scope',
+    '$http',
+    'appConfig',
+    '$state',
+    '$stateParams',
+    'AgentName',
+    'myService',
+    '$rootScope',
+    '$translate',
+    'listViewService',
+    '$transitions',
+    AccessAidCtrl,
+  ])
+    .controller('AccessAidModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    '$http',
+    'appConfig',
+    'listViewService',
+    '$translate',
+    'Utils',
+    '$q',
+    'EditMode',
+    '$scope',
+    '$window',
+    '$sce',
+    AccessAidModalInstanceCtrl,
+  ])
   .controller('AccessCtrl', AccessCtrl)
   .controller('AccessModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', AccessModalInstanceCtrl])
   .controller('AccessIpCtrl', [
@@ -196,18 +225,6 @@ export default angular
     '$rootScope',
     'EditMode',
     AddNodeModalInstanceCtrl,
-  ])
-  .controller('AddSearchAidModalInstanceCtrl', [
-    '$uibModalInstance',
-    'appConfig',
-    'data',
-    '$http',
-    'EditMode',
-    '$scope',
-    '$translate',
-    '$rootScope',
-    '$q',
-    AddSearchAidModalInstanceCtrl,
   ])
   .controller('AdministrationCtrl', AdministrationCtrl)
   .controller('AgentModalInstanceCtrl', [
@@ -565,18 +582,6 @@ export default angular
     'EditMode',
     '$rootScope',
     EditStructureUnitModalInstanceCtrl,
-  ])
-  .controller('EraseSearchAidModalInstanceCtrl', [
-    '$uibModalInstance',
-    'appConfig',
-    'data',
-    '$http',
-    'EditMode',
-    '$scope',
-    '$translate',
-    '$rootScope',
-    '$q',
-    EraseSearchAidModalInstanceCtrl,
   ])
   .controller('EventModalInstanceCtrl', [
     'appConfig',
@@ -1029,34 +1034,6 @@ export default angular
     '$transitions',
     'AgentName',
     SearchCtrl,
-  ])
-  .controller('SearchAidCtrl', [
-    '$uibModal',
-    '$log',
-    '$scope',
-    '$http',
-    'appConfig',
-    '$state',
-    '$stateParams',
-    'AgentName',
-    'myService',
-    '$rootScope',
-    '$translate',
-    'listViewService',
-    '$transitions',
-    SearchAidCtrl,
-  ])
-  .controller('SearchAidModalInstanceCtrl', [
-    '$uibModalInstance',
-    'appConfig',
-    'data',
-    '$http',
-    'EditMode',
-    '$scope',
-    '$translate',
-    '$rootScope',
-    '$q',
-    SearchAidModalInstanceCtrl,
   ])
   .controller('SearchDetailCtrl', [
     '$scope',

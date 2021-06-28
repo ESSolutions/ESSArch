@@ -3,7 +3,7 @@ import archiveManager from '../components/ArchiveManagerComponent';
 import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';
 import conversionSpec from '../components/ConversionSpecComponent';
 import Conversion from '../components/ConversionComponent';
-import SearchAid from '../components/SearchAidComponent';
+import AccessAid from '../components/AccessAidComponent';
 import agents from '../components/AgentsComponent';
 import dashboardStats from '../components/DashboardStatsComponent';
 import deliveryComponent from '../components/DeliveryComponent';
@@ -37,7 +37,7 @@ export default angular
   .component('classificationStructureEditor', classificationStructureEditor)
   .component('conversionSpec', conversionSpec)
   .component('conversionView', Conversion)
-  .component('searchAidView', SearchAid)
+  .component('accessAid', AccessAid)
   .component('dashboardStats', dashboardStats)
   .component('deliveryPage', deliveryComponent)
   .component('essarchFooter', essarchFooter)

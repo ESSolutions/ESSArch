@@ -406,6 +406,20 @@ angular
             },
           },
         })
+       .state('home.access.accessAid', {
+          url: '/access-aid',
+          templateUrl: '/static/frontend/views/access_aids.html',
+          controller: 'AccessAidCtrl as vm',
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.accessAid', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.archivalDescriptions', {
           url: 'archival-descriptions',
           templateUrl: '/static/frontend/views/archival_descriptions.html',
@@ -517,20 +531,6 @@ angular
           data: {
             permissions: {
               only: nestedPermissions(resolve('home.archivalDescriptions.search', permissionConfig)),
-              redirectTo: 'home.restricted',
-            },
-          },
-        })
-        .state('home.access.searchaid', {
-          url: '/search_aid',
-          templateUrl: '/static/frontend/views/search_aid_view.html',
-          controller: 'SearchAidCtrl as vm',
-          resolve: {
-            authenticated: resolveAuthenticated,
-          },
-          data: {
-            permissions: {
-              only: nestedPermissions(resolve('home.access.searchaid', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },

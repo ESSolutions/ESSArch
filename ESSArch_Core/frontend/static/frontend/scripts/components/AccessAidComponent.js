@@ -1,7 +1,7 @@
-import SearchAidCtrl from '../controllers/SearchAidCtrl';
+import SearchAidCtrl from '../controllers/AccessAidCtrl';
 
 export default {
-  templateUrl: 'static/frontend/views/search_aid_view.html',
+  templateUrl: 'static/frontend/views/access_aid.html',
   controller: [
     '$uibModal',
     '$log',
