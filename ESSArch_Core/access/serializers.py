@@ -67,7 +67,7 @@ class AccessAidWriteSerializer(AccessAidSerializer):
 
 
     class Meta(AccessAidSerializer.Meta):
-        fields = ('name', 'type', 'description', 'start_date', 'end_date', 'security_level')
+        fields = ('name', 'type', 'description', 'start_date', 'end_date', 'security_level', 'link')
 
         validators = [
             StartDateEndDateValidator(

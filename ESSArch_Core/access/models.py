@@ -19,7 +19,7 @@ class AccessAid(models.Model):
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
     security_level = models.IntegerField(_('security level'), null=True)
-    link = models.TextField(_('href'), blank=True)
+    link = models.TextField(_('link'), blank=True)
 
     objects = OrganizationManager()
 
