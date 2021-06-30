@@ -237,13 +237,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
+        workflow_spec = []
 
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
@@ -261,14 +255,14 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
                 tool_cmd = json.loads(action_tool.cmd)
                 tool_cmd.update(options)
 
-                workflow_spec[0]['children'].append({
+                workflow_spec.append({
                     "name": action_tool.path,
                     "label": tool_name,
                     "params": tool_cmd
                 })
 
             else:
-                workflow_spec[0]['children'].append({
+                workflow_spec.append({
                     "name":
                     "ESSArch_Core.fixity.action.tasks.Action",
                     "label":
@@ -278,7 +272,7 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip)
+        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip, name='Action tool')
         workflow.run()
         return Response()
 
@@ -914,13 +908,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        workflow_spec = [
-            {
-                "step": True,
-                "name": "Action tool",
-                "children": []
-            }
-        ]
+        workflow_spec = []
 
         for converter in serializer.validated_data['actions']:
             tool_name = converter['name']
@@ -937,13 +925,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
                 tool_cmd.update(options)
-                workflow_spec[0]['children'].append({
+                workflow_spec.append({
                     "name": action_tool.path,
                     "label": tool_name,
                     "params": tool_cmd
                 })
             else:
-                workflow_spec[0]['children'].append({
+                workflow_spec.append({
                     "name":
                     "ESSArch_Core.fixity.action.tasks.Action",
                     "label":
@@ -954,7 +942,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=ip)
+        workflow = create_workflow(workflow_spec, eager=False, ip=ip, name='Action tool')
         workflow.run()
 
         return Response()
@@ -1518,6 +1506,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=True, methods=['post'])
     def receive(self, request, pk=None):
+        logger = logging.getLogger('essarch.ingest')
+
         ip = self.get_object()
         workarea = ip.workareas.filter(read_only=False).first()
 
@@ -1527,19 +1517,31 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workflow = [
             {
                 "name": "ESSArch_Core.workflow.tasks.ReceiveAIP",
-                "label": "Receive AIP",
+                "label": "Receive IP",
                 "args": [str(workarea.pk)],
             },
             {
                 "name": "ESSArch_Core.ip.tasks.DeleteWorkarea",
-                "label": "Delete from workarea",
+                "label": "Delete from workspace",
                 "args": [str(workarea.pk)],
             },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                "label": "Update IP size and file count",
+            },
+            {
+                "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                "label": "Set status to received",
+                "args": ["Received"],
+            },
         ]
-        workflow = create_workflow(workflow, ip, name='Receive from workarea')
+        workflow = create_workflow(workflow, ip, name='Receive from workspace')
         workflow.run()
-
-        return Response({'detail': 'Receiving %s' % str(ip.pk)}, status=status.HTTP_202_ACCEPTED)
+        logger.info(
+            'Started receiving {objid} from workspace'.format(objid=ip.object_identifier_value),
+            extra={'user': request.user.pk},
+        )
+        return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
 
     @action(detail=True, methods=['post'], url_path='preserve')
     def preserve(self, request, pk=None):
@@ -2606,15 +2608,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             if ip_is_directory:
                 workflow_spec = [
                     {
-                        "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                        "label": "Create Physical Model",
-                        'params': {
-                            'root': aip_object_path
-                        }
-                    },
-                    {
                         "name": "ESSArch_Core.workflow.tasks.ReceiveDir",
-                        "label": "Receive IP",
+                        "label": "Receive IP to workspace",
                     },
                     {
                         "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
@@ -2681,10 +2676,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     },
                 ]
 
-            workflow = create_workflow(workflow_spec, ip)
-            workflow.name = "Receive SIP"
-            workflow.information_package = ip
-            workflow.save()
+            workflow = create_workflow(workflow_spec, ip, name="Receive from reception")
             workflow.run()
             logger.info(
                 'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),

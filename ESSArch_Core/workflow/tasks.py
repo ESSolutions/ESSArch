@@ -176,8 +176,7 @@ def ReceiveAIP(self, workarea):
     shutil.copytree(ip.object_path, dst)
 
     ip.object_path = dst
-    ip.state = 'Received'
-    ip.save()
+    ip.save(update_fields=['object_path'])
 
 
 @app.task(bind=True)

@@ -840,7 +840,11 @@ class InformationPackage(models.Model):
                     )
                 )
             else:
-                sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+                try:
+                    sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+                except FileNotFoundError:
+                    sip_mets_data = {}
+                    pass
 
             # prefix all SIP data
             sip_mets_data = {f'SIP_{k.upper()}': v for k, v in sip_mets_data.items()}
@@ -1252,28 +1256,10 @@ class InformationPackage(models.Model):
             container = os.path.isfile(self.object_path)
             ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
 
-            if new:
-                new_aip = self.create_new_generation('Ingest Workarea', user, dst_object_identifier_value)
-                new_aip.object_path = ingest_workarea_user
-                new_aip.save()
-
-            elif edit:
-                new_aip = self
-                new_aip.state = 'Ingest Workarea'
-                new_aip.save(update_fields=['state'])
-
-            else:
-                new_aip = self
-
             workflow = [
                 {
-                    "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
-                    "label": "Create workarea",
-                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new and not edit]
-                },
-                {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
-                    "label": "Extract container to workarea",
+                    "label": "Extract container to workspace",
                     "if": container and extracted,
                     "args": [
                         self.object_path,
@@ -1282,7 +1268,7 @@ class InformationPackage(models.Model):
                 },
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
-                    "label": "Copy information package to workarea",
+                    "label": "Copy information package to workspace",
                     "if": container and not extracted,
                     "args": [
                         self.object_path,
@@ -1291,7 +1277,7 @@ class InformationPackage(models.Model):
                 },
                 {
                     "name": "ESSArch_Core.tasks.CopyDir",
-                    "label": "Copy information package to workarea",
+                    "label": "Copy information package to workspace",
                     "if": not container,
                     "args": [
                         self.object_path,
@@ -1299,8 +1285,40 @@ class InformationPackage(models.Model):
                     ],
                 },
             ]
-            workflow = {"step": True, "name": "Access IP", "children": workflow}
-            return create_workflow([workflow], self, name='Access Information Package')
+
+            if new:
+                new_aip = self.create_new_generation('Ingest Workspace', user, dst_object_identifier_value)
+                new_aip.object_path = ingest_workarea_user
+                new_aip.save()
+
+            elif edit:
+                new_aip = self
+
+                workflow.extend([
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete from ingest",
+                        "args": [self.object_path]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPPath",
+                        "label": "Update IP path",
+                        "args": [ingest_workarea_user],
+                    },
+                ])
+
+            else:
+                new_aip = self
+
+            workflow.append(
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
+                    "label": "Create workspace",
+                    "args": [str(new_aip.pk), str(user.pk), Workarea.INGEST, not new and not edit]
+                }
+            )
+
+            return create_workflow(workflow, self, name='Access Information Package')
 
         if tar:
             try:
@@ -1619,8 +1637,7 @@ class InformationPackage(models.Model):
             "label": "Create workarea",
             "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, not new]
         })
-        workflow = {"step": True, "name": "Access AIP", "children": workflow}
-        return create_workflow([workflow], self, name='Access Information Package')
+        return create_workflow(workflow, self, name='Access Information Package')
 
     def write_to_search_index(self, task):
         srcdir = self.object_path
@@ -1722,7 +1739,9 @@ class InformationPackage(models.Model):
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
     def update_remote_ip(self, host, session):
-        from ESSArch_Core.ip.serializers import InformationPackageFromMasterSerializer
+        from ESSArch_Core.ip.serializers import (
+            InformationPackageFromMasterSerializer,
+        )
 
         remote_ip = urljoin(host, reverse('informationpackage-add-from-master'))
         data = InformationPackageFromMasterSerializer(instance=self).data
