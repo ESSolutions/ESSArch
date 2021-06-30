@@ -711,12 +711,17 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     appraisal_job = serializers.SerializerMethodField()
     is_mixed_type = serializers.SerializerMethodField()
     name_with_dates = serializers.SerializerMethodField()
+    is_content_indexed = serializers.SerializerMethodField()
 
     def get_archive(self, obj):
         return getattr(obj, 'archive', None)
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
+
+    def get_is_content_indexed(self, obj):
+        attachment = getattr(obj.get_doc(), 'attachment', None)
+        return True if attachment else None
 
     def get_is_mixed_type(self, obj):
         return self.context.get('is_mixed_type')
@@ -769,7 +774,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
-            'appraisal_job', 'is_mixed_type', 'rendering',
+            'appraisal_job', 'is_mixed_type', 'rendering', 'is_content_indexed',
         )
 
 

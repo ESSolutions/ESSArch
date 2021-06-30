@@ -47,6 +47,8 @@ TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
+# Exclude file formats keys from content indexing. Example: ['fmt/569',]
+EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = []
 
 # Verify TLS certificate on remote servers
 #
