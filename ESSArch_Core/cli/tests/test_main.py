@@ -94,10 +94,12 @@ class CLITest(SimpleTestCase):
 
         with mock.patch('celery.app.base.Celery.Beat', return_value=MagicMock(exitcode=0)) as cmd:
             result = runner.invoke(beat)
-            cmd.assert_called_once_with(logfile=None, loglevel='INFO', pidfile=None)
+            cmd.assert_called_once_with(logfile=None, loglevel='INFO', pidfile=None, schedule=None)
             self.assertEqual(result.exit_code, 0)
 
         with mock.patch('celery.app.base.Celery.Beat', return_value=MagicMock(exitcode=0)) as cmd:
-            result = runner.invoke(beat, ['-f', 'beat.log', '-l', 'DEBUG', '--pidfile', 'beat.pid'])
-            cmd.assert_called_once_with(logfile='beat.log', loglevel='DEBUG', pidfile='beat.pid')
+            result = runner.invoke(beat, ['-f', 'beat.log', '-l', 'DEBUG', '--pidfile',
+                                          'beat.pid', '--schedule', 'schedulefile'])
+            cmd.assert_called_once_with(logfile='beat.log', loglevel='DEBUG',
+                                        pidfile='beat.pid', schedule='schedulefile')
             self.assertEqual(result.exit_code, 0)

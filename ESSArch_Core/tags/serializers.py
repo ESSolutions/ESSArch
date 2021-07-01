@@ -720,8 +720,11 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
         return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
 
     def get_is_content_indexed(self, obj):
-        attachment = getattr(obj.get_doc(), 'attachment', None)
-        return True if attachment else None
+        try:
+            attachment = getattr(obj.get_doc(), 'attachment', None)
+            return True if attachment else None
+        except elasticsearch.NotFoundError:
+            return None
 
     def get_is_mixed_type(self, obj):
         return self.context.get('is_mixed_type')
