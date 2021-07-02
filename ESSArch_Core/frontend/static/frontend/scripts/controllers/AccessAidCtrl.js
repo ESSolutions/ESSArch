@@ -48,13 +48,13 @@ export default class AccessAidCtrl {
               $rootScope.$broadcast('UPDATE_TITLE', {title: vm.accessAid.name});
             });
           } else if (params.id === null && vm.accessAid !== null) {
-            vm.agentClick(vm.accessAid);
+            vm.accessAidClick(vm.accessAid);
           }
         }
       })
     );
 
-    vm.getAgentListColspan = function () {
+    vm.getAccessAidListColspan = function () {
       if (myService.checkPermission('access.change_accessaid') && myService.checkPermission('access.delete_accessaid')) {
         return 6;
       } else if (
@@ -67,8 +67,8 @@ export default class AccessAidCtrl {
       }
     };
 
-    vm.getAccessAid = function (agent) {
-      return $http.get(appConfig.djangoUrl + 'access-aids/' + agent.id + '/').then(function (response) {
+    vm.getAccessAid = function (accessAid) {
+      return $http.get(appConfig.djangoUrl + 'access-aids/' + accessAid.id + '/').then(function (response) {
         vm.initAccordion();
         vm.accessAid = response.data;
         return response.data;
@@ -92,16 +92,16 @@ export default class AccessAidCtrl {
       });
     };
 
-    vm.agentClick = function (agent) {
-      if (vm.accessAid === null || (vm.accessAid !== null && agent.id !== vm.accessAid.id)) {
-        $http.get(appConfig.djangoUrl + 'access-aids/' + agent.id + '/').then(function (response) {
+    vm.accessAidClick = function (accessAid) {
+      if (vm.accessAid === null || (vm.accessAid !== null && accessAid.id !== vm.accessAid.id)) {
+        $http.get(appConfig.djangoUrl + 'access-aids/' + accessAid.id + '/').then(function (response) {
           vm.accessAid = response.data;
           vm.initAccordion();
-          vm.accessAid = agent;
+          vm.accessAid = accessAid;
           $state.go($state.current.name, vm.accessAid);
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.accessAid.name});
         });
-      } else if (vm.accessAid !== null && vm.accessAid.id === agent.id) {
+      } else if (vm.accessAid !== null && vm.accessAid.id === accessAid.id) {
         vm.accessAid = null;
         $state.go($state.current.name, {id: null});
         $translate.instant($state.current.name.split('.').pop().toUpperCase());
@@ -111,6 +111,7 @@ export default class AccessAidCtrl {
       }
     };
 
+  /*
     vm.sortNames = function (agent) {
       agent.names.sort(function (a, b) {
         return new Date(b.start_date) - new Date(a.start_date);
@@ -126,12 +127,13 @@ export default class AccessAidCtrl {
       authorized.forEach(function (x) {
         agent.names.unshift(x);
       });
-    };
+    };*/
 
+/*
     vm.archiveClick = function (agentArchive) {
       $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
     };
-
+*/
     vm.accessAidPipe = function (tableState) {
       vm.accessAidsLoading = true;
       if (vm.accessAids.length == 0) {
@@ -158,7 +160,7 @@ export default class AccessAidCtrl {
           sortString = '-' + sortString;
         }
 
-        vm.getAgents({
+        vm.getAccessAids({
           page: paginationParams.pageNumber,
           page_size: paginationParams.number,
           pager: paginationParams.pager,
@@ -173,7 +175,7 @@ export default class AccessAidCtrl {
       }
     };
 
-    vm.getAgents = function (params) {
+    vm.getAccessAids = function (params) {
       return $http({
         url: appConfig.djangoUrl + 'access-aids/',
         method: 'GET',
@@ -238,7 +240,7 @@ export default class AccessAidCtrl {
         }
       );
     };
-    vm.removeAgentModal = function (accessAid) {
+    vm.removeAccessAidModal = function (accessAid) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',

@@ -91,7 +91,7 @@
                 ng-repeat="x in vm.accessAids"
                 class="selectable"
                 ng-class="{'selected': vm.accessAid.id === x.id}"
-                ng-click="vm.agentClick(x)"
+                ng-click="vm.accessAidClick(x)"
               >
                 <td>{{x.name}}</td>
                 <td>{{x.type.name}}</td>
@@ -110,7 +110,7 @@
                 <td permission permission-only="'access.delete_accessaid'" class="text-center shrink">
                   <button
                     class="btn btn-default fas fa-trash-alt btn-sm"
-                    ng-click="vm.removeAgentModal(x); $event.stopPropagation();"
+                    ng-click="vm.removeAccessAidModal(x); $event.stopPropagation();"
                     uib-tooltip="{{'REMOVE' | translate}}"
                     tooltip-placement="auto top"
                     tooltip-append-to-body="true"
@@ -118,7 +118,7 @@
                 </td>
               </tr>
               <tr ng-if="!vm.accessAids.length && !vm.accessAidsLoading" class="empty-table-indicator">
-                <td colspan="{{vm.getAgentListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
+                <td colspan="{{vm.getAccessAidListColspan()}}">{{'NO_RESULTS_FOUND' | translate}}</td>
               </tr>
               <tr ng-if="!vm.accessAids.length && vm.accessAidsLoading" class="empty-table-indicator">
                 <td class="loading-column" colspan="6">{{'LOADING' | translate}}</td>
@@ -126,7 +126,7 @@
             </tbody>
           </table>
         </div>
-        <td ng-show="!initLoad" colspan="{{vm.getAgentListColspan()}}">
+        <td ng-show="!initLoad" colspan="{{vm.getAccessAidListColspan()}}">
           <div
             class="text-center"
             st-template="static/frontend/views/pagination.html"

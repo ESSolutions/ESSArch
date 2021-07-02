@@ -61,6 +61,17 @@ export default class AccessAidModalInstanceCtrl {
             rows: 3,
           },
         },
+        {
+          templateOptions: {
+            label: $translate.instant('ACCESS.SECURITY_LEVEL'),
+            type: 'number',
+            required: false,
+            min: 1,
+            max: 5,
+          },
+          type: 'input',
+          key: 'security_level',
+        },
       ];
     };
 
