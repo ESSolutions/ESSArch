@@ -189,7 +189,7 @@ export default class AccessAidCtrl {
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/new_access_aid_modal.html',
-        controller: 'AgentModalInstanceCtrl',
+        controller: 'AccessAidModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
@@ -209,19 +209,19 @@ export default class AccessAidCtrl {
       );
     };
 
-    vm.editModal = function (agent) {
+    vm.editModal = function (accessAid) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/edit_agent_modal.html',
-        controller: 'AgentModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/edit_access_aid_modal.html',
+        controller: 'AccessAidModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
           data: function () {
             return {
-              agent: agent,
+              accessAid: accessAid,
             };
           },
         },
@@ -238,19 +238,19 @@ export default class AccessAidCtrl {
         }
       );
     };
-    vm.removeAgentModal = function (agent) {
+    vm.removeAgentModal = function (accessAid) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
         ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/remove_agent_modal.html',
-        controller: 'AgentModalInstanceCtrl',
+        templateUrl: 'static/frontend/views/remove_access_aid_modal.html',
+        controller: 'AccessAidModalInstanceCtrl',
         controllerAs: '$ctrl',
         size: 'lg',
         resolve: {
           data: function () {
             return {
-              agent: agent,
+              accessAid: accessAid,
               allow_close: true,
               remove: true,
             };
@@ -264,7 +264,7 @@ export default class AccessAidCtrl {
           $rootScope.$broadcast('UPDATE_TITLE', {
             title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
           });
-          vm.agentPipe($scope.tableState);
+          vm.accessAidPipe($scope.tableState);
         },
         function () {
           $log.info('modal-component dismissed at: ' + new Date());

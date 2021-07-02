@@ -184,18 +184,15 @@ export default angular
     AccessAidCtrl,
   ])
     .controller('AccessAidModalInstanceCtrl', [
-    '$uibModalInstance',
-    'data',
-    '$http',
     'appConfig',
-    'listViewService',
+    '$http',
     '$translate',
-    'Utils',
-    '$q',
-    'EditMode',
+    'data',
+    '$uibModalInstance',
     '$scope',
-    '$window',
-    '$sce',
+    'EditMode',
+    'Utils',
+    '$rootScope',
     AccessAidModalInstanceCtrl,
   ])
   .controller('AccessCtrl', AccessCtrl)

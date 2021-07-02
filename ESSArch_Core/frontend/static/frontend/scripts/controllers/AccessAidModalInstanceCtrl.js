@@ -1,200 +1,132 @@
 export default class AccessAidModalInstanceCtrl {
-  constructor(
-    $uibModalInstance,
-    data,
-    $http,
-    appConfig,
-    listViewService,
-    $translate,
-    Utils,
-    $q,
-    EditMode,
-    $scope,
-    $window,
-    $sce
-  ) {
+  constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     const $ctrl = this;
-    if (data) {
-      $ctrl.data = data;
-    }
-    $ctrl.access_aid = {};
-
-    $ctrl.fields = [];
-    $ctrl.options = {
-      type: [],
-    };
-    $ctrl.$onInit = () => {
-      if (data.access_aid) {
-        $ctrl.order = angular.copy(data.access_aid);
-        $ctrl.order.type = angular.copy(data.access_aid.type.id);
-        delete $ctrl.access_aid.responsible;
-      }
-      let promises = [];
-
-      promises.push(
-        $http.get(appConfig.djangoUrl + 'access-aid-types/').then((response) => {
-          $ctrl.options.type = angular.copy(response.data);
-          return response.data;
-        })
-      );
-
-      $q.all(promises).then((responses) => {
-        if (!data.allow_close) {
-          EditMode.enable();
+    $ctrl.accessAid = {};
+    $ctrl.options = {};
+    $ctrl.$onInit = function () {
+      if (!data.remove) {
+        if (data.accessAid) {
+          $ctrl.accessAid = angular.copy(data.accessAid);
+          $ctrl.accessAid.type = angular.copy(data.accessAid.type.id);
         }
-        $ctrl.buildForm();
+
+        $ctrl.getAccessAidTypes().then(function (response) {
+          EditMode.enable();
+          $ctrl.buildForm();
+        });
+      } else {
+        if (data.accessAid) {
+          $ctrl.accessAid = angular.copy(data.accessAid);
+        }
+      }
+    };
+
+    $ctrl.getAccessAidTypes = function (search) {
+      return $http.get(appConfig.djangoUrl + 'access-aid-types/').then(function (response) {
+        $ctrl.accessAidTypes = response.data;
+        return response.data;
       });
     };
 
-    $ctrl.buildForm = () => {
+    $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
-          key: 'label',
           type: 'input',
+          key: 'name',
           templateOptions: {
-            label: $translate.instant('LABEL'),
+            focus: true,
+            label: $translate.instant('NAME'),
             required: true,
+            maxlength: 255,
           },
         },
         {
-          key: 'type',
           type: 'select',
+          key: 'type',
           templateOptions: {
+            required: true,
             label: $translate.instant('TYPE'),
             labelProp: 'name',
             valueProp: 'id',
-            options: $ctrl.options.type,
-            defaultValue: $ctrl.options.type.length > 0 ? $ctrl.options.type[0] : null,
-            required: true,
+            options: $ctrl.accessAidTypes,
+            notNull: true,
           },
+          defaultValue: $ctrl.accessAidTypes.length > 0 ? $ctrl.accessAidTypes[0].id : null,
         },
         {
-          key: 'consign_method',
-          type: 'select',
-          templateOptions: {
-            label: $translate.instant('CONSIGN_METHOD'),
-            labelProp: 'name',
-            valueProp: 'id',
-            options: $ctrl.options.consign_method,
-            defaultValue: $ctrl.options.consign_method.length > 0 ? $ctrl.options.consign_method[0] : null,
-          },
-        },
-        {
-          key: 'personal_number',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('PERSONAL_NUMBER'),
-          },
-        },
-        {
-          key: 'first_name',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('FIRST_NAME'),
-          },
-        },
-        {
-          key: 'family_name',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('FAMILY_NAME'),
-          },
-        },
-        {
-          key: 'address',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('ADDRESS'),
-          },
-        },
-        {
-          key: 'postal_code',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('POSTAL_CODE'),
-          },
-        },
-        {
-          key: 'city',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('CITY'),
-          },
-        },
-        {
-          key: 'phone',
-          type: 'input',
-          templateOptions: {
-            label: $translate.instant('PHONE'),
-          },
-        },
-        {
-          key: 'order_content',
           type: 'textarea',
+          key: 'description',
           templateOptions: {
-            label: $translate.instant('ORDER_CONTENT'),
+            label: $translate.instant('DESCRIPTION'),
             rows: 3,
           },
         },
       ];
     };
 
-    $ctrl.newOrder = function (order) {
-      $ctrl.creatingOrder = true;
-      listViewService
-        .prepareOrder(order)
-        .then(function (result) {
+    $ctrl.cancel = function () {
+      EditMode.disable();
+      $uibModalInstance.dismiss('cancel');
+    };
+    $ctrl.create = function () {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
+      $ctrl.creating = true;
+      $rootScope.skipErrorNotification = true;
+      $http({
+        url: appConfig.djangoUrl + 'access-aids/',
+        method: 'POST',
+        data: $ctrl.accessAid,
+      })
+        .then(function (response) {
+          $ctrl.creating = false;
           EditMode.disable();
-          $ctrl.creatingOrder = false;
-          $uibModalInstance.close();
+          $uibModalInstance.close(response.data);
         })
         .catch(function (response) {
-          $ctrl.creatingOrder = false;
+          $ctrl.nonFieldErrors = response.data.non_field_errors;
+          $ctrl.creating = false;
         });
     };
-    $ctrl.save = () => {
+    $ctrl.save = function () {
+      if ($ctrl.form.$invalid) {
+        $ctrl.form.$setSubmitted();
+        return;
+      }
       $ctrl.saving = true;
+      $rootScope.skipErrorNotification = true;
       $http({
+        url: appConfig.djangoUrl + 'access-aids/' + data.accessAid.id + '/',
         method: 'PATCH',
-        url: appConfig.djangoUrl + 'orders/' + data.order.id + '/',
-        data: Utils.getDiff(data.order, $ctrl.order, {map: {type: 'id'}}),
+        data: Utils.getDiff(data.accessAid, $ctrl.accessAid, {map: {type: 'id'}}),
       })
-        .then((response) => {
+        .then(function (response) {
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);
         })
-        .catch((response) => {
+        .catch(function () {
+          $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.saving = false;
         });
     };
 
-    $ctrl.download = () => {
-      const showFile = $sce.trustAsResourceUrl(appConfig.djangoUrl + 'orders/' + data.order.id + '/download/');
-      $window.open(showFile, '_blank');
-      $uibModalInstance.close();
-    };
-
-    $ctrl.remove = function (order) {
+    $ctrl.remove = function () {
       $ctrl.removing = true;
-      $http({
-        method: 'DELETE',
-        url: appConfig.djangoUrl + 'orders/' + order.id + '/',
-      })
-        .then(function () {
+      $rootScope.skipErrorNotification = true;
+      $http
+        .delete(appConfig.djangoUrl + 'access-aids/' + $ctrl.accessAid.id)
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
-          $uibModalInstance.close();
+          $uibModalInstance.close('removed');
         })
-        .catch(function () {
+        .catch(function (response) {
+          $ctrl.nonFieldErrors = response.data.non_field_errors;
           $ctrl.removing = false;
         });
-    };
-    $ctrl.ok = function () {
-      $uibModalInstance.close();
-    };
-    $ctrl.cancel = function () {
-      $uibModalInstance.dismiss('cancel');
     };
 
     $scope.$on('modal.closing', function (event, reason, closed) {
