@@ -471,11 +471,13 @@ export default class SearchDetailCtrl {
     vm.getTransfers = function (tableState) {
       vm.transferTableState = tableState;
       let url = 'search/';
-      if (vm.record._is_structure_unit) {
+      const isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
+      const nodeId = $stateParams.id;
+      if (isStructureUnit) {
         url = 'structure-units/';
       }
       return $http
-        .get(appConfig.djangoUrl + url + vm.record.id + '/transfers/', {params: {pager: 'none'}})
+        .get(appConfig.djangoUrl + url + nodeId + '/transfers/', {params: {pager: 'none'}})
         .then(function (response) {
           vm.transfers = response.data;
           return response.data;
