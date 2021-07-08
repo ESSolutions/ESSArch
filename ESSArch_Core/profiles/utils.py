@@ -190,7 +190,8 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_TEMP_AIC_METS_PATH'] = (ip.get_temp_container_aic_xml_path,) if ip.aic else None
 
         if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
-            data['_PREMIS_PATH'] = os.path.join(ip.object_path, ip.get_premis_file_path())
+            data['_PREMIS_PATH'] = os.path.join(ip.object_path, ip.get_premis_file_path()
+                                                ) if ip.get_premis_file_path() else None
             data['allow_unknown_file_types'] = (ip.get_allow_unknown_file_types,)
 
         data['_IP_CONTAINER_FORMAT'] = (ip.get_container_format,)
