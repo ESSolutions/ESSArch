@@ -811,7 +811,7 @@ class InformationPackage(models.Model):
         else:
             path = 'metadata/premis.xml'
 
-        return normalize_path(os.path.join(self.object_path, path))
+        return normalize_path(path)
 
     def get_events_file_path(self, from_container=False):
         if not from_container and os.path.isfile(self.object_path):
@@ -1005,13 +1005,6 @@ class InformationPackage(models.Model):
         return Response(entries)
 
     def create_preservation_workflow(self):
-        generate_premis = self.profile_locked('preservation_metadata')
-
-        try:
-            workarea_id = self.workareas.get(read_only=False).pk
-        except Workarea.DoesNotExist:
-            workarea_id = None
-
         container_methods = self.policy.storage_methods.secure_storage().filter(remote=False)
         non_container_methods = self.policy.storage_methods.archival_storage().filter(remote=False)
         remote_methods = self.policy.storage_methods.filter(remote=True)
@@ -1105,16 +1098,6 @@ class InformationPackage(models.Model):
         }
 
         workflow = [
-            {
-                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                "label": "Generate premis",
-                "if": workarea_id and generate_premis,
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                "label": "Generate content-mets",
-                "if": workarea_id,
-            },
             {
                 "step": True,
                 "name": "Write to storage",
@@ -1229,12 +1212,6 @@ class InformationPackage(models.Model):
             {
                 "name": "ESSArch_Core.ip.tasks.MarkArchived",
                 "label": "Mark as archived",
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.DeleteWorkarea",
-                "label": "Delete from workarea",
-                "if": workarea_id,
-                "args": [str(workarea_id)],
             },
             {
                 "name": "ESSArch_Core.ip.tasks.PostPreservationCleanup",

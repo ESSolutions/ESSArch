@@ -1574,6 +1574,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             ip.save()
 
+            try:
+                workarea_id = ip.workareas.get(read_only=False).pk
+            except Workarea.DoesNotExist:
+                workarea_id = None
+
             generate_premis = ip.profile_locked('preservation_metadata')
             has_representations = find_destination(
                 "representations", ip.get_structure(), ip.object_path,
@@ -1592,8 +1597,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 premis_profile_data = ip.get_profile_data('preservation_metadata')
                 data = fill_specification_data(premis_profile_data, ip=ip)
                 premis_path = parseContent(ip.get_premis_file_path(), data)
+                full_premis_path = os.path.join(ip.object_path, premis_path)
                 try:
-                    os.remove(premis_path)
+                    os.remove(full_premis_path)
                 except FileNotFoundError:
                     pass
 
@@ -1626,13 +1632,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                             ]
                         },
                         {
-                            "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                            "if": generate_premis,
-                            "label": "Generate premis",
-                        },
-                        {
-                            "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                            "label": "Generate content-mets",
+                            "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                            "label": "Generate contentmetadata",
                         },
                     ]
                 },
@@ -1712,6 +1713,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
                     "args": [ip_ingest_path]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.DeleteWorkarea",
+                    "label": "Delete from workarea",
+                    "if": workarea_id,
+                    "args": [str(workarea_id)],
                 },
             ]
             workflow = create_workflow(workflow, ip, name='Preserve Information Package')

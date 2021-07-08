@@ -193,13 +193,58 @@ def generate_aic_mets(ip, xml_path):
     generator.generate(filesToCreate, parsed_files=parsed_files, algorithm=algorithm)
 
 
+def generate_content_metadata(ip):
+    files_to_create = {}
+
+    generate_premis = ip.profile_locked('preservation_metadata')
+    if generate_premis:
+        premis_profile_type = 'preservation_metadata'
+        premis_profile_rel = ip.get_profile_rel(premis_profile_type)
+        premis_profile_data = ip.get_profile_data(premis_profile_type)
+        data = fill_specification_data(premis_profile_data, ip=ip)
+        premis_path = parseContent(ip.get_premis_file_path(), data)
+        full_premis_path = os.path.join(ip.object_path, premis_path)
+        files_to_create[full_premis_path] = {
+            'spec': premis_profile_rel.profile.specification,
+            'data': data,
+        }
+
+    mets_path = ip.get_content_mets_file_path()
+    full_mets_path = os.path.join(ip.object_path, mets_path)
+    profile_type = ip.get_package_type_display().lower()
+    profile_rel = ip.get_profile_rel(profile_type)
+    profile_data = ip.get_profile_data(profile_type)
+    files_to_create[full_mets_path] = {
+        'spec': profile_rel.profile.specification,
+        'data': fill_specification_data(profile_data, ip=ip),
+    }
+
+    algorithm = ip.get_checksum_algorithm()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    allow_encrypted_files = ip.get_allow_encrypted_files()
+    generator = XMLGenerator(
+        allow_unknown_file_types=allow_unknown_file_types,
+        allow_encrypted_files=allow_encrypted_files,
+    )
+    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+
+    ip.content_mets_path = mets_path
+    ip.content_mets_create_date = timestamp_to_datetime(creation_date(full_mets_path)).isoformat()
+    ip.content_mets_size = os.path.getsize(full_mets_path)
+    ip.content_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+    ip.content_mets_digest = calculate_checksum(full_mets_path, algorithm=algorithm)
+    ip.save()
+
+
 def generate_premis(ip):
-    premis_profile_rel = ip.get_profile_rel('preservation_metadata')
-    premis_profile_data = ip.get_profile_data('preservation_metadata')
+    premis_profile_type = 'preservation_metadata'
+    premis_profile_rel = ip.get_profile_rel(premis_profile_type)
+    premis_profile_data = ip.get_profile_data(premis_profile_type)
     data = fill_specification_data(premis_profile_data, ip=ip)
     premis_path = parseContent(ip.get_premis_file_path(), data)
+    full_premis_path = os.path.join(ip.object_path, premis_path)
     files_to_create = {
-        premis_path: {
+        full_premis_path: {
             'spec': premis_profile_rel.profile.specification,
             'data': data,
         }
