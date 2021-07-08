@@ -183,8 +183,6 @@ export default class SearchDetailCtrl {
       const structureId = vm.structure ? vm.structure.id : vm.structureId;
       return $http.get(vm.url + 'search/' + id + '/', {params: {structure: structureId}}).then(function (response) {
         response.data._is_structure_unit = false;
-        vm.response2 = angular.copy(response);
-        console.log('getNode 185: response2.data: ', vm.response2.data);
         return vm.createNode(response.data);
       });
     };
@@ -480,6 +478,23 @@ export default class SearchDetailCtrl {
         .get(appConfig.djangoUrl + url + nodeId + '/transfers/', {params: {pager: 'none'}})
         .then(function (response) {
           vm.transfers = response.data;
+          return response.data;
+        });
+    };
+
+    vm.accessAids = [];
+    vm.getaccessAids = function (tableState) {
+      vm.accessAidTableState = tableState;
+      let url = 'search/';
+      const isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
+      const nodeId = $stateParams.id;
+      if (isStructureUnit) {
+        url = 'structure-units/';
+      }
+      return $http
+        .get(appConfig.djangoUrl + url + nodeId + '/access-aids/', {params: {pager: 'none'}})
+        .then(function (response) {
+          vm.accessAids = response.data;
           return response.data;
         });
     };
@@ -1110,7 +1125,6 @@ export default class SearchDetailCtrl {
       modalInstance.result.then(
         function (data, $ctrl) {
           Notifications.add($translate.instant('EXPORTED_SUCCESSFULLY'), 'success');
-          console.log('vm.structure', vm.structure);
           vm.loadRecordAndTree(vm.structure);
         },
         function () {
@@ -1970,7 +1984,6 @@ export default class SearchDetailCtrl {
         nodes = [angular.copy(nodes)];
       }
       nodes = nodes.filter((x) => !x._is_structure_unit && x.type !== 'agent');
-      console.log(nodes);
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
