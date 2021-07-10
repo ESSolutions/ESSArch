@@ -483,7 +483,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.accessAids = [];
-    vm.getaccessAids = function (tableState) {
+    vm.getAccessAids = function (tableState) {
       vm.accessAidTableState = tableState;
       let url = 'search/';
       const isStructureUnit = $state.current.name == 'home.archivalDescriptions.search.structure_unit';
@@ -497,6 +497,10 @@ export default class SearchDetailCtrl {
           vm.accessAids = response.data;
           return response.data;
         });
+    };
+
+    vm.accessAidClick = function (access_aid) {
+      $state.go('home.access.accessAid', {id: access_aid.id});
     };
 
     $scope.checkPermission = function (permissionName) {
@@ -679,6 +683,15 @@ export default class SearchDetailCtrl {
               vm.addNodeLocationModal(node.original);
             },
           };
+          const addAccessAid = {
+            label: $translate.instant('ACCESS.LINK_TO_ACCESS_AID'),
+            _disabled: function () {
+              return !$scope.checkPermission('access.change_accessaid');
+            },
+            action: function () {
+              vm.addNodeAccessAidModal(node.original);
+            },
+          };
           const addDelivery = {
             label: $translate.instant('ACCESS.LINK_TO_TRANSFER'),
             _disabled: function () {
@@ -752,6 +765,7 @@ export default class SearchDetailCtrl {
                   remove: remove,
                   addLocation: !isUnit && node.original._index !== 'archive' ? addLocation : null,
                   addDelivery: addDelivery,
+                  addAccessAid:addAccessAid,
                   removeFromStructure: removeFromStructure,
                   newVersion: newVersion,
                   changeOrganization: changeOrganization,
@@ -1655,6 +1669,40 @@ export default class SearchDetailCtrl {
       modalInstance.result.then(
         function (data) {
           $state.reload();
+        },
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    vm.addNodeAccessAidModal = function (node) {
+      let data = {};
+      if (angular.isArray(node)) {
+        data = {
+          nodes: node,
+        };
+      } else {
+        data = {
+          node: node,
+        };
+      }
+
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/node_access_aid_relation_modal.html',
+        size: 'lg',
+        controller: 'NodeAccessAidModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: data,
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $state.reload();
+          vm.getAccessAids(vm.accessAidsTableState);
         },
         function () {
           $log.info('modal-component dismissed at: ' + new Date());

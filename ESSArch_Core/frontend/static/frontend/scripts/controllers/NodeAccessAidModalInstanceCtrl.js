@@ -37,7 +37,7 @@ export default class NodeAccessAidModalInstanceCtrl {
       $ctrl.fields = [
         {
           type: 'uiselect',
-          key: 'access-aid',
+          key: 'accessaid',
           templateOptions: {
             required: true,
             options: function () {
@@ -45,19 +45,16 @@ export default class NodeAccessAidModalInstanceCtrl {
             },
             valueProp: 'id',
             labelProp: 'name',
-            placeholder: $translate.instant('ACCESS.DELIVERY'),
-            label: $translate.instant('ACCESS.DELIVERY'),
+            placeholder: $translate.instant('ACCESS.ACCESS_AID'),
+            label: $translate.instant('ACCESS.ACCESS_AID'),
             appendToBody: false,
-            onChange: function ($modelValue) {
-              $ctrl.model.transfer = null;
-            },
             optionsFunction: function (search) {
-              return $ctrl.deliveries;
+              return $ctrl.accessAids;
             },
             refresh: function (search) {
-              return $ctrl.getDeliveries(search).then(function () {
-                this.options = $ctrl.deliveries;
-                return $ctrl.deliveries;
+              return $ctrl.getAccessAids(search).then(function () {
+                this.options = $ctrl.accessAids;
+                return $ctrl.accessAids;
               });
             },
           },
@@ -105,7 +102,7 @@ export default class NodeAccessAidModalInstanceCtrl {
       }
       $rootScope.skipErrorNotification = true;
       $http({
-        url: appConfig.djangoUrl + 'transfers/' + $ctrl.model.transfer + '/add-nodes/',
+        url: appConfig.djangoUrl + 'access-aids/' + $ctrl.model.accessaid + '/add-nodes/',
         method: 'POST',
         data: {
           structure_units: structureUnits.map(function (x) {
@@ -117,7 +114,7 @@ export default class NodeAccessAidModalInstanceCtrl {
         },
       })
         .then(function (response) {
-          Notifications.add($translate.instant('ACCESS.ADDED_TO_TRANSFER'), 'success');
+          Notifications.add($translate.instant('ACCESS.ADDED_TO_ACCESS_AID'), 'success');
           $ctrl.saving = false;
           EditMode.disable();
           $uibModalInstance.close(response.data);

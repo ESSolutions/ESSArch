@@ -60,6 +60,7 @@ import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MoveToApprovalModalInstanceCtrl from '../controllers/MoveToApprovalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
+import NodeAccessAidModalInstanceCtrl from '../controllers/NodeAccessAidModalInstanceCtrl';
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
 import NodeAppraisalJobModalInstanceCtrl from '../controllers/NodeAppraisalJobModalInstanceCtrl';
 import NodeIdentifierModalInstanceCtrl from '../controllers/NodeIdentifierModalInstanceCtrl';
@@ -686,6 +687,19 @@ export default angular
     '$translate',
     '$rootScope',
     ModalInstanceCtrl,
+  ])
+    .controller('NodeAccessAidModalInstanceCtrl', [
+    'appConfig',
+    '$http',
+    '$translate',
+    'data',
+    '$uibModalInstance',
+    '$scope',
+    'EditMode',
+    '$rootScope',
+    '$q',
+    'Notifications',
+    NodeAccessAidModalInstanceCtrl,
   ])
   .controller('MoveToApprovalModalInstanceCtrl', [
     '$uibModalInstance',

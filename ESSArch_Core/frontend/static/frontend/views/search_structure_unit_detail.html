@@ -151,7 +151,7 @@
           </tbody>
         </table>
       </div>
-      <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
+  <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
         <div class="title-action-button-row">
           <div class="title">
             <h4>{{'TRANSFERS' | translate}}</h4>
@@ -168,12 +168,49 @@
               <tr
                 ng-repeat="x in vm.transfers"
                 class="selectable"
-                ng-class="{'selected': vm.selectedTransfer.id === x.id}"
                 ng-click="vm.transferClick(x)"
               >
                 <td>{{x.name}}</td>
               </tr>
               <tr ng-if="vm.transfers.length === 0" class="empty-table-indicator">
+                <td colspan="1">{{'NO_RESULTS_FOUND' | translate}}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <td ng-show="!initLoad" colspan="1">
+          <div
+            class="float-right"
+            st-template="static/frontend/views/file_pagination.html"
+            st-pagination=""
+            st-items-by-page="10"
+            st-displayed-pages="7"
+          ></div>
+        </td>
+      </div>
+        <div ng-if="vm.accessAids" class="table-container" st-table="vm.accessAids" st-pipe="vm.getAccessAids">
+        <div class="title-action-button-row">
+          <div class="title">
+            <h4>{{'ACCESS.RELATED_ACCESS_AIDS' | translate}}</h4>
+          </div>
+        </div>
+        <div class="list-view-table table-x-overflow">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th class="cursor-pointer" st-sort="name">{{ "NAME" | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                ng-repeat="x in vm.accessAids"
+                class="selectable"
+                ng-class="{'selected': vm.selectedAccessAid.id === x.id}"
+                ng-click="vm.accessAidClick(x)"
+              >
+                <td>{{x.name}}</td>
+              </tr>
+              <tr ng-if="vm.accessAids.length === 0" class="empty-table-indicator">
                 <td colspan="1">{{'NO_RESULTS_FOUND' | translate}}</td>
               </tr>
             </tbody>

@@ -410,6 +410,9 @@ angular
           url: '/access-aid',
           templateUrl: '/static/frontend/views/access_aids.html',
           controller: 'AccessAidCtrl as vm',
+          params: {
+            id: {dynamic: true, value: null},
+          },
           resolve: {
             authenticated: resolveAuthenticated,
           },

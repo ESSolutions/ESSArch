@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework_extensions.mixins import NestedViewSetMixin
 
 
 from ESSArch_Core.access.models import (
@@ -38,7 +39,7 @@ class AccessAidTypeViewSet(viewsets.ModelViewSet):
         return self.serializer_class
 
 
-class AccessAidViewSet(viewsets.ModelViewSet):
+class AccessAidViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     queryset = AccessAid.objects.none()
     serializer_class = AccessAidSerializer
     permission_classes = (ActionPermissions,)
@@ -48,7 +49,9 @@ class AccessAidViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return AccessAid.objects.for_user(user, []).all()
+        qs = AccessAid.objects.for_user(user, [])
+        return self.filter_queryset_by_parents_lookups(qs)
+
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
@@ -67,7 +70,7 @@ class AccessAidViewSet(viewsets.ModelViewSet):
         data = serializer.validated_data
 
         access_aid.structure_units.add(*data['structure_units'])
-
+        print("HELLO")
         return Response()
 
     @transaction.atomic
