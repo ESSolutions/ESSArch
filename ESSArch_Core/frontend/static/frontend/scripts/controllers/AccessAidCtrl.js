@@ -111,29 +111,10 @@ export default class AccessAidCtrl {
       }
     };
 
-  /*
-    vm.sortNames = function (agent) {
-      agent.names.sort(function (a, b) {
-        return new Date(b.start_date) - new Date(a.start_date);
-      });
-      const authorized = [];
-      agent.names.forEach(function (x, index) {
-        if (x.authority) {
-          const name = x;
-          agent.names.splice(index, 1);
-          authorized.unshift(name);
-        }
-      });
-      authorized.forEach(function (x) {
-        agent.names.unshift(x);
-      });
+    /*vm.structureUnitClick = function (agentArchive) {
+      $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
     };*/
 
-/*
-    vm.archiveClick = function (agentArchive) {
-      $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
-    };
-*/
     vm.accessAidPipe = function (tableState) {
       vm.accessAidsLoading = true;
       if (vm.accessAids.length == 0) {
@@ -184,6 +165,54 @@ export default class AccessAidCtrl {
         return response;
       });
     };
+
+    vm.accessAidStructureUnitPipe = function (tableState) {
+      vm.structureUnitsLoading = true;
+      if (angular.isUndefined(vm.accessAid.structureUnits) || vm.accessAid.structureUnits.length == 0) {
+        $scope.initLoad = true;
+      }
+      if (!angular.isUndefined(tableState)) {
+        $scope.structureUnitTableState = tableState;
+        var search = '';
+        if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        }
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.accessAidsPerPage);
+
+        let sortString = sorting.predicate;
+        if (sorting.reverse) {
+          sortString = '-' + sortString;
+        }
+
+        vm.getAccessAidStructureUnit(vm.accessAid, {
+          page: paginationParams.pageNumber,
+          page_size: paginationParams.number,
+          pager: paginationParams.pager,
+          ordering: sortString,
+          search: search,
+        }).then(function (response) {
+          tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
+          $scope.initLoad = false;
+          vm.structureUnitsLoading = false;
+          vm.accessAid.structureUnits = response.data;
+        });
+      }
+    };
+
+    vm.getAccessAidStructureUnit = function (accessAid, params) {
+      return $http({
+        url: appConfig.djangoUrl + 'access-aids/' + accessAid.id + '/structure-units/',
+        method: 'GET',
+        params: params,
+      }).then(function (response) {
+        return response;
+      });
+    };
+
+
+
+
 
     vm.createModal = function () {
       const modalInstance = $uibModal.open({
