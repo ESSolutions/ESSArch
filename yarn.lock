@@ -1000,10 +1000,10 @@
   dependencies:
     "@types/angular" "*"
 
-"@types/angular-permission@^2.3.22":
-  version "2.3.22"
-  resolved "https://registry.yarnpkg.com/@types/angular-permission/-/angular-permission-2.3.22.tgz#6d3453d5d3c831e50a1bda173bff6c571d9cd6d5"
-  integrity sha512-KRGUTiWzbpCO1KXv3bJORSOgsdNC3IvGV+jAZgw36EkuYB6lqjyUqZAFzKqmQ67fTyuEorhqX4SUBJJ0sSJmYQ==
+"@types/angular-permission@^2.3.23":
+  version "2.3.23"
+  resolved "https://registry.yarnpkg.com/@types/angular-permission/-/angular-permission-2.3.23.tgz#4f80f3d4fb4801bd6ff527881306cb02c9112d74"
+  integrity sha512-fu48HmhsUtITVnLcrr2p7EdkaDN9ZubfuyQ65w4oAB3iG/B9vOrRnXIoEezTiZHBQGgeUyPz9KXL8g45pqP1Cw==
   dependencies:
     "@types/angular" "*"
     "@types/angular-ui-router" "*"
