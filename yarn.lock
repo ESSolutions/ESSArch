@@ -1008,10 +1008,10 @@
     "@types/angular" "*"
     "@types/angular-ui-router" "*"
 
-"@types/angular-translate@^2.16.0":
-  version "2.16.2"
-  resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.2.tgz#2859a9dddde14dbeb4d8de64b1331b243c1d7ff2"
-  integrity sha512-gZhpVXeZxiZgzVy27cqrB5mUxLVuh3bqJNA/yVK0D6JZs9fcjxzmAPKvq9NUIct28bq9eVOeAT/fvQXpTBw3mA==
+"@types/angular-translate@^2.16.3":
+  version "2.16.3"
+  resolved "https://registry.yarnpkg.com/@types/angular-translate/-/angular-translate-2.16.3.tgz#10722771ed6b2c4737511d48286f4b488da9072f"
+  integrity sha512-f5+lPKbkLseb74by/tY+HuiV6HG2C5PWQ36+5cxAMMP0uLntWkDnzym6K+MAiJwpIH0Z3gfRLdlYRSWD+KKNqQ==
   dependencies:
     "@types/angular" "*"
 
