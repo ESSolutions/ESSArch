@@ -993,10 +993,10 @@
     remark "^12.0.0"
     unist-util-find-all-after "^3.0.1"
 
-"@types/angular-formly@^7.2.34":
-  version "7.2.35"
-  resolved "https://registry.yarnpkg.com/@types/angular-formly/-/angular-formly-7.2.35.tgz#90626a40183ef064eabb6f1436fa4ff9f9963657"
-  integrity sha512-wstGdSfS8JJZz3O6PK3uyFgdwKF5W9eUkf3tBnZ+wnZ333Mvvpn9K85OPrMCkjzCTRvpix8peHQKy0CeBRDwzg==
+"@types/angular-formly@^7.2.36":
+  version "7.2.36"
+  resolved "https://registry.yarnpkg.com/@types/angular-formly/-/angular-formly-7.2.36.tgz#84cc9a40bd7d10a90b9a9881b01ec167e8f99678"
+  integrity sha512-zalt6vv1WPHMg3nmTl7iEDmPghWxmFk0cby7CedD0TENLQu11dr0cJWWDEfNcK+8NYUDiHwoi1VC7448E6LquQ==
   dependencies:
     "@types/angular" "*"
 
