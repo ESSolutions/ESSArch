@@ -241,20 +241,26 @@
                       <thead>
                         <tr>
                           <th class="cursor-pointer" st-sort="name">{{'NAME' | translate}}</th>
-
+                          <th>{{'ACCESS.ARCHIVE' | translate}}</th>
+                          <th>{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}</th>
                           <th permission permission-only="'access.change_accessaid'" class="shrink">
                             {{'EDIT' | translate}}
                           </th>
                           <th permission permission-only="'access.change_accessaid'" class="white-space-nowrap shrink">
                             {{'REMOVE' | translate}}
                           </th>
+
                         </tr>
                       </thead>
                       <tbody>
-                        <tr ng-repeat="x in vm.accessAid.structureUnits" class="selectable" ng-click="vm.structureUnitClick(x)">
+                        <tr ng-repeat="x in vm.accessAid.structureUnits"
+                            class="selectable"
+                            ui-sref="{{'home.archivalDescriptions.search.structure_unit'}}({id: x.id, structure: x.structure.id, archive:x.archive})">
                           <td>
-                            {{x.name}}
+                            {{x.reference_code}} {{x.name}}
                           </td>
+                          <td>{{x.archive_name}}</td>
+                          <td>{{x.structure.name}} {{x.structure.version}}</td>
                           <td permission permission-only="'access.change_accessaid'" class="text-center shrink">
                             <button
                               class="btn btn-default btn-sm fas fa-edit"
