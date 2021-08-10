@@ -243,13 +243,6 @@
                           <th class="cursor-pointer" st-sort="name">{{'NAME' | translate}}</th>
                           <th>{{'ACCESS.ARCHIVE' | translate}}</th>
                           <th>{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}</th>
-                          <th permission permission-only="'access.change_accessaid'" class="shrink">
-                            {{'EDIT' | translate}}
-                          </th>
-                          <th permission permission-only="'access.change_accessaid'" class="white-space-nowrap shrink">
-                            {{'REMOVE' | translate}}
-                          </th>
-
                         </tr>
                       </thead>
                       <tbody>
@@ -261,24 +254,6 @@
                           </td>
                           <td>{{x.archive_name}}</td>
                           <td>{{x.structure.name}} {{x.structure.version}}</td>
-                          <td permission permission-only="'access.change_accessaid'" class="text-center shrink">
-                            <button
-                              class="btn btn-default btn-sm fas fa-edit"
-                              ng-click="vm.editArchiveRelationModal(x); $event.stopPropagation();"
-                              uib-tooltip="{{'EDIT' | translate}}"
-                              tooltip-placement="auto top"
-                              tooltip-append-to-body="true"
-                            ></button>
-                          </td>
-                          <td permission permission-only="'access.change_accessaid'" class="text-center shrink">
-                            <button
-                              class="btn btn-default btn-sm fas fa-trash-alt"
-                              ng-click="vm.removeArchiveRelationModal(x); $event.stopPropagation();"
-                              uib-tooltip="{{'REMOVE' | translate}}"
-                              tooltip-placement="auto top"
-                              tooltip-append-to-body="true"
-                            ></button>
-                          </td>
                         </tr>
                         <tr ng-if="!vm.accessAid.structureUnits.length && !vm.structureUnitsLoading" class="empty-table-indicator">
                           <td permission permission-except="'access.change_accessaid'" colspan="4">
