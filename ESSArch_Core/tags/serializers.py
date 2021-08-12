@@ -357,7 +357,8 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     )
     archive = serializers.SerializerMethodField(read_only=True)
     archive_name = serializers.SerializerMethodField(read_only=True)
-    structure = StructureSerializer(read_only=True)
+    structure_name = serializers.SerializerMethodField(read_only=True)
+    structure_version = serializers.SerializerMethodField(read_only=True)
 
     @staticmethod
     def get_is_unit_leaf_node(obj):
@@ -379,6 +380,22 @@ class StructureUnitSerializer(serializers.ModelSerializer):
 
     def get_is_leaf_node(self, obj):
         return self.get_is_unit_leaf_node(obj) and self.get_is_tag_leaf_node(obj)
+
+    def get_structure_name(self, obj):
+        name = obj.structure.name
+
+        if name is not None:
+            return name
+
+        return None
+
+    def get_structure_version(self, obj):
+        version = obj.structure.version
+
+        if version is not None:
+            return version
+
+        return None
 
     def get_archive(self, obj):
         tag_structure = obj.structure.tagstructure_set.filter(
@@ -407,7 +424,7 @@ class StructureUnitSerializer(serializers.ModelSerializer):
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
             'identifiers', 'notes', 'related_structure_units', 'archive', 'archive_name',
-            'structure',
+            'structure_name', 'structure_version'
         )
 
 
@@ -530,6 +547,15 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
                 )
 
         return super().validate(data)
+
+    """class Meta:
+        model = StructureUnit
+        fields = (
+            'id', 'parent', 'name', 'type', 'description',
+            'reference_code', 'start_date', 'end_date', 'is_leaf_node',
+            'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
+            'identifiers', 'notes', 'related_structure_units',
+        )"""
 
     @staticmethod
     def create_relations(structure_unit, structure_unit_relations):
