@@ -2,13 +2,16 @@ export default class NodeAccessAidModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, $rootScope, $q, Notifications) {
     const $ctrl = this;
     $ctrl.model = {};
+
     $ctrl.$onInit = function () {
+      $ctrl.aid = data.aid;
       if (data.nodes) {
         $ctrl.nodes = $ctrl.filterNodes(angular.copy(data.nodes));
       } else if (data.node) {
         $ctrl.node = angular.copy(data.node);
       }
       $ctrl.buildForm();
+
     };
 
     $ctrl.getAccessAids = function (search) {
@@ -17,21 +20,6 @@ export default class NodeAccessAidModalInstanceCtrl {
         return response.data;
       });
     };
-
-    /*$ctrl.getTransfers = function (search) {
-      if ($ctrl.model.delivery === null || angular.isUndefined($ctrl.model.delivery)) {
-        const deferred = $q.defer();
-        deferred.resolve([]);
-        return deferred.promise;
-      } else {
-        return $http
-          .get(appConfig.djangoUrl + 'deliveries/' + $ctrl.model.delivery + '/transfers/', {params: {search: search}})
-          .then(function (response) {
-            $ctrl.transfers = response.data;
-            return response.data;
-          });
-      }
-    };*/
 
     $ctrl.buildForm = function () {
       $ctrl.fields = [
@@ -124,6 +112,58 @@ export default class NodeAccessAidModalInstanceCtrl {
           $ctrl.saving = false;
         });
     };
+
+
+      $ctrl.removeRelation = function () {
+
+      $ctrl.removing = true;
+      const structureUnits = [];
+      const tags = [];
+      if ($ctrl.nodes && $ctrl.nodes.length > 0) {
+        $ctrl.nodes.forEach(function (x) {
+          if (x._is_structure_unit) {
+            structureUnits.push(x);
+          } else {
+            tags.push(x);
+          }
+        });
+      } else if ($ctrl.node) {
+        //console.log("CTRL",$ctrl)
+        if ($ctrl.node._is_structure_unit) {
+          structureUnits.push($ctrl.node);
+        } else {
+          tags.push($ctrl.node);
+        }
+      }
+
+
+
+      $rootScope.skipErrorNotification = true;
+      $http({
+        url: appConfig.djangoUrl + 'access-aids/' + $ctrl.aid.id + '/remove-nodes/',
+        method: 'POST',
+        data: {
+          structure_units: structureUnits.map(function (x) {
+            return x.id;
+          }),
+          tags: tags.map(function (x) {
+            return x.id;
+          }),
+        },
+      })
+      .then(function (response) {
+          $ctrl.removing = false;
+          EditMode.disable();
+          $uibModalInstance.close('removed');
+        })
+        .catch(function (response) {
+          $ctrl.nonFieldErrors = response.data.non_field_errors;
+          $ctrl.removing = false;
+        });
+    };
+
+
+
 
     $scope.$on('modal.closing', function (event, reason, closed) {
       if (

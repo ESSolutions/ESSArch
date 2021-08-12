@@ -1613,6 +1613,33 @@ export default class SearchDetailCtrl {
       );
     };
 
+    vm.removeAccessAidNodeRelationModal = function (node, aid) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/remove_structure_unit_access_aid_modal.html',
+        size: 'lg',
+        controller: 'NodeAccessAidModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            node: node,
+            aid: aid,
+
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $state.reload();
+        },
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     vm.removeNodeRelationModal = function (relation, node) {
       const modalInstance = $uibModal.open({
         animation: true,
