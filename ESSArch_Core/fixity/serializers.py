@@ -1,8 +1,7 @@
+from lxml import etree
 from rest_framework import serializers
 
 from ESSArch_Core.fixity.models import ActionTool, Validation
-
-from lxml import etree
 
 
 class ActionToolSerializer(serializers.ModelSerializer):

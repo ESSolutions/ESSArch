@@ -8,6 +8,7 @@ from subprocess import PIPE, Popen
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
@@ -15,8 +16,6 @@ from ESSArch_Core.fixity.exceptions import (
     TransformationError,
     ValidationError,
 )
-
-from picklefield.fields import PickledObjectField
 
 User = get_user_model()
 
