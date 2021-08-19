@@ -26,9 +26,9 @@ class ValidationSerializer(serializers.ModelSerializer):
     message = serializers.SerializerMethodField(read_only=True)
 
     def get_message(self, obj):
-        if 'stylesheet' in obj.specification.keys():
+        if obj.specification is not None and 'stylesheet' in obj.specification.keys():
             parser = etree.XMLParser(remove_blank_text=True)
-            root = etree.XML(obj.message, parser=parser)            
+            root = etree.XML(obj.message, parser=parser)
             xslt = etree.parse(obj.specification.get('stylesheet'))
             transform = etree.XSLT(xslt)
             message = str(transform(root))
