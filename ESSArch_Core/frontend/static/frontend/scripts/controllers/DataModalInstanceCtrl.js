@@ -1,5 +1,5 @@
 export default class DataModalInstanceCtrl {
-  constructor(IP, $scope, $sce, $uibModalInstance, Notifications, data, $q, $uibModal) {
+  constructor(IP, $scope, $sce, $uibModalInstance, Notifications, data, $q) {
     const $ctrl = this;
     if (data.vm) {
       var vm = data.vm;
@@ -15,37 +15,6 @@ export default class DataModalInstanceCtrl {
       if ($ctrl.data.ips == null) {
         $ctrl.data.ips = [$ctrl.data.ip];
       }
-    };
-
-    // Show fullscreen validation message
-    $ctrl.showFullscreenMessage = function () {
-      $ctrl.fullscreenActive = true;
-      var modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/validation_fullscreen_message.html',
-        controller: 'DataModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        windowClass: 'fullscreen-modal',
-        resolve: {
-          data: {
-            validation: $ctrl.data.validation,
-          },
-        },
-      });
-      modalInstance.result.then(
-        function (data) {
-          $ctrl.fullscreenActive = false;
-        },
-        function () {
-          $ctrl.fullscreenActive = false;
-          $console.log('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-    $ctrl.ok = function () {
-      $uibModalInstance.close();
     };
 
     // Close prepare alert

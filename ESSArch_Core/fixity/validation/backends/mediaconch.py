@@ -81,9 +81,8 @@ class MediaconchValidator(BaseValidator):
             message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
 
             if self.stylesheet:
-                xslt = etree.parse(self.stylesheet)
-                transform = etree.XSLT(xslt)
-                message = transform(root)
+                val_obj.specification['stylesheet'] = self.stylesheet
+                val_obj.save(update_fields=['specification'])
 
             if not passed:
                 logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
