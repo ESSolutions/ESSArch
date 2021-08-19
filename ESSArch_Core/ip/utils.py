@@ -219,6 +219,8 @@ def generate_content_metadata(ip):
         'data': fill_specification_data(profile_data, ip=ip),
     }
 
+    parsed_files = profile_rel.data.parsed_files
+    extra_paths_to_parse = profile_rel.data.extra_paths_to_parse
     algorithm = ip.get_checksum_algorithm()
     allow_unknown_file_types = ip.get_allow_unknown_file_types()
     allow_encrypted_files = ip.get_allow_encrypted_files()
@@ -226,7 +228,8 @@ def generate_content_metadata(ip):
         allow_unknown_file_types=allow_unknown_file_types,
         allow_encrypted_files=allow_encrypted_files,
     )
-    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm)
+    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm,
+                       parsed_files=parsed_files, extra_paths_to_parse=extra_paths_to_parse)
 
     ip.content_mets_path = mets_path
     ip.content_mets_create_date = timestamp_to_datetime(creation_date(full_mets_path)).isoformat()

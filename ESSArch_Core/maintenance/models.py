@@ -491,13 +491,8 @@ def preserve_new_generation(new_ip):
                     ]
                 },
                 {
-                    "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                    "if": generate_premis,
-                    "label": "Generate premis",
-                },
-                {
-                    "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                    "label": "Generate content-mets",
+                    "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                    "label": "Generate contentmetadata",
                 },
             ]
         },
