@@ -16,6 +16,8 @@ from ESSArch_Core.fixity.exceptions import (
     ValidationError,
 )
 
+from picklefield.fields import PickledObjectField
+
 User = get_user_model()
 
 
@@ -192,7 +194,7 @@ class Validation(models.Model):
     time_done = models.DateTimeField(null=True)
     passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
-    message = models.TextField(max_length=255, blank=True)
+    message = PickledObjectField(null=True, default=None, editable=False)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
