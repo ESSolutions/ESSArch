@@ -126,4 +126,3 @@ class CSVValidatorTests(TestCase):
             if expected_msg in v.message:
                 num += 1
         self.assertEqual(num, 1)
-        
