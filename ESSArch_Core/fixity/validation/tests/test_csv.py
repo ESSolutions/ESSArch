@@ -68,7 +68,7 @@ class CSVValidatorTests(TestCase):
         for v in Validation.objects.all():
             if expected_msg in v.message:
                 num += 1
-        self.assertEqual(num, 2)        
+        self.assertEqual(num, 2)
 
     def test_incorrect_column_count(self):
         csv = self.create_file("""\
@@ -97,7 +97,7 @@ class CSVValidatorTests(TestCase):
         for v in Validation.objects.all():
             if expected_msg in v.message:
                 num += 1
-        self.assertEqual(num, 1)        
+        self.assertEqual(num, 1)
 
     def test_missing_line_break(self):
         csv = self.create_file("""\
@@ -126,3 +126,4 @@ class CSVValidatorTests(TestCase):
             if expected_msg in v.message:
                 num += 1
         self.assertEqual(num, 1)
+        

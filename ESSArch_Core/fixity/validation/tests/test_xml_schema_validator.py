@@ -131,7 +131,7 @@ class XMLSchemaValidatorTests(TestCase):
         for v in Validation.objects.all():
             if v.message is not None and expected_error_message in v.message:
                 num += 1
-        self.assertTrue(num > 0)        
+        self.assertTrue(num>0)
 
     def mock_download_schema(dirname, logger, schema, verify=None):
         path = os.path.join(dirname, 'foo.xsd')
@@ -165,7 +165,7 @@ class XMLSchemaValidatorTests(TestCase):
         for v in Validation.objects.all():
             if v.message is not None and expected_error_message in v.message:
                 num += 1
-        self.assertTrue(num > 0)           
+        self.assertTrue(num>0)
 
         # ensure that the schema has only been modified in memory and not the file
         schema_doc = etree.parse(schema_file_path)
