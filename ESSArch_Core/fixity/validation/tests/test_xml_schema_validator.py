@@ -126,7 +126,7 @@ class XMLSchemaValidatorTests(TestCase):
             validator.validate(xml_file_path)
 
         expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
-        #self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        # self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
         num = 0
         for v in Validation.objects.all():
             if v.message is not None and expected_error_message in v.message:
@@ -160,7 +160,7 @@ class XMLSchemaValidatorTests(TestCase):
         mock_download.assert_called_once()
 
         expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
-        #self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        # self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
         num = 0
         for v in Validation.objects.all():
             if v.message is not None and expected_error_message in v.message:

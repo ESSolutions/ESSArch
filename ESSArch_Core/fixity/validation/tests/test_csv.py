@@ -63,7 +63,7 @@ class CSVValidatorTests(TestCase):
         self.assertEqual(Validation.objects.count(), 2)
 
         expected_msg = 'Wrong delimiter for post '
-        #self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 2)
+        # self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 2)
         num = 0
         for v in Validation.objects.all():
             if expected_msg in v.message:
@@ -92,7 +92,7 @@ class CSVValidatorTests(TestCase):
         self.assertEqual(Validation.objects.count(), 1)
 
         expected_msg = 'Wrong delimiter for post '  # same thing as wrong column count
-        #self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 1)
+        # self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 1)
         num = 0
         for v in Validation.objects.all():
             if expected_msg in v.message:
@@ -120,7 +120,7 @@ class CSVValidatorTests(TestCase):
         self.assertEqual(Validation.objects.count(), 1)
 
         expected_msg = 'Missing line break for post '
-        #self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 1)
+        # self.assertEqual(Validation.objects.filter(message__startswith=expected_msg).count(), 1)
         num = 0
         for v in Validation.objects.all():
             if expected_msg in v.message:
