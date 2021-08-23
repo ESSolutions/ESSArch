@@ -1,19 +1,33 @@
-export default class TransferModalInstanceCtrl {
+export default class AccessAidModalInstanceCtrl {
   constructor(appConfig, $http, $translate, data, $uibModalInstance, $scope, EditMode, Utils, $rootScope) {
     const $ctrl = this;
-    $ctrl.transfer = {};
+    $ctrl.accessAid = {};
+    $ctrl.options = {};
     $ctrl.$onInit = function () {
       if (!data.remove) {
-        if (data.transfer) {
-          $ctrl.transfer = angular.copy(data.transfer);
+        if (data.accessAid) {
+          $ctrl.accessAid = angular.copy(data.accessAid);
+          $ctrl.accessAid.type = angular.copy(data.accessAid.type.id);
         }
-        $ctrl.buildForm();
+
+        $ctrl.getAccessAidTypes().then(function (response) {
+          EditMode.enable();
+          $ctrl.buildForm();
+        });
       } else {
-        if (data.transfer) {
-          $ctrl.transfer = angular.copy(data.transfer);
+        if (data.accessAid) {
+          $ctrl.accessAid = angular.copy(data.accessAid);
         }
       }
     };
+
+    $ctrl.getAccessAidTypes = function (search) {
+      return $http.get(appConfig.djangoUrl + 'access-aid-types/').then(function (response) {
+        $ctrl.accessAidTypes = response.data;
+        return response.data;
+      });
+    };
+
     $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
@@ -27,6 +41,19 @@ export default class TransferModalInstanceCtrl {
           },
         },
         {
+          type: 'select',
+          key: 'type',
+          templateOptions: {
+            required: true,
+            label: $translate.instant('TYPE'),
+            labelProp: 'name',
+            valueProp: 'id',
+            options: $ctrl.accessAidTypes,
+            notNull: true,
+          },
+          defaultValue: $ctrl.accessAidTypes.length > 0 ? $ctrl.accessAidTypes[0].id : null,
+        },
+        {
           type: 'textarea',
           key: 'description',
           templateOptions: {
@@ -35,76 +62,23 @@ export default class TransferModalInstanceCtrl {
           },
         },
         {
-          key: 'submitter_information',
-          type: 'checkbox',
           templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_INFO'),
+            label: $translate.instant('ACCESS.SECURITY_LEVEL'),
+            type: 'number',
+            required: false,
+            min: 1,
+            max: 5,
           },
+          type: 'input',
+          key: 'security_level',
         },
         {
-          type: 'input',
-          key: 'submitter_organization',
-          expressionProperties: {
-            hide: function ($modelValue) {
-              return !$ctrl.transfer.submitter_information;
-            },
-          },
           templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION'),
-            maxlength: 255,
+            label: $translate.instant('ACCESS.LINK'),
+            required: false,
           },
-        },
-        {
           type: 'input',
-          key: 'submitter_organization_main_address',
-          expressionProperties: {
-            hide: function ($modelValue) {
-              return !$ctrl.transfer.submitter_information;
-            },
-          },
-          templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION_MAIN_ADDRESS'),
-            maxlength: 255,
-          },
-        },
-        {
-          type: 'input',
-          key: 'submitter_individual_name',
-          expressionProperties: {
-            hide: function ($modelValue) {
-              return !$ctrl.transfer.submitter_information;
-            },
-          },
-          templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_NAME'),
-            maxlength: 255,
-          },
-        },
-        {
-          type: 'input',
-          key: 'submitter_individual_phone',
-          expressionProperties: {
-            hide: function ($modelValue) {
-              return !$ctrl.transfer.submitter_information;
-            },
-          },
-          templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_PHONE'),
-            maxlength: 255,
-          },
-        },
-        {
-          type: 'input',
-          key: 'submitter_individual_email',
-          expressionProperties: {
-            hide: function ($modelValue) {
-              return !$ctrl.transfer.submitter_information;
-            },
-          },
-          templateOptions: {
-            label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_EMAIL'),
-            maxlength: 255,
-          },
+          key: 'link',
         },
       ];
     };
@@ -118,13 +92,12 @@ export default class TransferModalInstanceCtrl {
         $ctrl.form.$setSubmitted();
         return;
       }
-      $ctrl.transfer.delivery = angular.copy(data.delivery);
       $ctrl.creating = true;
       $rootScope.skipErrorNotification = true;
       $http({
-        url: appConfig.djangoUrl + 'transfers/',
+        url: appConfig.djangoUrl + 'access-aids/',
         method: 'POST',
-        data: $ctrl.transfer,
+        data: $ctrl.accessAid,
       })
         .then(function (response) {
           $ctrl.creating = false;
@@ -136,7 +109,6 @@ export default class TransferModalInstanceCtrl {
           $ctrl.creating = false;
         });
     };
-
     $ctrl.save = function () {
       if ($ctrl.form.$invalid) {
         $ctrl.form.$setSubmitted();
@@ -145,9 +117,9 @@ export default class TransferModalInstanceCtrl {
       $ctrl.saving = true;
       $rootScope.skipErrorNotification = true;
       $http({
-        url: appConfig.djangoUrl + 'transfers/' + data.transfer.id + '/',
+        url: appConfig.djangoUrl + 'access-aids/' + data.accessAid.id + '/',
         method: 'PATCH',
-        data: Utils.getDiff(data.transfer, $ctrl.transfer, {map: {type: 'id'}}),
+        data: Utils.getDiff(data.accessAid, $ctrl.accessAid, {map: {type: 'id'}}),
       })
         .then(function (response) {
           $ctrl.saving = false;
@@ -164,7 +136,7 @@ export default class TransferModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'transfers/' + $ctrl.transfer.id)
+        .delete(appConfig.djangoUrl + 'access-aids/' + $ctrl.accessAid.id)
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();

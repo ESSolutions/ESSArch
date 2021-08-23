@@ -1,5 +1,7 @@
 import * as angular from 'angular';
 
+import AccessAidCtrl from '../controllers/AccessAidCtrl';
+import AccessAidModalInstanceCtrl from '../controllers/AccessAidModalInstanceCtrl';
 import AccessCtrl from '../controllers/AccessCtrl';
 import AccessModalInstanceCtrl from '../controllers/AccessModalInstanceCtrl';
 import AccessIpCtrl from '../controllers/AccessIpCtrl';
@@ -58,6 +60,7 @@ import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MoveToApprovalModalInstanceCtrl from '../controllers/MoveToApprovalInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
+import NodeAccessAidModalInstanceCtrl from '../controllers/NodeAccessAidModalInstanceCtrl';
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
 import NodeAppraisalJobModalInstanceCtrl from '../controllers/NodeAppraisalJobModalInstanceCtrl';
 import NodeIdentifierModalInstanceCtrl from '../controllers/NodeIdentifierModalInstanceCtrl';
@@ -164,6 +167,34 @@ export default angular
     'ui.bootstrap',
     'ui.dateTimeInput',
     'ui.select',
+  ])
+  .controller('AccessAidCtrl', [
+    '$uibModal',
+    '$log',
+    '$scope',
+    '$http',
+    'appConfig',
+    '$state',
+    '$stateParams',
+    'AgentName',
+    'myService',
+    '$rootScope',
+    '$translate',
+    'listViewService',
+    '$transitions',
+    AccessAidCtrl,
+  ])
+  .controller('AccessAidModalInstanceCtrl', [
+    'appConfig',
+    '$http',
+    '$translate',
+    'data',
+    '$uibModalInstance',
+    '$scope',
+    'EditMode',
+    'Utils',
+    '$rootScope',
+    AccessAidModalInstanceCtrl,
   ])
   .controller('AccessCtrl', AccessCtrl)
   .controller('AccessModalInstanceCtrl', ['$uibModalInstance', 'data', 'Requests', '$q', AccessModalInstanceCtrl])
@@ -655,6 +686,19 @@ export default angular
     '$translate',
     '$rootScope',
     ModalInstanceCtrl,
+  ])
+  .controller('NodeAccessAidModalInstanceCtrl', [
+    'appConfig',
+    '$http',
+    '$translate',
+    'data',
+    '$uibModalInstance',
+    '$scope',
+    'EditMode',
+    '$rootScope',
+    '$q',
+    'Notifications',
+    NodeAccessAidModalInstanceCtrl,
   ])
   .controller('MoveToApprovalModalInstanceCtrl', [
     '$uibModalInstance',

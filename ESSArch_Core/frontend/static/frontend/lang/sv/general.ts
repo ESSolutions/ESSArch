@@ -2,6 +2,7 @@
 export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     ACCESSIP: 'Förvaringsenheter',
+    ACCESS_AIDS: 'Sökingångar',
     ADD_ATTRIBUTE: 'Lägg till Attribut',
     ADD_EXTENSION: 'Lägg till tillägg',
     ADD: 'Lägg till',
