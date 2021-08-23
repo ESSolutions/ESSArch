@@ -8,6 +8,7 @@ from subprocess import PIPE, Popen
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
@@ -30,11 +31,13 @@ class ExternalTool(models.Model):
         CLI_ENV = 'cli'
         PYTHON_ENV = 'python'
         DOCKER_ENV = 'docker'
+        TASK_ENV = 'task'
 
     type = models.CharField(_('type'), max_length=20, choices=Type.choices)
     name = models.CharField(_('name'), max_length=255, unique=True)
+    description = models.TextField(_('description'), blank=True)
     path = models.TextField(_('path'))
-    cmd = models.TextField(_('options or command'))
+    cmd = models.TextField(_('options, or command'))
     enabled = models.BooleanField(_('enabled'), default=True)
     environment = models.CharField(_('environment'), max_length=20,
                                    default=EnvironmentType.CLI_ENV, choices=EnvironmentType.choices)
@@ -83,7 +86,7 @@ class ActionTool(ExternalTool):
         kwargs.update(options)
         return self.cmd.format(**kwargs)
 
-    def _run_application(self, filepath, rootdir, options):
+    def _run_application(self, filepath, rootdir, options, t=None, ip=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -110,7 +113,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_python(self, filepath, rootdir, options):
+    def _run_python(self, filepath, rootdir, options, t=None, ip=None, context=None):
         from ESSArch_Core.util import normalize_path
 
         old_cwd = os.getcwd()
@@ -120,7 +123,7 @@ class ActionTool(ExternalTool):
             cmd = eval(self.prepare_cmd(filepath, options))
             try:
                 [module, task] = self.path.rsplit('.', 1)
-                p = getattr(importlib.import_module(module), task)
+                p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
                 elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
@@ -156,7 +159,7 @@ class ActionTool(ExternalTool):
         finally:
             os.chdir(old_cwd)
 
-    def _run_docker(self, filepath, rootdir, options):
+    def _run_docker(self, filepath, rootdir, options, t=None, ip=None):
         import docker
         client = docker.from_env()
         workdir = '/mnt/vol1'
@@ -170,13 +173,13 @@ class ActionTool(ExternalTool):
             remove=True,
         )
 
-    def run(self, filepath, rootdir, options):
+    def run(self, filepath, rootdir, options, t=None, ip=None, context=None):
         if self.environment == ActionTool.EnvironmentType.CLI_ENV:
-            return self._run_application(filepath, rootdir, options)
+            return self._run_application(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.DOCKER_ENV:
-            return self._run_docker(filepath, rootdir, options)
+            return self._run_docker(filepath, rootdir, options, t, ip)
         elif self.environment == ActionTool.EnvironmentType.PYTHON_ENV:
-            return self._run_python(filepath, rootdir, options)
+            return self._run_python(filepath, rootdir, options, t, ip, context)
 
         raise ValueError('Unknown tool type')
 
@@ -190,7 +193,7 @@ class Validation(models.Model):
     time_done = models.DateTimeField(null=True)
     passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
-    message = models.TextField(max_length=255, blank=True)
+    message = PickledObjectField(null=True, default=None, editable=False)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
@@ -198,4 +201,8 @@ class Validation(models.Model):
         null=True,
         related_name='validations',
     )
+
+    class Meta:
+        get_latest_by = ['time_done']
+
     responsible = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)

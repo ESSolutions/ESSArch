@@ -255,6 +255,7 @@ export default class ReceptionCtrl {
           if ($scope.ips.length > 0) {
             $scope.ips.shift();
           }
+          $scope.ip.state = 'Received';
         },
         function () {
           $scope.getListViewData();

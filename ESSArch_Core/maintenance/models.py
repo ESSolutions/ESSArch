@@ -456,8 +456,9 @@ def preserve_new_generation(new_ip):
         premis_profile_data = new_ip.get_profile_data('preservation_metadata')
         data = fill_specification_data(premis_profile_data, ip=new_ip)
         premis_path = parseContent(new_ip.get_premis_file_path(), data)
+        full_premis_path = os.path.join(new_ip.object_path, premis_path)
         try:
-            os.remove(premis_path)
+            os.remove(full_premis_path)
         except FileNotFoundError:
             pass
 
@@ -490,13 +491,8 @@ def preserve_new_generation(new_ip):
                     ]
                 },
                 {
-                    "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                    "if": generate_premis,
-                    "label": "Generate premis",
-                },
-                {
-                    "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                    "label": "Generate content-mets",
+                    "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                    "label": "Generate contentmetadata",
                 },
             ]
         },

@@ -17,7 +17,12 @@
       <h4 class="text-center pb-base">{{'DASHBOARD.TOTAL_OBJECT_SIZE' | translate}}</h4>
       <h2 class="text-center text-bold">{{vm.stats.total_object_size | filesize}}</h2>
     </div>
+    <div class="dashboard-card">
+      <h4 class="text-center pb-base">{{'DASHBOARD.DELIVERIES' | translate}}</h4>
+      <h2 class="text-center text-bold">{{vm.stats.deliveries}}</h2>
+    </div>
   </div>
+
   <div ng-if="vm.stats.tags && vm.stats.tags.length" permission permission-only="'tags.search'">
     <hr />
     <h4>{{'DASHBOARD.ARCHIVAL_DESCRIPTION' | translate}}</h4>

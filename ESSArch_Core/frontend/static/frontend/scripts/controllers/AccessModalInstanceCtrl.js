@@ -26,6 +26,8 @@ export default class AccessModalInstanceCtrl {
           return 'GET_AS_CONTAINER';
         case 'get_as_new':
           return 'GET_AS_NEW_GENERATION';
+        case 'edit':
+          return 'GET_AS_EDITABLE';
         default:
           return 'GET';
       }
@@ -38,6 +40,7 @@ export default class AccessModalInstanceCtrl {
         tar: $ctrl.data.request.type === 'get_tar',
         extracted: $ctrl.data.request.type === 'get',
         new: $ctrl.data.request.type === 'get_as_new',
+        edit: $ctrl.data.request.type === 'edit',
         package_xml: $ctrl.data.request.package_xml,
         aic_xml: $ctrl.data.request.aic_xml,
       };

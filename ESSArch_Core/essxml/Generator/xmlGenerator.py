@@ -163,6 +163,7 @@ class XMLElement:
         self.attr = [XMLAttribute(a) for a in template.get('-attr', [])]
         self.content = template.get('#content', [])
         self.nestedXMLContent = template.get('-nestedXMLContent')
+        self.CDATAContent = template.get('-CDATAContent')
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
         self.replace_existing = template.get('-replaceExisting', None)
@@ -212,6 +213,9 @@ class XMLElement:
             return False
 
         if self.nestedXMLContent:
+            return False
+
+        if self.CDATAContent:
             return False
 
         return True
@@ -445,9 +449,28 @@ class XMLElement:
                 if not self.allowEmpty:
                     return None
             else:
-                nested_xml = bytes(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
+                try:
+                    nested_xml = info[self.nestedXMLContent].decode().encode('utf-8')
+                except (UnicodeDecodeError, AttributeError):
+                    nested_xml = bytes(bytearray(info[self.nestedXMLContent], encoding='utf-8'))
                 parser = etree.XMLParser(remove_blank_text=True)
                 self.el.append(etree.fromstring(nested_xml, parser=parser))
+
+        if self.CDATAContent:
+            # we encode the XML to get around LXML limitation with XML strings
+            # containing encoding information.
+            #
+            # See:
+            # https://stackoverflow.com/questions/15830421/xml-unicode-strings-with-encoding-declaration-are-not-supported
+            if self.CDATAContent not in info:
+                logger.warning(
+                    "CDATA '{}' not found in data and will not be created".format(self.CDATAContent)
+                )
+                if not self.allowEmpty:
+                    return None
+            else:
+                nested_xml = info[self.CDATAContent]
+                self.el.text = etree.CDATA(nested_xml)
 
         is_empty = self.isEmpty(info)
         if is_empty and self.required:
@@ -638,7 +661,13 @@ class XMLGenerator:
                             )
                             files.append(fileinfo)
 
-            files.extend(parse_files(self.fid, folderToParse, external, algorithm, rootdir=""))
+            for file_to_append in parse_files(self.fid, folderToParse, external, algorithm, rootdir=""):
+                file_alreay_exists = False
+                for file_in_list in files:
+                    if file_in_list['FName'] == file_to_append['FName']:
+                        file_alreay_exists = True
+                if not file_alreay_exists:
+                    files.append(file_to_append)
 
         for path in extra_paths_to_parse:
             files.extend(parse_files(self.fid, path, external, algorithm, rootdir=path))

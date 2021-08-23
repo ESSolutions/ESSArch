@@ -119,6 +119,10 @@ class UserLoggedInSerializer(UserSerializer):
     ip_list_view_type = serializers.ChoiceField(
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
     )
+    file_browser_view_type = serializers.ChoiceField(
+        choices=UserProfile.FILE_BROWSER_LIST_VIEW_CHOICES, default=UserProfile.LIST,
+        source='user_profile.file_browser_view_type'
+    )
     notifications_enabled = serializers.BooleanField(source='user_profile.notifications_enabled')
     language = serializers.CharField(source='user_profile.language')
 
@@ -157,7 +161,10 @@ class UserLoggedInSerializer(UserSerializer):
             'ip_list_view_type',
             user_profile.ip_list_view_type
         )
-
+        user_profile.file_browser_view_type = profile_data.get(
+            'file_browser_view_type',
+            user_profile.file_browser_view_type
+        )
         user_profile.notifications_enabled = profile_data.get(
             'notifications_enabled',
             user_profile.notifications_enabled,
@@ -173,7 +180,7 @@ class UserLoggedInSerializer(UserSerializer):
             'url', 'id', 'username', 'first_name', 'last_name', 'email',
             'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
-            'ip_list_columns', 'ip_list_view_type', 'current_organization',
+            'ip_list_columns', 'ip_list_view_type', 'file_browser_view_type', 'current_organization',
             'notifications_enabled', 'language',
         )
         read_only_fields = (

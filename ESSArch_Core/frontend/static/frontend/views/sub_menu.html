@@ -9,7 +9,7 @@
       ng-class="{'chosen': $state.includes('home.producer.prepareIp')}"
       ui-sref="home.producer.prepareIp"
       ng-if="checkPermissions('home.producer.prepareIp')"
-      >{{('PREPAREIP' | translate)}}</a
+      >{{('PREPARE_DELIVERY' | translate)}}</a
     >
     <a
       tabindex="0"
@@ -27,7 +27,7 @@
       ng-class="{'chosen': $state.includes('home.producer.createSip')}"
       ui-sref="home.producer.createSip"
       ng-if="checkPermissions('home.producer.createSip')"
-      >{{('CREATESIP' | translate)}}</a
+      >{{('CREATE_DELIVERY' | translate)}}</a
     >
     <a
       tabindex="0"
@@ -36,7 +36,7 @@
       ng-class="{'chosen': $state.includes('home.producer.submitSip')}"
       ui-sref="home.producer.submitSip"
       ng-if="checkPermissions('home.producer.submitSip')"
-      >{{('SUBMITSIP' | translate)}}</a
+      >{{('SUBMIT_DELIVERY' | translate)}}</a
     >
   </div>
   <div tabindex="-1" ng-if="'home.ingest' | includedByState" class="sub-menu">
@@ -57,7 +57,7 @@
       class="nav-item sliding-middle-out"
       style="margin-left: 5px"
       ng-if="checkPermissions('home.ingest.ipApproval')"
-      >{{'APPROVAL' | translate}}</a
+      >{{'CHECKPOINT' | translate}}</a
     >
   </div>
   <div tabindex="-1" ng-if="'home.access' | includedByState" class="sub-menu">
@@ -90,6 +90,15 @@
       style="margin-left: 5px"
       ng-if="checkPermissions('home.access.createDip')"
       >{{'DISSEMINATION' | translate}}</a
+    >
+    <a
+      tabindex="0"
+      ng-keydown="navKeydownListener($event, 'home.access.accessAid')"
+      ui-sref="home.access.accessAid"
+      ng-class="{chosen: $state.current.name == 'home.access.accessAid'}"
+      class="nav-item sliding-middle-out"
+      style="margin-left: 5px"
+      >{{'ACCESS_AIDS' | translate}}</a
     >
   </div>
   <div tabindex="-1" ng-if="'home.archivalDescriptions' | includedByState" class="sub-menu">
@@ -141,7 +150,6 @@
       ng-if="checkPermissions('home.archivalDescriptions.deliveries')"
       >{{'DELIVERIES' | translate}}</a
     >
-
     <a
       tabindex="0"
       ng-keydown="navKeydownListener($event, 'home.archivalDescriptions.search')"
