@@ -55,7 +55,10 @@ export default class AccessAidCtrl {
     );
 
     vm.getAccessAidListColspan = function () {
-      if (myService.checkPermission('access.change_accessaid') && myService.checkPermission('access.delete_accessaid')) {
+      if (
+        myService.checkPermission('access.change_accessaid') &&
+        myService.checkPermission('access.delete_accessaid')
+      ) {
         return 6;
       } else if (
         myService.checkPermission('access.change_accessaid') ||
@@ -209,10 +212,6 @@ export default class AccessAidCtrl {
         return response;
       });
     };
-
-
-
-
 
     vm.createModal = function () {
       const modalInstance = $uibModal.open({

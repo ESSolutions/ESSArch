@@ -168,7 +168,7 @@ export default angular
     'ui.dateTimeInput',
     'ui.select',
   ])
-    .controller('AccessAidCtrl', [
+  .controller('AccessAidCtrl', [
     '$uibModal',
     '$log',
     '$scope',
@@ -184,7 +184,7 @@ export default angular
     '$transitions',
     AccessAidCtrl,
   ])
-    .controller('AccessAidModalInstanceCtrl', [
+  .controller('AccessAidModalInstanceCtrl', [
     'appConfig',
     '$http',
     '$translate',
@@ -688,7 +688,7 @@ export default angular
     '$rootScope',
     ModalInstanceCtrl,
   ])
-    .controller('NodeAccessAidModalInstanceCtrl', [
+  .controller('NodeAccessAidModalInstanceCtrl', [
     'appConfig',
     '$http',
     '$translate',

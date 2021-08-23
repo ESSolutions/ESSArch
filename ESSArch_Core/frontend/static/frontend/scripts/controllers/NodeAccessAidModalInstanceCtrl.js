@@ -11,7 +11,6 @@ export default class NodeAccessAidModalInstanceCtrl {
         $ctrl.node = angular.copy(data.node);
       }
       $ctrl.buildForm();
-
     };
 
     $ctrl.getAccessAids = function (search) {
@@ -113,9 +112,7 @@ export default class NodeAccessAidModalInstanceCtrl {
         });
     };
 
-
-      $ctrl.removeRelation = function () {
-
+    $ctrl.removeRelation = function () {
       $ctrl.removing = true;
       const structureUnits = [];
       const tags = [];
@@ -136,8 +133,6 @@ export default class NodeAccessAidModalInstanceCtrl {
         }
       }
 
-
-
       $rootScope.skipErrorNotification = true;
       $http({
         url: appConfig.djangoUrl + 'access-aids/' + $ctrl.aid.id + '/remove-nodes/',
@@ -151,7 +146,7 @@ export default class NodeAccessAidModalInstanceCtrl {
           }),
         },
       })
-      .then(function (response) {
+        .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
           $uibModalInstance.close('removed');
@@ -161,9 +156,6 @@ export default class NodeAccessAidModalInstanceCtrl {
           $ctrl.removing = false;
         });
     };
-
-
-
 
     $scope.$on('modal.closing', function (event, reason, closed) {
       if (

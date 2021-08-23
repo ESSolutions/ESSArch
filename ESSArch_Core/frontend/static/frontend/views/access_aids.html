@@ -153,15 +153,22 @@
                 </uib-accordion-heading>
                 <h4 class="pb-base">{{vm.accessAid.name}}</h4>
                 <result-field label="{{'TYPE' | translate}}" data="vm.accessAid.type.name"></result-field>
-                <result-field label="{{'ACCESS.SECURITY_LEVEL' | translate}}" data="vm.accessAid.security_level"></result-field>
+                <result-field
+                  label="{{'ACCESS.SECURITY_LEVEL' | translate}}"
+                  data="vm.accessAid.security_level"
+                ></result-field>
 
                 <hr class="small" />
                 <result-field label="{{'DESCRIPTION' | translate}}" data="vm.accessAid.description"></result-field>
-                <a ng-if="vm.accessAid.link" class="btn btn-success btn-small margin-top-5" target="_blank" href="{{vm.accessAid.link}}">
-                <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
-              </a>
+                <a
+                  ng-if="vm.accessAid.link"
+                  class="btn btn-success btn-small margin-top-5"
+                  target="_blank"
+                  href="{{vm.accessAid.link}}"
+                >
+                  <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
+                </a>
               </div>
-
 
               <div uib-accordion-group class="panel-default" is-open="vm.accordion.basic.related_structure_units.open">
                 <uib-accordion-heading>
@@ -177,14 +184,16 @@
                   ></i>
                 </uib-accordion-heading>
 
-                <div class="table-container" st-table="vm.accessAid.structureUnits" st-pipe="vm.accessAidStructureUnitPipe">
+                <div
+                  class="table-container"
+                  st-table="vm.accessAid.structureUnits"
+                  st-pipe="vm.accessAidStructureUnitPipe"
+                >
                   <div class="title-action-button-row">
                     <div class="title">
                       <h4>{{'ACCESS.STRUCTURE_UNITS' | translate}}</h4>
                     </div>
-                    <div class="d-flex justify-content-end pb-base">
-
-                    </div>
+                    <div class="d-flex justify-content-end pb-base"></div>
                   </div>
                   <div class="search-prepare-wrapper">
                     <label for items-per-page></label>
@@ -242,21 +251,25 @@
                         </tr>
                       </thead>
                       <tbody>
-                        <tr ng-repeat="x in vm.accessAid.structureUnits"
-                            class="selectable"
-                            ui-sref="{{'home.archivalDescriptions.search.structure_unit'}}({id: x.id, structure: x.structure.id, archive:x.archive})">
-                          <td>
-                            {{x.reference_code}}&nbsp;{{x.name}}
-                          </td>
+                        <tr
+                          ng-repeat="x in vm.accessAid.structureUnits"
+                          class="selectable"
+                          ui-sref="{{'home.archivalDescriptions.search.structure_unit'}}({id: x.id, structure: x.structure.id, archive:x.archive})"
+                        >
+                          <td>{{x.reference_code}}&nbsp;{{x.name}}</td>
                           <td>
                             <div ng-if="x.start_date !== null || x.end_date !== null" class="white-space-nowrap">
-                              {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date | date:x.type.date_render_format}}
+                              {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
+                              date:x.type.date_render_format}}
                             </div>
                           </td>
                           <td>{{x.archive_name}}</td>
                           <td>{{x.structure_name}}&nbsp;{{x.structure_version}}</td>
                         </tr>
-                        <tr ng-if="!vm.accessAid.structureUnits.length && !vm.structureUnitsLoading" class="empty-table-indicator">
+                        <tr
+                          ng-if="!vm.accessAid.structureUnits.length && !vm.structureUnitsLoading"
+                          class="empty-table-indicator"
+                        >
                           <td permission permission-except="'access.change_accessaid'" colspan="4">
                             {{'NO_RESULTS_FOUND' | translate}}
                           </td>
@@ -264,11 +277,24 @@
                             {{'NO_RESULTS_FOUND' | translate}}
                           </td>
                         </tr>
-                        <tr ng-if="!vm.accessAid.structureUnits.length && vm.archivesLoading" class="empty-table-indicator">
-                          <td permission permission-except="'access.change_accessaid'" class="loading-column" colspan="4">
+                        <tr
+                          ng-if="!vm.accessAid.structureUnits.length && vm.archivesLoading"
+                          class="empty-table-indicator"
+                        >
+                          <td
+                            permission
+                            permission-except="'access.change_accessaid'"
+                            class="loading-column"
+                            colspan="4"
+                          >
                             {{'LOADING' | translate}}
                           </td>
-                          <td permission permission-only="'access.change_accessaid'" class="loading-column" colspan="6">
+                          <td
+                            permission
+                            permission-only="'access.change_accessaid'"
+                            class="loading-column"
+                            colspan="6"
+                          >
                             {{'LOADING' | translate}}
                           </td>
                         </tr>
@@ -287,8 +313,6 @@
                 </div>
               </div>
             </uib-accordion>
-
-
           </uib-tab>
         </uib-tabset>
       </div>

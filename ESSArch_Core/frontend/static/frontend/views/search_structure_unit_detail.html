@@ -156,16 +156,11 @@
           <div class="title">
             <h4>{{'ACCESS.RELATED_ACCESS_AIDS' | translate}}</h4>
           </div>
-                  <div
-          class="action-button"
-          permission
-          permission-only="'access.change_accessaid'"
-        >
-          <button class="btn btn-primary" ng-click="vm.addNodeAccessAidModal(vm.record)">
-            {{'ACCESS.ADD_RELATION' | translate}}
-          </button>
-        </div>
-
+          <div class="action-button" permission permission-only="'access.change_accessaid'">
+            <button class="btn btn-primary" ng-click="vm.addNodeAccessAidModal(vm.record)">
+              {{'ACCESS.ADD_RELATION' | translate}}
+            </button>
+          </div>
         </div>
         <div class="list-view-table table-x-overflow">
           <table class="table table-striped">
@@ -175,13 +170,9 @@
                 <th class="cursor-pointer" st-sort="type">{{ "TYPE" | translate }}</th>
                 <th>{{ "DESCRIPTION" | translate }}</th>
                 <th>{{ "ACCESS.SECURITY_LEVEL" | translate}}</th>
-              <th
-                class="white-space-nowrap shrink"
-                permission
-                permission-only="'access.change_accessaid'"
-              >
-                {{'REMOVE' | translate}}
-              </th>
+                <th class="white-space-nowrap shrink" permission permission-only="'access.change_accessaid'">
+                  {{'REMOVE' | translate}}
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -195,20 +186,20 @@
                 <td>{{x.type.name}}</td>
                 <td>{{x.description}}</td>
                 <td>{{x.security_level}}</td>
-              <td
-                ng-if="vm.structure.type.editable_instance_relations"
-                class="text-center shrink"
-                permission
-                permission-only="'access.change_accessaid'"
-              >
-                <button
-                  class="btn btn-default btn-sm fas fa-trash-alt"
-                  ng-click="vm.removeAccessAidNodeRelationModal(vm.record, x); $event.stopPropagation();"
-                  uib-tooltip="{{'REMOVE' | translate}}"
-                  tooltip-placement="auto top"
-                  tooltip-append-to-body="true"
-                ></button>
-              </td>
+                <td
+                  ng-if="vm.structure.type.editable_instance_relations"
+                  class="text-center shrink"
+                  permission
+                  permission-only="'access.change_accessaid'"
+                >
+                  <button
+                    class="btn btn-default btn-sm fas fa-trash-alt"
+                    ng-click="vm.removeAccessAidNodeRelationModal(vm.record, x); $event.stopPropagation();"
+                    uib-tooltip="{{'REMOVE' | translate}}"
+                    tooltip-placement="auto top"
+                    tooltip-append-to-body="true"
+                  ></button>
+                </td>
               </tr>
               <tr ng-if="vm.accessAids.length === 0" class="empty-table-indicator">
                 <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -226,7 +217,7 @@
           ></div>
         </td>
       </div>
-  <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
+      <div ng-if="vm.transfers" class="table-container" st-table="vm.transfers" st-pipe="vm.getTransfers">
         <div class="title-action-button-row">
           <div class="title">
             <h4>{{'TRANSFERS' | translate}}</h4>
@@ -240,11 +231,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr
-                ng-repeat="x in vm.transfers"
-                class="selectable"
-                ng-click="vm.transferClick(x)"
-              >
+              <tr ng-repeat="x in vm.transfers" class="selectable" ng-click="vm.transferClick(x)">
                 <td>{{x.name}}</td>
               </tr>
               <tr ng-if="vm.transfers.length === 0" class="empty-table-indicator">
@@ -263,7 +250,6 @@
           ></div>
         </td>
       </div>
-
     </div>
   </div>
 </div>

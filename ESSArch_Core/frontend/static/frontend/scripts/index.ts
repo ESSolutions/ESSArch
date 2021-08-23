@@ -406,7 +406,7 @@ angular
             },
           },
         })
-       .state('home.access.accessAid', {
+        .state('home.access.accessAid', {
           url: '/access-aid',
           templateUrl: '/static/frontend/views/access_aids.html',
           controller: 'AccessAidCtrl as vm',

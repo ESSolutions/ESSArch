@@ -765,7 +765,7 @@ export default class SearchDetailCtrl {
                   remove: remove,
                   addLocation: !isUnit && node.original._index !== 'archive' ? addLocation : null,
                   addDelivery: addDelivery,
-                  addAccessAid:addAccessAid,
+                  addAccessAid: addAccessAid,
                   removeFromStructure: removeFromStructure,
                   newVersion: newVersion,
                   changeOrganization: changeOrganization,
@@ -1626,7 +1626,6 @@ export default class SearchDetailCtrl {
           data: {
             node: node,
             aid: aid,
-
           },
         },
       });
