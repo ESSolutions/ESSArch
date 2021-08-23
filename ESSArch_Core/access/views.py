@@ -1,30 +1,20 @@
 from django.db import transaction
-from django.db.models import F, Prefetch
-from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
+from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
-
-from ESSArch_Core.access.models import (
-    AccessAid,
-    AccessAidType
-)
+from ESSArch_Core.access.models import AccessAid, AccessAidType
 from ESSArch_Core.access.serializers import (
+    AccessAidEditNodesSerializer,
     AccessAidSerializer,
     AccessAidTypeSerializer,
     AccessAidWriteSerializer,
-    AccessAidEditNodesSerializer,
-
-
 )
 from ESSArch_Core.api.filters import SearchFilter
-from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.decorators import permission_required_or_403
-from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
-from ESSArch_Core.configuration.decorators import feature_enabled_or_404
+from ESSArch_Core.auth.permissions import ActionPermissions
 
 
 class AccessAidTypeViewSet(viewsets.ModelViewSet):
@@ -52,7 +42,6 @@ class AccessAidViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         qs = AccessAid.objects.for_user(user, [])
         return self.filter_queryset_by_parents_lookups(qs)
 
-
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update', 'metadata']:
             return AccessAidWriteSerializer
@@ -64,13 +53,10 @@ class AccessAidViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='add-nodes')
     def add_structure_unit(self, request, pk=None):
         access_aid = self.get_object()
-
         serializer = AccessAidEditNodesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
         access_aid.structure_units.add(*data['structure_units'])
-        print("HELLO")
         return Response()
 
     @transaction.atomic
@@ -78,16 +64,8 @@ class AccessAidViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='remove-nodes')
     def remove_structure_unit(self, request, pk=None):
         access_aid = self.get_object()
-
         serializer = AccessAidEditNodesSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-
         access_aid.structure_units.remove(*data['structure_units'])
-
         return Response()
-
-
-
-
-

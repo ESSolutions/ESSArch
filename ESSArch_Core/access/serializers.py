@@ -1,22 +1,11 @@
 from django.db import transaction
-from django.db.models import Q
-from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
-from ESSArch_Core.access.models import (
-    AccessAid,
-    AccessAidType
-)
-
-from ESSArch_Core.tags.models import (
-    StructureUnit
-)
-
-
+from ESSArch_Core.access.models import AccessAid, AccessAidType
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer
+from ESSArch_Core.tags.models import StructureUnit
 
 
 class AccessAidTypeSerializer(serializers.ModelSerializer):
@@ -65,7 +54,6 @@ class AccessAidWriteSerializer(AccessAidSerializer):
 
         return access_aid
 
-
     class Meta(AccessAidSerializer.Meta):
         fields = ('name', 'type', 'description', 'start_date', 'end_date', 'security_level', 'link')
 
@@ -75,6 +63,7 @@ class AccessAidWriteSerializer(AccessAidSerializer):
                 end_date='end_date',
             )
         ]
+
 
 class AccessAidEditNodesSerializer(serializers.Serializer):
     structure_units = serializers.ListField(

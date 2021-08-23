@@ -20,7 +20,6 @@ from mptt.querysets import TreeQuerySet
 from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink
-from ESSArch_Core.access.models import AccessAid
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.util import get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
@@ -447,7 +446,10 @@ class StructureUnit(MPTTModel):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
-    access_aids = models.ManyToManyField('access.AccessAid', verbose_name=_('access_aids'), related_name='structure_units')
+    access_aids = models.ManyToManyField(
+        'access.AccessAid',
+        verbose_name=_('access_aids'),
+        related_name='structure_units')
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
