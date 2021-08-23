@@ -4,11 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
-from ESSArch_Core.access.views import (
-    AccessAidViewSet,
-    AccessAidTypeViewSet,
-)
-
+from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
     AgentNameTypeViewSet,
