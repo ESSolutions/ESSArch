@@ -72,6 +72,14 @@ export default class AccessAidModalInstanceCtrl {
           type: 'input',
           key: 'security_level',
         },
+                {
+          templateOptions: {
+            label: $translate.instant('ACCESS.LINK'),
+            required: false,
+          },
+          type: 'input',
+          key: 'link',
+        },
       ];
     };
 

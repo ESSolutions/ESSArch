@@ -78,8 +78,6 @@
                 <th class="cursor-pointer" st-sort="name">{{'NAME' | translate}}</th>
                 <th class="cursor-pointer" st-sort="type">{{'TYPE' | translate}}</th>
                 <th class="cursor-pointer" st-sort="security_level">{{'ACCESS.SECURITY_LEVEL' | translate}}</th>
-                <th class="cursor-pointer" st-sort="start_date">{{'START_DATE' | translate}}</th>
-                <th class="cursor-pointer" st-sort="end_date">{{'END_DATE' | translate}}</th>
                 <th permission permission-only="'access.change_accessaid'" class="shrink">{{'EDIT' | translate}}</th>
                 <th permission permission-only="'access.delete_accessaid'" class="white-space-nowrap shrink">
                   {{'REMOVE' | translate}}
@@ -96,8 +94,6 @@
                 <td>{{x.name}}</td>
                 <td>{{x.type.name}}</td>
                 <td>{{x.security_level}}</td>
-                <td>{{x.start_date | date:"yyyy-MM-dd"}}</td>
-                <td>{{x.end_date |date:"yyyy-MM-dd"}}</td>
                 <td permission permission-only="'access.change_accessaid'" class="text-center shrink">
                   <button
                     class="btn btn-default fas fa-edit btn-sm"
@@ -158,13 +154,12 @@
                 <h4 class="pb-base">{{vm.accessAid.name}}</h4>
                 <result-field label="{{'TYPE' | translate}}" data="vm.accessAid.type.name"></result-field>
                 <result-field label="{{'ACCESS.SECURITY_LEVEL' | translate}}" data="vm.accessAid.security_level"></result-field>
-                <result-field label="{{'START_DATE' | translate}}" type="date" data="vm.accessAid.start_date"></result-field>
-                <result-field label="{{'END_DATE' | translate}}" data="vm.accessAid.end_date"></result-field>
+
                 <hr class="small" />
                 <result-field label="{{'DESCRIPTION' | translate}}" data="vm.accessAid.description"></result-field>
-                <button class="btn btn-success btn-small margin-top-5">
+                <a ng-if="vm.accessAid.link" class="btn btn-success btn-small margin-top-5" target="_blank" href="{{vm.accessAid.link}}">
                 <i class="far fa-eye"></i>&nbsp;{{'VIEW' | translate}}
-              </button>
+              </a>
               </div>
 
 
