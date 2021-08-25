@@ -47,7 +47,9 @@
             {
                 "name": "ESSArch_Core.ip.tasks.Transform",
                 "label": "Update directory structure",
-                "args": ["content"]
+                "args": [
+                    "content"
+                ]
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
@@ -82,13 +84,9 @@
                 ]
             },
             {
-                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                "label": "Generate premis"
-            },
-            {
-                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                "label": "Generate content-mets"
-            },
+                "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                "label": "Generate contentmetadata"
+            }
             {
                 "step": true,
                 "name": "Validation",
@@ -183,7 +181,10 @@
             {
                 "name": "ESSArch_Core.tasks.DeletePollingSource",
                 "label": "Delete from reception",
-                "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+                "args": [
+                    "{{WORKFLOW_POLLER}}",
+                    "{{WORKFLOW_POLL_PATH}}"
+                ]
             }
         ]
     },
@@ -254,7 +255,10 @@
             {
                 "name": "ESSArch_Core.tasks.DeletePollingSource",
                 "label": "Delete from reception",
-                "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+                "args": [
+                    "{{WORKFLOW_POLLER}}",
+                    "{{WORKFLOW_POLL_PATH}}"
+                ]
             }
         ]
     },
@@ -347,19 +351,18 @@
                                 }
                             },
                             {
-                                "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                                "label": "Generate premis"
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                                "label": "Generate content-mets"
+                                "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                                "label": "Generate contentmetadata"
                             }
                         ]
                     },
                     {
                         "name": "ESSArch_Core.tasks.DeletePollingSource",
                         "label": "Delete from reception",
-                        "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+                        "args": [
+                            "{{WORKFLOW_POLLER}}",
+                            "{{WORKFLOW_POLL_PATH}}"
+                        ]
                     },
                     {
                         "step": true,
