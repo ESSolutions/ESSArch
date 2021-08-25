@@ -664,7 +664,7 @@ class XMLGenerator:
             for file_to_append in parse_files(self.fid, folderToParse, external, algorithm, rootdir=""):
                 file_alreay_exists = False
                 for file_in_list in files:
-                    if file_in_list['FName'] == file_to_append['FName']:
+                    if file_in_list['href'] == file_to_append['href']:
                         file_alreay_exists = True
                 if not file_alreay_exists:
                     files.append(file_to_append)
