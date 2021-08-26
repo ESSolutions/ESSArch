@@ -186,7 +186,7 @@ class ActionTool(ExternalTool):
 
 class Validation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filename = models.CharField(max_length=255)
+    filename = models.CharField(max_length=1024)
     validator = models.CharField(max_length=255)
     specification = models.JSONField(null=True)
     time_started = models.DateTimeField(null=True)
