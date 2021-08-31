@@ -16,8 +16,8 @@ User = get_user_model()
 
 @app.task(bind=True, event_type=50760)
 def Action(self, tool, pattern, rootdir, options, purpose=None):
-    def _convert(path, rootdir, tool, options):
-        tool.run(path, rootdir, options)
+    def _convert(path, rootdir, tool, options, t=None, ip=None):
+        tool.run(path, rootdir, options, t, ip)
 
         relpath = PurePath(path).relative_to(rootdir).as_posix()
         EventIP.objects.create(
@@ -52,12 +52,12 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
                 for root, _dirs, files in os.walk(path):
                     for f in files:
                         fpath = os.path.join(root, f)
-                        _convert(fpath, rootdir, tool, options)
+                        _convert(fpath, rootdir, tool, options, self.get_processtask(), ip)
             else:
-                _convert(path, rootdir, tool, options)
+                _convert(path, rootdir, tool, options, self.get_processtask(), ip)
     else:
         filepath = os.path.join(rootdir, pattern)
-        tool.run(filepath, rootdir, options)
+        tool.run(filepath, rootdir, options, self.get_processtask(), ip)
         if tool.delete_original:
             os.remove(filepath)
 
@@ -76,3 +76,4 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
         purpose=purpose
     )
     self.create_success_event(msg)
+    return(msg)

@@ -23,6 +23,32 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
     });
   }
 
+  function getTreeActionData(ip, expandedNodes) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
+      promise = Workarea.workflow({
+        id: ip.id,
+        hidden: false,
+      }).$promise;
+    } else {
+      promise = IP.workflow({
+        id: ip.id,
+        hidden: false,
+      }).$promise;
+    }
+    return promise.then(function (workflow) {
+      workflow.forEach(function (flow_node) {
+        flow_node.time_started = $filter('date')(flow_node.time_started, 'yyyy-MM-dd HH:mm:ss');
+        flow_node.children = flow_node.flow_type == 'step' ? [{val: -1}] : [];
+        flow_node.childrenFetched = false;
+      });
+      return expandAndGetActionChildren(workflow, expandedNodes);
+    });
+  }
+
+  // Takes an array of steps, expands the ones that should be expanded and
+  // populates children recursively.
+
   // Takes an array of steps, expands the ones that should be expanded and
   // populates children recursively.
   function expandAndGetChildren(steps, expandedNodes) {
@@ -36,6 +62,32 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         return temp;
       });
     });
+    return steps;
+  }
+
+  function expandAndGetActionChildren(steps, expandedNodes) {
+    var search = 'action tool';
+    var stepsToKeep = [];
+    const expandedObject = expand(steps, expandedNodes);
+    const expanded = expandedObject.expandedSteps;
+    steps = expandedObject.steps;
+    expanded.forEach(function (item) {
+      steps[item.stepIndex] = getChildrenForStep(steps[item.stepIndex], item.number).then(function (stepChildren) {
+        const temp = stepChildren;
+        temp.children = expandAndGetChildren(temp.children, expandedNodes);
+        return temp;
+      });
+    });
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].label) {
+        if (steps[i].label.toUpperCase() === search.toUpperCase()) {
+          stepsToKeep.push(steps[i]);
+        }
+      }
+    }
+
+    steps = stepsToKeep;
+
     return steps;
   }
 
@@ -112,6 +164,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   }
   return {
     getTreeData: getTreeData,
+    getTreeActionData: getTreeActionData,
     getChildrenForStep: getChildrenForStep,
   };
 };

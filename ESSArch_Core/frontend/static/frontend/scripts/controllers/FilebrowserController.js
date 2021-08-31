@@ -4,12 +4,27 @@ export default class FilebrowserController {
     $scope.deckGridData = [];
     const vm = this;
 
+    //Get File Browser settings
+    function getFileBrowserView() {
+      if ($rootScope.auth.file_browser_view_type) {
+        if ($rootScope.auth.file_browser_view_type === 'grid') {
+          $scope.listView = false;
+          $scope.gridView = true;
+        } else {
+          $scope.listView = true;
+          $scope.gridView = false;
+        }
+      } else {
+        $scope.listView = true;
+        $scope.gridView = false;
+      }
+    }
+
     vm.$onInit = function () {
       if (!$scope.ip) {
         $scope.ip = $rootScope.ip;
       }
-      $scope.listView = false;
-      $scope.gridView = true;
+      getFileBrowserView();
       $scope.gridArrayLoading = true;
     };
 

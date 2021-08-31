@@ -30,3 +30,20 @@ for each row.
  * AIC - The AIC with all generations nested
 
 .. image:: images/user_settings_view_type.png
+
+File browser view type
+----------------------
+
+The user can select their preferred rendering of ESSArchs file browser
+
+.. image:: images/user_settings_content_dropdown.png
+
+List
+____
+
+.. image:: images/user_settings_content_list.png
+
+Grid
+____
+
+.. image:: images/user_settings_content_grid.png

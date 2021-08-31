@@ -35,6 +35,9 @@ export default class ProfileCtrl {
       disabled: false,
     };
     $scope.selectRowCollapse = [];
+    vm.options = {converters: []};
+    vm.fields = $scope.mockedConversions;
+
     // On init
     vm.$onInit = function () {
       init();
@@ -159,6 +162,38 @@ export default class ProfileCtrl {
         .catch(function (response) {
           vm.savingProfileModel = false;
         });
+    };
+
+    vm.conversions = [
+      {
+        id: 0,
+        name: '1',
+        converter: null,
+        data: {},
+      },
+    ];
+
+    vm.currentConversion = vm.conversions[0];
+    vm.updateConverterForm = (conversion) => {
+      vm.currentConversion = conversion;
+      if (conversion.converter) {
+        vm.fields = conversion.converter.form;
+      } else {
+        vm.fields = [];
+      }
+    };
+
+    vm.getConverters = function (search) {
+      return $http({
+        url: appConfig.djangoUrl + 'action-tools/',
+        method: 'GET',
+        params: {search: search, pager: 'none'},
+      }).then(function (response) {
+        vm.options.converters = response.data.map((converter) => {
+          return converter;
+        });
+        return vm.options.converters;
+      });
     };
 
     vm.cancel = function () {

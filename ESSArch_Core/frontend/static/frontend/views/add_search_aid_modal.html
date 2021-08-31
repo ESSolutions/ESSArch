@@ -1,0 +1,11 @@
+<div style="margin: 10px">
+  <div class="modal-heading">
+    <h3 class="modal-title" id="modal-title">{{'ACCESS.ADD_SEARCH_AID' | translate}}</h3>
+  </div>
+  <formly-form model="$ctrl.aid" fields="$ctrl.aidFields">
+    <button type="submit" class="btn btn-default" ng-click="$ctrl.submit($ctrl.aid)">{{'SUBMIT' | translate}}</button>
+    <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()" ng-disabled="$ctrl.removing">
+      {{'CANCEL' | translate}}
+    </button>
+  </formly-form>
+</div>

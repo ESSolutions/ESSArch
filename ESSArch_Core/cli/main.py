@@ -152,7 +152,7 @@ def beat(loglevel, logfile, pidfile, schedule):
         logfile=logfile,
         loglevel=loglevel,
         pidfile=pidfile,
-        schedule=schedule
+        schedule=schedule,
     ).run()
 
 

@@ -90,18 +90,6 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
-        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
-        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
-          <event-table ip="ip"></event-table>
-        </div>
-      </uib-tab>
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
         index="'filebrowser'"
@@ -126,6 +114,18 @@
             ng-include
             src="'static/frontend/views/file_upload.html'"
           ></div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view" style="margin: 5px">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>
