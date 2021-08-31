@@ -3,8 +3,10 @@ import logging
 import os
 import uuid
 
+from django.conf import settings
 from elasticsearch.exceptions import ElasticsearchException
 
+from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.tags.documents import Directory, File
 from ESSArch_Core.tags.models import (
     Tag,
@@ -22,11 +24,16 @@ logger = logging.getLogger('essarch.search.ingest')
 
 
 def index_document(tag_version, filepath):
-    with open(filepath, 'rb') as f:
-        content = f.read()
+    exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
+
+    fid = FormatIdentifier()
+    (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
+    if format_registry_key not in exclude_file_format_from_indexing_content:
+        index_file_content = True
+    else:
+        index_file_content = False
 
     ip = tag_version.tag.information_package
-    encoded_content = base64.b64encode(content).decode("ascii")
     extension = os.path.splitext(tag_version.name)[1][1:]
     dirname = os.path.dirname(filepath)
     href = normalize_path(os.path.relpath(dirname, ip.object_path))
@@ -41,13 +48,22 @@ def index_document(tag_version, filepath):
         'filename': tag_version.name,
         'size': size,
         'modified': modified,
+        'formatname': format_name,
+        'formatversion': format_version,
+        'formatkey': format_registry_key,
     }
 
     doc = File.from_obj(tag_version)
-    doc.data = encoded_content
 
     try:
-        doc.save(pipeline='ingest_attachment')
+        if index_file_content:
+            with open(filepath, 'rb') as f:
+                content = f.read()
+            doc.data = base64.b64encode(content).decode("ascii")
+            doc.save(pipeline='ingest_attachment')
+        else:
+            logger.debug('Skip to index file content for {}'.format(filepath))
+            doc.save()
     except ElasticsearchException:
         logger.exception('Failed to index {}'.format(filepath))
         raise

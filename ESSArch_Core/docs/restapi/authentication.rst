@@ -76,6 +76,7 @@ Auth`_ can be used to authenticate the user in API requests.
        "delete"
      ],
      "ip_list_view_type": "ip",
+     "file_browser_view_type": "grid",
      "current_organization": {
        "id": 1,
        "name": "Default",

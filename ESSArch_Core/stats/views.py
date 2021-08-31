@@ -15,7 +15,7 @@ from ESSArch_Core.auth.models import GroupMemberRole
 from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
-from ESSArch_Core.tags.models import TagVersion
+from ESSArch_Core.tags.models import Delivery, TagVersion
 from ESSArch_Core.util import generate_file_response
 
 User = get_user_model()
@@ -24,6 +24,7 @@ User = get_user_model()
 def get_data():
     data = {
         'appraisals': AppraisalJob.objects.filter(status=celery_states.SUCCESS).count(),
+        'deliveries': Delivery.objects.count(),
         'information_packages': InformationPackage.objects.count(),
         'ordered_information_packages': InformationPackage.objects.filter(orders__isnull=False).count(),
         'permissions': Permission.objects.count(),

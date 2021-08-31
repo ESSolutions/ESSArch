@@ -6,7 +6,7 @@
       active="vm.activeTab"
       class="tabs tabs-style-bar"
     >
-      <uib-tab index="'workarea'" ng-if="vm.specificTabs.includes('workarea')" heading="{{'WORKAREA' | translate}}">
+      <uib-tab index="'workarea'" heading="{{'MANAGE' | translate}}">
         <div ng-if="vm.activeTab === 'workarea'">
           <div
             ng-if="requestForm"
@@ -21,22 +21,20 @@
               ng-submit="submitRequest(ip, vm.request)"
             >
               <div class="request-type">
-                <div ng-if="checkPermission('ip.diff_check') && !ip.workarea[0].read_only">
+                <div ng-if="checkPermission('ip.diff_check')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="diff_check" />
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
-                <div
-                  ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve')) && !ip.workarea[0].read_only"
-                >
+                <div ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve'))">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="preserve" />
                     {{'PRESERVE' | translate}}
                   </label>
                 </div>
                 <div
-                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea')) && !ip.workarea[0].read_only"
+                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea'))"
                 >
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
@@ -100,23 +98,11 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
-        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
-          <conversion-view ip="ip" base-url="workareas"></conversion-view>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
-        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
-        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
-          <event-table ip="ip"></event-table>
-        </div>
-      </uib-tab>
+      <!--<uib-tab ng-if="ip !== null && ips.length == 0" index="'action_workflow'" heading="{{'ACTION_WORKFLOW' | translate}}">
+        <div ng-if="vm.activeTab === 'action_workflow'" class="events-status-wrapper">
+          <action-workflow ip="ip" base-url="workareas"></action-workflow>
+        div>
+      </uib-tab>-->
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1"
         index="'filebrowser'"
@@ -137,10 +123,27 @@
           ></filebrowser>
           <div
             id="file-upload"
-            ng-if="!ip.workarea[0].read_only && (ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+            ng-if="(ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
             ng-include
             src="'static/frontend/views/file_upload.html'"
           ></div>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
+          <conversion-view ip="ip" base-url="workareas"></conversion-view>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view" style="margin: 5px">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>
