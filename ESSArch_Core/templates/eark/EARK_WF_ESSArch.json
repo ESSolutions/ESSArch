@@ -86,7 +86,7 @@
             {
                 "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
                 "label": "Generate contentmetadata"
-            }
+            },
             {
                 "step": true,
                 "name": "Validation",
