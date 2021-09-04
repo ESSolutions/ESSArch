@@ -139,7 +139,7 @@ const hasActiveFeature = (feature) => {
 };
 
 angular
-  .module('essarch', [
+  .module('essarch2', [
     essarchLanguageModule,
     essarchControllersModule,
     essarchServicesModule,

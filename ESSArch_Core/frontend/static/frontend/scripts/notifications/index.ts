@@ -1,4 +1,4 @@
-import angular from 'angular';
+import * as angular from 'angular';
 
 import notificationsComponent from './components/NotificationsComponent';
 import notificationsCtrl from './controllers/NotificationsCtrl';

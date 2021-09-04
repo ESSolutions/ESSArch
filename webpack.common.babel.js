@@ -2,9 +2,9 @@ const webpack = require('webpack');
 const path = require('path');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
 const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const {GitRevisionPlugin} = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
 
 const basedir = path.resolve(__dirname, 'ESSArch_Core/frontend/static/frontend');
@@ -13,8 +13,24 @@ module.exports = (env, argv) => {
   mode = argv.mode || 'development';
   return {
     entry: './ESSArch_Core/frontend/static/frontend/scripts/index.ts',
+    //entry: './ESSArch_Core/frontend/static/frontend/scripts/features/utils.ts',
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
+      fallback: {
+        fs: false,
+        net: false,
+        tls: false,
+        path: require.resolve('path-browserify'),
+        os: require.resolve('os-browserify/browser'),
+        util: require.resolve('util/'),
+        zlib: require.resolve('browserify-zlib'),
+        crypto: require.resolve('crypto-browserify'),
+        http: require.resolve('stream-http'),
+        https: require.resolve('https-browserify'),
+        stream: require.resolve('stream-browserify'),
+        assert: require.resolve('assert/'),
+        buffer: require.resolve('buffer/'),
+      },
     },
     optimization: {
       runtimeChunk: 'single',
@@ -32,18 +48,33 @@ module.exports = (env, argv) => {
       rules: [
         {
           test: require.resolve('angular'),
-          use: 'imports-loader?$=jquery',
+          use: [
+            {
+              loader: 'imports-loader',
+              options: {
+                imports: ['default jquery $'],
+              },
+            },
+          ],
         },
         {
           test: require.resolve('jquery'),
           use: [
             {
               loader: 'expose-loader',
-              options: 'jQuery',
+              options: {
+                exposes: {
+                  globalName: 'jQuery',
+                },
+              },
             },
             {
               loader: 'expose-loader',
-              options: '$',
+              options: {
+                exposes: {
+                  globalName: '$',
+                },
+              },
             },
           ],
         },
@@ -124,7 +155,17 @@ module.exports = (env, argv) => {
           ],
           type: 'javascript/auto',
         },
-        {test: /\.(png|jpg|gif|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/, loader: 'url-loader?limit=8192'},
+        {
+          test: /\.(png|jpg|gif|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/,
+          use: [
+            {
+              loader: 'url-loader',
+              options: {
+                limit: 8192,
+              },
+            },
+          ],
+        },
         {test: /\.(eot|ttf)$/, loader: 'file-loader'},
       ],
     },
@@ -132,17 +173,12 @@ module.exports = (env, argv) => {
       new MiniCssExtractPlugin({
         filename: '[name].css',
       }),
-      new ManifestPlugin({fileName: 'rev-manifest.json'}),
+      new WebpackManifestPlugin({fileName: 'rev-manifest.json', publicPath: ''}),
       new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
       new webpack.DefinePlugin({
         'process.env': {LATER_COV: false},
         COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       }),
     ],
-    node: {
-      fs: 'empty',
-      net: 'empty',
-      tls: 'empty',
-    },
   };
 };

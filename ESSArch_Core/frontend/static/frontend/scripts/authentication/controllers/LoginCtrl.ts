@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 /* @ngInject */
 const loginCtrl = (
   $scope,

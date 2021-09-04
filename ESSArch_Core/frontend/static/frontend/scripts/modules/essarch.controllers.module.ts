@@ -132,8 +132,8 @@ import uiRouter from '@uirouter/angularjs';
 import 'jstree';
 import 'ng-js-tree';
 
-import '../configs/config.json';
-import '../configs/permissions.json';
+//import * as config from '../configs/config.json';
+//import * as permissions from '../configs/permissions.json';
 
 export default angular
   .module('essarch.controllers', [
