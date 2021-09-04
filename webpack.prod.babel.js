@@ -1,4 +1,4 @@
-const merge = require('webpack-merge');
+const {merge} = require('webpack-merge');
 const common = require('./webpack.common.babel.js');
 const path = require('path');
 
@@ -21,7 +21,6 @@ module.exports = (env, argv) => {
     optimization: {
       minimizer: [
         new TerserPlugin({
-          sourceMap: true,
           terserOptions: {
             compress: {
               drop_console: true,
