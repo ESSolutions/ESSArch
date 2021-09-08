@@ -1,5 +1,5 @@
 export default class DataModalInstanceCtrl {
-  constructor(IP, $scope, $sce, $uibModalInstance, Notifications, data, $q, $uibModal) {
+  constructor(IP, $scope, $sce, $uibModalInstance, Notifications, data, $q) {
     const $ctrl = this;
     if (data.vm) {
       var vm = data.vm;

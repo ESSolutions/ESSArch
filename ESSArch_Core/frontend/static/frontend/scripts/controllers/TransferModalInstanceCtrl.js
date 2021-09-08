@@ -14,7 +14,6 @@ export default class TransferModalInstanceCtrl {
         }
       }
     };
-
     $ctrl.buildForm = function () {
       $ctrl.fields = [
         {
@@ -36,8 +35,20 @@ export default class TransferModalInstanceCtrl {
           },
         },
         {
+          key: 'submitter_information',
+          type: 'checkbox',
+          templateOptions: {
+            label: $translate.instant('ACCESS.SUBMITTER_INFO'),
+          },
+        },
+        {
           type: 'input',
           key: 'submitter_organization',
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !$ctrl.transfer.submitter_information;
+            },
+          },
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION'),
             maxlength: 255,
@@ -46,6 +57,11 @@ export default class TransferModalInstanceCtrl {
         {
           type: 'input',
           key: 'submitter_organization_main_address',
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !$ctrl.transfer.submitter_information;
+            },
+          },
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_ORGANIZATION_MAIN_ADDRESS'),
             maxlength: 255,
@@ -54,6 +70,11 @@ export default class TransferModalInstanceCtrl {
         {
           type: 'input',
           key: 'submitter_individual_name',
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !$ctrl.transfer.submitter_information;
+            },
+          },
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_NAME'),
             maxlength: 255,
@@ -62,6 +83,11 @@ export default class TransferModalInstanceCtrl {
         {
           type: 'input',
           key: 'submitter_individual_phone',
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !$ctrl.transfer.submitter_information;
+            },
+          },
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_PHONE'),
             maxlength: 255,
@@ -70,6 +96,11 @@ export default class TransferModalInstanceCtrl {
         {
           type: 'input',
           key: 'submitter_individual_email',
+          expressionProperties: {
+            hide: function ($modelValue) {
+              return !$ctrl.transfer.submitter_information;
+            },
+          },
           templateOptions: {
             label: $translate.instant('ACCESS.SUBMITTER_INDIVIDUAL_EMAIL'),
             maxlength: 255,

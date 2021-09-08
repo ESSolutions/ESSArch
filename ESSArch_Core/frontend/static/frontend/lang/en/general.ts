@@ -2,6 +2,7 @@
 const general = ($translateProvider) => {
   $translateProvider.translations('en', {
     ACCESSIP: 'Storage units',
+    ACCESS_AIDS: 'Access aids',
     ADD_ATTRIBUTE: 'Add Attribute',
     ADD_EXTENSION: 'Add extension',
     ADD: 'Add',

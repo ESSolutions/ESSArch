@@ -4,16 +4,30 @@
       <div class="div1">
         <div class="panel panel-default" style="margin-top: 20px">
           <div class="panel-body">
-            <div class="search-prepare-wrapper">
-              <select
-                class="form-control"
-                ng-model="selectedProfile"
-                ng-change="vm.fetchClick()"
-                ng-options="item.name for item in vm.profilelist"
+            <ui-select
+              spinner-enabled="true"
+              spinner-class="{{'fas fa-spinner fa-spin ui-select-custom-spinner'}}"
+              ng-model="vm.selectedProfile"
+              theme="bootstrap"
+              on-select="vm.fetchClick()"
+              sortable="true"
+              append-to-body="true"
+              close-on-select="true"
+            >
+              <ui-select-match ng-attr-placeholder="{{'CONVERSION_VIEW.SELECT_WORKFLOW' | translate}}"
+                >{{$select.selected.name}}</ui-select-match
               >
-                <option value="" disabled selected>{{'CONVERSION_VIEW.SELECT_WORKFLOW' | translate}}</option>
-              </select>
-            </div>
+              <ui-select-choices
+                ng-hide="!$select.open"
+                repeat="x in vm.profilelist | propsFilter: {name: $select.search}"
+              >
+                <div ng-bind-html="x.name | highlight: $select.search"></div>
+              </ui-select-choices>
+              <ui-select-no-choice>
+                <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
+              </ui-select-no-choice>
+            </ui-select>
+            {{$select.selected.name}}
             <div ng-if="vm.profilespec.length > 0 || vm.addedActions.length > 0">
               <hr class="small" />
               <label ng-if="(vm.nameOfWorkflow) && (vm.nameOfWorkflow !== '')" class="control-label"
@@ -56,22 +70,25 @@
                 </tbody>
               </table>
             </div>
-          </div>
-          <div class="flex-row justify-content-end" style="margin-bottom: 15px; margin-right: 15px; margin-top: 10px">
-            <button
-              class="btn btn-default"
-              ng-click="vm.cancelWorkflow()"
-              ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+            <div
+              class="flex-row justify-content-end"
+              style="margin-bottom: 15px; margin-right: 15px; margin-top: 10px"
             >
-              {{'CONVERSION_VIEW.CANCEL' | translate}}
-            </button>
-            <button
-              class="btn btn-primary"
-              ng-click="vm.saveWorkflowModal()"
-              ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
-            >
-              {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
-            </button>
+              <button
+                class="btn btn-default"
+                ng-click="vm.cancelWorkflow()"
+                ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+              >
+                {{'CONVERSION_VIEW.CANCEL' | translate}}
+              </button>
+              <button
+                class="btn btn-primary"
+                ng-click="vm.saveWorkflowModal()"
+                ng-disabled="(!((vm.profilespec.length > 0) || ((vm.addedActions.length > 0) && vm.workflowActive)))"
+              >
+                {{'CONVERSION_VIEW.SAVE_WORKFLOW' | translate}}
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -406,6 +406,23 @@ angular
             },
           },
         })
+        .state('home.access.accessAid', {
+          url: '/access-aid',
+          templateUrl: '/static/frontend/views/access_aids.html',
+          controller: 'AccessAidCtrl as vm',
+          params: {
+            id: {dynamic: true, value: null},
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.accessAid', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
         .state('home.archivalDescriptions', {
           url: 'archival-descriptions',
           templateUrl: '/static/frontend/views/archival_descriptions.html',

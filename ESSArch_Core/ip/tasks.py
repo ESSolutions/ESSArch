@@ -42,6 +42,7 @@ from ESSArch_Core.ip.utils import (
     download_schemas,
     fill_specification_data,
     generate_aic_mets,
+    generate_content_metadata,
     generate_content_mets,
     generate_events_xml,
     generate_package_mets,
@@ -281,8 +282,21 @@ def GeneratePremis(self):
     generate_premis(self.get_information_package())
     ip = self.get_information_package()
     data = fill_specification_data(ip=ip)
-    path = parseContent(ip.get_premis_file_path(), data)
-    msg = 'Generated {xml}'.format(xml=path)
+    premis_path = parseContent(ip.get_premis_file_path(), data)
+    msg = 'Generated {xml}'.format(xml=premis_path)
+    self.create_success_event(msg)
+
+
+@app.task(bind=True, event_type=50600)
+def GenerateContentMetadata(self):
+    generate_content_metadata(self.get_information_package())
+    ip = self.get_information_package()
+    msg = 'Generated {xml}'.format(xml=ip.content_mets_path)
+    generate_premis = ip.profile_locked('preservation_metadata')
+    if generate_premis:
+        data = fill_specification_data(ip=ip)
+        premis_path = parseContent(ip.get_premis_file_path(), data)
+        msg = '{msg} and {xml}'.format(msg=msg, xml=premis_path)
     self.create_success_event(msg)
 
 

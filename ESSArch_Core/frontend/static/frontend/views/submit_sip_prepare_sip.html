@@ -53,18 +53,19 @@
                   </table>
                 </div>
               </div>
-            </div>
-            <div class="eventlog-view" ng-class="{'border-none': ips.length > 0}">
-              <form class="submit-sip-eventlog-form" ng-submit="vm.submitSipModal(ip)">
-                <button
-                  ng-disabled="(ip !== null && ip.responsible.id !== auth.id) || (ips.length > 0 && !vm.multipleIpResponsible()) || !checkPermission('ip.submit_sip')"
-                  type="submit"
-                  ng-dblClick=""
-                  class="btn btn-primary submit-button"
-                >
-                  {{'SUBMIT_DELIVERY' | translate}}
-                </button>
-              </form>
+
+              <div class="eventlog-view" ng-class="{'border-none': ips.length > 0}">
+                <form class="submit-sip-eventlog-form" ng-submit="vm.submitSipModal(ip)">
+                  <button
+                    ng-disabled="(ip !== null && ip.responsible.id !== auth.id) || (ips.length > 0 && !vm.multipleIpResponsible()) || !checkPermission('ip.submit_sip')"
+                    type="submit"
+                    ng-dblClick=""
+                    class="btn btn-primary submit-button"
+                  >
+                    {{'SUBMITSIP' | translate}}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
