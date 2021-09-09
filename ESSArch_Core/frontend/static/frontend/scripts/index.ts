@@ -57,6 +57,7 @@ import 'angular-translate';
 import 'angular-translate-loader-static-files';
 import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
+import 'angular-tree-control/context-menu';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
 import 'messenger-hubspot';
@@ -139,7 +140,7 @@ const hasActiveFeature = (feature) => {
 };
 
 angular
-  .module('essarch2', [
+  .module('essarch', [
     essarchLanguageModule,
     essarchControllersModule,
     essarchServicesModule,

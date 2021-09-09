@@ -1,9 +1,7 @@
 const webpack = require('webpack');
 const path = require('path');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const {WebpackManifestPlugin} = require('webpack-manifest-plugin');
-const OptimizeCssnanoPlugin = require('@intervolga/optimize-cssnano-plugin');
 const {GitRevisionPlugin} = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
 
@@ -13,7 +11,6 @@ module.exports = (env, argv) => {
   mode = argv.mode || 'development';
   return {
     entry: './ESSArch_Core/frontend/static/frontend/scripts/index.ts',
-    //entry: './ESSArch_Core/frontend/static/frontend/scripts/features/utils.ts',
     resolve: {
       extensions: ['.ts', '.tsx', '.js', '.jsx'],
       fallback: {
@@ -52,7 +49,11 @@ module.exports = (env, argv) => {
             {
               loader: 'imports-loader',
               options: {
-                imports: ['default jquery $'],
+                type: 'commonjs',
+                imports: {
+                  moduleName: 'jquery',
+                  name: '$',
+                },
               },
             },
           ],
@@ -156,17 +157,9 @@ module.exports = (env, argv) => {
           type: 'javascript/auto',
         },
         {
-          test: /\.(png|jpg|gif|svg|woff|woff2)?(\?v=\d+.\d+.\d+)?$/,
-          use: [
-            {
-              loader: 'url-loader',
-              options: {
-                limit: 8192,
-              },
-            },
-          ],
+          test: /\.(png|jpg|gif|svg|ico|eot|ttf|woff|woff2)?(\?v=\d+.\d+.\d+)?$/,
+          type: 'asset/resource',
         },
-        {test: /\.(eot|ttf)$/, loader: 'file-loader'},
       ],
     },
     plugins: [

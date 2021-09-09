@@ -1,5 +1,4 @@
 import * as angular from 'angular';
-
 import AccessAidCtrl from '../controllers/AccessAidCtrl';
 import AccessAidModalInstanceCtrl from '../controllers/AccessAidModalInstanceCtrl';
 import AccessCtrl from '../controllers/AccessCtrl';
@@ -132,8 +131,8 @@ import uiRouter from '@uirouter/angularjs';
 import 'jstree';
 import 'ng-js-tree';
 
-//import * as config from '../configs/config.json';
-//import * as permissions from '../configs/permissions.json';
+import '../configs/config.json';
+import '../configs/permissions.json';
 
 export default angular
   .module('essarch.controllers', [
