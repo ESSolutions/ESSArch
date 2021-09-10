@@ -91,7 +91,7 @@ const loginCtrl = [
           });
       }
     };
-  }
-]
+  },
+];
 
 export default loginCtrl;
