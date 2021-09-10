@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 import advancedFilters from '../components/AdvancedFilterComponent';
 import archiveManager from '../components/ArchiveManagerComponent';
 import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';

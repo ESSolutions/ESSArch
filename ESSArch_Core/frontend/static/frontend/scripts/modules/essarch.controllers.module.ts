@@ -1,5 +1,4 @@
 import * as angular from 'angular';
-
 import AccessAidCtrl from '../controllers/AccessAidCtrl';
 import AccessAidModalInstanceCtrl from '../controllers/AccessAidModalInstanceCtrl';
 import AccessCtrl from '../controllers/AccessCtrl';

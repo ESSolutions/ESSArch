@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 import FormlyConfig from '../configs/formlyConfig';
 import HttpInterceptor from '../configs/httpInterceptor';
 import PreventTemplateCache from '../configs/preventTemplateCache';
