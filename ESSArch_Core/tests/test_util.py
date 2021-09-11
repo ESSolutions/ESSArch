@@ -371,7 +371,11 @@ class GenerateFileResponseTests(SimpleTestCase):
     def get_headers_from_response(self, response):
         if isinstance(response, FileResponse):
             headers = {}
-            for _, v in response.__dict__.get('_headers').items():
+            if hasattr(response, '_headers'):
+                response_headers = response._headers
+            else:
+                response_headers = response.headers
+            for _, v in response_headers.items():
                 headers[v[0]] = v[1]
 
             return headers
