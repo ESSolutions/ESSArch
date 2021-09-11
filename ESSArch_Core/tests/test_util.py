@@ -372,11 +372,10 @@ class GenerateFileResponseTests(SimpleTestCase):
         if isinstance(response, FileResponse):
             headers = {}
             if hasattr(response, '_headers'):
-                response_headers = response._headers
+                for _, v in response._headers.items():
+                    headers[v[0]] = v[1]
             else:
-                response_headers = response.headers
-            for _, v in response_headers.items():
-                headers[v[0]] = v[1]
+                headers = response.headers
 
             return headers
         else:
