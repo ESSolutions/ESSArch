@@ -207,6 +207,7 @@ WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 
 # Database
+dj_database_url.SCHEMES['mssql'] = 'mssql'    # Set mssql schemes
 try:
     from local_essarch_settings import DATABASE_URL
 except ImportError:
