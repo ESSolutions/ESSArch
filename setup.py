@@ -87,7 +87,7 @@ if __name__ == '__main__':
             "libreoffice_file_conversion": [get_optional("unoconv")],
             "ms_office_file_conversion": [get_optional("comtypes")],
             "iis": [get_optional("wfastcgi")],
-            "mssql": [get_optional("django-mssql")],
+            "mssql": [get_optional("mssql-django")],
             "mysql": [get_optional("mysqlclient")],
             "postgres": [get_optional("psycopg2")],
             "logstash": [get_optional("python-logstash-async")],
