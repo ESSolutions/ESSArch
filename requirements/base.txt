@@ -1,6 +1,6 @@
 asgiref==3.4.1
 boto3==1.18.40
-celery[tblib]==4.4.7
+celery[tblib]==5.1.2
 cffi==1.14.6
 channels==3.0.4
 channels_redis==3.3.0
