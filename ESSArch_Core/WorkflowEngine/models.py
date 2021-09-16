@@ -30,9 +30,8 @@ import uuid
 from urllib.parse import urljoin
 
 import tblib
-from celery import chain, group, states as celery_states
+from celery import chain, current_app, group, states as celery_states
 from celery.result import EagerResult
-from celery.task.control import revoke
 from django.core.cache import cache
 from django.db import models
 from django.db.models import Count, Sum
@@ -724,7 +723,7 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger.debug('Revoking task ({})'.format(self.pk))
-        revoke(self.celery_id, terminate=True)
+        current_app.control.revoke(self.celery_id, terminate=True)
         self.celery_id = uuid.uuid4()
         self.save()
         logger.info('Revoked task ({})'.format(self.pk))
