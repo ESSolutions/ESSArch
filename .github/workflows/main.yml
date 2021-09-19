@@ -65,7 +65,7 @@ jobs:
 
       - name: isort
         run: |
-          isort --recursive --check-only --diff
+          isort --check-only --diff .
 
       - name: prettier
         run: |
