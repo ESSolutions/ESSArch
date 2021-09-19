@@ -8,7 +8,7 @@ COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/fr
 COPY ./.git .git
 RUN yarn build:dev
 
-FROM python:3.8-buster as base
+FROM python:3.9-buster as base
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
