@@ -1,13 +1,17 @@
+import * as angular from 'angular';
+
 import advancedFilters from '../components/AdvancedFilterComponent';
 import archiveManager from '../components/ArchiveManagerComponent';
 import classificationStructureEditor from '../components/ClassificationStructureEditorComponent';
 import conversionSpec from '../components/ConversionSpecComponent';
 import Conversion from '../components/ConversionComponent';
+import AccessAid from '../components/AccessAidComponent';
 import agents from '../components/AgentsComponent';
 import dashboardStats from '../components/DashboardStatsComponent';
 import deliveryComponent from '../components/DeliveryComponent';
 import essarchFooter from '../components/FooterComponent';
 import eventTable from '../components/EventTableComponent';
+import actionWorkflow from '../components/actionWorkflowComponent';
 import exportComponent from '../components/ExportComponent';
 import filebrowserComponent from '../components/FilebrowserComponent';
 import formErrorComponent from '../components/FormErrorComponent';
@@ -25,6 +29,7 @@ import SaEditorComponent from '../components/SaEditorComponent';
 import searchFilter from '../components/SearchFilterComponent';
 import search from '../components/SearchComponent';
 import StateTreeView from '../components/StateTreeViewComponent';
+import StateTreeActionView from '../components/StateTreeActionViewComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
@@ -34,10 +39,12 @@ export default angular
   .component('classificationStructureEditor', classificationStructureEditor)
   .component('conversionSpec', conversionSpec)
   .component('conversionView', Conversion)
+  .component('accessAid', AccessAid)
   .component('dashboardStats', dashboardStats)
   .component('deliveryPage', deliveryComponent)
   .component('essarchFooter', essarchFooter)
   .component('eventTable', eventTable)
+  .component('actionWorkflow', actionWorkflow)
   .component('export', exportComponent)
   .component('filebrowser', filebrowserComponent)
   .component('formErrors', formErrorComponent)
@@ -51,6 +58,7 @@ export default angular
   .component('saEditor', SaEditorComponent)
   .component('resultField', resultField)
   .component('stateTreeView', StateTreeView)
+  .component('stateTreeActionView', StateTreeActionView)
   .component('sysInfoComponent', sysInfoComponent)
   .component('search', search)
   .component('searchFilter', searchFilter)

@@ -29,6 +29,7 @@ import sys
 from sqlite3 import sqlite_version
 
 import distro
+import pkg_resources
 from celery import current_app
 from django.conf import settings
 from django.db import connection
@@ -64,12 +65,6 @@ from ESSArch_Core.configuration.serializers import (
     StoragePolicySerializer,
 )
 from ESSArch_Core.WorkflowEngine import get_workers
-
-try:
-    from pip._internal.operations.freeze import freeze as pip_freeze
-except ImportError:  # pip < 10.0
-    from pip.operations.freeze import freeze as pip_freeze
-
 
 logger = logging.getLogger('essarch.configuration')
 
@@ -182,7 +177,8 @@ class SysInfoView(APIView):
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
         context['workers'] = get_workers(context['rabbitmq'])
-        context['python_packages'] = pip_freeze()
+        context['python_packages'] = sorted(["%s==%s" % (i.key, i.version)
+                                             for i in pkg_resources.working_set])
 
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:

@@ -16,7 +16,9 @@ class TransformationCLI(click.MultiCommand):
 
     @initialize
     def get_command(self, ctx, name):
-        from ESSArch_Core.fixity.transformation.exceptions import UnknownTransformer
+        from ESSArch_Core.fixity.transformation.exceptions import (
+            UnknownTransformer,
+        )
 
         try:
             transformer = locate(self.get_transformers()[name])

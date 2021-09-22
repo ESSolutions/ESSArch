@@ -108,7 +108,9 @@ def install(ctx, data_directory):
     ctx.invoke(migrate)
     _loaddata('countries_data', 'languages_data',)
 
-    from ESSArch_Core.install.install_default_config import installDefaultConfiguration
+    from ESSArch_Core.install.install_default_config import (
+        installDefaultConfiguration,
+    )
     installDefaultConfiguration()
 
 
@@ -143,14 +145,16 @@ def worker(queues, concurrency, hostname, loglevel, logfile, pidfile, pool):
 @click.option('--pidfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-f', '--logfile', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @click.option('-l', '--loglevel', default='INFO', type=click.Choice(LOG_LEVELS, case_sensitive=False))
+@click.option('-s', '--schedule', default=None, type=click.Path(exists=False, file_okay=True, dir_okay=False))
 @cli.command()
 @initialize
-def beat(loglevel, logfile, pidfile):
+def beat(loglevel, logfile, pidfile, schedule):
     from ESSArch_Core.config.celery import app
     app.Beat(
         logfile=logfile,
         loglevel=loglevel,
         pidfile=pidfile,
+        schedule=schedule,
     ).run()
 
 

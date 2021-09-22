@@ -180,7 +180,7 @@ class CharSuffixRangeFilter(filters.RangeFilter):
             }
 
         if connection.vendor == 'microsoft':
-            from sql_server.pyodbc.functions import TryCast
+            from mssql.functions import TryCast
             cast_func = TryCast
 
             base = qs.filter(

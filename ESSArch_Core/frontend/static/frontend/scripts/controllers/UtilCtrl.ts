@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 */
 
+import * as angular from 'angular';
 import {nestedEmptyPermissions, nestedPermissions, resolve} from '../index';
 
 export default class UtilCtrl {
@@ -112,28 +113,28 @@ export default class UtilCtrl {
     $scope.focusRouterView = function () {
       $timeout(function () {
         const elm = document.getElementsByClassName('dynamic-part')[0];
-        elm.focus();
+        (elm as HTMLElement)?.focus();
         $anchorScroll();
       });
     };
     $scope.focusSubmenu = function () {
       $timeout(function () {
         const elm = document.getElementsByClassName('sub-menu')[0];
-        angular.element(elm)[0].children[0].focus();
+        (angular.element(elm)[0].children[0] as HTMLElement)?.focus();
         $anchorScroll();
       });
     };
     $scope.focusProfileManagerSubmenu = function () {
       $timeout(function () {
         const elm = document.getElementsByClassName('profile-manager-sub-menu')[0];
-        angular.element(elm)[0].children[0].focus();
+        (angular.element(elm)[0].children[0] as HTMLElement)?.focus();
         $anchorScroll();
       });
     };
     $scope.focusProfileManagerRouterView = function () {
       $timeout(function () {
         const elm = document.getElementsByClassName('profile-manager-route')[0];
-        angular.element(elm)[0].focus();
+        (angular.element(elm)[0] as HTMLElement)?.focus();
         $anchorScroll();
       });
     };

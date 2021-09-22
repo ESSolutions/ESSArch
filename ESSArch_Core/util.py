@@ -283,7 +283,7 @@ def timestamp_to_datetime(timestamp):
 
 def find_destination(use, structure, path=""):
     for content in structure:
-        name = content.get('name')
+        name = content.get('name', '')
         if content.get('use') == use:
             return path, name
 

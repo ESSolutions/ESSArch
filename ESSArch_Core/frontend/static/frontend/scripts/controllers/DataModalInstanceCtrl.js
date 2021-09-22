@@ -1,11 +1,15 @@
 export default class DataModalInstanceCtrl {
-  constructor(IP, $scope, $uibModalInstance, Notifications, data, $q) {
+  constructor(IP, $scope, $sce, $uibModalInstance, Notifications, data, $q) {
     const $ctrl = this;
     if (data.vm) {
       var vm = data.vm;
     }
     $scope.prepareAlert = null;
     $ctrl.data = data;
+
+    $scope.trustAsHtml = function (string) {
+      return $sce.trustAsHtml(string);
+    };
 
     $ctrl.$onInit = function () {
       if ($ctrl.data.ips == null) {
