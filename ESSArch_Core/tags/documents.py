@@ -1,6 +1,7 @@
 import base64
 import os
 
+from django.conf import settings
 from django.utils import timezone
 from elasticsearch.exceptions import NotFoundError
 from elasticsearch_dsl import (
@@ -377,10 +378,21 @@ class File(Component):
         if index_file_content:
             # Read file from ip to update indexed file content (field: attachment)
             if obj.tag.information_package:
-                ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
-                with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
-                    content = f.read()
-                encoded_content = base64.b64encode(content).decode("ascii")
+                exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
+
+                if 'formatkey' in obj.custom_fields.keys():
+                    format_registry_key = obj.custom_fields['formatkey']
+                else:
+                    format_registry_key = None
+
+                if format_registry_key not in exclude_file_format_from_indexing_content:
+                    ip_file_path = os.path.join(obj.custom_fields['href'], obj.custom_fields['filename'])
+                    with obj.tag.information_package.open_file(ip_file_path, 'rb') as f:
+                        content = f.read()
+                    encoded_content = base64.b64encode(content).decode("ascii")
+                else:
+                    index_file_content = False
+                    attachment = {}
         else:
             # Get already indexed file content from old_doc (field: attachment)
             attachment = {}

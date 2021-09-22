@@ -10,11 +10,18 @@ PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
 
 try:
+    from local_essarch_settings import ESSARCH_DIR
+except ImportError:
+    ESSARCH_DIR = os.environ.get('ESSARCH_DIR', '/ESSArch')
+
+try:
     from local_essarch_settings import REDIS_URL
 except ImportError:
     REDIS_URL = os.environ.get('REDIS_URL_ESSARCH', 'redis://localhost/1')
 
 SESSION_COOKIE_NAME = 'essarch'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -29,7 +36,7 @@ if DEBUG:
 ESSARCH_WORKFLOW_POLLERS = {
     'dir': {
         'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
-        'path': '/ESSArch/data/preingest/reception',
+        'path': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
         'sa': 'SA National Archive and Government SE',
     }
 }
@@ -40,6 +47,8 @@ TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
 ALLOWED_HOSTS = ['*']
 
+# Exclude file formats keys from content indexing. Example: ['fmt/569',]
+EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = []
 
 # Verify TLS certificate on remote servers
 #
@@ -100,6 +109,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'ESSArch_Core.admin',
+    'ESSArch_Core.access',
     'ESSArch_Core.agents',
     'ESSArch_Core.api',
     'ESSArch_Core.auth',
@@ -197,11 +207,14 @@ WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 
 # Database
+dj_database_url.SCHEMES['mssql'] = 'mssql'    # Set mssql schemes
 try:
     from local_essarch_settings import DATABASE_URL
 except ImportError:
     DATABASE_URL = os.environ.get('DATABASE_URL_ESSARCH', 'sqlite:///db.sqlite')
 DATABASES = {'default': dj_database_url.parse(url=DATABASE_URL)}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cache
 REDIS_CLIENT_CLASS = os.environ.get('REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
@@ -277,6 +290,7 @@ ELASTICSEARCH_BATCH_SIZE = 1000
 ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
 
 # Logging
+LOGGING_DIR = os.path.join(ESSARCH_DIR, 'log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -310,7 +324,7 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'verbose',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/ESSArch/log/essarch.log',
+            'filename': os.path.join(LOGGING_DIR, 'essarch.log'),
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
@@ -318,7 +332,7 @@ LOGGING = {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
-            'filename': '/ESSArch/log/auth.log',
+            'filename': os.path.join(LOGGING_DIR, 'auth.log'),
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
@@ -388,14 +402,14 @@ USE_L10N = True
 USE_TZ = True
 
 # Media files
-MEDIA_URL = 'api/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = 'media/'
+MEDIA_ROOT = os.path.join(ESSARCH_DIR, 'config/essarch/media')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.environ.get('STATIC_ROOT_ESSARCH', os.path.join(BASE_DIR, 'static_root'))
+STATIC_ROOT = os.environ.get('STATIC_ROOT_ESSARCH', os.path.join(ESSARCH_DIR, 'config/essarch/static_root'))
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 DJANGO_REV_MANIFEST_PATH = os.path.join(BASE_DIR, 'frontend/static/frontend/build/rev-manifest.json')

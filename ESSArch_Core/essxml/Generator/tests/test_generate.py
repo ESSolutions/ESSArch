@@ -2732,7 +2732,9 @@ class ParseContentTestCase(unittest.TestCase):
         self.assertEqual(contentobj, "åäö")
 
     def test_iso_8859(self):
-        from ESSArch_Core.essxml.Generator.xmlGenerator import parse_content_django
+        from ESSArch_Core.essxml.Generator.xmlGenerator import (
+            parse_content_django,
+        )
         content = [{"var": "foo"}]
         foo = "åäö".encode("iso-8859-1")
         info = {"foo": foo}

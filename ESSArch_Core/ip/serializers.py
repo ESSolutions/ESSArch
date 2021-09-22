@@ -319,9 +319,7 @@ class InformationPackageCreateSerializer(serializers.ModelSerializer):
 
 class InformationPackageSubmissionAgreementDataPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
-        return SubmissionAgreementIPData.objects.filter(
-            information_package=self.root.instance,
-        )
+        return SubmissionAgreementIPData.objects.filter(information_package=self.root.instance,)
 
 
 class InformationPackageUpdateSerializer(InformationPackageSerializer):
@@ -433,12 +431,22 @@ class WorkareaSerializer(serializers.ModelSerializer):
 
 class ActionSerializer(serializers.Serializer):
     name = serializers.CharField()
-    path = serializers.CharField(allow_blank=True)
+    path = serializers.CharField(allow_blank=True, required=False)
     options = serializers.JSONField()
 
 
 class ActionToolSerializer(serializers.Serializer):
     actions = serializers.ListField(child=ActionSerializer())
+
+
+class SaveActionSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    path = serializers.CharField(allow_blank=True, required=False)
+    options = serializers.JSONField()
+
+
+class SaveActionToolSerializer(serializers.Serializer):
+    actions = serializers.ListField(child=SaveActionSerializer())
 
 
 class InformationPackageAICSerializer(DynamicModelSerializer):

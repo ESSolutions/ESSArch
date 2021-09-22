@@ -1,0 +1,28 @@
+<div class="status-tree-grid table-container">
+  <div class="state-tree-table-head">
+    <div class="d-flex align-items-center">
+      <h4 class="m-0">{{ "TASKS" | translate }}</h4>
+      <a
+        target="_blank"
+        class="help-button"
+        uib-tooltip="{{'SEE_MORE_INFO_ABOUT_PAGE' | translate}}"
+        tooltip-position="top auto"
+        href="/docs/{{$translate.use()}}/user_guide/user-interface/state-view.html"
+      >
+      </a>
+    </div>
+  </div>
+  <tree-grid
+    col-defs="col_defs"
+    tree-data="tree_data"
+    tree-control="myTreeControl"
+    expand-on="expanding_property"
+    icon-leaf="{{ branch.flow_type == 'task' ? 'fas fa-bolt' : '' }}"
+    icon-expand="fas fa-plus"
+    on-click="stepTaskClick(branch)"
+    on-select="stepClick(branch)"
+    icon-collapse="fas fa-minus"
+    template-url="static/frontend/views/treeGrid.html"
+  >
+  </tree-grid>
+</div>

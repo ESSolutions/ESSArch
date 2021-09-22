@@ -283,7 +283,7 @@ def timestamp_to_datetime(timestamp):
 
 def find_destination(use, structure, path=""):
     for content in structure:
-        name = content.get('name')
+        name = content.get('name', '')
         if content.get('use') == use:
             return path, name
 
@@ -472,9 +472,17 @@ def mptt_to_dict(node, serializer, context=None):
     return result
 
 
+def get_script_directory():
+    path = os.path.realpath(sys.argv[0])
+    if os.path.isdir(path):
+        return path
+    else:
+        return os.path.dirname(path)
+
+
 def convert_file(path, new_format):
     if sys.platform == "win32":
-        cmd = ['python.exe', 'C:/ESSArch/pd/python/scripts/unoconv.py']
+        cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
     else:
         cmd = ['unoconv']
     cmd.extend(['-f', new_format, '-eSelectPdfVersion=1', path])

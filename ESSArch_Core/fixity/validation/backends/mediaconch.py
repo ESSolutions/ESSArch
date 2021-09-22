@@ -26,7 +26,8 @@ def run_mediaconch(filename, reporting_element='Mediaconch', output_format='xml'
         reporter=reporting_element, format=output_format, policy=policy, filename=filename
     )
     logger.debug(cmd)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE)
+    # todo Remove shell=True
+    p = Popen(cmd, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = p.communicate()
     return out, err, p.returncode
 
@@ -79,11 +80,16 @@ class MediaconchValidator(BaseValidator):
             passed = get_outcome(root)
             message = etree.tostring(root, xml_declaration=True, encoding='UTF-8')
 
+            if self.stylesheet:
+                val_obj.specification['stylesheet'] = self.stylesheet
+                val_obj.save(update_fields=['specification'])
+
             if not passed:
                 logger.warning("Mediaconch validation of %s failed, %s" % (filepath, message))
                 raise ValidationError(message)
+
         except Exception:
-            val_obj.message = traceback.format_exc()
+            val_obj.message = f'<pre>{traceback.format_exc()}</pre>'
             raise
         else:
             val_obj.message = message
@@ -92,7 +98,6 @@ class MediaconchValidator(BaseValidator):
             val_obj.time_done = timezone.now()
             val_obj.passed = passed
             val_obj.save(update_fields=['time_done', 'passed', 'message'])
-
         return message
 
     @staticmethod

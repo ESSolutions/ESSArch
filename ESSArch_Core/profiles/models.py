@@ -28,6 +28,7 @@ from copy import copy
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.profiles.utils import (
     fill_specification_data,
@@ -164,6 +165,8 @@ class ProfileIPData(models.Model):
     version = models.IntegerField(default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
+    parsed_files = PickledObjectField(default=list)
+    extra_paths_to_parse = PickledObjectField(default=list)
 
     class Meta:
         ordering = ['version']
@@ -261,6 +264,9 @@ class SubmissionAgreement(models.Model):
     )
     profile_validation = models.ForeignKey(
         'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='validation_sa'
+    )
+    profile_action_workflow = models.ForeignKey(
+        'profiles.Profile', on_delete=models.SET_NULL, null=True, related_name='action_workflow_sa'
     )
 
     template = models.JSONField(default=list)

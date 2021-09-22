@@ -1,0 +1,8 @@
+<div class="modal-heading">
+  <h3 ng-if="run" class="modal-title" id="modal-title">{{'CONVERSION_VIEW.CHECK_RUN' | translate}}</h3>
+  <h3 ng-if="save" class="modal-title" id="modal-title">{{'CONVERSION_VIEW.CHECK_SAVE' | translate}}</h3>
+</div>
+<div class="modal-footer">
+  <button type="button" class="btn btn-primary" ng-click="yes()">Yes</button>
+  <button class="btn btn-default" type="button" ng-click="cancel()">No</button>
+</div>

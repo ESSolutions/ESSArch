@@ -118,7 +118,7 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
 
     with transaction.atomic():
         with ProcessStep.objects.delay_mptt_updates():
-            root_step = ProcessStep.objects.create(name=name, eager=eager, context=context)
+            root_step = ProcessStep.objects.create(name=name, eager=eager, information_package=ip, context=context)
 
             on_error_tasks = list(_create_on_error_tasks(
                 on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))

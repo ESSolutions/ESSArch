@@ -57,6 +57,7 @@ import 'angular-translate';
 import 'angular-translate-loader-static-files';
 import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
+import 'angular-tree-control/context-menu';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
 import 'messenger-hubspot';
@@ -402,6 +403,23 @@ angular
           data: {
             permissions: {
               only: nestedPermissions(resolve('home.access.createDip', permissionConfig)),
+              redirectTo: 'home.restricted',
+            },
+          },
+        })
+        .state('home.access.accessAid', {
+          url: '/access-aid',
+          templateUrl: '/static/frontend/views/access_aids.html',
+          controller: 'AccessAidCtrl as vm',
+          params: {
+            id: {dynamic: true, value: null},
+          },
+          resolve: {
+            authenticated: resolveAuthenticated,
+          },
+          data: {
+            permissions: {
+              only: nestedPermissions(resolve('home.access.accessAid', permissionConfig)),
               redirectTo: 'home.restricted',
             },
           },

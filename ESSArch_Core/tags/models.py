@@ -446,6 +446,10 @@ class StructureUnit(MPTTModel):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
+    access_aids = models.ManyToManyField(
+        'access.AccessAid',
+        verbose_name=_('access_aids'),
+        related_name='structure_units')
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,

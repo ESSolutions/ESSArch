@@ -11,4 +11,5 @@ and has functionality for managing accessions, locations, classifications and pr
     authority-records
     archival-descriptions
     locations
+    accessions
     standards/ICA_Standards

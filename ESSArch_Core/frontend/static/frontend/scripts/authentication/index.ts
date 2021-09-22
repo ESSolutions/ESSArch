@@ -1,4 +1,4 @@
-import angular from 'angular';
+import * as angular from 'angular';
 
 import loginCtrl from './controllers/LoginCtrl';
 import djangoAuth from './services/djangoAuth';

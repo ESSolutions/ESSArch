@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 import focused from '../directives/focused';
 import ngEnter from '../directives/ngEnter';
 import treednd from '../directives/dragNdropDirective';

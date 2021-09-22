@@ -190,7 +190,6 @@
             <thead>
               <tr>
                 <th></th>
-                <th st-sort="message" class="cursor-pointer">{{ "MESSAGE" | translate }}</th>
                 <th st-sort="validator" class="cursor-pointer">{{ "VALIDATOR" | translate }}</th>
                 <th>{{ "STATE_TREE.REPRESENTATION" | translate }}</th>
                 <th st-sort="filename" class="cursor-pointer">{{ "FILENAME" | translate }}</th>
@@ -202,6 +201,7 @@
             </thead>
             <tbody>
               <tr
+                ng-click="$ctrl.showFullscreenMessage(x)"
                 ng-repeat="x in $ctrl.validations"
                 ng-class="{'failed': !x.passed && x.time_done, 'success': x.passed && x.time_done, 'running': !x.passed && x.time_done === null && x.time_started}"
               >
@@ -231,7 +231,6 @@
                   >
                   </i>
                 </td>
-                <td class="text-oneline-ellipsis">{{ x.message }}</td>
                 <td class="text-oneline-ellipsis">{{ x.validator }}</td>
                 <td class="text-oneline-ellipsis">{{ x.specification.options.representation }}</td>
                 <td class="text-oneline-ellipsis">{{ x.filename }}</td>
