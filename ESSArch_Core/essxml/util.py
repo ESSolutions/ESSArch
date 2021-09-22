@@ -399,15 +399,19 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
     for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
 
-        # Remove first object in premis file if it is a "fake" entry describing the tar
-        if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
-            # In XPath 1 we use translate() to make a case insensitive comparison
-            xpath_upper = 'translate(.,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")'
-            xpath_query = './/*[local-name()="formatName"][{up} = "TAR" or {up} = "ZIP"]'.format(up=xpath_upper)
-            if len(file_elements[0].xpath(xpath_query)):
-                file_elements.pop(0)
-
+        file_num = 0
         for el in file_elements:
+            # Skip intellectualEntity object in premis file
+            if el.get('{%s}type' % XSI_NAMESPACE) == 'premis:intellectualEntity':
+                continue
+            # Skip first premis:file object in premis file if it is a "fake" entry describing the tar
+            if el.get('{%s}type' % XSI_NAMESPACE) == 'premis:file' and file_num == 0:
+                # In XPath 1 we use translate() to make a case insensitive comparison
+                xpath_upper = 'translate(.,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")'
+                xpath_query = './/*[local-name()="formatName"][{up} = "TAR" or {up} = "ZIP"]'.format(up=xpath_upper)
+                if len(el.xpath(xpath_query)):
+                    file_num += 1
+                    continue
             file_el = XMLFileElement(el, props, rootdir=rootdir)
             file_el.path = win_to_posix(os.path.join(prefix, file_el.path))
 
@@ -415,6 +419,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
                 continue
 
             files.add(file_el)
+            file_num += 1
 
     if recursive:
         for pointer in find_pointers(xmlfile=xmlfile):

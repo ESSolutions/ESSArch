@@ -1,3 +1,9 @@
+* {
+  margin: 0px;
+  padding: 0px;
+  border: 0px;
+}
+
 a {
   cursor: pointer;
 }
@@ -18,8 +24,61 @@ body {
   height: 100%;
 }
 
+.wrap-view {
+  overflow: hidden;
+  padding: 0px;
+  margin: 15px;
+}
+
+.wrap-view .btn-primary {
+  float: right;
+  margin-top: 10px;
+}
+
 main {
   display: block;
+}
+
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    'timeline timeline info info'
+    'tools tools description description'
+    '. . . .';
+}
+
+.timeline {
+  grid-area: timeline;
+}
+
+.tools {
+  grid-area: tools;
+}
+
+.description {
+  grid-area: description;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0px 0px;
+  grid-template-areas:
+    'profile profile profile'
+    'purpose purpose purpose';
+  grid-area: info;
+}
+
+.profile {
+  grid-area: profile;
+}
+
+.purpose {
+  grid-area: purpose;
 }
 
 .ui-select-dropdown {
@@ -418,6 +477,7 @@ main {
 .clickable {
   cursor: pointer;
 }
+
 .select-sub-edit-eventlog-wrapper {
   @include container;
   position: relative;
@@ -453,7 +513,6 @@ main {
   }
 }
 .edit-form {
-  padding-bottom: 15px;
   table {
     table-layout: fixed;
     .flex-row {
@@ -585,11 +644,33 @@ input[type='checkbox'] {
   justify-content: flex-end;
   margin-left: 10px;
 }
+
+.file-conversion {
+  .formly-form {
+    min-width: 105px;
+    margin-left: 15px;
+    margin-right: 15px;
+  }
+  display: inline-block;
+}
 .validator-choices {
   .formly-field {
-    width: 24%;
-    margin: 5px;
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    min-width: 105px;
+    margin-left: 10px;
+    .form-group {
+      margin: 0px;
+      padding: 0px;
+      border: 0px;
+      .checkbox {
+        margin-top: 0px;
+        padding-top: 0px;
+      }
+    }
   }
+  display: inline-block;
 }
 
 .submit-button {
@@ -613,8 +694,10 @@ input[type='checkbox'] {
 
 .profile-editor {
   overflow: auto;
+  padding-bottom: 0;
+  margin-bottom: 0;
   .edit-view {
-    margin: 0;
+    margin: 0px;
     padding-bottom: 0;
   }
   .select-view {

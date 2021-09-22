@@ -495,7 +495,8 @@ class add(View):
                 return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
             from requests.packages.urllib3.exceptions import (
-                InsecureRequestWarning, InsecurePlatformWarning
+                InsecurePlatformWarning,
+                InsecureRequestWarning,
             )
 
             requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)
@@ -542,7 +543,8 @@ class addExtension(View):
             schema = form.cleaned_data.get('schema')
 
             from requests.packages.urllib3.exceptions import (
-                InsecureRequestWarning, InsecurePlatformWarning
+                InsecurePlatformWarning,
+                InsecureRequestWarning,
             )
 
             requests.packages.urllib3.disable_warnings(InsecurePlatformWarning)

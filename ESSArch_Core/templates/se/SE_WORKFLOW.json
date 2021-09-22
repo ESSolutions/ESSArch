@@ -33,7 +33,9 @@
         {
             "name": "ESSArch_Core.ip.tasks.Transform",
             "label": "Update directory structure",
-            "args": ["content"]
+            "args": [
+                "content"
+            ]
         },
         {
             "name": "ESSArch_Core.tasks.UpdateIPStatus",
@@ -72,12 +74,8 @@
             ]
         },
         {
-            "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-            "label": "Generate premis"
-        },
-        {
-            "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-            "label": "Generate content-mets"
+            "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+            "label": "Generate contentmetadata"
         },
         {
             "step": true,
@@ -126,12 +124,16 @@
         {
             "name": "ESSArch_Core.tasks.DeleteFiles",
             "label": "Delete IP directory",
-            "args": ["{{_OBJPATH}}"]
+            "args": [
+                "{{_OBJPATH}}"
+            ]
         },
         {
             "name": "ESSArch_Core.tasks.UpdateIPPath",
             "label": "Update IP path",
-            "args": ["{{_PATH_PREINGEST}}/{{_OBJID}}.{{_IP_CONTAINER_FORMAT|lower}}"]
+            "args": [
+                "{{_PATH_PREINGEST}}/{{_OBJID}}.{{_IP_CONTAINER_FORMAT|lower}}"
+            ]
         },
         {
             "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
@@ -184,7 +186,10 @@
         {
             "name": "ESSArch_Core.tasks.DeletePollingSource",
             "label": "Delete from reception",
-            "args": ["{{WORKFLOW_POLLER}}", "{{WORKFLOW_POLL_PATH}}"]
+            "args": [
+                "{{WORKFLOW_POLLER}}",
+                "{{WORKFLOW_POLL_PATH}}"
+            ]
         },
         {
             "step": true,
@@ -218,7 +223,9 @@
                         {
                             "name": "ESSArch_Core.ip.tasks.PrepareAIP",
                             "label": "Prepare AIP",
-                            "args": ["{{_OBJPATH}}"]
+                            "args": [
+                                "{{_OBJPATH}}"
+                            ]
                         },
                         {
                             "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
@@ -235,16 +242,12 @@
                             }
                         },
                         {
-                          "name":"ESSArch_Core.ip.tasks.DownloadSchemas",
-                          "label":"Download Schemas"
+                            "name": "ESSArch_Core.ip.tasks.DownloadSchemas",
+                            "label": "Download Schemas"
                         },
                         {
-                            "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                            "label": "Generate premis"
-                        },
-                        {
-                            "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                            "label": "Generate content-mets"
+                            "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                            "label": "Generate contentmetadata"
                         }
                     ]
                 },
@@ -305,7 +308,9 @@
         {
             "name": "ESSArch_Core.tasks.DeleteFiles",
             "label": "Delete from ingest",
-            "args": ["{{POLICY_INGEST_PATH}}/{{OBJID}}"]
+            "args": [
+                "{{POLICY_INGEST_PATH}}/{{OBJID}}"
+            ]
         },
         {
             "name": "ESSArch_Core.ip.tasks.CreateReceipt",

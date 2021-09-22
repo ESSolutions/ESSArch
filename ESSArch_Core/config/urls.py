@@ -4,6 +4,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
 
+from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
     AgentNameTypeViewSet,
@@ -36,6 +37,7 @@ from ESSArch_Core.configuration.views import (
 )
 from ESSArch_Core.fixity.views import (
     ActionToolViewSet,
+    SaveActionToolViewSet,
     ValidationFilesViewSet,
     ValidationViewSet,
 )
@@ -130,6 +132,14 @@ router.register(r'agents', AgentViewSet).register(
     basename='agent-archives',
     parents_query_lookups=['agent']
 )
+router.register(r'access-aids', AccessAidViewSet)
+router.register(r'access-aids', AccessAidViewSet).register(
+    r'structure-units',
+    StructureUnitViewSet,
+    basename='access-aids-structure-units',
+    parents_query_lookups=['access_aids'],
+)
+router.register(r'access-aid-types', AccessAidTypeViewSet)
 router.register(r'agent-types', AgentTypeViewSet)
 router.register(r'agent-identifier-types', AgentIdentifierTypeViewSet)
 router.register(r'agent-name-types', AgentNameTypeViewSet)
@@ -174,6 +184,12 @@ router.register(r'structures', StructureViewSet).register(
     StructureUnitViewSet,
     basename='structure-units',
     parents_query_lookups=['structure']
+)
+router.register(r'structure-units', StructureUnitViewSet).register(
+    r'access-aids',
+    AccessAidViewSet,
+    basename='structure-unit-access-aids',
+    parents_query_lookups=['structure_units'],
 )
 router.register(r'structure-units', StructureUnitViewSet).register(
     r'transfers',
@@ -320,6 +336,7 @@ router.register(r'conversion-jobs', ConversionJobViewSet).register(
 )
 router.register(r'conversion-templates', ConversionTemplateViewSet)
 router.register(r'action-tools', ActionToolViewSet)
+router.register(r'save-action-tools', SaveActionToolViewSet)
 router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)

@@ -28,7 +28,7 @@ class ConversionJobViewSetRunTests(TestCase):
             cmd='-i {input} {input_name}.{output}',
         )
         f = os.path.join(self.datadir, 'foo.mkv')
-        t.run(f, self.datadir, {'output': 'mp4'})
+        t.run(f, self.datadir, {'output': 'mp4'}, None)
 
         mock_popen.assert_called_once_with(
             ['ffmpeg', '-i', normalize_path(f), "foo.mp4"],
