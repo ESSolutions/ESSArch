@@ -167,7 +167,10 @@ module.exports = (env, argv) => {
         filename: '[name].css',
       }),
       new WebpackManifestPlugin({fileName: 'rev-manifest.json', publicPath: ''}),
-      new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/locale$/,
+        contextRegExp: /moment$/,
+      }),
       new webpack.DefinePlugin({
         'process.env': {LATER_COV: false},
         COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
