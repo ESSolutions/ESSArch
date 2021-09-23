@@ -6,7 +6,6 @@ import shutil
 from django.db import transaction
 
 from ESSArch_Core.auth.models import Group, GroupMember
-from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.util import stable_path
