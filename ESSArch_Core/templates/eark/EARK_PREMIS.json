@@ -31,7 +31,7 @@
             "-name": "object",
             "-namespace": "premis",
             "-containsFiles": true,
-            "-filters": {"href": "^(?!(submission/)).*"},
+            "-filters": {"href": "^(?!(submission/|representations/)).*"},
             "-attr": [
                 {
                   "-name": "type",

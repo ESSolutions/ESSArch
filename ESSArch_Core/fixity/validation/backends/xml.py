@@ -145,8 +145,8 @@ class DiffCheckValidator(BaseValidator):
 
         if oldhash is None:
             self._pop_checksum_dict(self.deleted, oldhash, relpath)
-            self._pop_checksum_dict(self.present, oldhash, relpath)
             self._pop_checksum_dict(self.present, newhash, relpath)
+            return None
         elif oldhash != newhash:
             self.deleted.pop(oldhash, None)
             self.changed += 1
