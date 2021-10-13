@@ -207,11 +207,14 @@ WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 
 # Database
+dj_database_url.SCHEMES['mssql'] = 'mssql'    # Set mssql schemes
 try:
     from local_essarch_settings import DATABASE_URL
 except ImportError:
     DATABASE_URL = os.environ.get('DATABASE_URL_ESSARCH', 'sqlite:///db.sqlite')
 DATABASES = {'default': dj_database_url.parse(url=DATABASE_URL)}
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cache
 REDIS_CLIENT_CLASS = os.environ.get('REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')

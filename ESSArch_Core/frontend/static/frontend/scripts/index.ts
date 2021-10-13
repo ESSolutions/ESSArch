@@ -57,6 +57,7 @@ import 'angular-translate';
 import 'angular-translate-loader-static-files';
 import 'angular-translate-storage-cookie';
 import 'angular-tree-control';
+import 'angular-tree-control/context-menu';
 import 'angular-ui-bootstrap';
 import 'angular-websocket';
 import 'messenger-hubspot';

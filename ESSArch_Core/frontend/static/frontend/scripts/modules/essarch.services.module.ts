@@ -1,3 +1,5 @@
+import * as angular from 'angular';
+
 import agentName from '../services/agentName';
 import archiveName from '../services/archiveName';
 import myService from '../services/myService';

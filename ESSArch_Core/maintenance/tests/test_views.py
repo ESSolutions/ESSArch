@@ -1039,7 +1039,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             [normalize_path(os.path.join(x['href'], x['filename'])) for x in new_document_tags],
             [
                 'foo.pdf', 'logs/1.txt', 'logs/2.txt',
-                'ipevents.xml', 'mets.xml', 'premis.xsd',
+                'ipevents.xml', 'mets.xml', 'premis.xsd', 'premis.xml'
             ],
         )
 
