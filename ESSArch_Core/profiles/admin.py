@@ -28,10 +28,7 @@ from django.db import models
 from django_json_widget.widgets import JSONEditorWidget
 
 from .models import Profile, SubmissionAgreement
-from .utils import (
-    lowercase_profile_types,
-    lowercase_profile_types_no_action_workflow,
-)
+from .utils import lowercase_profile_types_no_action_workflow
 
 
 class SubmissionAgreementForm(forms.ModelForm):
