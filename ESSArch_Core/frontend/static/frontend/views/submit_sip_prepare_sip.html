@@ -18,7 +18,7 @@
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
           >
-            <div ng-if="ip !== null && ips.length == 0" id="edit-veiw" class="edit-view">
+            <div ng-if="ip !== null && ips.length == 0" id="edit-veiw">
               <profile-editor
                 disabled="true"
                 ng-if="ip.state == 'Created' || ip.state == 'Submitted'"
@@ -62,7 +62,7 @@
                     ng-dblClick=""
                     class="btn btn-primary submit-button"
                   >
-                    {{'SUBMITSIP' | translate}}
+                    {{'SUBMIT_DELIVERY' | translate}}
                   </button>
                 </form>
               </div>

@@ -58,9 +58,7 @@
           tabindex="-1"
           ng-keydown="vm.contentViewsKeydownListener($event)"
         >
-          <div class="status-view" style="margin: 5px">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
+          <event-table ip="ip"></event-table>
         </div>
       </uib-tab>
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
