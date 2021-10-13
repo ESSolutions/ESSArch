@@ -1,0 +1,122 @@
+{
+	"structure" : [],
+	"template" : [
+		{
+			"key": "container_format",
+			"type": "select",
+			"defaultValue": "tar",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Container format",
+				"options": [
+					{"name": "TAR","value": "tar"},
+					{"name": "ZIP","value": "zip"}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Container format",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "container_format_compression",
+			"type": "select",
+			"defaultValue": false,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Compression",
+				"options": [
+					{"name": "Yes","value": true},
+					{"name": "No","value": false}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Container format compression",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "checksum_algorithm",
+			"type": "select",
+			"defaultValue": "MD5",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Checksum algorithm",
+				"options": [
+					{"name": "MD5","value": "MD5"},
+					{"name": "SHA-256","value": "SHA-256"}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Checksum algorithm",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_receiver_email",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "email",
+				"label": "Preservation organization receiver email"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Preservation organization receiver email",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_receiver_url",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"remote": "",
+				"label": "Preservation organization receiver url (empty for local)"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Preservation organization receiver url (empty for local)",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "transfer_destination_url",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"remote": "",
+				"label": "Transfer destination url (empty for local)"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Transfer destination url (empty for local)",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification" : {}
+}
