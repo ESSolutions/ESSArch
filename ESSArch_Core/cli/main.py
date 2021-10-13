@@ -68,6 +68,7 @@ def devserver(addrport, noreload):
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
 def create_data_directories(path):
     dirs = [
+        'access',
         'disseminations',
         'ingest/packages',
         'ingest/reception',
@@ -108,7 +109,9 @@ def install(ctx, data_directory):
     ctx.invoke(migrate)
     _loaddata('countries_data', 'languages_data',)
 
-    from ESSArch_Core.install.install_default_config import installDefaultConfiguration
+    from ESSArch_Core.install.install_default_config import (
+        installDefaultConfiguration,
+    )
     installDefaultConfiguration()
 
 
