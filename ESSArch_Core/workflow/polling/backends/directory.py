@@ -47,7 +47,7 @@ class DirectoryWorkflowPoller(BaseWorkflowPoller):
                 raise
 
             org = Group.objects.get(name='Default')
-            role = 'admin'
+            role = 'Administrator'
             responsible = GroupMember.objects.filter(roles__codename=role, group=org).get().member.django_user
 
             with transaction.atomic():

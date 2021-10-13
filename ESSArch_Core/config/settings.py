@@ -37,7 +37,7 @@ ESSARCH_WORKFLOW_POLLERS = {
     'dir': {
         'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
         'path': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
-        'sa': 'SA National Archive and Government SE',
+        'sa': 'SE SA Delivery API US',
     }
 }
 
