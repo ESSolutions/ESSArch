@@ -94,6 +94,7 @@ def _fill_sa_specification_data(sa):
     return {
         '_SA_ID': str(sa.pk),
         '_SA_NAME': sa.name,
+        '_OSA_NAME': sa.overall_submission_agreement,
         '_IP_ARCHIVIST_ORGANIZATION': sa.archivist_organization,
     }
 

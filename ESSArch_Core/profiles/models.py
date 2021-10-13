@@ -197,6 +197,7 @@ class SubmissionAgreement(models.Model):
     type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
+    overall_submission_agreement = models.CharField(blank=True, max_length=255)
     archivist_organization = models.CharField(blank=True, max_length=255)
     policy = models.ForeignKey(
         'configuration.StoragePolicy',
