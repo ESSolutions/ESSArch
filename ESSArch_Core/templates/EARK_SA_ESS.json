@@ -1,0 +1,21 @@
+{
+    "SA": {
+        "name": "EARK SA Delivery",
+        "published": true,
+        "type": "Submission Agreement",
+        "status": "Template",
+        "label": "Submission Agreement Delivery",
+        "policy": "default",
+        "overall_submission_agreement": "RA 13-2011/5329; 2012-04-12",
+        "archivist_organization": "Förslagsmyndigheten",
+        "profile": "EARK_SA_v10.json"
+    },
+    "ProfileSIP": {"name": "EARK SIP"},
+    "ProfileTransferProject": {"name": "EARK Transfer"},
+    "ProfileSubmitDescription": {"name": "EARK SD"},
+    "ProfileAIP": {"name": "EARK AIP"},
+    "ProfileAIPDescription": {"name": "EARK AIPD"},
+    "ProfileAIC": {"name": "EARK AIC"},
+    "ProfileDIP": {"name": "EARK DIP"},
+    "ProfilePreservationMetadata": {"name": "EARK PDI"}
+}

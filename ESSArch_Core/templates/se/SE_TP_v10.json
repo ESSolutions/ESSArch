@@ -1,0 +1,122 @@
+{
+	"structure" : [],
+	"template" : [
+		{
+			"key": "container_format",
+			"type": "select",
+			"defaultValue": "tar",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Container format",
+				"options": [
+					{"name": "TAR","value": "tar"},
+					{"name": "ZIP","value": "zip"}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Containerformat",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "container_format_compression",
+			"type": "select",
+			"defaultValue": false,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Kompression",
+				"options": [
+					{"name": "Yes","value": true},
+					{"name": "No","value": false}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Kompression för valt containerformat",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "checksum_algorithm",
+			"type": "select",
+			"defaultValue": "MD5",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Checksum algorithm",
+				"options": [
+					{"name": "MD5","value": "MD5"},
+					{"name": "SHA-256","value": "SHA-256"}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Algoritm för checksumma",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_receiver_email",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "email",
+				"label": "Bevarandeorganisation e-post"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Bevarandeorganisations mottagande e-post",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_receiver_url",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"remote": "",
+				"label": "Bevarandeorganisation mottagning url (lämna tom för lokalt)"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Bevarandeorganisations mottagande url",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "transfer_destination_url",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"remote": "",
+				"label": "Överförande organisations url (lämna tom för lokalt)"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Överförande organisations url",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification" : {}
+}

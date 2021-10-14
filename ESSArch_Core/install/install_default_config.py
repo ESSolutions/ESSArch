@@ -1047,7 +1047,7 @@ def installDefaultUsers():
     except User.DoesNotExist:
         click.echo("-> installing user 'superuser'")
         user_superuser, created = User.objects.get_or_create(
-            first_name='superuser', last_name='Lastname',
+            first_name='Superuser', last_name='Lastname',
             username='superuser', email='superuser@essolutions.se',
         )
         if created:
