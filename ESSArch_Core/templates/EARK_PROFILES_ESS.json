@@ -189,7 +189,7 @@
     "ProfileActionWorkflow": {
         "name": "EARK AWF",
         "profile_type": "action_workflow",
-        "type": "Workflow description",
+        "type": "Action Workflow description",
         "status": "Template",
         "label": "Action workflow profile",
         "representation_info": "Documentation 1",
