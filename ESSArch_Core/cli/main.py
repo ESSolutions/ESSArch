@@ -68,6 +68,7 @@ def devserver(addrport, noreload):
               default=DEFAULT_DATA_DIR, show_default=DEFAULT_DATA_DIR)
 def create_data_directories(path):
     dirs = [
+        'access',
         'disseminations',
         'ingest/packages',
         'ingest/reception',

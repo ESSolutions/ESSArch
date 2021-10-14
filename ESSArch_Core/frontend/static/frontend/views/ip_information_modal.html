@@ -22,6 +22,10 @@
             <td>{{$ctrl.ip.label}}</td>
           </tr>
           <tr>
+            <td>{{'SUBMISSIONAGREEMENT' | translate}}</td>
+            <td>{{$ctrl.ip.submission_agreement}}</td>
+          </tr>
+          <tr>
             <td>{{'APPRAISAL_DATE' | translate}}</td>
             <td>
               <span ng-if="!$ctrl.editMode['appraisal_date']"

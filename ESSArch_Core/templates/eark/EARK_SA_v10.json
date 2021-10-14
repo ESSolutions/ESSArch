@@ -1,0 +1,210 @@
+{
+	"structure": [],
+	"template": [
+		{
+			"key": "_OSA_NAME",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Submission Agreement"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Submission Agreement between archivist organization and preservation organization",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "_SA_NAME",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Submission Agreement specified"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Submission Agreement with specified definitions and conditions",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "_IP_ARCHIVIST_ORGANIZATION",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Archival Creator Organization"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "The name of the organisation or person that originally created the data being transferred",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_organization_note",
+			"type": "input",
+			"defaultValue": "Org:123456-1234",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Archival Creator Identification Code"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Xxx",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_organization_name",
+			"type": "input",
+			"defaultValue": "Creator organization",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Organization"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Creator and/or submitter organization",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_organization_note",
+			"type": "input",
+			"defaultValue": "Org:654321:4321",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Organization Identification Code"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Creator and/or submitter organization identification code",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_individual_name",
+			"type": "input",
+			"defaultValue": "Name of the contact person",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Contact Person"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Creator and/or submitter contact person",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_individual_note",
+			"type": "input",
+			"defaultValue": "E-mail, phone etc",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Contact Person Details"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Creator and/or submitter contact person details",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_name",
+			"type": "input",
+			"defaultValue": "Preservation Organization",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Preservation Organization"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Xxx",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization_note",
+			"type": "input",
+			"defaultValue": "Preservation Organization IDC",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Preservation Organization Identification Code"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Xxx",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_software_name",
+			"type": "input",
+			"defaultValue": "ESSArch",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Software"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Xxx",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_software_note",
+			"type": "input",
+			"defaultValue": "3.2.0",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Creator Software Version"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Xxx",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification": []
+}

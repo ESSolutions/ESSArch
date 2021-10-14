@@ -152,16 +152,21 @@ def generate_package_mets(ip, package_path, xml_path):
 
 
 def generate_aic_mets(ip, xml_path):
-    aicinfo = fill_specification_data(ip.get_profile_data('aic_description'), ip=ip.aic)
-    aic_desc_profile = ip.get_profile('aic_description')
-    algorithm = ip.policy.get_checksum_algorithm_display().upper()
+    sa = ip.submission_agreement
+    profile_type = 'aic_description'
+    profile_rel = ip.get_profile_rel(profile_type)
+    profile_data = ip.get_profile_data(profile_type)
+
+    data = fill_specification_data(profile_data, ip=ip.aic, sa=sa)
 
     filesToCreate = {
         xml_path: {
-            'spec': aic_desc_profile.specification,
-            'data': aicinfo
+            'spec': profile_rel.profile.specification,
+            'data': data
         }
     }
+
+    algorithm = ip.get_checksum_algorithm()
 
     parsed_files = []
 

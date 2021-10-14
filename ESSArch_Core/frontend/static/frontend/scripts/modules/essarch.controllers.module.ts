@@ -521,6 +521,7 @@ export default angular
     'Notifications',
     'data',
     '$q',
+    '$uibModal',
     DataModalInstanceCtrl,
   ])
   .controller('DeactivateMediumModalInstanceCtrl', [

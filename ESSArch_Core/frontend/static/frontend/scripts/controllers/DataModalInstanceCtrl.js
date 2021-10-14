@@ -17,6 +17,37 @@ export default class DataModalInstanceCtrl {
       }
     };
 
+    // Show fullscreen validation message
+    $ctrl.showFullscreenMessage = function () {
+      $ctrl.fullscreenActive = true;
+      var modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/validation_fullscreen_message.html',
+        controller: 'DataModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        windowClass: 'fullscreen-modal',
+        resolve: {
+          data: {
+            validation: $ctrl.data.validation,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $ctrl.fullscreenActive = false;
+        },
+        function () {
+          $ctrl.fullscreenActive = false;
+          $console.log('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+    $ctrl.ok = function () {
+      $uibModalInstance.close();
+    };
+
     // Close prepare alert
     $scope.closePrepareAlert = function () {
       $scope.prepareAlert = null;

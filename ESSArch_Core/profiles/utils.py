@@ -29,6 +29,8 @@ profile_types = [
 ]
 
 lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
+lowercase_profile_types_no_action_workflow = [
+    x.lower().replace(' ', '_') for x in profile_types if x.lower().replace(' ', '_') != "action_workflow"]
 
 
 class LazyDict(Mapping):
@@ -92,6 +94,7 @@ def _fill_sa_specification_data(sa):
     return {
         '_SA_ID': str(sa.pk),
         '_SA_NAME': sa.name,
+        '_OSA_NAME': sa.overall_submission_agreement,
         '_IP_ARCHIVIST_ORGANIZATION': sa.archivist_organization,
     }
 
