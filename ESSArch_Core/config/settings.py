@@ -298,6 +298,9 @@ LOGGING = {
         'verbose': {
             'format': '%(asctime)s %(levelname)s %(message)s'
         },
+        'verbose_process': {
+            'format': '%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d %(message)s'
+        },
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
             'format': '[{server_time}] {message}',
@@ -336,6 +339,14 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
+        # 'log_file_ldap': {
+        #    'level': 'DEBUG',
+        #    'class' : 'logging.handlers.RotatingFileHandler',
+        #    'formatter': 'verbose',
+        #    'filename': os.path.join(LOGGING_DIR, 'ldap.log'),
+        #    'maxBytes': 1024*1024*100, # 100MB
+        #    'backupCount': 5,
+        # },
     },
     'loggers': {
         'django': {
@@ -356,6 +367,21 @@ LOGGING = {
             'handlers': ['log_file_auth'],
             'propagate': False,
         },
+        # 'djangosaml2': {
+        #    'level': 'DEBUG',
+        #    'handlers': ['log_file_auth'],
+        #    'propagate': True,
+        # },
+        # 'saml2': {
+        #    'level': 'DEBUG',
+        #    'handlers': ['log_file_auth'],
+        #    'propagate': True,
+        # },
+        # 'django_auth_ldap': {
+        #    'level': 'DEBUG',
+        #    'handlers': ['log_file_ldap'],
+        #    'propagate': False,
+        # },
     },
 }
 

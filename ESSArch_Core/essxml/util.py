@@ -412,7 +412,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
                 if len(el.xpath(xpath_query)):
                     file_num += 1
                     continue
-            file_el = XMLFileElement(el, props, rootdir=rootdir)
+            file_el = XMLFileElement(el, props, rootdir=rootdir)  # rootdir not used in XMLFileElement
             file_el.path = win_to_posix(os.path.join(prefix, file_el.path))
 
             if file_el.path in skip_files:
@@ -423,14 +423,18 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
 
     if recursive:
         for pointer in find_pointers(xmlfile=xmlfile):
-            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
-            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+            current_pointer_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_pointer_dir, os.path.basename(pointer.path))
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
 
             if pointer.path not in skip_files:
                 pointer.path = os.path.join(prefix, pointer.path)
                 files.add(pointer)
 
-            prefix = os.path.relpath(current_dir, rootdir)
+            prefix = os.path.relpath(current_pointer_dir, rootdir)
             if prefix == '.':
                 prefix = ''
 
@@ -439,7 +443,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
                 rootdir,
                 prefix,
                 recursive=recursive,
-                current_dir=current_dir,
+                current_dir=current_pointer_dir,
             )
 
     return files

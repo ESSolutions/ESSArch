@@ -607,7 +607,9 @@ class DiffCheckValidatorTests(TestCase):
             tree.write(self.fname, xml_declaration=True, encoding='UTF-8')
 
             self.validator = DiffCheckValidator(context=self.fname, options=self.options)
-            self.validator.validate(self.datadir)
+            msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
+            with self.assertRaisesRegexp(ValidationError, msg):
+                self.validator.validate(self.datadir)
 
         with self.subTest('no checksum type'):
             file_el.attrib.pop('CHECKSUMTYPE')
