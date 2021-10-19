@@ -202,6 +202,7 @@ class SubmissionAgreement(models.Model):
     policy = models.ForeignKey(
         'configuration.StoragePolicy',
         on_delete=models.PROTECT,
+        verbose_name="storage policy",
         related_name='submission_agreements',
     )
     include_profile_transfer_project = models.BooleanField(default=False)
