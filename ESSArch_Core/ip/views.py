@@ -794,8 +794,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             except ValidationError as e:
                 raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
 
-            profile_ip.LockedBy = request.user
-            profile_ip.save()
+            profile_ip.lock(request.user)
 
         ProcessTask.objects.create(
             name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
