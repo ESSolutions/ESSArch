@@ -3,11 +3,13 @@ import logging
 import os
 import shutil
 
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from rest_framework import exceptions
 
 from ESSArch_Core.auth.models import Group, GroupMember
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.profiles.models import SubmissionAgreement
+from ESSArch_Core.profiles.models import ProfileIP, SubmissionAgreement
 from ESSArch_Core.util import stable_path
 from ESSArch_Core.WorkflowEngine.polling.backends.base import (
     BaseWorkflowPoller,
@@ -59,6 +61,13 @@ class DirectoryWorkflowPoller(BaseWorkflowPoller):
                 )
                 org.add_object(ip)
                 sa.lock_to_information_package(ip, responsible)
+                for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+                    try:
+                        profile_ip.clean()
+                    except ValidationError as e:
+                        raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+
+                    profile_ip.lock(responsible)
             yield ip
 
     def delete_source(self, path, ip):

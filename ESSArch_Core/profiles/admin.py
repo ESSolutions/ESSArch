@@ -58,15 +58,16 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'classes': ('wide'),
-            'fields': ('id', 'name', 'type', 'status', 'label', 'template',)
-        }),
-        ('Information about Archival organization', {
-            'classes': ('collapse', 'wide'),
             'fields': (
-                'archivist_organization',
+                'id', 'name', 'type', 'status', 'label', 'archivist_organization',
+                'overall_submission_agreement', 'policy',
             )
         }),
-        ('Profiles', {
+        ('form template', {
+            'classes': ('collapse', 'wide'),
+            'fields': ('template',)
+        }),
+        ('profiles', {
             'classes': ('collapse', 'wide'),
             'fields': tuple(['profile_{}'.format(pt) for pt in lowercase_profile_types_no_action_workflow])
         }),

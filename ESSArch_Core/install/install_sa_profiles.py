@@ -40,36 +40,28 @@ from ESSArch_Core.profiles.models import (  # noqa isort:skip
 )
 
 
-def installSAProfiles(config_file=None):
+def installSAProfiles(site=None):
 
-    if config_file:
-        SAProfiles(config_file)
+    if site == "se" or site == "SE":
+        SAProfiles(settings.BASE_DIR + '/templates/SE_PROFILES_ESS.json')    # SE Standard profiles
+        SAProfiles(settings.BASE_DIR + '/templates/SE_SA_ESS.json')          # SE standard SA
+    elif site == "no" or site == "NO":
+        SAProfiles(settings.BASE_DIR + '/templates/NO_PROFILES_ESS.json')    # NO Standard profiles
+        SAProfiles(settings.BASE_DIR + '/templates/NO_SA_ESS.json')          # NO standard SA
+    elif site == "eark" or site == "EARK":
+        SAProfiles(settings.BASE_DIR + '/templates/EARK_PROFILES_ESS.json')  # EARK Standard profiles
+        SAProfiles(settings.BASE_DIR + '/templates/EARK_SA_ESS.json')        # EARK standard SA
     else:
-        SAProfiles('templates/SE_PROFILES_ESS.json')    # SE Standard profiles
-        SAProfiles('templates/SE_SA_ESS.json')          # SE standard SA
-        SAProfiles('templates/NO_PROFILES_ESS.json')    # NO Standard profiles
-        SAProfiles('templates/NO_SA_ESS.json')          # NO standard SA
-        SAProfiles('templates/EARK_PROFILES_ESS.json')  # EARK Standard profiles
-        SAProfiles('templates/EARK_SA_ESS.json')        # EARK standard SA
-
-    return 0
+        print('You have not specified any site/nationality (SE/NO/EARK or se/no/eark)')
+        return 0
 
 
 def SAProfiles(config_file=None):
 
-    # Identify path
-    if os.getcwd() == settings.BASE_DIR + '/install':
-        inst_dir = settings.BASE_DIR
-    elif os.getcwd() == '/ESSArch/config/optional':
-        inst_dir = os.getcwd()
-    elif os.getcwd() == '/ESSArch/config/custom':
-        inst_dir = os.path.join(os.getcwd(), config_file.split('/').pop(-3).lower() + '/')
-    else:
-        print('Unable to proceed because you are in the wrong directory: %s' % os.getcwd())
-        return None
-
     sa = []
-    config = json.loads(open(os.path.join(config_file)).read())
+    inst_dir = settings.BASE_DIR
+
+    config = json.loads(open(os.path.join(inst_dir, config_file)).read())
     profile_list = list(config.keys())
     profile_template_path = config_file.split('/').pop(-2).lower() + '/'
     profile_nation_path = config_file.split('/').pop(-1).split('_').pop(0).lower() + '/'
@@ -176,7 +168,7 @@ def SAProfiles(config_file=None):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
-        config_file = sys.argv[1]
-        installSAProfiles(config_file)
+        site = sys.argv[1]
+        installSAProfiles(site)
     else:
         installSAProfiles()

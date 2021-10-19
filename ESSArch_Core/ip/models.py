@@ -688,7 +688,7 @@ class InformationPackage(models.Model):
             if profile is None:
                 continue
 
-            profile_ip = ProfileIP.objects.create(ip=self, profile=profile, LockedBy=user)
+            profile_ip = ProfileIP.objects.create(ip=self, profile=profile)
             data = {}
 
             for field in profile_ip.profile.template:
