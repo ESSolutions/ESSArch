@@ -24,6 +24,7 @@ AVAILABLE_VALIDATORS = {
     'xml_schema': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator',
     'xml_schematron': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchematronValidator',
     'xml_syntax': 'ESSArch_Core.fixity.validation.backends.xml.XMLSyntaxValidator',
+    'warcio': 'ESSArch_Core.fixity.validation.backends.warc.WarcValidator'
 }
 
 extra_validators = getattr(settings, 'ESSARCH_VALIDATORS', {})
