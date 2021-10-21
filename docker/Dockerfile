@@ -3,6 +3,8 @@ FROM node:lts-alpine AS build-frontend
 WORKDIR /code
 RUN apk update && apk add g++ git make python
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
+COPY mq_client.tar.gz ./
+RUN tar -xvf mq_client.tar.gz -C /opt/mqm
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
 COPY ./.git .git
