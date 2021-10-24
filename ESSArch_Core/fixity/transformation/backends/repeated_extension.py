@@ -11,6 +11,14 @@ REPEATED_PATTERN = r'\.(\w+)(\.(\1))+'
 class RepeatedExtensionTransformer(BaseTransformer):
     @classmethod
     def transform(cls, path):
+        """
+        Normalizes file extensions by removing repeated extensions.
+        e.g. foo.bar.bar will be renamed to foo.bar but foo.bar.baz will not be altered
+
+        Args:
+            path: The file to normalize
+
+        """
         new_path = re.sub(REPEATED_PATTERN, '.\\1', path)
         os.rename(path, new_path)
 

@@ -68,7 +68,7 @@ django.setup()
 # ones.
 extensions = ['sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinxcontrib.httpdomain',
-              'sphinxcontrib.httpexample', 'sphinxcontrib.inlinesyntaxhighlight']
+              'sphinxcontrib.httpexample', 'sphinxcontrib.inlinesyntaxhighlight', 'sphinxcontrib.openapi']
 
 # True to prefix each section label with the name of the document it is in,
 # followed by a colon. For example, index:Introduction for a section called
@@ -79,6 +79,8 @@ autosectionlabel_prefix_document = True
 suppress_warnings = [
     'autosectionlabel.*',
 ]
+
+nitpick_ignore = [('http:obj', 'string'), ('http:obj', 'integer')]
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.8', None),

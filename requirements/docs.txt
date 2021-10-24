@@ -5,3 +5,4 @@ sphinx==3.0.3
 sphinxcontrib-httpdomain==1.7.0
 sphinxcontrib-httpexample==0.10.3
 sphinxcontrib-inlinesyntaxhighlight==0.2
+sphinxcontrib-openapi==0.7.0

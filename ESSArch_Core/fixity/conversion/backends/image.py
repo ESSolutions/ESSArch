@@ -43,6 +43,16 @@ class ImageConverter(BaseConverter):
 
     @classmethod
     def convert(cls, input_file, output_file, in_fmt=None, out_fmt=None):
+        """
+        Converts images using ImageMagick
+
+        Args:
+            input_file: The file to convert
+            output_file: Output file
+            in_fmt: Input file format
+            out_fmt: Output file format
+
+        """
         if out_fmt is None:
             out_fmt = mimetypes.guess_type(output_file)[0]
         with Image(filename=input_file) as in_img:

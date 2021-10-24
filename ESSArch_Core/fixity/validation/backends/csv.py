@@ -12,6 +12,16 @@ logger = logging.getLogger('essarch.fixity.validation.csv')
 
 
 class CSVValidator(BaseValidator):
+    """
+    Validates files with delimiter-separated values.
+
+    * ``options``
+
+       * ``path``: The file to validate
+       * ``column_number``: Expected number of columns
+       * ``delimiter``: Expected delimiter
+       * ``encoding``: Expected file encoding
+    """
     def _create_obj(self, filename, passed, msg):
         return Validation(
             filename=filename,
@@ -54,6 +64,7 @@ class CSVValidator(BaseValidator):
         return [o.message for o in validation_objs]
 
     def validate(self, filepath, expected=None, encoding=None):
+
         logger.debug('Validating csv: %s' % filepath)
         time_started = timezone.now()
 

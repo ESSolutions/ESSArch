@@ -96,6 +96,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_filters',
     'django_json_widget',
+    'drf_yasg',
     'countries_plus',
     'languages_plus',
     'groups_manager',

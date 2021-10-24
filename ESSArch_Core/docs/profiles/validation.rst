@@ -29,30 +29,31 @@ applied on different sets of files.
     configuration values. See :ref:`xml-variables` for more information.
 
 
+
 Built-in validators
 -------------------
+ESSArch has a range of built-in :ref:`preservation-tools-validators`
 
-ChecksumValidator
-^^^^^^^^^^^^^^^^^
+* :ref:`checksum_validator`
 
-.. autoclass:: ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator
-   :members:
+* :ref:`csv_validator`
 
-StructureValidator
-^^^^^^^^^^^^^^^^^^
+* :ref:`encryption_validator`
 
-.. autoclass:: ESSArch_Core.fixity.validation.backends.structure.StructureValidator
-   :members:
+* :ref:`filename_validator`
 
-MediaconchValidator
-^^^^^^^^^^^^^^^^^^^
+* :ref:`fixed_width_validator`
 
-.. autoclass:: ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator
-   :members:
+* :ref:`file_format_validator`
 
+* :ref:`folder_structure_validator`
 
-VeraPDFValidator
-^^^^^^^^^^^^^^^^
+* :ref:`mediaconch_validator`
 
-.. autoclass:: ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator
-   :members:
+* :ref:`repeated_extension_validator`
+
+* :ref:`verapdf_validator`
+
+* :ref:`warc_validator`
+
+* :ref:`xml_validator`

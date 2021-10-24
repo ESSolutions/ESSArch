@@ -17,7 +17,15 @@ DEFAULT_EXPECTED_DIR = r'^[\da-zA-Z_\-]+$'
 
 
 class FilenameValidator(BaseValidator):
+    """
+    Validates file and directory names against at given regex
+    """
     def validate(self, filepath, expected=None):
+        """
+        Args:
+            filepath: The file to validate
+            expected: Regex pattern
+        """
         logger.debug('Validating filename of %s' % filepath)
 
         val_obj = Validation(

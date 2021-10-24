@@ -209,6 +209,13 @@ def siard_to_sqlite(siard):
 class SiardConverter(BaseConverter):
 
     def convert(self, input_file):
+        """
+        Converts SIARD to SQLITE
+
+        Args:
+            input_file: SIARD file
+
+        """
         siard_to_sqlite(input_file)
 
     @staticmethod

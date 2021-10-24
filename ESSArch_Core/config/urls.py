@@ -3,6 +3,9 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
@@ -121,6 +124,16 @@ from ESSArch_Core.WorkflowEngine.views import (
 
 admin.site.site_header = 'ESSArch Administration'
 admin.site.site_title = 'ESSArch Administration'
+
+schema_view = get_schema_view(
+    openapi.Info(
+        title="ESSArch API",
+        default_version='v3',
+        description="ESSArch REST-API documentation",
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
 
 router = ESSArchRouter()
 router.register(r'users', UserViewSet)
@@ -404,6 +417,7 @@ urlpatterns = [
     url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
     url(r'^admin/', admin.site.urls),
     url(r'^api/auth/', include('ESSArch_Core.auth.urls')),
+    url(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     url(r'^api/stats/$', stats, name='stats'),
     url(r'^api/stats/export/$', export_stats, name='stats-export'),

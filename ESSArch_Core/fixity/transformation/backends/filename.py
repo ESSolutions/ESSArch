@@ -28,6 +28,16 @@ class FilenameTransformer(BaseTransformer):
 
     @classmethod
     def transform(cls, path, whitelist=None, replace=None, normalize_unicode=True):
+        """
+        Normalizes file and directory names by replacing illegal characters
+
+        Args:
+            path: The file to normalize
+            whitelist: Whitelisted characters
+            replace: dict of key:value pairs to replace (e.g. {'Ö':'O'} )
+            normalize_unicode: Normalize and encode to legal ASCII (bool)
+
+        """
 
         if whitelist is None:
             if os.path.isfile(path):

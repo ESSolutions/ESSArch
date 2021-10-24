@@ -16,8 +16,8 @@ ESSArch
     development
     directory_structure
     external_logging
-    format-identifier
     profiles/index
+    preservation_tools
     restapi/index
     user_guide/index
     xml-generator

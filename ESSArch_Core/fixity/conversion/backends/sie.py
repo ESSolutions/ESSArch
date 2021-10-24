@@ -180,6 +180,17 @@ class SIEConverter(BaseConverter):
     ]
 
     def convert(self, input_file, output_file, in_fmt=None, out_fmt=None, encoding=None, **kwargs):
+        """
+        Converts SIE files to CSV
+
+        Args:
+            input_file: The SIE file to convert
+            output_file: Output file
+            in_fmt: Input file format (e.g. text/sie)
+            out_fmt: Output file format (e.g. text/csv)
+            encoding: Encoding of input_file
+        """
+
         sie_parser(input_file, output_file, encoding=encoding)
 
     @staticmethod
