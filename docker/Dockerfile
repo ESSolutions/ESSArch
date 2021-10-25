@@ -10,6 +10,7 @@ RUN yarn build:dev
 
 FROM python:3.8-buster as base
 
+RUN mkdir /opt/mqm
 RUN wget https://www4.gu.se/9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz
 RUN tar -xvf 9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz -C /opt/mqm
 
