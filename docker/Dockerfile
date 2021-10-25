@@ -79,9 +79,7 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
 ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config:/ESSArch/plugins
-ENV MQ_INSTALLATION_PATH=/opt/mqm
-ENV LD_LIBRARY_PATH=/opt/mqm/lib64
-ENV DYLD_LIBRARY_PATH=/opt/mqm/lib64
+
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
