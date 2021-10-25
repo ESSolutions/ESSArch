@@ -3,14 +3,15 @@ FROM node:lts-alpine AS build-frontend
 WORKDIR /code
 RUN apk update && apk add g++ git make python
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json mq_client.tar.gz ./
-RUN wget https://www4.gu.se/9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz
-RUN tar -xvf 9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz -C /opt/mqm
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
 COPY ./.git .git
 RUN yarn build:dev
 
 FROM python:3.8-buster as base
+
+RUN wget https://www4.gu.se/9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz
+RUN tar -xvf 9.2.3.0-IBM-MQC-Redist-LinuxX64.tar.gz -C /opt/mqm
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
