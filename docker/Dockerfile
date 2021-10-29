@@ -1,7 +1,7 @@
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
-RUN apk update && apk add g++ git make python
+RUN apk update && apk add g++ git make python3
 COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
 RUN yarn
 COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
@@ -93,6 +93,8 @@ ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
 RUN pip install --no-cache-dir -e .[mysql,postgres,logstash]
+# RUN pip install --no-cache-dir sentry-sdk
+# RUN pip install --no-cache-dir django-sslserver
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build

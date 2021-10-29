@@ -13,8 +13,44 @@ discovery.type: single-node
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/disk-allocator.html
 cluster.routing.allocation.disk.threshold_enabled: false
 
-
-http.cors.allow-origin: "*"
+http.cors.allow-origin: '*'
 http.cors.enabled: true
-http.cors.allow-headers : "*"
+http.cors.allow-headers: '*'
 http.cors.allow-credentials: true
+
+######## Start OpenDistro for Elasticsearch Security Demo Configuration ########
+# WARNING: revise all the lines below before you go into production
+opendistro_security.disabled: true
+opendistro_security.ssl.transport.pemcert_filepath: node-ess.pem
+opendistro_security.ssl.transport.pemkey_filepath: node-ess-key.pem
+opendistro_security.ssl.transport.pemtrustedcas_filepath: root-ess-ca.pem
+opendistro_security.ssl.transport.enforce_hostname_verification: false
+opendistro_security.ssl.http.enabled: false
+opendistro_security.ssl.http.pemcert_filepath: node-ess.pem
+opendistro_security.ssl.http.pemkey_filepath: node-ess-key.pem
+opendistro_security.ssl.http.pemtrustedcas_filepath: root-ess-ca.pem
+opendistro_security.allow_unsafe_democertificates: true
+opendistro_security.allow_default_init_securityindex: true
+opendistro_security.authcz.admin_dn:
+  - CN=elasticsearch,OU=client,O=client,L=test, C=SE
+
+opendistro_security.audit.type: internal_elasticsearch
+opendistro_security.enable_snapshot_restore_privilege: true
+opendistro_security.check_snapshot_restore_write_privileges: true
+opendistro_security.restapi.roles_enabled: ['all_access', 'security_rest_api_access']
+opendistro_security.system_indices.enabled: true
+opendistro_security.system_indices.indices:
+  [
+    '.opendistro-alerting-config',
+    '.opendistro-alerting-alert*',
+    '.opendistro-anomaly-results*',
+    '.opendistro-anomaly-detector*',
+    '.opendistro-anomaly-checkpoints',
+    '.opendistro-anomaly-detection-state',
+    '.opendistro-reports-*',
+    '.opendistro-notifications-*',
+    '.opendistro-notebooks',
+    '.opendistro-asynchronous-search-response*',
+  ]
+node.max_local_storage_nodes: 3
+######## End OpenDistro for Elasticsearch Security Demo Configuration ########
