@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from urllib.parse import urlparse
+from urllib.parse import quote_plus as urlquote, urlparse
 
 import dj_database_url
 
@@ -252,6 +252,11 @@ ELASTICSEARCH_CONNECTIONS = {
         'max_retries': 1,
     }
 }
+if elasticsearch_url.username is not None and elasticsearch_url.password is not None:
+    ELASTICSEARCH_CONNECTIONS['default']['http_auth'] = (
+        elasticsearch_url.username + ':' + urlquote(elasticsearch_url.password))
+if elasticsearch_url.scheme == 'https':
+    ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['use_ssl'] = True
 
 try:
     from local_essarch_settings import ELASTICSEARCH_TEST_URL
