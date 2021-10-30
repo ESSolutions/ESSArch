@@ -10,7 +10,7 @@ services:
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_URL:
     volumes:
       - ..:/code
       - /code/ESSArch.egg-info/
@@ -57,7 +57,7 @@ services:
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_URL:
     volumes:
       - ..:/code
       - /code/ESSArch.egg-info/
@@ -90,7 +90,7 @@ services:
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_URL:
     volumes:
       - ..:/code
       - /code/ESSArch.egg-info/
@@ -154,7 +154,8 @@ services:
         ELASTICSEARCH_DISTRO: ${ELASTICSEARCH_DISTRO}
         ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION}
     volumes:
-      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ${ELASTICSEARCH_CONFIG}:/usr/share/elasticsearch/config/elasticsearch.yml
+      #- ./elasticsearch/config/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml
       - essarch_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
@@ -184,7 +185,8 @@ services:
     build:
       context: logstash
       args:
-        ELK_VERSION: ${LOGSTASH_VERSION}
+        LOGSTASH_DISTRO: ${LOGSTASH_DISTRO}
+        LOGSTASH_VERSION: ${LOGSTASH_VERSION}
     volumes:
       - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
       - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
@@ -202,7 +204,8 @@ services:
     build:
       context: kibana
       args:
-        ELK_VERSION: ${KIBANA_VERSION}
+        KIBANA_DISTRO: ${KIBANA_DISTRO}
+        KIBANA_VERSION: ${KIBANA_VERSION}
     ports:
       - '5601:5601'
     environment:
