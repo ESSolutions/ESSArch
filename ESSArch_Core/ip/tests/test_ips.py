@@ -35,6 +35,7 @@ from datetime import datetime
 from unittest import mock
 
 import requests
+from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -2040,6 +2041,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
     def create_ip_package(self, objid):
         path = self.get_package_path(objid)
         with tarfile.open(path, 'w') as tar:
+            tar.format = settings.TARFILE_FORMAT
             tar.add(__file__, arcname='content/test.txt')
         return path
 
@@ -2687,6 +2689,7 @@ class IdentifyIP(TestCase):
         self.objid = 'unidentified_ip'
         fpath = os.path.join(self.path, '%s.tar' % self.objid)
         with tarfile.open(fpath, 'w') as tar:
+            tar.format = settings.TARFILE_FORMAT
             tar.add(__file__, arcname='content/test.txt')
 
     def test_identify_ip(self):
@@ -4028,6 +4031,7 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         File._index.refresh()
 
         with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
+            t.format = settings.TARFILE_FORMAT
             t.add(test_file, arcname='foo.txt')
             t.add(nested_test_file, arcname='nested/bar.txt')
 

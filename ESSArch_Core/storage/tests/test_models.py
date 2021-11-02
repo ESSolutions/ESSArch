@@ -5,6 +5,7 @@ import tempfile
 import uuid
 from unittest import mock
 
+from django.conf import settings
 from django.test import TestCase
 
 from ESSArch_Core.configuration.models import Parameter
@@ -356,6 +357,7 @@ class StorageObjectOpenTests(TestCase):
             f.write('hello world')
 
         with tarfile.open(storage_object.get_full_path(), 'w') as t:
+            t.format = settings.TARFILE_FORMAT
             t.add(file_name, arcname='foo.txt')
 
         with storage_object.open('foo.txt') as f:

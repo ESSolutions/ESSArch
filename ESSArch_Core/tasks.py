@@ -196,6 +196,7 @@ def CreateTAR(self, dirname=None, tarname=None, compress=False):
     compression = ':gz' if compress else ''
     base_dir = os.path.basename(os.path.normpath(dirname))
     with tarfile.open(tarname, 'w%s' % compression) as new_tar:
+        new_tar.format = settings.TARFILE_FORMAT
         new_tar.add(dirname, base_dir)
 
     self.set_progress(100, total=100)
