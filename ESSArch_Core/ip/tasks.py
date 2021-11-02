@@ -380,6 +380,7 @@ def CreateContainer(self, src, dst):
         compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(src))
         with tarfile.open(dst, 'w%s' % compression) as new_tar:
+            new_tar.format = settings.TARFILE_FORMAT
             new_tar.add(src, base_dir)
 
     msg = "Created {}".format(self.parse_params(dst))

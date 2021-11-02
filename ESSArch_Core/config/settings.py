@@ -1,4 +1,5 @@
 import os
+import tarfile
 from datetime import timedelta
 from urllib.parse import quote_plus as urlquote, urlparse
 
@@ -294,6 +295,7 @@ ELASTICSEARCH_BATCH_SIZE = 1000
 # Storage
 
 ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
+TARFILE_FORMAT = tarfile.GNU_FORMAT
 
 # Logging
 LOGGING_DIR = os.path.join(ESSARCH_DIR, 'log')

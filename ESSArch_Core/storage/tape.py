@@ -287,6 +287,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         raise TypeError("'arcname' is not valid when write_to_tape is called with more than one path")
 
     with tarfile.open(device, 'w|', bufsize=block_size) as tar:
+        tar.format = settings.TARFILE_FORMAT
         for path in paths:
             if len(paths) > 1 or arcname is None:
                 arcname = os.path.basename(os.path.normpath(path))

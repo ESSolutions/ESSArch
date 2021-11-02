@@ -5,6 +5,7 @@ import tempfile
 from unittest import mock
 
 from celery import states as celery_states
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -777,6 +778,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         f, fpath = tempfile.mkstemp(dir=self.datadir)
         os.close(f)
         with tarfile.open(old_storage_obj.get_full_path(), 'w') as tar:
+            tar.format = settings.TARFILE_FORMAT
             tar.add(fpath, os.path.join(self.ip.object_identifier_value, 'dummyfile'))
 
         open(os.path.splitext(old_storage_obj.get_full_path())[0] + '.xml', 'a').close()

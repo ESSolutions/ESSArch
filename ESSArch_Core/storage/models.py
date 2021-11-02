@@ -867,6 +867,7 @@ class StorageObject(models.Model):
 
                 if is_cached_storage_object or not self.container:
                     with tarfile.open(temp_container_path, 'w') as new_tar:
+                        new_tar.format = settings.TARFILE_FORMAT
                         new_tar.add(temp_object_path)
                     copy_file(temp_container_path, dst, requests_session=session)
 

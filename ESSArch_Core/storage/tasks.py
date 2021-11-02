@@ -68,6 +68,7 @@ def StorageMigration(self, storage_method, temp_path):
         # create container, aip xml and aic xml
         if container_format == 'tar':
             with tarfile.open(container_path, 'w') as new_tar:
+                new_tar.format = settings.TARFILE_FORMAT
                 new_tar.add(dir_path)
         elif container_format == 'zip':
             zip_directory(dirname=dir_path, zipname=container_path, compress=False)
