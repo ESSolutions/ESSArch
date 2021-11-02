@@ -631,6 +631,7 @@ class XMLGenerator:
         if folderToParse:
             folderToParse = str(folderToParse).rstrip('/')
 
+            external_dirs_files_to_create = {}
             external = self.find_external_dirs()
             if external:
                 external_gen = XMLGenerator()
@@ -650,16 +651,33 @@ class XMLGenerator:
                         ext_info['_EXT'] = sub_dir
                         ext_info['_EXT_HREF'] = ptr_file_path
 
-                        external_to_create = {
-                            os.path.join(folderToParse, ptr_file_path): {'spec': ext_spec, 'data': ext_info}
-                        }
-                        external_gen.generate(external_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
-                        if ext_pointer is not None:
-                            filepath = os.path.join(folderToParse, ptr_file_path)
-                            fileinfo = parse_file(
-                                filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
-                            )
-                            files.append(fileinfo)
+                        full_xml_path = os.path.join(folderToParse, ptr_file_path)
+                        try:
+                            external_dirs_files_to_create[sub_dir][0][full_xml_path] = {
+                                'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer}
+                        except KeyError:
+                            external_dirs_files_to_create[sub_dir] = [{
+                                full_xml_path: {
+                                    'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer
+                                }
+                            }, folderToParse, ext_dir]
+                        try:
+                            logger.debug('Remove: %s' % full_xml_path)
+                            os.remove(full_xml_path)
+                        except FileNotFoundError:
+                            pass
+
+            for sub_dir in sorted(external_dirs_files_to_create.keys()):
+                external_files_to_create, folderToParse, ext_dir = external_dirs_files_to_create[sub_dir]
+                external_gen.generate(external_files_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                for external_file_to_create in external_files_to_create.keys():
+                    if external_files_to_create[external_file_to_create]['ext_pointer'] is not None:
+                        logger.debug('add ext_pointer for: %s' % external_file_to_create)
+                        ptr_file_path = os.path.relpath(external_file_to_create, folderToParse)
+                        fileinfo = parse_file(
+                            external_file_to_create, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
+                        )
+                        files.append(fileinfo)
 
             for file_to_append in parse_files(self.fid, folderToParse, external, algorithm, rootdir=""):
                 file_alreay_exists = False

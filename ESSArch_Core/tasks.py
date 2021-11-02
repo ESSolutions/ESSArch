@@ -407,12 +407,15 @@ def CompareRepresentationXMLFiles(self):
     ip = InformationPackage.objects.get(pk=self.ip)
 
     reps_path, reps_dir = find_destination("representations", ip.get_structure(), ip.object_path)
-    if reps_path is None:
+    submission_path, submission_dir = find_destination("submission", ip.get_structure(), ip.object_path)
+    if reps_path is None and submission_path is None:
         return None
 
     representations_dir = os.path.join(reps_path, reps_dir)
 
     for p in find_pointers(os.path.join(ip.object_path, ip.content_mets_path)):
+        if p.path.startswith('submission/') and 'representations' not in p.path:
+            continue
         rep_mets_path = p.path
         rep_mets_path = os.path.join(ip.object_path, rep_mets_path)
         rep_path = os.path.relpath(rep_mets_path, representations_dir)
