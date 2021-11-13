@@ -883,26 +883,11 @@ class DiffCheckValidatorRecursiveTests(TestCase):
                 'data': {},
                 'spec': {
                     '-name': 'root',
-                    "-external": {
-                        "-dir": "external",
-                        "-file": "level2.xml",
-                        "-pointer": {
-                            "-name": "mptr",
-                            "-attr": [
-                                {
-                                    "-name": "href",
-                                    "#content": [
-                                        {"text": "file:///"},
-                                        {"var": "_EXT_HREF"}
-                                    ]
-                                },
-                            ]
-                        },
-                        "-specification": {
-                            "-name": "root",
+                    '-children': [
+                        {
                             "-external": {
                                 "-dir": "external",
-                                "-file": "level3.xml",
+                                "-file": "level2.xml",
                                 "-pointer": {
                                     "-name": "mptr",
                                     "-attr": [
@@ -916,14 +901,37 @@ class DiffCheckValidatorRecursiveTests(TestCase):
                                     ]
                                 },
                                 "-specification": {
-                                    '-name': 'root',
+                                    "-name": "root",
                                     '-children': [
-                                        file_el,
+                                        {
+                                            "-external": {
+                                                "-dir": "external",
+                                                "-file": "level3.xml",
+                                                "-pointer": {
+                                                    "-name": "mptr",
+                                                    "-attr": [
+                                                        {
+                                                            "-name": "href",
+                                                            "#content": [
+                                                                {"text": "file:///"},
+                                                                {"var": "_EXT_HREF"}
+                                                            ]
+                                                        },
+                                                    ]
+                                                },
+                                                "-specification": {
+                                                    '-name': 'root',
+                                                    '-children': [
+                                                        file_el,
+                                                    ]
+                                                },
+                                            },
+                                        },
                                     ]
                                 },
                             },
                         },
-                    },
+                    ]
                 },
             },
         }
