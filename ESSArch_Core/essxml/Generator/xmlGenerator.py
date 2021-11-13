@@ -179,6 +179,7 @@ class XMLElement:
         self.CDATAContent = template.get('-CDATAContent')
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
+        self.foreachdir = template.get('-foreachdir', None)
         self.replace_existing = template.get('-replaceExisting', None)
         self.ignore_existing = template.get('-ignoreExisting', None)
         self.external = template.get('-external')
@@ -445,9 +446,31 @@ class XMLElement:
                     if child_el is not None:
                         self.add_element(child)
 
+            elif child.foreachdir is not None:
+                foreachdir_root = os.path.join(folderToParse, child.foreachdir)
+                try:
+                    foreach_dirs = next(walk(foreachdir_root))[1]
+                except StopIteration:
+                    logger.info('No directories found in foreachdir_root {}'.format(foreachdir_root))
+                else:
+                    for foreach_dir in extNatsort(foreach_dirs):
+                        child_info = copy.deepcopy(info)
+                        child_info['_DIR'] = foreach_dir
+                        child_el = child.createLXMLElement(
+                            child_info,
+                            full_nsmap,
+                            files=files,
+                            folderToParse=folderToParse,
+                            parent=self,
+                            algorithm=algorithm,
+                        )
+                        if child_el is not None:
+                            self.add_element(child)
+
             elif child.external is not None:
                 external_elements = self.createExternalElement(info, nsmap=full_nsmap, files=files,
-                                                               folderToParse=folderToParse, algorithm=algorithm, external=child.external)
+                                                               folderToParse=folderToParse, algorithm=algorithm,
+                                                               external=child.external)
                 for external_element in external_elements:
                     self.add_element(external_element)
 
