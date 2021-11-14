@@ -180,6 +180,7 @@ class XMLElement:
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
         self.foreachdir = template.get('-foreachdir', None)
+        self.enable_FILEGROUPID = template.get('-enable_FILEGROUPID', False)
         self.replace_existing = template.get('-replaceExisting', None)
         self.ignore_existing = template.get('-ignoreExisting', None)
         self.external = template.get('-external')
@@ -294,6 +295,17 @@ class XMLElement:
 
         return True
 
+    def get_root_element(self, parent=None):
+        if parent is None:
+            parent = self.parent
+
+        if parent.parent:
+            el = self.get_root_element(parent.parent)
+        else:
+            el = parent.el
+
+        return el
+
     def get_path(self, path=None):
         if path is None:
             path = []
@@ -306,6 +318,23 @@ class XMLElement:
             path = '/' + path
 
         return path
+
+    def get_FILEGROUPID(self, child, child_info):
+        id = None
+        attr_label = None
+        for attr in child.attr:
+            if attr.name == 'LABEL':
+                attr_label = attr.parse(child_info)[1]
+        if attr_label:
+            root_element = child.get_root_element()
+            groups = root_element.xpath(
+                ".//*[local-name()='{el}'][@USE='{USE}']".format(el='fileGrp', USE=attr_label))
+            if len(groups) == 1:
+                id = groups[0].get('ID')
+            elif len(groups) > 1:
+                logger.warning('More then one fileGrp with USE attribute "{}"'.format(attr_label))
+
+        return id
 
     def get_existing_elements(self, new_el, attrs):
         # Get elements that have the same name as new_el and where the attributes
@@ -454,8 +483,11 @@ class XMLElement:
                     logger.info('No directories found in foreachdir_root {}'.format(foreachdir_root))
                 else:
                     for foreach_dir in extNatsort(foreach_dirs):
-                        child_info = copy.deepcopy(info)
+                        child_info = info.copy()
                         child_info['_DIR'] = foreach_dir
+                        if child.enable_FILEGROUPID:
+                            child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
+
                         child_el = child.createLXMLElement(
                             child_info,
                             full_nsmap,
@@ -475,8 +507,13 @@ class XMLElement:
                     self.add_element(external_element)
 
             else:
+                if child.enable_FILEGROUPID:
+                    child_info = info.copy()
+                    child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
+                else:
+                    child_info = info
                 child_el = child.createLXMLElement(
-                    info,
+                    child_info,
                     full_nsmap,
                     files=files,
                     folderToParse=folderToParse,
