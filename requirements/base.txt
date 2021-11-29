@@ -49,3 +49,4 @@ tenacity==6.1.0
 wand==0.6.1
 weasyprint==51
 pymqi
+datasette
