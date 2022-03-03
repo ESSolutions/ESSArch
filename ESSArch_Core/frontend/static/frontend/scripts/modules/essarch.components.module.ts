@@ -30,6 +30,8 @@ import searchFilter from '../components/SearchFilterComponent';
 import search from '../components/SearchComponent';
 import StateTreeView from '../components/StateTreeViewComponent';
 import StateTreeActionView from '../components/StateTreeActionViewComponent';
+import {react2angular} from 'react2angular';
+import ReactComponent from '../components/ReactComponent';
 
 export default angular
   .module('essarch.components', ['essarch.controllers'])
@@ -62,4 +64,5 @@ export default angular
   .component('sysInfoComponent', sysInfoComponent)
   .component('search', search)
   .component('searchFilter', searchFilter)
-  .component('userDropdown', UserDropdownComponent).name;
+  .component('userDropdown', UserDropdownComponent)
+  .component('reactComponent', react2angular(ReactComponent)).name;
