@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 * {
   margin: 0px;
   padding: 0px;
@@ -387,7 +389,7 @@ main {
   text-align: center;
   background-color: white;
   &:hover {
-    background-color: darken(white, 10%);
+    background-color: color.adjust(white, $lightness: -10%);
   }
 }
 

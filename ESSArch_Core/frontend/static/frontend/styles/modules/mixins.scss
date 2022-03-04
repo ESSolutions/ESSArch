@@ -26,7 +26,7 @@ $large-width: 1024px;
  * Mixin for responsive design on medium screen sizes like mobile
  */
 @mixin medium-screen {
-  @media (min-width: #{$small-width+1}) and (max-width: #{$large-width - 1px}) {
+  @media (min-width: #{$small-width + 1}) and (max-width: #{$large-width - 1px}) {
     @content;
   }
 }
@@ -35,7 +35,7 @@ $large-width: 1024px;
  * Mixin for responsive design on medium screen sizes like mobile
  */
 @mixin medium-screen-up {
-  @media (min-width: #{$small-width+1}) {
+  @media (min-width: #{$small-width + 1}) {
     @content;
   }
 }
