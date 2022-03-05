@@ -3,7 +3,8 @@
 *~
 *.swp
 .envrc
-.vscode
+.vscode/*
+!.vscode/*.json.default
 /dist/
 *.egg-info
 MANIFEST
