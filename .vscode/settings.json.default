@@ -1,0 +1,57 @@
+{
+  "breadcrumbs.enabled": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": true,
+  "editor.renderWhitespace": "none",
+  "files.associations": {
+    "*.html": "html"
+  },
+  "git.autofetch": true,
+  "gitlens.views.repositories.branches.layout": "list",
+  "git.confirmSync": false,
+  "gitlens.views.repositories.files.layout": "tree",
+  "gitlens.gitCommands.skipConfirmations": [
+    "fetch:command",
+    "stash-push:command",
+    "switch:command",
+    "tag-create:command",
+    "push:command"
+  ],
+  "githubPullRequests.remotes": ["origin"],
+  "workbench.tree.indent": 15,
+  "window.zoomLevel": 0,
+  "python.formatting.provider": "autopep8",
+  "python.languageServer": "Pylance",
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Args": ["--max-line-length=119", "--ignore=W504,B305"],
+  "python.linting.pylintEnabled": false,
+  "python.linting.enabled": true,
+  "python.linting.pylintArgs": [
+    "--disable=all",
+    "--enable=F,E,unreachable,duplicate-key,unnecessary-semicolon,global-variable-not-assigned,binary-op-exception,bad-format-string,anomalous-backslash-in-string,bad-open-mode",
+    "--load-plugins=pylint_django",
+    "--max-line-length=119"
+  ],
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "restructuredtext.confPath": "${workspaceFolder}\\ESSArch_Core\\docs",
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

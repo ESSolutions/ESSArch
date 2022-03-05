@@ -1,0 +1,21 @@
+{
+  "recommendations": [
+    "bigonesystems.django",
+    "Pachwenko.django-test-runner",
+    "ms-azuretools.vscode-docker",
+    "janisdd.vscode-edit-csv",
+    "dsznajder.es7-react-js-snippets",
+    "mrorz.language-gettext",
+    "GitHub.vscode-pull-request-github",
+    "gitkraken.gitkraken-authentication",
+    "eamodio.gitlens",
+    "ms-vscode.powershell",
+    "esbenp.prettier-vscode",
+    "ms-python.vscode-pylance",
+    "ms-python.python",
+    "ms-vscode-remote.remote-wsl",
+    "lextudio.restructuredtext",
+    "trond-snekvik.simple-rst",
+    "marcostazi.VS-code-vagrantfile"
+  ]
+}
