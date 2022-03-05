@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 $body-background: #f5f5f5;
 $shadow-color: #dfdfdf;
 $border-color: #cecece;
@@ -17,7 +19,7 @@ $light-blue: #f2f8fd;
 $folder-color: #fea93e;
 $file-color: #999;
 $remove-discrete: #eea5a5;
-$remove-discrete-hover: darken($remove-discrete, 30%);
+$remove-discrete-hover: color.adjust($remove-discrete, $lightness: -30%);
 
 // Task validation list
 $task-validation-bg-green: #dff0d8;

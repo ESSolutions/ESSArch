@@ -6,8 +6,8 @@ FROM ${ELASTICSEARCH_DISTRO}:${ELASTICSEARCH_VERSION}
 # Install plugins
 RUN elasticsearch-plugin install --batch ingest-attachment
 
-# Certs
-RUN yum install -y openssl
+## Certs
+#RUN yum install -y openssl
 WORKDIR /usr/share/elasticsearch/config
 # Root CA
 RUN openssl genrsa -out root-ess-ca-key.pem 2048

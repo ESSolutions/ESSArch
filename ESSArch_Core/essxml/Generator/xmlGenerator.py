@@ -145,6 +145,19 @@ def findElementWithoutNamespace(tree, el_name):
         return root.find(".//{*}%s" % el_name)
 
 
+def extNatsort(dirs, submission='submission'):
+    sorted_dirs = []
+    dirs_without_submission = []
+    for d in dirs:
+        if submission == d:
+            sorted_dirs.append(d)
+        else:
+            dirs_without_submission.append(d)
+    sorted_dirs.extend(natsorted(dirs_without_submission))
+
+    return sorted_dirs
+
+
 class XMLElement:
     def __init__(self, template, nsmap=None, fid=None):
         if nsmap is None:
@@ -166,6 +179,8 @@ class XMLElement:
         self.CDATAContent = template.get('-CDATAContent')
         self.containsFiles = template.get('-containsFiles', False)
         self.foreach = template.get('-foreach', None)
+        self.foreachdir = template.get('-foreachdir', None)
+        self.enable_FILEGROUPID = template.get('-enable_FILEGROUPID', False)
         self.replace_existing = template.get('-replaceExisting', None)
         self.ignore_existing = template.get('-ignoreExisting', None)
         self.external = template.get('-external')
@@ -186,12 +201,56 @@ class XMLElement:
             child_el = XMLElement(child)
             self.children.append(child_el)
 
-    @property
+    @ property
     def fid(self):
         if self._fid is not None:
             return self._fid
 
-        self._fid = FormatIdentifier()
+    def createExternalElement(self, info, nsmap=None, files=None, folderToParse='', algorithm=None, external=None):
+        external_elements = []
+        if external is None:
+            external = self.external
+        ext_root = os.path.join(folderToParse, external['-dir'])
+        try:
+            ext_dirs = next(walk(ext_root))[1]
+        except StopIteration:
+            logger.info('No directories found in ext_root {}'.format(ext_root))
+        else:
+            for ext_dir in extNatsort(ext_dirs):
+                if '-pointer' in external:
+                    ext_files = []
+                    ptr = XMLElement(external['-pointer'], fid=self.fid)
+                    ptr_file_path = os.path.join(external['-dir'], ext_dir, external['-file'])
+                    ptr_file_path = normalize_path(ptr_file_path)
+                    ptr_info = info.copy()
+                    ptr_info['_EXT'] = ext_dir
+                    ptr_info['_EXT_HREF'] = ptr_file_path
+                    ptr_fileinfo = None
+
+                    for fileinfo in files:
+                        if fileinfo.get('href') == ptr_file_path:
+                            ptr_fileinfo = fileinfo
+                            break
+
+                    if ptr_fileinfo is None:
+                        filepath = os.path.join(folderToParse, ptr_file_path)
+                        ptr_fileinfo = parse_file(
+                            filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=ext_dir
+                        )
+
+                    ext_files.append(ptr_fileinfo)
+                    child_el = ptr.createLXMLElement(
+                        ptr_info,
+                        nsmap,
+                        files=ext_files,
+                        folderToParse=folderToParse,
+                        parent=self,
+                        algorithm=algorithm,
+                    )
+
+                    if child_el is not None:
+                        external_elements.append(ptr)
+        return external_elements
 
     def parse(self, info):
         return parseContent(self.content, info)
@@ -236,6 +295,17 @@ class XMLElement:
 
         return True
 
+    def get_root_element(self, parent=None):
+        if parent is None:
+            parent = self.parent
+
+        if parent.parent:
+            el = self.get_root_element(parent.parent)
+        else:
+            el = parent.el
+
+        return el
+
     def get_path(self, path=None):
         if path is None:
             path = []
@@ -248,6 +318,23 @@ class XMLElement:
             path = '/' + path
 
         return path
+
+    def get_FILEGROUPID(self, child, child_info):
+        id = None
+        attr_label = None
+        for attr in child.attr:
+            if attr.name == 'LABEL':
+                attr_label = attr.parse(child_info)[1]
+        if attr_label:
+            root_element = child.get_root_element()
+            groups = root_element.xpath(
+                ".//*[local-name()='{el}'][@USE='{USE}']".format(el='fileGrp', USE=attr_label))
+            if len(groups) == 1:
+                id = groups[0].get('ID')
+            elif len(groups) > 1:
+                logger.warning('More then one fileGrp with USE attribute "{}"'.format(attr_label))
+
+        return id
 
     def get_existing_elements(self, new_el, attrs):
         # Get elements that have the same name as new_el and where the attributes
@@ -294,7 +381,7 @@ class XMLElement:
             files = []
 
         self.parent = parent
-        if parent is not None:
+        if parent is not None and self.name is not None:
             siblings_same_name = len(parent.el.findall(self.name))
             self.parent_pos = siblings_same_name
         else:
@@ -331,42 +418,6 @@ class XMLElement:
             elif content or attr.allow_empty:
                 self.el.set(name, content)
 
-        if self.external:
-            ext_root = os.path.join(folderToParse, self.external['-dir'])
-            try:
-                ext_dirs = next(walk(ext_root))[1]
-            except StopIteration:
-                logger.info('No directories found in {}'.format(ext_root))
-            else:
-                for ext_dir in natsorted(ext_dirs):
-                    if '-pointer' in self.external:
-                        ptr = XMLElement(self.external['-pointer'], fid=self.fid)
-                        ptr_file_path = os.path.join(self.external['-dir'], ext_dir, self.external['-file'])
-                        ptr_file_path = normalize_path(ptr_file_path)
-
-                        ptr_info = info
-                        ptr_info['_EXT'] = ext_dir
-                        ptr_info['_EXT_HREF'] = ptr_file_path
-
-                        filepath = os.path.join(folderToParse, ptr_file_path)
-                        fileinfo = parse_file(
-                            filepath, self.fid, ptr_file_path, algorithm=algorithm, rootdir=ext_dir
-                        )
-
-                        for k, v in fileinfo.items():
-                            if k[0] == 'F':
-                                ptr_info['_EXT_{}'.format(k[1:])] = v
-                            else:
-                                ptr_info['_EXT_{}'.format(k)] = v
-
-                        child_el = ptr.createLXMLElement(
-                            ptr_info, full_nsmap, folderToParse=folderToParse, parent=self,
-                            algorithm=algorithm,
-                        )
-
-                        if child_el is not None:
-                            self.add_element(ptr)
-
         for child_idx, child in enumerate(self.children):
             child.parent = self
             child.parent_pos = child_idx
@@ -374,12 +425,12 @@ class XMLElement:
                 for fileinfo in files:
                     include = True
 
-                    for key, file_filter in child.fileFilters.items():
-                        if not re.search(file_filter, fileinfo.get(key)):
+                    for key, file_filter_raw in child.fileFilters.items():
+                        file_filter = parseContent(file_filter_raw, info)
+                        if not re.search(file_filter, fileinfo.get(key, '')):
                             include = False
 
                     if include:
-                        logger.debug('Creating child element with additional file data: {data}'.format(data=fileinfo))
                         full_info = info.copy()
                         full_info.update(fileinfo)
                         child_el = child.createLXMLElement(
@@ -424,9 +475,45 @@ class XMLElement:
                     if child_el is not None:
                         self.add_element(child)
 
+            elif child.foreachdir is not None:
+                foreachdir_root = os.path.join(folderToParse, child.foreachdir)
+                try:
+                    foreach_dirs = next(walk(foreachdir_root))[1]
+                except StopIteration:
+                    logger.info('No directories found in foreachdir_root {}'.format(foreachdir_root))
+                else:
+                    for foreach_dir in extNatsort(foreach_dirs):
+                        child_info = info.copy()
+                        child_info['_DIR'] = foreach_dir
+                        if child.enable_FILEGROUPID:
+                            child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
+
+                        child_el = child.createLXMLElement(
+                            child_info,
+                            full_nsmap,
+                            files=files,
+                            folderToParse=folderToParse,
+                            parent=self,
+                            algorithm=algorithm,
+                        )
+                        if child_el is not None:
+                            self.add_element(child)
+
+            elif child.external is not None:
+                external_elements = self.createExternalElement(info, nsmap=full_nsmap, files=files,
+                                                               folderToParse=folderToParse, algorithm=algorithm,
+                                                               external=child.external)
+                for external_element in external_elements:
+                    self.add_element(external_element)
+
             else:
+                if child.enable_FILEGROUPID:
+                    child_info = info.copy()
+                    child_info['_FILEGROUPID'] = self.get_FILEGROUPID(child, child_info)
+                else:
+                    child_info = info
                 child_el = child.createLXMLElement(
-                    info,
+                    child_info,
                     full_nsmap,
                     files=files,
                     folderToParse=folderToParse,
@@ -534,7 +621,7 @@ class XMLAttribute:
 
 def find_files_in_path_not_in_external_dirs(fid, path, external, algorithm, rootdir=""):
     files = []
-    external = [e[1] for e in external]
+    external = [e[0] for e in external]
     for root, _dirnames, filenames in walk(path):
         for fname in filenames:
             filepath = os.path.join(root, fname)
@@ -582,19 +669,36 @@ class XMLGenerator:
     def find_external_dirs(self):
         dirs = []
         found_paths = []
+        found_dirs = {}
 
         for spec in self.toCreate:
             res = nested_lookup('-external', spec['template'])
+
             for x in res:
-                path = os.path.join(x['-dir'], x['-file'])
+                _filters = x.get('-filters', {})
+                _file = x.get('-file')
+                _dir = x.get('-dir')
+                _specification = x.get('-specification')
+                if _specification:
+                    path = os.path.join(_dir, _file)
 
-                external_nsmap = spec['template'].get('-nsmap', {}).copy()
-                external_nsmap.update(x['-specification'].get('-nsmap', {}))
-                x['-specification']['-nsmap'] = external_nsmap
+                    external_nsmap = spec['template'].get('-nsmap', {}).copy()
+                    external_nsmap.update(_specification.get('-nsmap', {}))
+                    _specification['-nsmap'] = external_nsmap
 
-                if path not in found_paths:
-                    found_paths.append(path)
-                    dirs.append((x['-file'], x['-dir'], x['-specification'], x.get('-pointer'), spec['data']))
+                    if path not in found_paths:
+                        found_paths.append(path)
+                        if _dir not in found_dirs:
+                            found_dirs[_dir] = {'file': _file, 'filters': _filters}
+                        dirs.append((_dir, _file, _specification, x.get('-pointer'), spec['data'], _filters))
+                else:
+                    if _dir not in found_dirs.keys():
+                        found_dirs[_dir] = {'file': _file, 'filters': _filters}
+
+            for found_dir in found_dirs.keys():
+                if found_dir not in [d[0] for d in dirs]:
+                    dirs.append((found_dir, found_dirs[found_dir]['file'], None,
+                                 None, None, found_dirs[found_dir]['filters']))
 
         return dirs
 
@@ -636,46 +740,56 @@ class XMLGenerator:
             if external:
                 external_gen = XMLGenerator()
 
-            for ext_file, ext_dir, ext_spec, ext_pointer, ext_data in external:
-                ext_root = os.path.join(folderToParse, ext_dir)
-                try:
-                    ext_sub_dirs = next(walk(ext_root))[1]
-                except StopIteration:
-                    logger.info('No directories found in {}'.format(ext_root))
-                else:
-                    for sub_dir in ext_sub_dirs:
-                        ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
-                        ptr_file_path = normalize_path(ptr_file_path)
+            for ext_dir, ext_file, ext_spec, ext_pointer, ext_data, ext_filters in external:
+                if ext_file:
+                    ext_root = os.path.join(folderToParse, ext_dir)
+                    try:
+                        ext_sub_dirs = next(walk(ext_root))[1]
+                    except StopIteration:
+                        logger.info('No directories found in {}'.format(ext_root))
+                    else:
+                        for sub_dir in ext_sub_dirs:
+                            generate_content_metadata_flag = True
 
-                        ext_info = copy.deepcopy(ext_data)
-                        ext_info['_EXT'] = sub_dir
-                        ext_info['_EXT_HREF'] = ptr_file_path
+                            for key, file_filter in ext_filters.items():
+                                if key == 'GenerateContentMetadata' and not re.search(file_filter, sub_dir):
+                                    generate_content_metadata_flag = False
 
-                        full_xml_path = os.path.join(folderToParse, ptr_file_path)
-                        try:
-                            external_dirs_files_to_create[sub_dir][0][full_xml_path] = {
-                                'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer}
-                        except KeyError:
-                            external_dirs_files_to_create[sub_dir] = [{
-                                full_xml_path: {
-                                    'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer
-                                }
-                            }, folderToParse, ext_dir]
-                        try:
-                            logger.debug('Remove: %s' % full_xml_path)
-                            os.remove(full_xml_path)
-                        except FileNotFoundError:
-                            pass
+                            ptr_file_path = os.path.join(ext_dir, sub_dir, ext_file)
+                            ptr_file_path = normalize_path(ptr_file_path)
+
+                            ext_info = copy.deepcopy(ext_data)
+                            ext_info['_EXT'] = sub_dir
+                            ext_info['_EXT_HREF'] = ptr_file_path
+
+                            full_xml_path = os.path.join(folderToParse, ptr_file_path)
+                            try:
+                                external_dirs_files_to_create[sub_dir][0][full_xml_path] = {
+                                    'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer}
+                            except KeyError:
+                                external_dirs_files_to_create[sub_dir] = [{
+                                    full_xml_path: {
+                                        'spec': ext_spec, 'data': ext_info, 'ext_pointer': ext_pointer
+                                    }
+                                }, folderToParse, ext_dir, generate_content_metadata_flag]
+                            if generate_content_metadata_flag:
+                                try:
+                                    os.remove(full_xml_path)
+                                except FileNotFoundError:
+                                    pass
 
             for sub_dir in sorted(external_dirs_files_to_create.keys()):
-                external_files_to_create, folderToParse, ext_dir = external_dirs_files_to_create[sub_dir]
-                external_gen.generate(external_files_to_create, os.path.join(folderToParse, ext_dir, sub_dir))
+                (external_files_to_create, folderToParse, ext_dir, generate_content_metadata_flag
+                 ) = external_dirs_files_to_create[sub_dir]
+                if generate_content_metadata_flag:
+                    external_gen.generate(external_files_to_create,
+                                          folderToParse=os.path.join(folderToParse, ext_dir, sub_dir))
+
                 for external_file_to_create in external_files_to_create.keys():
                     if external_files_to_create[external_file_to_create]['ext_pointer'] is not None:
-                        logger.debug('add ext_pointer for: %s' % external_file_to_create)
                         ptr_file_path = os.path.relpath(external_file_to_create, folderToParse)
                         fileinfo = parse_file(
-                            external_file_to_create, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir
+                            external_file_to_create, self.fid, ptr_file_path, algorithm=algorithm, rootdir=sub_dir,
                         )
                         files.append(fileinfo)
 

@@ -1,6 +1,7 @@
 {
     "extends": "stylelint-config-recommended-scss",
     "rules": {
-        "no-descending-specificity": null
+        "no-descending-specificity": null,
+        "scss/at-extend-no-missing-placeholder": null
     }
 }

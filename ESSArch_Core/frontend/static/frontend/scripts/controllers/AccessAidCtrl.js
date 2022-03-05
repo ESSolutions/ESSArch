@@ -32,6 +32,14 @@ export default class AccessAidCtrl {
         },
       },
     };
+    vm.value = 1;
+    vm.addOne = () => {
+      //$ctrl.value = $ctrl.value + 1;
+      //console.log('added one', $ctrl.value);
+      //$scope.$apply();
+      vm.value = vm.value + 1;
+      console.log('bla', vm.value);
+    };
 
     let watchers = [];
     watchers.push(

@@ -17,6 +17,7 @@ module.exports = (env, argv) => {
         fs: false,
         net: false,
         tls: false,
+        url: false,
         path: require.resolve('path-browserify'),
         os: require.resolve('os-browserify/browser'),
         util: require.resolve('util/'),
@@ -107,6 +108,7 @@ module.exports = (env, argv) => {
                     modules: false,
                   },
                 ],
+                '@babel/preset-react',
               ],
               plugins: ['angularjs-annotate'],
             },
@@ -121,12 +123,13 @@ module.exports = (env, argv) => {
             },
             {
               loader: 'css-loader',
-              options: {
-                sourceMap: true,
-              },
             },
-            {loader: 'postcss-loader', options: {sourceMap: true}},
-            'resolve-url-loader',
+            {
+              loader: 'postcss-loader',
+            },
+            {
+              loader: 'resolve-url-loader',
+            },
             {
               loader: 'sass-loader',
             },

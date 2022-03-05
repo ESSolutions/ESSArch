@@ -2269,23 +2269,27 @@ class ExternalTestCase(TestCase):
     def test_external(self):
         specification = {
             '-name': 'root',
-            '-external': {
-                '-dir': 'external',
-                '-file': 'external.xml',
-                '-pointer': {
-                    '-name': 'ptr',
-                    '#content': [{'var': '_EXT_HREF'}]
-                },
-                '-specification': {
-                    '-name': 'extroot',
-                    '-children': [
-                        {
-                            '-name': 'foo',
-                            '#content': [{'var': '_EXT'}]
+            '-children': [
+                {
+                    '-external': {
+                        '-dir': 'external',
+                        '-file': 'external.xml',
+                        '-pointer': {
+                            '-name': 'ptr',
+                            '#content': [{'var': '_EXT_HREF'}]
+                        },
+                        '-specification': {
+                            '-name': 'extroot',
+                            '-children': [
+                                {
+                                    '-name': 'foo',
+                                    '#content': [{'var': '_EXT'}]
+                                }
+                            ]
                         }
-                    ]
+                    }
                 }
-            },
+            ]
         }
 
         self.generator.generate({self.fname: {'spec': specification}}, folderToParse=self.datadir)
@@ -2325,41 +2329,43 @@ class ExternalTestCase(TestCase):
                         },
                     ],
                 },
-            ],
-            '-external': {
-                '-dir': 'external',
-                '-pointer': {
-                    '-name': 'ptr',
-                    '-attr': [
-                        {
-                            '-name': 'href',
-                            '#content': [{'var': '_EXT_HREF'}]
-                        },
-                    ],
-                },
-                '-file': 'external.xml',
-                '-specification': {
-                    '-name': 'mets',
-                    '-attr': [
-                        {
-                            '-name': 'LABEL',
-                            '#content': [{'var': '_EXT'}]
-                        },
-                    ],
-                    '-children': [
-                        {
-                            '-name': 'file',
-                            '-containsFiles': True,
+                {
+                    '-external': {
+                        '-dir': 'external',
+                        '-pointer': {
+                            '-name': 'ptr',
                             '-attr': [
                                 {
                                     '-name': 'href',
-                                    '#content': [{'var': 'href'}]
+                                    '#content': [{'var': '_EXT_HREF'}]
                                 },
                             ],
                         },
-                    ]
+                        '-file': 'external.xml',
+                        '-specification': {
+                            '-name': 'mets',
+                            '-attr': [
+                                {
+                                    '-name': 'LABEL',
+                                    '#content': [{'var': '_EXT'}]
+                                },
+                            ],
+                            '-children': [
+                                {
+                                    '-name': 'file',
+                                    '-containsFiles': True,
+                                    '-attr': [
+                                        {
+                                            '-name': 'href',
+                                            '#content': [{'var': 'href'}]
+                                        },
+                                    ],
+                                },
+                            ]
+                        }
+                    }
                 }
-            },
+            ],
         }
 
         with open(os.path.join(self.external1, "ext1.txt"), "w") as f:
@@ -2417,28 +2423,33 @@ class ExternalTestCase(TestCase):
     def test_external_info(self):
         specification = {
             '-name': 'root',
-            '-external': {
-                '-dir': 'external',
-                '-file': 'external.xml',
-                '-pointer': {
-                    '-name': 'ptr',
-                    '-attr': [
-                        {
-                            '-name': 'href',
-                            '#content': [{'var': '_EXT_HREF'}]
+            '-children': [
+                {
+                    '-external': {
+                        '-dir': 'external',
+                        '-file': 'external.xml',
+                        '-pointer': {
+                            '-name': 'ptr',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': '_EXT_HREF'}]
+                                },
+                            ],
                         },
-                    ],
-                },
-                '-specification': {
-                    '-name': 'extroot',
-                    '-children': [
-                        {
-                            '-name': 'foo',
-                            '#content': [{'var': 'foo'}]
+                        '-specification': {
+                            '-name': 'extroot',
+                            '-children': [
+                                {
+                                    '-name': 'foo',
+                                    '#content': [{'var': 'foo'}]
+                                }
+                            ]
                         }
-                    ]
+                    },
                 }
-            },
+            ]
+
         }
 
         self.generator.generate(
@@ -2465,29 +2476,33 @@ class ExternalTestCase(TestCase):
             '-name': 'root',
             '-nsmap': nsmap,
             '-namespace': 'xsi',
-            '-external': {
-                '-dir': 'external',
-                '-file': 'external.xml',
-                '-pointer': {
-                    '-name': 'ptr',
-                    '-attr': [
-                        {
-                            '-name': 'href',
-                            '#content': [{'var': '_EXT_HREF'}]
+            '-children': [
+                {
+                    '-external': {
+                        '-dir': 'external',
+                        '-file': 'external.xml',
+                        '-pointer': {
+                            '-name': 'ptr',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': '_EXT_HREF'}]
+                                },
+                            ],
                         },
-                    ],
-                },
-                '-specification': {
-                    '-name': 'extroot',
-                    '-children': [
-                        {
-                            '-name': 'foo',
-                            '-namespace': 'xsi',
-                            '#content': [{'text': 'bar'}]
+                        '-specification': {
+                            '-name': 'extroot',
+                            '-children': [
+                                {
+                                    '-name': 'foo',
+                                    '-namespace': 'xsi',
+                                    '#content': [{'text': 'bar'}]
+                                }
+                            ]
                         }
-                    ]
+                    },
                 }
-            },
+            ]
         }
         self.generator.generate(
             {self.fname: {'spec': specification, 'data': {'foo': 'bar'}}},
@@ -2516,30 +2531,34 @@ class ExternalTestCase(TestCase):
             '-name': 'root',
             '-nsmap': nsmap,
             '-namespace': 'xsi',
-            '-external': {
-                '-dir': 'external',
-                '-file': 'external.xml',
-                '-pointer': {
-                    '-name': 'ptr',
-                    '-attr': [
-                        {
-                            '-name': 'href',
-                            '#content': [{'var': '_EXT_HREF'}]
+            '-children': [
+                {
+                    '-external': {
+                        '-dir': 'external',
+                        '-file': 'external.xml',
+                        '-pointer': {
+                            '-name': 'ptr',
+                            '-attr': [
+                                {
+                                    '-name': 'href',
+                                    '#content': [{'var': '_EXT_HREF'}]
+                                },
+                            ],
                         },
-                    ],
-                },
-                '-specification': {
-                    '-name': 'extroot',
-                    '-nsmap': nsmap_ext,
-                    '-children': [
-                        {
-                            '-name': 'foo',
-                            '-namespace': 'xsi',
-                            '#content': [{'text': 'bar'}]
+                        '-specification': {
+                            '-name': 'extroot',
+                            '-nsmap': nsmap_ext,
+                            '-children': [
+                                {
+                                    '-name': 'foo',
+                                    '-namespace': 'xsi',
+                                    '#content': [{'text': 'bar'}]
+                                }
+                            ]
                         }
-                    ]
+                    },
                 }
-            },
+            ]
         }
         self.generator.generate(
             {

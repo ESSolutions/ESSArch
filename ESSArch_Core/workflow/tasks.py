@@ -116,7 +116,8 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
     if sip_dst_path is None:
         sip_dst_path, sip_dst_name = find_destination('content', ip.get_structure(), ip.object_path)
 
-    sip_dst_name, = self.parse_params(sip_dst_name)
+    if sip_dst_name:
+        sip_dst_name, = self.parse_params(sip_dst_name)
     sip_dst = os.path.join(sip_dst_path, sip_dst_name)
 
     if ip.policy.receive_extract_sip:
