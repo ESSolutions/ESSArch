@@ -122,6 +122,10 @@
             </tbody>
           </table>
         </div>
+        <div>
+          angular value: {{vm.value}}
+          <react-component value="vm.value" add-one="vm.addOne"></react-component>
+        </div>
         <td ng-show="!initLoad" colspan="{{vm.getAccessAidListColspan()}}">
           <div
             class="text-center"

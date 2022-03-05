@@ -18,13 +18,17 @@ Supported OS platforms
 +------------------------------+-------------------+
 | **OS**                       | **Version**       |
 +==============================+===================+
-| CentOS / Redhat              | 7 (x86\_64)       |
+| Ubunutu                      | 20.04 (x86\_64)   |
 +------------------------------+-------------------+
-| CentOS / Redhat              | 8 (x86\_64)       |
+| Debian                       | 11 (x86\_64)      |
 +------------------------------+-------------------+
-| OpenSUSE / SLES              | 15 (x86\_64)      |
+| CentOS / RHEL                | 7 (x86\_64)       |
 +------------------------------+-------------------+
-| Windows Server               | 2016 (x86\_64)    |
+| RHEL                         | 8 (x86\_64)       |
++------------------------------+-------------------+
+| OpenSUSE / SLES              | 15.3 (x86\_64)    |
++------------------------------+-------------------+
+| Windows Server               | 2019  (x86\_64)   |
 +------------------------------+-------------------+
 
 (Other operating systems have been tested but are not yet
@@ -37,19 +41,17 @@ Database
 +-------------------------------------------------------+-----------------+
 | Database                                              | Minimum Version |
 +=======================================================+=================+
-| `PostgreSQL <https://www.postgresql.org>`_            | 9.4             |
-+-------------------------------------------------------+-----------------+
 | `MySQL <https://www.mysql.com>`_                      | 5.6             |
 +-------------------------------------------------------+-----------------+
 | `MariaDB <https://mariadb.org>`_                      | 10.1            |
 +-------------------------------------------------------+-----------------+
-| `SQL Server <https://www.microsoft.com/sql-server>`_  | 2008            |
+| `SQL Server <https://www.microsoft.com/sql-server>`_  | 2017            |
 +-------------------------------------------------------+-----------------+
 | `SQLite <https://www.sqlite.org>`_                    | 3.8.3           |
 +-------------------------------------------------------+-----------------+
 
 
-`Redis <https://redis.io>`_ (Minimum version: 3.0)
+`Redis <https://redis.io>`_ (Minimum version: 5.0)
 ==================================================
 
 ESSArch uses Redis as a cache to improve performance and to support real-time
@@ -60,7 +62,7 @@ Docker image: https://hub.docker.com/_/redis/.
 To install on Windows, see https://github.com/microsoftarchive/redis
 
 
-`RabbitMQ <https://www.rabbitmq.com>`_ (Minimum version: 3.7.0)
+`RabbitMQ <https://www.rabbitmq.com>`_ (Minimum version: 3.8)
 ===============================================================
 
 RabbitMQ is used for the workflow management and distribution in ESSArch.
@@ -68,7 +70,7 @@ RabbitMQ is used for the workflow management and distribution in ESSArch.
 Docker image: https://hub.docker.com/_/rabbitmq/
 
 
-`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ (Supported version: 7.6.*)
+`Elasticsearch <https://www.elastic.co/products/elasticsearch>`_ (Supported version: 7.*)
 ===========================================================================================
 
 Elasticsearch is the search engine used in ESSArch.
