@@ -7,12 +7,13 @@
 #### Important
 
 Elasticsearch requires `vm.max_map_count` to be at least 262144, see
-[Install Elasticsearch with Docker](https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html#docker-cli-run-prod-mode) for more information
+[Install Elasticsearch with Docker](https://www.elastic.co/guide/en/elasticsearch/reference/7.17/docker.html#docker-cli-run-prod-mode) for more information
 
 1. Enter the `docker` directory and start the services
 
 ```
 $ cd docker
+$ docker-compose build essarch
 $ docker-compose up -d
 ```
 
@@ -45,8 +46,9 @@ $ pre-commit install
 Now whenever you run `git commit`, all hooks defined in `.pre-commit-config.yaml` will verify the code.
 
 ## Resources
-* [Documentation](https://docs.essarch.org/)
-* [ES Solutions website](http://essolutions.se)
+
+- [Documentation](https://docs.essarch.org/)
+- [ES Solutions website](http://essolutions.se)
 
 # Service and support
 
