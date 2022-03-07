@@ -7,8 +7,9 @@ REM Command file for Sphinx documentation
 if "%SPHINXBUILD%" == "" (
 	set SPHINXBUILD=sphinx-build
 )
+set LANGUAGE=%2
 set SOURCEDIR=.
-set BUILDDIR=_build
+set BUILDDIR=_build/%LANGUAGE%
 set SPHINXPROJ=ESSArch
 
 if "%1" == "" goto help
@@ -26,7 +27,7 @@ if errorlevel 9009 (
 	exit /b 1
 )
 
-%SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS%
+%SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% -D language=%LANGUAGE% %SPHINXOPTS%
 goto end
 
 :help
