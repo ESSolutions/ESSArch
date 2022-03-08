@@ -8,34 +8,21 @@ COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/fr
 COPY ./.git .git
 RUN yarn build:dev
 
-FROM python:3.9-buster as base
+FROM python:3.9-bullseye as base
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-dev \
+    default-libmysqlclient-dev \
+    libcairo2-dev \
     libffi-dev \
-    libgdk-pixbuf2.0-0 \
     libldap2-dev \
-    libmagickwand-dev \
-    libpango-1.0-0 \
-    libpangocairo-1.0-0 \
-    libpq-dev \
+    libpango1.0-dev \
     libsasl2-dev \
     libssl-dev \
-    libxinerama1 \
-    libxml2-dev \
-    libxmlsec1-dev \
-    libxslt-dev \
-    mediaconch \
     netcat \
-    pkg-config \
     postgresql-client \
     python3-cffi \
-    shared-mime-info \
     unixodbc-dev \
-    default-libmysqlclient-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Libreoffice

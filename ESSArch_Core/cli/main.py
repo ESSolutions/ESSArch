@@ -202,3 +202,19 @@ list(
         )
     )
 )
+
+
+@cli.group()
+def mimetypes():
+    """Manage mime.types
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: mimetypes.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.mimetypes.generate',
+        )
+    )
+)

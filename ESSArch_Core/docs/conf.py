@@ -2,7 +2,7 @@
     ESSArch is an open source archiving and digital preservation system
 
     ESSArch
-    Copyright (C) 2005-2019 ES Solutions AB
+    Copyright (C) 2005-2022 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ suppress_warnings = [
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.8', None),
+    'python': ('https://docs.python.org/3.9', None),
     'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
     'celery': ('https://celery.readthedocs.io/en/latest/', None),
