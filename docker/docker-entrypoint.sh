@@ -3,6 +3,7 @@
 set -e
 
 essarch settings generate --debug -q --no-overwrite
+essarch mimetypes generate -q --no-overwrite
 essarch install -q
 
 echo "Installing profiles"

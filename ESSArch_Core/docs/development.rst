@@ -17,7 +17,7 @@ To get started, clone the repository:
 Setting up virtual Python environments
 ======================================
 
-You will need Python 3.8 along with ``pip``, which is what the backend of
+You will need Python 3.9 along with ``pip``, which is what the backend of
 ESSArch is built on. It is recommended to have ESSArch in its own virtual
 python environment.
 
