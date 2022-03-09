@@ -107,7 +107,7 @@ services:
       - essarch
 
   postgres:
-    image: 'postgres'
+    image: 'postgres:14'
     environment:
       POSTGRES_DB: essarch
       POSTGRES_USER: arkiv
