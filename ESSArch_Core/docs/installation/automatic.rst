@@ -13,7 +13,7 @@ Run the following as root to install "nightly build" (Recomended for test instal
 .. code-block:: bash
 
     $ wget https://www.essarch.org/download/essarch_download
-    $ sh essarch_download dev /ESSArch_setup
+    $ bash essarch_download dev /ESSArch_setup
     $ /ESSArch_setup/install.sh
 
 Run the following as root to install "latest stable" (Recomended for production installation)
@@ -21,7 +21,7 @@ Run the following as root to install "latest stable" (Recomended for production 
 .. code-block:: bash
 
     $ wget https://www.essarch.org/download/essarch_download
-    $ sh essarch_download latest /ESSArch_setup
+    $ bash essarch_download latest /ESSArch_setup
     $ /ESSArch_setup/install.sh
 
 This will download, configure, install and start ESSArch and all its
