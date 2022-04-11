@@ -219,6 +219,11 @@ def PrepareAIP(self, sip_path):
             # refresh date fields to convert them to datetime instances instead of
             # strings to allow further datetime manipulation
             ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+
+            ProfileIP.objects.filter(ip=ip).delete()
+            ip.submission_agreement.lock_to_information_package(ip, user)
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+                profile_ip.lock(user)
     else:
         with transaction.atomic():
             ip = existing_sip
@@ -239,9 +244,6 @@ def PrepareAIP(self, sip_path):
         end_date=ip.end_date,
     )
     ip.save()
-
-    ProfileIP.objects.filter(ip=ip).delete()
-    ip.submission_agreement.lock_to_information_package(ip, user)
 
     return str(ip.pk)
 
