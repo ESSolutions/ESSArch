@@ -106,8 +106,45 @@ services:
     networks:
       - essarch
 
+  datasette:
+    image: essarch
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        datasette -h 0.0.0.0 -p 8001
+    ports:
+      - 8001:8001        
+    restart: on-failure
+    environment:
+      DATABASE_URL_ESSARCH:
+      REDIS_URL_ESSARCH: redis://redis/1
+      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_URL:
+    volumes:
+      - ..:/code
+      - /code/ESSArch.egg-info/
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+    tty: true
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - essarch
+    profiles:
+      - datasette
+      - all
+    networks:
+      - essarch
+
   postgres:
-    image: 'postgres'
+    image: 'postgres:14'
     environment:
       POSTGRES_DB: essarch
       POSTGRES_USER: arkiv
@@ -130,6 +167,8 @@ services:
       - essarch_mariadb_data:/var/lib/mysql
     ports:
       - 3306:3306
+    profiles:
+      - mariadb
     networks:
       - essarch
 
@@ -178,6 +217,8 @@ services:
       - '19300:9300'
     environment:
       ES_JAVA_OPTS: '-Xmx1g -Xms1g'
+    profiles:
+      - tests
     networks:
       - essarch
 
@@ -197,6 +238,8 @@ services:
       LS_JAVA_OPTS: '-Xmx256m -Xms256m'
     depends_on:
       - opensearch
+    profiles:
+      - all
     networks:
       - essarch
 
@@ -212,6 +255,8 @@ services:
       OPENSEARCH_HOSTS: http://opensearch:9200
     depends_on:
       - opensearch
+    profiles:
+      - all
     networks:
       - essarch
 
