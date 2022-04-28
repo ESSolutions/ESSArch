@@ -113,6 +113,7 @@ class UserLoggedInSerializer(UserSerializer):
     user_permissions = PermissionSerializer(many=True, read_only=True)
     permissions = serializers.SerializerMethodField()
     organizations = serializers.SerializerMethodField()
+    organizations_ids = serializers.SerializerMethodField()
 
     current_organization = GroupSerializer(source='user_profile.current_organization')
     ip_list_columns = serializers.ListField(source='user_profile.ip_list_columns')
@@ -137,6 +138,10 @@ class UserLoggedInSerializer(UserSerializer):
         serializer = GroupSerializer(data=groups, many=True)
         serializer.is_valid()
         return serializer.data
+
+    def get_organizations_ids(self, user):
+        groups = get_organization_groups(user)
+        return groups.values_list('id', flat=True)
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('user_profile', {})
@@ -181,11 +186,11 @@ class UserLoggedInSerializer(UserSerializer):
             'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
             'date_joined', 'permissions', 'user_permissions',
             'ip_list_columns', 'ip_list_view_type', 'file_browser_view_type', 'current_organization',
-            'notifications_enabled', 'language',
+            'notifications_enabled', 'language', 'organizations_ids',
         )
         read_only_fields = (
             'id', 'username', 'last_login', 'date_joined', 'organizations',
-            'is_staff', 'is_active', 'is_superuser',
+            'is_staff', 'is_active', 'is_superuser', 'organizations_ids',
         )
 
 

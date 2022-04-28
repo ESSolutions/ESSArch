@@ -83,8 +83,9 @@ ADD requirements/tests.txt /code/requirements/tests.txt
 RUN pip install --no-cache-dir -r /code/requirements/optional.txt
 RUN pip install --no-cache-dir -r /code/requirements/tests.txt
 RUN pip install --no-cache-dir -e .[mysql,postgres,logstash]
-# RUN pip install --no-cache-dir sentry-sdk
-# RUN pip install --no-cache-dir django-sslserver
+RUN pip install --no-cache-dir sentry-sdk
+RUN pip install --no-cache-dir django-sslserver
+RUN pip install --no-cache-dir datasette
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
