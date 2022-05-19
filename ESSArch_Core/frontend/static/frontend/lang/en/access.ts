@@ -3,7 +3,6 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('en', {
     ACCESS: {
       ACCESS: 'Access',
-      ACCESS_AID: 'Access Aid',
       ADD_ACCESS_AID: 'Add access aid',
       ADD_FIELD: 'Add field',
       ADD_FIRST_LEVEL_LOCATION: 'Add first level location',
@@ -129,6 +128,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       LATITUDE: 'Latitude',
       LEVEL: 'Level',
       LEVEL_OF_DETAIL: 'Level of detail',
+      LINK: 'Link',
       LINK_TO_ACCESS_AID: 'Link access aid',
       LINK_TO_TRANSFER: 'Link to transfer',
       LINK_TO_LOCATION: 'Link to location',

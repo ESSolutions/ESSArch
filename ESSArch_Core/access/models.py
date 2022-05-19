@@ -1,7 +1,7 @@
 import uuid
 
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.auth.models import GroupGenericObjects
@@ -19,6 +19,14 @@ class AccessAid(models.Model):
     link = models.TextField(_('link'), blank=True)
 
     objects = OrganizationManager()
+
+    @transaction.atomic
+    def change_organization(self, organization):
+        if organization.group_type.codename != 'organization':
+            raise ValueError('{} is not an organization'.format(organization))
+        ctype = ContentType.objects.get_for_model(self)
+        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
+                                                     defaults={'group': organization})
 
     def get_organization(self):
         ctype = ContentType.objects.get_for_model(self)

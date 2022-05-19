@@ -944,19 +944,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         organization = serializer.validated_data['organization']
-
-        ctype = ContentType.objects.get_for_model(tag)
-        tag_obj = GroupGenericObjects.objects.get(object_id=tag.pk, content_type=ctype)
-
-        # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
-        # if change_related_ips:
-        #    for ip_obj in tag_obj.get_related_ip_objs():
-        #        print('update ip: %s with org: %s' % (repr(ip_obj), organization))
-        #        ip_obj.change_organization(organization)
-
-        # print('update tag: %s with org: %s' % (repr(self), organization))
-        tag_obj.group = organization
-        tag_obj.save()
+        tag.change_organization(organization)
 
         return Response()
 

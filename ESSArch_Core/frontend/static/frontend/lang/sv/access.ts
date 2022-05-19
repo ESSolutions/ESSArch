@@ -3,7 +3,6 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     ACCESS: {
       ACCESS: 'Åtkomst',
-      ACCESS_AID: 'Sökingång',
       ADD_ACCESS_AID: 'Lägg till sökingång',
       ADD_FIELD: 'Lägg till fält',
       ADD_FIRST_LEVEL_LOCATION: 'Lägg till placering på första nivån',
@@ -133,6 +132,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       LATITUDE: 'Latitud',
       LEVEL: 'Nivå',
       LEVEL_OF_DETAIL: 'Detaljrikedom',
+      LINK: 'Länk',
       LINK_TO_ACCESS_AID: 'Koppla sökingång',
       LINK_TO_TRANSFER: 'Lägg till i överföring',
       LINK_TO_LOCATION: 'Placera',

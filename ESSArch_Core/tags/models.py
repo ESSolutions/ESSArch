@@ -1209,8 +1209,19 @@ class TagVersion(models.Model):
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
         ctype = ContentType.objects.get_for_model(self)
-        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                     defaults={'group': organization})
+        # print('update tag: %s with org: %s (in tv)' % (repr(self), organization))
+        gg_tv, created = GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
+                                                                      defaults={'group': organization})
+
+        for accessaid_obj in gg_tv.get_related_accessaids_objs(self):
+            # print('update accessaid: %s with org: %s (in tv)' % (repr(accessaid_obj), organization))
+            accessaid_obj.change_organization(organization)
+
+        # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
+        # if change_related_ips:
+        #    for ip_obj in gg_tv.get_related_ip_objs():
+        #        print('update ip: %s with org: %s' % (repr(ip_obj), organization))
+        #        ip_obj.change_organization(organization)
 
     def get_organization(self):
         ctype = ContentType.objects.get_for_model(self)
