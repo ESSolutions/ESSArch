@@ -66,6 +66,24 @@ class GroupGenericObjects(models.Model):
             tv_objs.append(TagVersion.objects.get(id=gg_tv.object_id))
         return tv_objs
 
+    def get_related_accessaids_objs(self, tag_version=None):
+        accessaid_objs = []
+        if tag_version:
+            for ts_obj in tag_version.get_structures().all():
+                for su_obj in ts_obj.structure.units.all():
+                    for accessaid_obj in su_obj.access_aids.all():
+                        if accessaid_obj not in accessaid_objs:
+                            accessaid_objs.append(accessaid_obj)
+        else:
+            from ESSArch_Core.access.models import AccessAid
+
+            ctype = ContentType.objects.get_for_model(AccessAid)
+            for gg_obj in GroupGenericObjects.objects.filter(group=self.group, content_type=ctype):
+                accessaid_obj = AccessAid.objects.get(id=gg_obj.object_id)
+                if accessaid_obj not in accessaid_objs:
+                    accessaid_objs.append(accessaid_obj)
+        return accessaid_objs
+
     class Meta:
         unique_together = ['group', 'object_id', 'content_type']
         indexes = [

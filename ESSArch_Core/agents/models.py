@@ -141,15 +141,19 @@ class Agent(models.Model):
 
         if change_related_archives:
             for tv_obj in gg_agent.get_related_tv_objs():
-                # print('update tv: %s with org: %s' % (repr(tv_obj), organization))
+                # print('update tv: %s with org: %s (in agent)' % (repr(tv_obj), organization))
                 tv_obj.change_organization(organization)
+
+            for accessaid_obj in gg_agent.get_related_accessaids_objs():
+                # print('update accessaid: %s with org: %s (in agent)' % (repr(accessaid_obj), organization))
+                accessaid_obj.change_organization(organization)
 
         if change_related_ips:
             for ip_obj in gg_agent.get_related_ip_objs():
-                # print('update ip: %s with org: %s' % (repr(ip_obj), organization))
+                # print('update ip: %s with org: %s (in agent)' % (repr(ip_obj), organization))
                 ip_obj.change_organization(organization)
 
-        # print('update agent: %s with org: %s' % (repr(self), organization))
+        # print('update agent: %s with org: %s (in agent)' % (repr(self), organization))
         gg_agent.group = organization
         gg_agent.save()
 
