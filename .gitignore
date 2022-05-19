@@ -38,3 +38,7 @@ docker/log
 # Coverage default folders
 .coverage
 htmlcov/
+
+# Vagrant files
+.vagrant/
+/vagrant/*.log
