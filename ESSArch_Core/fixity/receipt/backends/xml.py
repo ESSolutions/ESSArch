@@ -2,18 +2,15 @@
 
 import json
 import logging
-import os
 
 from django.template.loader import get_template
 from django.utils import timezone
-from lxml import etree
 
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.fixity.serializers import ValidationSerializer
 from ESSArch_Core.profiles.utils import fill_specification_data
-from ESSArch_Core.tags.models import TagVersion
 
 logger = logging.getLogger('essarch.core.fixity.receipt.xml')
 

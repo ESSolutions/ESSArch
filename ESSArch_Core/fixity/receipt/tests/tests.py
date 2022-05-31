@@ -13,8 +13,6 @@ from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends import email, xml
 from ESSArch_Core.ip.models import InformationPackage
-from ESSArch_Core.profiles.models import Profile, ProfileIP
-from ESSArch_Core.tags.models import Tag, TagVersion, TagVersionType
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
