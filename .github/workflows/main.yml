@@ -171,7 +171,8 @@ jobs:
 
       - name: Set PYTHONPATH
         run: |
-          echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+          pwd
+          echo "PYTHONPATH=D:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Get yarn cache
         id: yarn_cache
@@ -210,6 +211,7 @@ jobs:
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
+          pwd
           mkdir config
           mkdir log
           essarch settings generate -qp config/local_essarch_settings.py
@@ -334,10 +336,15 @@ jobs:
           key: ${{ runner.os }}-pip-${{ hashFiles('requirements/**.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+
+      - name: Set PYTHONPATH
+        run: |
+          echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
 
       - name: Get yarn cache
         id: yarn_cache
@@ -374,14 +381,13 @@ jobs:
 
           python -m pip install --upgrade pip wheel setuptools
 
-          # Pin six to avoid dependency errors,
-          # see https://github.com/pypa/pip/issues/4887
-          pip install --upgrade six>=1.12.0
-
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
           pip check
-          essarch settings generate --overwrite -qp local_essarch_settings.py
+          mkdir config
+          mkdir log
+          pwd
+          essarch settings generate --overwrite -qp config/local_essarch_settings.py
           sudo mkdir -p /ESSArch/log
           sudo chmod 777 /ESSArch/log/
 
