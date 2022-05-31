@@ -126,8 +126,8 @@ jobs:
 
       - name: Install
         run: |
-          sudo mkdir -p /ESSArch/log/
-          sudo chmod 777 /ESSArch/log/
+          sudo mkdir -p ESSArch/log/
+          sudo chmod 777 ESSArch/log/
           python -m pip install --upgrade pip wheel setuptools
 
           # Pin six to avoid dependency errors,
@@ -135,6 +135,8 @@ jobs:
           pip install --upgrade six>=1.12.0
 
           pip install -e .[docs]
+          pwd
+          ls -l
           essarch settings generate -qp local_essarch_settings.py
 
       - name: Build
