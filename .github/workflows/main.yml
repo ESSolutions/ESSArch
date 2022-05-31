@@ -124,22 +124,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: set pythonpath
-        run: |
-          echo "PYTHONPATH2=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
-
       - name: Install
         run: |
-          echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
-          echo "PYTHONPATH: ${{ env.PYTHONPATH }}"
-          echo "PYTHONPATH2: ${{ env.PYTHONPATH2 }}"
-          sudo pwd
-          sudo ls -l
-          sudo ls -l ~
-          sudo mkdir -p log
-          sudo chmod 777 log
-          sudo mkdir -p config
-          sudo chmod 777 config
+          mkdir -p log
+          mkdir -p config
           python -m pip install --upgrade pip wheel setuptools
           pip install -e .[docs]
           pwd
@@ -147,8 +135,7 @@ jobs:
           pwd
           ls -l
           ls -l config
-          ls -l ../../
-          ls -l ../../ESSArch
+          ls -l log
 
       - name: Build
         run: |
