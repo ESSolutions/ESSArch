@@ -123,11 +123,10 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: '3.9'
-        run: |
-          echo "PYTHONPATH=~/config" >> $GITHUB_ENV
 
       - name: Install
         run: |
+          echo "PYTHONPATH=~/config" >> $GITHUB_ENV
           echo "PYTHONPATH: ${{ env.PYTHONPATH }}"
           sudo pwd
           sudo ls -l
