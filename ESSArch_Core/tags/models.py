@@ -297,12 +297,15 @@ class Structure(models.Model):
         return new_structure
 
     def is_new_version(self):
-        return Structure.objects.filter(
+        if self.published_date is None and Structure.objects.filter(
             is_template=True, published=True,
             version_link=self.version_link
         ).exclude(
             pk=self.pk
-        ).exists()
+        ).exists():
+            return True
+        else:
+            return False
 
     def get_last_version(self):
         return Structure.objects.filter(
@@ -558,6 +561,13 @@ class StructureUnit(MPTTModel):
                     )
                 except StructureUnit.DoesNotExist:
                     continue
+                except BaseException as e:
+                    related_unit_instances = StructureUnit.objects.filter(
+                        template=relation.structure_unit_a,
+                        structure__tagstructure__tag=new_archive_structure.tag,
+                    )
+                    logger.error('related_unit_instances: {}'.format(repr([x.id for x in related_unit_instances])))
+                    raise e
 
                 StructureUnitRelation.objects.create(
                     structure_unit_a=related_unit_instance,

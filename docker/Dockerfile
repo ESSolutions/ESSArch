@@ -49,7 +49,10 @@ RUN pip install -r /code/requirements/docs.txt
 ADD . /code
 
 # Build docs
-RUN essarch settings generate --debug --overwrite -p /code/local_essarch_settings.py
+RUN mkdir -p /code/config
+RUN mkdir -p /code/log
+RUN essarch settings generate --debug --overwrite -p /code/config/local_essarch_settings.py
+ENV PYTHONPATH=/code/config
 RUN for lang in "en" "sv"; do make html LANGUAGE="$lang"; done
 
 WORKDIR /code
@@ -63,7 +66,7 @@ ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
 
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
-ENV PYTHONPATH={$PYTHONPATH}:/ESSArch/config:/ESSArch/plugins
+ENV PYTHONPATH=/ESSArch/config:/ESSArch/plugins
 
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list

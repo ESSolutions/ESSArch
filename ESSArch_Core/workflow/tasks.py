@@ -31,6 +31,7 @@ import zipfile
 
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import F
@@ -104,10 +105,11 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
     objid, container_type = os.path.splitext(os.path.basename(container))
     container_type = container_type.lower()
     xml = ip.package_mets_path
-    ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
-    ip.package_mets_size = os.path.getsize(xml)
-    ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
-    ip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
+    if os.path.exists(xml):
+        ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml)).isoformat()
+        ip.package_mets_size = os.path.getsize(xml)
+        ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+        ip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
 
     ip.object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
     ip.save()
@@ -133,6 +135,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
                     tar.extractall(tmpdir)
             elif container_type == '.zip':
                 with zipfile.ZipFile(container) as zipf:
+                    os.path.altsep = getattr(settings, 'OS_PATH_ALTSEP', None)
                     root_member_name = zipf.namelist()[0]
                     zipf.extractall(tmpdir)
             else:

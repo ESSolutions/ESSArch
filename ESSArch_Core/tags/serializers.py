@@ -1262,7 +1262,7 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
     security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
     structures = serializers.PrimaryKeyRelatedField(
-        queryset=Structure.objects.filter(is_template=True, published=True),
+        queryset=Structure.objects.filter(is_template=True, published_date__isnull=False),
         many=True,
     )
     archive_creator = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
@@ -1345,18 +1345,20 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
             existing_structures = Structure.objects.filter(instances__tagstructure__tag=self.instance.tag)
 
             for existing_structure in existing_structures:
-                structure_instance = Structure.objects.get(
+                structure_instances = Structure.objects.filter(
                     template=existing_structure, tagstructure__tag=self.instance.tag,
                 )
-                if existing_structure not in structures:
-                    empty_structure = not structure_instance.tagstructure_set.filter(
-                        tag__versions__type__archive_type=False
-                    ).exists()
-                    if not empty_structure:
-                        raise serializers.ValidationError(_("Non-empty structures cannot be deleted from archives"))
-                    else:
-                        TagStructure.objects.filter(structure=structure_instance).delete()
-                        structure_instance.delete()
+                for structure_instance in structure_instances:
+                    if existing_structure not in structures:
+                        empty_structure = not structure_instance.tagstructure_set.filter(
+                            tag__versions__type__archive_type=False
+                        ).exists()
+                        if not empty_structure:
+                            raise serializers.ValidationError(
+                                _("Non-empty structures cannot be deleted from archives"))
+                        else:
+                            TagStructure.objects.filter(structure=structure_instance).delete()
+                            structure_instance.delete()
 
         return structures
 

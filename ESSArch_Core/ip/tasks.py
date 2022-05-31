@@ -182,6 +182,10 @@ def PrepareAIP(self, sip_path):
         package_type=InformationPackage.SIP
     ).first()
     xmlfile = sip_path.with_suffix('.xml')
+    if os.path.exists(xmlfile):
+        xmlfile_posix = xmlfile.as_posix()
+    else:
+        xmlfile_posix = ''
 
     if existing_sip is None:
         parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
@@ -203,7 +207,7 @@ def PrepareAIP(self, sip_path):
                 submission_agreement=sa,
                 submission_agreement_locked=True,
                 object_path=sip_path.as_posix(),
-                package_mets_path=xmlfile.as_posix(),
+                package_mets_path=xmlfile_posix,
             )
 
             member = Member.objects.get(django_user=user)
@@ -233,7 +237,7 @@ def PrepareAIP(self, sip_path):
             ip.responsible = user
             ip.state = 'Prepared'
             ip.object_path = sip_path.as_posix()
-            ip.package_mets_path = xmlfile.as_posix()
+            ip.package_mets_path = xmlfile_posix
 
     ip.generation = 0
     ip.aic = InformationPackage.objects.create(

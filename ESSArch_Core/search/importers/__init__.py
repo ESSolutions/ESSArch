@@ -2,9 +2,7 @@ import importlib
 
 from django.conf import settings
 
-AVAILABLE_IMPORTERS = {
-    'eard_erms': 'ESSArch_Core.search.importers.earderms.EardErmsImporter',
-}
+AVAILABLE_IMPORTERS = {}
 
 extra_importers = getattr(settings, 'ESSARCH_IMPORTERS', {})
 AVAILABLE_IMPORTERS.update(extra_importers)
