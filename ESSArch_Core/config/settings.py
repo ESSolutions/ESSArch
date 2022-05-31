@@ -32,16 +32,8 @@ if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
 
-
 # Workflow Pollers
-ESSARCH_WORKFLOW_POLLERS = {
-    'dir': {
-        'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
-        'path': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
-        'sa': 'SE SA Delivery API US',
-    }
-}
-
+ESSARCH_WORKFLOW_POLLERS = {}
 
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
@@ -81,6 +73,8 @@ PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
 
+# Add support to extract zipfiles with "\" as separator in pathname components
+OS_PATH_ALTSEP = "\\"
 
 # Application definition
 

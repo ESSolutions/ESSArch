@@ -59,33 +59,6 @@
                     ]
                 }
             ]
-        },
-        {
-            "-name": "makulerat",
-            "#content": "{{makulerat}}"
-        },
-        {
-            "-name": "ärenden",
-            "-children": [
-                {
-                    "-name": "ärende",
-                    "-foreach": "ärenden",
-                    "-attr": [
-                        {
-                            "-name": "ArkivobjektID",
-                            "#content": "{{ArkivobjektID}}"
-                        },
-                        {
-                            "-name": "id",
-                            "#content": "{{id}}"
-                        },
-                        {
-                            "-name": "Recno",
-                            "#content": "{{Recno}}"
-                        }
-                    ]
-                }
-            ]
         }
     ]
 }

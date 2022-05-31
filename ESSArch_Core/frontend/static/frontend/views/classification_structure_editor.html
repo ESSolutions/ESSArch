@@ -87,6 +87,8 @@
                 <th class="cursor-pointer" st-sort="create_date">{{'CREATE_DATE' | translate}}</th>
                 <th class="cursor-pointer" st-sort="type">{{'TYPE' | translate}}</th>
                 <th>{{'ACCESS.VERSION' | translate}}</th>
+                <th>{{'START_DATE' | translate}}</th>
+                <th>{{'END_DATE' | translate}}</th>
                 <th class="white-space-nowrap shrink" permission permission-only="'tags.delete_structure'">
                   {{'REMOVE' | translate}}
                 </th>
@@ -110,6 +112,8 @@
                 <td>{{x.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                 <td>{{x.type.name}}</td>
                 <td>{{x.version}}</td>
+                <td>{{x.start_date | date:"yyyy-MM-dd"}}</td>
+                <td>{{x.end_date | date:"yyyy-MM-dd"}}</td>
                 <td class="text-center shrink" permission permission-only="'tags.delete_structure'">
                   <button
                     class="fas fa-trash-alt btn btn-default btn-sm"

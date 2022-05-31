@@ -1110,19 +1110,6 @@ class InformationPackage(models.Model):
                                 "name": "ESSArch_Core.ip.tasks.WriteInformationPackageToSearchIndex",
                                 "label": "Write to search index",
                                 "if": write_to_search_index,
-                            },
-                            {
-                                "name": "ESSArch_Core.ip.tasks.CreateReceipt",
-                                "label": "Create receipt",
-                                "args": [
-                                    None,
-                                    "xml",
-                                    "receipts/xml.json",
-                                    "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-                                    "success",
-                                    "Cached and indexed {{OBJID}}",
-                                    "Cached and indexed {{OBJID}}",
-                                ],
                             }
                         ]
                     },

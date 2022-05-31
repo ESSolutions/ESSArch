@@ -765,7 +765,7 @@ def RunWorkflowPollers(self):
                         continue
                     raise
 
-                yield create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                yield create_workflow(spec['tasks'], ip=ip, name=profile.label,
                                       on_error=spec.get('on_error'), context=context)
 
     self.logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
