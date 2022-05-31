@@ -124,10 +124,15 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: set pythonpath
+        run: |
+          echo "PYTHONPATH2=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+
       - name: Install
         run: |
-          echo "PYTHONPATH=~/config" >> $GITHUB_ENV
+          echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
           echo "PYTHONPATH: ${{ env.PYTHONPATH }}"
+          echo "PYTHONPATH2: ${{ env.PYTHONPATH2 }}"
           sudo pwd
           sudo ls -l
           sudo ls -l ~
