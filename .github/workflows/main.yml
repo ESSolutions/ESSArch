@@ -126,16 +126,12 @@ jobs:
 
       - name: Install
         run: |
+          echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
           mkdir -p log
           mkdir -p config
           python -m pip install --upgrade pip wheel setuptools
           pip install -e .[docs]
-          pwd
           essarch settings generate -qp config/local_essarch_settings.py
-          pwd
-          ls -l
-          ls -l config
-          ls -l log
 
       - name: Build
         run: |
