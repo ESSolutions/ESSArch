@@ -171,7 +171,6 @@ jobs:
 
       - name: Set PYTHONPATH
         run: |
-          pwd
           echo "PYTHONPATH=D:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Get yarn cache
@@ -211,7 +210,6 @@ jobs:
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
-          pwd
           mkdir config
           mkdir log
           essarch settings generate -qp config/local_essarch_settings.py
@@ -386,10 +384,7 @@ jobs:
           pip check
           mkdir config
           mkdir log
-          pwd
           essarch settings generate --overwrite -qp config/local_essarch_settings.py
-          sudo mkdir -p /ESSArch/log
-          sudo chmod 777 /ESSArch/log/
 
           wget https://github.com/mozilla/geckodriver/releases/download/v0.29.1/geckodriver-v0.29.1-linux64.tar.gz
           tar -xvzf geckodriver*

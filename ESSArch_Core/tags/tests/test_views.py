@@ -1919,7 +1919,8 @@ class CreateArchiveTests(ESSArchSearchBaseTestCase):
             record_status=Agent.DRAFT,
             create_date=timezone.now(),
         )
-        structure = Structure.objects.create(is_template=True, published=True, type=StructureType.objects.create())
+        structure = Structure.objects.create(is_template=True, published=True,
+                                             published_date=timezone.now(), type=StructureType.objects.create())
 
         tag_version_type = TagVersionType.objects.create(archive_type=True)
         note_type = NodeNoteType.objects.create()
