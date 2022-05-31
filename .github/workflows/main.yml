@@ -123,19 +123,26 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: '3.9'
+        run: |
+          echo "PYTHONPATH=~/config" >> $GITHUB_ENV
 
       - name: Install
         run: |
+          echo "PYTHONPATH: ${{ env.PYTHONPATH }}"
           sudo pwd
           sudo ls -l
-          sudo mkdir -p ../../ESSArch/log/
-          sudo chmod 777 ../../ESSArch/log/
+          sudo ls -l ~
+          sudo mkdir -p log
+          sudo chmod 777 log
+          sudo mkdir -p config
+          sudo chmod 777 config
           python -m pip install --upgrade pip wheel setuptools
           pip install -e .[docs]
           pwd
-          essarch settings generate -qp local_essarch_settings.py
+          essarch settings generate -qp config/local_essarch_settings.py
           pwd
           ls -l
+          ls -l config
           ls -l ../../
           ls -l ../../ESSArch
 
