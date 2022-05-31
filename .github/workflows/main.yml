@@ -126,16 +126,18 @@ jobs:
 
       - name: Install
         run: |
-          sudo mkdir -p ../ESSArch/log/
-          sudo chmod 777 ../ESSArch/log/
+          sudo pwd
+          sudo ls -l
+          sudo mkdir -p ../../ESSArch/log/
+          sudo chmod 777 ../../ESSArch/log/
           python -m pip install --upgrade pip wheel setuptools
           pip install -e .[docs]
           pwd
           essarch settings generate -qp local_essarch_settings.py
           pwd
           ls -l
-          ls -l ../
-          ls -l ../ESSArch
+          ls -l ../../
+          ls -l ../../ESSArch
 
       - name: Build
         run: |
