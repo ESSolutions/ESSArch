@@ -304,6 +304,7 @@ def GenerateContentMetadata(self):
         premis_path = parseContent(ip.get_premis_file_path(), data)
         msg = '{msg} and {xml}'.format(msg=msg, xml=premis_path)
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, event_type=50600)

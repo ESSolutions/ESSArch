@@ -167,6 +167,24 @@ class AgentManager(models.Manager):
             AgentNote.objects.bulk_create(AgentNote(agent=agent, note=n) for n in notes)
         return agent
 
+    def from_agent_dict(self, agent_dict, agent_role, agent_type):
+        other_role = agent_dict.get("other_role") is True
+        other_type = agent_dict.get("other_type") is True
+        name = agent_dict.get('name')
+        notes = agent_dict.get('notes')
+
+        existing_agents_with_notes = self.model.objects.all().with_notes(notes)
+        agent, created = self.model.objects.get_or_create(
+            role=agent_role,
+            type=agent_type,
+            name=name,
+            pk__in=existing_agents_with_notes,
+            defaults={'other_role': other_role, 'other_type': other_type},
+        )
+        if created:
+            AgentNote.objects.bulk_create(AgentNote(agent=agent, note=n) for n in notes)
+        return agent
+
 
 class Agent(models.Model):
     role = models.CharField(max_length=255)
@@ -852,6 +870,11 @@ class InformationPackage(models.Model):
             aip_profile_rel_data = self.get_profile_rel('aip').data
             aip_profile_rel_data.data.update(sip_mets_data)
             aip_profile_rel_data.save()
+
+    def update_ip_profile_rel_data(self, profile_rel_data, profile_type='aip'):
+        ip_profile_rel_data = self.get_profile_rel(profile_type).data
+        ip_profile_rel_data.data.update(profile_rel_data)
+        ip_profile_rel_data.save()
 
     def related_ips(self, cached=True):
         if self.package_type == InformationPackage.AIC:

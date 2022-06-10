@@ -269,6 +269,8 @@ class AgentSerializer(serializers.ModelSerializer):
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
+        except GroupGenericObjects.MultipleObjectsReturned:
+            return None
 
     class Meta:
         model = Agent
