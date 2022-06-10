@@ -108,7 +108,7 @@ export default class ArchiveModalInstanceCtrl {
       return $http({
         url: appConfig.djangoUrl + 'structures/',
         mathod: 'GET',
-        params: {page: 1, page_size: 10, search: search, is_template: true, published: true, latest_version: true},
+        params: {page: 1, page_size: 10, search: search, is_template: true, published: true, latest_version: false},
       }).then(function (response) {
         StructureName.parseStructureNames(response.data);
         $ctrl.options.structures = response.data;
