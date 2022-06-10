@@ -1327,8 +1327,7 @@ structure_unit.id: {}, parent: {}'.format(self.tag_id, new_structure, new_struct
                 raise
 
         logger.debug('Create TS with tag_id: {}, structure: {}, structure.id: {}, structure_unit: {}, \
-structure_unit.id: {}, parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit,
-                                          new_unit.id, new_parent_tag))
+parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_parent_tag))
 
         return TagStructure.objects.create(
             tag_id=self.tag_id, structure=new_structure,
