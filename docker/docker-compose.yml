@@ -116,7 +116,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        datasette -h 0.0.0.0 -p 8001
+        /code/docker/docker-entrypoint-datasette.sh
     ports:
       - 8001:8001        
     restart: on-failure
