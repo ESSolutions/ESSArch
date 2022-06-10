@@ -609,6 +609,8 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
+        except GroupGenericObjects.MultipleObjectsReturned:
+            return None
 
     def get_name_with_dates(self, obj):
         return obj.get_name_with_dates()
