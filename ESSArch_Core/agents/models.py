@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from countries_plus.models import Country
@@ -11,6 +12,8 @@ from languages_plus.models import Language
 
 from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.managers import OrganizationManager
+
+logger = logging.getLogger('essarch')
 
 
 class AgentRelationType(models.Model):
@@ -159,7 +162,15 @@ class Agent(models.Model):
 
     def get_organization(self):
         ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        try:
+            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        except GroupGenericObjects.MultipleObjectsReturned as e:
+            gg_objs = GroupGenericObjects.objects.filter(object_id=self.pk, content_type=ctype)
+            group_list = [x.group for x in gg_objs]
+            message_info = 'Expected one GroupGenericObject for organization (agent: {}) but got multiple gg_objs \
+with folowing groups: {}'.format(self, group_list)
+            logger.warning(message_info)
+            raise e
 
         return gg_obj
 

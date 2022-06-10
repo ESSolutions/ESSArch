@@ -182,7 +182,11 @@ def parse_mets(xmlfile):
         agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
         name = a.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in a.xpath('*[local-name()="note"]')]
-        data['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
+        if len(notes) == 1:
+            if notes[0] is None:
+                notes = []
+        data['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {
+            'name': name, 'notes': notes, 'other_role': other_role, 'other_type': other_type}
 
     return data
 
@@ -250,7 +254,11 @@ def parse_submit_description(xmlfile, srcdir=''):
         agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
         name = a.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in a.xpath('*[local-name()="note"]')]
-        ip['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
+        if len(notes) == 1:
+            if notes[0] is None:
+                notes = []
+        ip['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {
+            'name': name, 'notes': notes, 'other_role': other_role, 'other_type': other_type}
 
     try:
         ip['system_version'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][0],

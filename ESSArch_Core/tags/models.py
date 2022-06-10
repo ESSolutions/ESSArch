@@ -687,15 +687,27 @@ class StructureUnit(MPTTModel):
 
     def get_related_in_other_structure(self, other_structure):
         structure = self.structure
+        logger.debug('other_structure: {}, other_structure.is_template: {}, other_structure.template: {}, \
+other_structure.id: {}'.format(other_structure, other_structure.is_template, other_structure.template,
+                               other_structure.id))
         other_structure_template = other_structure if other_structure.is_template else other_structure.template
+        logger.debug('self: {}, structure.is_template: {}, self.template: {}'.format(self, structure.is_template,
+                                                                                     self.template))
 
         template_unit = self if structure.is_template else self.template
-        template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+        if template_unit is not None:
+            template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+        else:
+            # if not StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure
+            #   ).exists():
+            #    self.copy_to_structure(other_structure)
+            # return StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure)
+            template_units = []
 
         if other_structure.is_template:
             return template_units
 
-        return StructureUnit.objects.filter(template__in=template_units)
+        return StructureUnit.objects.filter(template__in=template_units, structure=other_structure)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
@@ -1301,6 +1313,21 @@ class TagStructure(MPTTModel):
             except StructureUnit.DoesNotExist:
                 logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
                 raise
+            except StructureUnit.MultipleObjectsReturned:
+                new_units = self.structure_unit.get_related_in_other_structure(new_structure).all()
+                new_units_list = [[x, x.id, x.name, x.parent, x.structure] for x in new_units]
+                logger.debug('Structure unit MultipleObjectsReturned: {} , self: {}, self.id: {}, \
+self.structure_unit: {},  self.structure_unit.id: {}, new structure {}'.format(new_units_list, self, self.id,
+                                                                               self.structure_unit,
+                                                                               self.structure_unit.id, new_structure))
+                for new_unit in new_units:
+                    logger.debug('TS x with tag_id: {}, structure: {}, structure.id: {}, structure_unit: {}, \
+structure_unit.id: {}, parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_unit.id,
+                                          new_parent_tag))
+                raise
+
+        logger.debug('Create TS with tag_id: {}, structure: {}, structure.id: {}, structure_unit: {}, \
+parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_parent_tag))
 
         return TagStructure.objects.create(
             tag_id=self.tag_id, structure=new_structure,
@@ -1310,6 +1337,7 @@ class TagStructure(MPTTModel):
     @transaction.atomic
     def copy_descendants_to_new_structure(self, new_structure):
         for old_descendant in self.get_descendants(include_self=False):
+            logger.debug('old_descendant: {} copy to new_structure: {}'.format(old_descendant, new_structure))
             old_descendant.copy_to_new_structure(new_structure)
 
     def create_new(self, representation):
