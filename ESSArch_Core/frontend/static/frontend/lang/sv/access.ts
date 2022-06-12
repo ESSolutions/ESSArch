@@ -3,6 +3,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     ACCESS: {
       ACCESS: 'Åtkomst',
+      ACCESS_AID: 'Sökingång',
       ADD_ACCESS_AID: 'Lägg till sökingång',
       ADD_FIELD: 'Lägg till fält',
       ADD_FIRST_LEVEL_LOCATION: 'Lägg till placering på första nivån',

@@ -171,7 +171,7 @@ export default class AgentCtrl {
     };
 
     vm.archiveClick = function (agentArchive) {
-      $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
+      $state.go('home.archivalDescriptions.search.component', {id: agentArchive.archive._id});
     };
 
     vm.agentPipe = function (tableState) {
