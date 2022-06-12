@@ -1296,6 +1296,8 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
 
             for structure in structures:
                 structure_instance, _ = structure.create_template_instance(tag)
+                structure_instance.create_date = timezone.now()
+                structure_instance.save()
                 for instance_unit in structure_instance.units.all():
                     StructureUnitDocument.from_obj(instance_unit).save()
 
@@ -1326,8 +1328,14 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
 
         with transaction.atomic():
             for structure in structures:
-                if not TagStructure.objects.filter(tag=instance.tag, structure__template=structure).exists():
+                try:
+                    ts = TagStructure.objects.get(tag=instance.tag, structure__template=structure)
+                    ts.structure.create_date = timezone.now()
+                    ts.structure.save()
+                except TagStructure.DoesNotExist:
                     structure_instance, _ = structure.create_template_instance(instance.tag)
+                    structure_instance.create_date = timezone.now()
+                    structure_instance.save()
                     for instance_unit in structure_instance.units.all():
                         StructureUnitDocument.from_obj(instance_unit).save()
 

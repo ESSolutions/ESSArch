@@ -3,6 +3,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('en', {
     ACCESS: {
       ACCESS: 'Access',
+      ACCESS_AID: 'Access aid',
       ADD_ACCESS_AID: 'Add access aid',
       ADD_FIELD: 'Add field',
       ADD_FIRST_LEVEL_LOCATION: 'Add first level location',
