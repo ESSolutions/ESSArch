@@ -188,13 +188,26 @@ class StructureSerializer(serializers.ModelSerializer):
     related_structures = StructureRelationSerializer(
         source='structure_relations_a', many=True, required=False
     )
+    archive_name = serializers.SerializerMethodField(read_only=True)
+    instances_num = serializers.SerializerMethodField(read_only=True)
+
+    def get_archive_name(self, obj):
+        tag_structure = obj.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.name
+        return None
+
+    def get_instances_num(self, obj):
+        return obj.instances.all().count()
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'type', 'description', 'template', 'is_template', 'version',
-                  'create_date', 'revise_date', 'start_date', 'end_date', 'specification',
-                  'rule_convention_type', 'created_by', 'revised_by', 'published', 'published_date',
-                  'related_structures', 'is_editable',)
+        fields = ('id', 'name', 'type', 'description', 'template', 'is_template', 'version', 'version_link',
+                  'create_date', 'revise_date', 'start_date', 'end_date', 'specification', 'rule_convention_type',
+                  'created_by', 'revised_by', 'published', 'published_date', 'related_structures', 'is_editable',
+                  'archive_name', 'instances', 'instances_num')
         extra_kwargs = {
             'is_template': {'read_only': True},
             'template': {'read_only': True},

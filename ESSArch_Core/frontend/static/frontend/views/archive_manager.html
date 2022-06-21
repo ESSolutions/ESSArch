@@ -77,6 +77,7 @@
               <th st-sort="name">{{'NAME' | translate}}</th>
               <th st-sort="start_date">{{'START_DATE' | translate}}</th>
               <th st-sort="end_date">{{'END_DATE' | translate}}</th>
+              <th>{{'SEARCH' | translate}}</th>
               <th permission permission-only="'tags.change_archive'" class="shrink">{{'EDIT' | translate}}</th>
               <th permission permission-only="'tags.delete_archive'" class="white-space-nowrap shrink">
                 {{'REMOVE' | translate}}
@@ -93,6 +94,12 @@
               <td>{{x.current_version.name}}</td>
               <td>{{x.current_version.start_date | date:"yyyy-MM-dd"}}</td>
               <td>{{x.current_version.end_date | date:"yyyy-MM-dd"}}</td>
+              <td class="text-center shrink">
+                <button
+                  class="fas fa-search btn btn-default btn-sm"
+                  ng-click="$event.stopPropagation(); vm.searchClick(x)"
+                ></button>
+              </td>
               <td class="text-center shrink" permission permission-only="'tags.change_archive'">
                 <button
                   class="fas fa-edit btn btn-default btn-sm"
