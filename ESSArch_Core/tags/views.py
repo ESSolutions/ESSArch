@@ -261,10 +261,11 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.published:
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
-        try:
-            obj.is_compatible_with_last_version()
-        except AssertionError:
-            raise exceptions.ParseError(_('Can only publish latest version'))
+        if obj.is_new_version():
+            try:
+                obj.is_compatible_with_last_version()
+            except AssertionError:
+                raise exceptions.ParseError(_('Can only publish latest version'))
 
         t = ProcessTask.objects.create(
             name='ESSArch_Core.tags.tasks.PublishStructure',
