@@ -460,6 +460,7 @@ CELERY_IMPORTS = (
     "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.storage.tasks",
+    "ESSArch_Core.tags.tasks",
     "ESSArch_Core.tasks",
     "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",

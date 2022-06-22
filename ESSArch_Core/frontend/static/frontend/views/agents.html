@@ -566,6 +566,7 @@
                           <th class="cursor-pointer" st-sort="start_date">
                             {{'ACCESS.RELATIONSHIP_TIME_RANGE' | translate}}
                           </th>
+                          <th>{{'SEARCH' | translate}}</th>
                           <th permission permission-only="'agents.change_agent'" class="shrink">
                             {{'EDIT' | translate}}
                           </th>
@@ -590,6 +591,12 @@
                               {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
                               date:x.type.date_render_format}}
                             </div>
+                          </td>
+                          <td class="text-center shrink">
+                            <button
+                              class="fas fa-search btn btn-default btn-sm"
+                              ng-click="$event.stopPropagation(); vm.searchClick(x)"
+                            ></button>
                           </td>
                           <td permission permission-only="'agents.change_agent'" class="text-center shrink">
                             <button

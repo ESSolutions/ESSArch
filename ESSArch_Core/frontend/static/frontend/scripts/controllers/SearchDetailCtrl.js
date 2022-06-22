@@ -58,9 +58,11 @@ export default class SearchDetailCtrl {
     };
 
     vm.structureChanged = (structure) => {
-      if (structure !== null) {
-        vm.loadRecordAndTree(structure);
-      }
+      $state.go(
+        'home.archivalDescriptions.search.component',
+        {id: vm.record._id, structure: structure},
+        {notify: false}
+      );
     };
 
     vm.loadRecordAndTree = function (structure) {
@@ -82,11 +84,6 @@ export default class SearchDetailCtrl {
         vm.structureId = structure ? structure : vm.record.structure;
         if (!vm.record._is_structure_unit) {
           vm.parseAgents(vm.record);
-          $state.go(
-            'home.archivalDescriptions.search.component',
-            {id: vm.record._id, structure: vm.structureId},
-            {notify: false}
-          );
         }
         const startNode = data;
         let archiveId = null;

@@ -84,6 +84,7 @@ from ESSArch_Core.tags.serializers import (
     TransferSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
@@ -260,11 +261,22 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.published:
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
-        try:
-            obj.publish()
-        except AssertionError:
-            raise exceptions.ParseError(_('Can only publish latest version'))
-        return Response()
+        if obj.is_new_version():
+            try:
+                obj.is_compatible_with_last_version()
+            except AssertionError:
+                raise exceptions.ParseError(_('Can only publish latest version'))
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tags.tasks.PublishStructure',
+            params={
+                'structure_id': obj.id
+            },
+            eager=False,
+            responsible=request.user,
+        )
+        t.run()
+        return Response({"detail": "Publish structure", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
 
     @transaction.atomic
     @permission_required_or_403('tags.unpublish_structure')
@@ -328,6 +340,15 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             dicts.append(mptt_to_dict(n, StructureUnitSerializer, context=context))
 
         return Response(dicts)
+
+    @action(detail=True, methods=['get'])
+    def instancestree(self, request, pk=None):
+        obj = self.get_object()
+        qs = obj.instances.all()
+        root_nodes = qs
+        context = self.get_serializer_context()
+
+        return Response(StructureSerializer(root_nodes, many=True, context=context).data)
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')

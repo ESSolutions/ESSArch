@@ -114,8 +114,14 @@ export default class ArchiveManagerCtrl {
       } else {
         vm.archiveLoading = true;
         vm.record = {_id: archive.current_version.id};
-        $state.go('home.archivalDescriptions.search.component', {id: vm.record._id});
+        $state.go('home.archivalDescriptions.archiveManager.detail', {id: vm.record._id});
       }
+    };
+
+    vm.searchClick = function (archive) {
+      vm.archiveLoading = true;
+      vm.record = {_id: archive.current_version.id};
+      $state.go('home.archivalDescriptions.search.component', {id: vm.record._id});
     };
 
     vm.getArchive = function (id) {
