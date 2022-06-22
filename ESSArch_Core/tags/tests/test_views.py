@@ -488,7 +488,7 @@ class PublishStructureTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(url)
 
-        self.assertEqual(response.status_code, status.HTTP_202_OK)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         structure.refresh_from_db()
         self.assertTrue(structure.published)
         self.assertIsNotNone(structure.published_date)
