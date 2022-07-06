@@ -34,7 +34,7 @@ elasticsearch==7.13.4
 elasticsearch-dsl==7.4.0
 glob2==0.7
 jsonfield2==4.0.0.post0
-lxml==4.8.0
+lxml==4.9.1
 msoffcrypto-tool==5.0.0
 natsort==8.1.0
 opf-fido==1.4.1
