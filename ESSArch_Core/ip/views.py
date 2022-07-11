@@ -949,9 +949,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Ingest Workarea']:
-            raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploading", "Received" or "Ingest Workarea"')
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
+                            'Access Workarea']:
+            # if ip.state not in ['Access Workarea']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
+"Preserved" or "Access Workarea"')
+            # 'IP must be in state "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1002,9 +1005,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_path='actiontool_save')
     def save_actiontool_copy(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Ingest Workarea']:
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
+                            'Access Workarea']:
+            # if ip.state not in ['Access Workarea']:
             raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploading", "Received" or "Ingest Workarea"')
+                'IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
+"Preserved" or "Access Workarea"')
+            # 'IP must be in state "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
