@@ -17,7 +17,7 @@ def get_result(step, reference):
     return results[reference]
 
 
-def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
+def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
     for on_error_idx, on_error in enumerate(errors):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
@@ -33,6 +33,7 @@ def _create_on_error_tasks(errors, ip=None, responsible=None, eager=False, statu
             eager=eager,
             information_package=ip,
             responsible=responsible,
+            processstep=parent_step,
             processstep_pos=on_error_idx,
             status=status,
         )
@@ -66,7 +67,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             )
 
             on_error_tasks = list(_create_on_error_tasks(
-                flow_entry.get('on_error', []), ip=ip, responsible=responsible,
+                child_s, flow_entry.get('on_error', []), ip=ip, responsible=responsible,
                 eager=parent_step.eager
             ))
             ProcessTask.objects.bulk_create(on_error_tasks)
@@ -101,7 +102,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             )
 
             on_error_tasks = list(
-                _create_on_error_tasks(flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+                _create_on_error_tasks(parent_step, flow_entry.get('on_error', []), ip=ip, responsible=responsible)
             )
             ProcessTask.objects.bulk_create(on_error_tasks)
             task.on_error.add(*on_error_tasks)
@@ -121,7 +122,7 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
             root_step = ProcessStep.objects.create(name=name, eager=eager, information_package=ip, context=context)
 
             on_error_tasks = list(_create_on_error_tasks(
-                on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
+                root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
             ProcessTask.objects.bulk_create(on_error_tasks)
             root_step.on_error.add(*on_error_tasks)
 

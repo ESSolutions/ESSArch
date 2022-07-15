@@ -1247,7 +1247,15 @@ class TagVersion(models.Model):
 
     def get_organization(self):
         ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        try:
+            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        except GroupGenericObjects.MultipleObjectsReturned as e:
+            gg_objs = GroupGenericObjects.objects.filter(object_id=self.pk, content_type=ctype)
+            group_list = [x.group for x in gg_objs]
+            message_info = 'Expected one GroupGenericObject for organization (TagVersion: {}) but got multiple gg_objs \
+with folowing groups: {}'.format(self, group_list)
+            logger.warning(message_info)
+            raise e
 
         return gg_obj
 

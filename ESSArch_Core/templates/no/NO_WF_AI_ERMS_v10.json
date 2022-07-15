@@ -7,14 +7,14 @@
 				"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 				"label": "Create XML receipt",
 				"hidden": true,
-				"args": [
-					"xml",
-					"receipts/xml.json",
-					"{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-					"error",
-					"Failed to preserve {{OBJID}}",
-					"Preservation of {{OBJID}} failed"
-				]
+				"params": {
+					"backend": "xml",
+					"template": "receipts/xml.json",
+					"destination": "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+					"outcome": "error",
+					"short_message": "Failed to receive and/or preserve {{OBJID}}",
+					"message": "Failed to receive and/or preserve {{OBJID}} during Ingest process"
+				}
 			}
 		],
 		"tasks": [
@@ -279,15 +279,15 @@
 				"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 				"label": "Create XML receipt",
 				"hidden": false,
-				"args": [
-					null,
-					"xml",
-					"receipts/xml.json",
-					"{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-					"success",
-					"Preserved {{OBJID}}",
-					"{{OBJID}} is now preserved"
-				]
+				"params": {
+					"task_id": null,
+					"backend": "xml",
+					"template": "receipts/xml.json",
+					"destination": "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+					"outcome": "success",
+					"short_message": "Preserved {{OBJID}}",
+					"message": "Delivery {{OBJID}} is now preserved"
+				}
 			}
 		]
 	}

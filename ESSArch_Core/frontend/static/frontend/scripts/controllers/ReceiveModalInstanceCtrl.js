@@ -70,9 +70,9 @@ export default class ReceiveModalInstanceCtrl {
             if (error.status === 404) {
               ipSaMap[key].forEach((x) => {
                 let ip = $ctrl.getIpById(ips, x);
-                ip.sa = null;
+                //ip.sa = null;
                 ip.saLoading = false;
-                ip.hasValidSa = false;
+                //ip.hasValidSa = false;
               });
             }
           });

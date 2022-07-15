@@ -265,7 +265,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             try:
                 obj.is_compatible_with_last_version()
             except AssertionError:
-                raise exceptions.ParseError(_('Can only publish latest version'))
+                raise exceptions.ParseError(_('Structure is not compatible with latest publish version'))
 
         t = ProcessTask.objects.create(
             name='ESSArch_Core.tags.tasks.PublishStructure',
