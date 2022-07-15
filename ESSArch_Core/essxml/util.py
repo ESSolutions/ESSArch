@@ -150,7 +150,10 @@ def get_objectpath(el):
             try:
                 return val.split('file:///')[1]
             except IndexError:
-                return val
+                try:
+                    return val.split('file:')[1]
+                except IndexError:
+                    return val
     except IndexError:
         return None
 

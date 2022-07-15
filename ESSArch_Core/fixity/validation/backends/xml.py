@@ -57,17 +57,18 @@ class DiffCheckValidator(BaseValidator):
                 logical_path = logical.path
             logical_path = win_to_posix(logical_path)
 
-            try:
-                self.initial_deleted[logical.checksum].append(logical_path)
-            except KeyError:
-                self.initial_deleted[logical.checksum] = [logical_path]
-            try:
-                self.initial_present[logical.checksum].append(logical_path)
-            except KeyError:
-                self.initial_present[logical.checksum] = [logical_path]
-            self.checksums[logical_path] = logical.checksum
-            self.checksum_algorithms[logical_path] = logical.checksum_type
-            self.sizes[logical_path] = logical.size
+            if logical_path not in self.exclude:
+                try:
+                    self.initial_deleted[logical.checksum].append(logical_path)
+                except KeyError:
+                    self.initial_deleted[logical.checksum] = [logical_path]
+                try:
+                    self.initial_present[logical.checksum].append(logical_path)
+                except KeyError:
+                    self.initial_present[logical.checksum] = [logical_path]
+                self.checksums[logical_path] = logical.checksum
+                self.checksum_algorithms[logical_path] = logical.checksum_type
+                self.sizes[logical_path] = logical.size
 
     def _reset_dicts(self):
         self.present = copy.deepcopy(self.initial_present)

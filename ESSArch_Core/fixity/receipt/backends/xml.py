@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 
 from django.template.loader import get_template
 from django.utils import timezone
@@ -11,6 +12,7 @@ from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.fixity.serializers import ValidationSerializer
 from ESSArch_Core.profiles.utils import fill_specification_data
+from ESSArch_Core.storage.copy import copy_file
 
 logger = logging.getLogger('essarch.core.fixity.receipt.xml')
 
@@ -33,5 +35,10 @@ class XMLReceiptBackend(BaseReceiptBackend):
         files_to_create = {destination: {'spec': spec, 'data': data}}
         XMLGenerator().generate(files_to_create)
         logger.info('XML receipt created: {}'.format(destination))
+        destination2 = kwargs.get('destination2', '')
+        if destination2:
+            copy_file(destination, destination2)
+            logger.info('XML receipt: {} copied to second destination: {}'.format(
+                os.path.basename(destination), destination2))
 
         return destination

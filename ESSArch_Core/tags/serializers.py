@@ -916,6 +916,8 @@ class TagVersionSerializer(TagVersionNestedSerializer):
             return serializer.data
         except GroupGenericObjects.DoesNotExist:
             return None
+        except GroupGenericObjects.MultipleObjectsReturned:
+            return None
 
     def get_structures(self, obj):
         structure_ids = obj.tag.structures.values_list('structure', flat=True)
