@@ -8,27 +8,27 @@
 					"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 					"label": "Create XML receipt",
 					"hidden": true,
-					"args": [
-						"xml",
-						"receipts/xml.json",
-						"/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-						"error",
-						"Failed to create {{OBJID}}",
-						"Creation of {{OBJID}} failed"
-					]
+					"params": {
+						"backend": "xml",
+						"template": "receipts/xml.json",
+						"destination": "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+						"outcome": "error",
+						"short_message": "Failed to receive and/or preserve {{OBJID}}",
+						"message": "Failed to receive and/or preserve {{OBJID}} during Ingest process"
+					}				
 				},
 				{
 					"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 					"label": "Send email receipt",
 					"hidden": true,
-					"args": [
-						"email",
-						"receipts/email.txt",
-						null,
-						"error",
-						"Failed to create {{OBJID}}",
-						"Creation of {{OBJID}} failed"
-					]
+					"params": {
+						"backend": "email",
+						"template": "receipts/email.txt",
+						"destination": null,
+						"outcome": "error",
+						"short_message": "Failed to receive and/or preserve {{OBJID}}",
+						"message": "Failed to receive and/or preserve {{OBJID}} during Ingest process"
+					}
 				}
 			],
 			"tasks": [
@@ -235,27 +235,27 @@
 					"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 					"label": "Create XML receipt",
 					"hidden": true,
-					"args": [
-						"xml",
-						"receipts/xml.json",
-						"/ESSArch/data/receipts/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
-						"error",
-						"Preservation of {{OBJID}} failed",
-						"Failed to preserve {{OBJID}}"
-					]
+					"params": {
+						"backend": "xml",
+						"template": "receipts/xml.json",
+						"destination": "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
+						"outcome": "error",
+						"short_message": "Failed to receive and/or preserve {{OBJID}}",
+						"message": "Failed to receive and/or preserve {{OBJID}} during Ingest process"
+					}
 				},
 				{
 					"name": "ESSArch_Core.ip.tasks.CreateReceipt",
 					"label": "Send email receipt",
 					"hidden": true,
-					"args": [
-						"email",
-						"receipts/email.txt",
-						null,
-						"error",
-						"Failed to preserve {{OBJID}}",
-						"Preservation of {{OBJID}} failed"
-					]
+					"params": {
+						"backend": "email",
+						"template": "receipts/email.txt",
+						"destination": null,
+						"outcome": "error",
+						"short_message": "Failed to receive and/or preserve {{OBJID}}",
+						"message": "Failed to receive and/or preserve {{OBJID}} during Ingest process"
+					}
 				}
 			],
 			"tasks": [

@@ -67,7 +67,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             )
 
             on_error_tasks = list(_create_on_error_tasks(
-                parent_step, flow_entry.get('on_error', []), ip=ip, responsible=responsible,
+                child_s, flow_entry.get('on_error', []), ip=ip, responsible=responsible,
                 eager=parent_step.eager
             ))
             ProcessTask.objects.bulk_create(on_error_tasks)
