@@ -64,6 +64,7 @@ from ESSArch_Core.util import (
     creation_date,
     delete_path,
     find_destination,
+    run_shell_command,
     timestamp_to_datetime,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -130,9 +131,14 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
         with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
             logger.debug('Extracting {} to {}'.format(container, tmpdir))
             if container_type == '.tar':
-                with tarfile.open(container) as tar:
-                    root_member_name = tar.getnames()[0]
-                    tar.extractall(tmpdir)
+                try:
+                    with tarfile.open(container) as tar:
+                        root_member_name = tar.getnames()[0]
+                        tar.extractall(tmpdir)
+                except NotADirectoryError as e:
+                    logger.warning('Problem to extract tarfile: {} (trying to run shell tar extract), error: {}\
+'.format(container, e))
+                    run_shell_command(['tar', 'xvf', container], tmpdir)
             elif container_type == '.zip':
                 with zipfile.ZipFile(container) as zipf:
                     os.path.altsep = getattr(settings, 'OS_PATH_ALTSEP', None)

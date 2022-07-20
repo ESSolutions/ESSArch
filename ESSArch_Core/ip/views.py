@@ -2642,7 +2642,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                             {
                                 "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                                 "label": "Diff-check against package-mets",
-                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
+                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}",
+                                         ['{{_INNER_IP_PATH}}/dias-mets.xml']],
                             },
                             {
                                 "name": "ESSArch_Core.tasks.ValidateXMLFile",
