@@ -1,4 +1,3 @@
-import collections
 import os
 from collections.abc import Mapping
 from pathlib import PurePath
@@ -82,7 +81,7 @@ def _remove_leading_underscores(d):
 
     for k, v in d.items():
         new_key = k.lstrip('_')
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             new_mapping[new_key] = _remove_leading_underscores(v)
         else:
             new_mapping[new_key] = v
