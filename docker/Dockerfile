@@ -83,10 +83,10 @@ RUN apt-get update && apt-get install -y \
     watchman
 
 ADD requirements/optional.txt /code/requirements/optional.txt
-ADD requirements/tests.txt /code/requirements/tests.txt
-#RUN pip install --no-cache-dir -r /code/requirements/optional.txt
+#ADD requirements/tests.txt /code/requirements/tests.txt
+RUN pip install --no-cache-dir -r $(grep -v '^ *#\|^mod-wsgi' /code/requirements/optional.txt | grep .)
 #RUN pip install --no-cache-dir -r /code/requirements/tests.txt
-RUN pip install --no-cache-dir -e .[dev,tests,optional]
+RUN pip install --no-cache-dir -e .[dev,tests]
 #RUN pip install --no-cache-dir sentry-sdk
 #RUN pip install --no-cache-dir django-sslserver
 RUN pip install --no-cache-dir datasette
