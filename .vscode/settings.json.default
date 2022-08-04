@@ -38,7 +38,7 @@
       "source.organizeImports": true
     }
   },
-  "esbonio.sphinx.confDir": "${workspaceFolder}\\ESSArch_Core\\docs",
+  "esbonio.sphinx.confDir": "${workspaceFolder}/ESSArch_Core/docs",
   "esbonio.server.enabled": true,
   "[html]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
