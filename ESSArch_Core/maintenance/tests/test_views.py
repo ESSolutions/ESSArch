@@ -651,6 +651,13 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         open(os.path.join(self.datadir, 'test.pdf'), 'a').close()
         open(os.path.join(self.datadir, 'example.txt'), 'a').close()
 
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('application/xml xml xsd')
+
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -1448,6 +1455,14 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         # add non-package files
         open(os.path.join(self.datadir, 'test.docx'), 'a').close()
         open(os.path.join(self.datadir, 'example.mkv'), 'a').close()
+
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('video/x-matroska mpv mkv\n\
+application/xml xml xsd')
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
