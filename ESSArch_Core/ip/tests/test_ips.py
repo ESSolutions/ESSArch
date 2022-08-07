@@ -1784,6 +1784,13 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         )
         self.sa.save()
 
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('application/xml xml xsd')
+
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     def test_preserve_aip(self, mock_validate_schema):
