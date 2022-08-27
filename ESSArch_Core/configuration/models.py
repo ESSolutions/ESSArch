@@ -237,7 +237,8 @@ class StoragePolicy(models.Model):
     preingest_metadata = models.IntegerField('Pre ingest metadata', choices=PREINGEST_METADATA_CHOICES, default=0)
     ingest_metadata = models.IntegerField('Ingest metadata', choices=INGEST_METADATA_CHOICES, default=4)
     information_class = models.IntegerField('Information class', choices=INFORMATION_CLASS_CHOICES, default=0)
-    ingest_path = models.ForeignKey(Path, on_delete=models.PROTECT, related_name='ingest_policy')
+    ingest_path = models.ForeignKey(Path, on_delete=models.PROTECT,
+                                    related_name='ingest_policy', blank=True, null=True)
     ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
     receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
 

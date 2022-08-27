@@ -133,9 +133,43 @@ class StorageMethodSerializer(serializers.ModelSerializer):
 
 
 class StoragePolicySerializer(serializers.ModelSerializer):
-    cache_storage = StorageMethodSerializer()
+    cache_storage = StorageMethodSerializer(allow_null=True)
     storage_methods = StorageMethodSerializer(many=True)
-    ingest_path = PathSerializer()
+    ingest_path = PathSerializer(allow_null=True)
+
+    def create(self, validated_data):
+        storage_method_set_data = validated_data.pop('storage_methods')
+        storage_method_list = []
+
+        for storage_method_data in storage_method_set_data:
+            storage_method_target_set_data = storage_method_data.pop('storage_method_target_relations')
+            storage_method, _ = StorageMethod.objects.update_or_create(
+                id=storage_method_data['id'],
+                defaults=storage_method_data
+            )
+
+            for storage_method_target_data in storage_method_target_set_data:
+                StorageMethodTargetRelation.objects.filter(id=storage_method_target_data['id']).update(status=0)
+
+            for storage_method_target_data in storage_method_target_set_data:
+                storage_target_data = storage_method_target_data.pop('storage_target')
+                storage_target, _ = StorageTarget.objects.update_or_create(
+                    id=storage_target_data['id'],
+                    defaults=storage_target_data
+                )
+                storage_method_target_data['storage_method'] = storage_method
+                storage_method_target_data['storage_target'] = storage_target
+                storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
+                    id=storage_method_target_data['id'],
+                    defaults=storage_method_target_data
+                )
+            storage_method_list.append(storage_method)
+
+        policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
+                                                           defaults=validated_data)
+        policy.storage_methods.set(storage_method_list)
+
+        return policy
 
     class Meta:
         model = StoragePolicy
@@ -153,7 +187,9 @@ class StoragePolicySerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'id': {
+                'read_only': False,
                 'validators': [],
+                'default': uuid.uuid4,
             },
             'policy_id': {
                 'validators': [],
