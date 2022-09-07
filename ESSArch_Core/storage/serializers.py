@@ -88,20 +88,14 @@ class StorageObjectSerializer(serializers.ModelSerializer):
     medium_id = serializers.CharField(source='storage_medium.medium_id')
     target_name = serializers.CharField(source='storage_medium.storage_target.name')
     target_target = serializers.CharField(source='storage_medium.storage_target.target')
-    content_location_value = serializers.SerializerMethodField()
-
-    def get_content_location_value(self, obj):
-        if obj.content_location_type == DISK:
-            return os.path.join(obj.storage_medium.storage_target.target, '%s.tar' % obj.ip.object_identifier_value)
-
-        return obj.content_location_value
+    ip_object_identifier_value = serializers.CharField(source='ip.object_identifier_value', read_only=True)
 
     class Meta:
         model = StorageObject
         fields = (
             'id', 'content_location_type', 'content_location_value', 'last_changed_local',
             'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
-            'container',
+            'container', 'ip_object_identifier_value',
         )
         extra_kwargs = {
             'id': {
@@ -109,6 +103,13 @@ class StorageObjectSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
+
+    def to_representation(self, obj):
+        ret = super().to_representation(obj)
+        if obj.content_location_type == DISK:
+            ret['content_location_value'] = os.path.join(
+                obj.storage_medium.storage_target.target, '%s.tar' % obj.ip.object_identifier_value)
+        return ret
 
 
 class StorageObjectNestedSerializer(StorageObjectSerializer):
