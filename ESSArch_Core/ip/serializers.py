@@ -513,7 +513,7 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
-    aic = InformationPackageAICSerializer(omit=['information_packages'])
+    aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -540,8 +540,11 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
-        aic_data['last_changed_local'] = timezone.now
-        aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
+        if aic_data:
+            aic_data['last_changed_local'] = timezone.now
+            aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
+        else:
+            aic = None
 
         request = self.context.get("request")
         if request and hasattr(request, "user"):
@@ -559,9 +562,9 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
         fields = (
-            'id', 'label', 'object_identifier_value', 'object_size',
-            'object_path', 'package_type', 'responsible', 'create_date',
-            'object_num_items', 'entry_date', 'state', 'status', 'step_state',
+            'id', 'label', 'object_identifier_value', 'object_size', 'object_path',
+            'package_type', 'responsible', 'create_date',
+            'object_num_items', 'entry_date', 'state',
             'archived', 'cached', 'aic', 'generation',
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
