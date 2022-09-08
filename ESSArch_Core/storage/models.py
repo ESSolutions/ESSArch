@@ -718,7 +718,7 @@ class StorageObject(models.Model):
     content_location_type = models.IntegerField(choices=storage_type_CHOICES)
     content_location_value = models.CharField(max_length=255, blank=True)
 
-    last_changed_local = models.DateTimeField(auto_now=True)
+    last_changed_local = models.DateTimeField(default=timezone.now)
     last_changed_external = models.DateTimeField(null=True)
 
     ip = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, related_name='storage',
