@@ -368,7 +368,7 @@ class InformationPackage(models.Model):
     object_identifier_value = models.CharField(max_length=255, unique=True)
     label = models.CharField(max_length=255, blank=True)
     content = models.CharField(max_length=255)
-    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
     state = models.CharField(_('state'), max_length=255)
 
     object_path = models.CharField(max_length=255, blank=True)
