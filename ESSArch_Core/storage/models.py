@@ -681,6 +681,9 @@ class StorageObjectQueryset(models.QuerySet):
             storage_medium__status__in=[20, 30], storage_medium__location_status=50
         )
 
+    def natural_sort(self):
+        return natural_sort(self, 'content_location_value')
+
     def fastest(self):
         container = Case(
             When(container=False, then=Value(1)),

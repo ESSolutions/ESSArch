@@ -32,6 +32,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_MIGRATE,
     StorageMedium,
     StorageMethod,
+    StorageObject,
     medium_type_CHOICES,
     storage_type_CHOICES,
 )
@@ -96,6 +97,31 @@ class StorageMediumFilter(filters.FilterSet):
     class Meta:
         model = StorageMedium
         fields = ('status', 'medium_type', 'storage_type', 'medium_id',)
+
+
+class StorageObjectOrderingFilter(filters.OrderingFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES or 'content_location_value' in value:
+            return qs.natural_sort()
+        elif '-content_location_value' in value:
+            return qs.natural_sort().reverse()
+
+        return super().filter(qs, value)
+
+
+class StorageObjectFilter(filters.FilterSet):
+
+    ordering = StorageObjectOrderingFilter(
+        fields=(
+            ('ip__object_identifier_value', 'ip__object_identifier_value'),
+            ('content_location_value', 'content_location_value'),
+            ('last_changed_local', 'last_changed_local'),
+        ),
+    )
+
+    class Meta:
+        model = StorageObject
+        fields = ('ip__object_identifier_value', 'content_location_value', 'last_changed_local',)
 
 
 class StorageMethodFilter(filters.FilterSet):
