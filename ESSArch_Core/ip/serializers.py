@@ -81,7 +81,7 @@ class EventIPSerializer(serializers.ModelSerializer):
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
     delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
-    transfer = TransferSerializer()
+    transfer = TransferSerializer(required=False)
 
     class Meta:
         model = EventIP
@@ -92,6 +92,9 @@ class EventIPSerializer(serializers.ModelSerializer):
             'linkingAgentRole', 'information_package', 'delivery', 'transfer',
         )
         extra_kwargs = {
+            'id': {
+                'read_only': False,
+            },
             'eventVersion': {
                 'default': VERSION
             }
@@ -514,6 +517,7 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
+    events = EventIPSerializer(many=True, allow_null=True)
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -546,6 +550,11 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         else:
             aic = None
 
+        events_data = validated_data.pop('events')
+        if events_data:
+            for event_data in events_data:
+                event, _ = EventIP.objects.update_or_create(id=event_data['id'], defaults=event_data)
+
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
@@ -569,7 +578,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'appraisal_date',
+            'start_date', 'end_date', 'appraisal_date', 'events',
         )
         extra_kwargs = {
             'id': {
