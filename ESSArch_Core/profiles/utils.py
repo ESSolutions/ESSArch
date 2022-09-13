@@ -203,7 +203,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
             data['_POLICYUUID'] = ip.policy.pk
             data['_POLICYID'] = ip.policy.policy_id
             data['_POLICYNAME'] = ip.policy.policy_name
-            data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
+            if ip.policy.ingest_path:
+                data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
+            else:
+                data['POLICY_INGEST_PATH'] = ''
         else:
             try:
                 transfer_project_data = ip.get_profile_data('transfer_project')

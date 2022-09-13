@@ -34,6 +34,7 @@ from ESSArch_Core.configuration.models import (
     Site,
     StoragePolicy,
 )
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
     StorageMethod,
     StorageMethodTargetRelation,
@@ -136,9 +137,14 @@ class StoragePolicySerializer(serializers.ModelSerializer):
     cache_storage = StorageMethodSerializer(allow_null=True)
     storage_methods = StorageMethodSerializer(many=True)
     ingest_path = PathSerializer(allow_null=True)
+    sa = serializers.DictField(allow_null=True, required=False, write_only=True)
 
     def create(self, validated_data):
         storage_method_set_data = validated_data.pop('storage_methods')
+        if 'sa' in validated_data.keys():
+            sa_data = validated_data.pop('sa')
+        else:
+            sa_data = None
         storage_method_list = []
 
         for storage_method_data in storage_method_set_data:
@@ -168,6 +174,12 @@ class StoragePolicySerializer(serializers.ModelSerializer):
         policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
                                                            defaults=validated_data)
         policy.storage_methods.set(storage_method_list)
+        if sa_data:
+            sa_data['policy'] = policy
+            if sa_data.get('id', False):
+                sa, _ = SubmissionAgreement.objects.update_or_create(id=sa_data['id'], defaults=sa_data)
+            else:
+                sa, _ = SubmissionAgreement.objects.update_or_create(name=sa_data['name'], defaults=sa_data)
 
         return policy
 
@@ -183,7 +195,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
             "preingest_metadata", "ingest_metadata",
             "information_class", "ingest_delete",
             "receive_extract_sip", "cache_storage", "ingest_path",
-            "storage_methods",
+            "storage_methods", "sa",
         )
         extra_kwargs = {
             'id': {
