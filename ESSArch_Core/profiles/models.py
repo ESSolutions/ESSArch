@@ -189,7 +189,6 @@ class SubmissionAgreement(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
-        editable=False
     )
 
     name = models.CharField(max_length=255)
@@ -204,6 +203,7 @@ class SubmissionAgreement(models.Model):
         on_delete=models.PROTECT,
         verbose_name="storage policy",
         related_name='submission_agreements',
+        null=True,
     )
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
