@@ -35,7 +35,6 @@ from ESSArch_Core.configuration.models import (
     StoragePolicy,
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
-from ESSArch_Core.profiles.serializers import SubmissionAgreementSerializer
 from ESSArch_Core.storage.models import (
     StorageMethod,
     StorageMethodTargetRelation,
@@ -138,7 +137,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
     cache_storage = StorageMethodSerializer(allow_null=True)
     storage_methods = StorageMethodSerializer(many=True)
     ingest_path = PathSerializer(allow_null=True)
-    sa = SubmissionAgreementSerializer(allow_null=True, required=False, write_only=True)
+    sa = serializers.DictField(allow_null=True, required=False, write_only=True)
 
     def create(self, validated_data):
         storage_method_set_data = validated_data.pop('storage_methods')

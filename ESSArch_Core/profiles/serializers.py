@@ -210,7 +210,6 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
     )
 
     template = serializers.JSONField(required=False)
-    policy = serializers.CharField(required=False, allow_null=True)
 
     def validate(self, data):
         if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
