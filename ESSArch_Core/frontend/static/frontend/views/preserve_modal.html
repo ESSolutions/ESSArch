@@ -54,15 +54,14 @@
               append-to-body="false"
             >
               <ui-select-match ng-attr-placeholder="{{'ACCESS.ARCHIVE' | translate}}"
-                >{{vm.tags.archive.value.name}}</ui-select-match
-              >
+                >{{vm.tags.archive.value.name_with_dates}}</ui-select-match>
               <ui-select-choices
                 ng-hide="!$select.open"
                 refresh-delay="0"
                 refresh="getArchives($select.search)"
                 repeat="x in vm.tags.archive.options | propsFilter: {name: $select.search}"
               >
-                <div ng-bind-html="x.name | highlight: $select.search"></div>
+                <div ng-bind-html="x.name_with_dates | highlight: $select.search"></div>
               </ui-select-choices>
               <ui-select-no-choice>
                 <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
@@ -92,7 +91,7 @@
                 append-to-body="false"
               >
                 <ui-select-match ng-attr-placeholder="{{'ACCESS.CLASSIFICATION_STRUCTURE' | translate}}"
-                  >{{vm.tags.structure.value.name}}</ui-select-match
+                  >{{vm.tags.structure.value.name}} {{vm.tags.structure.value.version}}</ui-select-match
                 >
                 <ui-select-choices
                   ng-hide="!$select.open"
@@ -100,7 +99,7 @@
                   refresh="getStructures(vm.tags.archive.value)"
                   repeat="x in vm.tags.structure.options | propsFilter: {name: $select.search}"
                 >
-                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                  <div ng-bind-html="x.name + ' ' + x.version | highlight: $select.search"></div>
                 </ui-select-choices>
                 <ui-select-no-choice>
                   <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
@@ -130,7 +129,7 @@
                 append-to-body="false"
               >
                 <ui-select-match ng-attr-placeholder="{{'ACCESS.STRUCTURE_UNIT' | translate}}"
-                  >{{vm.tags.structureUnits.value.name}}</ui-select-match
+                  >{{vm.tags.structureUnits.value.reference_code}} - {{vm.tags.structureUnits.value.name}}</ui-select-match
                 >
                 <ui-select-choices
                   ng-hide="!$select.open"
@@ -138,7 +137,7 @@
                   refresh="getStructureUnits(vm.tags.archive.value.parent_id, vm.tags.structure.value.id, $select.search)"
                   repeat="x in vm.tags.structureUnits.options | propsFilter: {name: $select.search}"
                 >
-                  <div ng-bind-html="x.name | highlight: $select.search"></div>
+                  <div ng-bind-html="x.reference_code +' - '+ x.name | highlight: $select.search"></div>
                 </ui-select-choices>
                 <ui-select-no-choice>
                   <div class="text-center">{{'NO_RESULTS_FOUND' | translate}}</div>
