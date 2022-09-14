@@ -54,7 +54,8 @@
               append-to-body="false"
             >
               <ui-select-match ng-attr-placeholder="{{'ACCESS.ARCHIVE' | translate}}"
-                >{{vm.tags.archive.value.name_with_dates}}</ui-select-match>
+                >{{vm.tags.archive.value.name_with_dates}}</ui-select-match
+              >
               <ui-select-choices
                 ng-hide="!$select.open"
                 refresh-delay="0"
@@ -129,7 +130,8 @@
                 append-to-body="false"
               >
                 <ui-select-match ng-attr-placeholder="{{'ACCESS.STRUCTURE_UNIT' | translate}}"
-                  >{{vm.tags.structureUnits.value.reference_code}} - {{vm.tags.structureUnits.value.name}}</ui-select-match
+                  >{{vm.tags.structureUnits.value.reference_code}} -
+                  {{vm.tags.structureUnits.value.name}}</ui-select-match
                 >
                 <ui-select-choices
                   ng-hide="!$select.open"
