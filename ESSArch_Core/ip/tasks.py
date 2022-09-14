@@ -38,6 +38,9 @@ from ESSArch_Core.fixity.validation import (
     get_backend as get_validator,
 )
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.serializers import (
+    InformationPackageReceptionReceiveSerializer,
+)
 from ESSArch_Core.ip.utils import (
     download_schemas,
     fill_specification_data,
@@ -56,6 +59,12 @@ from ESSArch_Core.storage.exceptions import (
     NoWriteableStorage,
 )
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
+from ESSArch_Core.tags.models import (
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
@@ -63,15 +72,6 @@ from ESSArch_Core.util import (
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
-
-from ESSArch_Core.tags.models import (
-    Tag,
-    TagStructure,
-    TagVersion,
-    TagVersionType,
-)
-
-from ESSArch_Core.ip.serializers import InformationPackageReceptionReceiveSerializer
 
 User = get_user_model()
 
@@ -568,6 +568,7 @@ def MarkArchived(self):
     ip.state = 'Preserved'
     ip.save()
 
+
 @app.task(bind=True)
 def InsertArchivalDescription(self, data):
     ip = self.get_information_package()
@@ -596,8 +597,6 @@ def InsertArchivalDescription(self, data):
         structure_unit=structure_unit,
         parent=archive_structure,
     )
-
-
 
 
 @app.task(bind=True)

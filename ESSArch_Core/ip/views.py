@@ -118,7 +118,6 @@ from ESSArch_Core.ip.serializers import (
     OrderTypeSerializer,
     OrderWriteSerializer,
     WorkareaSerializer,
-    InformationPackageReceptionReceiveSerializer
 )
 from ESSArch_Core.ip.utils import parse_submit_description_from_ip
 from ESSArch_Core.mixins import PaginatedViewMixin
@@ -149,13 +148,6 @@ from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepChildrenSerializer,
 )
 from ESSArch_Core.WorkflowEngine.util import create_workflow
-
-from ESSArch_Core.tags.models import (
-    Tag,
-    TagStructure,
-    TagVersion,
-    TagVersionType,
-)
 
 User = get_user_model()
 
@@ -960,8 +952,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
                             'Access Workarea']:
             # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
-"Preserved" or "Access Workarea"')
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception",\
+                                        "Received", "Preserved" or "Access Workarea"')
             # 'IP must be in state "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
@@ -1694,7 +1686,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workflow += ip.create_preservation_workflow()
             workflow += [
                 {
-                    "name":"ESSArch_Core.ip.tasks.InsertArchivalDescription",
+                    "name": "ESSArch_Core.ip.tasks.InsertArchivalDescription",
                     "label": "Update archival description",
                     "if": archive,
                     "args": [request.data]
