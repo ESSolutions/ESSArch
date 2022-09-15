@@ -53,6 +53,7 @@ from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.storage.filters import (
     StorageMediumFilter,
     StorageMethodFilter,
+    StorageObjectFilter,
 )
 from ESSArch_Core.storage.models import (
     TAPE,
@@ -375,14 +376,8 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     queryset = StorageObject.objects.all()
     serializer_class = StorageObjectSerializer
-
-    filter_backends = (
-        filters.OrderingFilter, DjangoFilterBackend, SearchFilter,
-    )
-    ordering_fields = (
-        'ip__object_identifier_value', 'content_location_value', 'last_changed_local',
-    )
-
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
+    filterset_class = StorageObjectFilter
     search_fields = (
         'ip__object_identifier_value', 'content_location_value',
     )

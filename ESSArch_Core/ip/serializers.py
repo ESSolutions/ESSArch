@@ -76,17 +76,17 @@ class ConsignMethodSerializer(serializers.ModelSerializer):
 
 
 class EventIPSerializer(serializers.ModelSerializer):
-    linkingAgentIdentifierValue = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
+    linkingAgentIdentifierValue = serializers.CharField(default=CurrentUsernameDefault())
     information_package = serializers.CharField(required=False, source='linkingObjectIdentifierValue')
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
     delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
-    transfer = TransferSerializer()
+    transfer = TransferSerializer(required=False)
 
     class Meta:
         model = EventIP
         fields = (
-            'id', 'eventType', 'eventDateTime', 'eventDetail',
+            'id', 'eventIdentifierValue', 'eventType', 'eventDateTime', 'eventDetail',
             'eventVersion', 'eventOutcome',
             'eventOutcomeDetailNote', 'linkingAgentIdentifierValue',
             'linkingAgentRole', 'information_package', 'delivery', 'transfer',
@@ -264,6 +264,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
             'workarea', 'first_generation', 'last_generation', 'organization', 'new_version_in_progress',
+            'create_agent_identifier_value', 'entry_agent_identifier_value', 'linking_agent_identifier_value',
         )
         extra_kwargs = {
             'id': {
@@ -513,7 +514,9 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
-    aic = InformationPackageAICSerializer(omit=['information_packages'])
+    aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
+    events = EventIPSerializer(many=True, required=False, allow_null=True)
+    sa_policy_id = serializers.CharField(required=False, allow_null=True)
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -540,8 +543,23 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         aic_data = validated_data.pop('aic')
-        aic_data['last_changed_local'] = timezone.now
-        aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
+        if aic_data:
+            aic_data['last_changed_local'] = timezone.now
+            aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
+        else:
+            aic = None
+
+        if 'events' in validated_data.keys():
+            events_data = validated_data.pop('events')
+            if events_data:
+                for event_data in events_data:
+                    event, _ = EventIP.objects.update_or_create(
+                        eventIdentifierValue=event_data['eventIdentifierValue'], defaults=event_data)
+
+        if 'sa_policy_id' in validated_data.keys():
+            sa_policy_id = validated_data.pop('sa_policy_id')
+            sa_obj = SubmissionAgreement.objects.get(policy=sa_policy_id)
+            validated_data['submission_agreement'] = sa_obj
 
         request = self.context.get("request")
         if request and hasattr(request, "user"):
@@ -559,14 +577,14 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
         fields = (
-            'id', 'label', 'object_identifier_value', 'object_size',
-            'object_path', 'package_type', 'responsible', 'create_date',
-            'object_num_items', 'entry_date', 'state', 'status', 'step_state',
+            'id', 'label', 'object_identifier_value', 'object_size', 'object_path',
+            'package_type', 'responsible', 'create_date', 'create_agent_identifier_value',
+            'object_num_items', 'entry_date', 'entry_agent_identifier_value', 'state',
             'archived', 'cached', 'aic', 'generation',
             'message_digest', 'message_digest_algorithm',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
-            'start_date', 'end_date', 'appraisal_date',
+            'start_date', 'end_date', 'appraisal_date', 'linking_agent_identifier_value', 'events', 'sa_policy_id',
         )
         extra_kwargs = {
             'id': {

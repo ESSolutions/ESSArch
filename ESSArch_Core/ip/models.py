@@ -368,7 +368,7 @@ class InformationPackage(models.Model):
     object_identifier_value = models.CharField(max_length=255, unique=True)
     label = models.CharField(max_length=255, blank=True)
     content = models.CharField(max_length=255)
-    create_date = models.DateTimeField(_('create date'), auto_now_add=True)
+    create_date = models.DateTimeField(_('create date'), default=timezone.now)
     state = models.CharField(_('state'), max_length=255)
 
     object_path = models.CharField(max_length=255, blank=True)
@@ -2040,7 +2040,7 @@ class EventIP(models.Model):
     )
 
     id = models.BigAutoField(primary_key=True)
-    eventIdentifierValue = models.UUIDField(default=uuid.uuid4, editable=False)
+    eventIdentifierValue = models.UUIDField(default=uuid.uuid4)
     eventType = models.ForeignKey(
         'configuration.EventType',
         on_delete=models.CASCADE

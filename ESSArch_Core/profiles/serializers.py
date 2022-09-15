@@ -260,7 +260,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
             'id': {
                 'read_only': False,
                 'required': False,
-            },
+            }
         }
 
 
