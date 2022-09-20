@@ -952,8 +952,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
                             'Access Workarea']:
             # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
-"Preserved" or "Access Workarea"')
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception",\
+                                        "Received", "Preserved" or "Access Workarea"')
             # 'IP must be in state "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
@@ -1564,6 +1564,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
 
+            archive = request.data.get('archive', None)
+
             for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
                 try:
                     profile_ip.clean()
@@ -1683,6 +1685,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ]
             workflow += ip.create_preservation_workflow()
             workflow += [
+                {
+                    "name": "ESSArch_Core.ip.tasks.InsertArchivalDescription",
+                    "label": "Update archival description",
+                    "if": archive,
+                    "args": [request.data]
+                },
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateReceipt",
                     "label": "Create receipt",

@@ -38,6 +38,9 @@ from ESSArch_Core.fixity.validation import (
     get_backend as get_validator,
 )
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.serializers import (
+    InformationPackageReceptionReceiveSerializer,
+)
 from ESSArch_Core.ip.utils import (
     download_schemas,
     fill_specification_data,
@@ -56,6 +59,12 @@ from ESSArch_Core.storage.exceptions import (
     NoWriteableStorage,
 )
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
+from ESSArch_Core.tags.models import (
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
@@ -558,6 +567,36 @@ def MarkArchived(self):
     ip.archived = True
     ip.state = 'Preserved'
     ip.save()
+
+
+@app.task(bind=True)
+def InsertArchivalDescription(self, data):
+    ip = self.get_information_package()
+    serializer = InformationPackageReceptionReceiveSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    serializer_data = serializer.validated_data
+
+    archive = serializer_data.get('archive')
+    structure = serializer_data.get('structure')
+    structure_unit = serializer_data.get('structure_unit')
+    archive_structure = TagStructure.objects.get(tag=archive.tag, structure=structure)
+
+    tag = Tag.objects.create(
+        information_package=ip,
+    )
+    TagVersion.objects.create(
+        name=ip.label or ip.object_identifier_value,
+        reference_code=ip.object_identifier_value,
+        tag=tag,
+        type=TagVersionType.objects.get(information_package_type=True),
+        elastic_index='component',
+    )
+    TagStructure.objects.create(
+        tag=tag,
+        structure=structure,
+        structure_unit=structure_unit,
+        parent=archive_structure,
+    )
 
 
 @app.task(bind=True)

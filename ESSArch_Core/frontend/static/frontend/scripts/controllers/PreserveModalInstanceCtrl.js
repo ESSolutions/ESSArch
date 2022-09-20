@@ -15,6 +15,19 @@ export default class PreserveModalInstanceCtrl {
       if (!vm.data.ips) {
         vm.data.ips = [vm.data.ip];
       }
+      if (isEnabled($rootScope.features, 'archival descriptions'))
+        $scope.getArchives().then(function (result) {
+          vm.tags.archive.options = result;
+        });
+    };
+
+    $scope.updateTags = function () {
+      $scope.tagsLoading = true;
+      $scope.getArchives().then((result) => {
+        vm.tags.archive.options = result;
+        $scope.requestForm = true;
+        $scope.tagsLoading = false;
+      });
     };
 
     vm.ok = function () {
@@ -29,8 +42,12 @@ export default class PreserveModalInstanceCtrl {
       vm.preserving = true;
       let data = {
         purpose: vm.request.purpose,
+        archive: vm.tags.archive.value ? vm.tags.archive.value.id : null,
+        structure: vm.tags.structure.value ? vm.tags.structure.value.id : null,
       };
-
+      if (vm.tags.structureUnits.value) {
+        data.structure_unit = vm.tags.structureUnits.value.id;
+      }
       const promises = [];
       vm.data.ips.forEach(function (ip) {
         promises.push(
