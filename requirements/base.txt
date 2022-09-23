@@ -10,7 +10,7 @@ cryptography==38.0.1
 daphne==3.0.2
 dj-database-url==1.0.0
 dj-rest-auth[with_social]==2.2.5
-django==4.1.1
+django==4.0.7
 django-cors-headers==3.13.0
 django-countries-plus==2.1.0
 django-filter==22.1
