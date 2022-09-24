@@ -567,8 +567,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
         if 'org_name' in validated_data.keys():
             org_name = validated_data.pop('org_name')
-            if org_name:
-                org = Group.objects.get(name=org_name)
+            org = Group.objects.get(name=org_name)
         else:
             org = Group.objects.get(name='Default')
 
