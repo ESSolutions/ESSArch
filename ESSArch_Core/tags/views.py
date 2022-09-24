@@ -238,7 +238,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
-    filter_class = StructureFilter
+    filterset_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
     search_fields = ('=id', 'name',)
     ordering = ('-create_date',)
@@ -378,7 +378,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureUnitSerializer
     permission_classes = (AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
-    filter_class = StructureUnitFilter
+    filterset_class = StructureUnitFilter
     search_fields = ('name',)
 
     def get_queryset(self):
