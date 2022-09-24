@@ -61,7 +61,7 @@ def SAProfiles(config_file=None):
     sa = []
     inst_dir = settings.BASE_DIR
 
-    config = json.loads(open(os.path.join(inst_dir, config_file)).read())
+    config = json.loads(open(os.path.join(inst_dir, config_file), encoding="utf8").read())
     profile_list = list(config.keys())
     profile_template_path = config_file.split('/').pop(-2).lower() + '/'
     profile_nation_path = config_file.split('/').pop(-1).split('_').pop(0).lower() + '/'
@@ -77,7 +77,7 @@ def SAProfiles(config_file=None):
 
                 profile_path = os.path.join(profile_template_path, profile_nation_path, profile_config['profile'])
                 profile_file = os.path.join(inst_dir, profile_path)
-                profile_spec = json.loads(open(profile_file).read())
+                profile_spec = json.loads(open(profile_file, encoding="utf8").read())
 
                 # check if SA already exist
                 try:
@@ -133,7 +133,7 @@ def SAProfiles(config_file=None):
 
                     profile_path = os.path.join(profile_template_path, profile_nation_path, profile_config['profile'])
                     profile_file = os.path.join(inst_dir, profile_path)
-                    profile_spec = json.loads(open(profile_file).read())
+                    profile_spec = json.loads(open(profile_file, encoding="utf8").read())
 
                     del profile_config['profile']
 
