@@ -3,13 +3,15 @@ import os
 import re
 
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-from rest_framework import serializers
+from rest_framework import exceptions, serializers
 
 from ESSArch_Core._version import get_versions
 from ESSArch_Core.api.filters import SearchFilter
 from ESSArch_Core.api.serializers import DynamicModelSerializer
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
+from ESSArch_Core.auth.models import Group
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import (
@@ -23,6 +25,7 @@ from ESSArch_Core.ip.models import (
     Workarea,
 )
 from ESSArch_Core.profiles.models import (
+    ProfileIP,
     SubmissionAgreement,
     SubmissionAgreementIPData,
 )
@@ -517,6 +520,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
     events = EventIPSerializer(many=True, required=False, allow_null=True)
     sa_policy_id = serializers.CharField(required=False, allow_null=True)
+    org_name = serializers.CharField(required=False, allow_null=True)
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -561,6 +565,12 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             sa_obj = SubmissionAgreement.objects.get(policy=sa_policy_id)
             validated_data['submission_agreement'] = sa_obj
 
+        if 'org_name' in validated_data.keys():
+            org_name = validated_data.pop('org_name')
+            org = Group.objects.get(name=org_name)
+        else:
+            org = Group.objects.get(name='Default')
+
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
@@ -571,6 +581,16 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         validated_data['responsible'] = user
         validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
+        org.add_object(ip)
+        if validated_data['submission_agreement']:
+            validated_data['submission_agreement'].lock_to_information_package(ip, validated_data['responsible'])
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+                try:
+                    profile_ip.clean()
+                except ValidationError as e:
+                    raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+
+                profile_ip.lock(validated_data['responsible'])
 
         return ip
 
@@ -585,6 +605,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'appraisal_date', 'linking_agent_identifier_value', 'events', 'sa_policy_id',
+            'org_name',
         )
         extra_kwargs = {
             'id': {
