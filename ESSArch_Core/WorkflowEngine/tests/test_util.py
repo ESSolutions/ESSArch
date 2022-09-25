@@ -181,8 +181,7 @@ class CreateWorkflowTestCase(TestCase):
                         "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
                         "args": [3, 2, 1],
-                        "params": {'b': 'a'},
-                        "processstep_pos": 1
+                        "params": {'b': 'a'}
                     }
                 ]
             },
