@@ -181,7 +181,8 @@ class CreateWorkflowTestCase(TestCase):
                         "name": "ESSArch_Core.WorkflowEngine.tests.tasks.Second",
                         "label": "Foo Bar Task2",
                         "args": [3, 2, 1],
-                        "params": {'b': 'a'}
+                        "params": {'b': 'a'},
+                        "processstep_pos": 1
                     }
                 ]
             },
@@ -196,9 +197,8 @@ class CreateWorkflowTestCase(TestCase):
         self.assertEqual(root_step.child_steps.count(), 0)
         self.assertEqual(root_step.on_error.count(), 0)
 
-        task = root_step.tasks.first()
-        for t in root_step.tasks.all():
-            print('task name: %s, processstep_pos: %s, time_created: %s' % (t.name, t.processstep_pos, t.time_created))
+        # Workaround exclude "on_error tasks" when both "task" and "on_error task" is created with same timestamp
+        task = root_step.tasks.exclude(on_error__isnull=True).first()
 
         self.assertEqual(task.name, spec[0]['name'])
         self.assertEqual(task.on_error.count(), 1)
