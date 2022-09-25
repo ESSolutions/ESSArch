@@ -197,6 +197,8 @@ class CreateWorkflowTestCase(TestCase):
         self.assertEqual(root_step.on_error.count(), 0)
 
         task = root_step.tasks.first()
+        for t in root_step.tasks.all():
+            print('task name: %s, processstep_pos: %s, time_created: %s' % (t.name, t.processstep_pos, t.time_created))
 
         self.assertEqual(task.name, spec[0]['name'])
         self.assertEqual(task.on_error.count(), 1)
