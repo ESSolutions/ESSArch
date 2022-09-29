@@ -521,6 +521,8 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     events = EventIPSerializer(many=True, required=False, allow_null=True)
     sa_policy_id = serializers.CharField(required=False, allow_null=True)
     org_name = serializers.CharField(required=False, allow_null=True)
+    content_mets_path = serializers.CharField(required=False)
+    package_mets_path = serializers.CharField(required=False)
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -601,7 +603,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'package_type', 'responsible', 'create_date', 'create_agent_identifier_value',
             'object_num_items', 'entry_date', 'entry_agent_identifier_value', 'state',
             'archived', 'cached', 'aic', 'generation',
-            'message_digest', 'message_digest_algorithm',
+            'message_digest', 'message_digest_algorithm', 'content_mets_path', 'package_mets_path',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'appraisal_date', 'linking_agent_identifier_value', 'events', 'sa_policy_id',

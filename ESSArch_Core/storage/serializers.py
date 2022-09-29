@@ -90,6 +90,11 @@ class StorageObjectSerializer(serializers.ModelSerializer):
     target_target = serializers.CharField(source='storage_medium.storage_target.target')
     ip_object_identifier_value = serializers.CharField(source='ip.object_identifier_value', read_only=True)
 
+    def create(self, validated_data):
+        obj, _ = StorageObject.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
+
+        return obj
+
     class Meta:
         model = StorageObject
         fields = (

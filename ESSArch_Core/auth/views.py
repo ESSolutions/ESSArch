@@ -57,7 +57,10 @@ from ESSArch_Core.auth.serializers import (
 from ESSArch_Core.auth.util import users_in_organization
 
 try:
-    from djangosaml2.views import logout as saml2_logout
+    from djangosaml2.views import (
+        LogoutInitView as saml2_logout,
+        _get_subject_id,
+    )
 except ImportError:
     pass
 
@@ -197,7 +200,8 @@ class LogoutView(rest_auth_LogoutView):
     def get(self, request, *args, **kwargs):
         if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
-                return saml2_logout(request)
+                if _get_subject_id(request.saml_session):
+                    return saml2_logout().get(request)
             except Exception:
                 logger.exception('Failed to logout using SAML, no active identity found')
 
