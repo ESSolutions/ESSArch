@@ -181,7 +181,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
         data['_CONTENT_METS_DIGEST'] = ip.content_mets_digest
 
-        data['_PACKAGE_METS_PATH'] = ip.package_mets_path
+        data['_PACKAGE_METS_PATH'] = os.path.join(os.path.dirname(ip.object_path), ip.package_mets_path)
         data['_PACKAGE_METS_CREATE_DATE'] = ip.package_mets_create_date
         data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()

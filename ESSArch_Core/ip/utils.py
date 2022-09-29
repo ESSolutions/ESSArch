@@ -1,5 +1,6 @@
 import errno
 import os
+from pathlib import Path
 
 import requests
 from django.conf import settings
@@ -16,7 +17,11 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
 )
-from ESSArch_Core.essxml.util import get_agents, parse_submit_description
+from ESSArch_Core.essxml.util import (
+    find_file,
+    get_agents,
+    parse_submit_description,
+)
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -150,7 +155,11 @@ def generate_package_mets(ip, package_path, xml_path):
     )
     generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
-    ip.package_mets_path = normalize_path(xml_path)
+    package_xml_el, _ = find_file(Path(package_path).name, xml_path)
+
+    ip.message_digest = package_xml_el.checksum
+    ip.message_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[package_xml_el.checksum_type.upper()]
+    ip.package_mets_path = Path(normalize_path(xml_path)).name
     ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml_path)).isoformat()
     ip.package_mets_size = os.path.getsize(xml_path)
     ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
