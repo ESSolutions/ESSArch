@@ -9,29 +9,216 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-21 12:36+0200\n"
+"POT-Creation-Date: 2022-10-12 21:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.10.3\n"
+"X-Language: C\n"
+"X-Source-Language: C\n"
 
 #: ../../user_guide/archival-description-management/locations.rst:3
 msgid "Location Records"
-msgstr ""
+msgstr "Placeringar"
 
 #: ../../user_guide/archival-description-management/locations.rst:4
 msgid ""
 "Location records can describe any storage location; buildings, rooms "
-"shelves, file cabinets, etc. Location records are designed to track both "
-"the permanent and temporary locations of materials."
+"shelves, file cabinets, etc. Location records are designed to track both the "
+"permanent and temporary locations of materials."
 msgstr ""
+"Placeringsposter kan beskriva vilket typ av lagringsutrymme som helst; "
+"byggnader, rum, hyllor, hyllsektioner och så vidare. Placeringsposter är "
+"utformade för att kunna hålla reda på både permanenta placering av material "
+"så väl som för temporära t.ex. då de befinner sig i en läsesal eller är "
+"under vård."
 
 #: ../../user_guide/archival-description-management/locations.rst:6
 msgid ""
-"Location records are intended for physical spaces and not storage of "
-"digital AIP's / files. Locations for AIP's are managed via "
-"Administration/Media Information / Storage mediums"
+"Location records are intended for physical spaces and not storage of digital "
+"AIP's / files. Locations for AIP's are managed via Administration/Media "
+"Information / Storage mediums"
 msgstr ""
+"Placeringsposter är avsedda att beskriva fysika utrymmen och inte digitala "
+"lagringsplatser för AIP:er eller filer. Placeringar för AIP:er hanteras via "
+"Administration/Media-Information/Lagringsmedia"
+
+#: ../../user_guide/archival-description-management/locations.rst:10
+msgid "Creating and managing location records"
+msgstr "Uupprättta och hantera placeringar"
+
+#: ../../user_guide/archival-description-management/locations.rst:11
+msgid ""
+"Locations are managed in the location section of ESSArchs Archival "
+"Description Management section."
+msgstr ""
+"Placeringar hanteras i sektionen för placeringar inom ESSArchs "
+"Arkivredovisning."
+
+msgid "Locations overview"
+msgstr "Översikt av placeringsfuunktionaliteten"
+
+#: ../../user_guide/archival-description-management/locations.rst:20
+msgid "Creating a new top location record"
+msgstr "Skapa en toppnod"
+
+#: ../../user_guide/archival-description-management/locations.rst:21
+msgid ""
+"To create a new top location, click the \"Add Location\" button and fill in "
+"the form"
+msgstr ""
+"För att skapa en toppnod (den översta nivån i en hierarki) klicka på \"Lägg "
+"till placering\" och fyll i formuläret"
+
+#: ../../user_guide/archival-description-management/locations.rst:29
+msgid "Description of form fields"
+msgstr "Beskrivning av formulärfält"
+
+#: ../../user_guide/archival-description-management/locations.rst:32
+msgid "Name"
+msgstr "Namn"
+
+#: ../../user_guide/archival-description-management/locations.rst:32
+msgid ""
+"The name used for the location. Either a arbitrary string value like "
+"\"Central Repository\" or an identifier like 1.2.7"
+msgstr ""
+"Titeln för plaveringsposten. Kan vara ett godtyckligt strängvärde som "
+"\"Centralarkivet\" eller i form av en identifierare så som 1.2.7"
+
+#: ../../user_guide/archival-description-management/locations.rst:34
+msgid "Metric"
+msgstr "Måttenhet"
+
+#: ../../user_guide/archival-description-management/locations.rst:34
+msgid "The metric value used to describe capacity"
+msgstr "Måttenheten som beskriver placeringens kapacitet"
+
+#: ../../user_guide/archival-description-management/locations.rst:36
+msgid "Capacity"
+msgstr "Kapacitet"
+
+#: ../../user_guide/archival-description-management/locations.rst:36
+msgid "An Integear value of the locations total capacity"
+msgstr "En heltal som anger placeringens totala kapacitet"
+
+#: ../../user_guide/archival-description-management/locations.rst:38
+msgid "Level"
+msgstr "Nivå"
+
+#: ../../user_guide/archival-description-management/locations.rst:38
+msgid "The level (type) of location, e.g. bulding, floor, room, cabinet etc."
+msgstr "Nivå (typ) t.ex. byggnad, våning, rum, hylla o.s.v."
+
+#: ../../user_guide/archival-description-management/locations.rst:40
+msgid "Function"
+msgstr "Funktion"
+
+#: ../../user_guide/archival-description-management/locations.rst:40
+msgid ""
+"The locations function e.g permanent for archival storage and temporary for "
+"reading rooms"
+msgstr "Placeringens funktion t.ex. \"Tillsvidare\" eller \"Tillfällig\""
+
+#: ../../user_guide/archival-description-management/locations.rst:45
+msgid "Adding sub locations"
+msgstr "Lägg till undernivåer"
+
+#: ../../user_guide/archival-description-management/locations.rst:46
+msgid ""
+"A top level location can have an unlimited set of nested childrens. To add a "
+"new sub location right click a node in the location tree and select \"Add\" "
+"and fill in the form."
+msgstr ""
+"En toppnod kan ha ett obegränsat antal nästlade undernivåer . För att lägga "
+"ttill en ny undernivå, högerklicka på en nod i placeringstträdet och välj "
+"lägg till."
+
+msgid "Add sub location"
+msgstr "Lägg till undernivå"
+
+#: ../../user_guide/archival-description-management/locations.rst:55
+msgid "Linking containers (boxes) to locations"
+msgstr "Länka volymer och andra objekt till placeringar"
+
+#: ../../user_guide/archival-description-management/locations.rst:56
+msgid ""
+"The linking of materials to a specific location is managed through a "
+"specific Archival description. You can either select multiple containers by "
+"checkboxes in the archival description tree and clicking the shortcut button "
+"\"Link to location\"."
+msgstr ""
+"Länkningen mellan objekt till en specifik placering hanteras genom "
+"arkivbeskrivningen/förteckningen. Det tär möjligt att antingen välja flera "
+"objekt ått gången genom att markera kryssrutorna i förteckningsträdet och "
+"klicka på knappen koppla till placering."
+
+msgid "Checkbox selection i tree"
+msgstr "Kryssruta i förtteckningsträdet"
+
+#: ../../user_guide/archival-description-management/locations.rst:64
+msgid ""
+"The Linking can also be done by right clicking a container in the tree and "
+"select \"Link to location\""
+msgstr ""
+"Länkning kan också göras genom att högerklicka på ettt objekt i trädet och "
+"välja \"koppla till placering\""
+
+msgid "Right click to select location"
+msgstr "Högerklicka för att välja placering"
+
+#: ../../user_guide/archival-description-management/locations.rst:71
+msgid ""
+"In the modal form, select the desired location in the tree and hit select to "
+"save the location link"
+msgstr ""
+"I formuläret väljs den önskade placeringen i trädet och genom att klicka på "
+"spara så upprätttas placeringslänkningen"
+
+msgid "Location selection modal"
+msgstr "Placerings formulär"
+
+#: ../../user_guide/archival-description-management/locations.rst:78
+msgid ""
+"The linked location is now visible from the containers detail view. The "
+"locations detail view shows all containers registred."
+msgstr ""
+"Den länkade placeringen är nu synlig från objektets detaljvy. Placeringens "
+"detaljvy visar alla objekt som registrerats."
+
+msgid "Location detail view"
+msgstr "Placeringens detaljvy"
+
+#: ../../user_guide/archival-description-management/locations.rst:86
+msgid "Moving containers to a new location"
+msgstr "Flytta volymer och andra objekt till en ny placering"
+
+#: ../../user_guide/archival-description-management/locations.rst:87
+msgid ""
+"Containers can be moved between locations by selecting the containers in the "
+"table of the locations detail view and hitting the \"Link to new location\" "
+"button. By holding down shift button while clicking enables you to select "
+"multiple containers to be moved."
+msgstr ""
+"Volymer och andra objekt kan flytttas mellan placeringar genom att välja "
+"objeken i placeringens detaljvy och därefter klicka på \"Koppla till ny "
+"placering\". Genom att hålla nera shiftttangenten samtidigt som man klickar "
+"möjliggör att markera flera objekt."
+
+#: ../../user_guide/archival-description-management/locations.rst:92
+msgid "Managing vocabularies"
+msgstr "Hantera vokabulär"
+
+#: ../../user_guide/archival-description-management/locations.rst:93
+msgid ""
+"The vocabularies used for location levels, functions and metric types can be "
+"managed through ESSArchs Administration interface."
+msgstr ""
+"Vokabulären som används för placeringars nivåer, funkioner och måttenheter "
+"kan hanteras genom ESSArchs administtrattionsgränssnit."
+
+msgid "Add location type"
+msgstr "Lägg till placeringstyp"

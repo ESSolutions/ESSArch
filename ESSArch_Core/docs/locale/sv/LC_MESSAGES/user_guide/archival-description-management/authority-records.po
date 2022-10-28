@@ -9,18 +9,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-09-18 10:16+0200\n"
+"POT-Creation-Date: 2022-10-12 21:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.10.3\n"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:3
 msgid "Authority records"
-msgstr ""
+msgstr "Auktoritetsposter"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:4
 msgid ""
@@ -28,6 +28,8 @@ msgid ""
 "the creation and maintenance of archives, such as creator, donor or "
 "custodian."
 msgstr ""
+"Beskriver institutioner, personer eller familjer som är associerade till "
+"skapande och förvaltning av arkiv och andra samlingar."
 
 #: ../../user_guide/archival-description-management/authority-records.rst:7
 msgid ""
@@ -37,16 +39,28 @@ msgid ""
 "vocabularies for typed fields which can be customized or supplemented by "
 "additional values."
 msgstr ""
+"ESSArchs stöd för beskrivning av auktoriteter (arkivbildare, arkivägare, "
+"m.fl.) bygger på `ISAAR (CPF), 2nd Edition "
+"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-"
+"edition_EN.pdf>`_ "
 
 #: ../../user_guide/archival-description-management/authority-records.rst:9
 msgid ""
 "Authority Records are created and controlled separately from archival "
 "(resource) descriptions in ESSArch and are associated by linking."
 msgstr ""
+"Auktoritetsposter och qrkivbeskrivningar/förteckningar upprättas var för "
+"sig i systemet och hålls samman genom länkning för att ge maximal "
+"flexibilitet vid beskrivning av relationer inom och mellan olika resurser"
+" (arkiv/samlingar/objekt) och de auktoriteter som har eller haft en "
+"relation till resurserna så som arkivbildare, medskapare eller ägare."
 
 #: ../../user_guide/archival-description-management/authority-records.rst:12
 msgid "By default there is three main types of Authority records in ESSArch:"
 msgstr ""
+"Som standard finns det tre typer av auktoritetsposter i systemet och "
+"vilken som används beror på om posten avser en institution, person "
+"eller släkt. "
 
 #: ../../user_guide/archival-description-management/authority-records.rst:14
 msgid "Person"
@@ -65,15 +79,15 @@ msgid ""
 "These three main types can be further `subdivided <Create custom "
 "vocabularies>`_ by the organization needs or other requirements of "
 "subdivision i.e."
-msgstr ""
+msgstr "Dessa tre huvudtyper kan sedan ges underkategorier t.ex: "
 
 #: ../../user_guide/archival-description-management/authority-records.rst:20
 msgid "Corporate body - State agency"
-msgstr ""
+msgstr "Corporate body - Statlig myndighet"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:21
 msgid "Family - Royal Family"
-msgstr ""
+msgstr "Person - Alfred Nobel"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:24
 msgid ""
@@ -82,70 +96,82 @@ msgid ""
 "their relation to ISAAR-CPF and default values available from a standard "
 "installation."
 msgstr ""
+":ref:`ICA Standards <ICA_Standards>` avsnittet innehåller en detaljerad "
+"beskrivning av samtliga fält som används för en auktoritetspost och hur "
+"dessa relaterar till ISAAR-CPF."
 
 #: ../../user_guide/archival-description-management/authority-records.rst:28
 msgid "Creating and managing authority records"
-msgstr ""
+msgstr "Upprätta och hantera auktoritetsposter"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:30
 msgid ""
 "Be careful when updating Authority records! Updating of an Authority "
 "record changes it for every link to the referenced record."
 msgstr ""
+"Iaktta försiktighet vid uppdatering av auktoritetsposter! "
+"Auktoritetsposter hänger samman med andra beskrivningar i systemet genom "
+"länkning. Ändras en auktoritetspost slår ändringen igenom överallt. "
 
 #: ../../user_guide/archival-description-management/authority-records.rst:36
 msgid "Creating a new authority record"
-msgstr ""
+msgstr "Upprätta en ny auktoritetspost"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:38
 msgid ""
 "A new authority record can be created by clicking the new button under "
 "the authority record section of ESSArch."
 msgstr ""
+"En ny auktoritetspost skapas genom att klicka på knappen ny under "
+"arkivbildarfilken i ESSArch"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:40
 msgid ""
 "When initially creating an authority record the following fields are "
 "required for all types of authority records:"
 msgstr ""
+"När en auktoritetspost läggs upp för första gången är följande fält "
+"obligatoriska: "
 
 #: ../../user_guide/archival-description-management/authority-records.rst:42
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:43
 msgid "Name (Authorized form)"
-msgstr ""
+msgstr "Namn (Auktoriserad namnform)"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:44
 msgid "Language"
-msgstr ""
+msgstr "Språk"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:45
 msgid "Reference code (institutional code)"
-msgstr ""
+msgstr "Referenskod (Arkivinstitutionskod)"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:46
 msgid "Create date (Auto populated)"
-msgstr ""
+msgstr "Upprättad (Fylls i automatiskt)"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:53
 msgid "New authority record form"
-msgstr ""
+msgstr "Formulär för ny auktoritetspost"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:56
 msgid ""
 "For Authority records of type person the name field is automatically "
 "separated into  Firstname and Lastname fields."
 msgstr ""
+"För auktoritetsposter av typen person anpassas namnfältet automatiskt "
+"till för- och efternamn"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:63
 msgid "Detail view of newly created authority record"
-msgstr ""
+msgstr "Detaljvy av en upprättad auktoritetspost"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:67
 msgid "Adding other name forms"
-msgstr ""
+msgstr "Lägg till andra namnformer"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:69
 msgid ""
@@ -153,55 +179,72 @@ msgid ""
 "additional name forms. i.e. Parallel forms of name, Standardized forms of"
 " name according to other rules and Other forms of name."
 msgstr ""
+"Ytterligare namnformer kan läggas till i namnsektionen av en "
+"auktoritetspost t.ex. förkortningar eller tidigare namnformer"
+
+msgid "Form for adding names"
+msgstr ""
 
 #: ../../user_guide/archival-description-management/authority-records.rst:79
 msgid ""
 "After the additional name form has been saved the record is available "
 "under the Names section."
+msgstr "När namnformuläret sparats finns det tillgängligt under namnsektionen"
+
+msgid "Name section overview after adding new record"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/authority-records.rst:88
 msgid "Adding history, descriptive texts and notes"
-msgstr ""
+msgstr "Lägga till historik, beskrivningar och anteckningar"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:89
 msgid "In ESSArch one can have multiple descriptive texts / notes."
 msgstr ""
+"ESSarch erbjuder möjligheten att ha flera deskriptiva texter / "
+"anteckningar"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:92
 msgid ""
 "Custom note types will in future EAC exports be exported as "
 "<maintenanceEvent>  !"
 msgstr ""
+"Observera att egendefinerade anteckningstyper kommer exporteras som "
+"<maintenanceEvent>  i en EAC-export"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:94
 msgid "Standard type of notes that can be used in ESSArch:"
-msgstr ""
+msgstr "Standardbeskrivningar som kan användas i ESSArch"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:96
 msgid "Biography/History"
-msgstr ""
+msgstr "Historik"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:97
 msgid "Maintenance"
-msgstr ""
+msgstr "Allmänn anmärkning"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:98
 msgid "Internal structures"
-msgstr ""
+msgstr "Administrativ anmärkning"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:99
 msgid "Genealogy"
-msgstr ""
+msgstr "Biografi"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:100
 msgid "General context"
-msgstr ""
+msgstr "Vård"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:102
 msgid ""
 "To add a new descriptive text click on the History or Remarks tab and "
 "then the add button."
+msgstr ""
+"För att lägga till en ny beskrivning eller anteckning klicka på filken "
+"Historik eller Anteckningar och sedan lägg till"
+
+msgid "Remarks detail page"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/authority-records.rst:110
@@ -209,16 +252,22 @@ msgid ""
 "From the dropdown menu choose the appropriate note type, add text and "
 "click add to save."
 msgstr ""
+"Från dropdown-menyn väljs den typ av anteckning man vill lägga till och "
+"anteckningen sparas genom att klicka på spara."
+
+#, fuzzy
+msgid "Add new note form"
+msgstr "Lägg till andra namnformer"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:120
 msgid "Creating relations"
-msgstr ""
+msgstr "Upprätta relationer"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:122
 msgid ""
 "Relationships with other corporate bodies, persons and families can be "
 "described by linking authority records."
-msgstr ""
+msgstr "Relationer mellan auktoritetsposter kan upprättas genom länkning."
 
 #: ../../user_guide/archival-description-management/authority-records.rst:124
 msgid ""
@@ -226,62 +275,71 @@ msgid ""
 " is created on one authority record the relation will automatically be "
 "mirrored when viewing the referenced authority record."
 msgstr ""
+"Relationstyper är speglade vilket innebär att om en relation upprättas på"
+" en auktoritetspost så kommer den automatiskt att speglas när man tittarr"
+" på den post som hänvisats till från den första."
 
 #: ../../user_guide/archival-description-management/authority-records.rst:127
 msgid "**Type**"
-msgstr ""
+msgstr "**Typer**"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:127
 msgid "**Mirrored Type**"
-msgstr ""
+msgstr "**Speglade typer**"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:129
 msgid "business partner"
-msgstr ""
+msgstr "Samarbetspartner"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:131
 #: ../../user_guide/archival-description-management/authority-records.rst:133
 msgid "successor"
-msgstr ""
+msgstr "Efterföljare"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:131
 #: ../../user_guide/archival-description-management/authority-records.rst:133
 msgid "predecessor"
-msgstr ""
+msgstr "Föregångare"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:135
 #: ../../user_guide/archival-description-management/authority-records.rst:137
 msgid "owned by"
-msgstr ""
+msgstr "Ägs av"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:135
 #: ../../user_guide/archival-description-management/authority-records.rst:137
 msgid "owner of"
-msgstr ""
+msgstr "Ägare av"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:139
 #: ../../user_guide/archival-description-management/authority-records.rst:141
 msgid "controlling"
-msgstr ""
+msgstr "Kontrollerar"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:139
 #: ../../user_guide/archival-description-management/authority-records.rst:141
 msgid "controlled"
-msgstr ""
+msgstr "Kontrolleras av"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:143
 #: ../../user_guide/archival-description-management/authority-records.rst:145
 msgid "subordinate"
-msgstr ""
+msgstr "Underordnad"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:143
 #: ../../user_guide/archival-description-management/authority-records.rst:145
 msgid "superior"
-msgstr ""
+msgstr "Överordnad"
 
 #: ../../user_guide/archival-description-management/authority-records.rst:148
 msgid ""
 "To add a relation from one authority record to another click the add "
 "button in the related authority records section."
 msgstr ""
+"För att upprätta relationer mellan auktoritetsposter, klicka på lägg till"
+" i sektionen för relaterade arkivbildare"
+
+#, fuzzy
+msgid "overview of related authority records table"
+msgstr "Detaljvy av en upprättad auktoritetspost"
 
