@@ -203,6 +203,7 @@ jobs:
           powershell wget https://download.microsoft.com/download/1/a/4/1a4a49b8-9fe6-4237-be0d-a6b8f2d559b5/en-US/18.0.1.1/x64/msodbcsql.msi -OutFile msodbcsql.msi
           powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
 
+          choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           choco install imagemagick
           choco install redis-64 --version 3.0.503
 
@@ -228,7 +229,6 @@ jobs:
       - name: Test
         run: |
           start redis-server
-          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword42" -p 1433:1433 -d tobiasfenster/mssql-server-exp-unsupported:2019-cu15
           coverage run manage.py test --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |

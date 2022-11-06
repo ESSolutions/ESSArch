@@ -83,6 +83,11 @@ class StorageMediumWriteSerializer(StorageMediumSerializer):
         queryset=StorageTarget.objects.all()
     )
 
+    def create(self, validated_data):
+        obj, _ = StorageMedium.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
+
+        return obj
+
 
 class StorageObjectSerializer(serializers.ModelSerializer):
     medium_id = serializers.CharField(source='storage_medium.medium_id')

@@ -10,6 +10,7 @@
   "git.autofetch": true,
   "gitlens.views.repositories.branches.layout": "list",
   "git.confirmSync": false,
+  "git.pullTags": false,
   "gitlens.views.repositories.files.layout": "tree",
   "gitlens.gitCommands.skipConfirmations": [
     "fetch:command",
