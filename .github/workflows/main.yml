@@ -228,7 +228,8 @@ jobs:
       - name: Test
         run: |
           start redis-server
-          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword42" -p 1433:1433 -d tobiasfenster/mssql-server-exp-unsupported:2019-cu15
+          #docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword42" -p 1433:1433 -d tobiasfenster/mssql-server-exp-unsupported:2019-cu15
+          docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=MyPassword42" -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
           coverage run manage.py test --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
