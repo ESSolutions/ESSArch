@@ -70,7 +70,7 @@ class FormatIdentifier:
 
         if content_type is None:
             if self.allow_unknown_file_types:
-                logger.info('Got mimetype %s for %s' % (DEFAULT_MIMETYPE, fname))
+                logger.info('Got mimetype %s setting to %s for %s' % (content_type, DEFAULT_MIMETYPE, fname))
                 return DEFAULT_MIMETYPE
 
             raise FileFormatNotAllowed("Extension of '%s' is missing from mimetypes and is not allowed" % fname)
