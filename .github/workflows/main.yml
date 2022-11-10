@@ -399,6 +399,7 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
+          wget http://www.loc.gov/standards/premis/premis.xsd
           coverage run manage.py test --verbosity=2
       - name: Report code coverage
         run: |
