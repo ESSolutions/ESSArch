@@ -328,9 +328,10 @@ def download_schema(dirname, logger, schema, verify=None):
     dst = os.path.join(dirname, os.path.basename(schema))
     logger.info('Downloading schema from {} to {}'.format(schema, dst))
     try:
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) \
-Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35'}
-        r = requests.get(schema, headers=headers, stream=True, verify=verify)
+        # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) \
+        # Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35'}
+        r = requests.get(schema, stream=True, verify=verify)
+        print(r.text)
         r.raise_for_status()
         with open(dst, 'wb') as f:
             for chunk in r:
