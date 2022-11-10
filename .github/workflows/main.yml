@@ -367,6 +367,19 @@ jobs:
         with:
           node-version: '12'
 
+      - name: Setup apache http schemaserver
+        run: |
+          sudo apt-get update && sudo apt-get install apache2
+          sudo a2enmod speling
+          sudo wget https://files.essarch.org/dist/ESSArch_schema-3.1.2_linux.tar.gz
+          sudo tar -x -v -f ESSArch_schema-3.1.2_linux.tar.gz -C /var/www/schema
+          sudo wget https://files.essarch.org/dist/httpd-schema.conf
+          sudo sed -e "s?\${ESSArch_DIR}?\/var\/www?g" --in-place httpd-schema.conf
+          sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
+          sudo service apache2 restart
+          sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
+          sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" >> /etc/hosts
+
       - name: Install
         run: |
           docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
