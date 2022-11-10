@@ -379,7 +379,7 @@ jobs:
           sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
           sudo service apache2 restart
           sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
-          sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" >> /etc/hosts
+          sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" | sudo tee -a /etc/hosts
 
       - name: Install
         run: |
