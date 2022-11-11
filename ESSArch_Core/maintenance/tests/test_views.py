@@ -1464,6 +1464,7 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         ).value
         with open(mimetypes_file, 'w') as f:
             f.write('video/x-matroska mpv mkv\n')
+            f.write('video/mp4 mp4\n')
             f.write('application/xml xml xsd\n')
             f.write('text/plain txt\n')
 
