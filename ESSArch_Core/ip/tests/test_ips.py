@@ -1789,7 +1789,9 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
             value=os.path.join(self.datadir, "mime.types"),
         ).value
         with open(mimetypes_file, 'w') as f:
-            f.write('application/xml xml xsd')
+            f.write('application/xml xml xsd\n')
+            f.write('text/plain txt\n')
+            f.write('application/x-tar tar\n')
 
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')

@@ -797,11 +797,17 @@ class InformationPackage(models.Model):
 
     def get_allow_unknown_file_types(self):
         profile_type = self.get_package_type_display().lower()
-        return self.get_profile_data(profile_type).get('allow_unknown_file_types', False)
+        allow_unknown_file_types = self.get_profile_data(profile_type).get('allow_unknown_file_types', False)
+        if allow_unknown_file_types is True or allow_unknown_file_types == 'True':
+            return True
+        return False
 
     def get_allow_encrypted_files(self):
         profile_type = self.get_package_type_display().lower()
-        return self.get_profile_data(profile_type).get('allow_encrypted_files', False)
+        allow_encrypted_files = self.get_profile_data(profile_type).get('allow_encrypted_files', False)
+        if allow_encrypted_files is True or allow_encrypted_files == 'True':
+            return True
+        return False
 
     def get_structure(self):
         ip_profile_type = self.get_package_type_display().lower()
@@ -1038,7 +1044,11 @@ class InformationPackage(models.Model):
         ])
 
         profile_type = self.get_package_type_display().lower()
-        write_to_search_index = self.get_profile_data(profile_type).get('index_files', True)
+        index_files = self.get_profile_data(profile_type).get('index_files', True)
+        if index_files is True or index_files == 'True':
+            write_to_search_index = True
+        else:
+            write_to_search_index = False
 
         remote_temp_container_transfer = {
             "step": True,
