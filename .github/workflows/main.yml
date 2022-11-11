@@ -368,6 +368,7 @@ jobs:
           node-version: '12'
 
       - name: Setup apache http schemaserver
+        if: matrix.db == 'sqlite'
         run: |
           sudo apt-get update && sudo apt-get install apache2
           sudo a2enmod speling
@@ -377,9 +378,19 @@ jobs:
           sudo wget https://files.essarch.org/dist/httpd-schema.conf
           sudo sed -e "s?\${ESSArch_DIR}?\/var\/www?g" --in-place httpd-schema.conf
           sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
+          sudo cp /etc/apache2/sites-enabled/httpd-schema.conf /var/www/schema/loc.gov/standards/premis/httpd.html
           sudo service apache2 restart
           sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
           sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" | sudo tee -a /etc/hosts
+          sudo ls -l /var/www/schema/loc.gov/standards/premis
+          sudo ls -l /var/log/apache2/*
+          sudo cat /var/log/apache2/*
+          sudo wget http://www.loc.gov/standards/premis/httpd.html
+          sudo ls -l /var/log/apache2/*
+          sudo cat /var/log/apache2/*
+          sudo wget http://www.loc.gov/standards/premis/premis.xsd
+          sudo ls -l /var/log/apache2/*
+          sudo cat /var/log/apache2/*
 
       - name: Install
         run: |
@@ -413,8 +424,6 @@ jobs:
         env:
           DATABASE_URL_ESSARCH: ${{ matrix.database_url }}
         run: |
-          sudo wget https://files.essarch.org/dist/httpd-schema.conf
-          sudo wget http://www.loc.gov/standards/mets/mets.xsd
           coverage run manage.py test --verbosity=2
       - name: Report code coverage
         run: |
