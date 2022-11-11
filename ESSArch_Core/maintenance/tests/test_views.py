@@ -656,7 +656,9 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             value=os.path.join(self.datadir, "mime.types"),
         ).value
         with open(mimetypes_file, 'w') as f:
-            f.write('application/xml xml xsd')
+            f.write('application/xml xml xsd\n')
+            f.write('application/pdf pdf\n')
+            f.write('text/plain txt\n')
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
@@ -1461,8 +1463,9 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             value=os.path.join(self.datadir, "mime.types"),
         ).value
         with open(mimetypes_file, 'w') as f:
-            f.write('video/x-matroska mpv mkv\n\
-application/xml xml xsd')
+            f.write('video/x-matroska mpv mkv\n')
+            f.write('application/xml xml xsd\n')
+            f.write('text/plain txt\n')
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})

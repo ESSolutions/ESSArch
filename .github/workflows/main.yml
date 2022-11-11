@@ -377,23 +377,9 @@ jobs:
           sudo wget https://files.essarch.org/dist/httpd-schema.conf
           sudo sed -e "s?\${ESSARCH_DIR}?\/var\/www?g" --in-place httpd-schema.conf
           sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
-          sudo cat /etc/apache2/sites-enabled/httpd-schema.conf
-          sudo cp /etc/apache2/sites-enabled/httpd-schema.conf /var/www/schema/loc.gov/standards/premis/httpd.html
-          sudo service apache2 restart
           sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
           sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" | sudo tee -a /etc/hosts
-          sudo ls -l /var/www/schema/loc.gov/standards/premis
-          sudo ls -l /var/log/apache2/*
-          sudo cat /var/log/apache2/*
-          sudo curl -voL http://xml.essarch.org/index.html
-          sudo curl -voL http://www.loc.gov/
-          sudo curl -voL http://www.loc.gov/standards/premis/httpd.html
-          sudo wget http://www.loc.gov/standards/premis/httpd.html
-          sudo ls -l /var/log/apache2/*
-          sudo cat /var/log/apache2/*
-          sudo wget http://www.loc.gov/standards/premis/premis.xsd
-          sudo ls -l /var/log/apache2/*
-          sudo cat /var/log/apache2/*
+          sudo service apache2 restart
 
       - name: Install
         run: |
