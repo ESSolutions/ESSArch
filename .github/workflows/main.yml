@@ -385,6 +385,9 @@ jobs:
           sudo ls -l /var/www/schema/loc.gov/standards/premis
           sudo ls -l /var/log/apache2/*
           sudo cat /var/log/apache2/*
+          sudo curl -voL http://xml.essarch.org/index.html
+          sudo curl -voL http://www.loc.gov/
+          sudo curl -voL http://www.loc.gov/standards/premis/httpd.html
           sudo wget http://www.loc.gov/standards/premis/httpd.html
           sudo ls -l /var/log/apache2/*
           sudo cat /var/log/apache2/*
