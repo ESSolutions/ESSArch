@@ -368,7 +368,6 @@ jobs:
           node-version: '12'
 
       - name: Setup apache http schemaserver
-        if: matrix.db == 'sqlite'
         run: |
           sudo apt-get update && sudo apt-get install apache2
           sudo a2enmod speling
@@ -376,8 +375,9 @@ jobs:
           sudo mkdir /var/www/schema
           sudo tar -x -v -f ESSArch_schema-3.1.2_linux.tar.gz -C /var/www/schema
           sudo wget https://files.essarch.org/dist/httpd-schema.conf
-          sudo sed -e "s?\${ESSArch_DIR}?\/var\/www?g" --in-place httpd-schema.conf
+          sudo sed -e "s?\${ESSARCH_DIR}?\/var\/www?g" --in-place httpd-schema.conf
           sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
+          sudo cat /etc/apache2/sites-enabled/httpd-schema.conf
           sudo cp /etc/apache2/sites-enabled/httpd-schema.conf /var/www/schema/loc.gov/standards/premis/httpd.html
           sudo service apache2 restart
           sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
