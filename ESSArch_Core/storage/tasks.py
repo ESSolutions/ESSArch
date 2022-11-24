@@ -57,7 +57,26 @@ def StorageMigration(self, storage_method, temp_path):
         # extract container
         if container_format == 'tar':
             with tarfile.open(container_path) as tar:
-                tar.extractall(temp_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, temp_path)
         elif container_format == 'zip':
             with zipfile.ZipFile(container_path) as zipf:
                 zipf.extractall(temp_path)
