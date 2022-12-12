@@ -76,11 +76,25 @@ class PathSerializer(DynamicModelSerializer):
 
 
 class StorageTargetSerializer(serializers.ModelSerializer):
+    type_display = serializers.SerializerMethodField()
+    default_block_size_display = serializers.SerializerMethodField()
+    default_format_display = serializers.SerializerMethodField()
+
+    def get_type_display(self, obj):
+        return obj.get_type_display()
+
+    def get_default_block_size_display(self, obj):
+        return obj.get_default_block_size_display()
+
+    def get_default_format_display(self, obj):
+        return obj.get_default_format_display()
+
     class Meta:
         model = StorageTarget
         fields = (
-            'id', 'name', 'status', 'type', 'default_block_size', 'default_format', 'min_chunk_size',
-            'min_capacity_warning', 'max_capacity', 'remote_server', 'master_server', 'target'
+            'id', 'name', 'status', 'type', 'type_display', 'default_block_size', 'default_block_size_display',
+            'default_format', 'default_format_display', 'min_chunk_size', 'min_capacity_warning', 'max_capacity',
+            'remote_server', 'master_server', 'target'
         )
         extra_kwargs = {
             'id': {

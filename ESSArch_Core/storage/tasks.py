@@ -32,7 +32,7 @@ def StorageMigration(self, storage_method, temp_path):
 
     dir_path = os.path.join(temp_path, ip.object_identifier_value)
     container_path = os.path.join(temp_path, ip.object_identifier_value + '.{}'.format(container_format))
-    aip_xml_path = os.path.join(temp_path, ip.object_identifier_value + '.xml')
+    aip_xml_path = os.path.join(temp_path, ip.package_mets_path.split('/')[-1])
     aic_xml_path = os.path.join(temp_path, ip.aic.object_identifier_value + '.xml')
 
     if storage_target.master_server and not storage_target.remote_server:

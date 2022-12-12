@@ -3,7 +3,9 @@
 </div>
 <form id="request-form" name="$ctrl.requestForm" ng-submit="$ctrl.submit()">
   <div class="modal-body" id="modal-body">
-    <p ng-if="$ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount'">ID: {{$ctrl.object.id}}</p>
+    <p ng-if="$ctrl.request.type == 'inventory' || $ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount'">
+      ID: {{$ctrl.object.id}}
+    </p>
     <div class="request-layout request-form">
       <div class="request-type">
         <div ng-repeat="type in $ctrl.requestTypes">

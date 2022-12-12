@@ -3157,6 +3157,11 @@ class WorkareaViewSet(InformationPackageViewSet):
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def get_object(self, request):
+        requested_id = self.request.query_params.get('id')
+        obj = Workarea.objects.get(ip__id=requested_id)
+        return obj
+
     def get_user(self, request):
         requested_user = self.request.query_params.get('user')
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
@@ -3197,10 +3202,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
+        wip = self.get_object(request)
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = wip.path
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')

@@ -48,20 +48,29 @@ class StorageMediumSerializer(serializers.ModelSerializer):
         required=False,
         queryset=TapeSlot.objects.all()
     )
-    location_status_display = serializers.SerializerMethodField()
     status_display = serializers.SerializerMethodField()
+    location_status_display = serializers.SerializerMethodField()
+    block_size_display = serializers.SerializerMethodField()
+    format_display = serializers.SerializerMethodField()
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()
 
     def get_location_status_display(self, obj):
         return obj.get_location_status_display()
 
-    def get_status_display(self, obj):
-        return obj.get_status_display()
+    def get_format_display(self, obj):
+        return obj.get_format_display()
+
+    def get_block_size_display(self, obj):
+        return obj.get_block_size_display()
 
     class Meta:
         model = StorageMedium
         fields = (
             'id', 'medium_id', 'status', 'status_display', 'location', 'location_status',
-            'location_status_display', 'block_size', 'format', 'used_capacity', 'num_of_mounts', 'create_date',
+            'location_status_display', 'block_size', 'block_size_display', 'format', 'format_display',
+            'used_capacity', 'num_of_mounts', 'create_date',
             'agent', 'storage_target', 'tape_slot', 'tape_drive',
         )
         extra_kwargs = {
@@ -166,15 +175,33 @@ class TapeSlotSerializer(serializers.ModelSerializer):
 class TapeDriveSerializer(serializers.ModelSerializer):
     storage_medium = StorageMediumSerializer(read_only=True)
     status_display = serializers.SerializerMethodField()
+    idle_timer = serializers.SerializerMethodField()
+    locked = serializers.SerializerMethodField()
 
     def get_status_display(self, obj):
         return obj.get_status_display()
 
+    def get_idle_timer(self, obj):
+        try:
+            obj.storage_medium
+        except TapeDrive.storage_medium.RelatedObjectDoesNotExist:
+            return 0
+        idle_timer_seconds = (obj.last_change - (timezone.now() - obj.idle_time)).total_seconds()
+        if idle_timer_seconds < 0:
+            return 0
+        return int(idle_timer_seconds)
+
+    def get_locked(self, obj):
+        if obj.locked or obj.is_locked():
+            return True
+        else:
+            return False
+
     class Meta:
         model = TapeDrive
         fields = (
-            'id', 'drive_id', 'device', 'io_queue_entry', 'num_of_mounts', 'idle_time', 'robot', 'status',
-            'status_display', 'storage_medium', 'locked', 'last_change',
+            'id', 'drive_id', 'device', 'io_queue_entry', 'num_of_mounts', 'idle_time', 'idle_timer', 'robot',
+            'status', 'status_display', 'storage_medium', 'locked', 'last_change',
         )
 
 

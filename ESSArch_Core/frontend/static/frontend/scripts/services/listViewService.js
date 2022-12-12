@@ -412,10 +412,11 @@ const listViewService = (
       return response;
     });
   }
-  function getWorkareaDir(workareaType, pathStr, pagination, user) {
+  function getWorkareaDir(ip, workareaType, pathStr, pagination, user) {
     let sendData;
     if (pathStr == '') {
       sendData = {
+        id: ip.id,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -424,6 +425,7 @@ const listViewService = (
       };
     } else {
       sendData = {
+        id: ip.id,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,

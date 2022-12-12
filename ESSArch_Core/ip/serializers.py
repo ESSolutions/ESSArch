@@ -412,10 +412,10 @@ class WorkareaSerializer(serializers.ModelSerializer):
     successfully_validated = serializers.JSONField(required=False, allow_null=True)
 
     def get_extracted(self, obj):
-        return os.path.isdir(obj.path)
+        return os.path.isdir(os.path.join(obj.path, obj.ip.object_identifier_value))
 
     def get_packaged(self, obj):
-        return os.path.isfile(obj.path + '.tar')
+        return os.path.isfile(os.path.join(obj.path, obj.ip.object_identifier_value) + '.tar')
 
     def get_type_name(self, obj):
         return obj.get_type_display()

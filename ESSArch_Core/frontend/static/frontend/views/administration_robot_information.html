@@ -120,6 +120,7 @@
                 <th st-sort="id" class="clickable" class="column-label">ID</th>
                 <th st-sort="posted" class="clickable" class="column-label">{{'POSTED' | translate}}</th>
                 <th st-sort="req_type" class="clickable" class="column-label">{{'REQUESTTYPE' | translate}}</th>
+                <th st-sort="medium_id" class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
                 <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
               </tr>
             </thead>
@@ -133,6 +134,7 @@
                 <td>{{row.id}}</td>
                 <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                 <td>{{row.req_type}}</td>
+                <td>{{row.storage_medium.medium_id}}</td>
                 <td>{{row.status}}</td>
               </tr>
               <tr ng-if="!vm.robotQueue.length && !robotQueueLoading" class="empty-table-indicator">
@@ -195,7 +197,11 @@
               <tr>
                 <th st-sort="slot_id" class="clickable" class="column-label">ID</th>
                 <th st-sort="medium_id" class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
-                <th class="clickable" class="column-label">{{'MEDIUM' | translate}}</th>
+                <th class="clickable" st-sort="storage_target" class="column-label">
+                  {{'STORAGETARGET' | translate}}
+                </th>
+                <th class="clickable" class="column-label">{{'TYPE' | translate}}</th>
+                <th class="clickable" class="column-label">{{'NUMBEROFMOUNTS' | translate}}</th>
                 <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
               </tr>
             </thead>
@@ -208,9 +214,22 @@
                 class="table-item selectable"
               >
                 <td>{{row.slot_id}}</td>
-                <td>{{row.medium_id}}</td>
-                <td>{{row.storage_medium.id}}</td>
-                <td>{{row.status}}</td>
+                <td>
+                  {{row.medium_id}}
+                  <div
+                    class="mounted fa-stack fa-2xs"
+                    ng-if="::(row.mounted)"
+                    uib-tooltip="{{::('MOUNTED' | translate:row)}}"
+                    tooltip-placement="auto"
+                    tooltip-append-to-body="true"
+                  >
+                    <i class="fas fa-hard-drive fa-2x text-success"></i>
+                  </div>
+                </td>
+                <td>{{row.storage_medium.storage_target.name}}</td>
+                <td>{{row.storage_medium.storage_target.type_display}}</td>
+                <td>{{row.storage_medium.num_of_mounts}}</td>
+                <td>{{row.status_display}}</td>
               </tr>
               <tr ng-if="!vm.tapeSlots.length && !tapeSlotsLoading" class="empty-table-indicator">
                 <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -271,11 +290,12 @@
             <thead>
               <tr>
                 <th st-sort="slot_id" class="clickable" class="column-label">ID</th>
+                <th class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
                 <th st-sort="device" class="clickable" class="column-label">{{'DEVICE' | translate}}</th>
+                <th class="clickable" class="column-label">{{'TIMER' | translate}}</th>
                 <th st-sort="num_of_mounts" class="clickable" class="column-label">
                   {{'NUMBEROFMOUNTS' | translate}}
                 </th>
-                <th class="clickable" class="column-label">{{'MEDIUM' | translate}}</th>
                 <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
               </tr>
             </thead>
@@ -288,11 +308,32 @@
                 ng-attr-context-menu="menuOptions"
                 class="table-item selectable"
               >
-                <td>{{row.id}}</td>
+                <td>{{row.drive_id}}</td>
+                <td>
+                  {{row.storage_medium.medium_id}}
+                  <div
+                    class="inuse fa-stack fa-2xs"
+                    ng-if="::(row.storage_medium && row.locked)"
+                    uib-tooltip="{{::('INUSE' | translate:row)}}"
+                    tooltip-placement="auto"
+                    tooltip-append-to-body="true"
+                  >
+                    <i class="fas fa-hard-drive fa-2x text-warning"></i>
+                  </div>
+                  <div
+                    class="mounted fa-stack fa-2xs"
+                    ng-if="::(row.storage_medium && !row.locked)"
+                    uib-tooltip="{{::('MOUNTED' | translate:row)}}"
+                    tooltip-placement="auto"
+                    tooltip-append-to-body="true"
+                  >
+                    <i class="fas fa-hard-drive fa-2x text-success"></i>
+                  </div>
+                </td>
                 <td>{{row.device}}</td>
+                <td>{{row.idle_timer}}</td>
                 <td>{{row.num_of_mounts}}</td>
-                <td>{{row.storage_medium.id}}</td>
-                <td>{{row.status}}</td>
+                <td>{{row.status_display}}</td>
               </tr>
               <tr ng-if="!vm.tapeDrives.length && !tapeDrivesLoading" class="empty-table-indicator">
                 <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>
