@@ -51,7 +51,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        django-admin worker -l INFO -Q celery,file_operation,validation
+        django-admin worker -l INFO -Q celery,file_operation,validation,io_disk
     restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:

@@ -578,7 +578,7 @@ def DownloadFile(self, src=None, dst=None):
                 f.write(chunk)
 
 
-@app.task(bind=True, queue='robot', event_type=40200)
+@app.task(bind=True, queue='io_tape', event_type=40200)
 def MountTape(self, medium_id, drive_id=None, timeout=120):
     if drive_id is None:
         drive = TapeDrive.objects.filter(
@@ -593,7 +593,7 @@ def MountTape(self, medium_id, drive_id=None, timeout=120):
     mount_tape_medium_into_drive(drive_id, medium_id, timeout)
 
 
-@app.task(bind=True, queue='robot', event_type=40100)
+@app.task(bind=True, queue='io_tape', event_type=40100)
 def UnmountTape(self, drive_id):
     return unmount_tape_from_drive(drive_id)
 
@@ -693,7 +693,7 @@ def SetTapeFileNumber(self, medium=None, num=0):
     return set_tape_file_number(drive.device, num)
 
 
-@app.task(bind=True)
+@app.task(bind=True, queue='robot')
 def RobotInventory(self, robot):
     """
     Updates the slots and drives in the robot

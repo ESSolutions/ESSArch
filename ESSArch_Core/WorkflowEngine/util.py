@@ -86,6 +86,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             result_params = flow_entry.get('result_params', {})
             task = ProcessTask.objects.create(
                 name=name,
+                queue=flow_entry.get('queue', None),
                 reference=flow_entry.get('reference', None),
                 label=flow_entry.get('label'),
                 args=args,
