@@ -24,17 +24,20 @@
 
 import logging
 import os
+import pickle
 import shutil
 import tarfile
 import tempfile
 import zipfile
+from datetime import timedelta
 
 from celery.exceptions import Ignore
 from celery.result import allow_join_result
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.utils import timezone
 
 # noinspection PyUnresolvedReferences
@@ -238,143 +241,179 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
     aip.access(storage_object, self.get_processtask(), dst=dst)
 
 
-@app.task(bind=True, track=False)
+@app.task(bind=True, queue='robot', track=False)
 def PollRobotQueue(self):
-    force_entries = RobotQueue.objects.filter(
-        req_type=30, status__in=[0, 2]
-    ).select_related('storage_medium').order_by('-status', 'posted')
+    logger = logging.getLogger('essarch.storage.backends.tape')
+    for robot in Robot.objects.filter(online=True):
+        force_entries = RobotQueue.objects.filter(
+            robot=robot, req_type=30, status__in=[0, 2]
+        ).select_related('storage_medium').order_by('-status', 'posted')
 
-    non_force_entries = RobotQueue.objects.filter(
-        status__in=[0, 2]
-    ).exclude(req_type=30).select_related('storage_medium').order_by('-status', '-req_type', 'posted')[:5]
+        non_force_entries = RobotQueue.objects.filter(
+            robot=robot, status__in=[0, 2]
+        ).exclude(req_type=30).select_related('storage_medium').order_by('-req_type', '-status', 'posted')[:5]
 
-    entries = list(force_entries) + list(non_force_entries)
+        entries = list(force_entries) + list(non_force_entries)
 
-    if not len(entries):
-        raise Ignore()
+        if not len(entries):
+            raise Ignore()
 
-    for entry in entries:
-        entry.status = 2
-        entry.save(update_fields=['status'])
+        for entry in entries:
+            entry.status = 2
+            entry.save(update_fields=['status'])
 
-        medium = entry.storage_medium
+            medium = entry.storage_medium
 
-        if entry.req_type == 10:  # mount
-            if medium.tape_drive is not None:  # already mounted
-                if hasattr(entry, 'io_queue_entry'):  # mounting for read or write
-                    if medium.tape_drive.io_queue_entry != entry.io_queue_entry:
-                        raise TapeMountedAndLockedByOtherError(
-                            "Tape already mounted and locked by '%s'" % medium.tape_drive.io_queue_entry
-                        )
+            if entry.req_type == 10:  # mount
+                if medium.tape_drive is not None:  # already mounted
+                    if medium.tape_drive.locked:
+                        logger.warning('Tape media is already in transit, skip mount request {} for media {}'.format(
+                            entry.id, entry.storage_medium.medium_id))
+                        continue
 
+                    if medium.tape_drive.is_locked():
+                        drive_lock_key = pickle.loads(cache.get(medium.tape_drive.get_lock_key()))
+                        raise TapeMountedError("Tape already mounted and locked by {}".format(drive_lock_key))
+
+                    if hasattr(entry, 'io_queue_entry'):  # mounting for read or write
+                        if medium.tape_drive.io_queue_entry != entry.io_queue_entry:
+                            raise TapeMountedAndLockedByOtherError(
+                                "Tape already mounted and locked by '%s'" % medium.tape_drive.io_queue_entry
+                            )
+
+                        entry.delete()
+
+                    raise TapeMountedError("Tape already mounted")
+
+                drive = entry.tape_drive
+
+                if drive is None:
+                    free_drive = TapeDrive.objects.filter(
+                        robot=robot, status=20, storage_medium__isnull=True, io_queue_entry__isnull=True, locked=False,
+                    ).order_by('num_of_mounts').first()
+
+                    if free_drive is None:
+                        logger.warning('No tape drive available for mount request {} for media {}'.format(
+                            entry.id, entry.storage_medium.medium_id))
+                        continue
+
+                    drive = free_drive
+
+                busy_root_queue = robot.robot_queue.filter(status=5)
+                free_robot = robot if not busy_root_queue.exists() else None
+
+                if free_robot is None:
+                    logger.warning('No robot available for mount request {} for media {}, robot is already working \
+with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queue.first().id))
+                    continue
+
+                entry.robot = free_robot
+                entry.status = 5
+                entry.save(update_fields=['robot', 'status'])
+
+                with allow_join_result():
+
+                    try:
+                        ProcessTask.objects.create(
+                            name="ESSArch_Core.tasks.MountTape",
+                            params={
+                                'medium_id': medium.pk,
+                                'drive_id': drive.pk,
+                            }
+                        ).run().get()
+                    except TapeMountedError:
+                        entry.delete()
+                        raise
+                    except BaseException:
+                        entry.status = 100
+                        raise
+                    else:
+                        medium.tape_drive = drive
+                        medium.save(update_fields=['tape_drive'])
+                        entry.delete()
+                    finally:
+                        if entry.pk is not None:
+                            entry.robot = None
+                            entry.save(update_fields=['robot', 'status'])
+
+            elif entry.req_type in [20, 30]:  # unmount
+                if medium.tape_drive is None:  # already unmounted
                     entry.delete()
+                    raise TapeUnmountedError("Tape already unmounted")
 
-                raise TapeMountedError("Tape already mounted")
+                if medium.tape_drive.locked:
+                    logger.warning('Tape media is already in transit, skip unmount request {} for media {}'.format(
+                        entry.id, entry.storage_medium.medium_id))
+                    continue
 
-            drive = entry.tape_drive
+                if medium.tape_drive.is_locked():
+                    if entry.req_type == 20:
+                        raise TapeDriveLockedError("Tape locked")
 
-            if drive is None:
-                free_drive = TapeDrive.objects.filter(
-                    status=20, storage_medium__isnull=True, io_queue_entry__isnull=True, locked=False,
-                ).order_by('num_of_mounts').first()
+                busy_root_queue = robot.robot_queue.filter(status=5)
+                free_robot = robot if not busy_root_queue.exists() else None
 
-                if free_drive is None:
-                    raise ValueError('No tape drive available')
+                if free_robot is None:
+                    logger.warning('No robot available for mount request {} for media {}, robot is already working \
+with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queue.first().id))
+                    continue
 
-                drive = free_drive
+                entry.robot = free_robot
+                entry.status = 5
+                entry.save(update_fields=['robot', 'status'])
 
-            free_robot = Robot.objects.filter(robot_queue__isnull=True).first()
-
-            if free_robot is None:
-                raise ValueError('No robot available')
-
-            entry.robot = free_robot
-            entry.status = 5
-            entry.save(update_fields=['robot', 'status'])
-
-            with allow_join_result():
-
-                try:
-                    ProcessTask.objects.create(
-                        name="ESSArch_Core.tasks.MountTape",
-                        params={
-                            'medium': medium.pk,
-                            'drive': drive.pk,
-                        }
-                    ).run().get()
-                except TapeMountedError:
-                    entry.delete()
-                    raise
-                except BaseException:
-                    entry.status = 100
-                    raise
-                else:
-                    medium.tape_drive = drive
-                    medium.save(update_fields=['tape_drive'])
-                    entry.delete()
-                finally:
-                    entry.robot = None
-                    entry.save(update_fields=['robot', 'status'])
-
-        elif entry.req_type in [20, 30]:  # unmount
-            if medium.tape_drive is None:  # already unmounted
-                entry.delete()
-                raise TapeUnmountedError("Tape already unmounted")
-
-            if medium.tape_drive.locked:
-                if entry.req_type == 20:
-                    raise TapeDriveLockedError("Tape locked")
-
-            free_robot = Robot.objects.filter(robot_queue__isnull=True).first()
-
-            if free_robot is None:
-                raise ValueError('No robot available')
-
-            entry.robot = free_robot
-            entry.status = 5
-            entry.save(update_fields=['robot', 'status'])
-
-            with allow_join_result():
-                try:
-                    ProcessTask.objects.create(
-                        name="ESSArch_Core.tasks.UnmountTape",
-                        params={
-                            'drive': medium.tape_drive.pk,
-                        }
-                    ).run().get()
-                except TapeUnmountedError:
-                    entry.delete()
-                    raise
-                except BaseException:
-                    entry.status = 100
-                    raise
-                else:
-                    medium.tape_drive = None
-                    medium.save(update_fields=['tape_drive'])
-                    entry.delete()
-                finally:
-                    entry.robot = None
-                    entry.save(update_fields=['robot', 'status'])
+                with allow_join_result():
+                    try:
+                        ProcessTask.objects.create(
+                            name="ESSArch_Core.tasks.UnmountTape",
+                            params={
+                                'drive_id': medium.tape_drive.pk,
+                            }
+                        ).run().get()
+                    except TapeUnmountedError:
+                        entry.delete()
+                        raise
+                    except BaseException:
+                        entry.status = 100
+                        raise
+                    else:
+                        cache.delete_pattern(medium.tape_drive.get_lock_key())
+                        medium.tape_drive = None
+                        medium.save(update_fields=['tape_drive'])
+                        entry.delete()
+                    finally:
+                        if entry.pk is not None:
+                            entry.robot = None
+                            entry.save(update_fields=['robot', 'status'])
 
 
-@app.task(bind=True, track=False)
+@app.task(bind=True, queue='robot', track=False)
 def UnmountIdleDrives(self):
-    idle_drives = TapeDrive.objects.filter(
-        status=20, storage_medium__isnull=False,
-        last_change__lte=timezone.now() - F('idle_time'),
-        locked=False,
-    )
-
-    if not idle_drives.exists():
-        raise Ignore()
-
-    for drive in idle_drives.iterator():
-        robot_queue_entry_exists = RobotQueue.objects.filter(
-            storage_medium=drive.storage_medium, req_type=20, status__in=[0, 2]
+    for robot in Robot.objects.filter(online=True):
+        robot_queue_mount_entry_exists = RobotQueue.objects.filter(
+            robot=robot, req_type=10, status__in=[0, 2],
         ).exists()
-        if not robot_queue_entry_exists:
-            RobotQueue.objects.create(
-                user=User.objects.get(username='system'),
-                storage_medium=drive.storage_medium,
-                req_type=20, status=0,
-            )
+
+        drive_filter = Q(robot=robot, status=20, storage_medium__isnull=False, locked=False)
+        if robot_queue_mount_entry_exists:
+            drive_filter &= Q(last_change__lte=timezone.now() - timedelta(seconds=60))
+        else:
+            drive_filter &= Q(last_change__lte=timezone.now() - F('idle_time'))
+
+        idle_drives = TapeDrive.objects.filter(drive_filter)
+
+        if not idle_drives.exists():
+            continue
+
+        for drive in idle_drives.iterator():
+            if not drive.is_locked():
+                robot_queue_entry_exists = RobotQueue.objects.filter(
+                    robot=robot, storage_medium=drive.storage_medium,
+                    req_type=20, status__in=[0, 2],
+                ).exists()
+                if not robot_queue_entry_exists:
+                    RobotQueue.objects.create(
+                        robot=robot, storage_medium=drive.storage_medium,
+                        req_type=20, status=0,
+                        user=User.objects.get(username='system'),
+                    )
