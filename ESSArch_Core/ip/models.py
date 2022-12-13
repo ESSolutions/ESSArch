@@ -1365,8 +1365,7 @@ class InformationPackage(models.Model):
 
         access_workarea = Path.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
-        access_workarea_user_extracted = os.path.join(
-            access_workarea, user.username, dst_object_identifier_value, dst_object_identifier_value)
+        access_workarea_user_extracted = os.path.join(access_workarea_user, dst_object_identifier_value)
         access_workarea_user_container = os.path.join(access_workarea_user, '{}.{}'.format(
             self.object_identifier_value, self.get_container_format().lower()))
         access_workarea_user_package_xml = os.path.join(access_workarea_user, self.package_mets_path.split('/')[-1])
@@ -1438,7 +1437,7 @@ class InformationPackage(models.Model):
                     "if": tar and package_xml,
                     "args": [
                         temp_mets_path,
-                        access_workarea_user,
+                        access_workarea_user_package_xml,
                     ],
                 },
                 {
@@ -1448,7 +1447,7 @@ class InformationPackage(models.Model):
                     "if": tar and aic_xml,
                     "args": [
                         temp_aic_mets_path,
-                        access_workarea_user,
+                        access_workarea_user_aic_xml,
                     ],
                 },
                 {
@@ -1507,9 +1506,9 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
                         "queue": worker_queue,
-                        "if": package_xml,
+                        "if": tar and package_xml,
                         "args": [
-                            temp_object_path,
+                            access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
                     },
@@ -1519,6 +1518,12 @@ class InformationPackage(models.Model):
                         "queue": worker_queue,
                         "if": aic_xml,
                         "args": [access_workarea_user_aic_xml]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary object",
+                        "queue": worker_queue,
+                        "args": [temp_object_path]
                     },
                 ]
 
@@ -1635,7 +1640,7 @@ class InformationPackage(models.Model):
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': access_workarea_user
+                            'dst': access_workarea_user_extracted
                         },
                     },
                     {
@@ -1660,9 +1665,9 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
                         "queue": worker_queue,
-                        "if": package_xml,
+                        "if": tar and package_xml,
                         "args": [
-                            temp_object_path,
+                            access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
                     },
@@ -1672,6 +1677,12 @@ class InformationPackage(models.Model):
                         "queue": worker_queue,
                         "if": aic_xml,
                         "args": [access_workarea_user_aic_xml]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary object",
+                        "queue": worker_queue,
+                        "args": [temp_object_path]
                     },
                 ]
 
