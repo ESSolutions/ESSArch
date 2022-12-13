@@ -3159,7 +3159,10 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def get_object(self, request):
         requested_id = self.request.query_params.get('id')
-        obj = Workarea.objects.get(ip__id=requested_id)
+        try:
+            obj = Workarea.objects.get(ip__id=requested_id)
+        except Workarea.DoesNotExist:
+            raise exceptions.NotFound
         return obj
 
     def get_user(self, request):
@@ -3197,6 +3200,11 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.NotFound('Path "%s" does not exist' % relpath)
 
     def list(self, request):
+        try:
+            self.request.query_params['id'].lower()
+        except KeyError:
+            raise exceptions.ParseError('Missing id parameter')
+
         try:
             workarea = self.request.query_params['type'].lower()
         except KeyError:

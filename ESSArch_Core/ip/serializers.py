@@ -135,12 +135,25 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     last_generation = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     new_version_in_progress = serializers.SerializerMethodField()
+    message_digest_algorithm_display = serializers.SerializerMethodField()
+    content_mets_digest_algorithm_display = serializers.SerializerMethodField()
+    package_mets_digest_algorithm_display = serializers.SerializerMethodField()
+    submission_agreement_name = serializers.SerializerMethodField()
     submission_agreement_data = serializers.SerializerMethodField()
     submission_agreement_data_versions = serializers.ListField(
         child=serializers.PrimaryKeyRelatedField(read_only=True)
     )
     step_state = serializers.CharField(read_only=True)
     status = serializers.IntegerField(read_only=True)
+
+    def get_message_digest_algorithm_display(self, obj):
+        return obj.get_message_digest_algorithm_display()
+
+    def get_content_mets_digest_algorithm_display(self, obj):
+        return obj.get_content_mets_digest_algorithm_display()
+
+    def get_package_mets_digest_algorithm_display(self, obj):
+        return obj.get_package_mets_digest_algorithm_display()
 
     def get_organization(self, obj):
         try:
@@ -214,6 +227,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             return None
         return WorkareaSerializer(new, context=self.context).data
 
+    def get_submission_agreement_name(self, obj):
+        if obj.submission_agreement is not None:
+            return obj.submission_agreement.name
+        else:
+            return ''
+
     def get_submission_agreement_data(self, obj):
         if obj.submission_agreement_data is not None:
             serializer = SubmissionAgreementIPDataSerializer(obj.submission_agreement_data)
@@ -257,14 +276,16 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         model = InformationPackage
         fields = (
             'id', 'label', 'object_identifier_value', 'object_size', 'object_path',
-            'submission_agreement', 'submission_agreement_locked', 'submission_agreement_data',
-            'submission_agreement_data_versions',
+            'submission_agreement', 'submission_agreement_name', 'submission_agreement_locked',
+            'submission_agreement_data', 'submission_agreement_data_versions',
             'package_type', 'package_type_display', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
             'archived', 'cached', 'aic', 'generation', 'agents',
-            'message_digest', 'message_digest_algorithm',
-            'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
-            'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
+            'message_digest', 'message_digest_algorithm', 'message_digest_algorithm_display',
+            'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm',
+            'content_mets_digest_algorithm_display', 'content_mets_digest',
+            'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm',
+            'package_mets_digest_algorithm_display', 'package_mets_digest',
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
             'workarea', 'first_generation', 'last_generation', 'organization', 'new_version_in_progress',
             'create_agent_identifier_value', 'entry_agent_identifier_value', 'linking_agent_identifier_value',

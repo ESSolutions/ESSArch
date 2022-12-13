@@ -46,7 +46,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(RobotMountException):
             mount_tape("device_to_mount", 21, 42)
 
-        cmd = 'mtx -f device_to_mount load 21 42'
+        cmd = ['mtx', '-f', 'device_to_mount', 'load', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.mount_tape.retry.stop')
@@ -59,7 +59,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(TapeMountedError):
             mount_tape("device_to_mount", 21, 42)
 
-        cmd = 'mtx -f device_to_mount load 21 42'
+        cmd = ['mtx', '-f', 'device_to_mount', 'load', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -69,7 +69,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertEqual(mount_tape("device_to_mount", 21, 42), "All good")
 
-        cmd = 'mtx -f device_to_mount load 21 42'
+        cmd = ['mtx', '-f', 'device_to_mount', 'load', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.stop')
@@ -82,7 +82,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(RobotUnmountException):
             unmount_tape("device_to_unmount", 21, 42)
 
-        cmd = 'mtx -f device_to_unmount unload 21 42'
+        cmd = ['mtx', '-f', 'device_to_unmount', 'unload', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.unmount_tape.retry.stop')
@@ -95,7 +95,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(TapeUnmountedError):
             unmount_tape("device_to_unmount", 21, 42)
 
-        cmd = 'mtx -f device_to_unmount unload 21 42'
+        cmd = ['mtx', '-f', 'device_to_unmount', 'unload', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -105,7 +105,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertEqual(unmount_tape("device_to_unmount", 21, 42), "All good")
 
-        cmd = 'mtx -f device_to_unmount unload 21 42'
+        cmd = ['mtx', '-f', 'device_to_unmount', 'unload', '21', '42']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -116,7 +116,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTInvalidOperationOrDeviceNameException):
             rewind_tape("device_to_rewind")
 
-        cmd = 'mt -f device_to_rewind rewind'
+        cmd = ['mt', '-f', 'device_to_rewind', 'rewind']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -127,7 +127,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTFailedOperationException):
             rewind_tape("device_to_rewind")
 
-        cmd = 'mt -f device_to_rewind rewind'
+        cmd = ['mt', '-f', 'device_to_rewind', 'rewind']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -137,7 +137,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertEqual(rewind_tape("device_to_rewind"), "All good")
 
-        cmd = 'mt -f device_to_rewind rewind'
+        cmd = ['mt', '-f', 'device_to_rewind', 'rewind']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -148,7 +148,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(RobotException):
             is_tape_drive_online("device_to_verify")
 
-        cmd = 'mt -f device_to_verify status'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -158,7 +158,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertTrue(is_tape_drive_online("device_to_verify"))
 
-        cmd = 'mt -f device_to_verify status'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -168,7 +168,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertFalse(is_tape_drive_online("device_to_verify"))
 
-        cmd = 'mt -f device_to_verify status'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.time.sleep')
@@ -269,7 +269,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTInvalidOperationOrDeviceNameException):
             get_tape_file_number("device_to_verify")
 
-        cmd = 'mt -f device_to_verify status | grep -i "file number"'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
@@ -280,17 +280,17 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTFailedOperationException):
             get_tape_file_number("device_to_verify")
 
-        cmd = 'mt -f device_to_verify status | grep -i "file number"'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
     def test_get_tape_file_number_success(self, mock_popen):
-        attrs = {'communicate.return_value': ('the_drive=42, something else', ''), 'returncode': 0}
+        attrs = {'communicate.return_value': ('file number=42, something else', ''), 'returncode': 0}
         mock_popen.return_value.configure_mock(**attrs)
 
         self.assertEqual(get_tape_file_number("device_to_verify"), 42)
 
-        cmd = 'mt -f device_to_verify status | grep -i "file number"'
+        cmd = ['mt', '-f', 'device_to_verify', 'status']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
 
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
@@ -312,7 +312,7 @@ class TapeTests(SimpleTestCase):
 
         self.assertEqual(set_tape_file_number("device_to_update", 2), "the output")
 
-        cmd = 'mt -f device_to_update someOp 43'
+        cmd = ['mt', '-f', 'device_to_update', 'someOp', '43']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         mock_get_tape_fn.assert_called_once()
         mock_tape_op.assert_called_once()
@@ -327,7 +327,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTInvalidOperationOrDeviceNameException):
             set_tape_file_number("device_to_update", 3)
 
-        cmd = 'mt -f device_to_update someOp 43'
+        cmd = ['mt', '-f', 'device_to_update', 'someOp', '43']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         mock_get_tape_fn.assert_called_once()
         mock_tape_op.assert_called_once()
@@ -342,7 +342,7 @@ class TapeTests(SimpleTestCase):
         with self.assertRaises(MTFailedOperationException):
             set_tape_file_number("device_to_update", 3)
 
-        cmd = 'mt -f device_to_update someOp 43'
+        cmd = ['mt', '-f', 'device_to_update', 'someOp', '43']
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE, universal_newlines=True)
         mock_get_tape_fn.assert_called_once()
         mock_tape_op.assert_called_once()

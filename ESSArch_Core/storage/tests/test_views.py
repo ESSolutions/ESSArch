@@ -723,6 +723,8 @@ class StorageMigrationTestsBase(APITestCase):
             package_type=InformationPackage.AIP, aic=aic,
             generation=0,
         )
+        self.ip.package_mets_path = '{}.xml'.format(self.ip.pk)
+        self.ip.save(update_fields=["package_mets_path"])
 
 
 class StorageMigrationTests(StorageMigrationTestsBase):
