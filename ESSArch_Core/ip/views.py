@@ -8,6 +8,7 @@ import logging
 import math
 import os
 import shutil
+import tarfile
 import uuid
 
 from celery import states as celery_states
@@ -47,6 +48,7 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -3201,18 +3203,17 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def list(self, request):
         try:
-            self.request.query_params['id'].lower()
-        except KeyError:
-            raise exceptions.ParseError('Missing id parameter')
-
-        try:
-            workarea = self.request.query_params['type'].lower()
+            workarea = request.query_params['type'].lower()
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        wip = self.get_object(request)
         self.validate_workarea(workarea)
-        root = wip.path
+        user = self.get_user(request)
+        if request.query_params.get('id') in EMPTY_VALUES:
+            root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        else:
+            wip = self.get_object(request)
+            root = wip.path
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
@@ -3442,9 +3443,26 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Missing dst parameter')
 
         src = os.path.join(root, src)
-        self.validate_path(src, root)
-
         dst = os.path.join(ip.object_path, dst)
+
+        try:
+            self.validate_path(src, root)
+        except exceptions.NotFound:
+            if len(src.split('.tar/')) == 2:
+                tar_path, tar_subpath = src.split('.tar/')
+                tar_path += '.tar'
+                if not os.path.isfile(tar_path):
+                    raise
+                with tarfile.open(tar_path) as tar:
+                    try:
+                        tarinfo_obj = tar.getmember(tar_subpath)
+                        tarinfo_obj.name = tar_subpath.split('/')[-1]
+                        tar.extract(tarinfo_obj, dst)
+                        return Response(root)
+                    except KeyError:
+                        raise NotFound
+            else:
+                raise
 
         if os.path.isfile(src):
             shutil.copy2(src, dst)

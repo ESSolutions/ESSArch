@@ -589,7 +589,7 @@ class WorkareaFilesViewTestCase(TestCase):
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
-    def test_no_id_and_type_parameter(self):
+    def test_no_type_parameter(self):
         res = self.client.get(self.url)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

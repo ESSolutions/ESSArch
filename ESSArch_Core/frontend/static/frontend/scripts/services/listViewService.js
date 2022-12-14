@@ -412,11 +412,11 @@ const listViewService = (
       return response;
     });
   }
-  function getWorkareaDir(ip, workareaType, pathStr, pagination, user) {
+  function getWorkareaDir(workareaId, workareaType, pathStr, pagination, user) {
     let sendData;
     if (pathStr == '') {
       sendData = {
-        id: ip.id,
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -425,7 +425,7 @@ const listViewService = (
       };
     } else {
       sendData = {
-        id: ip.id,
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -483,7 +483,10 @@ const listViewService = (
 
   function addFileToDip(ip, path, file, destination, type) {
     const src = path + file.name;
-    const dst = destination + file.name;
+    let dst = destination + file.name;
+    if (path.endsWith('.tar/')) {
+      dst = destination;
+    }
     return WorkareaFiles.addToDip({
       dip: ip.id,
       src: src,

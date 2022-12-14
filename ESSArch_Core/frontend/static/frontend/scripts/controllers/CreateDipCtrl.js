@@ -425,6 +425,7 @@ export default class {
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getWorkareaDir(
+            null,
             'access',
             $scope.previousGridArraysString(1),
             paginationParams,
@@ -506,7 +507,11 @@ export default class {
       }
     };
     $scope.expandFile = function (whichArray, ip, card) {
-      if (card.type == 'dir') {
+      if (
+        card.type == 'dir' ||
+        (card.name.endsWith('.tar') && whichArray == 1) ||
+        (card.name.endsWith('.zip') && whichArray == 1)
+      ) {
         if (whichArray == 1) {
           $scope.selectedCards1 = [];
           $scope.previousGridArrays1.push(card);

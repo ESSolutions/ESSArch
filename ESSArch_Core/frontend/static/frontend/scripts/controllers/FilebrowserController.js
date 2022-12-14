@@ -87,7 +87,7 @@ export default class FilebrowserController {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .getWorkareaDir(
-              $scope.ip,
+              $scope.ip.id,
               vm.workarea,
               $scope.previousGridArraysString(),
               paginationParams,
