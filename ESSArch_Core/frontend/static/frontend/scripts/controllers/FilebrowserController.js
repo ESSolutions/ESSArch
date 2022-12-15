@@ -73,7 +73,6 @@ export default class FilebrowserController {
     };
 
     $scope.dirPipe = function (tableState) {
-      console.log('dirPipe');
       if (vm.browserstate) {
         vm.browserstate.path = $scope.previousGridArraysString();
       }
@@ -98,11 +97,15 @@ export default class FilebrowserController {
                 $scope.initLoad &&
                 !$scope.initExpanded &&
                 !$scope.ip.workarea[0].packaged &&
-                $scope.ip.workarea[0].extracted &&
-                dir.data[0].name == $scope.ip.object_identifier_value
+                $scope.ip.workarea[0].extracted
               ) {
-                $scope.expandFile($scope.ip, dir.data[0]);
-                $scope.initExpanded = true;
+                for (let i = 0; i < dir.data.length; i++) {
+                  if (dir.data[i].name == $scope.ip.object_identifier_value) {
+                    $scope.expandFile($scope.ip, dir.data[i]);
+                    $scope.initExpanded = true;
+                    break;
+                  }
+                }
               } else {
                 $scope.deckGridData = dir.data;
                 tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
@@ -113,15 +116,20 @@ export default class FilebrowserController {
             });
         } else {
           listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function (dir) {
-            console.log('$scope.ip: ' + JSON.stringify($scope.ip));
+            //console.log('$scope.ip: ' + JSON.stringify($scope.ip));
             if (
               $scope.initLoad &&
               !$scope.initExpanded &&
-              $scope.ip.state == 'Prepared' &&
-              dir.data[0].name == 'content'
+              $scope.ip.package_type_display == 'SIP' &&
+              $scope.ip.state == 'Prepared'
             ) {
-              $scope.expandFile($scope.ip, dir.data[0]);
-              $scope.initExpanded = true;
+              for (let i = 0; i < dir.data.length; i++) {
+                if (dir.data[i].name == 'content') {
+                  $scope.expandFile($scope.ip, dir.data[i]);
+                  $scope.initExpanded = true;
+                  break;
+                }
+              }
             } else {
               $scope.deckGridData = dir.data;
               tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
@@ -179,7 +187,13 @@ export default class FilebrowserController {
       }
     };
     $scope.expandFile = function (ip, card) {
-      if (card.type == 'dir' || card.name.endsWith('.tar') || card.name.endsWith('.zip')) {
+      if (
+        card.type == 'dir' ||
+        (card.name.endsWith('.tar') &&
+          ($state.includes('**.workarea.**') || ['At reception', 'Created', 'Submitted'].includes(ip.state))) ||
+        (card.name.endsWith('.zip') &&
+          ($state.includes('**.workarea.**') || ['At reception', 'Created', 'Submitted'].includes(ip.state)))
+      ) {
         $scope.previousGridArrays.push(card);
         if ($scope.tableState) {
           $scope.tableState.pagination.start = 0;
