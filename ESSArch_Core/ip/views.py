@@ -3159,6 +3159,10 @@ class WorkareaViewSet(InformationPackageViewSet):
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger('essarch.workspace')
+        super().__init__(*args, **kwargs)
+
     def get_object(self, request):
         requested_id = self.request.query_params.get('id')
         try:
@@ -3169,6 +3173,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def get_user(self, request):
         requested_user = self.request.query_params.get('user')
+        if requested_user is None:
+            requested_user = self.request.data.get('user')
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
             return request.user
 
@@ -3176,13 +3182,18 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.PermissionDenied('No permission to see files in other users workspaces')
 
         try:
-            user_id = self.request.query_params['user']
+            user_id = requested_user
             organization = self.request.user.user_profile.current_organization
             organization_users = organization.get_members(subgroups=True)
             user = User.objects.get(pk=user_id, essauth_member__in=organization_users)
             return user
         except User.DoesNotExist:
-            raise exceptions.NotFound('User not found in organization')
+            if requested_user is not None:
+                user = User.objects.get(pk=requested_user)
+            else:
+                user = request.user
+            raise exceptions.NotFound('User: {} not found in organization: {}'.format(
+                user.username, organization.name))
 
     def validate_workarea(self, area_type):
         workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
@@ -3411,9 +3422,13 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
+        try:
+            user = self.get_user(request)
+        except exceptions.NotFound as e:
+            self.logger.warning('{}'.format(e))
+            user = request.user
+
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
 
         try:

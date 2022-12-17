@@ -239,7 +239,8 @@ export default class {
               $scope.previousGridArraysString(1),
               file,
               $scope.previousGridArraysString(2),
-              'access'
+              'access',
+              vm.organizationMember.current.id
             )
             .then(function (result) {
               $scope.updateGridArray();
@@ -302,7 +303,8 @@ export default class {
             $scope.previousGridArraysString(1),
             file,
             $scope.previousGridArraysString(2),
-            'access'
+            'access',
+            vm.organizationMember.current.id
           )
           .then(function (result) {
             $scope.updateGridArray();

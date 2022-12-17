@@ -481,7 +481,7 @@ const listViewService = (
     });
   }
 
-  function addFileToDip(ip, path, file, destination, type) {
+  function addFileToDip(ip, path, file, destination, type, user) {
     const src = path + file.name;
     let dst = destination + file.name;
     if (path.endsWith('.tar/')) {
@@ -492,6 +492,7 @@ const listViewService = (
       src: src,
       dst: dst,
       type: type,
+      user: user,
     }).$promise.then(function (response) {
       return response;
     });
