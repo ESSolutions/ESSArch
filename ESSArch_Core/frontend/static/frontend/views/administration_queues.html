@@ -99,6 +99,7 @@
                   <th st-sort="id" class="clickable" class="column-label">ID</th>
                   <th st-sort="posted" class="clickable" class="column-label">{{'POSTED' | translate}}</th>
                   <th st-sort="req_type" class="clickable" class="column-label">{{'REQUESTTYPE' | translate}}</th>
+                  <th st-sort="medium_id" class="clickable" class="column-label">{{'MEDIUMID' | translate}}</th>
                   <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
                 </tr>
               </thead>
@@ -112,6 +113,7 @@
                   <td>{{row.id}}</td>
                   <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
                   <td>{{row.req_type}}</td>
+                  <td>{{row.storage_medium.medium_id}}</td>
                   <td>{{row.status}}</td>
                 </tr>
                 <tr ng-if="!vm.robotQueue.length && !vm.robotLoading" class="empty-table-indicator">

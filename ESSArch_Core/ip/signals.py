@@ -53,9 +53,10 @@ def workarea_post_delete(sender, instance, using, **kwargs):
         if e.errno != errno.ENOENT:
             raise
 
-    if not Workarea.objects.filter(ip__aic=instance.ip.aic).exists():
-        try:
-            os.remove(instance.aic_xml_path)
-        except OSError as e:
-            if e.errno != errno.ENOENT:
-                raise
+    if instance.ip.aic is not None:
+        if not Workarea.objects.filter(ip__aic=instance.ip.aic).exists():
+            try:
+                os.remove(instance.aic_xml_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise

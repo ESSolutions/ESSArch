@@ -121,7 +121,7 @@ export default class {
     vm.callServer = function callServer(tableState) {
       $scope.ipLoading = true;
       if (vm.displayedIps.length == 0) {
-        $scope.initLoad = true;
+        $scope.initLoadcallServer = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
@@ -143,7 +143,7 @@ export default class {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
-            $scope.initLoad = false;
+            $scope.initLoadcallServer = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
           .catch(function (response) {
@@ -239,7 +239,8 @@ export default class {
               $scope.previousGridArraysString(1),
               file,
               $scope.previousGridArraysString(2),
-              'access'
+              'access',
+              vm.organizationMember.current.id
             )
             .then(function (result) {
               $scope.updateGridArray();
@@ -302,7 +303,8 @@ export default class {
             $scope.previousGridArraysString(1),
             file,
             $scope.previousGridArraysString(2),
-            'access'
+            'access',
+            vm.organizationMember.current.id
           )
           .then(function (result) {
             $scope.updateGridArray();
@@ -418,13 +420,14 @@ export default class {
     $scope.workareaPipe = function (tableState) {
       $scope.workArrayLoading = true;
       if ($scope.deckGridData.length == 0) {
-        $scope.initLoad = true;
+        $scope.initLoadworkareaPipe = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.workarea_tableState = tableState;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getWorkareaDir(
+            null,
             'access',
             $scope.previousGridArraysString(1),
             paginationParams,
@@ -434,7 +437,7 @@ export default class {
             $scope.deckGridData = dir.data;
             $scope.workarea_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
             $scope.workArrayLoading = false;
-            $scope.initLoad = false;
+            $scope.initLoadworkareaPipe = false;
           })
           .catch(function (response) {
             if (response.status == 404) {
@@ -442,15 +445,16 @@ export default class {
               $scope.workarea_tableState.pagination.numberOfPages = 0; //set the number of pages so the pagination can update
               $scope.workarea_tableState.pagination.start = 0; //set the number of pages so the pagination can update
               $scope.workArrayLoading = false;
-              $scope.initLoad = false;
+              $scope.initLoadworkareaPipe = false;
             }
           });
       }
     };
+    $scope.chosenFiles = [];
     $scope.dipPipe = function (tableState) {
       $scope.gridArrayLoading = true;
-      if ($scope.deckGridData.length == 0) {
-        $scope.initLoad = true;
+      if ($scope.chosenFiles.length == 0) {
+        $scope.initLoaddipPipe = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.dip_tableState = tableState;
@@ -458,20 +462,35 @@ export default class {
         listViewService
           .getDipDir($scope.ip, $scope.previousGridArraysString(2), paginationParams)
           .then(function (dir) {
-            $scope.chosenFiles = dir.data;
-            $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-            $scope.gridArrayLoading = false;
-            $scope.initLoad = false;
+            if (
+              $scope.initLoaddipPipe &&
+              vm.activeTab == 'create_dip' &&
+              !$scope.initExpanded &&
+              $scope.ip.state == 'Prepared'
+            ) {
+              for (let i = 0; i < dir.data.length; i++) {
+                if (dir.data[i].name == 'content') {
+                  $scope.expandFile(2, $scope.ip, dir.data[0]);
+                  $scope.initExpanded = true;
+                  break;
+                }
+              }
+            } else {
+              $scope.chosenFiles = dir.data;
+              $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+              $scope.gridArrayLoading = false;
+              $scope.initLoaddipPipe = false;
+            }
           });
       }
     };
     $scope.deckGridInit = function (ip) {
       $scope.previousGridArrays1 = [];
       $scope.previousGridArrays2 = [];
-      if ($scope.dip_tablestate && $sope.workarea_tablestate) {
-        $scope.workareaPipe($scope.workarea_tableState);
-        $scope.dipPipe($scope.dip_tableState);
-      }
+      $scope.chosenFiles = [];
+      $scope.initExpanded = false;
+      $scope.workareaPipe($scope.workarea_tableState);
+      $scope.dipPipe($scope.dip_tableState);
     };
 
     $scope.resetWorkareaGridArrays = function () {
@@ -506,7 +525,11 @@ export default class {
       }
     };
     $scope.expandFile = function (whichArray, ip, card) {
-      if (card.type == 'dir') {
+      if (
+        card.type == 'dir' ||
+        (card.name.endsWith('.tar') && whichArray == 1) ||
+        (card.name.endsWith('.zip') && whichArray == 1)
+      ) {
         if (whichArray == 1) {
           $scope.selectedCards1 = [];
           $scope.previousGridArrays1.push(card);

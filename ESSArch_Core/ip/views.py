@@ -8,6 +8,7 @@ import logging
 import math
 import os
 import shutil
+import tarfile
 import uuid
 
 from celery import states as celery_states
@@ -47,6 +48,7 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -3157,8 +3159,22 @@ class WorkareaViewSet(InformationPackageViewSet):
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger('essarch.workspace')
+        super().__init__(*args, **kwargs)
+
+    def get_object(self, request):
+        requested_id = self.request.query_params.get('id')
+        try:
+            obj = Workarea.objects.get(ip__id=requested_id)
+        except Workarea.DoesNotExist:
+            raise exceptions.NotFound
+        return obj
+
     def get_user(self, request):
         requested_user = self.request.query_params.get('user')
+        if requested_user is None:
+            requested_user = self.request.data.get('user')
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
             return request.user
 
@@ -3166,13 +3182,18 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.PermissionDenied('No permission to see files in other users workspaces')
 
         try:
-            user_id = self.request.query_params['user']
+            user_id = requested_user
             organization = self.request.user.user_profile.current_organization
             organization_users = organization.get_members(subgroups=True)
             user = User.objects.get(pk=user_id, essauth_member__in=organization_users)
             return user
         except User.DoesNotExist:
-            raise exceptions.NotFound('User not found in organization')
+            if requested_user is not None:
+                user = User.objects.get(pk=requested_user)
+            else:
+                user = request.user
+            raise exceptions.NotFound('User: {} not found in organization: {}'.format(
+                user.username, organization.name))
 
     def validate_workarea(self, area_type):
         workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
@@ -3193,14 +3214,17 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def list(self, request):
         try:
-            workarea = self.request.query_params['type'].lower()
+            workarea = request.query_params['type'].lower()
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        user = self.get_user(request)
+        if request.query_params.get('id') in EMPTY_VALUES:
+            root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        else:
+            wip = self.get_object(request)
+            root = wip.path
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
@@ -3398,9 +3422,13 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
+        try:
+            user = self.get_user(request)
+        except exceptions.NotFound as e:
+            self.logger.warning('{}'.format(e))
+            user = request.user
+
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
 
         try:
@@ -3430,9 +3458,26 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Missing dst parameter')
 
         src = os.path.join(root, src)
-        self.validate_path(src, root)
-
         dst = os.path.join(ip.object_path, dst)
+
+        try:
+            self.validate_path(src, root)
+        except exceptions.NotFound:
+            if len(src.split('.tar/')) == 2:
+                tar_path, tar_subpath = src.split('.tar/')
+                tar_path += '.tar'
+                if not os.path.isfile(tar_path):
+                    raise
+                with tarfile.open(tar_path) as tar:
+                    try:
+                        tarinfo_obj = tar.getmember(tar_subpath)
+                        tarinfo_obj.name = tar_subpath.split('/')[-1]
+                        tar.extract(tarinfo_obj, dst)
+                        return Response(root)
+                    except KeyError:
+                        raise NotFound
+            else:
+                raise
 
         if os.path.isfile(src):
             shutil.copy2(src, dst)

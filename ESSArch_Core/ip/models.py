@@ -1248,6 +1248,11 @@ class InformationPackage(models.Model):
         else:
             dst_object_identifier_value = self.object_identifier_value
 
+        if aic_xml and self.aic is None:
+            logger.warning('User: {} requested access of AIC xml, IP: {} does not have any AIC'.format(
+                user.username, self.object_identifier_value))
+            aic_xml = False
+
         if not self.archived:
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
@@ -1333,6 +1338,11 @@ class InformationPackage(models.Model):
 
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
+        if storage_object.content_location_type == 300:
+            worker_queue = 'io_tape'
+        else:
+            worker_queue = 'io_disk'
+
         cache_storage = self.policy.cache_storage
         cache_target = None
         if cache_storage is not None:
@@ -1355,15 +1365,19 @@ class InformationPackage(models.Model):
 
         access_workarea = Path.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
-        access_workarea_user_container = '{}.{}'.format(access_workarea_user, self.get_container_format().lower())
-        access_workarea_user_package_xml = '{}.{}'.format(access_workarea_user, 'xml')
-        access_workarea_user_aic_xml = os.path.join(
-            access_workarea, user.username, self.aic.object_identifier_value
-        ) + '.xml'
+        access_workarea_user_extracted = os.path.join(access_workarea_user, dst_object_identifier_value)
+        access_workarea_user_container = os.path.join(access_workarea_user, '{}.{}'.format(
+            self.object_identifier_value, self.get_container_format().lower()))
+        access_workarea_user_package_xml = os.path.join(access_workarea_user, self.package_mets_path.split('/')[-1])
+        if aic_xml:
+            access_workarea_user_aic_xml = os.path.join(access_workarea_user,
+                                                        self.aic.object_identifier_value) + '.xml'
+        else:
+            access_workarea_user_aic_xml = None
 
         if new:
             new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
-            new_aip.object_path = access_workarea_user
+            new_aip.object_path = access_workarea_user_extracted
             new_aip.save()
         else:
             new_aip = self
@@ -1378,6 +1392,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                     "label": "Access AIP",
+                    "queue": worker_queue,
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": storage_object.pk,
@@ -1387,6 +1402,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
                     "label": "Extract temporary container to cache",
+                    "queue": worker_queue,
                     "if": storage_method.cached and cache_target is not None,
                     "allow_failure": True,
                     "args": [
@@ -1397,6 +1413,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
                     "label": "Extract temporary container to workspace",
+                    "queue": worker_queue,
                     "if": extracted,
                     "args": [
                         temp_container_path,
@@ -1406,6 +1423,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary container to workspace",
+                    "queue": worker_queue,
                     "if": tar,
                     "args": [
                         temp_container_path,
@@ -1415,34 +1433,40 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIP xml to workspace",
+                    "queue": worker_queue,
                     "if": tar and package_xml,
                     "args": [
                         temp_mets_path,
-                        access_workarea_user,
+                        access_workarea_user_package_xml,
                     ],
                 },
                 {
                     "name": "ESSArch_Core.tasks.CopyFile",
                     "label": "Copy temporary AIC xml to workspace",
+                    "queue": worker_queue,
                     "if": tar and aic_xml,
                     "args": [
                         temp_aic_mets_path,
-                        access_workarea_user,
+                        access_workarea_user_aic_xml,
                     ],
                 },
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete temporary container",
+                    "queue": worker_queue,
                     "args": [temp_container_path]
                 },
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete temporary AIP xml",
+                    "queue": worker_queue,
                     "args": [temp_mets_path]
                 },
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete temporary AIC xml",
+                    "queue": worker_queue,
+                    "if": aic_xml,
                     "args": [temp_aic_mets_path]
                 },
             ]
@@ -1452,16 +1476,18 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
+                        "queue": worker_queue,
                         "if": extracted,
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": storage_object.pk,
-                            'dst': access_workarea_user
+                            'dst': access_workarea_user_extracted
                         },
                     },
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
+                        "queue": worker_queue,
                         "if": tar,
                         "args": [str(self.pk)],
                         "params": {
@@ -1472,23 +1498,32 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                         "label": "Create temporary container",
+                        "queue": worker_queue,
                         "if": tar,
                         "args": [temp_object_path, access_workarea_user_container],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
+                        "queue": worker_queue,
                         "if": tar and package_xml,
                         "args": [
-                            temp_object_path,
+                            access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar and aic_xml,
+                        "queue": worker_queue,
+                        "if": aic_xml,
                         "args": [access_workarea_user_aic_xml]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary object",
+                        "queue": worker_queue,
+                        "args": [temp_object_path]
                     },
                 ]
 
@@ -1499,6 +1534,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
+                        "queue": worker_queue,
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": storage_object.pk,
@@ -1508,6 +1544,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
                         "label": "Extract temporary container to cache",
+                        "queue": worker_queue,
                         "if": storage_method.cached and cache_target is not None,
                         "allow_failure": True,
                         "args": [
@@ -1518,6 +1555,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
                         "label": "Extract temporary container to workspace",
+                        "queue": worker_queue,
                         "if": extracted,
                         "args": [
                             temp_container_path,
@@ -1527,6 +1565,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary container to workspace",
+                        "queue": worker_queue,
                         "if": tar,
                         "args": [
                             temp_container_path,
@@ -1536,7 +1575,8 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIP xml to workspace",
-                        "if": tar and package_xml,
+                        "queue": worker_queue,
+                        "if": package_xml,
                         "args": [
                             temp_mets_path,
                             access_workarea_user_package_xml,
@@ -1545,7 +1585,8 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.CopyFile",
                         "label": "Copy temporary AIC xml to workspace",
-                        "if": tar and aic_xml,
+                        "queue": worker_queue,
+                        "if": aic_xml,
                         "args": [
                             temp_aic_mets_path,
                             access_workarea_user_aic_xml,
@@ -1554,16 +1595,20 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.DeleteFiles",
                         "label": "Delete temporary container",
+                        "queue": worker_queue,
                         "args": [temp_container_path]
                     },
                     {
                         "name": "ESSArch_Core.tasks.DeleteFiles",
                         "label": "Delete temporary AIP xml",
+                        "queue": worker_queue,
                         "args": [temp_mets_path]
                     },
                     {
                         "name": "ESSArch_Core.tasks.DeleteFiles",
                         "label": "Delete temporary AIC xml",
+                        "queue": worker_queue,
+                        "if": aic_xml,
                         "args": [temp_aic_mets_path]
                     },
                 ]
@@ -1578,6 +1623,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Copy AIP to cache",
+                        "queue": worker_queue,
                         "if": storage_method.cached and cache_dst is not None,
                         "allow_failure": True,
                         "args": [str(self.pk)],
@@ -1589,16 +1635,18 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
+                        "queue": worker_queue,
                         "if": extracted,
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': access_workarea_user
+                            'dst': access_workarea_user_extracted
                         },
                     },
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
+                        "queue": worker_queue,
                         "if": tar,
                         "args": [str(self.pk)],
                         "params": {
@@ -1609,29 +1657,39 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                         "label": "Create temporary container",
+                        "queue": worker_queue,
                         "if": tar,
                         "args": [temp_object_path, access_workarea_user_container],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
+                        "queue": worker_queue,
                         "if": tar and package_xml,
                         "args": [
-                            temp_object_path,
+                            access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
-                        "if": tar and aic_xml,
+                        "queue": worker_queue,
+                        "if": aic_xml,
                         "args": [access_workarea_user_aic_xml]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                        "label": "Delete temporary object",
+                        "queue": worker_queue,
+                        "args": [temp_object_path]
                     },
                 ]
 
         workflow.append({
             "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
             "label": "Create workarea",
+            "queue": worker_queue,
             "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, not new]
         })
         return create_workflow(workflow, self, name='Access Information Package')
@@ -1727,7 +1785,7 @@ class InformationPackage(models.Model):
 
     def get_temp_container_xml_path(self):
         temp_dir = Path.objects.get(entity='temp').value
-        return os.path.join(temp_dir, self.object_identifier_value + '.xml')
+        return os.path.join(temp_dir, self.package_mets_path.split('/')[-1])
 
     def get_temp_container_aic_xml_path(self):
         temp_dir = Path.objects.get(entity='temp').value
@@ -1809,10 +1867,11 @@ class InformationPackage(models.Model):
             new_size = storage_medium.used_capacity + write_size
             if new_size > storage_target.max_capacity > 0:
                 storage_medium.mark_as_full()
-                raise StorageMediumFull('No space left on storage medium "{}"'.format(str(storage_medium.pk)))
+                raise StorageMediumFull(
+                    'Maximum capacity limit reached for storage medium "{}"'.format(str(storage_medium.pk)))
 
             storage_backend = storage_target.get_storage_backend()
-            storage_medium.prepare_for_write()
+            storage_medium.prepare_for_write(io_lock_key=src)
 
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
@@ -2117,12 +2176,14 @@ class Workarea(models.Model):
     @property
     def package_xml_path(self):
         area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
-        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value) + '.xml'
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
+                            self.ip.package_mets_path.split('/')[-1])
 
     @property
     def aic_xml_path(self):
         area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
-        return os.path.join(area_dir, self.user.username, self.ip.aic.object_identifier_value) + '.xml'
+        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
+                            self.ip.aic.object_identifier_value) + '.xml'
 
     def get_path(self):
         return self.path

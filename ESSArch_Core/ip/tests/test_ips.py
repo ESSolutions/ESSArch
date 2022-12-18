@@ -583,6 +583,9 @@ class WorkareaFilesViewTestCase(TestCase):
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
+        self.aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
+        self.wip = Workarea.objects.create(user=self.user, ip=self.aip, type=Workarea.ACCESS, read_only=False)
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -597,21 +600,21 @@ class WorkareaFilesViewTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_illegal_path(self):
-        res = self.client.get(self.url, {'type': 'access', 'path': '..'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': '..'})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_non_existing_path(self):
-        res = self.client.get(self.url, {'type': 'access', 'path': 'does/not/exist'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': 'does/not/exist'})
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
         path = 'does/exist'
-        fullpath = os.path.join(self.access, self.user.username, path)
+        fullpath = os.path.join(self.wip.path, path)
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
-            res = self.client.get(self.url, {'type': 'access', 'path': path})
+            res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         mock_list_files.assert_called_once_with(fullpath, False, paginator=mock.ANY, request=mock.ANY)
@@ -1821,6 +1824,8 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
             object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
             generation=0, aic=aic,
         )
+        ip.package_mets_path = '{}.xml'.format(ip.pk)
+        ip.save(update_fields=["package_mets_path"])
         with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
             f.write('bar')
 

@@ -10,6 +10,7 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import (
@@ -45,6 +46,8 @@ from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 
 logger = logging.getLogger('essarch.storage.models')
+
+DRIVE_LOCK_PREFIX = 'lock_drive_'
 
 DISK = 200
 TAPE = 300
@@ -606,13 +609,19 @@ class StorageMedium(models.Model):
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
-    def prepare_for_read(self):
+    def prepare_for_read(self, io_lock_key=None):
         storage_backend = self.storage_target.get_storage_backend()
-        storage_backend.prepare_for_read(self)
+        if storage_backend.type == 300:
+            storage_backend.prepare_for_read(self, io_lock_key)
+        else:
+            storage_backend.prepare_for_read(self)
 
-    def prepare_for_write(self):
+    def prepare_for_write(self, io_lock_key=None):
         storage_backend = self.storage_target.get_storage_backend()
-        storage_backend.prepare_for_write(self)
+        if storage_backend.type == 300:
+            storage_backend.prepare_for_write(self, io_lock_key)
+        else:
+            storage_backend.prepare_for_write(self)
 
     def is_migrated(self, include_inactive_ips=False) -> True:
         return self in StorageMedium.objects.deactivatable(include_inactive_ips=include_inactive_ips)
@@ -671,6 +680,7 @@ class StorageObjectQueryset(models.QuerySet):
 
     def readable(self):
         return self.filter(
+            Q(storage_medium__location_status=50) | Q(storage_medium__tape_slot__status=20),
             storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
@@ -678,7 +688,7 @@ class StorageObjectQueryset(models.QuerySet):
                 STORAGE_TARGET_STATUS_MIGRATE,
             ],
             storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
-            storage_medium__status__in=[20, 30], storage_medium__location_status=50
+            storage_medium__status__in=[20, 30]
         )
 
     def natural_sort(self):
@@ -847,7 +857,7 @@ class StorageObject(models.Model):
                 task.reraise()
         else:
             storage_backend = self.get_storage_backend()
-            storage_medium.prepare_for_read()
+            storage_medium.prepare_for_read(io_lock_key=self)
 
             if storage_target.master_server:
                 # we are on a remote host that has been requested
@@ -950,7 +960,7 @@ class StorageObject(models.Model):
 class TapeDrive(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
-        (20, 'Write'),
+        (20, 'Ok'),
         (100, 'FAIL'),
     )
 
@@ -964,6 +974,16 @@ class TapeDrive(models.Model):
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_drives')
     locked = models.BooleanField(default=False)
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
+
+    @classmethod
+    def clear_locks(cls):
+        return cache.delete_pattern(DRIVE_LOCK_PREFIX + '*')
+
+    def get_lock_key(self):
+        return '{}{}'.format(DRIVE_LOCK_PREFIX, str(self.pk))
+
+    def is_locked(self):
+        return self.get_lock_key() in cache
 
     @classmethod
     @transaction.atomic
@@ -996,7 +1016,7 @@ class TapeDrive(models.Model):
 class TapeSlot(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
-        (20, 'Write'),
+        (20, 'Ok'),
         (100, 'FAIL'),
     )
 
@@ -1076,7 +1096,7 @@ class RobotQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
     posted = models.DateTimeField(default=timezone.now)
-    robot = models.OneToOneField('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
+    robot = models.ForeignKey('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
     io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
     tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)

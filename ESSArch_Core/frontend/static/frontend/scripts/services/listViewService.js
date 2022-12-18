@@ -412,10 +412,11 @@ const listViewService = (
       return response;
     });
   }
-  function getWorkareaDir(workareaType, pathStr, pagination, user) {
+  function getWorkareaDir(workareaId, workareaType, pathStr, pagination, user) {
     let sendData;
     if (pathStr == '') {
       sendData = {
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -424,6 +425,7 @@ const listViewService = (
       };
     } else {
       sendData = {
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -479,14 +481,18 @@ const listViewService = (
     });
   }
 
-  function addFileToDip(ip, path, file, destination, type) {
+  function addFileToDip(ip, path, file, destination, type, user) {
     const src = path + file.name;
-    const dst = destination + file.name;
+    let dst = destination + file.name;
+    if (path.endsWith('.tar/')) {
+      dst = destination;
+    }
     return WorkareaFiles.addToDip({
       dip: ip.id,
       src: src,
       dst: dst,
       type: type,
+      user: user,
     }).$promise.then(function (response) {
       return response;
     });

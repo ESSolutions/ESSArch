@@ -90,7 +90,7 @@ export default class RobotInformationCtrl {
 
     // Getters
     $scope.getDrives = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.driveTableState = tableState;
         $scope.tapeDrivesLoading = true;
         var search = '';
@@ -123,7 +123,7 @@ export default class RobotInformationCtrl {
     };
 
     $scope.getSlots = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.slotTableState = tableState;
         $scope.tapeSlotsLoading = true;
         var search = '';
@@ -156,7 +156,7 @@ export default class RobotInformationCtrl {
     };
 
     $scope.getRobotQueue = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.robotQueueTableState = tableState;
         $scope.robotQueueLoading = true;
         var search = '';
@@ -312,6 +312,9 @@ export default class RobotInformationCtrl {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
+      // TODO: Robot is not selected after inventory, rows below as a temporary fix that close the selected robot.
+      $scope.select = false;
+      $scope.loadRobots(vm.robotTableState);
     };
 
     vm.mountTapeDrive = function (tapeDrive, request) {

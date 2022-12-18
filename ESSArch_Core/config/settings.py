@@ -491,6 +491,14 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
     },
+    # 'PollRobotQueue-every-10-seconds': {
+    #     'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',
+    #     'schedule': timedelta(seconds=10),
+    # },
+    # 'UnmountIdleDrives-every-20-seconds': {
+    #     'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
+    #     'schedule': timedelta(seconds=20),
+    # },
 }
 
 # Rest auth settings

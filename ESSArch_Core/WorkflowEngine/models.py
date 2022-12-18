@@ -65,7 +65,10 @@ def create_task(name):
 
 
 def create_sub_task(t, step=None, immutable=True, link_error=None):
-    logger.debug('Creating sub task')
+    if t.queue:
+        logger.debug('Creating sub task in queue: {}'.format(t.queue))
+    else:
+        logger.debug('Creating sub task')
     ip_id = str(t.information_package_id) if t.information_package_id is not None else None
     step_id = str(step.id) if step is not None else None
     headers = {
@@ -78,6 +81,8 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
     headers_hack = {'headers': headers}
 
     created = create_task(t.name)
+    if t.queue:
+        created.queue = t.queue
 
     # For some reason, __repr__ needs to be called for the link_error
     # signature to be called when an error occurs in a task
@@ -99,6 +104,7 @@ class Process(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255)
+    queue = models.CharField(max_length=255, blank=True, null=True, default=None)
     hidden = models.BooleanField(editable=False, null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
@@ -682,6 +688,8 @@ class ProcessTask(Process):
         """
 
         t = create_task(self.name)
+        if self.queue:
+            t.queue = self.queue
 
         ip_id = str(self.information_package_id) if self.information_package_id is not None else None
         step_id = str(self.processstep_id) if self.processstep_id is not None else None

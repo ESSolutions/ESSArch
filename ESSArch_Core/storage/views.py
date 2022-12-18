@@ -314,6 +314,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=medium,
+            robot=medium.tape_slot.robot,
             req_type=10, status__in=[0, 2], defaults={'status': 0}
         )
 
@@ -332,6 +333,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=medium,
+            robot=medium.tape_slot.robot,
             req_type=req_type, status__in=[0, 2], defaults={'status': 0}
         )
 
