@@ -127,6 +127,7 @@ jobs:
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+          echo "ESSARCH_DIR=/home/runner/work/ESSArch/ESSArch" >> $GITHUB_ENV
 
       - name: Install
         run: |
@@ -172,6 +173,7 @@ jobs:
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=D:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ESSARCH_DIR=D:\a\ESSArch\ESSArch" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Get yarn cache
         id: yarn_cache
@@ -343,6 +345,7 @@ jobs:
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+          echo "ESSARCH_DIR=/home/runner/work/ESSArch/ESSArch" >> $GITHUB_ENV
 
       - name: Get yarn cache
         id: yarn_cache
