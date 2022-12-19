@@ -49,6 +49,7 @@ RUN pip install -r /code/requirements/docs.txt
 ADD . /code
 
 # Build docs
+ENV ESSARCH_DIR=/code
 RUN mkdir -p /code/config
 RUN mkdir -p /code/log
 RUN essarch settings generate --debug --overwrite -p /code/config/local_essarch_settings.py
