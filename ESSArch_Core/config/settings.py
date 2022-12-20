@@ -10,6 +10,7 @@ from ESSArch_Core import BASE_DIR
 env = environ.Env()
 ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
 env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
+CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
 
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
