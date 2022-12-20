@@ -1,7 +1,7 @@
 import os
 import tarfile
 from datetime import timedelta
-from urllib.parse import quote_plus as urlquote
+from urllib.parse import quote_plus as urlquote, urlparse
 
 import environ
 
@@ -25,7 +25,10 @@ if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
 
-REDIS_URL = env.str('ESSARCH_REDIS_URL', env.str('REDIS_URL_ESSARCH', env.str('REDIS_URL', 'redis://localhost/1')))
+try:
+    from local_essarch_settings import REDIS_URL
+except ImportError:
+    REDIS_URL = env.str('ESSARCH_REDIS_URL', env.str('REDIS_URL_ESSARCH', env.str('REDIS_URL', 'redis://localhost/1')))
 
 # Workflow Pollers
 ESSARCH_WORKFLOW_POLLERS = {}
@@ -200,9 +203,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 # Database
-DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
-    'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
+try:
+    from local_essarch_settings import DATABASE_URL
+    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
+except ImportError:
+    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 
 # Cache
 REDIS_CLIENT_CLASS = env.str('ESSARCH_REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
@@ -221,8 +229,11 @@ CACHES = {
     }
 }
 
-elasticsearch_url = env.url('ESSARCH_ELASTICSEARCH_URL',
-                            env.str('ELASTICSEARCH_URL', 'http://localhost:9200'))
+try:
+    from local_essarch_settings import ELASTICSEARCH_URL
+except ImportError:
+    ELASTICSEARCH_URL = env.str('ESSARCH_ELASTICSEARCH_URL', env.str('ELASTICSEARCH_URL', 'http://localhost:9200'))
+elasticsearch_url = urlparse(ELASTICSEARCH_URL)
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -241,8 +252,12 @@ if elasticsearch_url.username is not None and elasticsearch_url.password is not 
 if elasticsearch_url.scheme == 'https':
     ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['use_ssl'] = True
 
-elasticsearch_test_url = env.url('ESSARCH_ELASTICSEARCH_TEST_URL',
-                                 env.str('ELASTICSEARCH_TEST_URL', 'http://localhost:19200'))
+try:
+    from local_essarch_settings import ELASTICSEARCH_TEST_URL
+except ImportError:
+    ELASTICSEARCH_TEST_URL = env.str('ESSARCH_ELASTICSEARCH_TEST_URL', env.str(
+        'ELASTICSEARCH_TEST_URL', 'http://localhost:19200'))
+elasticsearch_test_url = urlparse(ELASTICSEARCH_TEST_URL)
 ELASTICSEARCH_TEST_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -433,7 +448,11 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')
 
 # Celery settings
-RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str('RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
+try:
+    from local_essarch_settings import RABBITMQ_URL
+except ImportError:
+    RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str(
+        'RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.fixity.action.tasks",
