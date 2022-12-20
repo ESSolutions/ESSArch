@@ -203,6 +203,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
 # Database
+env.DB_SCHEMES['mssql'] = 'mssql'
 try:
     from local_essarch_settings import DATABASE_URL
     DATABASES = {'default': env.db_url_config(DATABASE_URL)}
@@ -210,7 +211,6 @@ except ImportError:
     DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
         'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
-
 
 # Cache
 REDIS_CLIENT_CLASS = env.str('ESSARCH_REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
