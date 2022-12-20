@@ -3,34 +3,33 @@ import tarfile
 from datetime import timedelta
 from urllib.parse import quote_plus as urlquote, urlparse
 
-import dj_database_url
+import environ
 
 from ESSArch_Core import BASE_DIR
 
+env = environ.Env()
+ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
+env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
+CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
+
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
-
-try:
-    from local_essarch_settings import ESSARCH_DIR
-except ImportError:
-    ESSARCH_DIR = os.environ.get('ESSARCH_DIR', '/ESSArch')
-
-try:
-    from local_essarch_settings import REDIS_URL
-except ImportError:
-    REDIS_URL = os.environ.get('REDIS_URL_ESSARCH', 'redis://localhost/1')
-
-SESSION_COOKIE_NAME = 'essarch'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_NAME = env.str('ESSARCH_SESSION_COOKIE_NAME', 'essarch')
+SESSION_COOKIE_SECURE = env.bool('ESSARCH_SESSION_COOKIE_SECURE', default=True)
+CSRF_COOKIE_SECURE = env.bool('ESSARCH_CSRF_COOKIE_SECURE', default=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('ESSARCH_DEBUG', default=True)
 
 # XSD is not listed in any mime types on macOS
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
+
+try:
+    from local_essarch_settings import REDIS_URL
+except ImportError:
+    REDIS_URL = env.str('ESSARCH_REDIS_URL', env.str('REDIS_URL_ESSARCH', env.str('REDIS_URL', 'redis://localhost/1')))
 
 # Workflow Pollers
 ESSARCH_WORKFLOW_POLLERS = {}
@@ -38,10 +37,10 @@ ESSARCH_WORKFLOW_POLLERS = {}
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
-EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = []
+EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
 
 # Verify TLS certificate on remote servers
 #
@@ -49,7 +48,7 @@ EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = []
 # Either a boolean, in which case it controls whether we verify
 # the server’s TLS certificate, or a string, in which case it
 # must be a path to a CA bundle to use.
-REQUESTS_VERIFY = True
+REQUESTS_VERIFY = env.bool('ESSARCH_REQUESTS_VERIFY', default=True)
 
 REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'ESSArch_Core.api.metadata.CustomMetadata',
@@ -74,11 +73,11 @@ PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
 
 # Add support to extract zipfiles with "\" as separator in pathname components
-OS_PATH_ALTSEP = "\\"
+OS_PATH_ALTSEP = env.str('ESSARCH_OS_PATH_ALTSEP', "\\")
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -125,7 +124,8 @@ INSTALLED_APPS = [
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
-]
+])
+INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
 try:
     import test_without_migrations  # noqa
@@ -134,11 +134,12 @@ except ImportError:
 else:
     INSTALLED_APPS.append('test_without_migrations')
 
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = env.list('ESSARCH_AUTHENTICATION_BACKENDS', default=[
     'django.contrib.auth.backends.ModelBackend',
     'ESSArch_Core.auth.backends.GroupRoleBackend',
     'guardian.backends.ObjectPermissionBackend',
-]
+])
+AUTHENTICATION_BACKENDS.extend(env.list('ESSARCH_AUTHENTICATION_BACKENDS_EXTRA', default=[]))
 
 GROUPS_MANAGER = {
     'AUTH_MODELS_SYNC': True,
@@ -167,7 +168,7 @@ ASGI_APPLICATION = 'ESSArch_Core.routing.application'
 
 SITE_ID = 1
 
-MIDDLEWARE = [
+MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -177,7 +178,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+])
+MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
 CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = 'ESSArch_Core.config.urls'
@@ -201,21 +203,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
-
 # Database
-dj_database_url.SCHEMES['mssql'] = 'mssql'    # Set mssql schemes
+env.DB_SCHEMES['mssql'] = 'mssql'
 try:
     from local_essarch_settings import DATABASE_URL
+    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
 except ImportError:
-    DATABASE_URL = os.environ.get('DATABASE_URL_ESSARCH', 'sqlite:///db.sqlite')
-DATABASES = {'default': dj_database_url.parse(url=DATABASE_URL)}
-
+    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cache
-REDIS_CLIENT_CLASS = os.environ.get('REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
-DJANGO_REDIS_CONNECTION_FACTORY = os.environ.get('DJANGO_REDIS_CONNECTION_FACTORY',
-                                                 'django_redis.pool.ConnectionFactory')
+REDIS_CLIENT_CLASS = env.str('ESSARCH_REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
+DJANGO_REDIS_CONNECTION_FACTORY = env.str('ESSARCH_DJANGO_REDIS_CONNECTION_FACTORY',
+                                          'django_redis.pool.ConnectionFactory')
 
 CACHES = {
     'default': {
@@ -232,9 +233,8 @@ CACHES = {
 try:
     from local_essarch_settings import ELASTICSEARCH_URL
 except ImportError:
-    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9200')
+    ELASTICSEARCH_URL = env.str('ESSARCH_ELASTICSEARCH_URL', env.str('ELASTICSEARCH_URL', 'http://localhost:9200'))
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
-
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -256,9 +256,9 @@ if elasticsearch_url.scheme == 'https':
 try:
     from local_essarch_settings import ELASTICSEARCH_TEST_URL
 except ImportError:
-    ELASTICSEARCH_TEST_URL = os.environ.get('ELASTICSEARCH_TEST_URL', 'http://localhost:19200')
+    ELASTICSEARCH_TEST_URL = env.str('ESSARCH_ELASTICSEARCH_TEST_URL', env.str(
+        'ELASTICSEARCH_TEST_URL', 'http://localhost:19200'))
 elasticsearch_test_url = urlparse(ELASTICSEARCH_TEST_URL)
-
 ELASTICSEARCH_TEST_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -437,7 +437,7 @@ MEDIA_ROOT = os.path.join(ESSARCH_DIR, 'config/essarch/media')
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.environ.get('STATIC_ROOT_ESSARCH', os.path.join(ESSARCH_DIR, 'config/essarch/static_root'))
+STATIC_ROOT = env.str('ESSARCH_STATIC_ROOT', os.path.join(ESSARCH_DIR, 'config/essarch/static_root'))
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 DJANGO_REV_MANIFEST_PATH = os.path.join(BASE_DIR, 'frontend/static/frontend/build/rev-manifest.json')
@@ -452,7 +452,8 @@ DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')
 try:
     from local_essarch_settings import RABBITMQ_URL
 except ImportError:
-    RABBITMQ_URL = os.environ.get('RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672')
+    RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str(
+        'RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.fixity.action.tasks",
