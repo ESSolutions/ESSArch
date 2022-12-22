@@ -512,8 +512,9 @@ const listViewService = (
     });
   }
 
-  function addNewWorkareaFolder(workareaType, path, file, user) {
+  function addNewWorkareaFolder(ip, workareaType, path, file, user) {
     return WorkareaFiles.addDirectory({
+      id: ip.id,
       type: workareaType,
       path: path + file.name,
       user: user,
@@ -531,8 +532,9 @@ const listViewService = (
     });
   }
 
-  function deleteWorkareaFile(workareaType, path, file, user) {
+  function deleteWorkareaFile(ip, workareaType, path, file, user) {
     return WorkareaFiles.removeFile({
+      id: ip.id,
       type: workareaType,
       path: path + file.name,
       user: user,

@@ -241,7 +241,10 @@ export default class WorkareaCtrl {
         {
           type: vm.getUploadWorkareaType(),
         },
-        {path: path}
+        {
+          path: path,
+          id: ip.id,
+        }
       );
     };
     $scope.fileTransferFilter = function (file) {
@@ -310,7 +313,7 @@ export default class WorkareaCtrl {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
       });
       flowObj.on('uploadStart', function () {
-        flowObj.opts.query = {destination: vm.browserstate.path};
+        flowObj.opts.query = {destination: vm.browserstate.path, id: ip.id};
       });
       $rootScope.flowObjects[ip.id] = flowObj;
     };
