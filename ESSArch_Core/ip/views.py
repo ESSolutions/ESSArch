@@ -3164,7 +3164,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         super().__init__(*args, **kwargs)
 
     def get_object(self, request):
-        requested_id = self.request.query_params.get('id')
+        requested_id = self.request.query_params.get('id', self.request.data.get('id'))
         try:
             obj = Workarea.objects.get(ip__id=requested_id)
         except Workarea.DoesNotExist:
@@ -3172,9 +3172,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return obj
 
     def get_user(self, request):
-        requested_user = self.request.query_params.get('user')
-        if requested_user is None:
-            requested_user = self.request.data.get('user')
+        requested_user = self.request.query_params.get('user', self.request.data.get('user'))
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
             return request.user
 
@@ -3223,8 +3221,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if request.query_params.get('id') in EMPTY_VALUES:
             root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
         else:
-            wip = self.get_object(request)
-            root = wip.path
+            workarea_obj = self.get_object(request)
+            root = workarea_obj.path
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
@@ -3251,20 +3249,12 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
 
         path = os.path.join(root, request.data.get('path', ''))
         self.validate_path(path, root, existence=False)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
@@ -3285,20 +3275,12 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
 
         path = os.path.join(root, request.data.get('path', ''))
         self.validate_path(path, root)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
@@ -3321,21 +3303,14 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
 
         data = request.GET if request.method == 'GET' else request.data
         dst = data.get('destination', '').strip('/ ')
 
         self.validate_path(os.path.join(root, dst), root)
-        relative_root = os.path.join(root, dst)[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
@@ -3382,10 +3357,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
         relative_path = request.data.get('path', '')
 
         if len(relative_path) == 0:
@@ -3394,13 +3368,6 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         path = os.path.join(root, relative_path)
 
         self.validate_path(path, root, existence=False)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)

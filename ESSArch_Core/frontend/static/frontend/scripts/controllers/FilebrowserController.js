@@ -246,6 +246,7 @@ export default class FilebrowserController {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .deleteWorkareaFile(
+              $scope.ip,
               vm.workarea,
               $scope.previousGridArraysString(),
               fileToOverwrite,
@@ -281,7 +282,13 @@ export default class FilebrowserController {
       if (!fileExists) {
         if ($state.includes('**.workarea.**')) {
           listViewService
-            .addNewWorkareaFolder(vm.workarea, $scope.previousGridArraysString(), folder, vm.user ? vm.user.id : null)
+            .addNewWorkareaFolder(
+              $scope.ip,
+              vm.workarea,
+              $scope.previousGridArraysString(),
+              folder,
+              vm.user ? vm.user.id : null
+            )
             .then(function (response) {
               $scope.updateGridArray();
             });
@@ -349,7 +356,13 @@ export default class FilebrowserController {
       $scope.selectedCards.forEach(function (file) {
         if ($state.includes('**.workarea.**')) {
           listViewService
-            .deleteWorkareaFile(vm.workarea, $scope.previousGridArraysString(), file, vm.user ? vm.user.id : null)
+            .deleteWorkareaFile(
+              $scope.ip,
+              vm.workarea,
+              $scope.previousGridArraysString(),
+              file,
+              vm.user ? vm.user.id : null
+            )
             .then(function () {
               $scope.updateGridArray();
             });
