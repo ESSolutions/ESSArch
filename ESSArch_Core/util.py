@@ -586,7 +586,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     return response
 
 
-def list_files(path, force_download=False, request=None, paginator=None):
+def list_files(path, force_download=False, expand_container=False, request=None, paginator=None):
     if isinstance(path, list):
         if paginator is not None:
             paginated = paginator.paginate_queryset(path, request)
@@ -597,7 +597,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
     path = path.rstrip('/ ')
 
     if os.path.isfile(path):
-        if tarfile.is_tarfile(path):
+        if expand_container and tarfile.is_tarfile(path):
             with tarfile.open(path) as tar:
                 entries = []
                 for member in tar.getmembers():
@@ -615,7 +615,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     return paginator.get_paginated_response(paginated)
                 return Response(entries)
 
-        elif zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
+        elif expand_container and zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
             with zipfile.ZipFile(path) as zipf:
                 entries = []
                 for member in zipf.filelist:

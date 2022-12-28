@@ -1,4 +1,6 @@
-export default class {
+import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
+
+export default class CreateDipCtrl {
   constructor(
     IP,
     StoragePolicy,
@@ -26,6 +28,9 @@ export default class {
     const ipSortString = [];
     const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+    vm.browserstate = {
+      path: '',
+    };
     vm.organizationMember = {
       current: null,
       options: [],
@@ -184,6 +189,16 @@ export default class {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
         $state.go($state.current.name, {id: $scope.ip.id});
+        if (!$rootScope.flowObjects[row.id]) {
+          $scope.createNewFlow(row);
+        }
+        $scope.currentFlowObject = $rootScope.flowObjects[row.id];
+        if ($scope.select) {
+          $scope.showFileUpload = false;
+          $timeout(function () {
+            $scope.showFileUpload = true;
+          });
+        }
         $scope.select = true;
         $scope.edit = true;
         $scope.filesPerPage = $cookies.get('files-per-page') || 50;
@@ -452,6 +467,9 @@ export default class {
     };
     $scope.chosenFiles = [];
     $scope.dipPipe = function (tableState) {
+      if (vm.browserstate) {
+        vm.browserstate.path = $scope.previousGridArraysString(2);
+      }
       $scope.gridArrayLoading = true;
       if ($scope.chosenFiles.length == 0) {
         $scope.initLoaddipPipe = true;
@@ -524,11 +542,13 @@ export default class {
         $scope.dipPipe($scope.dip_tableState);
       }
     };
-    $scope.expandFile = function (whichArray, ip, card) {
+    $scope.expandFile = function (whichArray, ip, card, expandContainer) {
       if (
         card.type == 'dir' ||
         (card.name.endsWith('.tar') && whichArray == 1) ||
-        (card.name.endsWith('.zip') && whichArray == 1)
+        (card.name.endsWith('.tar') && expandContainer) ||
+        (card.name.endsWith('.zip') && whichArray == 1) ||
+        (card.name.endsWith('.zip') && expandContainer)
       ) {
         if (whichArray == 1) {
           $scope.selectedCards1 = [];
@@ -572,54 +592,7 @@ export default class {
       }
       $window.open(file.content, '_blank');
     };
-    $scope.selectedCards1 = [];
-    $scope.selectedCards2 = [];
-    $scope.cardSelect = function (whichArray, card) {
-      if (whichArray == 1) {
-        if (includesWithProperty($scope.selectedCards1, 'name', card.name)) {
-          $scope.selectedCards1.splice($scope.selectedCards1.indexOf(card), 1);
-        } else {
-          $scope.selectedCards1.push(card);
-        }
-      } else {
-        if (includesWithProperty($scope.selectedCards2, 'name', card.name)) {
-          $scope.selectedCards2.splice($scope.selectedCards2.indexOf(card), 1);
-        } else {
-          $scope.selectedCards2.push(card);
-        }
-      }
-    };
 
-    function includesWithProperty(array, property, value) {
-      for (let i = 0; i < array.length; i++) {
-        if (array[i][property] === value) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    $scope.isSelected = function (whichArray, card) {
-      let cardClass = '';
-      if (whichArray == 1) {
-        $scope.selectedCards1.forEach(function (file) {
-          if (card.name == file.name) {
-            cardClass = 'card-selected';
-          }
-        });
-      } else {
-        $scope.selectedCards2.forEach(function (file) {
-          if (card.name == file.name) {
-            cardClass = 'card-selected';
-          }
-        });
-      }
-      return cardClass;
-    };
-
-    $scope.getFileExtension = function (file) {
-      return file.name.split('.').pop().toUpperCase();
-    };
     $scope.prepareNewDipModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -689,6 +662,162 @@ export default class {
       modalInstance.result.then(function (data) {
         $scope.createDipFolder(data.dir_name);
       });
+    };
+
+    $scope.filebrowserClick = function (ip) {
+      $scope.previousGridArrays = [];
+      $scope.filebrowser = true;
+      if (!$rootScope.flowObjects[$scope.ip.id]) {
+        $scope.createNewFlow($scope.ip);
+      }
+      $scope.currentFlowObject = $rootScope.flowObjects[$scope.ip.id];
+      if ($scope.filebrowser) {
+        $scope.showFileUpload = false;
+        $timeout(function () {
+          $scope.showFileUpload = true;
+        });
+      }
+      $scope.previousGridArrays = [];
+    };
+
+    // **********************************
+    //            Upload
+    // **********************************
+    $scope.getFlowTarget = function () {
+      return appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/upload/';
+    };
+    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
+      return {destination: vm.browserstate.path};
+    };
+    $scope.fileUploadSuccess = function (ip, file, message, flow) {
+      $scope.uploadedFiles++;
+      const path = flow.opts.query.destination + file.relativePath;
+
+      IP.mergeChunks({
+        id: ip.id,
+        path: path,
+      });
+    };
+    $scope.fileTransferFilter = function (file) {
+      return file.isUploading();
+    };
+    $scope.removeFiles = function () {
+      $scope.selectedCards2.forEach(function (file) {
+        listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function () {
+          $scope.updateGridArray();
+        });
+      });
+      $scope.selectedCards2 = [];
+    };
+
+    $scope.selectedCardIsContainer = function () {
+      let array = $scope.selectedCards2;
+      for (let i = 0; i < array.length; i++) {
+        if (array[i]['name'].endsWith('.tar') || array[i]['name'].endsWith('.zip')) {
+          return array[i];
+        }
+      }
+      return false;
+    };
+
+    $scope.selectedCards1 = [];
+    $scope.selectedCards2 = [];
+    $scope.cardSelect = function (whichArray, card) {
+      if (whichArray == 1) {
+        if (includesWithProperty($scope.selectedCards1, 'name', card.name)) {
+          $scope.selectedCards1.splice($scope.selectedCards1.indexOf(card), 1);
+        } else {
+          $scope.selectedCards1.push(card);
+        }
+      } else {
+        if (includesWithProperty($scope.selectedCards2, 'name', card.name)) {
+          $scope.selectedCards2.splice($scope.selectedCards2.indexOf(card), 1);
+        } else {
+          $scope.selectedCards2.push(card);
+        }
+      }
+    };
+
+    function includesWithProperty(array, property, value) {
+      for (let i = 0; i < array.length; i++) {
+        if (array[i][property] === value) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    $scope.isSelected = function (whichArray, card) {
+      let cardClass = '';
+      if (whichArray == 1) {
+        $scope.selectedCards1.forEach(function (file) {
+          if (card.name == file.name) {
+            cardClass = 'card-selected';
+          }
+        });
+      } else {
+        $scope.selectedCards2.forEach(function (file) {
+          if (card.name == file.name) {
+            cardClass = 'card-selected';
+          }
+        });
+      }
+      return cardClass;
+    };
+
+    $scope.resetUploadedFiles = function () {
+      $scope.uploadedFiles = 0;
+    };
+    $scope.uploadedFiles = 0;
+    $scope.flowCompleted = false;
+    $scope.flowComplete = function (flow, transfers) {
+      if (flow.progress() === 1) {
+        flow.flowCompleted = true;
+        flow.flowSize = flow.getSize();
+        flow.flowFiles = transfers.length;
+        flow.cancel();
+        if (flow == $scope.currentFlowObject) {
+          $scope.resetUploadedFiles();
+        }
+      }
+      $scope.updateGridArray();
+    };
+    $scope.hideFlowCompleted = function (flow) {
+      flow.flowCompleted = false;
+    };
+    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
+      if (totalSize == 0 || uploadedSize / totalSize == 1) {
+        return ($scope.uploadedFiles / totalFiles) * 100;
+      } else {
+        return (uploadedSize / totalSize) * 100;
+      }
+    };
+
+    $scope.getFileExtension = function (file) {
+      return file.name.split('.').pop().toUpperCase();
+    };
+    $scope.createNewFlow = function (ip) {
+      const flowObj = new Flow({
+        target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
+        simultaneousUploads: 15,
+        chunkSize: 10 * 1024 * 1024, // 50MB
+        maxChunkRetries: 5,
+        chunkRetryInterval: 1000,
+        headers: {'X-CSRFToken': $cookies.get('csrftoken')},
+        complete: $scope.flowComplete,
+      });
+      flowObj.on('complete', function () {
+        vm.uploading = false;
+        $scope.flowComplete(flowObj, flowObj.files);
+      });
+      flowObj.on('fileSuccess', function (file, message) {
+        $scope.fileUploadSuccess(ip, file, message, flowObj);
+      });
+      flowObj.on('uploadStart', function () {
+        vm.uploading = true;
+        flowObj.opts.query = {destination: vm.browserstate.path};
+      });
+      $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
 }

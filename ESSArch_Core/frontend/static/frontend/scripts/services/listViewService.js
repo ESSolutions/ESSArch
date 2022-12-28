@@ -432,6 +432,7 @@ const listViewService = (
         path: pathStr,
         type: workareaType,
         user: user,
+        expand_container: true,
       };
     }
 
@@ -467,6 +468,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     return IP.files(sendData).$promise.then(function (data) {
@@ -563,6 +565,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     if ($state.is('home.ingest.reception') && (ip.state == 'At reception' || ip.state == 'Prepared')) {

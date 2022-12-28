@@ -186,13 +186,11 @@ export default class FilebrowserController {
         $scope.dirPipe($scope.tableState);
       }
     };
-    $scope.expandFile = function (ip, card) {
+    $scope.expandFile = function (ip, card, expandContainer) {
       if (
         card.type == 'dir' ||
-        (card.name.endsWith('.tar') &&
-          ($state.includes('**.workarea.**') || ['At reception', 'Created', 'Submitted'].includes(ip.state))) ||
-        (card.name.endsWith('.zip') &&
-          ($state.includes('**.workarea.**') || ['At reception', 'Created', 'Submitted'].includes(ip.state)))
+        (card.name.endsWith('.tar') && expandContainer) ||
+        (card.name.endsWith('.zip') && expandContainer)
       ) {
         $scope.previousGridArrays.push(card);
         if ($scope.tableState) {
@@ -215,6 +213,24 @@ export default class FilebrowserController {
       }
       return false;
     }
+
+    $scope.inWorkarea = function () {
+      if ($state.includes('**.workarea.**')) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    $scope.selectedCardIsContainer = function () {
+      let array = $scope.selectedCards;
+      for (let i = 0; i < array.length; i++) {
+        if (array[i]['name'].endsWith('.tar') || array[i]['name'].endsWith('.zip')) {
+          return array[i];
+        }
+      }
+      return false;
+    };
 
     $scope.cardSelect = function (card) {
       if (includesWithProperty($scope.selectedCards, 'name', card.name)) {

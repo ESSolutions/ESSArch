@@ -45,7 +45,7 @@ class DiskStorageBackend(BaseStorageBackend):
             ip = storage_object.ip
             target = storage_object.storage_medium.storage_target.target
             src_tar = src
-            src_xml = os.path.splitext(src)[0] + '.xml'
+            src_xml = os.path.join(target, ip.package_mets_path.split('/')[-1])
             src_aic_xml = os.path.join(target, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
