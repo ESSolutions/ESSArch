@@ -646,6 +646,13 @@ export default class BaseCtrl {
             vm.moveToApprovalModal(ip, request);
           }
           break;
+        case 'create_new_generation':
+          if ($scope.ips.length > 0) {
+            vm.createNewGenerationModal($scope.ips, request);
+          } else {
+            vm.createNewGenerationModal(ip, request);
+          }
+          break;
         case 'download_dip':
           vm.downloadDipModal(ip);
           break;
@@ -775,6 +782,45 @@ export default class BaseCtrl {
         ariaDescribedBy: 'modal-body',
         templateUrl: 'static/frontend/views/move_to_approval_modal.html',
         controller: 'MoveToApprovalModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: function () {
+            return {
+              ip: ip,
+              ips: ips,
+              request: request,
+            };
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $scope.ip = null;
+          $scope.ips = [];
+          $rootScope.ip = null;
+          $scope.initRequestData();
+          $timeout(function () {
+            vm.submittingRequest = false;
+            $scope.getListViewData();
+          });
+        },
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
+    vm.createNewGenerationModal = function (ip, request) {
+      let ips = null;
+      if (Array.isArray(ip)) {
+        ips = ip;
+      }
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/create_new_generation_modal.html',
+        controller: 'CreateNewGenerationModalInstanceCtrl',
         controllerAs: '$ctrl',
         resolve: {
           data: function () {

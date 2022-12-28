@@ -21,6 +21,10 @@ export const workarea = ($resource, appConfig, Task, Step, Event) => {
         method: 'POST',
         params: {action: 'receive', id: '@id'},
       },
+      createNewGeneration: {
+        method: 'POST',
+        params: {action: 'create_new_generation', id: '@id'},
+      },
       preserve: {
         method: 'POST',
         isArray: false,

@@ -53,10 +53,23 @@ const requests = (Notifications, IP, Workarea, $state) => {
       return response;
     });
   }
+  function createNewGeneration(ip, data) {
+    let promise;
+    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea[0].read_only === true) {
+      promise = Workarea.createNewGeneration(angular.extend(data, {id: ip.id})).$promise;
+    } else {
+      promise = IP.createNewGeneration(angular.extend(data, {id: ip.id})).$promise;
+    }
+    return promise.then(function (response) {
+      Notifications.add(response.detail, 'success', 3000);
+      return response;
+    });
+  }
   return {
     preserve: preserve,
     access: access,
     moveToApproval: moveToApproval,
+    createNewGeneration: createNewGeneration,
   };
 };
 

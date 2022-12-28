@@ -390,8 +390,9 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()
 
-        if not workarea.read_only:
+        if not workarea.read_only and not workarea.ip.archived:
             workarea.delete_files()
+            workarea.delete_temp_files()
             workarea.ip.delete_files()
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -461,7 +462,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @staticmethod
     def annotate_generations(qs):
         lower_higher = InformationPackage.objects.filter(
-            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
         ).order_by().values('aic')
         lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
@@ -470,7 +471,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     def annotate_filtered_first_generation(self, qs, user):
         lower_higher = InformationPackage.objects.visible_to_user(user).filter(
-            Q(Q(workareas=None) | Q(workareas__read_only=True)),
+            Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             aic=OuterRef('aic'),
         ).order_by().values('aic')
         lower_higher = self.apply_filters(queryset=lower_higher).order_by()
@@ -501,7 +502,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if not self.detail and view_type == 'aic':
             simple_inner = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             )
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
 
@@ -512,7 +513,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
 
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
@@ -547,7 +548,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return self.queryset
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             ).exclude(package_type=InformationPackage.AIC)
 
             simple = self.apply_filters(filtered)
@@ -578,7 +579,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return self.queryset
         elif not self.detail and view_type == 'flat':
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             ).exclude(package_type=InformationPackage.AIC)
             qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
 
@@ -603,12 +604,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             )
 
             qs = self.apply_filters(qs)
@@ -820,8 +821,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
-        ip.state = "Uploading"
-        ip.save()
+        if ip.package_type == 'SIP':
+            ip.state = "Uploading"
+            ip.save()
 
         data = request.GET if request.method == 'GET' else request.data
 
@@ -855,7 +857,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='merge-uploaded-chunks', permission_classes=[CanUpload])
     def merge_uploaded_chunks(self, request, pk=None):
         ip = self.get_object()
-        if ip.state != 'Uploading':
+        if ip.package_type == 'SIP' and ip.state != 'Uploading':
             raise exceptions.ParseError('IP must be in state "Uploading"')
 
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
@@ -1737,6 +1739,35 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
 
     @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='create_new_generation')
+    def create_new_generation(self, request, pk=None):
+        ip = self.get_object()
+        workarea = ip.workareas.get()
+        data = request.data
+        new_object_identifier_value = data.get('object_identifier_value') or str(uuid.uuid4())
+        access_workarea = Path.objects.get(entity='access_workarea').value
+        access_workarea_user = os.path.join(access_workarea, request.user.username, new_object_identifier_value)
+        access_workarea_user_extracted = os.path.join(access_workarea_user, new_object_identifier_value)
+        new_aip = ip.create_new_generation('Access Workarea', request.user, new_object_identifier_value)
+        new_aip.object_path = access_workarea_user_extracted
+        new_aip.save()
+
+        os.makedirs(access_workarea_user, exist_ok=True)
+        for f in os.listdir(workarea.path):
+            src_path = os.path.join(workarea.path, f)
+            if os.path.isdir(src_path) and f == ip.object_identifier_value:
+                dst_path = os.path.join(access_workarea_user, new_aip.object_identifier_value)
+            else:
+                dst_path = os.path.join(access_workarea_user, f)
+            shutil.move(src_path, dst_path)
+
+        os.removedirs(workarea.path)
+        workarea.ip = new_aip
+        workarea.read_only = False
+        workarea.save()
+        return Response({'detail': 'New generation created {}'.format(new_aip.object_identifier_value)})
+
+    @transaction.atomic
     @action(detail=True, methods=['post'])
     def access(self, request, pk=None):
         ip = self.get_object()
@@ -1974,6 +2005,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def files(self, request, pk=None):
         ip = self.get_object()
         download = request.query_params.get('download', False)
+        if download is not False:
+            download = string_to_bool(download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
         path = request.query_params.get('path', '').rstrip('/')
 
         if ip.archived:
@@ -2145,7 +2181,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             return Response(path, status=status.HTTP_201_CREATED)
 
-        return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
+        return ip.get_path_response(path, request, force_download=download, expand_container=expand_container,
+                                    paginator=self.paginator)
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
@@ -2842,10 +2879,16 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         reception = Path.objects.get(entity='ingest_reception').value
         path = request.query_params.get('path', '').rstrip('/ ')
         download = request.query_params.get('download', False)
+        if download is not False:
+            download = string_to_bool(download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
 
         if os.path.isdir(os.path.join(reception, pk)):
             path = os.path.join(reception, pk, path)
-            return list_files(path, force_download=download, paginator=self.paginator, request=request)
+            return list_files(path, force_download=download, expand_container=expand_container,
+                              paginator=self.paginator, request=request)
 
         xml = os.path.join(reception, "%s.xml" % pk)
 
@@ -2857,7 +2900,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         if len(path):
             path = os.path.join(os.path.dirname(container), path)
-            return list_files(path, download, paginator=self.paginator, request=request)
+            return list_files(path, download, expand_container=expand_container, paginator=self.paginator,
+                              request=request)
 
         entry = {
             "name": os.path.basename(container),
@@ -3227,6 +3271,11 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         path = request.query_params.get('path', '').strip('/ ')
         force_download = request.query_params.get('download', False)
+        if force_download is not False:
+            force_download = string_to_bool(force_download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
         fullpath = os.path.join(root, path)
 
         try:
@@ -3240,7 +3289,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             else:
                 raise
 
-        return list_files(fullpath, force_download, paginator=self.paginator, request=request)
+        return list_files(fullpath, force_download, expand_container, paginator=self.paginator, request=request)
 
     @action(detail=False, methods=['post'], url_path='add-directory')
     def add_directory(self, request):
