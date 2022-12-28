@@ -127,7 +127,7 @@ class InformationPackageListFilesTests(TestCase):
         self.ip.object_path = archive_path
         self.ip.save()
 
-        entries = self.ip.list_files(path='archive_file.tar')
+        entries = self.ip.list_files(path='archive_file.tar', expand_container=True)
         self.assertEqual(len(entries), 3)
 
         # FIXME: remove ./ when issue is fixed https://bugs.python.org/issue35964
@@ -145,7 +145,7 @@ class InformationPackageListFilesTests(TestCase):
         self.ip.object_path = archive_path
         self.ip.save()
 
-        entries = self.ip.list_files(path='archive_file.zip')
+        entries = self.ip.list_files(path='archive_file.zip', expand_container=True)
         self.assertEqual(len(entries), 3)
 
         file_names = ['0.txt', '1.txt', '2.txt']
@@ -250,7 +250,7 @@ class GetPathResponseTests(TestCase):
 
         relpath = os.path.basename(path)
         self.ip.get_path_response(relpath, self.request)
-        mock_list_files.assert_called_once_with(relpath)
+        mock_list_files.assert_called_once_with(relpath, False)
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
     @mock.patch('ESSArch_Core.ip.models.generate_file_response')
@@ -284,12 +284,12 @@ class GetPathResponseContainerTests(TestCase):
     @mock.patch('ESSArch_Core.ip.models.FormatIdentifier')
     def test_list_files_in_ip_container(self, mock_fid, mock_list_files, mock_open_file):
         path = os.path.basename(self.file)
-        response = self.ip.get_path_response(path, self.request)
+        response = self.ip.get_path_response(path, self.request, expand_container=True)
         response.close()
 
         mock_open_file.return_value
         mock_fid.return_value.get_mimetype.return_value
-        mock_list_files.assert_called_once_with(path)
+        mock_list_files.assert_called_once_with(path, True)
 
 
 class StatusTest(APITestCase):
