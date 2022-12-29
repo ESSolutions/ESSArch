@@ -486,7 +486,7 @@ const listViewService = (
   function addFileToDip(ip, path, file, destination, type, user) {
     const src = path + file.name;
     let dst = destination + file.name;
-    if (path.endsWith('.tar/')) {
+    if (path.endsWith('.tar/') || path.endsWith('.zip/')) {
       dst = destination;
     }
     return WorkareaFiles.addToDip({

@@ -3533,6 +3533,20 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
                         return Response(root)
                     except KeyError:
                         raise NotFound
+
+            elif len(src.split('.zip/')) == 2:
+                zip_path, zip_subpath = src.split('.zip/')
+                zip_path += '.zip'
+                if not os.path.isfile(zip_path):
+                    raise
+                with zipfile.ZipFile(zip_path) as zipf:
+                    try:
+                        zipinfo_obj = zipf.getinfo(zip_subpath)
+                        zipinfo_obj.filename = zip_subpath.split('/')[-1]
+                        zipf.extract(zipinfo_obj, dst)
+                        return Response(root)
+                    except KeyError:
+                        raise NotFound
             else:
                 raise
 
