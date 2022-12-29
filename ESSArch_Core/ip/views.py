@@ -10,6 +10,7 @@ import os
 import shutil
 import tarfile
 import uuid
+import zipfile
 
 from celery import states as celery_states
 from django.conf import settings
@@ -2036,9 +2037,44 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 try:
                     hit = hits[0]
                 except IndexError:
+                    if len(path.split('.tar/')) == 2:
+                        tar_path, tar_subpath = path.split('.tar/')
+                        tar_path += '.tar'
+
+                        with tarfile.open(fileobj=ip.open_file(tar_path, 'rb')) as tar:
+                            try:
+                                f = io.BytesIO(tar.extractfile(tar_subpath).read())
+                                fid = FormatIdentifier(allow_unknown_file_types=True)
+                                content_type = fid.get_mimetype(tar_subpath)
+                                return generate_file_response(
+                                    f,
+                                    content_type=content_type,
+                                    force_download=download, name=tar_subpath)
+                            except KeyError:
+                                raise exceptions.NotFound
+
+                    if len(path.split('.zip/')) == 2:
+                        zip_path, zip_subpath = path.split('.zip/')
+                        zip_path += '.zip'
+
+                        with zipfile.ZipFile(ip.open_file(zip_path, 'rb')) as zipf:
+                            try:
+                                f = io.BytesIO(zipf.read(zip_subpath))
+                                fid = FormatIdentifier(allow_unknown_file_types=True)
+                                content_type = fid.get_mimetype(zip_subpath)
+                                return generate_file_response(
+                                    f,
+                                    content_type=content_type,
+                                    force_download=download, name=zip_subpath)
+                            except KeyError:
+                                raise exceptions.NotFound
                     raise exceptions.NotFound
 
                 if hit.meta.index.startswith('document'):
+                    if expand_container and (path.endswith('.tar') or path.endswith('.zip')):
+                        entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
+                        return Response(entries)
+
                     fid = FormatIdentifier(allow_unknown_file_types=True)
                     content_type = fid.get_mimetype(path)
                     return generate_file_response(

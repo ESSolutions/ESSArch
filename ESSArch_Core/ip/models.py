@@ -903,7 +903,7 @@ class InformationPackage(models.Model):
 
         return InformationPackage.objects.none()
 
-    def list_files(self, path='', expand_container=False):
+    def list_files(self, path='', fileobj=None, expand_container=False):
         fullpath = os.path.join(self.object_path, path).rstrip('/')
         if os.path.basename(self.object_path) == path and os.path.isfile(self.object_path):
             if expand_container and tarfile.is_tarfile(self.object_path):
@@ -955,6 +955,36 @@ class InformationPackage(models.Model):
         elif expand_container and os.path.isfile(fullpath) and zipfile.is_zipfile(fullpath) and \
                 os.path.splitext(fullpath)[1] == '.zip':
             with zipfile.ZipFile(fullpath) as zipf:
+                entries = []
+                for member in zipf.filelist:
+                    if member.filename.endswith('/'):
+                        continue
+
+                    entries.append({
+                        "name": member.filename,
+                        "type": 'file',
+                        "size": member.file_size,
+                        "modified": datetime(*member.date_time),
+                    })
+                return entries
+
+        elif expand_container and fileobj and tarfile.is_tarfile(fileobj):
+            with tarfile.open(fileobj=fileobj) as tar:
+                entries = []
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+
+                    entries.append({
+                        "name": member.name,
+                        "type": 'file',
+                        "size": member.size,
+                        "modified": timestamp_to_datetime(member.mtime),
+                    })
+                return entries
+
+        elif expand_container and fileobj and zipfile.is_zipfile(fileobj):
+            with zipfile.ZipFile(fileobj) as zipf:
                 entries = []
                 for member in zipf.filelist:
                     if member.filename.endswith('/'):

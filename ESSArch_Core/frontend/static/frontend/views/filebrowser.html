@@ -160,7 +160,7 @@
     translate="FILEBROWSER.NEWFOLDER"
   ></button>
   <button
-    ng-if="selectedCards.length == 1 && selectedCardIsContainer() && ((ip.workarea && ip.workarea[0] && inWorkarea()) || ['Uploaded', 'At reception', 'Created', 'Submitted', 'Received', 'Prepared'].includes(ip.state))"
+    ng-if="selectedCards.length == 1 && selectedCardIsContainer() && ((ip.workarea && ip.workarea[0] && inWorkarea()) || ['Uploaded', 'At reception', 'Created', 'Submitted', 'Received', 'Prepared', 'Preserved'].includes(ip.state))"
     class="btn btn-default"
     ng-click="expandFile(ip, selectedCardIsContainer(), selectedCardIsContainer())"
     translate="FILEBROWSER.EXPAND"
