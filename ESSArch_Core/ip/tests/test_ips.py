@@ -617,7 +617,8 @@ class WorkareaFilesViewTestCase(TestCase):
             res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        mock_list_files.assert_called_once_with(fullpath, False, False, paginator=mock.ANY, request=mock.ANY)
+        mock_list_files.assert_called_once_with(fullpath, force_download=False,
+                                                expand_container=False, paginator=mock.ANY, request=mock.ANY)
 
     def test_add_to_dip_not_responsible(self):
         self.url = reverse('workarea-files-add-to-dip')

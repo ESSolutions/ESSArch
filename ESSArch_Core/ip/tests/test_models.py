@@ -250,7 +250,7 @@ class GetPathResponseTests(TestCase):
 
         relpath = os.path.basename(path)
         self.ip.get_path_response(relpath, self.request)
-        mock_list_files.assert_called_once_with(relpath, False)
+        mock_list_files.assert_called_once_with(relpath, expand_container=False)
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
     @mock.patch('ESSArch_Core.ip.models.generate_file_response')
@@ -289,7 +289,7 @@ class GetPathResponseContainerTests(TestCase):
 
         mock_open_file.return_value
         mock_fid.return_value.get_mimetype.return_value
-        mock_list_files.assert_called_once_with(path, True)
+        mock_list_files.assert_called_once_with(path, expand_container=True)
 
 
 class StatusTest(APITestCase):
