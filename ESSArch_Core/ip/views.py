@@ -3322,6 +3322,11 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 tar_path += '.tar'
                 if not os.path.isfile(tar_path):
                     raise
+            elif len(fullpath.split('.zip/')) == 2:
+                zip_path, zip_subpath = fullpath.split('.zip/')
+                zip_path += '.zip'
+                if not os.path.isfile(zip_path):
+                    raise
             else:
                 raise
 
