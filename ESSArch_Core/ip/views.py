@@ -2936,7 +2936,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         if len(path):
             path = os.path.join(os.path.dirname(container), path)
-            return list_files(path, download, expand_container=expand_container, paginator=self.paginator,
+            return list_files(path, force_download=download, expand_container=expand_container, paginator=self.paginator,
                               request=request)
 
         entry = {
@@ -3325,7 +3325,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             else:
                 raise
 
-        return list_files(fullpath, force_download, expand_container, paginator=self.paginator, request=request)
+        return list_files(fullpath, force_download=force_download, expand_container=expand_container, paginator=self.paginator, request=request)
 
     @action(detail=False, methods=['post'], url_path='add-directory')
     def add_directory(self, request):

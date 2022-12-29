@@ -1117,7 +1117,7 @@ class InformationPackage(models.Model):
                         name=path
                     )
 
-        entries = self.list_files(path, expand_container)
+        entries = self.list_files(path, expand_container=expand_container)
         if paginator is not None:
             paginated = paginator.paginate_queryset(entries, request)
             return paginator.get_paginated_response(paginated)
@@ -2065,6 +2065,7 @@ class InformationPackage(models.Model):
             ('get_from_storage', 'Can get extracted IP from storage'),
             ('get_tar_from_storage', 'Can get packaged IP from storage'),
             ('get_from_storage_as_new', 'Can get IP "as new" from storage'),
+            ('create_as_new', 'Can create IP as new generation'),
             ('add_to_ingest_workarea', 'Can add IP to ingest workarea'),
             ('add_to_ingest_workarea_as_tar', 'Can add IP as tar to ingest workarea'),
             ('add_to_ingest_workarea_as_new', 'Can add IP as new generation to ingest workarea'),

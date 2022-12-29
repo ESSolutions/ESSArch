@@ -43,7 +43,7 @@
                     <i class="fas fa-truck"></i> {{'MOVE_TO_INGEST_CHECKPOINT' | translate}}
                   </label>
                 </div>
-                <div ng-if="checkPermission('ip.get_from_storage_as_new') && !ip.workarea[0].read_only && ip.archived">
+                <div ng-if="checkPermission('ip.create_as_new') && !ip.workarea[0].read_only && ip.archived">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="create_new_generation" />
                     <i class="fas fa-code-branch"></i> {{'CREATE_NEW_GENERATION' | translate}}

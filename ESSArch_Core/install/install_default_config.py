@@ -433,6 +433,7 @@ def installDefaultUsers():
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
+            ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -632,6 +633,7 @@ def installDefaultUsers():
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
+            ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
