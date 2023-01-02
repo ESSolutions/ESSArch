@@ -1,5 +1,5 @@
 <div class="modal-heading">
-  <h3 class="modal-title" id="modal-title">{{'MOVE_TO_APPROVAL' | translate}}</h3>
+  <h3 class="modal-title" id="modal-title">{{'CREATE_NEW_GENERATION' | translate}}</h3>
 </div>
 <div class="modal-body" id="modal-body">
   <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
@@ -28,10 +28,10 @@
     class="btn btn-primary"
     ng-disabled="$ctrl.moving"
     type="button"
-    ng-click="$ctrl.moveToApproval()"
+    ng-click="$ctrl.createNewGeneration()"
     focused="true"
   >
-    {{'MOVE_TO_APPROVAL' | translate}}
+    {{'CREATE_NEW_GENERATION' | translate}}
     <span ng-if="$ctrl.preserving"> &nbsp;<i class="fas fa-spinner fa-spin"></i> </span>
   </button>
   <button class="btn btn-default" type="button" ng-click="$ctrl.cancel()">{{'CANCEL' | translate}}</button>

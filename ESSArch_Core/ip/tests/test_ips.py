@@ -617,7 +617,8 @@ class WorkareaFilesViewTestCase(TestCase):
             res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        mock_list_files.assert_called_once_with(fullpath, False, paginator=mock.ANY, request=mock.ANY)
+        mock_list_files.assert_called_once_with(fullpath, force_download=False,
+                                                expand_container=False, paginator=mock.ANY, request=mock.ANY)
 
     def test_add_to_dip_not_responsible(self):
         self.url = reverse('workarea-files-add-to-dip')
@@ -3481,7 +3482,8 @@ class FilesActionTests(APITestCase):
         mock_ip_get_path_response.assert_called_once_with(
             '',
             mock.ANY,
-            force_download='True',
+            force_download=True,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3496,7 +3498,8 @@ class FilesActionTests(APITestCase):
         mock_ip_get_path_response.assert_called_once_with(
             '',
             mock.ANY,
-            force_download='False',
+            force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3512,6 +3515,7 @@ class FilesActionTests(APITestCase):
             'here_is_some/other_path',
             mock.ANY,
             force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3527,6 +3531,7 @@ class FilesActionTests(APITestCase):
             'here_is_some/other_path',
             mock.ANY,
             force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 

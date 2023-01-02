@@ -293,7 +293,7 @@ class ListFilesTest(TestCase):
 
     def test_list_files_tarfile_with_default_args_should_return_response(self):
         file_path = self.create_archive_file('tar')
-        resp = list_files(file_path)
+        resp = list_files(file_path, expand_container=True)
         self.assertEqual(resp.status_code, 200)
         file_names = ["./0.txt", "./1.txt", "./2.txt"]  # TODO: bug in shutil for tar is adding an extra './'
 
@@ -311,7 +311,7 @@ class ListFilesTest(TestCase):
 
     def test_list_files_zip_file_with_default_args_should_return_response(self):
         file_path = self.create_archive_file('zip')
-        resp = list_files(file_path)
+        resp = list_files(file_path, expand_container=True)
         self.assertEqual(resp.status_code, 200)
         file_names = ["0.txt", "1.txt", "2.txt"]
 

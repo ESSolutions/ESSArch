@@ -58,6 +58,7 @@ import ManagementCtrl from '../controllers/ManagementCtrl';
 import MediaInformationCtrl from '../controllers/MediaInformationCtrl';
 import ModalInstanceCtrl from '../controllers/ModalInstanceCtrl';
 import MoveToApprovalModalInstanceCtrl from '../controllers/MoveToApprovalInstanceCtrl';
+import CreateNewGenerationModalInstanceCtrl from '../controllers/CreateNewGenerationInstanceCtrl';
 import MyPageCtrl from '../controllers/MyPageCtrl';
 import NodeAccessAidModalInstanceCtrl from '../controllers/NodeAccessAidModalInstanceCtrl';
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
@@ -706,6 +707,13 @@ export default angular
     'Requests',
     '$q',
     MoveToApprovalModalInstanceCtrl,
+  ])
+  .controller('CreateNewGenerationModalInstanceCtrl', [
+    '$uibModalInstance',
+    'data',
+    'Requests',
+    '$q',
+    CreateNewGenerationModalInstanceCtrl,
   ])
   .controller('NodeAppraisalJobModalInstanceCtrl', [
     '$uibModalInstance',

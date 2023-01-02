@@ -432,6 +432,7 @@ const listViewService = (
         path: pathStr,
         type: workareaType,
         user: user,
+        expand_container: true,
       };
     }
 
@@ -467,6 +468,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     return IP.files(sendData).$promise.then(function (data) {
@@ -484,7 +486,7 @@ const listViewService = (
   function addFileToDip(ip, path, file, destination, type, user) {
     const src = path + file.name;
     let dst = destination + file.name;
-    if (path.endsWith('.tar/')) {
+    if (path.endsWith('.tar/') || path.endsWith('.zip/')) {
       dst = destination;
     }
     return WorkareaFiles.addToDip({
@@ -563,6 +565,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     if ($state.is('home.ingest.reception') && (ip.state == 'At reception' || ip.state == 'Prepared')) {

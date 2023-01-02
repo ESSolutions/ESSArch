@@ -27,25 +27,33 @@
                     {{'DIFFCHECK' | translate}}
                   </label>
                 </div>
-                <div ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve'))">
+                <div
+                  ng-if="(checkPermission('ip.preserve_from_access_workarea') || checkPermission('ip.preserve')) && !ip.workarea[0].read_only && !ip.archived"
+                >
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="preserve" />
-                    {{'PRESERVE' | translate}}
+                    <i class="fas fa-archive"></i> {{'PRESERVE' | translate}}
                   </label>
                 </div>
                 <div
-                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea'))"
+                  ng-if="(checkPermission('ip.move_from_access_workarea') || checkPermission('ip.move_from_ingest_workarea')) && !ip.workarea[0].read_only && !ip.archived"
                 >
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="move_to_approval" />
-                    {{'MOVE_TO_INGEST_CHECKPOINT' | translate}}
+                    <i class="fas fa-truck"></i> {{'MOVE_TO_INGEST_CHECKPOINT' | translate}}
+                  </label>
+                </div>
+                <div ng-if="checkPermission('ip.create_as_new') && !ip.workarea[0].read_only && ip.archived">
+                  <label>
+                    <input type="radio" ng-model="vm.request.type" value="create_new_generation" />
+                    <i class="fas fa-code-branch"></i> {{'CREATE_NEW_GENERATION' | translate}}
                   </label>
                 </div>
               </div>
               <div class="request-params">
                 <div
                   class="form-group"
-                  ng-if="vm.request.type == 'view' || vm.request.type == 'edit_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval'"
+                  ng-if="vm.request.type == 'view' || vm.request.type == 'edit_as_new' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval' || vm.request.type == 'create_new_generation'"
                 >
                   <label> {{'COMMENT' | translate}} </label>
                   <input class="form-control" ng-model="vm.request.purpose" />
@@ -79,7 +87,7 @@
           <div
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
-            ng-if="eventlog && (vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval')"
+            ng-if="eventlog && (vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve' || vm.request.type == 'move_to_approval'  || vm.request.type == 'create_new_generation')"
             class="select-sub-edit-eventlog-wrapper"
           >
             <div class="eventlog-view">
@@ -123,7 +131,7 @@
           ></filebrowser>
           <div
             id="file-upload"
-            ng-if="(ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+            ng-if="!ip.workarea[0].read_only && (ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
             ng-include
             src="'static/frontend/views/file_upload.html'"
           ></div>

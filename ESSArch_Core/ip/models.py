@@ -23,6 +23,7 @@
 """
 
 import errno
+import io
 import logging
 import os
 import shutil
@@ -65,7 +66,7 @@ from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from requests import RequestException
-from rest_framework import exceptions
+from rest_framework.exceptions import APIException, NotFound, ValidationError
 from rest_framework.response import Response
 from tenacity import (
     before_sleep_log,
@@ -597,7 +598,8 @@ class InformationPackage(models.Model):
             new_aip.save()
 
         new_aip.object_identifier_value = object_identifier_value or str(new_aip.pk)
-        new_aip.save(update_fields=['object_identifier_value'])
+        new_aip.package_mets_path = '{}.xml'.format(new_aip.object_identifier_value)
+        new_aip.save(update_fields=['object_identifier_value', 'package_mets_path'])
 
         for profile_ip in self.profileip_set.all():
             new_profile_ip = deepcopy(profile_ip)
@@ -631,7 +633,7 @@ class InformationPackage(models.Model):
         except KeyError:
             msg = 'No content type importer specified in {profile}'.format(profile=ct_profile.name)
             logger.exception(msg)
-            raise exceptions.APIException(msg)
+            raise APIException(msg)
 
     def get_content_type_file(self):
         try:
@@ -688,7 +690,7 @@ class InformationPackage(models.Model):
             return (self.last_changed_local - self.last_changed_external).total_seconds() == 0
 
     def new_version_in_progress(self):
-        ip = self.related_ips(cached=False).filter(workareas__read_only=False).first()
+        ip = self.related_ips(cached=False).filter(archived=False).first()
 
         if ip is not None:
             return ip.workareas.first()
@@ -901,10 +903,10 @@ class InformationPackage(models.Model):
 
         return InformationPackage.objects.none()
 
-    def list_files(self, path=''):
+    def list_files(self, path='', fileobj=None, expand_container=False):
         fullpath = os.path.join(self.object_path, path).rstrip('/')
         if os.path.basename(self.object_path) == path and os.path.isfile(self.object_path):
-            if tarfile.is_tarfile(self.object_path):
+            if expand_container and tarfile.is_tarfile(self.object_path):
                 with tarfile.open(self.object_path) as tar:
                     entries = []
                     for member in tar.getmembers():
@@ -919,7 +921,8 @@ class InformationPackage(models.Model):
                         })
                     return entries
 
-            elif zipfile.is_zipfile(self.object_path) and os.path.splitext(self.object_path)[1] == '.zip':
+            elif expand_container and zipfile.is_zipfile(self.object_path) and \
+                    os.path.splitext(self.object_path)[1] == '.zip':
                 with zipfile.ZipFile(self.object_path) as zipf:
                     entries = []
                     for member in zipf.filelist:
@@ -933,6 +936,67 @@ class InformationPackage(models.Model):
                             "modified": datetime(*member.date_time),
                         })
                     return entries
+
+        if expand_container and os.path.isfile(fullpath) and tarfile.is_tarfile(fullpath):
+            with tarfile.open(fullpath) as tar:
+                entries = []
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+
+                    entries.append({
+                        "name": member.name,
+                        "type": 'file',
+                        "size": member.size,
+                        "modified": timestamp_to_datetime(member.mtime),
+                    })
+                return entries
+
+        elif expand_container and os.path.isfile(fullpath) and zipfile.is_zipfile(fullpath) and \
+                os.path.splitext(fullpath)[1] == '.zip':
+            with zipfile.ZipFile(fullpath) as zipf:
+                entries = []
+                for member in zipf.filelist:
+                    if member.filename.endswith('/'):
+                        continue
+
+                    entries.append({
+                        "name": member.filename,
+                        "type": 'file',
+                        "size": member.file_size,
+                        "modified": datetime(*member.date_time),
+                    })
+                return entries
+
+        elif expand_container and fileobj and tarfile.is_tarfile(fileobj):
+            with tarfile.open(fileobj=fileobj) as tar:
+                entries = []
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
+
+                    entries.append({
+                        "name": member.name,
+                        "type": 'file',
+                        "size": member.size,
+                        "modified": timestamp_to_datetime(member.mtime),
+                    })
+                return entries
+
+        elif expand_container and fileobj and zipfile.is_zipfile(fileobj):
+            with zipfile.ZipFile(fileobj) as zipf:
+                entries = []
+                for member in zipf.filelist:
+                    if member.filename.endswith('/'):
+                        continue
+
+                    entries.append({
+                        "name": member.filename,
+                        "type": 'file',
+                        "size": member.file_size,
+                        "modified": datetime(*member.date_time),
+                    })
+                return entries
 
         if os.path.isfile(self.object_path) and not path:
             container = self.object_path
@@ -983,51 +1047,77 @@ class InformationPackage(models.Model):
     def validate_path(self, path):
         fullpath = os.path.join(self.object_path, path)
         if not in_directory(fullpath, self.object_path) and fullpath != os.path.splitext(self.object_path)[0] + '.xml':
-            raise exceptions.ValidationError('Illegal path: {}'.format(path))
+            raise ValidationError('Illegal path: {}'.format(path))
 
-    def get_path_response(self, path, request, force_download=False, paginator=None):
+    def get_path_response(self, path, request, force_download=False, expand_container=False, paginator=None):
         self.validate_path(path)
-        try:
-            if not path:
-                raise OSError(errno.EISDIR, os.strerror(errno.EISDIR), path)
+        if not expand_container:
+            try:
+                if not path:
+                    raise OSError(errno.EISDIR, os.strerror(errno.EISDIR), path)
 
-            if os.path.isfile(self.object_path):
-                container_path = os.path.join(os.path.dirname(self.object_path), path.split('/', 1)[0])
-                container_path = normalize_path(container_path)
-                if container_path == self.object_path:
-                    path = path.split('/', 1)[1]
+                if os.path.isfile(self.object_path):
+                    container_path = os.path.join(os.path.dirname(self.object_path), path.split('/', 1)[0])
+                    container_path = normalize_path(container_path)
+                    if container_path == self.object_path:
+                        path = path.split('/', 1)[1]
 
-            fid = FormatIdentifier(allow_unknown_file_types=True)
-            content_type = fid.get_mimetype(path)
-            return generate_file_response(
-                self.open_file(path, 'rb'),
-                content_type,
-                force_download=force_download,
-                name=path
-            )
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                raise exceptions.NotFound
-
-            # Windows raises PermissionDenied (errno.EACCES) when trying to use
-            # open() on a directory
-            if os.name == 'nt':
-                if e.errno not in (errno.EACCES, errno.EISDIR):
-                    raise
-            elif e.errno != errno.EISDIR:
-                raise
-        except IndexError:
-            if force_download:
                 fid = FormatIdentifier(allow_unknown_file_types=True)
+
+                if len(path.split('.tar/')) == 2:
+                    tar_path, tar_subpath = path.split('.tar/')
+                    tar_path += '.tar'
+
+                    with tarfile.open(fileobj=self.open_file(tar_path, 'rb')) as tar:
+                        try:
+                            f = io.BytesIO(tar.extractfile(tar_subpath).read())
+                            content_type = fid.get_mimetype(tar_subpath)
+                            return generate_file_response(f, content_type, force_download, name=tar_subpath)
+                        except KeyError:
+                            raise NotFound
+
+                if len(path.split('.zip/')) == 2:
+                    zip_path, zip_subpath = path.split('.zip/')
+                    zip_path += '.zip'
+
+                    with zipfile.ZipFile(self.open_file(zip_path, 'rb')) as zipf:
+                        try:
+                            f = io.BytesIO(zipf.read(zip_subpath))
+                            content_type = fid.get_mimetype(zip_subpath)
+                            return generate_file_response(f, content_type, force_download, name=zip_subpath)
+                        except KeyError:
+                            raise NotFound
+
                 content_type = fid.get_mimetype(path)
                 return generate_file_response(
-                    self.open_file(self.object_path, 'rb'),
+                    self.open_file(path, 'rb'),
                     content_type,
                     force_download=force_download,
                     name=path
                 )
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    raise NotFound
 
-        entries = self.list_files(path)
+                # Windows raises PermissionDenied (errno.EACCES) when trying to use
+                # open() on a directory
+                if os.name == 'nt':
+                    if e.errno not in (errno.EACCES, errno.EISDIR):
+                        raise
+                elif e.errno != errno.EISDIR:
+                    raise
+            except IndexError:
+                if force_download or not expand_container:
+                    fid = FormatIdentifier(allow_unknown_file_types=True)
+                    content_type = fid.get_mimetype(path)
+                    return generate_file_response(
+                        self.open_file(self.object_path, 'rb'),
+                        content_type,
+                        force_download=force_download,
+                        name=path
+                    )
+
+        entries = self.list_files(path, expand_container=expand_container)
         if paginator is not None:
             paginated = paginator.paginate_queryset(entries, request)
             return paginator.get_paginated_response(paginated)
@@ -1257,6 +1347,7 @@ class InformationPackage(models.Model):
             ingest_workarea = Path.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
             ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
+            ingest_workarea_user_extracted = os.path.join(ingest_workarea_user, dst_object_identifier_value)
 
             workflow = [
                 {
@@ -1283,14 +1374,14 @@ class InformationPackage(models.Model):
                     "if": not container,
                     "args": [
                         self.object_path,
-                        ingest_workarea_user,
+                        ingest_workarea_user_extracted,
                     ],
                 },
             ]
 
             if new:
                 new_aip = self.create_new_generation('Ingest Workspace', user, dst_object_identifier_value)
-                new_aip.object_path = ingest_workarea_user
+                new_aip.object_path = ingest_workarea_user_extracted
                 new_aip.save()
 
             elif edit:
@@ -1305,7 +1396,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.UpdateIPPath",
                         "label": "Update IP path",
-                        "args": [ingest_workarea_user],
+                        "args": [ingest_workarea_user_extracted],
                     },
                 ])
 
@@ -1690,7 +1781,7 @@ class InformationPackage(models.Model):
             "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
             "label": "Create workarea",
             "queue": worker_queue,
-            "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, not new]
+            "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, tar]
         })
         return create_workflow(workflow, self, name='Access Information Package')
 
@@ -1974,6 +2065,7 @@ class InformationPackage(models.Model):
             ('get_from_storage', 'Can get extracted IP from storage'),
             ('get_tar_from_storage', 'Can get packaged IP from storage'),
             ('get_from_storage_as_new', 'Can get IP "as new" from storage'),
+            ('create_as_new', 'Can create IP as new generation'),
             ('add_to_ingest_workarea', 'Can add IP to ingest workarea'),
             ('add_to_ingest_workarea_as_tar', 'Can add IP as tar to ingest workarea'),
             ('add_to_ingest_workarea_as_new', 'Can add IP as new generation to ingest workarea'),

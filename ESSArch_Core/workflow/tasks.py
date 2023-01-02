@@ -137,7 +137,23 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
                 try:
                     with tarfile.open(container) as tar:
                         root_member_name = tar.getnames()[0]
-                        tar.extractall(tmpdir)
+
+                        def is_within_directory(directory, target):
+                            abs_directory = os.path.abspath(directory)
+                            abs_target = os.path.abspath(target)
+                            prefix = os.path.commonprefix([abs_directory, abs_target])
+
+                            return prefix == abs_directory
+
+                        def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                            for member in tar.getmembers():
+                                member_path = os.path.join(path, member.name)
+                                if not is_within_directory(path, member_path):
+                                    raise Exception("Attempted Path Traversal in Tar File")
+
+                            tar.extractall(path, members, numeric_owner=numeric_owner)
+
+                        safe_extract(tar, tmpdir)
                 except NotADirectoryError as e:
                     logger.warning('Problem to extract tarfile: {} (trying to run shell tar extract), error: {}\
 '.format(container, e))

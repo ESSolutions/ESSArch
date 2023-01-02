@@ -13,6 +13,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       PROGRESS: 'Progress',
       TRANSFERS: 'Överföringar',
       UPLOAD: 'Ladda upp',
+      UPLOADCONTENT: 'Ladda upp innehåll',
       UPLOADED: 'Uppladdat',
       UPLOAD_COMPLETE: 'Uppladdning slutförd',
     },

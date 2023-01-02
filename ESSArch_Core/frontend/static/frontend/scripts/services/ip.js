@@ -130,6 +130,10 @@ const ip = ($resource, appConfig, Event, Step, Task) => {
         method: 'POST',
         params: {action: 'receive', id: '@id'},
       },
+      createNewGeneration: {
+        method: 'POST',
+        params: {action: 'create_new_generation', id: '@id'},
+      },
       appraisalTemplates: {
         method: 'GET',
         params: {action: 'appraisal-templates', id: '@id'},

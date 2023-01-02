@@ -149,7 +149,7 @@
           tabindex="-1"
           ng-keydown="vm.contentViewsKeydownListener($event)"
         >
-          <filebrowser ip="ip"></filebrowser>
+          <filebrowser ip="ip" user="vm.organizationMember.current" browserstate="vm.browserstate"></filebrowser>
         </div>
       </uib-tab>
       <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
