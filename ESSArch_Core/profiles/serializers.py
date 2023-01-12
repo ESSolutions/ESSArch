@@ -223,6 +223,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
             'id', 'name', 'published', 'type', 'status', 'label', 'policy',
 
             'archivist_organization',
+            'overall_submission_agreement',
 
             'include_profile_transfer_project',
             'include_profile_content_type',
