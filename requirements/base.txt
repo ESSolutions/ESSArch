@@ -50,3 +50,5 @@ wand==0.6.1
 weasyprint==51
 pymqi
 datasette
+django-auth-ldap==2.1.0
+djangosaml2==0.18.1
