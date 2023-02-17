@@ -447,4 +447,6 @@ urlpatterns = [
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+    from djangosaml2.views import EchoAttributesView
     urlpatterns.append(re_path(r'^saml2/', include('djangosaml2.urls')))
+    urlpatterns.append(re_path(r'^saml2test/', EchoAttributesView.as_view()))
