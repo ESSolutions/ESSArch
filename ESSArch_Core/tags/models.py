@@ -3,9 +3,12 @@ import uuid
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.exceptions import (
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+    ValidationError,
+)
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
@@ -14,14 +17,15 @@ from django.utils import timezone
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from mptt.querysets import TreeQuerySet
 from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink
-from ESSArch_Core.auth.models import GroupGenericObjects
-from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.auth.models import GroupObjectsBase
+from ESSArch_Core.auth.util import get_group_objs_model, get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -1148,11 +1152,9 @@ class TagVersion(models.Model):
         new.save()
 
         try:
-            ctype = ContentType.objects.get_for_model(self)
-            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-            GroupGenericObjects.objects.update_or_create(object_id=new.pk, content_type=ctype,
-                                                         defaults={'group': gg_obj.group})
-        except GroupGenericObjects.DoesNotExist:
+            org = self.get_organization()
+            org.group.add_object(new)
+        except ObjectDoesNotExist:
             pass
 
         for agent_link in AgentTagLink.objects.filter(tag=self):
@@ -1228,36 +1230,35 @@ class TagVersion(models.Model):
 
     @transaction.atomic
     def change_organization(self, organization):
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
+        group_objs_model = get_group_objs_model(self)
         # print('update tag: %s with org: %s (in tv)' % (repr(self), organization))
-        gg_tv, created = GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                                      defaults={'group': organization})
+        group_objs_model.objects.change_organization(self, organization)
 
-        for accessaid_obj in gg_tv.get_related_accessaids_objs(self):
+        accessaid_objs = []
+        for ts_obj in self.get_structures().all():
+            for su_obj in ts_obj.structure.units.all():
+                for accessaid_obj in su_obj.access_aids.all():
+                    if accessaid_obj not in accessaid_objs:
+                        accessaid_objs.append(accessaid_obj)
+        for accessaid_obj in accessaid_objs:
             # print('update accessaid: %s with org: %s (in tv)' % (repr(accessaid_obj), organization))
             accessaid_obj.change_organization(organization)
 
         # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
-        # if change_related_ips:
-        #    for ip_obj in gg_tv.get_related_ip_objs():
-        #        print('update ip: %s with org: %s' % (repr(ip_obj), organization))
-        #        ip_obj.change_organization(organization)
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
+        group_objs_model = get_group_objs_model(self)
         try:
-            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-        except GroupGenericObjects.MultipleObjectsReturned as e:
-            gg_objs = GroupGenericObjects.objects.filter(object_id=self.pk, content_type=ctype)
-            group_list = [x.group for x in gg_objs]
-            message_info = 'Expected one GroupGenericObject for organization (TagVersion: {}) but got multiple gg_objs \
+            go_obj = group_objs_model.objects.get_organization(self)
+        except MultipleObjectsReturned as e:
+            go_objs = group_objs_model.objects.get_organization(self, list=True)
+            group_list = [x.group for x in go_objs]
+            message_info = 'Expected one GroupObjects for organization (TagVersion: {}) but got multiple go_objs \
 with folowing groups: {}'.format(self, group_list)
             logger.warning(message_info)
             raise e
 
-        return gg_obj
+        return go_obj
 
     def get_name_with_dates(self):
         date_format = '%x'
@@ -1286,6 +1287,18 @@ with folowing groups: {}'.format(self, group_list)
     class Meta:
         get_latest_by = 'create_date'
         ordering = ('reference_code',)
+
+
+class TagVersionUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
+
+
+class TagVersionGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
+
+
+class TagVersionGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
 
 
 class TagStructure(MPTTModel):

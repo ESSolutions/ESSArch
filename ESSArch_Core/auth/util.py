@@ -2,17 +2,17 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
-from django.db.models import CharField, F, Min, Q, UUIDField, Value
-from django.db.models.functions import Cast, Replace
-from django.shortcuts import _get_queryset
-from guardian.models import GroupObjectPermission, UserObjectPermission
-
-from ESSArch_Core.auth.models import (
-    Group,
-    GroupGenericObjects,
-    GroupMember,
-    GroupMemberRole,
+from django.db.models import F, Min, Model, Q, UUIDField, Value
+from django.db.models.functions import Replace
+from django.db.models.query import QuerySet
+from guardian.ctypes import get_content_type
+from guardian.shortcuts import (
+    _handle_pk_field,
+    get_objects_for_user as get_objects_for_user_guardian,
 )
+from guardian.utils import get_group_obj_perms_model, get_user_obj_perms_model
+
+from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
 
 User = get_user_model()
 ORGANIZATION_TYPE = 'organization'
@@ -79,107 +79,147 @@ def replace_func(field, field_type):
     return F(field)
 
 
-def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True):
-    qs = _get_queryset(klass)
+def get_grp_objs_model(obj, base_cls, generic_cls):
+    """
+    Return the matching object permission model for the obj class
+    Defaults to returning the generic object permission when
+    no direct foreignkey is defined or obj is None
+    """
+    # Default to the generic object permission model
+    # when None obj is provided
+    if obj is None:
+        return generic_cls
 
-    if perms is None:
-        perms = []
+    if isinstance(obj, Model):
+        obj = obj.__class__
 
-    if not user.is_active or user.is_anonymous:
-        return qs.none()
+    fields = (f for f in obj._meta.get_fields()
+              if (f.one_to_many or f.one_to_one) and f.auto_created)
 
-    if user.is_superuser:
-        return qs
+    for attr in fields:
+        model = getattr(attr, 'related_model', None)
+        if (model and issubclass(model, base_cls) and
+                model is not generic_cls and getattr(model, 'enabled', True)):
+            # if model is generic one it would be returned anyway
+            if not model.objects.is_generic():
+                # make sure that content_object's content_type is same as
+                # the one of given obj
+                fk = model._meta.get_field('content_object')
+                if get_content_type(obj) == get_content_type(fk.remote_field.model):
+                    return model
+    return generic_cls
 
-    if isinstance(perms, str):
-        perms = [perms]
 
-    codenames = set()
-    for perm in perms:
-        if '.' in perm:
-            _, codename = perm.split('.', 1)
+def get_group_objs_model(obj=None):
+    """
+    Returns model class that connects given ``obj`` and Group class.
+    If obj is not specified, then group generic object permission model
+    returned is determined byt the guardian setting 'GROUP_OBJ_PERMS_MODEL'.
+    """
+    from ESSArch_Core.auth.models import GroupGenericObjects, GroupObjectsBase
+    return get_grp_objs_model(obj, GroupObjectsBase, GroupGenericObjects)
+
+
+def get_objects_for_user(user, klass, perms=None, current_organization=True, include_no_auth_objs=True):
+    if not perms:
+        if isinstance(klass, QuerySet):
+            perms = 'view_{}'.format(klass.model._meta.model_name)
         else:
-            codename = perm
-        codenames.add(codename)
+            perms = 'view_{}'.format(klass._meta.model_name)
 
-    ctype = ContentType.objects.get_for_model(qs.model)
-    role_ids = GroupGenericObjects.objects.none()
+    queryset = get_objects_for_user_guardian(user, perms, klass)
 
-    org = user.user_profile.current_organization
-    if org is not None:
-        # Because of UUIDs we have to first save the IDs in
-        # memory and then query against that list, see
-        # https://stackoverflow.com/questions/50526873/
-        #
-        # Fixed in Django 3.1 (hopefully)
-        # https://github.com/django/django/pull/10643
+    if current_organization and not user.is_superuser:
+        if isinstance(current_organization, Group):
+            org = current_organization
+        else:
+            org = user.user_profile.current_organization
 
-        orgs = []
+        if org is not None:
+            if isinstance(perms, str):
+                perms = [perms]
 
-        for org_descendant in org.get_descendants(include_self=True):
-            roles = GroupMemberRole.objects.filter(
-                group_memberships__group__in=org_descendant.get_ancestors(include_self=True),
-                group_memberships__member=user.essauth_member,
-            )
-            role_perms_codenames = set(Permission.objects.filter(roles__in=roles).values_list('codename', flat=True))
-            if not len(set(codenames).difference(set(role_perms_codenames))):
-                orgs.append(org_descendant)
+            codenames = set()
+            for perm in perms:
+                if '.' in perm:
+                    _, codename = perm.split('.', 1)
+                else:
+                    codename = perm
+                codenames.add(codename)
 
-        role_ids = GroupGenericObjects.objects.filter(content_type=ctype, group__in=orgs)
+            group_objs_model = get_group_objs_model(queryset.model)
+            groups_objs_queryset = group_objs_model.objects.none()
+            orgs = []
+            ctype = None
 
-    groups = get_user_groups(user)
-    grp_filter_kwargs = {
-        'content_type': ctype,
-    }
-    if len(groups) > 0:
-        grp_filter_kwargs['group__essauth_group__in'] = groups
-    if len(codenames) > 0:
-        grp_filter_kwargs['permission__codename__in'] = codenames
-    else:
-        grp_filter_kwargs['permission__codename__isnull'] = True
-    group_ids = GroupObjectPermission.objects.filter(**grp_filter_kwargs)
+            for org_descendant in org.get_descendants(include_self=True):
+                roles = GroupMemberRole.objects.filter(
+                    group_memberships__group__in=org_descendant.get_ancestors(include_self=True),
+                    group_memberships__member=user.essauth_member,
+                )
+                role_perms_codenames = set(Permission.objects.filter(
+                    roles__in=roles).values_list('codename', flat=True))
+                if not len(set(codenames).difference(set(role_perms_codenames))):
+                    orgs.append(org_descendant)
 
-    user_filter_kwargs = {
-        'user': user,
-        'content_type': ctype,
-    }
-    if len(codenames) > 0:
-        user_filter_kwargs['permission__codename__in'] = codenames
-    else:
-        user_filter_kwargs['permission__codename__isnull'] = True
-    user_ids = UserObjectPermission.objects.filter(**user_filter_kwargs)
+            if group_objs_model.objects.is_generic():
+                field_pk = 'object_id'
+                ctype = ContentType.objects.get_for_model(queryset.model)
+                groups_objs_total_queryset = group_objs_model.objects.filter(content_type=ctype)
+                groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
+                handle_pk_field = _handle_pk_field(queryset)
+                if handle_pk_field is not None:
+                    groups_objs_queryset = groups_objs_queryset.annotate(obj_pk=handle_pk_field(expression=field_pk))
+                    if include_no_auth_objs:
+                        groups_objs_total_queryset = groups_objs_total_queryset.annotate(
+                            obj_pk=handle_pk_field(expression=field_pk))
+                    field_pk = 'obj_pk'
+            else:
+                field_pk = 'content_object_id'
+                groups_objs_total_queryset = group_objs_model.objects.all()
+                groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
+            values = groups_objs_queryset.values_list(field_pk, flat=True)
 
-    ids_with_no_auth = qs.model.objects.none()
+            if include_no_auth_objs:
+                user_model = get_user_obj_perms_model(queryset.model)
+                if user_model.objects.is_generic():
+                    user_field_pk = 'object_pk'
+                    if ctype is None:
+                        ctype = ContentType.objects.get_for_model(queryset.model)
+                    user_obj_perms_queryset = user_model.objects.filter(content_type=ctype)
+                    handle_pk_field = _handle_pk_field(queryset)
+                    if handle_pk_field is not None:
+                        user_obj_perms_queryset = user_obj_perms_queryset.annotate(
+                            obj_pk=handle_pk_field(expression=user_field_pk))
+                        user_field_pk = 'obj_pk'
+                else:
+                    user_field_pk = 'content_object_id'
+                    user_obj_perms_queryset = user_model.objects.all()
 
-    if include_no_auth_objs:
-        ids_with_no_auth = qs.annotate(casted_pk=Cast('pk', CharField())).exclude(
-            casted_pk__in=UserObjectPermission.objects.filter(content_type=ctype).annotate(
-                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-            ).values('cleaned_pk')
-        ).exclude(
-            casted_pk__in=GroupObjectPermission.objects.filter(content_type=ctype).annotate(
-                cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-            ).values('cleaned_pk')
-        ).exclude(
-            casted_pk__in=GroupGenericObjects.objects.filter(content_type=ctype).annotate(
-                cleaned_pk=replace_func('object_id', qs.model._meta.pk)
-            ).values('cleaned_pk')
-        )
+                group_model = get_group_obj_perms_model(queryset.model)
+                if group_model.objects.is_generic():
+                    group_field_pk = 'object_pk'
+                    if ctype is None:
+                        ctype = ContentType.objects.get_for_model(queryset.model)
+                    groups_obj_perms_queryset = group_model.objects.filter(content_type=ctype)
+                    handle_pk_field = _handle_pk_field(queryset)
+                    if handle_pk_field is not None:
+                        groups_obj_perms_queryset = groups_obj_perms_queryset.annotate(
+                            obj_pk=handle_pk_field(expression=group_field_pk))
+                        group_field_pk = 'obj_pk'
+                else:
+                    group_field_pk = 'content_object_id'
+                    groups_obj_perms_queryset = group_model.objects.all()
 
-    role_ids = role_ids.annotate(
-        cleaned_pk=replace_func('object_id', qs.model._meta.pk)
-    )
-    group_ids = group_ids.annotate(
-        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-    )
-    user_ids = user_ids.annotate(
-        cleaned_pk=replace_func('object_pk', qs.model._meta.pk)
-    )
+                ids_with_no_auth = queryset.exclude(
+                    pk__in=user_obj_perms_queryset.values_list(user_field_pk, flat=True)
+                ).exclude(
+                    pk__in=user_obj_perms_queryset.values_list(group_field_pk, flat=True)
+                ).exclude(
+                    pk__in=groups_objs_total_queryset.values_list(field_pk, flat=True)
+                )
 
-    return qs.annotate(
-        cleaned_id=Cast('pk', CharField()),
-    ).filter(Q(
-        Q(cleaned_id__in=role_ids.values('cleaned_pk')) |
-        Q(cleaned_id__in=group_ids.values('cleaned_pk')) |
-        Q(cleaned_id__in=user_ids.values('cleaned_pk'))
-    )) | ids_with_no_auth
+                queryset = queryset.filter(Q(pk__in=values) | Q(pk__in=ids_with_no_auth))
+            else:
+                queryset = queryset.filter(pk__in=values)
+    return queryset

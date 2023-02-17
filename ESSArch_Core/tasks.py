@@ -461,6 +461,8 @@ def UpdateIPStatus(self, status, prev=None):
 @transaction.atomic
 def UpdateIPPath(self, path, prev=None):
     path, = self.parse_params(path)
+    if path is None:
+        path = ''
     ip = InformationPackage.objects.get(pk=self.ip)
     if prev is None:
         t = self.get_processtask()

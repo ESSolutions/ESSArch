@@ -40,8 +40,6 @@ import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import (
@@ -58,11 +56,11 @@ from django.db.models import (
     Q,
 )
 from django.db.models.expressions import Case, Subquery, Value, When
-from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from groups_manager.utils import get_permission_name
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from requests import RequestException
@@ -76,7 +74,8 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member
+from ESSArch_Core.auth.models import GroupObjectsBase, Member
+from ESSArch_Core.auth.util import get_group_objs_model
 from ESSArch_Core.configuration.models import Path, StoragePolicy
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -260,7 +259,8 @@ class InformationPackageQuerySet(OrganizationQuerySet):
                 output_field=IntegerField(),
             ),
         ).prefetch_related(
-            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org'),
+            Prefetch('informationpackagegroupobjects_set',
+                     queryset=InformationPackageGroupObjects.objects.select_related('group'), to_attr='org'),
             Prefetch(
                 'submissionagreementipdata_set',
                 queryset=SubmissionAgreementIPData.objects.filter(
@@ -370,7 +370,7 @@ class InformationPackage(models.Model):
     label = models.CharField(max_length=255, blank=True)
     content = models.CharField(max_length=255)
     create_date = models.DateTimeField(_('create date'), default=timezone.now)
-    state = models.CharField(_('state'), max_length=255)
+    state = models.CharField(_('state'), max_length=255, db_index=True)
 
     object_path = models.CharField(max_length=255, blank=True)
     object_size = models.BigIntegerField(_('object size'), default=0)
@@ -448,8 +448,6 @@ class InformationPackage(models.Model):
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
 
-    generic_groups = GenericRelation(GroupGenericObjects)
-
     objects = InformationPackageManager()
 
     def save(self, *args, **kwargs):
@@ -523,26 +521,21 @@ class InformationPackage(models.Model):
 
     @transaction.atomic
     def change_organization(self, organization):
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization)
+
         from ESSArch_Core.tags.models import TagVersion
-
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
-        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                     defaults={'group': organization})
-
-        ctype = ContentType.objects.get_for_model(TagVersion)
-        tag_versions = TagVersion.objects.annotate(id_as_char=Cast('pk', CharField())).filter(
-            tag__information_package=self
-        ).values('id_as_char')
-        GroupGenericObjects.objects.filter(content_type=ctype, object_id__in=tag_versions).update(
-            group=organization
-        )
+        group_objs_model = get_group_objs_model(TagVersion)
+        queryset = TagVersion.objects.filter(tag__information_package=self)
+        group_objs_model.objects.change_organization(queryset, organization)
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-        return gg_obj
+        try:
+            return self.org[0]
+        except AttributeError:
+            return InformationPackageGroupObjects.objects.get_organization(self)
+        except IndexError:
+            return None
 
     @staticmethod
     def get_dirs(structure, data, root=""):
@@ -1398,6 +1391,11 @@ class InformationPackage(models.Model):
                         "label": "Update IP path",
                         "args": [ingest_workarea_user_extracted],
                     },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to Ingest Workspace",
+                        "args": ["Ingest Workspace"],
+                    },
                 ])
 
             else:
@@ -2089,6 +2087,18 @@ class InformationPackage(models.Model):
             field.name: field.value_to_string(self)
             for field in InformationPackage._meta.fields
         }
+
+
+class InformationPackageUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
+
+
+class InformationPackageGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
+
+
+class InformationPackageGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
 
 
 class InformationPackageMetadata(models.Model):

@@ -5,8 +5,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import F, Value
 from django.db.models.functions import Concat
 
-from ESSArch_Core.auth.models import GroupGenericObjects
-from ESSArch_Core.auth.util import get_user_groups, get_user_roles
+from ESSArch_Core.auth.util import (
+    get_group_objs_model,
+    get_user_groups,
+    get_user_roles,
+)
 
 
 def _get_permission_objs(user, obj=None):
@@ -34,10 +37,14 @@ class GroupRoleBackend:
         groups = get_user_groups(user_obj)
 
         if obj is not None:
-            ctype = ContentType.objects.get_for_model(obj)
+            group_objs_model = get_group_objs_model(obj)
             try:
-                obj = GroupGenericObjects.objects.get(content_type=ctype, object_id=obj.pk, group__in=groups)
-            except GroupGenericObjects.DoesNotExist:
+                if group_objs_model.objects.is_generic():
+                    ctype = ContentType.objects.get_for_model(obj)
+                    obj = group_objs_model.objects.get(content_type=ctype, object_id=obj.pk, group__in=groups)
+                else:
+                    obj = group_objs_model.objects.get(content_object_id=obj.pk, group__in=groups)
+            except group_objs_model.DoesNotExist:
                 return set()
 
             full_name = F('codename')

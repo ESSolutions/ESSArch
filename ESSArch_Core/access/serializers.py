@@ -1,9 +1,9 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from rest_framework import serializers
 
 from ESSArch_Core.access.models import AccessAid, AccessAidType
 from ESSArch_Core.api.validators import StartDateEndDateValidator
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer
 from ESSArch_Core.tags.models import StructureUnit
 
@@ -22,7 +22,7 @@ class AccessAidSerializer(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
 
     class Meta:

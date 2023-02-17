@@ -2,15 +2,16 @@ import logging
 import uuid
 
 from countries_plus.models import Country
-from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import ValidationError
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models, transaction
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from languages_plus.models import Language
 
-from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.auth.models import GroupObjectsBase
+from ESSArch_Core.auth.util import get_group_objs_model
 from ESSArch_Core.managers import OrganizationManager
 
 logger = logging.getLogger('essarch')
@@ -136,43 +137,41 @@ class Agent(models.Model):
 
     @transaction.atomic
     def change_organization(self, organization, change_related_ips=False, change_related_archives=False):
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
-        gg_agent, created = GroupGenericObjects.objects.get_or_create(object_id=self.pk, content_type=ctype,
-                                                                      defaults={'group': organization})
+        current_organization = self.get_organization().group
 
         if change_related_archives:
-            for tv_obj in gg_agent.get_related_tv_objs():
-                # print('update tv: %s with org: %s (in agent)' % (repr(tv_obj), organization))
-                tv_obj.change_organization(organization)
+            from ESSArch_Core.tags.models import TagVersion
+            group_objs_model = get_group_objs_model(TagVersion)
+            tv_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+            group_objs_model.objects.change_organization(tv_obj_list, organization)
 
-            for accessaid_obj in gg_agent.get_related_accessaids_objs():
-                # print('update accessaid: %s with org: %s (in agent)' % (repr(accessaid_obj), organization))
-                accessaid_obj.change_organization(organization)
+            from ESSArch_Core.access.models import AccessAid
+            group_objs_model = get_group_objs_model(AccessAid)
+            accessaid_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+            group_objs_model.objects.change_organization(accessaid_obj_list, organization)
 
         if change_related_ips:
-            for ip_obj in gg_agent.get_related_ip_objs():
-                # print('update ip: %s with org: %s (in agent)' % (repr(ip_obj), organization))
-                ip_obj.change_organization(organization)
+            from ESSArch_Core.ip.models import InformationPackage
+            group_objs_model = get_group_objs_model(InformationPackage)
+            ip_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+            group_objs_model.objects.change_organization(ip_obj_list, organization)
 
-        # print('update agent: %s with org: %s (in agent)' % (repr(self), organization))
-        gg_agent.group = organization
-        gg_agent.save()
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization)
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
+        group_objs_model = get_group_objs_model(self)
         try:
-            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-        except GroupGenericObjects.MultipleObjectsReturned as e:
-            gg_objs = GroupGenericObjects.objects.filter(object_id=self.pk, content_type=ctype)
-            group_list = [x.group for x in gg_objs]
-            message_info = 'Expected one GroupGenericObject for organization (agent: {}) but got multiple gg_objs \
+            go_obj = group_objs_model.objects.get_organization(self)
+        except MultipleObjectsReturned as e:
+            go_objs = group_objs_model.objects.get_organization(self, list=True)
+            group_list = [x.group for x in go_objs]
+            message_info = 'Expected one GroupObjects for organization (agent: {}) but got multiple go_objs \
 with folowing groups: {}'.format(self, group_list)
             logger.warning(message_info)
             raise e
 
-        return gg_obj
+        return go_obj
 
     def __str__(self):
         name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()
@@ -180,6 +179,18 @@ with folowing groups: {}'.format(self, group_list)
             return super().__str__()
 
         return name.main
+
+
+class AgentUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(Agent, on_delete=models.CASCADE)
+
+
+class AgentGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(Agent, on_delete=models.CASCADE)
+
+
+class AgentGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(Agent, on_delete=models.CASCADE)
 
 
 class AgentTagLink(models.Model):
