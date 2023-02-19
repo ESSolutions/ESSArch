@@ -133,7 +133,7 @@ jobs:
         run: |
           mkdir -p log
           mkdir -p config
-          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install --upgrade pip wheel setuptools==65.7.0
           pip install -e .[docs]
           essarch settings generate -qp config/local_essarch_settings.py
 
@@ -209,7 +209,7 @@ jobs:
           choco install imagemagick
           choco install redis-64 --version 3.0.503
 
-          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install --upgrade pip wheel setuptools==65.7.0
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
@@ -394,7 +394,7 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
 
-          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install --upgrade pip wheel setuptools==65.7.0
 
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
