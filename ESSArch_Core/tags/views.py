@@ -328,7 +328,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         ).annotate(
             tag_leaf_node=~Exists(
                 TagVersion.objects.filter(
-                    tag__structures__structure=OuterRef('structure'),
+                    # tag__structures__structure=OuterRef('structure'),     # Do not now how this work???
                     tag__structures__structure_unit=OuterRef('pk'),
                 ).for_user(request.user),
             )
