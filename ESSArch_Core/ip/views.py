@@ -554,7 +554,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
 
             simple = self.apply_filters(filtered)
-
             simple = self.annotate_generations(simple)
             simple = self.annotate_filtered_first_generation(simple, user)
             simple = self.get_related(simple, workareas)
@@ -584,7 +583,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Q(Q(workareas=None) | Q(archived=True)),
             ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
 
-            qs = self.apply_filters(filtered).order_by(*InformationPackage._meta.ordering)
+            qs = self.apply_filters(filtered)
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',

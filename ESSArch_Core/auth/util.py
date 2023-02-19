@@ -4,12 +4,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.db.models import F, Min, Model, Q, UUIDField, Value
 from django.db.models.functions import Replace
-from django.db.models.query import QuerySet
+from django.shortcuts import _get_queryset
 from guardian.ctypes import get_content_type
-from guardian.shortcuts import (
-    _handle_pk_field,
-    get_objects_for_user as get_objects_for_user_guardian,
-)
+from guardian.shortcuts import _handle_pk_field
 from guardian.utils import get_group_obj_perms_model, get_user_obj_perms_model
 
 from ESSArch_Core.auth.models import Group, GroupMember, GroupMemberRole
@@ -120,34 +117,55 @@ def get_group_objs_model(obj=None):
     return get_grp_objs_model(obj, GroupObjectsBase, GroupGenericObjects)
 
 
-def get_objects_for_user(user, klass, perms=None, current_organization=True, include_no_auth_objs=True):
-    if not perms:
-        if isinstance(klass, QuerySet):
-            perms = 'view_{}'.format(klass.model._meta.model_name)
+def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, current_organization=True):
+    queryset = _get_queryset(klass)
+
+    if not user.is_active or user.is_anonymous:
+        return queryset.none()
+
+    if user.is_superuser:
+        return queryset
+
+    if perms is None:
+        perms = []
+    elif isinstance(perms, str):
+        perms = [perms]
+
+    codenames = set()
+    for perm in perms:
+        if '.' in perm:
+            _, codename = perm.split('.', 1)
         else:
-            perms = 'view_{}'.format(klass._meta.model_name)
+            codename = perm
+        codenames.add(codename)
 
-    queryset = get_objects_for_user_guardian(user, perms, klass)
+    ctype = ContentType.objects.get_for_model(queryset.model)
+    handle_pk_field = _handle_pk_field(queryset)
 
-    if current_organization and not user.is_superuser:
+    groups_objs_total_queryset = queryset.model.objects.none()
+    groups_objs_values = []
+    groups_objs_total_field_pk = 'pk'
+
+    if current_organization:
+        group_objs_model = get_group_objs_model(queryset.model)
+
+        if group_objs_model.objects.is_generic():
+            groups_objs_total_queryset = group_objs_model.objects.filter(content_type=ctype)
+            groups_objs_total_field_pk = 'object_id'
+            if handle_pk_field is not None and include_no_auth_objs:
+                groups_objs_total_queryset = groups_objs_total_queryset.annotate(
+                    obj_pk=handle_pk_field(expression=groups_objs_total_field_pk))
+                groups_objs_total_field_pk = 'obj_pk'
+        else:
+            groups_objs_total_queryset = group_objs_model.objects.all()
+            groups_objs_total_field_pk = 'content_object_id'
+
         if isinstance(current_organization, Group):
             org = current_organization
         else:
             org = user.user_profile.current_organization
 
         if org is not None:
-            if isinstance(perms, str):
-                perms = [perms]
-
-            codenames = set()
-            for perm in perms:
-                if '.' in perm:
-                    _, codename = perm.split('.', 1)
-                else:
-                    codename = perm
-                codenames.add(codename)
-
-            group_objs_model = get_group_objs_model(queryset.model)
             groups_objs_queryset = group_objs_model.objects.none()
             orgs = []
             ctype = None
@@ -161,65 +179,104 @@ def get_objects_for_user(user, klass, perms=None, current_organization=True, inc
                     roles__in=roles).values_list('codename', flat=True))
                 if not len(set(codenames).difference(set(role_perms_codenames))):
                     orgs.append(org_descendant)
+            # print('orgs: {}'.format(orgs))
 
             if group_objs_model.objects.is_generic():
                 field_pk = 'object_id'
-                ctype = ContentType.objects.get_for_model(queryset.model)
-                groups_objs_total_queryset = group_objs_model.objects.filter(content_type=ctype)
                 groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
-                handle_pk_field = _handle_pk_field(queryset)
                 if handle_pk_field is not None:
                     groups_objs_queryset = groups_objs_queryset.annotate(obj_pk=handle_pk_field(expression=field_pk))
-                    if include_no_auth_objs:
-                        groups_objs_total_queryset = groups_objs_total_queryset.annotate(
-                            obj_pk=handle_pk_field(expression=field_pk))
                     field_pk = 'obj_pk'
             else:
                 field_pk = 'content_object_id'
-                groups_objs_total_queryset = group_objs_model.objects.all()
                 groups_objs_queryset = groups_objs_total_queryset.filter(group__in=orgs)
-            values = groups_objs_queryset.values_list(field_pk, flat=True)
+            groups_objs_values = groups_objs_queryset.values_list(field_pk, flat=True)
+            # print('groups_objs_queryset: {}'.format(groups_objs_queryset))
 
+    # Now we should extract list of pk values for which we would filter
+    # queryset
+    user_model = get_user_obj_perms_model(queryset.model)
+    user_filters = {
+        'user': user,
+    }
+    if len(codenames):
+        user_filters.update({
+            'permission__codename__in': codenames,
+        })
+    else:
+        user_filters.update({
+            'permission__codename__isnull': True,
+        })
+    user_obj_perms_total_queryset = user_model.objects.all()
+
+    if user_model.objects.is_generic():
+        user_filters.update({
+            'content_type': ctype,
+        })
+        user_obj_perms_queryset = user_obj_perms_total_queryset.filter(**user_filters)
+        user_field_pk = 'object_pk'
+        if handle_pk_field is not None:
+            user_obj_perms_queryset = user_obj_perms_queryset.annotate(
+                obj_pk=handle_pk_field(expression=user_field_pk))
             if include_no_auth_objs:
-                user_model = get_user_obj_perms_model(queryset.model)
-                if user_model.objects.is_generic():
-                    user_field_pk = 'object_pk'
-                    if ctype is None:
-                        ctype = ContentType.objects.get_for_model(queryset.model)
-                    user_obj_perms_queryset = user_model.objects.filter(content_type=ctype)
-                    handle_pk_field = _handle_pk_field(queryset)
-                    if handle_pk_field is not None:
-                        user_obj_perms_queryset = user_obj_perms_queryset.annotate(
-                            obj_pk=handle_pk_field(expression=user_field_pk))
-                        user_field_pk = 'obj_pk'
-                else:
-                    user_field_pk = 'content_object_id'
-                    user_obj_perms_queryset = user_model.objects.all()
+                user_obj_perms_total_queryset = user_obj_perms_total_queryset.annotate(
+                    obj_pk=handle_pk_field(expression=user_field_pk))
+            user_field_pk = 'obj_pk'
+    else:
+        user_obj_perms_queryset = user_obj_perms_total_queryset.filter(**user_filters)
+        user_field_pk = 'content_object_id'
+    user_obj_perms_values = user_obj_perms_queryset.values_list(user_field_pk, flat=True)
 
-                group_model = get_group_obj_perms_model(queryset.model)
-                if group_model.objects.is_generic():
-                    group_field_pk = 'object_pk'
-                    if ctype is None:
-                        ctype = ContentType.objects.get_for_model(queryset.model)
-                    groups_obj_perms_queryset = group_model.objects.filter(content_type=ctype)
-                    handle_pk_field = _handle_pk_field(queryset)
-                    if handle_pk_field is not None:
-                        groups_obj_perms_queryset = groups_obj_perms_queryset.annotate(
-                            obj_pk=handle_pk_field(expression=group_field_pk))
-                        group_field_pk = 'obj_pk'
-                else:
-                    group_field_pk = 'content_object_id'
-                    groups_obj_perms_queryset = group_model.objects.all()
+    groups = get_user_groups(user)
+    group_model = get_group_obj_perms_model(queryset.model)
+    group_filters = {
+        'group__essauth_group__in': groups,
+    }
+    if len(codenames):
+        group_filters.update({
+            'permission__codename__in': codenames,
+        })
+    else:
+        group_filters.update({
+            'permission__codename__isnull': True,
+        })
+    groups_obj_perms_total_queryset = group_model.objects.all()
 
-                ids_with_no_auth = queryset.exclude(
-                    pk__in=user_obj_perms_queryset.values_list(user_field_pk, flat=True)
-                ).exclude(
-                    pk__in=user_obj_perms_queryset.values_list(group_field_pk, flat=True)
-                ).exclude(
-                    pk__in=groups_objs_total_queryset.values_list(field_pk, flat=True)
-                )
+    if group_model.objects.is_generic():
+        group_filters.update({
+            'content_type': ctype,
+        })
+        groups_obj_perms_queryset = groups_obj_perms_total_queryset.filter(**group_filters)
+        group_field_pk = 'object_pk'
+        if handle_pk_field is not None:
+            groups_obj_perms_queryset = groups_obj_perms_queryset.annotate(
+                obj_pk=handle_pk_field(expression=group_field_pk))
+            if include_no_auth_objs:
+                groups_obj_perms_total_queryset = groups_obj_perms_total_queryset.annotate(
+                    obj_pk=handle_pk_field(expression=group_field_pk))
+            group_field_pk = 'obj_pk'
+    else:
+        groups_obj_perms_queryset = groups_obj_perms_total_queryset.filter(**group_filters)
+        group_field_pk = 'content_object_id'
+    groups_obj_perms_values = groups_obj_perms_queryset.values_list(group_field_pk, flat=True)
 
-                queryset = queryset.filter(Q(pk__in=values) | Q(pk__in=ids_with_no_auth))
-            else:
-                queryset = queryset.filter(pk__in=values)
-    return queryset
+    ids_with_no_auth = queryset.model.objects.none()
+
+    if include_no_auth_objs:
+        # print('groups_objs_total_queryset: {}'.format(groups_objs_total_queryset))
+        # print('user_obj_perms_total_queryset: {}'.format(user_obj_perms_total_queryset))
+        # print('groups_obj_perms_total_queryset: {}'.format(groups_obj_perms_total_queryset))
+        ids_with_no_auth = queryset.exclude(
+            pk__in=groups_objs_total_queryset.values_list(groups_objs_total_field_pk, flat=True)
+        ).exclude(
+            pk__in=user_obj_perms_total_queryset.values_list(user_field_pk, flat=True)
+        ).exclude(
+            pk__in=groups_obj_perms_total_queryset.values_list(group_field_pk, flat=True)
+        )
+        # print('ids_with_no_auth: {}'.format(ids_with_no_auth))
+
+    return queryset.filter(Q(
+        Q(pk__in=groups_objs_values) |
+        Q(pk__in=user_obj_perms_values) |
+        Q(pk__in=groups_obj_perms_values)
+    ) | Q(pk__in=ids_with_no_auth))
