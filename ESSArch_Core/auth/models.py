@@ -29,7 +29,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldDoesNotExist
+from django.core.exceptions import FieldDoesNotExist, MultipleObjectsReturned
 from django.db import models, transaction
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
@@ -96,7 +96,7 @@ class GroupObjectsManager(models.Manager):
             else:
                 return self.model.objects.get(content_object_id=obj.pk)
 
-    def change_organization(self, obj, organization):
+    def change_organization(self, obj, organization, force=False):
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
         if isinstance(obj, list) or isinstance(obj, QuerySet):
@@ -114,8 +114,22 @@ class GroupObjectsManager(models.Manager):
             # obj_list = list(obj_list)
             # logger.debug('Change org to {} for "direct" objs: {}'.format(organization, obj_list))
             for obj in obj_list:
-                self.model.objects.update_or_create(content_object=obj,
-                                                    defaults={'group': organization})
+                try:
+                    self.model.objects.update_or_create(content_object=obj,
+                                                        defaults={'group': organization})
+                except MultipleObjectsReturned as e:
+                    go_objs = self.get_organization(obj, list=True)
+                    group_list = [x.group for x in go_objs]
+                    message_info = 'Expected one GroupObjects for {} {} but got multiple go_objs \
+with folowing groups: {}'.format(obj._meta.model_name, obj, group_list)
+                    logger.warning(message_info)
+                    if force:
+                        logger.warning('Change organiztion with force to {} for {} {}'.format(
+                            organization, obj._meta.model_name, obj))
+                        go_objs.delete()
+                        self.model.objects.create(content_object=obj, group=organization)
+                    else:
+                        raise e
 
 
 class GroupObjectsBase(models.Model):

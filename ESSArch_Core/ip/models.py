@@ -520,14 +520,14 @@ class InformationPackage(models.Model):
         return self.generation == max_generation
 
     @transaction.atomic
-    def change_organization(self, organization):
+    def change_organization(self, organization, force=False):
         group_objs_model = get_group_objs_model(self)
-        group_objs_model.objects.change_organization(self, organization)
+        group_objs_model.objects.change_organization(self, organization, force)
 
         from ESSArch_Core.tags.models import TagVersion
         group_objs_model = get_group_objs_model(TagVersion)
         queryset = TagVersion.objects.filter(tag__information_package=self)
-        group_objs_model.objects.change_organization(queryset, organization)
+        group_objs_model.objects.change_organization(queryset, organization, force)
 
     def get_organization(self):
         try:
