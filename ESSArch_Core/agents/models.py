@@ -136,28 +136,31 @@ class Agent(models.Model):
         return rel
 
     @transaction.atomic
-    def change_organization(self, organization, change_related_ips=False, change_related_archives=False):
+    def change_organization(self, organization, change_related_ips=False, change_related_archives=False, force=False):
         current_organization = self.get_organization().group
 
         if change_related_archives:
             from ESSArch_Core.tags.models import TagVersion
             group_objs_model = get_group_objs_model(TagVersion)
             tv_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            group_objs_model.objects.change_organization(tv_obj_list, organization)
+            for tv_obj in tv_obj_list:
+                tv_obj.change_organization(organization, force=force)
 
             from ESSArch_Core.access.models import AccessAid
             group_objs_model = get_group_objs_model(AccessAid)
             accessaid_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            group_objs_model.objects.change_organization(accessaid_obj_list, organization)
+            for accessaid_obj in accessaid_obj_list:
+                accessaid_obj.change_organization(organization, force=force)
 
         if change_related_ips:
             from ESSArch_Core.ip.models import InformationPackage
             group_objs_model = get_group_objs_model(InformationPackage)
             ip_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            group_objs_model.objects.change_organization(ip_obj_list, organization)
+            for ip_obj in ip_obj_list:
+                ip_obj.change_organization(organization, force=force)
 
         group_objs_model = get_group_objs_model(self)
-        group_objs_model.objects.change_organization(self, organization)
+        group_objs_model.objects.change_organization(self, organization, force=force)
 
     def get_organization(self):
         group_objs_model = get_group_objs_model(self)

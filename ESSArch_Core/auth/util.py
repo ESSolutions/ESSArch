@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
@@ -124,6 +125,11 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
         return queryset.none()
 
     if user.is_superuser:
+        return queryset
+
+    include_no_auth_objs = getattr(settings, 'INCLUDE_NO_AUTH_OBJS', include_no_auth_objs)
+    current_organization = getattr(settings, 'USE_ORGANIZATION', current_organization)
+    if not getattr(settings, 'USE_OBJ_PERMISSION', True):
         return queryset
 
     if perms is None:
@@ -275,8 +281,10 @@ def get_objects_for_user(user, klass, perms=None, include_no_auth_objs=True, cur
         )
         # print('ids_with_no_auth: {}'.format(ids_with_no_auth))
 
-    return queryset.filter(Q(
-        Q(pk__in=groups_objs_values) |
-        Q(pk__in=user_obj_perms_values) |
-        Q(pk__in=groups_obj_perms_values)
-    ) | Q(pk__in=ids_with_no_auth))
+    queryset_filters = Q(pk__in=user_obj_perms_values) | Q(pk__in=groups_obj_perms_values)
+    if current_organization:
+        queryset_filters = queryset_filters | Q(pk__in=groups_objs_values)
+    if include_no_auth_objs:
+        queryset_filters = Q(queryset_filters) | Q(pk__in=ids_with_no_auth)
+    # print('queryset_filters: {}'.format(queryset_filters))
+    return queryset.filter(queryset_filters)

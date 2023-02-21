@@ -718,6 +718,23 @@ other_structure.id: {}'.format(other_structure, other_structure.is_template, oth
 
     objects = StructureUnitManager()
 
+    @transaction.atomic
+    def change_organization(self, organization, force=False):
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization, force=force)
+        if self.is_leaf_node():
+            structure = self.structure
+            if structure.tagstructure_set.exists():
+                nodes = structure.tagstructure_set.first().get_root().tag.current_version.get_descendants(structure)
+                tv_objs = nodes.filter(tag__structures__structure_unit=self)
+                for tv_obj in tv_objs:
+                    group_objs_model_tv = get_group_objs_model(tv_obj)
+                    group_objs_model_tv.objects.change_organization(tv_obj, organization, force=force)
+
+    def get_organization(self):
+        group_objs_model = get_group_objs_model(self)
+        return group_objs_model.objects.get_organization(self)
+
     class Meta:
         unique_together = (('structure', 'reference_code'),)
         permissions = (
@@ -726,6 +743,18 @@ other_structure.id: {}'.format(other_structure, other_structure.is_template, oth
             ('delete_structureunit_instance', _('Can delete instances of structure units')),
             ('move_structureunit_instance', _('Can move instances of structure units')),
         )
+
+
+class StructureUnitUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
+
+
+class StructureUnitGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
+
+
+class StructureUnitGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
 
 
 class Tag(models.Model):
@@ -1229,20 +1258,25 @@ class TagVersion(models.Model):
         return self.tag.is_leaf_node(user, structure)
 
     @transaction.atomic
-    def change_organization(self, organization):
+    def change_organization(self, organization, force=False):
         group_objs_model = get_group_objs_model(self)
         # print('update tag: %s with org: %s (in tv)' % (repr(self), organization))
-        group_objs_model.objects.change_organization(self, organization)
+        group_objs_model.objects.change_organization(self, organization, force=force)
 
+        su_objs = []
         accessaid_objs = []
         for ts_obj in self.get_structures().all():
             for su_obj in ts_obj.structure.units.all():
+                su_objs.append(su_obj)
                 for accessaid_obj in su_obj.access_aids.all():
                     if accessaid_obj not in accessaid_objs:
                         accessaid_objs.append(accessaid_obj)
         for accessaid_obj in accessaid_objs:
             # print('update accessaid: %s with org: %s (in tv)' % (repr(accessaid_obj), organization))
-            accessaid_obj.change_organization(organization)
+            accessaid_obj.change_organization(organization, force=force)
+        for su_obj in su_objs:
+            # print('update structure_unit: %s with org: %s (in tv)' % (repr(su_obj), organization))
+            su_obj.change_organization(organization, force=force)
 
         # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
 

@@ -525,9 +525,9 @@ class InformationPackage(models.Model):
         group_objs_model.objects.change_organization(self, organization, force)
 
         from ESSArch_Core.tags.models import TagVersion
-        group_objs_model = get_group_objs_model(TagVersion)
-        queryset = TagVersion.objects.filter(tag__information_package=self)
-        group_objs_model.objects.change_organization(queryset, organization, force)
+        tv_objs = TagVersion.objects.filter(tag__information_package=self)
+        for tv_obj in tv_objs:
+            tv_obj.change_organization(organization, force)
 
     def get_organization(self):
         try:

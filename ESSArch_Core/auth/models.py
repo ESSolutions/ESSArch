@@ -29,7 +29,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import FieldDoesNotExist, MultipleObjectsReturned
+from django.core.exceptions import (
+    FieldDoesNotExist,
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+)
 from django.db import models, transaction
 from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
@@ -115,8 +119,15 @@ class GroupObjectsManager(models.Manager):
             # logger.debug('Change org to {} for "direct" objs: {}'.format(organization, obj_list))
             for obj in obj_list:
                 try:
-                    self.model.objects.update_or_create(content_object=obj,
-                                                        defaults={'group': organization})
+                    go_obj = self.model.objects.get(content_object_id=obj.pk)
+                    go_obj.group = organization
+                    go_obj.save()
+                except ObjectDoesNotExist:
+                    # message_info = 'GroupObjects for {} {} does not exists for organization: {}'.format(
+                    #                                           obj._meta.model_name, obj, organization)
+                    # logger.warning(message_info)
+                    if force:
+                        self.model.objects.create(content_object=obj, group=organization)
                 except MultipleObjectsReturned as e:
                     go_objs = self.get_organization(obj, list=True)
                     group_list = [x.group for x in go_objs]

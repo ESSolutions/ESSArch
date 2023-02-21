@@ -22,9 +22,9 @@ class AccessAid(models.Model):
     objects = OrganizationManager()
 
     @transaction.atomic
-    def change_organization(self, organization):
+    def change_organization(self, organization, force=False):
         group_objs_model = get_group_objs_model(self)
-        group_objs_model.objects.change_organization(self, organization)
+        group_objs_model.objects.change_organization(self, organization, force=force)
 
     def get_organization(self):
         group_objs_model = get_group_objs_model(self)
