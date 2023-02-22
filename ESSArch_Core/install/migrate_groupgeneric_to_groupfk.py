@@ -26,7 +26,10 @@ from django.contrib.contenttypes.models import ContentType
 
 django.setup()
 
-from ESSArch_Core.tags.models import TagVersion  # noqa isort:skip
+from ESSArch_Core.tags.models import (  # noqa isort:skip
+    StructureUnit,
+    TagVersion,
+)
 from ESSArch_Core.ip.models import InformationPackage  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupGenericObjects  # noqa isort:skip
 from ESSArch_Core.agents.models import Agent  # noqa isort:skip
@@ -55,6 +58,7 @@ def main():
         migrate(AccessAid, group_obj)
         migrate(Agent, group_obj)
         migrate(TagVersion, group_obj)
+        migrate(StructureUnit, group_obj)
 
 
 # python -c 'from ESSArch_Core.install import migrate_groupgeneric_to_groupfk; migrate_groupgeneric_to_groupfk.main()'
