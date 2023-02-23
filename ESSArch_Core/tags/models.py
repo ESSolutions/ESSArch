@@ -252,13 +252,14 @@ class Structure(models.Model):
         )
 
     def create_template_instance(self, archive_tag):
+        old_archive_ts = archive_tag.current_version.get_active_structure()
         new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
 
         # create descendants from structure
         for unit in self.units.prefetch_related('notes', 'identifiers').select_related('parent'):
-            unit.create_template_instance(new_structure)
+            unit.create_template_instance(new_structure, old_archive_ts)
 
         return new_structure, archive_tagstructure
 
@@ -336,15 +337,20 @@ class Structure(models.Model):
             self.is_compatible_with_last_version()
             last_version = self.get_last_version()
 
+            su_objs_values = []
             for old_instance in last_version.instances.all():
                 archive_tag_structure = old_instance.tagstructure_set.get(
                     structure_unit__isnull=True, parent__isnull=True
                 )
                 new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
-                for instance_unit in new_instance.units.all():
-                    StructureUnitDocument.from_obj(instance_unit).save()
-
+                su_objs_values.extend(new_instance.units.all().values_list('pk', flat=True))
                 archive_tag_structure.copy_descendants_to_new_structure(new_instance)
+                logger.info('Finished to publish new structure: {} to archive: {}'.format(
+                    new_instance, archive_tag_structure))
+
+            logger.info('Start to bulk import structure_unit to index for structure: {}'.format(self))
+            StructureUnitDocument.index_documents(queryset=StructureUnit.objects.filter(pk__in=su_objs_values))
+            logger.info('Finished to bulk import structure_unit to index for structure: {}'.format(self))
 
         self.is_editable = False
         self.published = True
@@ -471,7 +477,7 @@ class StructureUnit(MPTTModel):
     )
 
     @transaction.atomic
-    def copy_to_structure(self, structure, template_unit=None):
+    def copy_to_structure(self, structure, template_unit=None, old_archive_ts=None):
         old_parent_ref_code = getattr(self.parent, 'reference_code', None)
         parent = None
 
@@ -490,6 +496,15 @@ class StructureUnit(MPTTModel):
             end_date=self.end_date,
             template=template_unit,
         )
+
+        try:
+            if old_archive_ts is not None:
+                old_unit = old_archive_ts.structure.units.get(reference_code=self.reference_code)
+                group = old_unit.structureunitgroupobjects_set.get().group
+                group.add_object(new_unit)
+                logger.debug('Add new_unit: {} to group: {}'.format(new_unit, group))
+        except ObjectDoesNotExist:
+            pass
 
         ref_cache_key = structure._get_unit_by_ref_cache_key(self.reference_code)
         cache.set(ref_cache_key, new_unit.pk, 60)
@@ -513,8 +528,8 @@ class StructureUnit(MPTTModel):
 
         return new_unit
 
-    def create_template_instance(self, structure_instance):
-        new_unit = self.copy_to_structure(structure_instance, template_unit=self)
+    def create_template_instance(self, structure_instance, old_archive_ts=None):
+        new_unit = self.copy_to_structure(structure_instance, template_unit=self, old_archive_ts=old_archive_ts)
 
         new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
         for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):

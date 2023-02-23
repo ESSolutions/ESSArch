@@ -70,13 +70,14 @@ class DocumentBase(es.Document):
         """
         Performs the indexing.
         """
-
-        for start in range(0, queryset.count(), batch_size):
+        num = queryset.count()
+        logger.debug('Perform bulk index for {} objects with batch_size: {}'.format(num, batch_size))
+        for start in range(0, num, batch_size):
             end = start + batch_size
             batch_qs = queryset[start:end]
             batch = cls.create_batch(list(batch_qs), index_file_content)
             cls.index_batch(batch)
-            time.sleep(0.5)
+            time.sleep(0.1)
 
     @classmethod
     def create_batch(cls, objects, index_file_content=False):
