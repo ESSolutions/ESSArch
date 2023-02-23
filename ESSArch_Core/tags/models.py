@@ -252,7 +252,11 @@ class Structure(models.Model):
         )
 
     def create_template_instance(self, archive_tag):
-        old_archive_ts = archive_tag.current_version.get_active_structure()
+        try:
+            old_archive_ts = archive_tag.current_version.get_active_structure()
+        except ObjectDoesNotExist:
+            old_archive_ts = None
+
         new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
