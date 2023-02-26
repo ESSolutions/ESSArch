@@ -76,7 +76,10 @@ from tenacity import (
 
 from ESSArch_Core.auth.models import GroupObjectsBase, Member
 from ESSArch_Core.auth.util import get_group_objs_model
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES,
+    Path,
+)
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import parse_mets
@@ -123,15 +126,6 @@ User = get_user_model()
 logger = logging.getLogger('essarch.ip')
 
 IP_LOCK_PREFIX = 'lock_ip_'
-MESSAGE_DIGEST_ALGORITHM_CHOICES = (
-    (StoragePolicy.MD5, 'MD5'),
-    (StoragePolicy.SHA1, 'SHA-1'),
-    (StoragePolicy.SHA224, 'SHA-224'),
-    (StoragePolicy.SHA256, 'SHA-256'),
-    (StoragePolicy.SHA384, 'SHA-384'),
-    (StoragePolicy.SHA512, 'SHA-512'),
-)
-MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
 
 class AgentQuerySet(models.QuerySet):

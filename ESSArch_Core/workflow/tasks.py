@@ -44,13 +44,12 @@ from django.utils import timezone
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.config.celery import app
-from ESSArch_Core.configuration.models import Path
-from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import (
+from ESSArch_Core.configuration.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    InformationPackage,
-    Workarea,
+    Path,
 )
+from ESSArch_Core.fixity.checksum import calculate_checksum
+from ESSArch_Core.ip.models import InformationPackage, Workarea
 from ESSArch_Core.storage.exceptions import (
     TapeDriveLockedError,
     TapeMountedAndLockedByOtherError,

@@ -13,6 +13,9 @@ from tenacity import (
     wait_fixed,
 )
 
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+)
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -23,11 +26,7 @@ from ESSArch_Core.essxml.util import (
     parse_submit_description,
 )
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import (
-    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    Agent,
-    InformationPackage,
-)
+from ESSArch_Core.ip.models import Agent, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     creation_date,
