@@ -529,8 +529,9 @@ def PreserveInformationPackage(self, storage_method_pk):
         src = [
             ip.get_temp_container_path(),
             ip.get_temp_container_xml_path(),
-            ip.get_temp_container_aic_xml_path(),
         ]
+        if ip.profile_locked('aic_description'):
+            src.append(ip.get_temp_container_aic_xml_path())
     else:
         src = [ip.object_path]
 

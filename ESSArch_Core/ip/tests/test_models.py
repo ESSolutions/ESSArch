@@ -11,7 +11,12 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIRequestFactory, APITestCase
 
-from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    Parameter,
+    Path,
+    StoragePolicy,
+)
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -679,14 +684,15 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
         )
 
     def test_sip(self):
-        sip = self.create_ip(InformationPackage.SIP, self.create_policy(StoragePolicy.SHA256))
+        sip = self.create_ip(InformationPackage.SIP, self.create_policy(
+            MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['SHA-256']))
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', sip, data)
 
         self.assertEqual(sip.get_checksum_algorithm(), 'SHA-512')
 
     def test_aip(self):
-        policy = self.create_policy(StoragePolicy.SHA384)
+        policy = self.create_policy(MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['SHA-384'])
         aip = self.create_ip(InformationPackage.AIP, policy=policy)
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', aip, data)

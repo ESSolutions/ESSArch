@@ -368,10 +368,10 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-#        'django.db.backends': {
-#            'handlers': ['file_essarch_db'],
-#            'level': 'DEBUG',
-#        },
+        # 'django.db.backends': {
+        #     'handlers': ['file_essarch_db'],
+        #     'level': 'DEBUG',
+        # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
             'level': 'DEBUG',

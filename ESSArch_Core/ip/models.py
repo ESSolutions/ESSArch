@@ -1114,6 +1114,7 @@ class InformationPackage(models.Model):
         container_methods = self.policy.storage_methods.secure_storage().filter(remote=False)
         non_container_methods = self.policy.storage_methods.archival_storage().filter(remote=False)
         remote_methods = self.policy.storage_methods.filter(remote=True)
+        generate_aic = self.profile_locked('aic_description')
 
         remote_servers = set([
             method.enabled_target.remote_server
@@ -1261,6 +1262,7 @@ class InformationPackage(models.Model):
                                     },
                                     {
                                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
+                                        "if": generate_aic,
                                         "label": "Create container aic mets",
                                         "args": ["{{TEMP_AIC_METS_PATH}}"]
                                     },
@@ -1297,6 +1299,7 @@ class InformationPackage(models.Model):
                                     },
                                     {
                                         "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "if": generate_aic,
                                         "label": "Delete temporary aic mets",
                                         "args": ["{{TEMP_AIC_METS_PATH}}"]
                                     },
