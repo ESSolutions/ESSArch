@@ -24,6 +24,7 @@
 
 import logging
 import os
+import shutil
 import tarfile
 from os import walk
 from pathlib import PurePath
@@ -516,6 +517,15 @@ def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SI
     copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
+    self.create_success_event(msg)
+
+
+@app.task(bind=True)
+def MoveDir(self, src, dst):
+    src, dst = self.parse_params(src, dst)
+    shutil.move(src, dst)
+
+    msg = "Moved %s to %s" % (src, dst)
     self.create_success_event(msg)
 
 

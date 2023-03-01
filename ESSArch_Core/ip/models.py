@@ -1465,6 +1465,7 @@ class InformationPackage(models.Model):
             new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
             new_aip.object_path = access_workarea_user_extracted
             new_aip.save()
+            access_workarea_user_extracted_src = os.path.join(access_workarea_user, self.object_identifier_value)
         else:
             new_aip = self
 
@@ -1646,6 +1647,16 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.MoveDir",
+                        "label": "Rename workspace to new generation",
+                        "queue": worker_queue,
+                        "if": extracted and new,
+                        "args": [
+                            access_workarea_user_extracted_src,
+                            access_workarea_user_extracted,
                         ],
                     },
                     {

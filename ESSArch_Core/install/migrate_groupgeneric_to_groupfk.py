@@ -36,7 +36,7 @@ from ESSArch_Core.agents.models import Agent  # noqa isort:skip
 from ESSArch_Core.access.models import AccessAid  # noqa isort:skip
 
 
-def migrate(klass, group):
+def migrate_gg(klass, group):
     ctype = ContentType.objects.get_for_model(klass)
     num = 0
     total_num = GroupGenericObjects.objects.filter(group=group, content_type=ctype).count()
@@ -51,7 +51,16 @@ def migrate(klass, group):
                 num, total_num, ctype.name, gg_obj.content_object, group))
 
 
-def main():
+def remove_gg(klass, group):
+    ctype = ContentType.objects.get_for_model(klass)
+    gg_objs = GroupGenericObjects.objects.filter(group=group, content_type=ctype)
+    total_num = gg_objs.count()
+    print('Start to remove {} objects with with type: {} and group: {}'.format(total_num, ctype.name, group))
+    gg_objs.delete()
+    print('Finished to remove {} objects with with type: {} and group: {}'.format(total_num, ctype.name, group))
+
+
+def migrate():
     for group_obj in Group.objects.filter(group_type__codename='organization'):
         print('group_obj: {}'.format(group_obj))
         migrate(InformationPackage, group_obj)
@@ -61,6 +70,19 @@ def main():
         migrate(StructureUnit, group_obj)
 
 
-# python -c 'from ESSArch_Core.install import migrate_groupgeneric_to_groupfk; migrate_groupgeneric_to_groupfk.main()'
+def remove():
+    for group_obj in Group.objects.filter(group_type__codename='organization'):
+        print('group_obj: {}'.format(group_obj))
+        remove_gg(InformationPackage, group_obj)
+        remove_gg(AccessAid, group_obj)
+        remove_gg(Agent, group_obj)
+        remove_gg(TagVersion, group_obj)
+        remove_gg(StructureUnit, group_obj)
+
+
+# python -c 'from ESSArch_Core.install import migrate_groupgeneric_to_groupfk as mgg; mgg.migrate()'
+# python -c 'from ESSArch_Core.install import migrate_groupgeneric_to_groupfk as mgg; mgg.remove()'
 if __name__ == '__main__':
-    main()
+    migrate()
+    i = input('Press "enter" to start remove all old gg objects.\n')
+    remove()

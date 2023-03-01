@@ -1563,9 +1563,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError('IP already being preserved')
 
             reception_dir = Path.objects.get(entity='ingest_reception').value
-            ingest_dir = ip.policy.ingest_path.value
+            ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
             ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -1727,6 +1727,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
+                    "if": ip_ingest_path,
                     "args": [ip_ingest_path]
                 },
                 {
