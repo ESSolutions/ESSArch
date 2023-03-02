@@ -68,7 +68,10 @@ class DiskStorageBackend(BaseStorageBackend):
             if include_xml:
                 copy(src_xml, dst, block_size=block_size)
                 if aic_xml:
-                    copy(src_aic_xml, dst, block_size=block_size)
+                    try:
+                        copy(src_aic_xml, dst, block_size=block_size)
+                    except FileNotFoundError as e:
+                        logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
                 return self._extract(storage_object, dst)
             else:

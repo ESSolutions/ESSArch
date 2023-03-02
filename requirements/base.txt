@@ -37,7 +37,7 @@ jsonfield2==4.0.0.post0
 lxml==4.9.1
 msoffcrypto-tool==5.0.0
 natsort==8.2.0
-opf-fido==1.4.1
+opf-fido==1.6.1
 pyfakefs==4.7.0
 python-dateutil==2.8.2
 pywin32==304;platform_system=='Windows'

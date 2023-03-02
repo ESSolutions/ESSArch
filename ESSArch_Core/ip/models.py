@@ -564,13 +564,31 @@ class InformationPackage(models.Model):
                         raise
             raise
 
+    @transaction.atomic
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+
+        update_self = False
+        if self.generation is None:
+            self.generation = 0
+            update_self = True
+        if self.aic is None:
+            self.aic = InformationPackage.objects.create(
+                package_type=InformationPackage.AIC,
+                responsible=self.responsible,
+                label=self.label,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
+            update_self = True
+        if update_self:
+            self.save()
 
         new_aip = deepcopy(self)
         new_aip.pk = None
         new_aip.active = True
         new_aip.object_identifier_value = None
+        new_aip.create_date = timezone.now()
         new_aip.state = state
         new_aip.cached = False
         new_aip.archived = False
@@ -1467,6 +1485,7 @@ class InformationPackage(models.Model):
             new_aip.save()
             access_workarea_user_extracted_src = os.path.join(access_workarea_user, self.object_identifier_value)
         else:
+            access_workarea_user_extracted_src = None
             new_aip = self
 
         os.makedirs(access_workarea_user, exist_ok=True)
