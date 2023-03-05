@@ -85,7 +85,7 @@ def add_agents_from_xml(ip, xml):
         ip.agents.add(agent)
 
 
-def add_agents_from_dict(ip=None, agents=[]):
+def add_agents_from_dict(ip, agents):
     for agent_key in agents:
         agent_role, agent_type = agent_key.split('_')
         agent = Agent.objects.from_agent_dict(agents[agent_key], agent_role, agent_type)
