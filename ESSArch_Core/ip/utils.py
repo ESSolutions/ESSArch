@@ -85,11 +85,14 @@ def add_agents_from_xml(ip, xml):
         ip.agents.add(agent)
 
 
-def add_agents_from_dict(ip, agents):
+def add_agents_from_dict(ip=None, agents=[]):
     for agent_key in agents:
         agent_role, agent_type = agent_key.split('_')
         agent = Agent.objects.from_agent_dict(agents[agent_key], agent_role, agent_type)
-        ip.agents.add(agent)
+        if len(agents) == 1 and ip is None:
+            return agent
+        if ip is not None:
+            ip.agents.add(agent)
 
 
 def generate_content_mets(ip):
