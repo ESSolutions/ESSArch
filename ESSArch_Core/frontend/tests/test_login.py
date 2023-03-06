@@ -15,9 +15,9 @@ class LoginTests(FrontendTestCase):
         self.selenium.get('%s' % (self.live_server_url))
 
         # login
-        username_input = self.selenium.find_element_by_name("username")
+        username_input = self.selenium.find_element("name", "username")
         username_input.send_keys('user')
-        password_input = self.selenium.find_element_by_name("password")
+        password_input = self.selenium.find_element("name", "password")
         password_input.send_keys('pass')
 
         old_url = self.selenium.current_url
