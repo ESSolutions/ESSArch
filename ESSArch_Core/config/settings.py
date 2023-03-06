@@ -418,9 +418,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Rest Auth serializers
-# http://django-rest-auth.readthedocs.io/en/latest/configuration.html
+# https://dj-rest-auth.readthedocs.io/en/latest/configuration.html
 
-REST_AUTH_SERIALIZERS = {
+REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer'
 }
 
