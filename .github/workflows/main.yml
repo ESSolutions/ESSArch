@@ -216,8 +216,8 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
           git config user.name test
-          t="0+`git rev-parse --short HEAD`"
-          git tag -a $t -m $t          
+          $t=&git rev-parse --short HEAD
+          git tag -a "0+$t" -m "0+$t"
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
