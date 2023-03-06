@@ -30,13 +30,11 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 MESSAGE_DIGEST_ALGORITHM_CHOICES = (
-    (0, 'none'),
     (1, 'MD5'),
     (2, 'SHA-1'),
-    (3, 'SHA-224'),
-    (4, 'SHA-256'),
-    (5, 'SHA-384'),
-    (6, 'SHA-512'),
+    (3, 'SHA-256'),
+    (4, 'SHA-384'),
+    (5, 'SHA-512'),
 )
 MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
