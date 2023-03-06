@@ -21,13 +21,13 @@ class LoginTests(FrontendTestCase):
         password_input.send_keys('pass')
 
         old_url = self.selenium.current_url
-        self.selenium.find_element_by_xpath('//button[@type="submit"]').click()
+        self.selenium.find_element("xpath", '//button[@type="submit"]').click()
         WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
 
         # logout
         old_url = self.selenium.current_url
-        self.selenium.find_element_by_class_name('dropdown-toggle').click()
-        self.selenium.find_element_by_xpath('//*[contains(text(), "Logout")]').click()
+        self.selenium.find_element("class name", 'dropdown-toggle').click()
+        self.selenium.find_element("xpath", '//*[contains(text(), "Logout")]').click()
         WebDriverWait(self.selenium, 15).until(EC.title_is('Login | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
