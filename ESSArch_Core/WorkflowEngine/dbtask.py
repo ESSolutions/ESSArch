@@ -42,6 +42,28 @@ User = get_user_model()
 logger = logging.getLogger('essarch')
 
 
+# import time
+# from contextlib import contextmanager
+#
+# LOCK_EXPIRE = 60 * 10  # Lock expires in 10 minutes
+#
+# @contextmanager
+# def cache_lock(lock_id):
+#     timeout_at = time.monotonic() + LOCK_EXPIRE - 3
+#     # cache.add fails if the key already exists
+#     # Second value is arbitrary
+#     status = cache.add(lock_id, "lock", timeout=LOCK_EXPIRE)
+#     try:
+#         yield status
+#     finally:
+#         if time.monotonic() < timeout_at and status:
+#             # don't release the lock if we exceeded the timeout
+#             # to lessen the chance of releasing an expired lock
+#             # owned by someone else
+#             # also don't release the lock if we didn't acquire it
+#             cache.delete(lock_id)
+
+
 class DBTask(Task):
     abstract = True
     event_type = None
@@ -123,6 +145,7 @@ class DBTask(Task):
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
+            # with cache_lock(ip.get_lock_key()):
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
                 logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
 
@@ -188,6 +211,7 @@ class DBTask(Task):
         except ProcessStep.DoesNotExist:
             return
 
+        # with cache_lock(step.cache_lock_key):
         with cache.lock(step.cache_lock_key, timeout=60):
             step.clear_cache()
 
