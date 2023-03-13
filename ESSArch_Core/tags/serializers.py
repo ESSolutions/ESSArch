@@ -2,6 +2,7 @@ import uuid
 
 import elasticsearch
 from django.core.cache import cache
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
@@ -21,7 +22,6 @@ from ESSArch_Core.agents.serializers import (
 )
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -620,9 +620,9 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
-        except GroupGenericObjects.MultipleObjectsReturned:
+        except MultipleObjectsReturned:
             return None
 
     def get_name_with_dates(self, obj):
@@ -663,9 +663,9 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
-        except GroupGenericObjects.MultipleObjectsReturned:
+        except MultipleObjectsReturned:
             return None
 
     class Meta:
@@ -914,9 +914,9 @@ class TagVersionSerializer(TagVersionNestedSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
-        except GroupGenericObjects.MultipleObjectsReturned:
+        except MultipleObjectsReturned:
             return None
 
     def get_structures(self, obj):

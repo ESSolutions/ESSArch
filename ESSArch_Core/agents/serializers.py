@@ -1,3 +1,4 @@
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -25,7 +26,6 @@ from ESSArch_Core.agents.models import (
     Topography,
 )
 from ESSArch_Core.api.validators import StartDateEndDateValidator
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer
 
 
@@ -267,9 +267,9 @@ class AgentSerializer(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
             return None
-        except GroupGenericObjects.MultipleObjectsReturned:
+        except MultipleObjectsReturned:
             return None
 
     class Meta:

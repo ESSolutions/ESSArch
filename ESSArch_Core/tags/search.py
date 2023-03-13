@@ -10,7 +10,6 @@ import tempfile
 
 import requests
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
@@ -33,9 +32,8 @@ from rest_framework.viewsets import ViewSet
 from weasyprint import HTML
 
 from ESSArch_Core.agents.models import AgentTagLink
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
-from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.auth.util import get_group_objs_model, get_objects_for_user
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
@@ -406,11 +404,8 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         if root is not None:
             root_in_archives = user_archives.filter(pk=str(root.pk)).exists()
             if not root_in_archives:
-                obj_ctype = ContentType.objects.get_for_model(root)
-                in_any_groups = GroupGenericObjects.objects.filter(
-                    object_id=str(root.pk), content_type=obj_ctype,
-                ).exists()
-
+                group_objs_model = get_group_objs_model(root)
+                in_any_groups = group_objs_model.objects.get_organization(root, list=True).exists()
                 if in_any_groups:
                     raise exceptions.NotFound
 

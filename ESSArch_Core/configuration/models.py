@@ -29,6 +29,15 @@ from django.core.cache import cache
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+MESSAGE_DIGEST_ALGORITHM_CHOICES = (
+    (1, 'MD5'),
+    (2, 'SHA-1'),
+    (3, 'SHA-256'),
+    (4, 'SHA-384'),
+    (5, 'SHA-512'),
+)
+MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
+
 
 class CachedManagerMixin:
     def cached(self, search_key, search_value, value_column):
@@ -166,22 +175,6 @@ class StoragePolicy(models.Model):
         (2, 'ais'),
     )
 
-    MD5 = 0
-    SHA1 = 1
-    SHA224 = 2
-    SHA256 = 3
-    SHA384 = 4
-    SHA512 = 5
-
-    CHECKSUM_ALGORITHM_CHOICES = (
-        (MD5, 'md5'),
-        (SHA1, 'sha-1'),
-        (SHA224, 'sha-224'),
-        (SHA256, 'sha-256'),
-        (SHA384, 'sha-384'),
-        (SHA512, 'sha-512'),
-    )
-
     IP_TYPE_CHOICES = (
         (1, 'tar'),
     )
@@ -222,7 +215,7 @@ class StoragePolicy(models.Model):
     ais_project_id = models.CharField('AIS Policy ID', max_length=255, blank=True)
     mode = models.IntegerField(choices=MODE_CHOICES, default=0)
     wait_for_approval = models.BooleanField('Wait for approval', default=True)
-    checksum_algorithm = models.IntegerField('Checksum algorithm', choices=CHECKSUM_ALGORITHM_CHOICES, default=1)
+    checksum_algorithm = models.IntegerField('Checksum algorithm', choices=MESSAGE_DIGEST_ALGORITHM_CHOICES, default=1)
     validate_checksum = models.BooleanField('Validate checksum', default=True)
     validate_xml = models.BooleanField('Validate XML', default=True)
     ip_type = models.IntegerField('IP type', choices=IP_TYPE_CHOICES, default=1)

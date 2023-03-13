@@ -24,6 +24,7 @@
 
 import logging
 import os
+import shutil
 import tarfile
 from os import walk
 from pathlib import PurePath
@@ -461,6 +462,8 @@ def UpdateIPStatus(self, status, prev=None):
 @transaction.atomic
 def UpdateIPPath(self, path, prev=None):
     path, = self.parse_params(path)
+    if path is None:
+        path = ''
     ip = InformationPackage.objects.get(pk=self.ip)
     if prev is None:
         t = self.get_processtask()
@@ -514,6 +517,15 @@ def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SI
     copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
+    self.create_success_event(msg)
+
+
+@app.task(bind=True)
+def MoveDir(self, src, dst):
+    src, dst = self.parse_params(src, dst)
+    shutil.move(src, dst)
+
+    msg = "Moved %s to %s" % (src, dst)
     self.create_success_event(msg)
 
 

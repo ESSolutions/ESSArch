@@ -501,11 +501,11 @@ class GenerateFileResponseTests(SimpleTestCase):
         self.assertEqual(
             headers,
             {
+                'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': '14',
+                'Content-Disposition': "inline; filename*=utf-8''{}".format("none_ascii_%C3%A5_name.txt"),
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
-                'Expires': '0',
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Content-Disposition': "inline; filename*=utf-8''{}".format("none_ascii_%C3%A5_name.txt")
+                'Expires': '0'
             }
         )
 

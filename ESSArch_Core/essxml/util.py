@@ -177,6 +177,11 @@ def parse_mets(xmlfile):
     for k, v in root.attrib.items():
         data[re.search(localname_pattern, k).group(1)] = v
 
+    # save metsHdr attributes without namespace prefix
+    localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
+    for k, v in root.xpath(".//*[local-name()='metsHdr']")[0].attrib.items():
+        data[re.search(localname_pattern, k).group(1)] = v
+
     data['agents'] = {}
     for a in get_agents(root):
         other_role = a.get("ROLE") == 'OTHER'

@@ -54,6 +54,11 @@ if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
         return user_modified
 
 
+async def closing_group_send(channel_layer, channel, message):
+    await channel_layer.group_send(channel, message)
+    await channel_layer.close_pools()
+
+
 @receiver(post_save, sender=User)
 @receiver(post_save, sender=ProxyUser)
 def user_post_save(sender, instance, created, *args, **kwargs):
@@ -176,14 +181,17 @@ def notification_post_save(sender, instance, created, **kwargs):
 
     channel_layer = channels.layers.get_channel_layer()
     grp = 'notifications_{}'.format(instance.user.pk)
-    async_to_sync(channel_layer.group_send)(grp, {
-        'type': 'notify',
-        'id': instance.id,
-        'message': instance.message,
-        'level': instance.get_level_display(),
-        'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
-        'refresh': instance.refresh,
-    })
+    async_to_sync(closing_group_send)(
+        channel_layer,
+        grp,
+        {
+            'type': 'notify',
+            'id': instance.id,
+            'message': instance.message,
+            'level': instance.get_level_display(),
+            'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
+            'refresh': instance.refresh,
+        })
 
 
 @receiver(m2m_changed, sender=User.groups.through)

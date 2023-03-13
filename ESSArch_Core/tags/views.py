@@ -327,10 +327,10 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'structure_unit_relations_a',
         ).annotate(
             tag_leaf_node=~Exists(
-                TagVersion.objects.filter(
+                TagVersion.objects.for_user(request.user, None).filter(
                     tag__structures__structure=OuterRef('structure'),
                     tag__structures__structure_unit=OuterRef('pk'),
-                ).for_user(request.user),
+                ),
             )
         )
         root_nodes = cache_tree_children(qs)

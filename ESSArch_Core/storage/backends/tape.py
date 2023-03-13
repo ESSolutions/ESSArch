@@ -172,7 +172,10 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             if include_xml:
                 copy(src_xml, dst, block_size=block_size)
                 if aic_xml:
-                    copy(src_aic_xml, dst, block_size=block_size)
+                    try:
+                        copy(src_aic_xml, dst, block_size=block_size)
+                    except FileNotFoundError as e:
+                        logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
                 with tarfile.open(src_tar) as t:
                     root = os.path.commonprefix(t.getnames())

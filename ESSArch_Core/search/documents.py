@@ -70,13 +70,15 @@ class DocumentBase(es.Document):
         """
         Performs the indexing.
         """
-
-        for start in range(0, queryset.count(), batch_size):
+        num = queryset.count()
+        logger.debug('Perform bulk index for {} objects with batch_size: {}'.format(num, batch_size))
+        conn = get_es_connection()
+        for start in range(0, num, batch_size):
             end = start + batch_size
             batch_qs = queryset[start:end]
             batch = cls.create_batch(list(batch_qs), index_file_content)
-            cls.index_batch(batch)
-            time.sleep(0.5)
+            es_helpers.bulk(client=conn, actions=batch)
+            time.sleep(0.2)
 
     @classmethod
     def create_batch(cls, objects, index_file_content=False):
@@ -93,15 +95,6 @@ class DocumentBase(es.Document):
                 d_dict = cls.from_obj(obj).to_dict(include_meta=True)
             batch.append(d_dict)
         return batch
-
-    @classmethod
-    def index_batch(cls, batch):
-        """
-        Index the specified batch.
-        """
-
-        conn = get_es_connection()
-        es_helpers.bulk(client=conn, actions=batch)
 
     @classmethod
     def remove_stale(cls, queryset, batch_size):

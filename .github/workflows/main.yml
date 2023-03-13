@@ -41,7 +41,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Set up Node
         uses: actions/setup-node@v1
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Set PYTHONPATH
         run: |
@@ -134,6 +134,10 @@ jobs:
           mkdir -p log
           mkdir -p config
           python -m pip install --upgrade pip wheel setuptools
+          git config user.email test
+          git config user.name test
+          t="0+`git rev-parse --short HEAD`"
+          git tag -a $t -m $t
           pip install -e .[docs]
           essarch settings generate -qp config/local_essarch_settings.py
 
@@ -168,7 +172,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Set PYTHONPATH
         run: |
@@ -210,6 +214,10 @@ jobs:
           choco install redis-64 --version 3.0.503
 
           python -m pip install --upgrade pip wheel setuptools
+          git config user.email test
+          git config user.name test
+          $t=&git rev-parse --short HEAD
+          git tag -a "0+$t" -m "0+$t"
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
@@ -340,7 +348,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Set PYTHONPATH
         run: |
@@ -390,12 +398,15 @@ jobs:
           docker restart elasticsearch
 
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
 
           python -m pip install --upgrade pip wheel setuptools
-
+          git config user.email test
+          git config user.name test
+          t="0+`git rev-parse --short HEAD`"
+          git tag -a $t -m $t
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
           pip check
@@ -403,7 +414,7 @@ jobs:
           mkdir log
           essarch settings generate --overwrite -qp config/local_essarch_settings.py
 
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.29.1/geckodriver-v0.29.1-linux64.tar.gz
+          wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz
           tar -xvzf geckodriver*
           sudo mv geckodriver /usr/local/bin
 

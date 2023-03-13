@@ -157,10 +157,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
 
     def get_organization(self, obj):
         try:
-            return GroupSerializer(obj.org[0].group).data
+            return GroupSerializer(obj.get_organization().group).data
         except AttributeError:
-            return GroupSerializer(obj.generic_groups.first().group).data
-        except IndexError:
             return None
 
     def get_agents(self, obj):

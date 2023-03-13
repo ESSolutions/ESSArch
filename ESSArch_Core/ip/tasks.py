@@ -8,7 +8,6 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -23,7 +22,7 @@ from tenacity import (
     wait_exponential,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
+from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
@@ -530,8 +529,9 @@ def PreserveInformationPackage(self, storage_method_pk):
         src = [
             ip.get_temp_container_path(),
             ip.get_temp_container_xml_path(),
-            ip.get_temp_container_aic_xml_path(),
         ]
+        if ip.profile_locked('aic_description'):
+            src.append(ip.get_temp_container_aic_xml_path())
     else:
         src = [ip.object_path]
 
@@ -643,8 +643,7 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 
     if from_db:
         with transaction.atomic():
-            ip_content_type = ContentType.objects.get_for_model(ip)
-            GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+            ip.informationpackagegroupobjects_set.all().delete()
             ip.delete()
     else:
         ip.state = 'deleted'

@@ -3,7 +3,9 @@ import mimetypes
 import os
 import time
 
+from django.conf import settings
 from fido.fido import Fido
+from fido.versions import get_local_versions
 
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.exceptions import (
@@ -24,15 +26,37 @@ DEFAULT_MIMETYPE = 'application/octet-stream'
 class FormatIdentifier:
     _fido = None
 
-    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False):
+    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False,
+                 use_fido_pronom_formats=True, use_fido_extension_formats=True,
+                 use_ess_formats=True):
         self.allow_unknown_file_types = allow_unknown_file_types
         self.allow_encrypted_files = allow_encrypted_files
+        self.use_fido_pronom_formats = use_fido_pronom_formats
+        self.use_fido_extension_formats = use_fido_extension_formats
+        self.use_ess_formats = use_ess_formats
 
     @property
     def fido(self):
         if self._fido is None:
             logger.debug('Initiating fido')
-            self._fido = Fido(handle_matches=self.handle_matches)
+            format_files = []
+            if self.use_fido_pronom_formats or self.use_fido_extension_formats:
+                versions = get_local_versions()
+                format_files.append(versions.pronom_signature) if self.use_fido_pronom_formats else None
+                format_files.append(versions.fido_extension_signature) if self.use_fido_extension_formats else None
+
+            self._fido = Fido(
+                handle_matches=self.handle_matches,
+                nocontainer=True,
+                format_files=format_files,
+            )
+            if self.use_ess_formats:
+                config_dir = settings.CONFIG_DIR
+                try:
+                    self._fido.load_fido_xml(os.path.join(config_dir, 'file_formats.xml'))
+                except FileNotFoundError as e:
+                    logger.warning('FIDO missing local formats configuration. Error: {}'.format(e))
+
             logger.info('Initiated fido')
         return self._fido
 

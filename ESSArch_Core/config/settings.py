@@ -333,6 +333,14 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
+        # 'file_essarch_db': {
+        #     'level': 'DEBUG',
+        #     'formatter': 'verbose',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'filename': os.path.join(LOGGING_DIR, 'essarch_db.log'),
+        #     'maxBytes': 1024 * 1024 * 100,  # 100MB
+        #     'backupCount': 5,
+        # },
         'log_file_auth': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -360,6 +368,10 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        # 'django.db.backends': {
+        #     'handlers': ['file_essarch_db'],
+        #     'level': 'DEBUG',
+        # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
             'level': 'DEBUG',
@@ -406,9 +418,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Rest Auth serializers
-# http://django-rest-auth.readthedocs.io/en/latest/configuration.html
+# https://dj-rest-auth.readthedocs.io/en/latest/configuration.html
 
-REST_AUTH_SERIALIZERS = {
+REST_AUTH = {
     'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer'
 }
 
@@ -501,6 +513,8 @@ CELERY_BEAT_SCHEDULE = {
     #     'schedule': timedelta(seconds=20),
     # },
 }
+
+CELERY_BEAT_SCHEDULE_FILENAME = os.path.join(ESSARCH_DIR, 'config/essarch/celerybeat-schedule')
 
 # Rest auth settings
 OLD_PASSWORD_FIELD_ENABLED = True

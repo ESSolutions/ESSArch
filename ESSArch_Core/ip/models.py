@@ -40,8 +40,6 @@ import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.fields import GenericRelation
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import (
@@ -58,11 +56,11 @@ from django.db.models import (
     Q,
 )
 from django.db.models.expressions import Case, Subquery, Value, When
-from django.db.models.functions import Cast
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from groups_manager.utils import get_permission_name
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from requests import RequestException
@@ -76,8 +74,12 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member
-from ESSArch_Core.configuration.models import Path, StoragePolicy
+from ESSArch_Core.auth.models import GroupObjectsBase, Member
+from ESSArch_Core.auth.util import get_group_objs_model
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES,
+    Path,
+)
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import parse_mets
@@ -124,15 +126,6 @@ User = get_user_model()
 logger = logging.getLogger('essarch.ip')
 
 IP_LOCK_PREFIX = 'lock_ip_'
-MESSAGE_DIGEST_ALGORITHM_CHOICES = (
-    (StoragePolicy.MD5, 'MD5'),
-    (StoragePolicy.SHA1, 'SHA-1'),
-    (StoragePolicy.SHA224, 'SHA-224'),
-    (StoragePolicy.SHA256, 'SHA-256'),
-    (StoragePolicy.SHA384, 'SHA-384'),
-    (StoragePolicy.SHA512, 'SHA-512'),
-)
-MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT = {v: k for k, v in MESSAGE_DIGEST_ALGORITHM_CHOICES}
 
 
 class AgentQuerySet(models.QuerySet):
@@ -260,7 +253,8 @@ class InformationPackageQuerySet(OrganizationQuerySet):
                 output_field=IntegerField(),
             ),
         ).prefetch_related(
-            Prefetch('generic_groups', queryset=GroupGenericObjects.objects.select_related('group'), to_attr='org'),
+            Prefetch('informationpackagegroupobjects_set',
+                     queryset=InformationPackageGroupObjects.objects.select_related('group'), to_attr='org'),
             Prefetch(
                 'submissionagreementipdata_set',
                 queryset=SubmissionAgreementIPData.objects.filter(
@@ -370,7 +364,7 @@ class InformationPackage(models.Model):
     label = models.CharField(max_length=255, blank=True)
     content = models.CharField(max_length=255)
     create_date = models.DateTimeField(_('create date'), default=timezone.now)
-    state = models.CharField(_('state'), max_length=255)
+    state = models.CharField(_('state'), max_length=255, db_index=True)
 
     object_path = models.CharField(max_length=255, blank=True)
     object_size = models.BigIntegerField(_('object size'), default=0)
@@ -448,8 +442,6 @@ class InformationPackage(models.Model):
     submission_agreement_locked = models.BooleanField(default=False)
     agents = models.ManyToManyField(Agent, related_name='information_packages')
 
-    generic_groups = GenericRelation(GroupGenericObjects)
-
     objects = InformationPackageManager()
 
     def save(self, *args, **kwargs):
@@ -522,27 +514,22 @@ class InformationPackage(models.Model):
         return self.generation == max_generation
 
     @transaction.atomic
-    def change_organization(self, organization):
+    def change_organization(self, organization, force=False):
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization, force)
+
         from ESSArch_Core.tags.models import TagVersion
-
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
-        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                     defaults={'group': organization})
-
-        ctype = ContentType.objects.get_for_model(TagVersion)
-        tag_versions = TagVersion.objects.annotate(id_as_char=Cast('pk', CharField())).filter(
-            tag__information_package=self
-        ).values('id_as_char')
-        GroupGenericObjects.objects.filter(content_type=ctype, object_id__in=tag_versions).update(
-            group=organization
-        )
+        tv_objs = TagVersion.objects.filter(tag__information_package=self)
+        for tv_obj in tv_objs:
+            tv_obj.change_organization(organization, force)
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-        return gg_obj
+        try:
+            return self.org[0]
+        except AttributeError:
+            return InformationPackageGroupObjects.objects.get_organization(self)
+        except IndexError:
+            return None
 
     @staticmethod
     def get_dirs(structure, data, root=""):
@@ -577,13 +564,31 @@ class InformationPackage(models.Model):
                         raise
             raise
 
+    @transaction.atomic
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
+
+        update_self = False
+        if self.generation is None:
+            self.generation = 0
+            update_self = True
+        if self.aic is None:
+            self.aic = InformationPackage.objects.create(
+                package_type=InformationPackage.AIC,
+                responsible=self.responsible,
+                label=self.label,
+                start_date=self.start_date,
+                end_date=self.end_date,
+            )
+            update_self = True
+        if update_self:
+            self.save()
 
         new_aip = deepcopy(self)
         new_aip.pk = None
         new_aip.active = True
         new_aip.object_identifier_value = None
+        new_aip.create_date = timezone.now()
         new_aip.state = state
         new_aip.cached = False
         new_aip.archived = False
@@ -1127,6 +1132,7 @@ class InformationPackage(models.Model):
         container_methods = self.policy.storage_methods.secure_storage().filter(remote=False)
         non_container_methods = self.policy.storage_methods.archival_storage().filter(remote=False)
         remote_methods = self.policy.storage_methods.filter(remote=True)
+        generate_aic = self.profile_locked('aic_description')
 
         remote_servers = set([
             method.enabled_target.remote_server
@@ -1274,6 +1280,7 @@ class InformationPackage(models.Model):
                                     },
                                     {
                                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
+                                        "if": generate_aic,
                                         "label": "Create container aic mets",
                                         "args": ["{{TEMP_AIC_METS_PATH}}"]
                                     },
@@ -1310,6 +1317,7 @@ class InformationPackage(models.Model):
                                     },
                                     {
                                         "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "if": generate_aic,
                                         "label": "Delete temporary aic mets",
                                         "args": ["{{TEMP_AIC_METS_PATH}}"]
                                     },
@@ -1398,6 +1406,11 @@ class InformationPackage(models.Model):
                         "label": "Update IP path",
                         "args": [ingest_workarea_user_extracted],
                     },
+                    {
+                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                        "label": "Set status to Ingest Workspace",
+                        "args": ["Ingest Workspace"],
+                    },
                 ])
 
             else:
@@ -1470,7 +1483,9 @@ class InformationPackage(models.Model):
             new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
             new_aip.object_path = access_workarea_user_extracted
             new_aip.save()
+            access_workarea_user_extracted_src = os.path.join(access_workarea_user, self.object_identifier_value)
         else:
+            access_workarea_user_extracted_src = None
             new_aip = self
 
         os.makedirs(access_workarea_user, exist_ok=True)
@@ -1651,6 +1666,16 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.MoveDir",
+                        "label": "Rename workspace to new generation",
+                        "queue": worker_queue,
+                        "if": extracted and new,
+                        "args": [
+                            access_workarea_user_extracted_src,
+                            access_workarea_user_extracted,
                         ],
                     },
                     {
@@ -2089,6 +2114,18 @@ class InformationPackage(models.Model):
             field.name: field.value_to_string(self)
             for field in InformationPackage._meta.fields
         }
+
+
+class InformationPackageUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
+
+
+class InformationPackageGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
+
+
+class InformationPackageGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(InformationPackage, on_delete=models.CASCADE)
 
 
 class InformationPackageMetadata(models.Model):

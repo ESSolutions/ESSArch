@@ -35,13 +35,13 @@ class InformationPackageFilter(filters.FilterSet):
         to_field_name="username",
         queryset=lambda request: users_in_organization(request.user),
     )
-    state = MultipleCharFilter()
+    state = MultipleCharFilter(distinct=False)
     object_size = filters.RangeFilter()
     start_date = filters.IsoDateTimeFromToRangeFilter()
     end_date = filters.IsoDateTimeFromToRangeFilter()
     create_date = filters.IsoDateTimeFromToRangeFilter()
     entry_date = filters.IsoDateTimeFromToRangeFilter()
-    package_type = MultipleCharFilter()
+    package_type = MultipleCharFilter(distinct=False)
     package_type_name_exclude = filters.CharFilter(
         label=_("Excluded Package Type"),
         method='exclude_package_type_name'

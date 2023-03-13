@@ -40,7 +40,15 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
-from ESSArch_Core.configuration.models import EventType, Feature, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
+from ESSArch_Core.configuration.models import (  # noqa isort:skip
+    EventType,
+    Feature,
+    Parameter,
+    Path,
+    Site,
+    StoragePolicy,
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+)
 from ESSArch_Core.storage.models import (  # noqa isort:skip
     DISK,
     StorageMedium,
@@ -1139,7 +1147,7 @@ def installDefaultStoragePolicies():
     policy, created_policy = StoragePolicy.objects.get_or_create(
         policy_id='1',
         defaults={
-            'checksum_algorithm': StoragePolicy.MD5,
+            'checksum_algorithm': MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['MD5'],
             'policy_name': 'default',
             'cache_storage': cache_method, 'ingest_path': ingest,
             'receive_extract_sip': True,

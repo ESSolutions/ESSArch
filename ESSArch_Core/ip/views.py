@@ -63,7 +63,7 @@ from tenacity import (
 from ESSArch_Core.api.filters import SearchFilter, string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
-from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
+# from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
@@ -464,7 +464,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def annotate_generations(qs):
         lower_higher = InformationPackage.objects.filter(
             Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
-        ).order_by().values('aic')
+        ).exclude(state='Ingest Workspace', archived=False).order_by().values('aic')
         lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
         return qs.annotate(first_generation=InformationPackageViewSet.first_generation_case(lower_higher),
@@ -503,8 +503,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if not self.detail and view_type == 'aic':
             simple_inner = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
-            )
+                Q(Q(workareas=None) | Q(archived=True)),
+            ).exclude(state='Ingest Workspace')
+
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
 
             inner = simple_inner.select_related('responsible').prefetch_related(
@@ -549,11 +550,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             return self.queryset
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
-            ).exclude(package_type=InformationPackage.AIC)
+                Q(Q(workareas=None) | Q(archived=True))
+            ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
 
             simple = self.apply_filters(filtered)
-
             simple = self.annotate_generations(simple)
             simple = self.annotate_filtered_first_generation(simple, user)
             simple = self.get_related(simple, workareas)
@@ -572,17 +572,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
             outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            )
 
             self.inner_queryset = simple
             self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
-            qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
-            ).exclude(package_type=InformationPackage.AIC)
-            qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
+            filtered = InformationPackage.objects.visible_to_user(user).filter(
+                Q(Q(workareas=None) | Q(archived=True)),
+            ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
+
+            qs = self.apply_filters(filtered)
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',
@@ -595,7 +596,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
                 Prefetch('profileip_set', queryset=profile_ips,),
             )
-            qs = self.annotate_generations(self.apply_filters(qs))
+            qs = self.annotate_generations(qs)
 
             self.queryset = qs
             return self.queryset
@@ -1356,19 +1357,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return InformationPackageDetailSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['view'] = self
-
-        checker = ObjectPermissionChecker(self.request.user)
-        if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
-            checker.prefetch_perms(self.outer_queryset.distinct() | self.inner_queryset.distinct())
-        else:
-            checker.prefetch_perms(self.queryset)
-
-        context['perm_checker'] = checker
-
-        return context
+#    def get_serializer_context(self):
+#        context = super().get_serializer_context()
+#        context['view'] = self
+#
+#        checker = ObjectPermissionChecker(self.request.user)
+#        if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
+#            checker.prefetch_perms(self.outer_queryset.distinct() | self.inner_queryset.distinct())
+#        else:
+#            checker.prefetch_perms(self.queryset)
+#
+#        context['perm_checker'] = checker
+#
+#        return context
 
     @action(detail=False, methods=['get'], url_path='get-xsds')
     def get_xsds(self, request, pk=None):
@@ -1562,9 +1563,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError('IP already being preserved')
 
             reception_dir = Path.objects.get(entity='ingest_reception').value
-            ingest_dir = ip.policy.ingest_path.value
+            ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
             ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -1726,6 +1727,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
+                    "if": ip_ingest_path,
                     "args": [ip_ingest_path]
                 },
                 {
