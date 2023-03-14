@@ -8,6 +8,7 @@
     "@flowjs/ng-flow": "~2.7.8",
     "@fortawesome/fontawesome-free": "~6.0.0",
     "@popperjs/core": "^2.10.1",
+    "@rjsf/core": "^4.0.1",
     "@types/angular": "^1.8.2",
     "@types/angular-formly": "^7.2.36",
     "@types/angular-permission": "^2.3.23",
@@ -21,7 +22,6 @@
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.13.0",
     "@uirouter/angularjs": "~1.0.29",
-    "@rjsf/core": "^4.0.1",
     "acorn": "^8.5.0",
     "angular": "~1.8.2",
     "angular-animate": "~1.8.2",
@@ -122,7 +122,8 @@
     "webpack-merge": "^5.8.0"
   },
   "resolutions": {
-    "minimist": "^1.2.5"
+    "minimist": "^1.2.8",
+    "loader-utils": "^2.0.0"
   },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",

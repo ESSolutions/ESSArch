@@ -244,10 +244,10 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.6
+        uses: codecov/codecov-action@v3
         with:
           name: Windows
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: backend
 
   test-linux:
@@ -432,8 +432,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.7
+        uses: codecov/codecov-action@v3
         with:
           name: Linux (${{matrix.db}})
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: backend
