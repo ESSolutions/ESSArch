@@ -287,6 +287,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'start_date', 'end_date', 'permissions', 'appraisal_date', 'profiles',
             'workarea', 'first_generation', 'last_generation', 'organization', 'new_version_in_progress',
             'create_agent_identifier_value', 'entry_agent_identifier_value', 'linking_agent_identifier_value',
+            'active',
         )
         extra_kwargs = {
             'id': {

@@ -57,6 +57,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'ESSArch_Core.auth.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'knox.auth.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'ESSArch_Core.auth.permissions.ActionPermissions',
@@ -102,6 +103,7 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'dj_rest_auth.registration',
     'rest_framework',
     'rest_framework.authtoken',
+    'knox',
     'ESSArch_Core.admin',
     'ESSArch_Core.access',
     'ESSArch_Core.agents',

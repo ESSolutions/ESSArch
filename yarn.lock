@@ -1969,15 +1969,10 @@ angular-websocket@^2.0.1:
     angular "*"
     ws "^1.0.0"
 
-angular@*, angular@>=1.4.8, angular@>=1.5, angular@>=1.5.0, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.8.0, angular@^1.x, angular@~1.8.2:
+angular@*, angular@>=1.4.8, angular@>=1.5, angular@>=1.5.0, angular@^1.4.0, angular@^1.5.6, angular@^1.6.4, angular@^1.8.0, angular@^1.8.3, angular@^1.x, angular@~1.4, angular@~1.8.2:
   version "1.8.3"
   resolved "https://registry.yarnpkg.com/angular/-/angular-1.8.3.tgz#851ad75d5163c105a7e329555ef70c90aa706894"
   integrity sha512-5qjkWIQQVsHj4Sb5TcEs4WZWpFeVFHXwxEBHUhrny41D8UrBAd6T/6nPPAsLngJCReIOqi95W3mxdveveutpZw==
-
-angular@~1.4:
-  version "1.4.14"
-  resolved "https://registry.yarnpkg.com/angular/-/angular-1.4.14.tgz#9d0feaf60ce6e52ce50f49ee328656d1e1875c37"
-  integrity sha1-nQ/q9gzm5SzlD0nuMoZW0eGHXDc=
 
 angularjs-bootstrap-datetimepicker@^1.1.4:
   version "1.1.4"

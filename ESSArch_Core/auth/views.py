@@ -29,12 +29,14 @@ from dj_rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import Permission
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
+from knox.views import LoginView as KnoxLoginView
 from rest_framework import permissions, status, viewsets
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -194,6 +196,17 @@ class LoginView(rest_auth_LoginView):
                                             context={'request': self.request})
 
         return Response(serializer.data)
+
+
+class TokenLoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return super(TokenLoginView, self).post(request, format=None)
 
 
 class LogoutView(rest_auth_LogoutView):
