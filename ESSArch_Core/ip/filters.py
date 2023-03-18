@@ -72,7 +72,8 @@ class InformationPackageFilter(filters.FilterSet):
         model = InformationPackage
         fields = ['archivist_organization', 'state', 'responsible', 'active', 'label',
                   'create_date', 'entry_date', 'object_size', 'start_date', 'end_date', 'policy',
-                  'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea']
+                  'archived', 'cached', 'package_type', 'package_type_name_exclude', 'workarea',
+                  'object_identifier_value']
 
 
 class EventIPFilter(filters.FilterSet):

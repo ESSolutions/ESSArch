@@ -123,7 +123,8 @@
   },
   "resolutions": {
     "minimist": "^1.2.8",
-    "loader-utils": "^2.0.0"
+    "loader-utils": "^2.0.0",
+    "angular": "^1.8.3"
   },
   "scripts": {
     "build:dev": "webpack --config webpack.dev.babel.js --progress",

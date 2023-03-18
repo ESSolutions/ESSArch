@@ -27,6 +27,7 @@ django-relativity==0.2.6
 djangorestframework==3.14.0
 django-json-widget==1.1.1
 django-proxy==1.2.2
+django-rest-knox==4.2.0
 distro==1.8.0
 docker==6.0.1
 drf-dynamic-fields==0.4.0
@@ -34,6 +35,7 @@ drf-extensions==0.7.1
 drf-proxy-pagination==0.2.0
 elasticsearch==7.13.4
 elasticsearch-dsl==7.4.1
+gevent==22.10.2;platform_system=='Windows'
 glob2==0.7
 jsonfield2==4.0.0.post0
 lxml==4.9.2

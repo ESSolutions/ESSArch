@@ -792,3 +792,52 @@ def open_file(path='', *args, container=None, container_prefix='', **kwargs):
             raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(container, path))
 
     return open(os.path.join(container, path), *args, **kwargs)
+
+
+def add_preservation_agent(generator, target=None, software_name='ESSArch', software_version='3.1'):
+    if target is None:
+        target = generator.find_element('metsHdr')
+
+    template = {
+        "-name": "agent",
+        "-namespace": "mets",
+        "-hideEmptyContent": True,
+        "-attr": [
+            {
+                "-name": "ROLE",
+                "-req": True,
+                "#content": [{"text": "PRESERVATION"}]
+            },
+            {
+                "-name": "TYPE",
+                "-req": True,
+                "#content": [{"text": "OTHER"}]
+            },
+            {
+                "-name": "OTHERTYPE",
+                "-req": True,
+                "#content": [{"text": "SOFTWARE"}]
+            }
+        ],
+        "-children": [
+            {
+                "-name": "name",
+                "-namespace": "mets",
+                "-req": True,
+                "#content": [{"var": "preservation_software_name"}]
+            },
+            {
+                "-name": "note",
+                "-namespace": "mets",
+                "-req": True,
+                "#content": [{"var": "preservation_software_note"}]
+            }
+        ]
+    }
+    data = {
+        "preservation_software_name": software_name,
+        "preservation_software_note": 'VERSION={}'.format(software_version)
+    }
+
+    generator.insert_from_specification(
+        target, template, data, before='altRecordID')
