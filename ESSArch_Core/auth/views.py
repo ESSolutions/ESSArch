@@ -31,6 +31,7 @@ from dj_rest_auth.views import (
 from django.conf import settings
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
@@ -217,6 +218,11 @@ class LogoutView(rest_auth_LogoutView):
                     return saml2_logout().get(request)
             except Exception:
                 logger.exception('Failed to logout using SAML, no active identity found')
+
+        try:
+            request._auth.delete()
+        except (AttributeError, ObjectDoesNotExist):
+            pass
 
         self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)
