@@ -52,11 +52,13 @@ from natsort import natsorted
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
+from ESSArch_Core._version import get_versions
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+VERSION = get_versions()['version']
 
 logger = logging.getLogger('essarch')
 
@@ -794,7 +796,7 @@ def open_file(path='', *args, container=None, container_prefix='', **kwargs):
     return open(os.path.join(container, path), *args, **kwargs)
 
 
-def add_preservation_agent(generator, target=None, software_name='ESSArch', software_version='3.1'):
+def add_preservation_agent(generator, target=None, software_name='ESSArch', software_version=VERSION):
     if target is None:
         target = generator.find_element('metsHdr')
 

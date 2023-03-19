@@ -102,7 +102,6 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework',
-    'rest_framework.authtoken',
     'knox',
     'ESSArch_Core.admin',
     'ESSArch_Core.access',
@@ -423,7 +422,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # https://dj-rest-auth.readthedocs.io/en/latest/configuration.html
 
 REST_AUTH = {
-    'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer'
+    'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer',
+    'TOKEN_MODEL': None,
 }
 
 LOGIN_REDIRECT_URL = '/'
