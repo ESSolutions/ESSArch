@@ -609,8 +609,13 @@ class WorkareaFilesViewTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
+        import sys
         path = 'does/exist'
         fullpath = os.path.join(self.wip.path, path)
+        sys.stdout.write('test_existing_path - self.wip.path: {}'.format(self.wip.path))
+        print('test_existing_path - self.wip.path: {}'.format(self.wip.path))
+        sys.stdout.write('test_existing_path - fullpath: {}'.format(fullpath))
+        print('test_existing_path - fullpath: {}'.format(fullpath))
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
