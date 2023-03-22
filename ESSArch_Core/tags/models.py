@@ -875,6 +875,18 @@ class Tag(models.Model):
         )
 
 
+class TagUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class TagGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class TagGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
 class TagVersionRelation(models.Model):
     tag_version_a = models.ForeignKey(
         'tags.TagVersion',

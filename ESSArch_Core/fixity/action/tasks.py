@@ -76,4 +76,5 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
         purpose=purpose
     )
     self.create_success_event(msg)
-    return(msg)
+
+    return msg

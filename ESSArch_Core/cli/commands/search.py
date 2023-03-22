@@ -37,12 +37,12 @@ def clear(indexes):
 @click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update. \
                     (agent, archive, component, directory, document, information_package, structure_unit)')
 @click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
-@click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the index \
-                                                                           that are no longer in the database.')
-@click.option('--do-not-delete-old-index', 'do_not_delete_old', is_flag=True, default=False, help='Skip to clear old index. \
-                            Importent for document index (File) if you do not want to rebuild index from files.')
-@click.option('--index-file-content', 'index_file_content', is_flag=True, default=False, help='Rebuild index from files \
-                                                                    for document index (File) "field - attachment".')
+@click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the \
+index that are no longer in the database.')
+@click.option('--do-not-delete-old-index', 'do_not_delete_old', is_flag=True, default=False, help='Skip to clear old \
+index. Importent for document index (File) if you do not want to rebuild index from files.')
+@click.option('--index-file-content', 'index_file_content', is_flag=True, default=False, help='Rebuild index from \
+files for document index (File) "field - attachment".')
 @initialize
 def rebuild(indexes, batch_size, remove_stale, do_not_delete_old, index_file_content):
     """Rebuild indices

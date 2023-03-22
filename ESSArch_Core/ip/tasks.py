@@ -360,12 +360,14 @@ def CreatePhysicalModel(self, structure=None, root=""):
     """
 
     ip = self.get_information_package()
-    ip.create_physical_model(structure, root)
+    created = ip.create_physical_model(structure, root)
 
     self.set_progress(1, total=1)
 
     msg = "Created physical model for %s" % ip.object_identifier_value
     self.create_success_event(msg)
+
+    return created
 
 
 @app.task(bind=True)
