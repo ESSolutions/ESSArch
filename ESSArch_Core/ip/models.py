@@ -564,6 +564,8 @@ class InformationPackage(models.Model):
                         raise
             raise
 
+        return created
+
     @transaction.atomic
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))

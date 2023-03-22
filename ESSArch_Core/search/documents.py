@@ -78,7 +78,7 @@ class DocumentBase(es.Document):
             batch_qs = queryset[start:end]
             batch = cls.create_batch(list(batch_qs), index_file_content)
             es_helpers.bulk(client=conn, actions=batch)
-            time.sleep(0.2)
+            time.sleep(0.3)
 
     @classmethod
     def create_batch(cls, objects, index_file_content=False):

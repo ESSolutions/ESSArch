@@ -239,7 +239,7 @@ jobs:
       - name: Test
         run: |
           start redis-server
-          coverage run manage.py test --exclude-tag=requires-elasticsearch
+          coverage run manage.py test --verbosity=2 --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
           coverage xml

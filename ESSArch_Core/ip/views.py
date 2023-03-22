@@ -2692,6 +2692,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             has_cts = cts is not None and os.path.exists(cts)
 
             aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+            aip_object_structure = ip.get_profile_rel('aip').profile.structure
 
             if ip_is_directory:
                 workflow_spec = [
@@ -2745,7 +2746,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     {
                         "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
                         "label": "Create Physical Model",
-                        'params': {'root': aip_object_path}
+                        'params': {
+                            'structure': aip_object_structure,
+                            'root': aip_object_path
+                        }
                     },
                     {
                         "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
@@ -3284,6 +3288,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Workarea of type "%s" does not exist' % area_type)
 
     def validate_path(self, path, root, existence=True):
+        path = os.path.normpath(path)
+        root = os.path.normpath(root)
         relpath = os.path.relpath(path, root)
 
         if not in_directory(path, root):
@@ -3372,7 +3378,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workarea_obj = self.get_object(request)
         root = workarea_obj.path
 
-        path = os.path.join(root, request.data.get('path', ''))
+        path = os.path.normpath(os.path.join(root, request.data.get('path', '')))
         self.validate_path(path, root)
 
         if workarea_obj.read_only:

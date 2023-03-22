@@ -68,7 +68,7 @@ django.setup()
 # ones.
 extensions = ['sphinx.ext.autosectionlabel', 'sphinx.ext.inheritance_diagram',
               'sphinx.ext.intersphinx', 'sphinx.ext.napoleon', 'sphinx.ext.viewcode', 'sphinxcontrib.httpdomain',
-              'sphinxcontrib.httpexample', 'sphinxcontrib.inlinesyntaxhighlight']
+              'sphinxcontrib.httpexample', 'sphinxcontrib.jquery']
 
 # True to prefix each section label with the name of the document it is in,
 # followed by a colon. For example, index:Introduction for a section called
@@ -81,7 +81,7 @@ suppress_warnings = [
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.9', None),
+    'python': ('https://docs.python.org/3.11', None),
     'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
     'celery': ('https://celery.readthedocs.io/en/latest/', None),
@@ -126,7 +126,7 @@ release = get_versions()['full-revisionid'] or ''
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+# language = None
 
 gettext_compact = False
 locale_dirs = ['locale']
@@ -219,3 +219,5 @@ texinfo_documents = [
      author, 'ESSArch', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+httpexample_scheme = 'https'
