@@ -84,6 +84,7 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'allauth.socialaccount',
     'channels',
     'corsheaders',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

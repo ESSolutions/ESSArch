@@ -11,7 +11,7 @@ cryptography==39.0.2
 daphne==4.0.0;platform_system=='Linux'
 daphne==3.0.2;platform_system=='Windows'
 dj-rest-auth[with_social]==3.0.0
-django==4.1.7
+django==4.1.8
 django-cors-headers==3.14.0
 django-countries-plus==2.1.0
 django-environ @ git+https://github.com/ESSolutions/django-environ.git@9f9389292118d090ac2f54edcc7d41bc2d64c174
@@ -37,7 +37,7 @@ elasticsearch==7.13.4
 elasticsearch-dsl==7.4.1
 gevent==22.10.2;platform_system=='Windows'
 glob2==0.7
-jsonfield2==4.0.0.post0
+jsonfield==3.1.0
 lxml==4.9.2
 msoffcrypto-tool==5.0.1
 natsort==8.3.1
@@ -45,7 +45,7 @@ opf-fido==1.6.1
 pyfakefs==5.1.0
 python-dateutil==2.8.2
 pywin32==305;platform_system=='Windows'
-redis==4.5.1
+redis==4.5.4
 regex==2022.10.31
 requests==2.28.2
 requests_toolbelt==0.10.1
