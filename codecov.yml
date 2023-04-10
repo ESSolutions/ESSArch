@@ -3,6 +3,7 @@ coverage:
     project:
       default: off
       backend:
-        flags: backend
+        flags:
+          - backend
 comment:
   after_n_builds: 6
