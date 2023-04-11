@@ -3295,6 +3295,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not in_directory(path, root):
             raise exceptions.ParseError('Illegal path %s' % relpath)
 
+        if not path.startswith(root):
+            raise exceptions.ParseError('Illegal path %s' % relpath)
+
         if existence and not os.path.exists(path):
             raise exceptions.NotFound('Path "%s" does not exist' % relpath)
 
