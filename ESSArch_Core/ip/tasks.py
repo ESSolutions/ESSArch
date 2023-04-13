@@ -272,8 +272,8 @@ def GenerateContentMets(self):
 def GeneratePackageMets(self, package_path=None, xml_path=None):
     package_path, xml_path = self.parse_params(package_path, xml_path)
     ip = self.get_information_package()
-    package_path = package_path if package_path is not None else ip.object_path
-    xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
+    package_path = package_path if package_path else ip.object_path
+    xml_path = xml_path if xml_path else os.path.splitext(package_path)[0] + '.xml'
 
     generate_package_mets(ip, package_path, xml_path)
     msg = 'Generated {xml}'.format(xml=xml_path)

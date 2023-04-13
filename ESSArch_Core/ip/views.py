@@ -3379,22 +3379,21 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         self.validate_workarea(workarea)
         workarea_obj = self.get_object(request)
-        root = workarea_obj.path
-
-        path = os.path.normpath(os.path.join(root, request.data.get('path', '')))
-        self.validate_path(path, root)
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
+        root = workarea_obj.path
+        path = request.data.get('path', '')
+        fullpath = os.path.normpath(os.path.join(root, path))
+        self.validate_path(fullpath, root)
         try:
-            shutil.rmtree(path)
+            shutil.rmtree(fullpath)
         except OSError as e:
             if e.errno != errno.ENOTDIR:
                 raise
-
-            os.remove(path)
+            os.remove(fullpath)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

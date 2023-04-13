@@ -1903,7 +1903,10 @@ class InformationPackage(models.Model):
 
     def get_temp_container_xml_path(self):
         temp_dir = Path.objects.get(entity='temp').value
-        return os.path.join(temp_dir, self.package_mets_path.split('/')[-1])
+        if not self.package_mets_path:
+            return ''
+        else:
+            return os.path.join(temp_dir, self.package_mets_path.split('/')[-1])
 
     def get_temp_container_aic_xml_path(self):
         temp_dir = Path.objects.get(entity='temp').value
