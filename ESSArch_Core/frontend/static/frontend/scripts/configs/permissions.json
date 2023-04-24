@@ -4,7 +4,7 @@
       "home": {
         "producer": {
           "prepareIp": {
-            "_permissions": ["ip.prepare_ip"]
+            "_permissions": ["ip.prepare_sip"]
           },
           "collectContent": {
             "_permissions": ["ip.can_upload", "ip.set_uploaded"]
@@ -37,7 +37,10 @@
             "_permissions": ["ip.prepare_order"]
           },
           "createDip": {
-            "_permissions": ["ip.preserve_dip"]
+            "_permissions": ["ip.prepare_dip"]
+          },
+          "accessAid": {
+            "_permissions": ["access.view_accessaid"]
           }
         },
         "archivalDescriptions": {

@@ -98,6 +98,7 @@
       ng-class="{chosen: $state.current.name == 'home.access.accessAid'}"
       class="nav-item sliding-middle-out"
       style="margin-left: 5px"
+      ng-if="checkPermissions('home.access.accessAid')"
       >{{'ACCESSAID' | translate}}</a
     >
   </div>

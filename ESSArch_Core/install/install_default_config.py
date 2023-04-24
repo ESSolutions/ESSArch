@@ -263,9 +263,10 @@ def installDefaultUsers():
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
             ['set_uploaded', 'ip', 'informationpackage'],  # Can set IP as uploaded
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['view_workarea', 'ip', 'workarea'],  # Can view workarea
             ['view_order', 'ip', 'order'],  # Can view order
             ['view_ordertype', 'ip', 'ordertype'],  # Can view order type
@@ -327,9 +328,10 @@ def installDefaultUsers():
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['see_other_user_ip_files', 'ip', 'informationpackage'],  # Can see files in other users IPs
             ['add_eventip', 'ip', 'eventip'],  # Can add Events related to IP
             ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
@@ -375,6 +377,7 @@ def installDefaultUsers():
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
             ['transfer_sip', 'ip', 'informationpackage'],  # Can transfer SIP
@@ -385,7 +388,7 @@ def installDefaultUsers():
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['delete_first_generation', 'ip', 'informationpackage'],  # Can delete first generation of IP
             ['delete_last_generation', 'ip', 'informationpackage'],  # Can delete last generation of IP
             ['see_other_user_ip_files', 'ip', 'informationpackage'],  # Can see files in other users IPs
@@ -437,11 +440,14 @@ def installDefaultUsers():
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
             ['receive', 'ip', 'informationpackage'],  # Can receive IP
             ['preserve', 'ip', 'informationpackage'],  # Can preserve IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
+            ['prepare_dip', 'ip', 'informationpackage'],  # Can prepare DIP
             ['preserve_dip', 'ip', 'informationpackage'],  # Can preserve DIP
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
             ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
+            ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -637,11 +643,14 @@ def installDefaultUsers():
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
             ['receive', 'ip', 'informationpackage'],  # Can receive IP
             ['preserve', 'ip', 'informationpackage'],  # Can preserve IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
+            ['prepare_dip', 'ip', 'informationpackage'],  # Can prepare DIP
             ['preserve_dip', 'ip', 'informationpackage'],  # Can preserve DIP
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
             ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
+            ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
