@@ -1726,7 +1726,7 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.tasks.DeleteFiles",
                         "label": "Delete temporary AIC xml",
                         "queue": worker_queue,
-                        "if": aic_xml,
+                        "if": temp_aic_mets_path,
                         "args": [temp_aic_mets_path]
                     },
                 ]
@@ -2082,6 +2082,7 @@ class InformationPackage(models.Model):
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
+            ('prepare_sip', 'Can prepare SIP'),
             ('create_sip', 'Can create SIP'),
             ('submit_sip', 'Can submit SIP'),
             ('transfer_sip', 'Can transfer SIP'),
@@ -2091,6 +2092,7 @@ class InformationPackage(models.Model):
             ('can_receive_remote_files', 'Can receive remote files'),
             ('receive', 'Can receive IP'),
             ('preserve', 'Can preserve IP'),
+            ('prepare_dip', 'Can prepare DIP'),
             ('preserve_dip', 'Can preserve DIP'),
             ('get_from_storage', 'Can get extracted IP from storage'),
             ('get_tar_from_storage', 'Can get packaged IP from storage'),
