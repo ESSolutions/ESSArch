@@ -502,9 +502,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workareas = workareas.filter(user=self.request.user)
 
         if not self.detail and view_type == 'aic':
-            simple_inner = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(archived=True)),
-            ).exclude(state='Ingest Workspace')
+            simple_inner = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(state='Ingest Workspace') |
+                Q(Q(workareas__isnull=False) & Q(archived=False))
+            )
 
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
 
@@ -549,9 +550,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
-            filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(archived=True))
-            ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
+            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
+                Q(Q(workareas__isnull=False) & Q(archived=False))
+            )
 
             simple = self.apply_filters(filtered)
             simple = self.annotate_generations(simple)
@@ -579,9 +581,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
-            filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(archived=True)),
-            ).exclude(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC))
+            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
+                Q(Q(workareas__isnull=False) & Q(archived=False))
+            )
 
             qs = self.apply_filters(filtered)
 
@@ -3251,8 +3254,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def get_object(self, request):
         requested_id = self.request.query_params.get('id', self.request.data.get('id'))
+        user_id = self.request.query_params.get('user', self.request.data.get('user'))
         try:
-            obj = Workarea.objects.get(ip__id=requested_id)
+            obj = Workarea.objects.get(ip__id=requested_id, user__id=user_id)
         except Workarea.DoesNotExist:
             raise exceptions.NotFound
         return obj
