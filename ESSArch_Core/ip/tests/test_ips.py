@@ -600,11 +600,12 @@ class WorkareaFilesViewTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_illegal_path(self):
-        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': '..'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': '..', 'user': self.user.id})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_non_existing_path(self):
-        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': 'does/not/exist'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access',
+                              'path': 'does/not/exist', 'user': self.user.id})
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
@@ -614,7 +615,7 @@ class WorkareaFilesViewTestCase(TestCase):
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
-            res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path})
+            res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path, 'user': self.user.id})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         mock_list_files.assert_called_once_with(fullpath, force_download=False,
