@@ -290,6 +290,17 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
 
 
 class ProxyPermissionAdmin(admin.ModelAdmin):
+    def has_add_permission(self, request):
+        return request.user.has_perm("%s.%s" % ('auth', 'add_permission'))
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'change_permission'))
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'delete_permission'))
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_permission'))
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create permission '{object.name}' with msg: '{message}'.")
