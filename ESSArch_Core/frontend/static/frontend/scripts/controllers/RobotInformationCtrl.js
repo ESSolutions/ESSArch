@@ -317,15 +317,15 @@ export default class RobotInformationCtrl {
       $scope.loadRobots(vm.robotTableState);
     };
 
-    vm.mountTapeDrive = function (tapeDrive, request) {
-      Storage.mountTapeDrive(tapeDrive, request.storageMedium).then(function () {
+    vm.mountTapeDrive = function (robot, tapeDrive, request) {
+      Storage.mountTapeDrive(robot, tapeDrive, request.storageMedium).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.unmountTapeDrive = function (tapeDrive, request, force) {
-      Storage.unmountTapeDrive(tapeDrive, force).then(function () {
+    vm.unmountTapeDrive = function (robot, tapeDrive, request, force) {
+      Storage.unmountTapeDrive(robot, tapeDrive, force).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
@@ -352,21 +352,21 @@ export default class RobotInformationCtrl {
           break;
         case 'mount':
           if (vm.tapeDrive != null) {
-            vm.mountTapeDrive(vm.tapeDrive, request);
+            vm.mountTapeDrive(vm.selectedRobot, vm.tapeDrive, request);
           } else if (vm.tapeSlot != null) {
             vm.mountTapeSlot(vm.tapeSlot, request);
           }
           break;
         case 'unmount':
           if (vm.tapeDrive != null) {
-            vm.unmountTapeDrive(vm.tapeDrive, request, false);
+            vm.unmountTapeDrive(vm.selectedRobot, vm.tapeDrive, request, false);
           } else if (vm.tapeSlot != null) {
             vm.unmountTapeSlot(vm.tapeSlot, request, false);
           }
           break;
         case 'unmount_force':
           if (vm.tapeDrive != null) {
-            vm.unmountTapeDrive(vm.tapeDrive, request, true);
+            vm.unmountTapeDrive(vm.selectedRobot, vm.tapeDrive, request, true);
           } else if (vm.tapeSlot != null) {
             vm.unmountTapeSlot(vm.tapeSlot, request, true);
           }
