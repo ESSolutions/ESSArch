@@ -1,7 +1,7 @@
 const tapeDrive = ($resource, appConfig) => {
   return $resource(
-    appConfig.djangoUrl + 'tape-drives/:id/:action/',
-    {id: '@id'},
+    appConfig.djangoUrl + 'robots/:robot_id/tape-drives/:id/:action/',
+    {robot_id: '@robot_id', id: '@id'},
     {
       get: {
         method: 'GET',

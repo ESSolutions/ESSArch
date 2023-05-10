@@ -462,7 +462,7 @@ class RobotQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
 
 
-class TapeDriveViewSet(viewsets.ModelViewSet):
+class TapeDriveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for TapeDrive
     """
@@ -479,7 +479,7 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
     )
 
     @action(detail=True, methods=['post'])
-    def mount(self, request, pk=None):
+    def mount(self, request, pk=None, parent_lookup_robot_id=None):
         drive = self.get_object()
 
         try:
@@ -502,7 +502,7 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
         return Response()
 
     @action(detail=True, methods=['post'])
-    def unmount(self, request, pk=None):
+    def unmount(self, request, pk=None, parent_lookup_robot_id=None):
         drive = self.get_object()
         force = request.data.get('force', False)
 
@@ -520,7 +520,7 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
         return Response()
 
 
-class TapeSlotViewSet(viewsets.ModelViewSet):
+class TapeSlotViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for TapeSlot
     """

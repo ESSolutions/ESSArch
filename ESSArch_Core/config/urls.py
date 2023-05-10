@@ -388,7 +388,7 @@ router.register(r'robots', ProcessStepViewSet, basename='robots').register(
     r'queue',
     RobotQueueViewSet,
     basename='robots-queue',
-    parents_query_lookups=['robot']
+    parents_query_lookups=['robot_id']
 )
 router.register(r'robot-queue', RobotQueueViewSet)
 
@@ -396,13 +396,13 @@ router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-slots',
     TapeSlotViewSet,
     basename='robots-tapeslots',
-    parents_query_lookups=['tape_slots']
+    parents_query_lookups=['robot_id']
 )
 router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-drives',
     TapeDriveViewSet,
     basename='robots-tapedrives',
-    parents_query_lookups=['tape_drives']
+    parents_query_lookups=['robot_id']
 )
 
 router.register(r'ip-reception', InformationPackageReceptionViewSet, basename="ip-reception")
