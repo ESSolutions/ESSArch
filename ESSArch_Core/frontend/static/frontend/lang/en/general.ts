@@ -186,7 +186,7 @@ const general = ($translateProvider) => {
     INPROGRESS: 'In progress',
     INVALID_SUBMISSION_AGREEMENT: 'Invalid submission agreement',
     INVENTORY: 'Inventory',
-    INVENTORYROBOTS: 'Inventory robots',
+    INVENTORYROBOTS: 'Inventory robot',
     IOQUEUE: 'IO-queue',
     IP_DELETE: "IP's to be deleted",
     IP_EXISTS: 'IP with object identifer value "{{ip}}" already exists',

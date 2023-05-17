@@ -483,19 +483,20 @@ class TapeDriveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         drive = self.get_object()
 
         try:
-            storage_medium = StorageMedium.objects.get(pk=request.data['storage_medium'])
+            storage_medium = StorageMedium.objects.get(medium_id=request.data['medium_id'])
         except KeyError:
-            raise exceptions.ParseError('Missing parameter storage_medium')
+            raise exceptions.ParseError('Missing parameter medium_id')
         except StorageMedium.DoesNotExist:
-            raise exceptions.ParseError('Invalid storage_medium')
+            raise exceptions.ParseError('Invalid medium_id')
 
         if storage_medium.get_type() != TAPE:
             raise exceptions.ParseError('%s is not a tape' % storage_medium)
 
         RobotQueue.objects.get_or_create(
             user=self.request.user,
-            storage_medium_id=storage_medium,
+            storage_medium_id=storage_medium.id,
             tape_drive=drive,
+            robot=storage_medium.tape_slot.robot,
             req_type=10, status__in=[0, 2], defaults={'status': 0}
         )
 
@@ -514,6 +515,7 @@ class TapeDriveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=drive.storage_medium,
+            robot=drive.storage_medium.tape_slot.robot,
             req_type=req_type, status__in=[0, 2], defaults={'status': 0}
         )
 

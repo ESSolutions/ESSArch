@@ -20,14 +20,15 @@
           <label> {{'COMMENT' | translate}} </label>
           <input required class="form-control" ng-model="$ctrl.request.purpose" focused="true" />
         </div>
-        <div ng-if="$ctrl.request.type == 'mount' && $ctrl.tapeSlot == null">
-          <label> {{'STORAGEMEDIUM' | translate}} </label>
-          <select
-            required
-            class="form-control"
-            ng-model="$ctrl.request.storageMedium"
-            ng-options="medium.medium_id for medium in storageMediums"
-          ></select>
+        <div ng-if="$ctrl.request.type == 'mount' && $ctrl.object.storage_medium == null">
+          <label> {{'STORAGEMEDIUM' | translate}} null</label>
+          <input required class="form-control" ng-model="$ctrl.request.storageMedium" />
+        </div>
+        <div
+          ng-if="($ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount') && $ctrl.object.storage_medium != null"
+        >
+          <label> {{'STORAGEMEDIUM' | translate}} tapeSlot</label>
+          <input disabled class="form-control" ng-model="$ctrl.request.storageMedium" />
         </div>
       </div>
     </div>

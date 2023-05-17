@@ -188,7 +188,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     INPROGRESS: 'Evalueras',
     INVALID_SUBMISSION_AGREEMENT: 'Ogiltig leveransöverenskommelse',
     INVENTORY: 'Inventera',
-    INVENTORYROBOTS: 'Inventera robotar',
+    INVENTORYROBOTS: 'Inventera robot',
     IOQUEUE: 'IO-kö',
     IP_DELETE: "IP'n som kommer at tas bort",
     IP_EXISTS: 'IP med object identifer value "{{ip}}" finns redan',

@@ -81,10 +81,17 @@ export default class RobotInformationCtrl {
 
     $scope.initRequestData = function (types) {
       vm.requestTypes = types;
+      var medium_id = null;
+      if (vm.tapeSlot != null) {
+        medium_id = vm.tapeSlot.medium_id;
+      }
+      if (vm.tapeDrive != null && vm.tapeDrive.storage_medium != null) {
+        medium_id = vm.tapeDrive.storage_medium.medium_id;
+      }
       vm.request = {
         type: types[0],
         purpose: '',
-        storageMedium: null,
+        storageMedium: medium_id,
       };
     };
 
@@ -264,18 +271,13 @@ export default class RobotInformationCtrl {
             types.push('unmount_force');
           }
         }
-        if (types.includes('mount')) {
-          vm.getStorageMediumsByState(20).then(function (result) {
-            $scope.storageMediums = result;
-          });
-        }
         $scope.initRequestData(types);
         requestModal(vm.request, vm.tapeDrive);
       }
     };
 
     vm.tapeSlotClick = function (tapeSlot) {
-      if (tapeSlot.medium_id === '') {
+      if (tapeSlot.medium_id === '' || tapeSlot.storage_medium == null) {
         return;
       }
       if (tapeSlot == vm.tapeSlot) {
@@ -298,12 +300,6 @@ export default class RobotInformationCtrl {
         $scope.initRequestData(types);
         requestModal(vm.request, vm.tapeSlot);
       }
-    };
-
-    vm.getStorageMediumsByState = function (status) {
-      return StorageMedium.query({status: status}).$promise.then(function (data) {
-        return data;
-      });
     };
 
     // Actions
