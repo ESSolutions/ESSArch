@@ -468,7 +468,11 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                 status = s_el[4]
 
                 if status == 'Full':
-                    medium_id = s_el[6][:6]
+                    try:
+                        medium_id = s_el[6][:6]
+                    except IndexError:
+                        logger.warning('Missing medium id for tape slot: {slot}'.format(slot=slot_id))
+                        medium_id = None
                     backend.identify_tape(medium_id)
 
                     slot, created = TapeSlot.objects.update_or_create(

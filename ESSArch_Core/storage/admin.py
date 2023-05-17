@@ -65,7 +65,7 @@ class StorageTargetsAdmin(admin.ModelAdmin):
     """
     StorageTargets configuration
     """
-    list_display = ('name', 'target')
+    list_display = ('name', 'target', 'type', 'status')
     sortable_field_name = "name"
     fieldsets = (
         (None, {
@@ -87,6 +87,7 @@ class StorageTargetsAdmin(admin.ModelAdmin):
 
 
 class StorageMediumAdmin(admin.ModelAdmin):
+    list_display = ('medium_id', 'storage_target', 'location', 'status')
     exclude = (
         'create_date',
         'last_changed_local',
@@ -119,10 +120,15 @@ class StorageObjectAdmin(admin.ModelAdmin):
 
 
 class TapeDriveAdmin(admin.ModelAdmin):
+    list_display = ('device', 'drive_id', 'robot', 'status')
     exclude = ('last_change', 'num_of_mounts',)
 
 
-admin.site.register(Robot)
+class RobotAdmin(admin.ModelAdmin):
+    list_display = ('label', 'device', 'online')
+
+
+admin.site.register(Robot, RobotAdmin)
 admin.site.register(TapeDrive, TapeDriveAdmin)
 
 admin.site.register(StorageMedium, StorageMediumAdmin)

@@ -495,10 +495,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ESSArch_Core.tasks.RunWorkflowPollers',
         'schedule': timedelta(seconds=60),
     },
-    'UnmountIdleDrives-queue-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
-        'schedule': timedelta(minutes=10),
-    },
     'PollAppraisalJobs-every-10-minutes': {
         'task': 'ESSArch_Core.maintenance.tasks.PollAppraisalJobs',
         'schedule': timedelta(minutes=10),

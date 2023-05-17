@@ -192,8 +192,8 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       });
   }
 
-  function mountTapeDrive(robot, tapeDrive, medium) {
-    return TapeDrive.mount({robot_id: robot.id, id: tapeDrive.id, storage_medium: medium.id}).$promise.then(function (
+  function mountTapeDrive(robot, tapeDrive, medium_id) {
+    return TapeDrive.mount({robot_id: robot.id, id: tapeDrive.id, medium_id: medium_id}).$promise.then(function (
       response
     ) {
       return response;
