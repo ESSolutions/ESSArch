@@ -120,8 +120,15 @@ class StorageObjectAdmin(admin.ModelAdmin):
 
 
 class TapeDriveAdmin(admin.ModelAdmin):
-    list_display = ('device', 'drive_id', 'robot', 'status')
-    exclude = ('last_change', 'num_of_mounts',)
+    list_display = ('device', 'drive_id', 'robot', 'locked_by', 'status')
+    exclude = ('last_change', 'num_of_mounts')
+    readonly_fields = ["locked_by"]
+    actions = ["clear_lock"]
+
+    @admin.action(permissions=["change"], description="Clear lock for selected drives")
+    def clear_lock(self, request, queryset):
+        for obj in queryset:
+            obj.clear_lock()
 
 
 class RobotAdmin(admin.ModelAdmin):

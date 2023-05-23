@@ -235,7 +235,9 @@ def copy_dir(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
 
 
 def copy(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
-    if os.path.isfile(src):
+    if src is None:
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), src)
+    elif os.path.isfile(src):
         return copy_file(src, dst, requests_session=requests_session, block_size=block_size)
     elif os.path.isdir(src):
         return copy_dir(src, dst, requests_session=requests_session, block_size=block_size)

@@ -1838,6 +1838,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
             package_xml=data.get('package_xml', False),
             aic_xml=data.get('aic_xml', False),
+            diff_check=data.get('diff_check', False),
             edit=data.get('edit', False),
         )
         workflow.run()

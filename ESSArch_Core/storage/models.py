@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import pickle
 import tarfile
 import uuid
 from datetime import timedelta
@@ -16,7 +17,6 @@ from django.db import models, transaction
 from django.db.models import (
     Case,
     Exists,
-    F,
     IntegerField,
     OuterRef,
     Q,
@@ -420,7 +420,7 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(storage_target__status=True, status__in=[20, 30])
 
     def readable(self):
-        return self.filter(status__in=[20, 30], location_status=50)
+        return self.filter(Q(location_status=50) | Q(tape_slot__status=20), status__in=[20, 30])
 
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
@@ -687,7 +687,6 @@ class StorageObjectQueryset(models.QuerySet):
     def readable(self):
         return self.filter(
             Q(storage_medium__location_status=50) | Q(storage_medium__tape_slot__status=20),
-            storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
                 STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
@@ -788,6 +787,11 @@ class StorageObject(models.Model):
         return self.storage_medium.storage_target.get_storage_backend()
 
     def readable(self):
+        if self.storage_medium.tape_slot is not None and self.storage_medium.tape_slot.status == 20:
+            tape_in_tape_slot = True
+        else:
+            tape_in_tape_slot = False
+
         return all((
             self.storage_medium.storage_target.status,
             self.storage_medium.storage_target.storage_method_target_relations.filter(
@@ -798,8 +802,7 @@ class StorageObject(models.Model):
                 storage_method__enabled=True,
             ),
             self.storage_medium.status in [20, 30],
-            self.storage_medium.location_status == 50,
-        ))
+        )) and (self.storage_medium.location_status == 50 or tape_in_tape_slot)
 
     def is_cache_for_ip(self, ip):
         return self.storage_medium.storage_target.storage_method_target_relations.filter(
@@ -985,11 +988,24 @@ class TapeDrive(models.Model):
     def clear_locks(cls):
         return cache.delete_pattern(DRIVE_LOCK_PREFIX + '*')
 
+    def clear_lock(self):
+        self.locked = False
+        self.save()
+        return cache.delete_pattern(self.get_lock_key())
+
     def get_lock_key(self):
         return '{}{}'.format(DRIVE_LOCK_PREFIX, str(self.pk))
 
     def is_locked(self):
         return self.get_lock_key() in cache
+
+    def locked_by(self):
+        if self.is_locked():
+            return pickle.loads(cache.get(self.get_lock_key()))
+        elif self.locked:
+            return 'robot'
+        else:
+            return ''
 
     @classmethod
     @transaction.atomic
