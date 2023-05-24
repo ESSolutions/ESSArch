@@ -637,7 +637,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         org = serializer.validated_data['organization']
 
-        ip.change_organization(org)
+        if ip.get_organization() is None:
+            force = True
+        else:
+            force = False
+        ip.change_organization(org, force)
         return Response()
 
     @action(detail=True)

@@ -202,7 +202,9 @@
                 </th>
                 <th class="clickable" class="column-label">{{'TYPE' | translate}}</th>
                 <th class="clickable" class="column-label">{{'NUMBEROFMOUNTS' | translate}}</th>
-                <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+                <th class="clickable" class="column-label">{{'USEDCAPACITY' | translate}}</th>
+                <th class="clickable" class="column-label">{{'MEDIUMSTATUS' | translate}}</th>
+                <th class="clickable" class="column-label">{{'TAPESLOTSTATUS' | translate}}</th>
               </tr>
             </thead>
             <tbody>
@@ -229,6 +231,8 @@
                 <td>{{row.storage_medium.storage_target.name}}</td>
                 <td>{{row.storage_medium.storage_target.type_display}}</td>
                 <td>{{row.storage_medium.num_of_mounts}}</td>
+                <td>{{row.storage_medium.used_capacity | filesize}}</td>
+                <td>{{row.storage_medium.status_display}}</td>
                 <td>{{row.status_display}}</td>
               </tr>
               <tr ng-if="!vm.tapeSlots.length && !tapeSlotsLoading" class="empty-table-indicator">

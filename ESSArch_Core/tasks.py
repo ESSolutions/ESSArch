@@ -372,12 +372,10 @@ def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, 
     ip = InformationPackage.objects.get(pk=self.ip)
     validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
                                    task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
-    validator.validate(path)
+    msg = validator.validate(path)
 
-    msg = "Successfully validated logical and physical structure of {path} against {xml}".format(
-        path=path, xml=xmlfile
-    )
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='validation', event_type=50240)

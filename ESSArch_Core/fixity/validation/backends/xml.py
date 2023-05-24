@@ -239,7 +239,10 @@ class DiffCheckValidator(BaseValidator):
             logger.warning(msg)
             raise ValidationError(msg)
 
-        logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
+        msg = "Successfully validated logical and physical structure of {path} against {xml}. \
+{cfmd} files confirmed.".format(path=path, xml=self.context, cfmd=self.confirmed)
+        logger.info(msg)
+        return msg
 
 
 class XMLComparisonValidator(DiffCheckValidator):

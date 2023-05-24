@@ -1654,6 +1654,17 @@ class InformationPackage(models.Model):
                         ]
                     },
                     {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and tar,
+                        "label": "Diff-check against package-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_container,
+                            access_workarea_user_package_xml,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        ],
+                    },
+                    {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
                         "queue": worker_queue,
@@ -1852,6 +1863,17 @@ class InformationPackage(models.Model):
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and tar,
+                        "label": "Diff-check against package-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_container,
+                            access_workarea_user_package_xml,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        ],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
