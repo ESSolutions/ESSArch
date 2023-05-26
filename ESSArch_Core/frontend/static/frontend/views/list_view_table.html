@@ -136,6 +136,7 @@
             uib-tooltip="{{col.label.toUpperCase()+'_DESC' | translate}}"
             tooltip-placement="auto top"
             tooltip-append-to-body="true"
+            ng-if="!(('home.access.accessIp' | isState) && col.label == 'delete' && !checkPermission('ip.delete_archived'))"
           >
             <span ng-hide="col.label=='step_state' || col.label == 'storage_status'" style="white-space: nowrap">
               {{col.label.toUpperCase() | translate}}
@@ -160,7 +161,10 @@
             <i class="fas fa-plus" ng-if="row.collapsed && row.information_packages.length > 0"></i
             ><i class="fas fa-minus" ng-if="!row.collapsed && row.information_packages.length > 0"></i>
           </td>
-          <td ng-repeat="col in listViewColumns">
+          <td
+            ng-repeat="col in listViewColumns"
+            ng-if="!(('home.access.accessIp' | isState) && col.label == 'delete' && !checkPermission('ip.delete_archived'))"
+          >
             <div ng-include src="col.template"></div>
           </td>
         </tr>

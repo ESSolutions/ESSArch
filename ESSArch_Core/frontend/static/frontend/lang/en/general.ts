@@ -476,6 +476,7 @@ const general = ($translateProvider) => {
     YOUHAVELOGGEDOUT: 'You have logged out.',
     en: 'English',
     sv: 'Svenska',
+    DEFAULT: 'Default',
   });
 };
 

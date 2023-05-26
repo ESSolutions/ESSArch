@@ -479,5 +479,6 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     YOUHAVELOGGEDOUT: 'Du har loggat ut.',
     en: 'English',
     sv: 'Svenska',
+    DEFAULT: 'Standard',
   });
 };
