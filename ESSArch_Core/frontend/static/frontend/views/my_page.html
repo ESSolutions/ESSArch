@@ -1,12 +1,14 @@
 <div class="info-wrapper">
-  <h2>ESSArch - A Digital Archival Solution</h2>
-  <p>
-    ESSArch is an open source archival solution compliant to the OAIS ISO-standard. ESSArch consist of software
-    components that provide functionality for Pre-Ingest, Ingest, Preservation, Access, Data Management, Administration
-    and Management. ESSArch has been developed together with the National Archives of Sweden and Norway. Every software
-    component of ESSArch can be used individually and also be easily integrated together to provide overall
-    functionality for producers, archivists and consumers.
-  </p>
+  <div ng-if="vm.lang == 'en'">
+    <h2>ESSArch - A Digital Archive Solution</h2>
+    <p>ESSArch is a digital preservation solution based on open source code and well-known and open standards.</p>
+  </div>
+  <div ng-if="vm.lang == 'sv'">
+    <h2>ESSArch - En Digital Arkivlösning</h2>
+    <p>
+      ESSArch är en lösning för digitalt bevarande som är baserad på öppen källkod samt välkända och öppna standarder.
+    </p>
+  </div>
   <br />
   <dashboard-stats></dashboard-stats>
 </div>
