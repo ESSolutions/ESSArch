@@ -84,7 +84,7 @@ remote_status_CHOICES = (
 robot_req_type_CHOICES = (
     (10, 'mount'),
     (20, 'unmount'),
-    (30, 'unmount (force)'),
+    (30, 'unmount_force'),
 )
 
 medium_type_CHOICES = (
