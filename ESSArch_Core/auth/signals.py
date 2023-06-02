@@ -82,7 +82,7 @@ def user_logged_in(sender, user, request, **kwargs):
         if cookie_language:
             user.user_profile.language = cookie_language
         else:
-            user.user_profile.language = 'en'
+            user.user_profile.language = 'DEFAULT'
 
         user.user_profile.save()
 

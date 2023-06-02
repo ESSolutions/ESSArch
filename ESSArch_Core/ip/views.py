@@ -33,6 +33,7 @@ from django.db.models import (
 from django.http import Http404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
@@ -637,7 +638,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         org = serializer.validated_data['organization']
 
-        ip.change_organization(org)
+        if ip.get_organization() is None:
+            force = True
+        else:
+            force = False
+        ip.change_organization(org, force)
         return Response()
 
     @action(detail=True)
@@ -1551,7 +1556,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             'Started receiving {objid} from workspace'.format(objid=ip.object_identifier_value),
             extra={'user': request.user.pk},
         )
-        return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+        return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
     @action(detail=True, methods=['post'], url_path='preserve')
     def preserve(self, request, pk=None):
@@ -1709,15 +1714,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "receipts/xml.json",
                         "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                         "success",
-                        "Preserved {{OBJID}}",
-                        "{{OBJID}} is now preserved",
+                        gettext("Preserved {{OBJID}}"),
+                        gettext("{{OBJLABEL}} ({{OBJID}}) is now preserved"),
                     ],
                 },
                 {
                     "name": "ESSArch_Core.tasks.Notify",
                     "label": "Notify responsible user",
                     "args": [
-                        "{{OBJID}} is now preserved",
+                        gettext("{ip} is now preserved").format(ip=ip),
                         logging.INFO,
                         True,
                     ],
@@ -1742,7 +1747,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ]
             workflow = create_workflow(workflow, ip, name='Preserve Information Package')
         workflow.run()
-        return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({'detail': gettext('Preserving {ip}...').format(ip=ip), 'step': workflow.pk})
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create_new_generation')
@@ -1771,7 +1776,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workarea.ip = new_aip
         workarea.read_only = False
         workarea.save()
-        return Response({'detail': 'New generation created {}'.format(new_aip.object_identifier_value)})
+        return Response({'detail': gettext('New generation created {ip}').format(ip=new_aip)})
 
     @transaction.atomic
     @action(detail=True, methods=['post'])
@@ -1838,10 +1843,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
             package_xml=data.get('package_xml', False),
             aic_xml=data.get('aic_xml', False),
+            diff_check=data.get('diff_check', False),
             edit=data.get('edit', False),
         )
         workflow.run()
-        return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({'detail': gettext('Accessing {ip}...').format(ip=ip), 'step': workflow.pk})
 
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
@@ -2241,9 +2247,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.unlock_profile(ptype)
 
         return Response({
-            'detail': 'Unlocking profile with type "%s" in IP "%s"' % (
-                ptype, ip.pk
-            )
+            'detail': gettext('Unlocking profile with type "{type}" in IP "{ip}"').format(type=ptype, ip=ip)
         })
 
     @transaction.atomic
@@ -2636,8 +2640,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             except RetryError:
                 pass
 
+        aic_xml = True
         if sa.profile_aic_description is None:
-            raise exceptions.ParseError('Submission agreement missing AIC Description profile')
+            aic_xml = False
+            # raise exceptions.ParseError('Submission agreement missing AIC Description profile')
 
         if sa.profile_aip is None:
             raise exceptions.ParseError('Submission agreement missing AIP profile')
@@ -2651,14 +2657,15 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.sip_objid = pk
         ip.sip_path = pk
         ip.package_type = InformationPackage.AIP
-        ip.generation = 0
-        ip.aic = InformationPackage.objects.create(
-            package_type=InformationPackage.AIC,
-            responsible=ip.responsible,
-            label=ip.label,
-            start_date=ip.start_date,
-            end_date=ip.end_date,
-        )
+        if aic_xml:
+            ip.generation = 0
+            ip.aic = InformationPackage.objects.create(
+                package_type=InformationPackage.AIC,
+                responsible=ip.responsible,
+                label=ip.label,
+                start_date=ip.start_date,
+                end_date=ip.end_date,
+            )
         ip.state = 'At reception'
         ip.object_path = normalize_path(container)
         ip.package_mets_path = normalize_path(xmlfile)
@@ -2778,7 +2785,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
                 extra={'user': request.user.pk},
             )
-            return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+            return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
@@ -3004,7 +3011,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         options = {'expected': md5, 'algorithm': 'md5'}
         validator = ChecksumValidator(context='checksum_str', options=options)
         validator.validate(filepath)
-        return Response({'detail': 'Upload of %s complete' % filepath})
+        return Response({'detail': gettext('Upload of {filepath} complete').format(filepath=filepath)})
 
     def parse_ip_with_xmlfile(self, xmlfile):
         if xmlfile.startswith(self.uip):
@@ -3485,7 +3492,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 
-        return Response({'detail': 'Merged chunks'})
+        return Response({'detail': gettext('Merged chunks')})
 
     @action(detail=False, methods=['post'], url_path='add-to-dip')
     def add_to_dip(self, request):

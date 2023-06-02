@@ -1342,7 +1342,7 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
-                               package_xml=False, aic_xml=False, edit=False):
+                               package_xml=False, aic_xml=False, diff_check=False, edit=False):
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
         else:
@@ -1475,6 +1475,8 @@ class InformationPackage(models.Model):
         access_workarea_user_container = os.path.join(access_workarea_user, '{}.{}'.format(
             self.object_identifier_value, self.get_container_format().lower()))
         access_workarea_user_package_xml = os.path.join(access_workarea_user, self.package_mets_path.split('/')[-1])
+        access_workarea_user_extracted_content_xml = os.path.join(
+            access_workarea_user_extracted, self.content_mets_path) if self.content_mets_path else None
         if aic_xml:
             access_workarea_user_aic_xml = os.path.join(access_workarea_user,
                                                         self.aic.object_identifier_value) + '.xml'
@@ -1508,6 +1510,17 @@ class InformationPackage(models.Model):
                     },
                 },
                 {
+                    "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                    "if": diff_check and tar,
+                    "label": "Diff-check against package-mets",
+                    "queue": worker_queue,
+                    "args": [
+                        temp_container_path,
+                        temp_mets_path,
+                        [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                    ],
+                },
+                {
                     "name": "ESSArch_Core.tasks.ExtractTAR",
                     "label": "Extract temporary container to cache",
                     "queue": worker_queue,
@@ -1526,6 +1539,16 @@ class InformationPackage(models.Model):
                     "args": [
                         temp_container_path,
                         access_workarea_user,
+                    ],
+                },
+                {
+                    "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                    "if": diff_check and extracted,
+                    "label": "Diff-check against content-mets",
+                    "queue": worker_queue,
+                    "args": [
+                        access_workarea_user_extracted,
+                        access_workarea_user_extracted_content_xml
                     ],
                 },
                 {
@@ -1593,6 +1616,16 @@ class InformationPackage(models.Model):
                         },
                     },
                     {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and extracted,
+                        "label": "Diff-check against content-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_extracted,
+                            access_workarea_user_extracted_content_xml
+                        ],
+                    },
+                    {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
                         "queue": worker_queue,
@@ -1619,6 +1652,17 @@ class InformationPackage(models.Model):
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and tar,
+                        "label": "Diff-check against package-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_container,
+                            access_workarea_user_package_xml,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        ],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
@@ -1650,6 +1694,17 @@ class InformationPackage(models.Model):
                         },
                     },
                     {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and tar,
+                        "label": "Diff-check against package-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            temp_container_path,
+                            temp_mets_path,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        ],
+                    },
+                    {
                         "name": "ESSArch_Core.tasks.ExtractTAR",
                         "label": "Extract temporary container to cache",
                         "queue": worker_queue,
@@ -1668,6 +1723,16 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             access_workarea_user,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and extracted,
+                        "label": "Diff-check against content-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_extracted,
+                            access_workarea_user_extracted_content_xml
                         ],
                     },
                     {
@@ -1762,6 +1827,16 @@ class InformationPackage(models.Model):
                         },
                     },
                     {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and extracted,
+                        "label": "Diff-check against content-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_extracted,
+                            access_workarea_user_extracted_content_xml
+                        ],
+                    },
+                    {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
                         "queue": worker_queue,
@@ -1788,6 +1863,17 @@ class InformationPackage(models.Model):
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
                         ]
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                        "if": diff_check and tar,
+                        "label": "Diff-check against package-mets",
+                        "queue": worker_queue,
+                        "args": [
+                            access_workarea_user_container,
+                            access_workarea_user_package_xml,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        ],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
@@ -2112,7 +2198,7 @@ class InformationPackage(models.Model):
         )
 
     def __str__(self):
-        return self.object_identifier_value
+        return '{} ({})'.format(self.label, self.object_identifier_value)
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field

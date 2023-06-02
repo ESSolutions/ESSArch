@@ -42,8 +42,10 @@ export default class LanguageCtrl {
   changeLanguage(lang: string) {
     this.setUserLanguage(lang);
     this.currentLanguage = lang;
-    this.translate.use(lang);
-    moment.locale(lang);
+    if (lang != 'DEFAULT') {
+      this.translate.use(lang);
+      moment.locale(lang);
+    }
   }
 
   getCurrentLanguage() {
@@ -59,5 +61,8 @@ export default class LanguageCtrl {
 
   loadLanguages() {
     this.availableLanguages = this.translate.getAvailableLanguageKeys();
+    if (!this.availableLanguages.includes('DEFAULT')) {
+      this.availableLanguages.unshift('DEFAULT');
+    }
   }
 }

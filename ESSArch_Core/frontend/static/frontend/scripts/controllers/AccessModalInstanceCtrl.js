@@ -32,7 +32,7 @@ export default class AccessModalInstanceCtrl {
           return 'GET';
       }
     };
-    // Preserve IP
+    // Access IP
     $ctrl.access = function () {
       $ctrl.accessing = true;
       const data = {
@@ -42,6 +42,7 @@ export default class AccessModalInstanceCtrl {
         new: $ctrl.data.request.type === 'get_as_new',
         edit: $ctrl.data.request.type === 'edit',
         package_xml: $ctrl.data.request.package_xml,
+        diff_check: $ctrl.data.request.diff_check,
         aic_xml: $ctrl.data.request.aic_xml,
       };
       const promises = [];

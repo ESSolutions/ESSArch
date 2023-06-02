@@ -79,6 +79,11 @@ const loginCtrl = [
               .catch(function () {
                 $rootScope.site = null;
               });
+            $http.get(appConfig.djangoUrl + 'me/').then(function (response) {
+              if (response.data.language != 'DEFAULT') {
+                $translate.use(response.data.language);
+              }
+            });
           })
           .catch(function (response) {
             $scope.loggingIn = false;

@@ -165,12 +165,16 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         aic_xml = True if ip.aic else False
         if storage_object.container:
             src_tar = src + '.tar'
-            src_xml = os.path.join(tmp_path, ip.package_mets_path.split('/')[-1])
+            src_xml = os.path.join(tmp_path, ip.package_mets_path.split('/')[-1]) if ip.package_mets_path else None
             if aic_xml:
                 src_aic_xml = os.path.join(tmp_path, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
-                copy(src_xml, dst, block_size=block_size)
+                try:
+                    copy(src_xml, dst, block_size=block_size)
+                except FileNotFoundError as e:
+                    logger.warning(
+                        'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
                 if aic_xml:
                     try:
                         copy(src_aic_xml, dst, block_size=block_size)

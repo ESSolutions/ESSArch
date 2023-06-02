@@ -54,8 +54,14 @@
                 <div
                   ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
                 >
-                  <input type="checkbox" ng-model="vm.request.aic_xml" />
-                  <label> {{'INCLUDE_AIC_XML' | translate}} </label>
+                  <div ng-if="ip.aic">
+                    <input type="checkbox" ng-model="vm.request.aic_xml" />
+                    <label> {{'INCLUDE_AIC_XML' | translate}} </label>
+                  </div>
+                  <div>
+                    <input type="checkbox" ng-model="vm.request.diff_check" />
+                    <label> {{'DIFFCHECK' | translate}} </label>
+                  </div>
                 </div>
               </div>
             </form>

@@ -436,6 +436,8 @@ LOGOUT_REDIRECT_URL = '/?ref=logout'
 LANGUAGE_COOKIE_NAME = 'essarch_language'
 LANGUAGE_CODE = 'en-us'
 
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
+
 TIME_ZONE = 'Europe/Stockholm'
 
 USE_I18N = True

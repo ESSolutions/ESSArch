@@ -103,6 +103,7 @@ class StorageObjectSerializer(serializers.ModelSerializer):
     target_name = serializers.CharField(source='storage_medium.storage_target.name')
     target_target = serializers.CharField(source='storage_medium.storage_target.target')
     ip_object_identifier_value = serializers.CharField(source='ip.object_identifier_value', read_only=True)
+    ip_object_size = serializers.CharField(source='ip.object_size', read_only=True)
 
     def create(self, validated_data):
         obj, _ = StorageObject.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
@@ -114,7 +115,7 @@ class StorageObjectSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'content_location_type', 'content_location_value', 'last_changed_local',
             'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
-            'container', 'ip_object_identifier_value',
+            'container', 'ip_object_identifier_value', 'ip_object_size',
         )
         extra_kwargs = {
             'id': {

@@ -11,7 +11,9 @@ export default class OrganizationModalInstanceCtrl {
     $ctrl.$onInit = function () {
       if (data.ip) {
         $ctrl.currentOrganization = angular.copy(data.ip.organization);
-        $ctrl.model.organization = angular.copy(data.ip.organization.id);
+        if (data.ip.organization) {
+          $ctrl.model.organization = angular.copy(data.ip.organization.id);
+        }
         $ctrl.options.organizations.push(data.ip.organization);
       }
       $ctrl.buildForm();

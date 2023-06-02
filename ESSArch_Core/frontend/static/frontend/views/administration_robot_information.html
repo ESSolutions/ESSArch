@@ -133,9 +133,9 @@
               >
                 <td>{{row.id}}</td>
                 <td>{{row.posted | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-                <td>{{row.req_type}}</td>
+                <td>{{row.req_type.toUpperCase() | translate}}</td>
                 <td>{{row.storage_medium.medium_id}}</td>
-                <td>{{row.status}}</td>
+                <td>{{row.status.toUpperCase() | translate}}</td>
               </tr>
               <tr ng-if="!vm.robotQueue.length && !robotQueueLoading" class="empty-table-indicator">
                 <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -202,7 +202,9 @@
                 </th>
                 <th class="clickable" class="column-label">{{'TYPE' | translate}}</th>
                 <th class="clickable" class="column-label">{{'NUMBEROFMOUNTS' | translate}}</th>
-                <th class="clickable" class="column-label">{{'STATUS' | translate}}</th>
+                <th class="clickable" class="column-label">{{'USEDCAPACITY' | translate}}</th>
+                <th class="clickable" class="column-label">{{'MEDIUMSTATUS' | translate}}</th>
+                <th class="clickable" class="column-label">{{'TAPESLOTSTATUS' | translate}}</th>
               </tr>
             </thead>
             <tbody>
@@ -229,7 +231,9 @@
                 <td>{{row.storage_medium.storage_target.name}}</td>
                 <td>{{row.storage_medium.storage_target.type_display}}</td>
                 <td>{{row.storage_medium.num_of_mounts}}</td>
-                <td>{{row.status_display}}</td>
+                <td>{{row.storage_medium.used_capacity | filesize}}</td>
+                <td>{{row.storage_medium.status_display.toUpperCase() | translate}}</td>
+                <td>{{row.status_display.toUpperCase() | translate}}</td>
               </tr>
               <tr ng-if="!vm.tapeSlots.length && !tapeSlotsLoading" class="empty-table-indicator">
                 <td colspan="4">{{'NO_RESULTS_FOUND' | translate}}</td>
@@ -333,7 +337,7 @@
                 <td>{{row.device}}</td>
                 <td>{{row.idle_timer}}</td>
                 <td>{{row.num_of_mounts}}</td>
-                <td>{{row.status_display}}</td>
+                <td>{{row.status_display.toUpperCase() | translate}}</td>
               </tr>
               <tr ng-if="!vm.tapeDrives.length && !tapeDrivesLoading" class="empty-table-indicator">
                 <td colspan="5">{{'NO_RESULTS_FOUND' | translate}}</td>

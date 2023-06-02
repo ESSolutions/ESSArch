@@ -67,11 +67,15 @@
             <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
             </td>
-            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.status_display}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">
+              {{row.status_display.toUpperCase() | translate}}
+            </td>
             <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.location}}
             </td>
-            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.location_status_display}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">
+              {{row.location_status_display.toUpperCase() | translate}}
+            </td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.used_capacity | filesize}}</td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">
               {{row.storage_target.max_capacity | filesize}}
@@ -191,6 +195,7 @@
             <thead>
               <tr>
                 <th st-sort="ip__object_identifier_value" class="clickable" class="column-label">IP</th>
+                <th class="column-label">{{'OBJECT_SIZE' | translate}}</th>
                 <th st-sort="content_location_value" class="clickable" class="column-label">
                   {{'CONTENTLOCATION' | translate}}
                 </th>
@@ -207,6 +212,7 @@
                 class="table-item selectable"
               >
                 <td>{{row.ip_object_identifier_value}}</td>
+                <td>{{row.ip_object_size | filesize}}</td>
                 <td>{{row.content_location_value}}</td>
                 <td>{{row.last_changed_local | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               </tr>
