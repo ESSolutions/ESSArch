@@ -30,6 +30,7 @@ from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     TAPE,
     Robot,
+    RobotQueue,
     StorageMedium,
     StorageMethod,
     StorageObject,
@@ -86,6 +87,27 @@ class StorageTargetsAdmin(admin.ModelAdmin):
     )
 
 
+class StorageMediumInRobotListFilter(admin.SimpleListFilter):
+    title = _("Robot slot")
+    parameter_name = "robot_slot"
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _("Yes")),
+            ('0', _("No")),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(
+                tape_slot__isnull=False
+            )
+        if self.value() == '0':
+            return queryset.filter(
+                tape_slot__isnull=True
+            )
+
+
 class StorageMediumAdmin(admin.ModelAdmin):
     list_display = ('medium_id', 'storage_target', 'location', 'status')
     exclude = (
@@ -95,6 +117,8 @@ class StorageMediumAdmin(admin.ModelAdmin):
         'num_of_mounts',
         'used_capacity',
     )
+    search_fields = ['medium_id']
+    list_filter = [StorageMediumInRobotListFilter]
 
 
 class StorageMethodAdminForm(forms.ModelForm):
@@ -114,9 +138,33 @@ class StorageMethodAdmin(admin.ModelAdmin):
     inlines = [StorageMethodTargetRelationInline]
 
 
+class StorageObjectInRobotListFilter(admin.SimpleListFilter):
+    title = _("Robot slot")
+    parameter_name = "robot_slot"
+
+    def lookups(self, request, model_admin):
+        return [
+            ('1', _("Yes")),
+            ('0', _("No")),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == '1':
+            return queryset.filter(
+                storage_medium__tape_slot__isnull=False
+            )
+        if self.value() == '0':
+            return queryset.filter(
+                storage_medium__tape_slot__isnull=True
+            )
+
+
 class StorageObjectAdmin(admin.ModelAdmin):
-    list_display = ('ip', 'storage_medium',)
+    list_display = ('ip', 'content_location_value', 'storage_medium',)
     exclude = ('last_changed_local', 'last_changed_external',)
+    # search_fields = ['ip', 'storage_medium']
+    search_fields = ['ip__object_identifier_value', 'storage_medium__medium_id']
+    list_filter = [StorageObjectInRobotListFilter]
 
 
 class TapeDriveAdmin(admin.ModelAdmin):
@@ -135,7 +183,12 @@ class RobotAdmin(admin.ModelAdmin):
     list_display = ('label', 'device', 'online')
 
 
+class RobotQueueAdmin(admin.ModelAdmin):
+    list_display = ('id', 'posted', 'req_type', 'storage_medium', 'status')
+
+
 admin.site.register(Robot, RobotAdmin)
+admin.site.register(RobotQueue, RobotQueueAdmin)
 admin.site.register(TapeDrive, TapeDriveAdmin)
 
 admin.site.register(StorageMedium, StorageMediumAdmin)

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-14 17:24+0100\n"
+"POT-Creation-Date: 2023-06-02 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,65 +18,88 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: templates/maintenance/appraisal_report.html:63
+#: maintenance/templates/maintenance/appraisal_report.html:63
 msgid "Appraisal Report"
 msgstr "Gallringsrapport"
 
-#: templates/maintenance/appraisal_report.html:64
-msgid "Appraisal Template"
-msgstr "Gallringsmall"
-
-#: templates/maintenance/appraisal_report.html:66
-msgid "Appraisal Template Creator"
-msgstr "Skapare av gallringsmall"
-
-#: templates/maintenance/appraisal_report.html:69
+#: maintenance/templates/maintenance/appraisal_report.html:64
 msgid "Appraisal Job"
 msgstr "Gallringsjobb"
 
-#: templates/maintenance/appraisal_report.html:71
+#: maintenance/templates/maintenance/appraisal_report.html:66
 msgid "Appraisal Job Creator"
 msgstr "Skapare av gallringsjobb"
 
-#: templates/maintenance/appraisal_report.html:79
+#: maintenance/templates/maintenance/appraisal_report.html:69
+#: maintenance/templates/maintenance/conversion_report.html:69
+msgid "Purpose"
+msgstr "Syfte"
+
+#: maintenance/templates/maintenance/appraisal_report.html:72
+#, fuzzy
+#| msgid "Document"
+msgid "Documents"
+msgstr "Dokument"
+
+#: maintenance/templates/maintenance/appraisal_report.html:76
+#: maintenance/templates/maintenance/conversion_report.html:75
 msgid "Document"
 msgstr "Dokument"
 
-#: templates/maintenance/appraisal_report.html:80
-#: templates/maintenance/conversion_report.html:75
+#: maintenance/templates/maintenance/appraisal_report.html:77
+#: maintenance/templates/maintenance/conversion_report.html:76
 msgid "IP"
 msgstr ""
 
-#: templates/maintenance/appraisal_report.html:81
-#: templates/maintenance/conversion_report.html:77
+#: maintenance/templates/maintenance/appraisal_report.html:78
+#: maintenance/templates/maintenance/appraisal_report.html:98
+#: maintenance/templates/maintenance/conversion_report.html:78
 msgid "Start date"
 msgstr "Startdatum"
 
-#: templates/maintenance/appraisal_report.html:82
-#: templates/maintenance/conversion_report.html:78
+#: maintenance/templates/maintenance/appraisal_report.html:79
+#: maintenance/templates/maintenance/appraisal_report.html:99
+#: maintenance/templates/maintenance/conversion_report.html:79
 msgid "End date"
 msgstr "Slutdatum"
 
-#: templates/maintenance/conversion_report.html:63
+#: maintenance/templates/maintenance/appraisal_report.html:93
+msgid "Nodes"
+msgstr "Noder"
+
+#: maintenance/templates/maintenance/appraisal_report.html:97
+msgid "Node"
+msgstr "Nod"
+
+#: maintenance/templates/maintenance/conversion_report.html:63
 msgid "Conversion Report"
 msgstr "Konverteringsrapport"
 
-#: templates/maintenance/conversion_report.html:64
-msgid "Conversion Template"
-msgstr "Konverteringsmall"
-
-#: templates/maintenance/conversion_report.html:66
+#: maintenance/templates/maintenance/conversion_report.html:64
 msgid "Conversion Job"
 msgstr "Konverteringsjobb"
 
-#: templates/maintenance/conversion_report.html:73
-msgid "Old document"
-msgstr "Gammalt dokument"
+#: maintenance/templates/maintenance/conversion_report.html:66
+#, fuzzy
+#| msgid "Conversion Job"
+msgid "Conversion Job Creator"
+msgstr "Konverteringsjobb"
 
-#: templates/maintenance/conversion_report.html:74
-msgid "New document"
-msgstr "Nytt dokument"
-
-#: templates/maintenance/conversion_report.html:76
+#: maintenance/templates/maintenance/conversion_report.html:77
 msgid "Tool"
 msgstr "Verktyg"
+
+#~ msgid "Appraisal Template"
+#~ msgstr "Gallringsmall"
+
+#~ msgid "Appraisal Template Creator"
+#~ msgstr "Skapare av gallringsmall"
+
+#~ msgid "Conversion Template"
+#~ msgstr "Konverteringsmall"
+
+#~ msgid "Old document"
+#~ msgstr "Gammalt dokument"
+
+#~ msgid "New document"
+#~ msgstr "Nytt dokument"

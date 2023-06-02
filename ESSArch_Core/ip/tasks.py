@@ -11,7 +11,7 @@ from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext
 from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
@@ -495,9 +495,9 @@ def Validate(self, backend, path=None, context=None, include=None,
                        responsible=user)
 
     Notification.objects.create(
-        message='{backend} job done for "{ip}"'.format(
+        message=gettext('{backend} job done for {ip}').format(
             backend=backend_name,
-            ip=ip.object_identifier_value
+            ip=ip
         ),
         level=logging.INFO,
         user_id=self.responsible,
@@ -651,7 +651,7 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
         ip.state = 'deleted'
         ip.save()
 
-    Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
+    Notification.objects.create(message=gettext('{ip} has been deleted').format(ip=ip),
                                 level=logging.INFO, user_id=self.responsible, refresh=True)
 
 
@@ -661,7 +661,7 @@ def CreateWorkarea(self, ip, user, type, read_only):
     user = User.objects.get(pk=user)
     Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
     Notification.objects.create(
-        message="%s is now in workspace" % ip.object_identifier_value,
+        message=gettext("{ip} is now in workspace").format(ip=ip),
         level=logging.INFO, user=user, refresh=True
     )
 

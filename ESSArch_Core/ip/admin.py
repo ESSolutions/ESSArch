@@ -70,9 +70,11 @@ class IPAdmin(admin.ModelAdmin):
     """
     Information Package
     """
-    list_display = ('label', 'id', 'object_path', 'state')
+    list_display = ('label', 'id', 'object_path', 'package_type', 'state')
     readonly_fields = ('id',)
-    list_filter = ('label',)
+    search_fields = ['label', 'object_identifier_value', 'id']
+    list_filter = ['state', ('state', admin.EmptyFieldListFilter),
+                   'package_type']
     fieldsets = (
                 (None, {
                     'classes': ('wide'),

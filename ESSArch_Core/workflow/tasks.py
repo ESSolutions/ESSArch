@@ -31,7 +31,6 @@ import tempfile
 import zipfile
 from datetime import timedelta
 
-from celery.exceptions import Ignore
 from celery.result import allow_join_result
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -271,7 +270,7 @@ def PollRobotQueue(self):
         entries = list(force_entries) + list(non_force_entries)
 
         if not len(entries):
-            raise Ignore()
+            continue
 
         for entry in entries:
             entry.status = 2
@@ -331,6 +330,7 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                     try:
                         ProcessTask.objects.create(
                             name="ESSArch_Core.tasks.MountTape",
+                            queue="robot",
                             params={
                                 'medium_id': medium.pk,
                                 'drive_id': drive.pk,
@@ -381,6 +381,7 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                     try:
                         ProcessTask.objects.create(
                             name="ESSArch_Core.tasks.UnmountTape",
+                            queue="robot",
                             params={
                                 'drive_id': medium.tape_drive.pk,
                             }

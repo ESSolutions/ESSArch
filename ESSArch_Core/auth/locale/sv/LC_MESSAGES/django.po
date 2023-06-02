@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-04-16 22:40+0200\n"
+"POT-Creation-Date: 2023-06-02 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,107 +18,115 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:68
+#: auth/admin.py:81
 msgid "Assigned roles"
 msgstr "Tilldelade roller"
 
-#: admin.py:90
+#: auth/admin.py:103
 msgid "Groups added above appears here when saving"
 msgstr "Grupper tillagda ovan visas här efter de har sparats"
 
-#: admin.py:109
+#: auth/admin.py:122
 msgid "Personal info"
-msgstr ""
+msgstr "Personlig info"
 
-#: admin.py:110
+#: auth/admin.py:123
 msgid "Permissions"
-msgstr ""
+msgstr "Behörigheter"
 
-#: admin.py:112
+#: auth/admin.py:125
 msgid "Important dates"
-msgstr ""
+msgstr "Viktiga datum"
 
-#: admin.py:113
+#: auth/admin.py:126
 msgid "Groups"
 msgstr "Grupper"
 
-#: apps.py:7
+#: auth/apps.py:7
 msgid "Authentication and Authorization"
 msgstr ""
 
-#: models.py:51
+#: auth/models.py:173
 msgid "name"
 msgstr "namn"
 
-#: models.py:52
+#: auth/models.py:174
 msgid "label"
 msgstr "etikett"
 
-#: models.py:53 models.py:122
+#: auth/models.py:175 auth/models.py:248
 msgid "permissions"
+msgstr "behörigheter"
+
+#: auth/models.py:176 auth/models.py:296
+msgid "external id"
 msgstr ""
 
-#: models.py:64
+#: auth/models.py:187
 msgid "role"
 msgstr "roll"
 
-#: models.py:65 models.py:251
+#: auth/models.py:188 auth/models.py:428
 msgid "roles"
 msgstr "roller"
 
-#: models.py:105 models.py:230 models.py:243
+#: auth/models.py:231 auth/models.py:407 auth/models.py:420
 msgid "group"
 msgstr "grupp"
 
-#: models.py:106 models.py:231
+#: auth/models.py:232 auth/models.py:408
 msgid "groups"
 msgstr "grupper"
 
-#: models.py:113
+#: auth/models.py:239
 msgid "user"
 msgstr "användare"
 
-#: models.py:114
+#: auth/models.py:240
 msgid "users"
 msgstr "användare"
 
-#: models.py:121
+#: auth/models.py:247
 msgid "permission"
 msgstr ""
 
-#: models.py:154 models.py:162
+#: auth/models.py:280 auth/models.py:288
 msgid "group type"
 msgstr "grupptyp"
 
-#: models.py:155
+#: auth/models.py:281
 msgid "group types"
 msgstr "grupptyper"
 
-#: models.py:169
+#: auth/models.py:295
 msgid "parent"
 msgstr "överordnad"
 
-#: models.py:249
+#: auth/models.py:297
+msgid "properties"
+msgstr ""
+
+#: auth/models.py:426
 msgid "member"
 msgstr ""
 
-#: models.py:252
+#: auth/models.py:429
 msgid "expiration date"
 msgstr "utgångsdatum"
 
-#: serializers.py:235
+#: auth/serializers.py:246
 msgid "User account is disabled"
 msgstr "Användaren är inaktiverad"
 
-#: serializers.py:238
+#: auth/serializers.py:249
 msgid "Invalid username or password"
 msgstr "Felaktigt användarnamn eller lösenord"
 
-#: serializers.py:247
+#: auth/serializers.py:258
 msgid "E-mail is not verified."
 msgstr "E-postadressen är inte verifierad"
 
-#: templates/essauth/admin/group/add_form.html:6
+#: auth/templates/essauth/admin/group/add_form.html:6
 msgid ""
 "First, enter a name and optionally some permissions. Then, you'll be able to "
 "edit more group options."
@@ -126,16 +134,16 @@ msgstr ""
 "Ange först ett namn och eventuella rättigheter. Efter det kommer du att få "
 "fler gruppalternativ."
 
-#: templates/essauth/admin/group/add_form.html:8
+#: auth/templates/essauth/admin/group/add_form.html:8
 msgid "Enter a name."
 msgstr "Ange ett namn."
 
-#: templates/essauth/admin/user/add_form.html:6
+#: auth/templates/essauth/admin/user/add_form.html:6
 msgid ""
 "First, enter a username and password. Then, you'll be able to edit more user "
 "options."
 msgstr ""
 
-#: templates/essauth/admin/user/add_form.html:8
+#: auth/templates/essauth/admin/user/add_form.html:8
 msgid "Enter a username and password."
-msgstr ""
+msgstr "Ange användarnamn och lösenord"

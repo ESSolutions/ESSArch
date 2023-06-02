@@ -2198,7 +2198,7 @@ class InformationPackage(models.Model):
         )
 
     def __str__(self):
-        return self.object_identifier_value
+        return '{} ({})'.format(self.label, self.object_identifier_value)
 
     def get_value_array(self):
         # make an associative array of all fields  mapping the field

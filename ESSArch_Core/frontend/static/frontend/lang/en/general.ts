@@ -89,7 +89,7 @@ const general = ($translateProvider) => {
     DESCRIPTION: 'Description',
     DESELECTALL: 'Deselect all',
     DEVICE: 'Device',
-    DIFFCHECK: 'Diff-check',
+    DIFFCHECK: 'Validate',
     DIR_EXISTS_IN_DIP_DESC:
       'Folder with this name already exists in the dissemination. Do you want to overwrite current folder?',
     DIR_EXISTS_IN_DIP: 'Folder with this name already exists!',

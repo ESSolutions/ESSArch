@@ -36,6 +36,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext
 from django_redis import get_redis_connection
 from lxml import etree
 from tenacity import (
@@ -261,8 +262,8 @@ def ValidateWorkarea(self, workarea, validators, stop_at_failure=True):
 
         if errcount:
             Notification.objects.create(
-                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
-                    ip=ip.object_identifier_value, errcount=errcount
+                message=gettext('Validation of "{ip}" failed with {errcount} error(s)').format(
+                    ip=ip, errcount=errcount
                 ),
                 level=logging.ERROR,
                 user_id=self.responsible,
@@ -270,8 +271,8 @@ def ValidateWorkarea(self, workarea, validators, stop_at_failure=True):
             )
         else:
             Notification.objects.create(
-                message='"{ip}" was successfully validated'.format(
-                    ip=ip.object_identifier_value
+                message=gettext('"{ip}" was successfully validated').format(
+                    ip=ip
                 ),
                 level=logging.INFO,
                 user_id=self.responsible,
@@ -449,8 +450,21 @@ def UpdateIPStatus(self, status, prev=None):
         t.save()
     ip.state = status
     ip.save()
-    Notification.objects.create(message='{} {}'.format(status.capitalize(), ip.object_identifier_value),
-                                level=logging.INFO, user_id=self.responsible, refresh=True)
+    ip_state_dict = {'Creating': gettext('Creating'),
+                     'Created': gettext('Created'),
+                     'Transforming': gettext('Transforming'),
+                     'Transformed': gettext('Transformed'),
+                     'Submitting': gettext('Submitting'),
+                     'Submitted': gettext('Submitted'),
+                     'Receiving': gettext('Receiving'),
+                     'Received': gettext('Received'),
+                     'Preserving': gettext('Preserving'),
+                     }
+    Notification.objects.create(message='{} {}'.format(
+        ip_state_dict.get(status.capitalize(), status.capitalize()),
+        ip,
+    ),
+        level=logging.INFO, user_id=self.responsible, refresh=True)
 
     msg = "Updated status of {} to {}".format(ip.object_identifier_value, status)
     self.create_success_event(msg)

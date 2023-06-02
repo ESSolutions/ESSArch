@@ -33,7 +33,9 @@ def StorageMigration(self, storage_method, temp_path):
     dir_path = os.path.join(temp_path, ip.object_identifier_value)
     container_path = os.path.join(temp_path, ip.object_identifier_value + '.{}'.format(container_format))
     aip_xml_path = os.path.join(temp_path, ip.package_mets_path.split('/')[-1])
-    aic_xml_path = os.path.join(temp_path, ip.aic.object_identifier_value + '.xml')
+    aic_xml = True if ip.aic else False
+    if aic_xml:
+        aic_xml_path = os.path.join(temp_path, ip.aic.object_identifier_value + '.xml')
 
     if storage_target.master_server and not storage_target.remote_server:
         # we are on remote host
@@ -42,7 +44,7 @@ def StorageMigration(self, storage_method, temp_path):
         # we are not on master, access from existing storage object
         storage_object = ip.get_fastest_readable_storage_object()
         if storage_object.container:
-            storage_object.read(container_path, self.get_processtask())
+            storage_object.read(temp_path, self.get_processtask())
         else:
             storage_object.read(dir_path, self.get_processtask())
 
@@ -91,14 +93,16 @@ def StorageMigration(self, storage_method, temp_path):
             raise ValueError('Invalid container format: {}'.format(container_format))
 
         generate_package_mets(ip, container_path, aip_xml_path)
-        generate_aic_mets(ip, aic_xml_path)
+        if aic_xml:
+            generate_aic_mets(ip, aic_xml_path)
 
     if dst_container or storage_target.remote_server:
         src = [
             container_path,
             aip_xml_path,
-            aic_xml_path,
         ]
+        if aic_xml:
+            src.append(aic_xml_path)
     else:
         src = [dir_path]
 

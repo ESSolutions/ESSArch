@@ -27,6 +27,7 @@ import uuid
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     exceptions,
@@ -427,7 +428,8 @@ class RobotViewSet(viewsets.ModelViewSet):
         t.run()
         t_id = str(t.pk)
 
-        return Response({'detail': 'Running robot inventory: {}'.format(t_id)}, status=status.HTTP_202_ACCEPTED)
+        return Response({'detail': gettext('Running robot inventory: {}').format(t_id)},
+                        status=status.HTTP_202_ACCEPTED)
 
 
 class AccessQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -568,7 +570,7 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {'detail': 'Migration jobs created and queued'},
+            {'detail': gettext('Migration jobs created and queued')},
             status=status.HTTP_201_CREATED, headers=headers,
         )
 
