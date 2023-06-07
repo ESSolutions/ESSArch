@@ -86,6 +86,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
+    information_package = serializers.StringRelatedField(read_only=True)
 
     def get_params(self, obj):
         params = obj.params

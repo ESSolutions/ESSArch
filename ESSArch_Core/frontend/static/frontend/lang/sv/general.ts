@@ -396,6 +396,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     SELECTONE: 'Välj en',
     SETTINGS_SAVED: 'Inställningar sparade',
     SETTINGS: 'Inställningar',
+    SHOW_RELEATED_IPS: 'Visa relaterade informationspaket',
     SIZE: 'Storlek',
     SKIP: 'Hoppa över',
     START: 'Start',

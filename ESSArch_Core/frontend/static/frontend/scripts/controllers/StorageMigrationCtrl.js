@@ -27,11 +27,12 @@ export default class StorageMigrationCtrl {
     vm.mediumsPerPage = 10;
     vm.mediumFilterModel = {};
     vm.mediumFilterFields = [];
+    vm.ipsVisible = false;
     $scope.$on('REFRESH_LIST_VIEW', function (event, data) {
       if (vm.activePill === 'migrate') {
         vm.updateStorageMediums();
       }
-      if (vm.selectedMediums.length) {
+      if (vm.selectedMediums.length && vm.ipsVisible) {
         vm.callServer($scope.tableState);
       }
       if (vm.activePill === 'tasks') {
@@ -201,6 +202,25 @@ export default class StorageMigrationCtrl {
         function () {}
       );
     };
+
+    vm.migrationMediaModal = function () {
+      $http({
+        method: 'GET',
+        url: appConfig.djangoUrl + 'information-packages/',
+        params: angular.extend(
+          {
+            view_type: 'flat',
+            medium: vm.selectedMediums.length ? vm.selectedMediums.map((x) => x.id) : null,
+            policy: vm.mediumFilterModel.policy,
+            migratable: true,
+          },
+          vm.columnFilters
+        ),
+      }).then(function (response) {
+        vm.migrationModal(response.data);
+      });
+    };
+
     //Creates and shows modal with task information
     $scope.taskInfoModal = function (task) {
       const modalInstance = $uibModal.open({
@@ -325,7 +345,9 @@ export default class StorageMigrationCtrl {
           $scope.ip = null;
           $scope.ips = [];
         } else {
-          $scope.getListViewData();
+          if (vm.ipsVisible) {
+            $scope.getListViewData();
+          }
         }
       } else {
         vm.selectedMediums.push(medium);

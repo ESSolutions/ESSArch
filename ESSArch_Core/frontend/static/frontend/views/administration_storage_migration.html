@@ -128,26 +128,38 @@
             </td>
           </div>
 
-          <div ng-if="vm.selectedMediums.length > 0" st-table="vm.displayedIps" st-pipe="vm.callServer">
+          <br />
+          <div ng-if="vm.selectedMediums.length > 0" class="flex-row mb-base mt-base">
+            <button class="btn btn-default" ng-click="vm.ipsVisible = !vm.ipsVisible;">
+              <i class="fas" ng-class="{'fa-plus': !vm.ipsVisible, 'fa-minus': vm.ipsVisible}"></i
+              >&nbsp;{{'SHOW_RELEATED_IPS' | translate}}
+            </button>
+            <div class="col-md-12 bg-light text-right">
+              <button
+                permission
+                permission-only="'storage.storage_migration'"
+                ng-disabled="vm.selectedMediums.length === 0 || ips.length > 0 || ip"
+                type="button"
+                ng-click="vm.migrationMediaModal()"
+                class="btn btn-primary"
+                uib-tooltip="{{'STARTMIGRATION' | translate}}"
+                tooltip-placement="auto left"
+                tooltip-append-to-body="true"
+              >
+                {{'STARTMIGRATION' | translate}}
+              </button>
+            </div>
+          </div>
+
+          <div
+            ng-if="vm.selectedMediums.length > 0 && vm.ipsVisible"
+            st-table="vm.displayedIps"
+            st-pipe="vm.callServer"
+          >
             <hr />
             <div class="title-action-button-row">
               <div class="title">
                 <h4>{{'INFORMATION_PACKAGES' | translate}}</h4>
-              </div>
-              <div ng-if="vm.displayedIps.length > 50" class="action-button">
-                <button
-                  permission
-                  permission-only="'storage.storage_migration'"
-                  ng-disabled="ips.length === 0 && ip === null"
-                  type="button"
-                  ng-click="vm.migrationModal(ips)"
-                  class="btn btn-primary"
-                  uib-tooltip="{{'STARTMIGRATION' | translate}}"
-                  tooltip-placement="auto left"
-                  tooltip-append-to-body="true"
-                >
-                  {{'STARTMIGRATION' | translate}}
-                </button>
               </div>
             </div>
             <div class="search-prepare-wrapper">
@@ -257,7 +269,7 @@
                     ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
                     class="table-item selectable"
                     ng-click="ipTableClick(row, $event)"
-                    context-menu="menuOptions('row', row)"
+                    ng-attr-context-menu="menuOptions"
                   >
                     <td ng-repeat="col in listViewColumns">
                       <div ng-include src="col.template"></div>

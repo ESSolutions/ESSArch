@@ -393,6 +393,7 @@ const general = ($translateProvider) => {
     SELECTONE: 'Select One',
     SETTINGS_SAVED: 'Settings saved',
     SETTINGS: 'Settings',
+    SHOW_RELEATED_IPS: 'Show releated information packages',
     SIZE: 'Size',
     SKIP: 'Skip',
     START: 'Start',
