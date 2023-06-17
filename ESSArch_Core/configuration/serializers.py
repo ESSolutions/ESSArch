@@ -185,6 +185,11 @@ class StoragePolicySerializer(serializers.ModelSerializer):
                 )
             storage_method_list.append(storage_method)
 
+        sp_ingest_path_data = validated_data.pop('ingest_path')
+        validated_data['ingest_path'], _ = Path.objects.update_or_create(
+            entity=sp_ingest_path_data['entity'], defaults=sp_ingest_path_data
+        )
+
         policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
                                                            defaults=validated_data)
         policy.storage_methods.set(storage_method_list)

@@ -595,7 +595,9 @@ class StorageMedium(models.Model):
         data = r.json()
         data.pop('location_status_display', None)
         data.pop('status_display', None)
-        data['storage_target_id'] = data.pop('storage_target')
+        data.pop('block_size_display', None)
+        data.pop('format_display', None)
+        data['storage_target_id'] = data.pop('storage_target')['id']
         if data.get('tape_drive') is not None:
             data['tape_drive'] = TapeDrive.create_from_remote_copy(
                 host, session, data['tape_drive'], create_storage_medium=False
@@ -763,6 +765,8 @@ class StorageObject(models.Model):
         data.pop('medium_id', None)
         data.pop('target_name', None)
         data.pop('target_target', None)
+        data.pop('ip_object_identifier_value', None)
+        data.pop('ip_object_size', None)
         data['last_changed_local'] = timezone.now
         obj, _ = StorageObject.objects.update_or_create(
             pk=data.pop('id'),
@@ -846,10 +850,17 @@ class StorageObject(models.Model):
                 task.exception = remote_data['exception']
                 task.save()
 
-                if task.status in celery_states.EXCEPTION_STATES:
+                if task.status == celery_states.PENDING:
+                    task.run_remote_copy(session, host)
+                elif task.status != celery_states.SUCCESS:
+                    logger.debug('task.status: {}'.format(task.status))
                     task.retry_remote_copy(session, host)
+                    task.status = celery_states.PENDING
 
             while task.status not in celery_states.READY_STATES:
+                session = requests.Session()
+                session.verify = settings.REQUESTS_VERIFY
+                session.auth = (user, passw)
                 r = task.get_remote_copy(session, host)
 
                 remote_data = r.json()
@@ -873,7 +884,7 @@ class StorageObject(models.Model):
                 # by master to write to its temp directory
                 temp_dir = Path.objects.get(entity='temp').value
 
-                user, passw, host = storage_target.master_server.split(',')
+                host, user, passw = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)
@@ -1018,6 +1029,7 @@ class TapeDrive(models.Model):
 
         data = r.json()
         data.pop('status_display', None)
+        data.pop('idle_timer', None)
 
         data['robot'] = Robot.create_from_remote_copy(
             host, session, data['robot']

@@ -210,11 +210,11 @@ def ReceiveAIP(self, workarea):
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
               aic_xml=False, object_identifier_value="", dst=None):
     aip = InformationPackage.objects.get(pk=aip)
-    responsible = User.objects.get(pk=self.responsible)
 
     # if it is a received IP, i.e. from ingest and not from storage,
     # then we read it directly from disk and move it to the ingest workarea
     if aip.state == 'Received':
+        responsible = User.objects.get(pk=self.responsible)
         if not extracted and not new:
             raise ValueError('An IP must be extracted when transferred to ingest workarea')
 

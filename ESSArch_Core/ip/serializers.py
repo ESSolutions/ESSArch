@@ -490,10 +490,10 @@ class InformationPackageAICSerializer(DynamicModelSerializer):
                 'validators': [],
             },
             'object_identifier_value': {
-                'read_only': False,
                 'validators': [],
             },
         }
+        validators = []
 
 
 class InformationPackageDetailSerializer(InformationPackageSerializer):
@@ -539,10 +539,24 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
     events = EventIPSerializer(many=True, required=False, allow_null=True)
+    submission_agreement = serializers.PrimaryKeyRelatedField(
+        required=False, default=None, allow_null=True, queryset=SubmissionAgreement.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose')
+    )
     sa_policy_id = serializers.CharField(required=False, allow_null=True)
+    responsible = serializers.PrimaryKeyRelatedField(
+        required=False, default=None, allow_null=True, queryset=User.objects.all(),
+    )
+    organization = serializers.SerializerMethodField()
     org_name = serializers.CharField(required=False, allow_null=True)
     content_mets_path = serializers.CharField(required=False)
     package_mets_path = serializers.CharField(required=False)
+
+    def get_organization(self, obj):
+        try:
+            return GroupSerializer(obj.get_organization().group).data
+        except AttributeError:
+            return None
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -574,6 +588,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
         else:
             aic = None
+        validated_data['aic'] = aic
 
         if 'events' in validated_data.keys():
             events_data = validated_data.pop('events')
@@ -582,25 +597,27 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
                     event, _ = EventIP.objects.update_or_create(
                         eventIdentifierValue=event_data['eventIdentifierValue'], defaults=event_data)
 
-        if 'sa_policy_id' in validated_data.keys():
-            sa_policy_id = validated_data.pop('sa_policy_id')
+        sa_policy_id = validated_data.pop('sa_policy_id')
+        if sa_policy_id and validated_data['submission_agreement'] is None:
             sa_obj = SubmissionAgreement.objects.get(policy=sa_policy_id)
             validated_data['submission_agreement'] = sa_obj
 
-        if 'org_name' in validated_data.keys():
-            org_name = validated_data.pop('org_name')
+        org_name = validated_data.pop('org_name')
+        if org_name:
             org = Group.objects.get(name=org_name)
+        elif 'organization' in self.context['request'].data and self.context['request'].data['organization']:
+            org = Group.objects.get(id=self.context['request'].data['organization']['id'])
         else:
             org = Group.objects.get(name='Default')
 
-        request = self.context.get("request")
-        if request and hasattr(request, "user"):
-            user = request.user
-        else:
-            user = User.objects.get(username="system")
+        if validated_data['responsible'] is None:
+            request = self.context.get("request")
+            if request and hasattr(request, "user"):
+                user = request.user
+            else:
+                user = User.objects.get(username="system")
+            validated_data['responsible'] = user
 
-        validated_data['aic'] = aic
-        validated_data['responsible'] = user
         validated_data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
         org.add_object(ip)
@@ -627,7 +644,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'appraisal_date', 'linking_agent_identifier_value', 'events', 'sa_policy_id',
-            'org_name',
+            'submission_agreement', 'org_name', 'organization'
         )
         extra_kwargs = {
             'id': {
@@ -635,10 +652,10 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
             'object_identifier_value': {
-                'read_only': False,
                 'validators': [],
             },
         }
+        validators = []
 
 
 class NestedInformationPackageSerializer(InformationPackageSerializer):

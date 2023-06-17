@@ -173,7 +173,7 @@ class TapeDriveAdmin(admin.ModelAdmin):
     readonly_fields = ["locked_by"]
     actions = ["clear_lock"]
 
-    @admin.action(permissions=["change"], description="Clear lock for selected drives")
+    @admin.action(permissions=["change"], description=_("Clear lock for selected drives"))
     def clear_lock(self, request, queryset):
         for obj in queryset:
             obj.clear_lock()

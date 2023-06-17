@@ -133,8 +133,12 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
     exception = serializers.SerializerMethodField()
+    exception_str = serializers.SerializerMethodField()
 
     def get_exception(self, obj):
+        return obj.exception
+
+    def get_exception_str(self, obj):
         if obj.exception is None:
             return None
         try:
@@ -149,7 +153,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception', 'eager',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception', 'exception_str', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
             'celery_id', 'args', 'params', 'result', 'traceback', 'exception',

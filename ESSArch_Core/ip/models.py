@@ -39,6 +39,7 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.db import models, transaction
@@ -467,9 +468,13 @@ class InformationPackage(models.Model):
         except AttributeError:
             return None
 
+    def clear_lock(self):
+        return cache.delete_pattern(self.get_lock_key())
+
     def get_lock_key(self):
         return '{}{}'.format(IP_LOCK_PREFIX, str(self.pk))
 
+    @admin.display(boolean=True)
     def is_locked(self):
         return self.get_lock_key() in cache
 
@@ -1505,7 +1510,7 @@ class InformationPackage(models.Model):
                     "queue": worker_queue,
                     "args": [str(self.pk)],
                     "params": {
-                        "storage_object": storage_object.pk,
+                        "storage_object": str(storage_object.pk),
                         'dst': temp_dir
                     },
                 },
@@ -1611,7 +1616,7 @@ class InformationPackage(models.Model):
                         "if": extracted,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': access_workarea_user_extracted
                         },
                     },
@@ -1632,7 +1637,7 @@ class InformationPackage(models.Model):
                         "if": tar,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': temp_object_path,
                         },
                     },
@@ -1689,7 +1694,7 @@ class InformationPackage(models.Model):
                         "queue": worker_queue,
                         "args": [str(self.pk)],
                         "params": {
-                            "storage_object": storage_object.pk,
+                            "storage_object": str(storage_object.pk),
                             'dst': temp_dir
                         },
                     },
@@ -2008,7 +2013,11 @@ class InformationPackage(models.Model):
         remote_ip = urljoin(host, reverse('informationpackage-add-from-master'))
         data = InformationPackageFromMasterSerializer(instance=self).data
         response = session.post(remote_ip, json=data, timeout=10)
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to add IP: {} to remote server. Response: {}".format(self, response.text))
+            raise
 
     @retry(retry=retry_if_exception_type(StorageMediumFull), reraise=True, stop=stop_after_attempt(2),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
@@ -2048,10 +2057,17 @@ class InformationPackage(models.Model):
                 task.exception = remote_data['exception']
                 task.save()
 
-                if task.status != celery_states.SUCCESS:
+                if task.status == celery_states.PENDING:
+                    task.run_remote_copy(session, host)
+                elif task.status != celery_states.SUCCESS:
+                    logger.debug('task.status: {}'.format(task.status))
                     task.retry_remote_copy(session, host)
+                    task.status = celery_states.PENDING
 
             while task.status not in celery_states.READY_STATES:
+                session = requests.Session()
+                session.verify = settings.REQUESTS_VERIFY
+                session.auth = (user, passw)
                 r = task.get_remote_copy(session, host)
 
                 remote_data = r.json()

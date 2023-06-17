@@ -622,9 +622,16 @@ class ProcessTask(Process):
         r = session.post(create_remote_task_url, json=data, timeout=60)
 
         if r.status_code == 409:
+            logger.exception("Problem to add task {} for IP: {} to remote server. Response: {}".format(
+                self.pk, ip_id, r.text))
             r = self.update_remote_copy(session, host)
 
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to create_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -642,8 +649,12 @@ class ProcessTask(Process):
             'information_package': ip_id,
         }
         r = session.patch(update_remote_task_url, json=data, timeout=60)
-
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to update_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -651,7 +662,12 @@ class ProcessTask(Process):
     def run_remote_copy(self, session, host):
         run_remote_task_url = urljoin(host, reverse('processtask-run', args=(str(self.pk),)))
         r = session.post(run_remote_task_url, timeout=60)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to run_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -660,7 +676,12 @@ class ProcessTask(Process):
         self.update_remote_copy(session, host)
         retry_remote_task_url = urljoin(host, reverse('processtask-retry', args=(str(self.pk),)))
         r = session.post(retry_remote_task_url, timeout=60)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to retry_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -669,7 +690,12 @@ class ProcessTask(Process):
         remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         r = session.get(remote_task_url, timeout=60)
         if r.status_code >= 400 and r.status_code != 404:
-            r.raise_for_status()
+            try:
+                r.raise_for_status()
+            except RequestException:
+                logger.exception("Problem to get_remote_copy task: {} for IP: {} to remote server. Response: {}\
+".format(self.pk, self.information_package, r.text))
+                raise
         return r
 
     def reset(self):
