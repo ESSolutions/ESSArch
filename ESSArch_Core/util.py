@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from ESSArch_Core.crypto import decrypt_remote_credentials
 import errno
 import glob
 import io
@@ -39,9 +40,12 @@ import zipfile
 from datetime import datetime
 from os import scandir, walk
 from subprocess import PIPE, Popen
+from time import sleep
 from urllib.parse import quote
 
 import chardet
+import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.core.cache import cache
 from django.core.validators import RegexValidator
@@ -368,21 +372,68 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
-def delete_path(path):
-    try:
-        shutil.rmtree(path)
-    except NotADirectoryError:
-        os.remove(path)
-    except FileNotFoundError:
-        pass
-    except OSError as e:
-        if os.name == 'nt':
-            if e.errno == 267:
-                os.remove(path)
-            elif e.errno != 3:
-                raise
+def delete_path(path, remote_host=None, remote_credentials=None, task=None):
+    requests_session = None
+    if remote_credentials:
+        user, passw = decrypt_remote_credentials(remote_credentials)
+        requests_session = requests.Session()
+        requests_session.verify = settings.REQUESTS_VERIFY
+        requests_session.auth = (user, passw)
+
+        r = task.get_remote_copy(session, remote_host)
+        if r.status_code == 404:
+            # the task does not exist
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
         else:
-            raise
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            if task.status == celery_states.PENDING:
+                task.run_remote_copy(session, remote_host)
+            elif task.status != celery_states.SUCCESS:
+                logger.debug('task.status: {}'.format(task.status))
+                task.retry_remote_copy(session, remote_host)
+                task.status = celery_states.PENDING
+
+        while task.status not in celery_states.READY_STATES:
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
+
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            sleep(5)
+
+        if task.status in celery_states.EXCEPTION_STATES:
+            task.reraise()
+    else:
+        try:
+            shutil.rmtree(path)
+        except NotADirectoryError:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            if os.name == 'nt':
+                if e.errno == 267:
+                    os.remove(path)
+                elif e.errno != 3:
+                    raise
+            else:
+                raise
 
 
 def delete_content(folder):

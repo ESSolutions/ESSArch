@@ -1030,6 +1030,7 @@ class TapeDrive(models.Model):
         data = r.json()
         data.pop('status_display', None)
         data.pop('idle_timer', None)
+        data.pop('idle_time', None)
 
         data['robot'] = Robot.create_from_remote_copy(
             host, session, data['robot']

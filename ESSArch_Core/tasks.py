@@ -506,9 +506,9 @@ def UpdateIPSizeAndCount(self):
 
 
 @app.task(bind=True, event_type=50710)
-def DeleteFiles(self, path):
+def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
     path, = self.parse_params(path)
-    delete_path(path)
+    delete_path(path, remote_host=remote_host, remote_credentials=remote_credentials, task=self.get_processtask())
 
     msg = "Deleted %s" % path
     self.create_success_event(msg)

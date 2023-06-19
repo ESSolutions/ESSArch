@@ -86,7 +86,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
-    information_package = serializers.StringRelatedField(read_only=True)
+    information_package_str = serializers.SerializerMethodField()
 
     def get_params(self, obj):
         params = obj.params
@@ -94,6 +94,9 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             params[param] = get_result(obj.processstep, reference)
 
         return params
+
+    def get_information_package_str(self, obj):
+        return str(obj.information_package)
 
     def update(self, instance, validated_data):
         if 'id' in validated_data:
@@ -116,7 +119,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'processstep', 'processstep_pos', 'time_created', 'time_started',
             'time_done', 'retried',
             'responsible', 'hidden', 'args', 'params', 'information_package',
-            'eager',
+            'information_package_str', 'eager',
         )
         read_only_fields = (
             'status', 'progress', 'time_created', 'time_started', 'time_done',
