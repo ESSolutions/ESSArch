@@ -28,7 +28,7 @@ from billiard.einfo import ExceptionInfo
 from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import connection
+# from django.db import connection
 from django.utils import translation
 from tenacity import Retrying, stop_after_delay, wait_random_exponential
 
@@ -174,7 +174,7 @@ class DBTask(Task):
                     self.task_id, None, celery_states.STARTED,
                     request=self.request,
                 )
-            connection.close()
+            # connection.close()
             res = self.run(*args, **kwargs)
         except exceptions.Ignore:
             raise
@@ -266,6 +266,8 @@ class DBTask(Task):
             self.create_event(celery_states.FAILURE, msg, None, einfo)
 
     def create_success_event(self, msg, retval=None):
+        from django.db import close_old_connections
+        close_old_connections()
         return self.create_event(celery_states.SUCCESS, msg, retval, None)
 
     def success(self, retval, args, kwargs):

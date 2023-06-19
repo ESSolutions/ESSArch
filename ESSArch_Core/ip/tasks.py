@@ -14,7 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext
-from elasticsearch import ConnectionError, NotFoundError
+from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from tenacity import (
@@ -577,11 +577,11 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
         requests_session.auth = (user, passw)
 
         task = self.get_processtask()
-        r = task.get_remote_copy(session, remote_host)
+        r = task.get_remote_copy(requests_session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(session, remote_host)
-            task.run_remote_copy(session, remote_host)
+            task.create_remote_copy(requests_session, remote_host)
+            task.run_remote_copy(requests_session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -592,17 +592,17 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(session, remote_host)
+                task.run_remote_copy(requests_session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(session, remote_host)
+                task.retry_remote_copy(requests_session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            session = requests.Session()
-            session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
-            r = task.get_remote_copy(session, remote_host)
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+            r = task.get_remote_copy(requests_session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']
