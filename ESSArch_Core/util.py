@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from ESSArch_Core.crypto import decrypt_remote_credentials
 import errno
 import glob
 import io
@@ -57,6 +56,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from ESSArch_Core._version import get_versions
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
@@ -380,11 +380,11 @@ def delete_path(path, remote_host=None, remote_credentials=None, task=None):
         requests_session.verify = settings.REQUESTS_VERIFY
         requests_session.auth = (user, passw)
 
-        r = task.get_remote_copy(session, remote_host)
+        r = task.get_remote_copy(requests_session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(session, remote_host)
-            task.run_remote_copy(session, remote_host)
+            task.create_remote_copy(requests_session, remote_host)
+            task.run_remote_copy(requests_session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -395,17 +395,17 @@ def delete_path(path, remote_host=None, remote_credentials=None, task=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(session, remote_host)
+                task.run_remote_copy(requests_session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(session, remote_host)
+                task.retry_remote_copy(requests_session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            session = requests.Session()
-            session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
-            r = task.get_remote_copy(session, remote_host)
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+            r = task.get_remote_copy(requests_session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']

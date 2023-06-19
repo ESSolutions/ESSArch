@@ -3,16 +3,18 @@ import logging
 import os
 import pathlib
 import tarfile
+from time import sleep
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext
-from elasticsearch import NotFoundError
+from elasticsearch import ConnectionError, NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
 from tenacity import (
@@ -25,6 +27,7 @@ from tenacity import (
 from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -73,6 +76,7 @@ from ESSArch_Core.util import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True, event_type=10500)
@@ -564,11 +568,59 @@ def CreateReceipt(self, task_id, backend, template, destination, outcome, short_
 
 
 @app.task(bind=True)
-def MarkArchived(self):
-    ip = self.get_information_package()
-    ip.archived = True
-    ip.state = 'Preserved'
-    ip.save()
+def MarkArchived(self, remote_host=None, remote_credentials=None):
+    requests_session = None
+    if remote_credentials:
+        user, passw = decrypt_remote_credentials(remote_credentials)
+        requests_session = requests.Session()
+        requests_session.verify = settings.REQUESTS_VERIFY
+        requests_session.auth = (user, passw)
+
+        task = self.get_processtask()
+        r = task.get_remote_copy(session, remote_host)
+        if r.status_code == 404:
+            # the task does not exist
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
+        else:
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            if task.status == celery_states.PENDING:
+                task.run_remote_copy(session, remote_host)
+            elif task.status != celery_states.SUCCESS:
+                logger.debug('task.status: {}'.format(task.status))
+                task.retry_remote_copy(session, remote_host)
+                task.status = celery_states.PENDING
+
+        while task.status not in celery_states.READY_STATES:
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
+
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            sleep(5)
+
+        if task.status in celery_states.EXCEPTION_STATES:
+            task.reraise()
+    else:
+        ip = self.get_information_package()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
 
 
 @app.task(bind=True)
@@ -637,11 +689,13 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
     self.set_progress(99, 100)
 
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
-    try:
-        ip.get_doc().delete()
-    except NotFoundError:
-        if ip.archived:
-            logger.warning('Information package document not found: {}'.format(ip.pk))
+
+    if settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
+        try:
+            ip.get_doc().delete()
+        except NotFoundError:
+            if ip.archived:
+                logger.warning('Information package document not found: {}'.format(ip.pk))
 
     if from_db:
         with transaction.atomic():

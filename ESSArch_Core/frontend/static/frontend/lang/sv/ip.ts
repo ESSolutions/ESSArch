@@ -15,6 +15,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     CREATE_DATE_START: 'Event-tid start',
     CREATING: 'Skapas',
     DELETE_DESC: 'Radera IP',
+    DELETING: 'Raderar',
     END_DATE: 'Slutdatum',
     END_DATE_DESC: 'Slutdatum',
     END_DATE_END: 'Slutdatum till',

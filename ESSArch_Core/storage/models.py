@@ -44,6 +44,7 @@ from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
+from ESSArch_Core.util import delete_path
 
 logger = logging.getLogger('essarch.storage.models')
 
@@ -903,11 +904,15 @@ class StorageObject(models.Model):
                         new_tar.format = settings.TARFILE_FORMAT
                         new_tar.add(temp_object_path)
                     copy_file(temp_container_path, dst, requests_session=session)
+                    delete_path(temp_container_path)
 
                 else:
                     copy_file(temp_container_path, dst, requests_session=session)
                     copy_file(temp_mets_path, dst, requests_session=session)
                     copy_file(temp_aic_mets_path, dst, requests_session=session)
+                    delete_path(temp_container_path)
+                    delete_path(temp_mets_path)
+                    delete_path(temp_aic_mets_path)
 
             else:
                 storage_backend.read(self, dst, extract=extract)

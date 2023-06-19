@@ -15,6 +15,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     CREATE_DATE_START: 'Event time start',
     CREATING: 'Creating',
     DELETE_DESC: 'Delete IP',
+    DELETING: 'Deleting',
     END_DATE: 'End date',
     END_DATE_DESC: 'End date',
     END_DATE_END: 'End date end',

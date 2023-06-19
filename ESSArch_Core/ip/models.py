@@ -1237,30 +1237,53 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
                             "label": "Delete temporary container from {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_CONTAINER_PATH}}",
-                                remote_server.split(',')[0],
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_CONTAINER_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
                             "label": "Delete temporary AIP xml from {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_METS_PATH}}",
-                                remote_server.split(',')[0],
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
                             "label": "Delete temporary AIC xml from {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_AIC_METS_PATH}}",
-                                remote_server.split(',')[0],
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_AIC_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
+                        },
+                    ]
+                } for remote_server in remote_servers
+            ]
+        }
+
+        remote_servers_archived = {
+            "step": True,
+            "parallel": True,
+            "name": "Mark as archived on remote hosts",
+            "children": [
+                {
+                    "step": True,
+                    "parallel": True,
+                    "name": "Mark as archived on remote host",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.ip.tasks.MarkArchived",
+                            "label": "Mark as archived on {}".format(remote_server.split(',')[0]),
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                     ]
                 } for remote_server in remote_servers
@@ -1274,6 +1297,7 @@ class InformationPackage(models.Model):
                 remote_temp_container_transfer,
                 remote_temp_container_to_storage_method,
                 remote_temp_container_delete,
+                remote_servers_archived,
             ],
         }
 
