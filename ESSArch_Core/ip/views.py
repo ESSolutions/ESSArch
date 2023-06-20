@@ -2024,7 +2024,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             expand_container = string_to_bool(expand_container)
         path = request.query_params.get('path', '').rstrip('/')
 
-        if ip.archived:
+        if ip.archived and settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
             if request.method in ['DELETE', 'POST']:
                 raise exceptions.ParseError('You cannot modify preserved content')
             # check if path exists

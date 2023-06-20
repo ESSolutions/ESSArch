@@ -569,14 +569,14 @@ class StorageMedium(models.Model):
     storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE)
     tape_slot = models.OneToOneField(
         'TapeSlot',
-        models.PROTECT,
+        models.SET_NULL,
         related_name='storage_medium',
         null=True,
         blank=True,
     )
     tape_drive = models.OneToOneField(
         'TapeDrive',
-        models.PROTECT,
+        models.SET_NULL,
         related_name='storage_medium',
         null=True,
         blank=True,
@@ -588,7 +588,7 @@ class StorageMedium(models.Model):
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def create_from_remote_copy(cls, host, session, object_id):
+    def create_from_remote_copy(cls, host, session, object_id, create_tape_drive=False, create_tape_slot=False):
         remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
         r.raise_for_status()
@@ -599,14 +599,18 @@ class StorageMedium(models.Model):
         data.pop('block_size_display', None)
         data.pop('format_display', None)
         data['storage_target_id'] = data.pop('storage_target')['id']
-        if data.get('tape_drive') is not None:
+        if data.get('tape_drive') is not None and create_tape_drive:
             data['tape_drive'] = TapeDrive.create_from_remote_copy(
                 host, session, data['tape_drive'], create_storage_medium=False
             )
-        if data.get('tape_slot') is not None:
+        else:
+            data.pop('tape_drive', None)
+        if data.get('tape_slot') is not None and create_tape_slot:
             data['tape_slot'] = TapeSlot.create_from_remote_copy(
                 host, session, data['tape_slot'], create_storage_medium=False
             )
+        else:
+            data.pop('tape_slot', None)
         data['last_changed_local'] = timezone.now
         storage_medium, _ = StorageMedium.objects.update_or_create(
             pk=data.pop('id'),
