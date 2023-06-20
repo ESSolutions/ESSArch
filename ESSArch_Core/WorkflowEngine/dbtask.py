@@ -28,10 +28,10 @@ from billiard.einfo import ExceptionInfo
 from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-# from django.db import connection
 from django.utils import translation
 from tenacity import Retrying, stop_after_delay, wait_random_exponential
 
+from ESSArch_Core.db.utils import check_db_connection
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.ip.models import EventIP, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
@@ -174,7 +174,6 @@ class DBTask(Task):
                     self.task_id, None, celery_states.STARTED,
                     request=self.request,
                 )
-            # connection.close()
             res = self.run(*args, **kwargs)
         except exceptions.Ignore:
             raise
@@ -220,6 +219,7 @@ class DBTask(Task):
         return super().after_return(status, retval, task_id, args, kwargs, einfo)
 
     def create_event(self, status, msg, retval, einfo):
+        check_db_connection()
         if status == celery_states.SUCCESS:
             outcome = EventIP.SUCCESS
             level = logging.INFO
@@ -266,8 +266,6 @@ class DBTask(Task):
             self.create_event(celery_states.FAILURE, msg, None, einfo)
 
     def create_success_event(self, msg, retval=None):
-        from django.db import close_old_connections
-        close_old_connections()
         return self.create_event(celery_states.SUCCESS, msg, retval, None)
 
     def success(self, retval, args, kwargs):
