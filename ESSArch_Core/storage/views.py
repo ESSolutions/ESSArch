@@ -26,7 +26,6 @@ import os
 import uuid
 
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
@@ -86,10 +85,10 @@ from ESSArch_Core.storage.serializers import (
     TapeSlotSerializer,
 )
 from ESSArch_Core.util import parse_content_range_header
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessTaskDetailSerializer,
-    ProcessTaskSerializer,
+    ProcessStepDetailSerializer,
+    ProcessStepSerializer,
 )
 
 
@@ -542,8 +541,8 @@ class TapeSlotViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
 
 
 class StorageMigrationViewSet(viewsets.ModelViewSet):
-    queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
-    serializer_class = ProcessTaskDetailSerializer
+    queryset = ProcessStep.objects.filter(name='Migrate Information Package')
+    serializer_class = ProcessStepDetailSerializer
     filter_backends = (SearchFilter,)
     search_fields = (
         'label', 'information_package__id', 'information_package__object_identifier_value',
@@ -555,9 +554,9 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
             return StorageMigrationCreateSerializer
 
         if self.action == 'list':
-            return ProcessTaskSerializer
+            return ProcessStepSerializer
 
-        return ProcessTaskDetailSerializer
+        return ProcessStepDetailSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -602,15 +601,20 @@ class StorageMigrationPreviewDetailView(views.APIView):
         data = serializer.validated_data
 
         policy = data['policy']
-        storage_methods = data.get('storage_methods', policy.storage_methods.all())
+        storage_methods = data['storage_methods']
+        export_path = data.get('export_path', '')
         if isinstance(storage_methods, list):
             storage_methods = StorageMethod.objects.filter(
                 pk__in=[s.pk for s in storage_methods]
             )
-
-        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(
+        qs = InformationPackage.objects.migratable(
+            storage_methods=storage_methods, export_path=export_path).filter(
             submission_agreement__policy=policy,
         )
-        ip = get_object_or_404(qs, pk=pk)
+
+        try:
+            ip = qs.get(pk=pk)
+        except InformationPackage.DoesNotExist:
+            return Response(data=[{"id": '-', "name": '-'}])
 
         return Response(serializer.save(information_package=ip))

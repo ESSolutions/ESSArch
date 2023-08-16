@@ -497,21 +497,31 @@ class StorageMediumQueryset(models.QuerySet):
         )
         return self.filter(pk__in=qs)
 
-    def migratable(self):
+    def migratable(self, export_path=''):
+        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.filter(
+            storage_method=Subquery(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_target=OuterRef(OuterRef('storage_target')),
+                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                ).values('storage_method')[:1]
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
+        )
+        method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.none()
+        if export_path:
+            method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.filter(
+                storage_method=Subquery(
+                    StorageMethodTargetRelation.objects.filter(
+                        storage_target=OuterRef(OuterRef('storage_target')),
+                        status=STORAGE_TARGET_STATUS_MIGRATE,
+                    ).values('storage_method')[:1]
+                )
+            )
         return self.exclude(status=0).filter(
             Q(
-                Exists(
-                    StorageMethodTargetRelation.objects.filter(
-                        storage_method=Subquery(
-                            StorageMethodTargetRelation.objects.filter(
-                                storage_target=OuterRef(OuterRef('storage_target')),
-                                status=STORAGE_TARGET_STATUS_MIGRATE,
-                            ).values('storage_method')[:1]
-                        ),
-                        status=STORAGE_TARGET_STATUS_ENABLED,
-                    )
-                ),
-                self._has_non_migrated_storage_object_in_method(False),
+                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled),
+                  self._has_non_migrated_storage_object_in_method(False)) |
+                Q(Exists(method_target_rel_with_old_migrate_and_export))
             ) |
             Q(
                 self._missing_storage_object_in_other_method_in_policy()
@@ -732,7 +742,7 @@ class StorageObjectQueryset(models.QuerySet):
             remote=remote,
             storage_type=storage_type,
             content_location_value_int=content_location_value_int,
-        ).order_by('remote', 'container_order', 'storage_type', 'content_location_value_int')
+        ).order_by('remote', 'container_order', 'storage_type', 'storage_medium', 'content_location_value_int')
 
 
 class StorageObject(models.Model):
@@ -1141,9 +1151,9 @@ class RobotQueue(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
     posted = models.DateTimeField(default=timezone.now)
     robot = models.ForeignKey('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
-    io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
+    io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, blank=True, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
-    tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)
+    tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, blank=True, null=True)
     req_type = models.IntegerField(choices=robot_req_type_CHOICES)
     status = models.IntegerField(default=0, choices=req_status_CHOICES)
 

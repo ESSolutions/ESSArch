@@ -36,6 +36,7 @@ from ESSArch_Core.storage.models import (
     medium_type_CHOICES,
     storage_type_CHOICES,
 )
+from ESSArch_Core.util import strtobool
 
 
 class StorageMediumOrderingFilter(filters.OrderingFilter):
@@ -58,6 +59,7 @@ class StorageMediumFilter(filters.FilterSet):
     deactivatable = filters.BooleanFilter(label='deactivatable', method='filter_deactivatable')
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
+    exportable = filters.BooleanFilter(label='exportable', method='filter_exportable')
     medium_id_range = CharSuffixRangeFilter(field_name='medium_id')
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
@@ -75,10 +77,15 @@ class StorageMediumFilter(filters.FilterSet):
         return queryset.deactivatable(include_inactive_ips=include_inactive_ips)
 
     def filter_migratable(self, queryset, name, value):
+        exportable = strtobool(self.data.get('exportable', False))
+        export_path = 'dummy' if exportable else ''
         if value:
-            return queryset.migratable()
+            return queryset.migratable(export_path=export_path)
         else:
             return queryset.non_migratable()
+
+    def filter_exportable(self, queryset, name, value):
+        return queryset.migratable(export_path='dummy') if value else queryset
 
     ordering = StorageMediumOrderingFilter(
         fields=(

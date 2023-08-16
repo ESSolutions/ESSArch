@@ -28,6 +28,8 @@ export default class AdvancedFilterCtrl {
           return Filters.getEventFilters(currentState).model;
         case 'medium':
           return Filters.getStorageMediumFilters(currentState).model;
+        case 'process':
+          return Filters.getProcessFilters(currentState).model;
       }
     };
 
@@ -39,6 +41,8 @@ export default class AdvancedFilterCtrl {
           return Filters.getEventFilters(currentState).fields;
         case 'medium':
           return Filters.getStorageMediumFilters(currentState).fields;
+        case 'process':
+          return Filters.getProcessFilters(currentState).fields;
       }
     };
 

@@ -93,6 +93,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True)
@@ -443,7 +444,14 @@ def CompareRepresentationXMLFiles(self):
 @transaction.atomic
 def UpdateIPStatus(self, status, prev=None):
     status, = self.parse_params(status)
-    ip = InformationPackage.objects.get(pk=self.ip)
+    try:
+        ip = InformationPackage.objects.get(pk=self.ip)
+    except InformationPackage.DoesNotExist:
+        msg = 'exception in UpdateIPStatus for task_id: {}, step_id: {}, DoesNotExist when get ip: {} - return'.format(
+            self.task_id, self.step, self.ip)
+        logger.warning(msg)
+
+        return msg
     if prev is None:
         t = self.get_processtask()
         t.params['prev'] = ip.state

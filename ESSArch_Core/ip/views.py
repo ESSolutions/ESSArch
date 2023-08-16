@@ -51,6 +51,7 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -61,7 +62,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from ESSArch_Core.api.filters import SearchFilter, string_to_bool
+from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 # from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
@@ -146,6 +147,10 @@ from ESSArch_Core.util import (
     remove_prefix,
     timestamp_to_datetime,
     zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.filters import (
+    ProcessStepFilter,
+    ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
@@ -648,22 +653,20 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def workflow(self, request, pk=None):
         ip = self.get_object()
-        hidden = request.query_params.get('hidden')
 
         steps = ip.steps.filter(parent_step__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
 
-        if hidden is not None:
-            hidden = string_to_bool(hidden)
-            if hidden is False:
-                query = Q(Q(hidden=hidden) | Q(hidden__isnull=True))
-            else:
-                query = Q(hidden=hidden)
-
-            steps = steps.filter(query)
-            tasks = tasks.filter(query)
+        steps = ProcessStepFilter(data=request.query_params, queryset=steps, request=self.request).qs
+        tasks = ProcessTaskFilter(data=request.query_params, queryset=tasks, request=self.request).qs
 
         flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
+
+        if self.paginator is not None:
+            paginated = self.paginator.paginate_queryset(flow, request)
+            serializer = ProcessStepChildrenSerializer(data=paginated, many=True, context={'request': request})
+            serializer.is_valid()
+            return self.paginator.get_paginated_response(serializer.data)
 
         serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
         serializer.is_valid()

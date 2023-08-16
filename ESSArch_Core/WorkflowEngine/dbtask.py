@@ -29,7 +29,12 @@ from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
-from tenacity import Retrying, stop_after_delay, wait_random_exponential
+from tenacity import (
+    RetryError,
+    Retrying,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from ESSArch_Core.db.utils import check_db_connection
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -135,14 +140,20 @@ class DBTask(Task):
     def _run(self, *args, **kwargs):
         self.extra_data = {}
         if self.ip:
-            for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                    wait=wait_random_exponential(multiplier=1, max=60)):
-                with attempt:
-                    try:
-                        ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
-                    except InformationPackage.DoesNotExist as e:
-                        logger.warning('exception DoesNotExist when get ip: %s retry' % repr(self.ip))
-                        raise e
+            try:
+                for attempt in Retrying(stop=stop_after_delay(30), wait=wait_random_exponential(multiplier=1, max=60)):
+                    with attempt:
+                        try:
+                            ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
+                        except InformationPackage.DoesNotExist as e:
+                            logger.warning(
+                                'exception in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
+- retry'.format(self.task_id, self.step, self.ip))
+                            raise e
+            except RetryError:
+                logger.warning('RetryError in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
+- try to _run_task without IP'.format(self.task_id, self.step, self.ip))
+                return self._run_task(*args, **kwargs)
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
             logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
@@ -164,9 +175,13 @@ class DBTask(Task):
 
     def _run_task(self, *args, **kwargs):
         if self.step is not None:
-            step = ProcessStep.objects.get(pk=self.step)
-            for ancestor in step.get_ancestors(include_self=True):
-                self.extra_data.update(ancestor.context)
+            try:
+                step = ProcessStep.objects.get(pk=self.step)
+                for ancestor in step.get_ancestors(include_self=True):
+                    self.extra_data.update(ancestor.context)
+            except ProcessStep.DoesNotExist:
+                logger.warning('exception in _run_task for task_id: {}, step_id: {}, DoesNotExist when get \
+step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
 
         try:
             if self.eager:

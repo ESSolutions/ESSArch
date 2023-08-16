@@ -10,6 +10,7 @@ import requests
 from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -552,7 +553,11 @@ def WriteInformationPackageToSearchIndex(self):
 
 @app.task(bind=True)
 def CreateReceipt(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
-    ip = self.get_information_package()
+    try:
+        ip = self.get_information_package()
+    except ObjectDoesNotExist:
+        logger.warning('exception ip DoesNotExist in CreateReceipt. task_id: {}, ip: {}'.format(task_id, self.ip))
+        ip = None
     template, destination, outcome, short_message, message, date = self.parse_params(
         template, destination, outcome, short_message, message, date
     )

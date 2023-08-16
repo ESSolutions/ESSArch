@@ -158,6 +158,9 @@ class ProcessStep(MPTTModel, Process):
         blank=True,
         null=True
     )
+    responsible = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, related_name='steps', null=True
+    )
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
     context = models.JSONField(default=dict, null=True)

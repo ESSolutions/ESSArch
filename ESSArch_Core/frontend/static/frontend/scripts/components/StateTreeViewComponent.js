@@ -8,6 +8,7 @@ export default {
     'Step',
     'Task',
     'appConfig',
+    '$state',
     '$timeout',
     '$interval',
     'PermPermissionStore',

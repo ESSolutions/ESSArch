@@ -43,11 +43,21 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     hidden = serializers.BooleanField()
     progress = serializers.IntegerField()
     status = serializers.CharField()
-    responsible = serializers.SerializerMethodField()
+    responsible = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
     step_position = serializers.SerializerMethodField()
     time_started = serializers.DateTimeField()
     time_done = serializers.DateTimeField()
     retried = serializers.SerializerMethodField()
+    information_package_str = serializers.SerializerMethodField()
+    time_created = serializers.DateTimeField()
+
+    def get_information_package_str(self, obj):
+        if type(obj).__name__ == 'ProcessStep':
+            if obj.information_package:
+                return str(obj.information_package)
+        return None
 
     def get_retried(self, obj):
         try:
@@ -68,13 +78,6 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
         if type(obj).__name__ == 'ProcessTask':
             return obj.label
         return obj.name
-
-    def get_responsible(self, obj):
-        if type(obj).__name__ == 'ProcessTask':
-            if obj.responsible:
-                return obj.responsible.username
-            return None
-        return obj.user
 
     def get_step_position(self, obj):
         return obj.get_pos()
@@ -174,6 +177,21 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
 
 class ProcessStepSerializer(serializers.ModelSerializer):
     user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
+    flow_type = serializers.SerializerMethodField()
+    information_package_str = serializers.SerializerMethodField()
+    step_position = serializers.SerializerMethodField()
+    responsible = serializers.SlugRelatedField(
+        slug_field='username', read_only=True
+    )
+
+    def get_flow_type(self, obj):
+        return 'task' if type(obj).__name__ == 'ProcessTask' else 'step'
+
+    def get_information_package_str(self, obj):
+        return str(obj.information_package)
+
+    def get_step_position(self, obj):
+        return obj.get_pos()
 
     def create(self, validated_data):
         if 'user' not in validated_data:
@@ -185,7 +203,8 @@ class ProcessStepSerializer(serializers.ModelSerializer):
         fields = (
             'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
             'status', 'progress', 'time_created', 'parent_step',
-            'parent_step_pos', 'information_package',
+            'parent_step_pos', 'information_package', 'information_package_str',
+            'flow_type', 'step_position', 'responsible',
         )
         read_only_fields = (
             'status', 'progress', 'time_created', 'time_done',

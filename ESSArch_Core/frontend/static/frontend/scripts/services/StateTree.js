@@ -1,17 +1,54 @@
 export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   //Get data for status view. child steps and tasks
-  function getTreeData(ip, expandedNodes) {
+  function getTreeData(ip, expandedNodes, paginationParams, sortString, searchString, columnFilters) {
     let promise;
     if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
-      promise = Workarea.workflow({
-        id: ip.id,
-        hidden: false,
-      }).$promise;
+      promise = Workarea.workflow(
+        angular.extend(
+          {
+            id: ip.id,
+            hidden: false,
+            page: paginationParams.pageNumber,
+            page_size: paginationParams.number,
+            pager: paginationParams.pager,
+            ordering: sortString,
+            search: searchString,
+          },
+          columnFilters
+        )
+      ).$promise;
+    } else if ($state.includes('**.storageMigration.**')) {
+      console.log('Step - :', Step);
+      promise = Step.query(
+        angular.extend(
+          {
+            name: 'Migrate Information Package',
+            childs: true,
+            hidden: false,
+            page: paginationParams.pageNumber,
+            page_size: paginationParams.number,
+            pager: paginationParams.pager,
+            ordering: sortString,
+            search: searchString,
+          },
+          columnFilters
+        )
+      ).$promise;
     } else {
-      promise = IP.workflow({
-        id: ip.id,
-        hidden: false,
-      }).$promise;
+      promise = IP.workflow(
+        angular.extend(
+          {
+            id: ip.id,
+            hidden: false,
+            page: paginationParams.pageNumber,
+            page_size: paginationParams.number,
+            pager: paginationParams.pager,
+            ordering: sortString,
+            search: searchString,
+          },
+          columnFilters
+        )
+      ).$promise;
     }
     return promise.then(function (workflow) {
       workflow.forEach(function (flow_node) {

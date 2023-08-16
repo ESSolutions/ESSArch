@@ -102,14 +102,15 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     storage_medium.medium_id, str(storage_medium.pk)))
             return
 
-        logger.debug('Queueing mount of storage medium {} ({})'.format(
-            storage_medium.medium_id, str(storage_medium.pk)))
-        rq, _ = RobotQueue.objects.get_or_create(
-            user=User.objects.get(username='system'),
-            storage_medium=storage_medium,
-            robot=storage_medium.tape_slot.robot,
-            req_type=10, status__in=[0, 2], defaults={'status': 0},
-        )
+        with cache.lock('RobotQueue-lock', blocking_timeout=300):
+            logger.debug('Queueing mount of storage medium {} ({})'.format(
+                storage_medium.medium_id, str(storage_medium.pk)))
+            rq, _ = RobotQueue.objects.get_or_create(
+                user=User.objects.get(username='system'),
+                storage_medium=storage_medium,
+                robot=storage_medium.tape_slot.robot,
+                req_type=10, status__in=[0, 2], defaults={'status': 0},
+            )
 
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(

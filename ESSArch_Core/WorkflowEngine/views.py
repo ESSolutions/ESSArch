@@ -96,6 +96,8 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'list':
+            if self.request.GET.get('childs'):
+                return ProcessStepChildrenSerializer
             return ProcessStepSerializer
 
         return ProcessStepDetailSerializer

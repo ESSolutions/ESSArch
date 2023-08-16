@@ -119,60 +119,13 @@ export default class StorageMigrationCtrl {
       }
     };
 
-    vm.jobsPipe = (tableState) => {
-      $scope.jobsLoading = true;
-      if (vm.displayedJobs.length === 0) {
-        $scope.initLoad = true;
-      }
-      if (!angular.isUndefined(tableState)) {
-        vm.jobsTableState = tableState;
-        var search = '';
-        if (tableState.search.predicateObject) {
-          var search = tableState.search.predicateObject['$'];
-        }
-        let ordering = tableState.sort.predicate;
-        if (tableState.sort.reverse) {
-          ordering = '-' + ordering;
-        }
-
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.jobsPerPage);
-        $http({
-          method: 'GET',
-          url: appConfig.djangoUrl + 'storage-migrations/',
-          params: {
-            search,
-            ordering,
-            page: paginationParams.pageNumber,
-            page_size: paginationParams.number,
-            pager: paginationParams.pager,
-          },
-        })
-          .then(function (response) {
-            response.data.forEach((x) => {
-              x.flow_type = 'task';
-            });
-            vm.displayedJobs = response.data;
-            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-            $scope.jobsLoading = false;
-            $scope.initLoad = false;
-
-            ipExists();
-            SelectedIPUpdater.update(vm.displayedJobs, $scope.ips, $scope.ip);
-          })
-          .catch(function (response) {
-            $scope.jobsLoading = false;
-          });
-      }
-    };
-
-    vm.updateJobsList = () => {
-      vm.jobsPipe(vm.jobsTableState);
-    };
-
     vm.migrationModal = function (ips) {
+      let mediums = [];
       if (ips.length <= 0) {
         if ($scope.ip !== null) {
           ips = [$scope.ip];
+        } else if ($scope.ip == null && vm.selectedMediums.length > 0) {
+          mediums = vm.selectedMediums.length ? vm.selectedMediums : null;
         }
       }
       const modalInstance = $uibModal.open({
@@ -185,10 +138,17 @@ export default class StorageMigrationCtrl {
         size: 'lg',
         resolve: {
           data: function () {
-            return {
-              ips: ips,
-              policy: vm.mediumFilterModel.policy,
-            };
+            if (ips.length > 0) {
+              return {
+                ips: ips,
+                policy: vm.mediumFilterModel.policy,
+              };
+            } else {
+              return {
+                mediums: mediums,
+                policy: vm.mediumFilterModel.policy,
+              };
+            }
           },
         },
       });
@@ -213,6 +173,7 @@ export default class StorageMigrationCtrl {
             medium: vm.selectedMediums.length ? vm.selectedMediums.map((x) => x.id) : null,
             policy: vm.mediumFilterModel.policy,
             migratable: true,
+            pager: 'none',
           },
           vm.columnFilters
         ),
