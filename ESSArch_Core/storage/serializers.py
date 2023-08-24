@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 
 from celery import states as celery_states
 from django.contrib.auth import get_user_model
@@ -468,7 +468,8 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
                 for ip_obj in information_packages:
                     previously_not_completed_steps = []
-                    for previously_step in ProcessStep.objects.filter(name='Migrate Information Package', information_package=ip_obj):
+                    for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
+                                                                      information_package=ip_obj):
                         if previously_step.status in [
                             celery_states.PENDING,
                             celery_states.STARTED,
@@ -518,7 +519,8 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
                     for ip_obj in information_packages:
                         previously_not_completed_steps = []
-                        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package', information_package=ip_obj):
+                        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
+                                                                          information_package=ip_obj):
                             if previously_step.status in [
                                 celery_states.PENDING,
                                 celery_states.STARTED,
