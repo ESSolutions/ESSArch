@@ -348,8 +348,7 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                         entry.delete()
                     finally:
                         if entry.pk is not None:
-                            entry.robot = None
-                            entry.save(update_fields=['robot', 'status'])
+                            entry.save(update_fields=['status'])
 
             elif entry.req_type in [20, 30]:  # unmount
                 if medium.tape_drive is None:  # already unmounted

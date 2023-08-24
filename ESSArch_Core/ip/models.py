@@ -2539,7 +2539,7 @@ class InformationPackage(models.Model):
                     logger.error('{err}: {path}'.format(err=err, path=cts))
                     raise OSError(errno.ENOENT, err, cts)
             else:
-                logger.info('No content type specification spcified in profile')
+                logger.info('No content type specification specified in profile')
                 try:
                     ct_importer_name = ct_profile.specification['name']
                 except KeyError:
