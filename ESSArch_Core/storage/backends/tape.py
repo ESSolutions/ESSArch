@@ -14,7 +14,6 @@ from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.exceptions import StorageMediumFull
 from ESSArch_Core.storage.models import (
     TAPE,
@@ -145,8 +144,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         ip = storage_object.ip
         block_size = medium.block_size * 512
 
-        # TODO: Create temp dir inside configured temp directory
-        tmp_path = tempfile.mkdtemp()
+        tmp_path = tempfile.mkdtemp(prefix='.tmp', dir=dst)
 
         try:
             drive = TapeDrive.objects.get(storage_medium=medium)
@@ -172,13 +170,13 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
             if include_xml:
                 try:
-                    copy(src_xml, dst, block_size=block_size)
+                    shutil.move(src_xml, dst)
                 except FileNotFoundError as e:
                     logger.warning(
                         'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
                 if aic_xml:
                     try:
-                        copy(src_aic_xml, dst, block_size=block_size)
+                        shutil.move(src_aic_xml, dst)
                     except FileNotFoundError as e:
                         logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
@@ -203,9 +201,9 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     safe_extract(t, dst)
                     new = os.path.join(dst, root)
             else:
-                new = copy(src_tar, dst, block_size=block_size)
+                new = shutil.move(src_tar, dst)
         else:
-            new = copy(src, dst, block_size=block_size)
+            new = shutil.move(src, dst)
 
         try:
             shutil.rmtree(tmp_path)
