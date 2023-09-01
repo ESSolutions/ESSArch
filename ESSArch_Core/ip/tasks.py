@@ -552,7 +552,8 @@ def WriteInformationPackageToSearchIndex(self):
 
 
 @app.task(bind=True)
-def CreateReceipt(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
+def CreateReceipt(self, task_id=None, backend=None, template=None, destination=None, outcome=None,
+                  short_message=None, message=None, date=None, **kwargs):
     try:
         ip = self.get_information_package()
     except ObjectDoesNotExist:

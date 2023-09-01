@@ -22,6 +22,9 @@ def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager
         args = on_error.get('args', [])
         params = on_error.get('params', {})
         result_params = on_error.get('result_params', {})
+        progress = 0
+        if status == celery_states.SUCCESS:
+            progress = 100
         yield ProcessTask(
             name=on_error['name'],
             reference=on_error.get('reference', None),
@@ -36,6 +39,7 @@ def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager
             processstep=parent_step,
             processstep_pos=on_error_idx,
             status=status,
+            progress=progress,
         )
 
 

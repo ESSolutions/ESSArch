@@ -204,6 +204,7 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
                     exception=einfo.exception,
                     traceback=einfo.traceback,
                 )
+                logger.error('Task with flag "allow failure" failed with exception {}'.format(einfo.exception))
                 return None
 
             raise

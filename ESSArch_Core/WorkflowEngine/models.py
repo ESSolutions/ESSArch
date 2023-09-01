@@ -105,7 +105,7 @@ class Process(models.Model):
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255)
     queue = models.CharField(max_length=255, blank=True, null=True, default=None)
-    hidden = models.BooleanField(editable=False, null=True, default=None, db_index=True)
+    hidden = models.BooleanField(null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
@@ -339,7 +339,7 @@ class ProcessStep(MPTTModel, Process):
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         ProcessTask.objects.filter(
             processstep__in=self.get_descendants(include_self=True),
-            status__in=[celery_states.PENDING, celery_states.FAILURE],
+            status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
         ).update(
             status=celery_states.PENDING,
             time_started=None,
@@ -766,7 +766,8 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger.debug('Revoking task ({})'.format(self.pk))
-        current_app.control.revoke(self.celery_id, terminate=True)
+        current_app.control.revoke(str(self.celery_id), terminate=True)
+        self.status = celery_states.REVOKED
         self.celery_id = uuid.uuid4()
         self.save()
         logger.info('Revoked task ({})'.format(self.pk))

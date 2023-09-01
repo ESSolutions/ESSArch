@@ -125,8 +125,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'information_package_str', 'eager',
         )
         read_only_fields = (
-            'status', 'progress', 'time_created', 'time_started', 'time_done',
-            'retried', 'hidden',
+            'id', 'progress', 'time_created', 'time_started', 'time_done', 'retried',
         )
         extra_kwargs = {
             'id': {
@@ -138,11 +137,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
-    exception = serializers.SerializerMethodField()
     exception_str = serializers.SerializerMethodField()
-
-    def get_exception(self, obj):
-        return obj.exception
 
     def get_exception_str(self, obj):
         if obj.exception is None:
@@ -159,7 +154,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception', 'exception_str', 'eager',
+            'celery_id', 'args', 'params', 'result', 'traceback', 'exception_str', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
             'celery_id', 'args', 'params', 'result', 'traceback', 'exception',
