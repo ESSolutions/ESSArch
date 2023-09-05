@@ -517,15 +517,17 @@ class StorageMediumQueryset(models.QuerySet):
                     ).values('storage_method')[:1]
                 )
             )
+        # TODO: Add advanced filter to include _missing_storage_object_in_other_method_in_policy()
         return self.exclude(status=0).filter(
-            Q(
-                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled),
-                  self._has_non_migrated_storage_object_in_method(False)) |
-                Q(Exists(method_target_rel_with_old_migrate_and_export))
-            ) |
-            Q(
-                self._missing_storage_object_in_other_method_in_policy()
-            )
+            # Q(
+            Q(Exists(method_target_rel_with_old_migrate_and_new_enabled),
+              self._has_non_migrated_storage_object_in_method(False)) |
+            Q(Exists(method_target_rel_with_old_migrate_and_export))
+            # )
+            # ) |
+            # Q(
+            # self._missing_storage_object_in_other_method_in_policy()
+            # )
         )
 
     def non_migratable(self):

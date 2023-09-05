@@ -2069,7 +2069,8 @@ class InformationPackage(models.Model):
         # access_workarea_user_extracted_src = None
         # new_aip = self
 
-        os.makedirs(export_path_dst, exist_ok=True)
+        if export_path:
+            os.makedirs(export_path_dst, exist_ok=True)
 
         if storage_target.remote_server:
             # AccessAIP instructs and waits for ip.access to transfer files from remote
@@ -2215,7 +2216,7 @@ class InformationPackage(models.Model):
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": diff_check and extracted,
+                        "if": diff_check and extracted and export_path,
                         "label": "Diff-check against content-mets",
                         "queue": worker_queue,
                         "args": [
@@ -2238,14 +2239,14 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                         "label": "Create temporary container",
                         "queue": worker_queue,
-                        "if": tar,
+                        "if": tar and export_path,
                         "args": [temp_object_path, export_path_dst_container],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
                         "queue": worker_queue,
-                        "if": tar and package_xml,
+                        "if": tar and package_xml and export_path,
                         "args": [
                             export_path_dst_container,
                             export_path_dst_package_xml,
@@ -2253,7 +2254,7 @@ class InformationPackage(models.Model):
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": diff_check and tar,
+                        "if": diff_check and tar and export_path,
                         "label": "Diff-check against package-mets",
                         "queue": worker_queue,
                         "args": [
@@ -2266,7 +2267,7 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
                         "queue": worker_queue,
-                        "if": aic_xml,
+                        "if": aic_xml and export_path,
                         "args": [export_path_dst_aic_xml]
                     },
                     {
@@ -2470,14 +2471,14 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                         "label": "Create temporary container",
                         "queue": worker_queue,
-                        "if": tar,
+                        "if": tar and export_path,
                         "args": [temp_object_path, export_path_dst_container],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
                         "queue": worker_queue,
-                        "if": tar and package_xml,
+                        "if": tar and package_xml and export_path,
                         "args": [
                             export_path_dst_container,
                             export_path_dst_package_xml,
@@ -2485,7 +2486,7 @@ class InformationPackage(models.Model):
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": diff_check and tar,
+                        "if": diff_check and tar and export_path,
                         "label": "Diff-check against package-mets",
                         "queue": worker_queue,
                         "args": [
@@ -2498,7 +2499,7 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
                         "queue": worker_queue,
-                        "if": aic_xml,
+                        "if": aic_xml and export_path,
                         "args": [export_path_dst_aic_xml]
                     },
                     {
