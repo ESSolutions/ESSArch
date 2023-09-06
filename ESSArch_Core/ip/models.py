@@ -2009,6 +2009,9 @@ class InformationPackage(models.Model):
         else:
             storage_object = self.get_fastest_readable_storage_object()
 
+        if storage_object.storage_medium.format <= 101:
+            diff_check = False
+
         is_cached_storage_object = storage_object.is_cache_for_ip(self)
 
         if storage_object.content_location_type == 300:

@@ -176,6 +176,7 @@ const general = ($translateProvider) => {
     IDENTIFICATION_CAN_NOT_CONTAIN_DESC: 'Identifier can not contain /, :, *, ?, ", <, > or |',
     INCLUDE_AIC_XML: 'Include AIC XML',
     INCLUDE_EXPORTABLE_IPS: 'Include exportable objects',
+    INCLUDE_MISSING_STORAGE: 'Include missing storage objects',
     INCLUDE_INACTIVE_IPS: 'Include inactive information packages',
     INCLUDE_PACKAGE_XML: 'Include package XML',
     INCLUDEDPROFILES: 'Included profiles',

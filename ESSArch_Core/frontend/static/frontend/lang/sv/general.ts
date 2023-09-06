@@ -178,6 +178,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     IDENTIFICATION_CAN_NOT_CONTAIN_DESC: 'Identifierare får inte innehålla /, :, *, ?, ", <, > eller |',
     INCLUDE_AIC_XML: 'Inkludera AIC XML',
     INCLUDE_EXPORTABLE_IPS: 'Inkludera exporterbara objekt',
+    INCLUDE_MISSING_STORAGE: 'Inkludera saknade lagringsobjekt',
     INCLUDE_INACTIVE_IPS: 'Inkludera inaktiverade informationspaket',
     INCLUDE_PACKAGE_XML: 'Inkludera package XML',
     INCLUDEDPROFILES: 'Inkluderade profiler',

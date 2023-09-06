@@ -60,6 +60,7 @@ class StorageMediumFilter(filters.FilterSet):
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
     exportable = filters.BooleanFilter(label='exportable', method='filter_exportable')
+    missing_storage = filters.BooleanFilter(label='missing_storage', method='filter_missing_storage')
     medium_id_range = CharSuffixRangeFilter(field_name='medium_id')
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
@@ -79,13 +80,19 @@ class StorageMediumFilter(filters.FilterSet):
     def filter_migratable(self, queryset, name, value):
         exportable = strtobool(self.data.get('exportable', False))
         export_path = 'dummy' if exportable else ''
+        missing_storage = strtobool(self.data.get('missing_storage', False))
         if value:
-            return queryset.migratable(export_path=export_path)
+            return queryset.migratable(export_path=export_path, missing_storage=missing_storage)
         else:
             return queryset.non_migratable()
 
     def filter_exportable(self, queryset, name, value):
-        return queryset.migratable(export_path='dummy') if value else queryset
+        missing_storage = strtobool(self.data.get('missing_storage', False))
+        return queryset.migratable(export_path='dummy', missing_storage=missing_storage) if value else queryset
+
+    def filter_missing_storage(self, queryset, *args):
+        # this filter is only used together with migratable or exportable
+        return queryset
 
     ordering = StorageMediumOrderingFilter(
         fields=(

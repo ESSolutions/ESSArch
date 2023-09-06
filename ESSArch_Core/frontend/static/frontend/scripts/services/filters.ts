@@ -200,6 +200,14 @@ export default (
     },
   };
 
+  const missing_storage: IFieldObject = {
+    key: 'missing_storage',
+    type: 'checkbox',
+    templateOptions: {
+      label: $translate.instant('INCLUDE_MISSING_STORAGE'),
+    },
+  };
+
   const archived: IFieldObject = {
     key: 'archived',
     type: 'checkbox',
@@ -473,7 +481,7 @@ export default (
   // Storage medium filters
 
   // Base filter fields for storage medium views
-  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [policy, currentMedium, exportable];
+  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [policy, currentMedium, exportable, missing_storage];
 
   // Map states and additional IP filter fields
   let storageMediumStateFieldMap = {

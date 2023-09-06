@@ -423,7 +423,7 @@ class StorageMediumMigratableTests(TestCase):
             old.save()
 
             with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-                response = self.client.get(self.url, data={'migratable': True})
+                response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertEqual(len(response.data), 1)
                 self.assertEqual(response.data[0]['id'], str(old_medium.pk))
@@ -431,7 +431,7 @@ class StorageMediumMigratableTests(TestCase):
         old.status = STORAGE_TARGET_STATUS_DISABLED
         old.save()
         with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-            response = self.client.get(self.url, data={'migratable': True})
+            response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
 
@@ -441,7 +441,7 @@ class StorageMediumMigratableTests(TestCase):
         new_medium = add_storage_medium(new.storage_target, 20, '2')
         add_storage_obj(ip, new_medium, DISK, '')
 
-        response = self.client.get(self.url, data={'migratable': True})
+        response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
@@ -465,14 +465,14 @@ class StorageMediumMigratableTests(TestCase):
             old.save()
 
             with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-                response = self.client.get(self.url, data={'migratable': True})
+                response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertEqual(len(response.data), 0)
 
         old.status = STORAGE_TARGET_STATUS_DISABLED
         old.save()
         with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-            response = self.client.get(self.url, data={'migratable': True})
+            response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), 0)
 
@@ -514,7 +514,7 @@ class StorageMediumMigratableTests(TestCase):
 
         add_storage_obj(ip2, long_term_medium, DISK, '')
 
-        response = self.client.get(self.url, data={'migratable': True})
+        response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
         self.assertCountEqual(
