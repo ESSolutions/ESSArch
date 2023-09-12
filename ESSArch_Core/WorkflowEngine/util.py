@@ -116,12 +116,13 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
 @retry(reraise=True, stop=stop_after_delay(30),
        wait=wait_random_exponential(multiplier=1, max=60))
-def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None):
+def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None, responsible=None):
     if on_error is None:
         on_error = []
     if context is None:
         context = {}
-    responsible = getattr(ip, 'responsible', None)
+    if responsible is None:
+        responsible = getattr(ip, 'responsible', None)
 
     with transaction.atomic():
         with ProcessStep.objects.delay_mptt_updates():

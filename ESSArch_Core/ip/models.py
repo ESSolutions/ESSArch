@@ -1982,7 +1982,7 @@ class InformationPackage(models.Model):
         return create_workflow(workflow, self, name='Access Information Package')
 
     def create_migration_workflow(self, temp_path, storage_methods, export_path='', tar=False, extracted=False,
-                                  package_xml=False, aic_xml=False, diff_check=True):
+                                  package_xml=False, aic_xml=False, diff_check=True, responsible=None):
 
         container_methods = self.policy.storage_methods.secure_storage().filter(
             remote=False, pk__in=storage_methods)
@@ -2519,7 +2519,7 @@ class InformationPackage(models.Model):
         #     "queue": worker_queue,
         #     "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, tar]
         # })
-        return create_workflow(workflow, self, name='Migrate Information Package')
+        return create_workflow(workflow, self, name='Migrate Information Package', responsible=responsible)
 
     def write_to_search_index(self, task):
         srcdir = self.object_path

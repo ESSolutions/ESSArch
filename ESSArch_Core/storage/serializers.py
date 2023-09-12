@@ -440,6 +440,10 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         steps = []
+        user = None
+        request = self.context.get("request")
+        if request and hasattr(request, "user"):
+            user = request.user
         with transaction.atomic():
             if validated_data.get('information_packages', False):
                 information_packages = []
@@ -490,6 +494,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                             package_xml=True,
                             aic_xml=True,
                             diff_check=True,
+                            responsible=user,
                         )
                         workflow_step.run()
                     steps.append(workflow_step)
@@ -542,6 +547,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                                 package_xml=True,
                                 aic_xml=True,
                                 diff_check=True,
+                                responsible=user,
                             )
                             workflow.run()
                         steps.append(workflow)
