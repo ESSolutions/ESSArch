@@ -12,6 +12,7 @@ from django.contrib.auth.admin import (
 from django.contrib.auth.models import Group as DjangoGroup
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.utils.decorators import method_decorator
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
@@ -302,10 +303,11 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
 class ProxyPermissionAdmin(admin.ModelAdmin):
     list_display = ('name', 'get_content_type', 'codename')
     search_fields = ['name', 'content_type__app_label', 'codename']
+    ordering = (Lower('content_type__app_label'),)
 
     def get_content_type(self, obj):
         return obj.content_type
-    get_content_type.admin_order_field = 'content_type__app_label'
+    get_content_type.admin_order_field = Lower('content_type__app_label')
     get_content_type.short_description = _("content type")
 
     def has_add_permission(self, request):
