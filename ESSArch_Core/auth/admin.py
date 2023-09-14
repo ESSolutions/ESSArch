@@ -209,6 +209,7 @@ class GroupInline(admin.StackedInline):
 
 
 class GroupAdmin(DjangoGroupAdmin):
+    list_display = ('__str__', 'get_group_type', 'get_parent')
     add_form_template = 'essauth/admin/group/add_form.html'
     change_list_template = 'admin/mptt_change_list.html'
     inlines = [GroupInline]
@@ -219,6 +220,14 @@ class GroupAdmin(DjangoGroupAdmin):
         """
         mptt_opts = Group._mptt_meta
         return ('essauth_group__{}'.format(mptt_opts.tree_id_attr), 'essauth_group__{}'.format(mptt_opts.left_attr))
+
+    def get_group_type(self, obj):
+        return obj.essauth_group.group_type
+    get_group_type.short_description = _('group type')
+
+    def get_parent(self, obj):
+        return obj.essauth_group.parent
+    get_parent.short_description = _('parent')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == 'permissions':
@@ -276,8 +285,9 @@ class GroupTypeAdmin(admin.ModelAdmin):
 
 
 class GroupMemberRoleAdmin(admin.ModelAdmin):
+    list_display = ('codename', 'label', 'external_id')
+    search_fields = ['codename', 'label', 'external_id']
     filter_horizontal = ['permissions']
-    exclude = ('label',)
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create role '{object}' with msg: '{message}'.")
@@ -290,6 +300,14 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
 
 
 class ProxyPermissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'get_content_type', 'codename')
+    search_fields = ['name', 'content_type__app_label', 'codename']
+
+    def get_content_type(self, obj):
+        return obj.content_type
+    get_content_type.admin_order_field = 'content_type__app_label'
+    get_content_type.short_description = _("content type")
+
     def has_add_permission(self, request):
         return request.user.has_perm("%s.%s" % ('auth', 'add_permission'))
 

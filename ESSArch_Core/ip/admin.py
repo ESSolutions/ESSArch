@@ -26,7 +26,7 @@ import os
 from os import walk
 
 from django.contrib import admin
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from .models import ConsignMethod, InformationPackage, OrderType
 
@@ -96,7 +96,7 @@ class IPAdmin(admin.ModelAdmin):
     )
     actions = ["clear_lock"]
 
-    @admin.action(permissions=["change"], description=_("Clear lock for selected information packages"))
+    @admin.action(permissions=["change"], description=_("Clear lock for selected ip"))
     def clear_lock(self, request, queryset):
         for obj in queryset:
             obj.clear_lock()
