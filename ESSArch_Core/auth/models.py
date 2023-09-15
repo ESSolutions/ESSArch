@@ -170,18 +170,10 @@ class GroupGenericObjects(GroupObjectsAbstract):
 
 
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(_('name'), unique=True, max_length=255)
-    label = models.SlugField(_('label'), blank=True, max_length=255)
+    label = models.CharField(_('name'), max_length=255)
     permissions = models.ManyToManyField(Permission, related_name='roles', blank=True, verbose_name=_('permissions'))
     external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
-
-    def __str__(self):
-        return self.label
-
-    def save(self, *args, **kwargs):
-        if not self.label:
-            self.label = self.codename
-        super().save(*args, **kwargs)
+    codename = models.SlugField(_('codename'), unique=True, blank=True, max_length=255)
 
     class Meta:
         verbose_name = _('role')

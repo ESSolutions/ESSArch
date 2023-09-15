@@ -258,7 +258,7 @@ def installDefaultUsers():
         click.secho("-> multiple roles exists for 'User' or 'user' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'User'")
-        role_user, _ = GroupMemberRole.objects.get_or_create(codename='User')
+        role_user, _ = GroupMemberRole.objects.get_or_create(label='User')
         permission_list_user = [
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
@@ -318,11 +318,11 @@ def installDefaultUsers():
             role_user.permissions.add(p_obj)
 
     try:
-        role_producer = GroupMemberRole.objects.get(codename='Producer')
+        role_producer = GroupMemberRole.objects.get(Q(codename='Producer') | Q(codename='producer'))
         click.secho("-> role 'Producer' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Producer'")
-        role_producer, _ = GroupMemberRole.objects.get_or_create(codename='Producer')
+        role_producer, _ = GroupMemberRole.objects.get_or_create(label='Producer')
         permission_list_user = [
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
@@ -347,11 +347,11 @@ def installDefaultUsers():
             role_producer.permissions.add(p_obj)
 
     try:
-        role_submitter = GroupMemberRole.objects.get(codename='Submitter')
+        role_submitter = GroupMemberRole.objects.get(Q(codename='Submitter') | Q(codename='submitter'))
         click.secho("-> role 'Submitter' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Submitter'")
-        role_submitter, _ = GroupMemberRole.objects.get_or_create(codename='Submitter')
+        role_submitter, _ = GroupMemberRole.objects.get_or_create(label='Submitter')
         permission_list_user = [
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
@@ -367,11 +367,12 @@ def installDefaultUsers():
             role_submitter.permissions.add(p_obj)
 
     try:
-        role_delivery_manager = GroupMemberRole.objects.get(codename='Delivery Manager')
+        role_delivery_manager = GroupMemberRole.objects.get(
+            Q(codename='Delivery Manager') | Q(codename='delivery-manager'))
         click.secho("-> role 'Delivery Manager' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Delivery Manager'")
-        role_delivery_manager, _ = GroupMemberRole.objects.get_or_create(codename='Delivery Manager')
+        role_delivery_manager, _ = GroupMemberRole.objects.get_or_create(label='Delivery Manager')
         permission_list_user = [
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
@@ -406,11 +407,11 @@ def installDefaultUsers():
             role_delivery_manager.permissions.add(p_obj)
 
     try:
-        role_archivist = GroupMemberRole.objects.get(codename='Archivist')
+        role_archivist = GroupMemberRole.objects.get(Q(codename='Archivist') | Q(codename='archivist'))
         click.secho("-> role 'Archivist' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Archivist'")
-        role_archivist, _ = GroupMemberRole.objects.get_or_create(codename='Archivist')
+        role_archivist, _ = GroupMemberRole.objects.get_or_create(label='Archivist')
         permission_list_user = [
             ['view_agent', 'agents', 'agent'],  # Can view agent
             ['view_agentfunction', 'agents', 'agentfunction'],  # Can view agent function
@@ -547,13 +548,14 @@ def installDefaultUsers():
             role_archivist.permissions.add(p_obj)
 
     try:
-        role_administrator = GroupMemberRole.objects.get(Q(codename='Administrator') | Q(codename='admin'))
+        role_administrator = GroupMemberRole.objects.get(
+            Q(codename='Administrator') | Q(codename='administrator') | Q(codename='admin'))
         click.secho("-> role 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Administrator'")
-        role_administrator, _ = GroupMemberRole.objects.get_or_create(codename='Administrator')
+        role_administrator, _ = GroupMemberRole.objects.get_or_create(label='Administrator')
         permission_list_user = [
             ['add_agent', 'agents', 'agent'],  # Can add agent
             ['change_agent', 'agents', 'agent'],  # Can change agent
@@ -865,13 +867,13 @@ def installDefaultUsers():
 
     try:
         role_system_administrator = GroupMemberRole.objects.get(
-            Q(codename='System Administrator') | Q(codename='sysadmin'))
+            Q(codename='System Administrator') | Q(codename='system-administrator') | Q(codename='sysadmin'))
         click.secho("-> role 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'System Administrator'")
-        role_system_administrator, _ = GroupMemberRole.objects.get_or_create(codename='System Administrator')
+        role_system_administrator, _ = GroupMemberRole.objects.get_or_create(label='System Administrator')
         permission_list_user = [
             ['add_emailaddress', 'account', 'emailaddress'],  # Can add email address
             ['change_emailaddress', 'account', 'emailaddress'],  # Can change email address

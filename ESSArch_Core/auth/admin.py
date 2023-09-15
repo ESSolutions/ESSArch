@@ -14,6 +14,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.models.functions import Lower
 from django.utils.decorators import method_decorator
+from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from groups_manager.models import (
@@ -263,6 +264,11 @@ class GroupAdmin(DjangoGroupAdmin):
 
 
 class GroupTypeAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["label"].label = capfirst(_("name"))
+        return form
+
     def has_add_permission(self, request):
         return request.user.has_perm("%s.%s" % ('groups_manager', 'add_grouptype'))
 
@@ -286,7 +292,7 @@ class GroupTypeAdmin(admin.ModelAdmin):
 
 
 class GroupMemberRoleAdmin(admin.ModelAdmin):
-    list_display = ('codename', 'label', 'external_id')
+    list_display = ('__str__', 'external_id', 'codename')
     search_fields = ['codename', 'label', 'external_id']
     filter_horizontal = ['permissions']
 
