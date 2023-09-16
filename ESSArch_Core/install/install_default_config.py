@@ -252,7 +252,7 @@ def installDefaultUsers():
     #
 
     try:
-        role_user = GroupMemberRole.objects.get(Q(codename='User') | Q(codename='user'))
+        role_user = GroupMemberRole.objects.get(Q(label='User') | Q(label='user'))
         click.secho("-> role 'User' or 'user' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'User' or 'user' already exist", fg='red')
@@ -318,7 +318,7 @@ def installDefaultUsers():
             role_user.permissions.add(p_obj)
 
     try:
-        role_producer = GroupMemberRole.objects.get(Q(codename='Producer') | Q(codename='producer'))
+        role_producer = GroupMemberRole.objects.get(Q(label='Producer') | Q(label='producer'))
         click.secho("-> role 'Producer' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Producer'")
@@ -347,7 +347,7 @@ def installDefaultUsers():
             role_producer.permissions.add(p_obj)
 
     try:
-        role_submitter = GroupMemberRole.objects.get(Q(codename='Submitter') | Q(codename='submitter'))
+        role_submitter = GroupMemberRole.objects.get(Q(label='Submitter') | Q(label='submitter'))
         click.secho("-> role 'Submitter' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Submitter'")
@@ -367,8 +367,7 @@ def installDefaultUsers():
             role_submitter.permissions.add(p_obj)
 
     try:
-        role_delivery_manager = GroupMemberRole.objects.get(
-            Q(codename='Delivery Manager') | Q(codename='delivery-manager'))
+        role_delivery_manager = GroupMemberRole.objects.get(label='Delivery Manager')
         click.secho("-> role 'Delivery Manager' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Delivery Manager'")
@@ -407,7 +406,7 @@ def installDefaultUsers():
             role_delivery_manager.permissions.add(p_obj)
 
     try:
-        role_archivist = GroupMemberRole.objects.get(Q(codename='Archivist') | Q(codename='archivist'))
+        role_archivist = GroupMemberRole.objects.get(Q(label='Archivist') | Q(label='archivist'))
         click.secho("-> role 'Archivist' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Archivist'")
@@ -549,7 +548,7 @@ def installDefaultUsers():
 
     try:
         role_administrator = GroupMemberRole.objects.get(
-            Q(codename='Administrator') | Q(codename='administrator') | Q(codename='admin'))
+            Q(label='Administrator') | Q(label='administrator') | Q(label='admin'))
         click.secho("-> role 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'Administrator' or 'admin' already exist", fg='red')
@@ -867,7 +866,7 @@ def installDefaultUsers():
 
     try:
         role_system_administrator = GroupMemberRole.objects.get(
-            Q(codename='System Administrator') | Q(codename='system-administrator') | Q(codename='sysadmin'))
+            Q(label='System Administrator') | Q(label='sysadmin'))
         click.secho("-> role 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'System Administrator' or 'sysadmin' already exist", fg='red')
