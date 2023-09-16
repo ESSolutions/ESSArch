@@ -36,6 +36,7 @@ from ESSArch_Core.configuration.models import (
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_DISABLED,
     STORAGE_TARGET_STATUS_ENABLED,
     StorageMethod,
     StorageMethodTargetRelation,
@@ -180,23 +181,23 @@ class StoragePolicySerializer(serializers.ModelSerializer):
                 )
                 storage_method_target_data['storage_method'] = storage_method
                 storage_method_target_data['storage_target'] = storage_target
-                update_or_create = True
                 StorageMethodTargetRelation_objs = StorageMethodTargetRelation.objects.filter(
                     id=storage_method_target_data['id'])
                 if (storage_method_target_data['status'] == STORAGE_TARGET_STATUS_ENABLED and
                         StorageMethodTargetRelation_objs.exists()):
-                    # Skip to update if another target already is enabled.
+                    # If another target already is enabled then update status to disabled.
                     if StorageMethodTargetRelation_objs.exists():
-                        if StorageMethodTargetRelation.objects.filter(
+                        StorageMethodTargetRelation_enabled_objs = StorageMethodTargetRelation.objects.filter(
                             storage_method=storage_method,
                             status=STORAGE_TARGET_STATUS_ENABLED,
-                        ).exclude(id=storage_method_target_data['id']).exists():
-                            update_or_create = False
-                if update_or_create:
-                    storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
-                        id=storage_method_target_data['id'],
-                        defaults=storage_method_target_data
-                    )
+                        ).exclude(id=storage_method_target_data['id'])
+
+                        if StorageMethodTargetRelation_enabled_objs.exists():
+                            StorageMethodTargetRelation_enabled_objs.update(status=STORAGE_TARGET_STATUS_DISABLED)
+                storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
+                    id=storage_method_target_data['id'],
+                    defaults=storage_method_target_data
+                )
             storage_method_list.append(storage_method)
 
         sp_ingest_path_data = validated_data.pop('ingest_path')
