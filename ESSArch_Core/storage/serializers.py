@@ -101,6 +101,16 @@ class StorageMediumWriteSerializer(StorageMediumSerializer):
         return obj
 
 
+class StorageObjectListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        ret = []
+
+        for data in validated_data:
+            obj, _ = StorageObject.objects.update_or_create(id=data['id'], defaults=data)
+            ret.append(obj)
+        return ret
+
+
 class StorageObjectSerializer(serializers.ModelSerializer):
     medium_id = serializers.CharField(source='storage_medium.medium_id')
     target_name = serializers.CharField(source='storage_medium.storage_target.name')
@@ -115,6 +125,7 @@ class StorageObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StorageObject
+        list_serializer_class = StorageObjectListSerializer
         fields = (
             'id', 'content_location_type', 'content_location_value', 'last_changed_local',
             'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
