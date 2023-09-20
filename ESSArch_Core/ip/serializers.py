@@ -536,6 +536,15 @@ class InformationPackageDetailSerializer(InformationPackageSerializer):
         }
 
 
+class InformationPackageFromMasterListSerializer(serializers.ListSerializer):
+    def update(self, instance, validated_data):
+        ret = []
+        for data in validated_data:
+            ret.append(InformationPackageFromMasterSerializer.create_ip(data))
+
+        return ret
+
+
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
     events = EventIPSerializer(many=True, required=False, allow_null=True)
@@ -581,28 +590,28 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
 
         return storage_method
 
-    def create(self, validated_data):
-        aic_data = validated_data.pop('aic')
+    def create_ip(self, data):
+        aic_data = data.pop('aic')
         if aic_data:
             aic_data['last_changed_local'] = timezone.now
             aic, _ = InformationPackage.objects.update_or_create(id=aic_data['id'], defaults=aic_data)
         else:
             aic = None
-        validated_data['aic'] = aic
+        data['aic'] = aic
 
-        if 'events' in validated_data.keys():
-            events_data = validated_data.pop('events')
+        if 'events' in data.keys():
+            events_data = data.pop('events')
             if events_data:
                 for event_data in events_data:
                     event, _ = EventIP.objects.update_or_create(
                         eventIdentifierValue=event_data['eventIdentifierValue'], defaults=event_data)
 
-        sa_policy_id = validated_data.pop('sa_policy_id')
-        if sa_policy_id and validated_data['submission_agreement'] is None:
+        sa_policy_id = data.pop('sa_policy_id')
+        if sa_policy_id and data['submission_agreement'] is None:
             sa_obj = SubmissionAgreement.objects.get(policy=sa_policy_id)
-            validated_data['submission_agreement'] = sa_obj
+            data['submission_agreement'] = sa_obj
 
-        org_name = validated_data.pop('org_name')
+        org_name = data.pop('org_name')
         if org_name:
             org = Group.objects.get(name=org_name)
         elif 'organization' in self.context['request'].data and self.context['request'].data['organization']:
@@ -610,31 +619,35 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         else:
             org = Group.objects.get(name='Default')
 
-        if validated_data['responsible'] is None:
+        if data['responsible'] is None:
             request = self.context.get("request")
             if request and hasattr(request, "user"):
                 user = request.user
             else:
                 user = User.objects.get(username="system")
-            validated_data['responsible'] = user
+            data['responsible'] = user
 
-        validated_data['last_changed_local'] = timezone.now
-        ip, _ = InformationPackage.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
+        data['last_changed_local'] = timezone.now
+        ip, _ = InformationPackage.objects.update_or_create(id=data['id'], defaults=data)
         org.add_object(ip)
-        if validated_data['submission_agreement']:
-            validated_data['submission_agreement'].lock_to_information_package(ip, validated_data['responsible'])
+        if data['submission_agreement']:
+            data['submission_agreement'].lock_to_information_package(ip, data['responsible'])
             for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
                 try:
                     profile_ip.clean()
                 except ValidationError as e:
                     raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
 
-                profile_ip.lock(validated_data['responsible'])
+                profile_ip.lock(data['responsible'])
 
         return ip
 
+    def create(self, validated_data):
+        return self.create_ip(validated_data)
+
     class Meta:
         model = InformationPackage
+        list_serializer_class = InformationPackageFromMasterListSerializer
         fields = (
             'id', 'label', 'object_identifier_value', 'object_size', 'object_path',
             'package_type', 'responsible', 'create_date', 'create_agent_identifier_value',

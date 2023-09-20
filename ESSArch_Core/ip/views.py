@@ -1391,13 +1391,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='add-from-master')
     def add_from_master(self, request, pk=None):
-        serializer = InformationPackageFromMasterSerializer(
-            data=request.data, context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        ip = serializer.save()
-
-        return Response(reverse('informationpackage-detail', args=(ip.pk,)))
+        items = request.data
+        if isinstance(items, list):
+            serializer = InformationPackageFromMasterSerializer(instance='', data=items,
+                                                                context={'request': request},
+                                                                many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            serializer = InformationPackageFromMasterSerializer(
+                data=request.data, context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            ip = serializer.save()
+            return Response(reverse('informationpackage-detail', args=(ip.pk,)))
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
