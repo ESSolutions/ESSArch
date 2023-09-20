@@ -540,7 +540,7 @@ class InformationPackageFromMasterListSerializer(serializers.ListSerializer):
     def update(self, instance, validated_data):
         ret = []
         for data in validated_data:
-            ret.append(InformationPackageFromMasterSerializer.create_ip(data))
+            ret.append(InformationPackageFromMasterSerializer.create_ip(self, data))
 
         return ret
 
