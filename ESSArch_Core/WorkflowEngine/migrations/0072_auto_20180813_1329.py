@@ -8,7 +8,7 @@ import mptt.managers
 
 
 def rebuild_step_mptt(apps, schema_editor):
-    manager = mptt.managers.TreeManager()
+    manager = mptt.managers.TreeManager(parent_attr='parent_step')
     ProcessStep = apps.get_model("WorkflowEngine", "ProcessStep")
     manager.model = ProcessStep
     mptt.register(ProcessStep, parent_attr='parent_step')
@@ -50,7 +50,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='processstep',
             name='parent_step',
-            field=mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='child_steps', to='WorkflowEngine.ProcessStep'),
+            field=mptt.fields.TreeForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE,
+                                             related_name='child_steps', to='WorkflowEngine.ProcessStep'),
         ),
         migrations.RunPython(rebuild_step_mptt, migrations.RunPython.noop),
     ]
