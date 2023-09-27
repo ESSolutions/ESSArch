@@ -2965,7 +2965,7 @@ class EventIP(models.Model):
     )
 
     id = models.BigAutoField(primary_key=True)
-    eventIdentifierValue = models.UUIDField(default=uuid.uuid4, db_index=True)
+    eventIdentifierValue = models.UUIDField(default=uuid.uuid4, unique=True)
     eventType = models.ForeignKey(
         'configuration.EventType',
         on_delete=models.CASCADE

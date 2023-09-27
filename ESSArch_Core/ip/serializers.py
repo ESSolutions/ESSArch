@@ -101,6 +101,10 @@ class EventIPSerializer(serializers.ModelSerializer):
         }
 
 
+class EventIP_without_validators_Serializer(EventIPSerializer):
+    eventIdentifierValue = serializers.UUIDField(label='EventIdentifierValue', required=False, validators=[])
+
+
 class EventIPWriteSerializer(EventIPSerializer):
     transfer = serializers.PrimaryKeyRelatedField(required=False, queryset=Transfer.objects.all())
 
@@ -547,7 +551,7 @@ class InformationPackageFromMasterListSerializer(serializers.ListSerializer):
 
 class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     aic = InformationPackageAICSerializer(omit=['information_packages'], allow_null=True)
-    events = EventIPSerializer(many=True, required=False, allow_null=True)
+    events = EventIP_without_validators_Serializer(many=True, required=False, allow_null=True)
     submission_agreement = serializers.PrimaryKeyRelatedField(
         required=False, default=None, allow_null=True, queryset=SubmissionAgreement.objects.all(),
         pk_field=serializers.UUIDField(format='hex_verbose')
