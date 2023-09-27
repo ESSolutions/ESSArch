@@ -74,9 +74,7 @@ class DBTask(Task):
     abstract = True
     event_type = None
     queue = 'celery'
-    hidden = False
     track = True
-    allow_failure = False
 
     def __call__(self, *args, **kwargs):
         for k, v in self.result_params.items():
