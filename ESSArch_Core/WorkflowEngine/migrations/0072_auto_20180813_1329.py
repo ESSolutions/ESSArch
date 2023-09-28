@@ -8,7 +8,7 @@ import mptt.managers
 
 
 def rebuild_step_mptt(apps, schema_editor):
-    manager = mptt.managers.TreeManager(parent_attr='parent_step')
+    manager = mptt.managers.TreeManager()
     ProcessStep = apps.get_model("WorkflowEngine", "ProcessStep")
     manager.model = ProcessStep
     mptt.register(ProcessStep, parent_attr='parent_step')
