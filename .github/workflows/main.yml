@@ -274,7 +274,7 @@ jobs:
             port: 3306
             health_cmd: mysqladmin ping --user=root -ppassword
           - db: postgres
-            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=READ COMMITTED'
+            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=1'
             image: postgres
             port: 5432
             health_cmd: pg_isready
