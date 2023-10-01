@@ -86,7 +86,7 @@ if __name__ == '__main__':
             "lint": get_requirements('lint'),
             "optional": get_requirements('optional'),
             "ldap": [get_optional("django-auth-ldap")],
-            "saml2": [get_optional("djangosaml2")],
+            "saml2": [get_optional("djangosaml2"), get_optional("pysaml2")],
             "libreoffice_file_conversion": [get_optional("unoconv")],
             "ms_office_file_conversion": [get_optional("comtypes")],
             "iis": [get_optional("wfastcgi")],

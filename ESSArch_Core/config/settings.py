@@ -351,11 +351,19 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
-        # 'log_file_ldap': {
+        # 'log_file_auth_saml2': {
         #    'level': 'DEBUG',
         #    'class' : 'logging.handlers.RotatingFileHandler',
         #    'formatter': 'verbose',
-        #    'filename': os.path.join(LOGGING_DIR, 'ldap.log'),
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_saml2.log'),
+        #    'maxBytes': 1024*1024*100, # 100MB
+        #    'backupCount': 5,
+        # },
+        # 'log_file_auth_ldap': {
+        #    'level': 'DEBUG',
+        #    'class' : 'logging.handlers.RotatingFileHandler',
+        #    'formatter': 'verbose',
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_ldap.log'),
         #    'maxBytes': 1024*1024*100, # 100MB
         #    'backupCount': 5,
         # },
@@ -385,17 +393,17 @@ LOGGING = {
         },
         # 'djangosaml2': {
         #    'level': 'DEBUG',
-        #    'handlers': ['log_file_auth'],
+        #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'saml2': {
         #    'level': 'DEBUG',
-        #    'handlers': ['log_file_auth'],
+        #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'django_auth_ldap': {
         #    'level': 'DEBUG',
-        #    'handlers': ['log_file_ldap'],
+        #    'handlers': ['log_file_auth_ldap'],
         #    'propagate': False,
         # },
     },

@@ -1,6 +1,7 @@
 django-auth-ldap==4.5.0
 django-auto-logout==0.5.1
 django-axes==6.1.1
+pysaml2 @ git+https://github.com/ESSolutions/pysaml2.git@86e00de5deaeb76c43e26a5548109ad82894d718;platform_system=='Windows'
 djangosaml2==1.7.0
 unoconv==0.9.0
 comtypes==1.2.0;platform_system=='Windows'
