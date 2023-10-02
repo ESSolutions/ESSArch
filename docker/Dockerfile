@@ -84,7 +84,7 @@ RUN apt-get update && apt-get install -y \
     watchman
 
 ADD requirements/optional.txt /code/requirements/optional.txt
-RUN pip install --no-cache-dir $(grep -v '^ *#\|^mod-wsgi\|@ git' /code/requirements/optional.txt | grep .)
+RUN pip install --no-cache-dir $(grep -v '^ *#\|^mod-wsgi\|^comtypes\|^pysaml2\| @ \| ; ' /code/requirements/optional.txt | grep .)
 RUN pip install --no-cache-dir -e .[dev,tests]
 RUN pip install --no-cache-dir datasette
 
