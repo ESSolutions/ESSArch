@@ -144,13 +144,13 @@ class ProcessStep(MPTTModel, Process):
 
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
-    parent_step = TreeForeignKey(
+    parent = TreeForeignKey(
         'self',
         related_name='child_steps',
         on_delete=models.CASCADE,
         null=True
     )
-    parent_step_pos = models.IntegerField(_('Parent step position'), default=0)
+    parent_pos = models.IntegerField(_('Parent step position'), default=0)
     information_package = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.CASCADE,
@@ -168,7 +168,7 @@ class ProcessStep(MPTTModel, Process):
     subtree = MPTTSubtree()
 
     def get_pos(self):
-        return self.parent_step_pos
+        return self.parent_pos
 
     def get_descendants_tasks(self):
         steps = self.get_descendants(include_self=True)
@@ -215,8 +215,8 @@ class ProcessStep(MPTTModel, Process):
         cache.delete(self.cache_status_key)
         cache.delete(self.cache_progress_key)
 
-        if self.parent_step:
-            self.parent_step.clear_cache()
+        if self.parent:
+            self.parent.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
         tasks = tasks.filter(status=celery_states.PENDING,)
@@ -509,7 +509,7 @@ class ProcessStep(MPTTModel, Process):
             if tasks.filter(status=celery_states.STARTED).exists():
                 status = celery_states.STARTED
 
-            for cs in child_steps.only('parent_step').iterator():
+            for cs in child_steps.only('parent').iterator():
                 if cs.status == celery_states.STARTED:
                     status = cs.status
                 if (cs.status == celery_states.PENDING and
@@ -524,11 +524,11 @@ class ProcessStep(MPTTModel, Process):
 
     class Meta:
         db_table = 'ProcessStep'
-        ordering = ('parent_step_pos', 'time_created')
+        ordering = ('parent_pos', 'time_created')
         get_latest_by = "time_created"
 
     class MPTTMeta:
-        parent_attr = 'parent_step'
+        parent_attr = 'parent'
 
 
 class OrderedProcessTaskManager(models.Manager):

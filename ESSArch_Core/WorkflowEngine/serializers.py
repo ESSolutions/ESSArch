@@ -197,8 +197,8 @@ class ProcessStepSerializer(serializers.ModelSerializer):
         model = ProcessStep
         fields = (
             'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'time_created', 'parent_step',
-            'parent_step_pos', 'information_package', 'information_package_str',
+            'status', 'progress', 'time_created', 'parent',
+            'parent_pos', 'information_package', 'information_package_str',
             'flow_type', 'step_position', 'responsible',
         )
         read_only_fields = (

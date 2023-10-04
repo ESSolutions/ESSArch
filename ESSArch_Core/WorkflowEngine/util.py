@@ -17,7 +17,7 @@ def get_result(step, reference):
     return results[reference]
 
 
-def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
+def _create_on_error_tasks(parent, errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
     for on_error_idx, on_error in enumerate(errors):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
@@ -36,14 +36,14 @@ def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager
             eager=eager,
             information_package=ip,
             responsible=responsible,
-            processstep=parent_step,
+            processstep=parent,
             processstep_pos=on_error_idx,
             status=status,
             progress=progress,
         )
 
 
-def _create_step(parent_step, flow, ip, responsible, context=None):
+def _create_step(parent, flow, ip, responsible, context=None):
     if context is None:
         context = {}
     for e_idx, flow_entry in enumerate(flow):
@@ -63,9 +63,9 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             child_s = ProcessStep.objects.create(
                 name=flow_entry['name'],
                 parallel=flow_entry.get('parallel', False),
-                parent_step=parent_step,
-                parent_step_pos=e_idx,
-                eager=parent_step.eager,
+                parent=parent,
+                parent_pos=e_idx,
+                eager=parent.eager,
                 information_package=ip,
                 context=context,
                 responsible=responsible,
@@ -73,7 +73,7 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
             on_error_tasks = list(_create_on_error_tasks(
                 child_s, flow_entry.get('on_error', []), ip=ip, responsible=responsible,
-                eager=parent_step.eager
+                eager=parent.eager
             ))
             ProcessTask.objects.bulk_create(on_error_tasks)
             child_s.on_error.add(*on_error_tasks)
@@ -97,18 +97,18 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
                 args=args,
                 params=params,
                 result_params=result_params,
-                eager=parent_step.eager,
+                eager=parent.eager,
                 allow_failure=flow_entry.get('allow_failure', False),
                 information_package=ip,
                 responsible=responsible,
-                processstep=parent_step,
+                processstep=parent,
                 processstep_pos=e_idx,
                 hidden=flow_entry.get('hidden', False),
                 run_if=flow_entry.get('run_if', ''),
             )
 
             on_error_tasks = list(
-                _create_on_error_tasks(parent_step, flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+                _create_on_error_tasks(parent, flow_entry.get('on_error', []), ip=ip, responsible=responsible)
             )
             ProcessTask.objects.bulk_create(on_error_tasks)
             task.on_error.add(*on_error_tasks)

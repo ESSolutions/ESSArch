@@ -654,7 +654,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def workflow(self, request, pk=None):
         ip = self.get_object()
 
-        steps = ip.steps.filter(parent_step__information_package__isnull=True)
+        steps = ip.steps.filter(parent__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
 
         steps = ProcessStepFilter(data=request.query_params, queryset=steps, request=self.request).qs
