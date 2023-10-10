@@ -36,6 +36,7 @@ import sys
 import tarfile
 import uuid
 import zipfile
+from copy import deepcopy
 from datetime import datetime
 from os import scandir, walk
 from subprocess import PIPE, Popen
@@ -911,3 +912,14 @@ def strtobool(val):
         return False
     else:
         raise ValueError("invalid truth value %r" % (val,))
+
+
+def dict_deep_merge(a: dict, b: dict):
+    result = deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = dict_deep_merge(av, bv)
+        else:
+            result[bk] = deepcopy(bv)
+    return result

@@ -299,7 +299,7 @@ class Group(GroupMixin):
         return apps.get_model('essauth', 'GroupMember')
 
     @property
-    def subgroups(self):
+    def sub_groups_manager_group_set(self):
         return self.sub_essauth_group_set
 
     def get_users(self, subgroups=True):
