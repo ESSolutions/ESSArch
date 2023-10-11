@@ -1,5 +1,6 @@
 import os
 import tarfile
+from copy import deepcopy
 from datetime import timedelta
 from urllib.parse import quote_plus as urlquote, urlparse
 
@@ -11,6 +12,7 @@ env = environ.Env()
 ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
 env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
 CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
+LOGGING_DIR = env.str('ESSARCH_LOGGING_DIR', os.path.join(ESSARCH_DIR, 'log'))
 
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
@@ -294,7 +296,6 @@ ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
 TARFILE_FORMAT = tarfile.GNU_FORMAT
 
 # Logging
-LOGGING_DIR = os.path.join(ESSARCH_DIR, 'log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -380,29 +381,29 @@ LOGGING = {
         },
         # 'django.db.backends': {
         #     'handlers': ['file_essarch_db'],
-        #     'level': 'DEBUG',
+        #     'level': 'INFO',
         # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'essarch.auth': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['log_file_auth'],
             'propagate': False,
         },
         # 'djangosaml2': {
-        #    'level': 'DEBUG',
+        #    'level': 'INFO',
         #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'saml2': {
-        #    'level': 'DEBUG',
+        #    'level': 'INFO',
         #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'django_auth_ldap': {
-        #    'level': 'DEBUG',
+        #    'level': 'INFO',
         #    'handlers': ['log_file_auth_ldap'],
         #    'propagate': False,
         # },
@@ -535,3 +536,20 @@ except ImportError as e:
     if e.name == 'local_essarch_settings':
         raise ImportError('No settings file found, create one by running `essarch settings generate`')
     raise
+
+
+def dict_deep_merge(a: dict, b: dict):
+    result = deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = dict_deep_merge(av, bv)
+        else:
+            result[bk] = deepcopy(bv)
+    return result
+
+
+# Extend LOGGING config with prefix LOGGING_xyz
+for x in list(locals().keys()):
+    if x.startswith('LOGGING_') and not x == 'LOGGING_DIR':
+        LOGGING = dict_deep_merge(LOGGING, locals()[x])

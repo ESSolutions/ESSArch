@@ -1,4 +1,4 @@
-from ESSArch_Core.config.settings import ESSARCH_DIR, CONFIG_DIR, env
+from ESSArch_Core.config.settings import ESSARCH_DIR, CONFIG_DIR, LOGGING_DIR, env
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = {debug}
