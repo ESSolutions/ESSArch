@@ -244,6 +244,7 @@ export default class WorkareaCtrl {
         {
           path: path,
           id: ip.id,
+          user: $rootScope.auth.id,
         }
       );
     };
@@ -313,7 +314,7 @@ export default class WorkareaCtrl {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
       });
       flowObj.on('uploadStart', function () {
-        flowObj.opts.query = {destination: vm.browserstate.path, id: ip.id};
+        flowObj.opts.query = {destination: vm.browserstate.path, id: ip.id, user: $rootScope.auth.id};
       });
       $rootScope.flowObjects[ip.id] = flowObj;
     };
