@@ -807,9 +807,7 @@ class ProcessTask(Process):
         ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
-        index_together = (
-            ('retried', 'processstep', 'information_package'),
-        )
+        indexes = [models.Index(fields=['retried', 'processstep', 'information_package'])]
 
         permissions = (
             ('can_run', 'Can run tasks'),
