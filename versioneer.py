@@ -310,15 +310,24 @@ https://img.shields.io/travis/com/python-versioneer/python-versioneer.svg
 
 import configparser
 import errno
+import functools
 import json
 import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Callable, cast, Dict, List, Optional, Tuple, Union
-from typing import NoReturn
-import functools
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NoReturn,
+    Optional,
+    Tuple,
+    Union,
+    cast,
+)
 
 have_tomllib = True
 if sys.version_info >= (3, 11):
@@ -353,9 +362,9 @@ def get_root() -> str:
     pyproject_toml = os.path.join(root, "pyproject.toml")
     versioneer_py = os.path.join(root, "versioneer.py")
     if not (
-        os.path.exists(setup_py)
-        or os.path.exists(pyproject_toml)
-        or os.path.exists(versioneer_py)
+        os.path.exists(setup_py) or
+        os.path.exists(pyproject_toml) or
+        os.path.exists(versioneer_py)
     ):
         # allow 'python path/to/setup.py COMMAND'
         root = os.path.dirname(os.path.realpath(os.path.abspath(sys.argv[0])))
@@ -363,9 +372,9 @@ def get_root() -> str:
         pyproject_toml = os.path.join(root, "pyproject.toml")
         versioneer_py = os.path.join(root, "versioneer.py")
     if not (
-        os.path.exists(setup_py)
-        or os.path.exists(pyproject_toml)
-        or os.path.exists(versioneer_py)
+        os.path.exists(setup_py) or
+        os.path.exists(pyproject_toml) or
+        os.path.exists(versioneer_py)
     ):
         err = ("Versioneer was unable to run the project root directory. "
                "Versioneer requires setup.py to be executed from "
@@ -1995,6 +2004,7 @@ def get_cmdclass(cmdclass: Optional[Dict[str, Any]] = None):
 
     if "cx_Freeze" in sys.modules:  # cx_freeze enabled?
         from cx_Freeze.dist import build_exe as _build_exe  # type: ignore
+
         # nczeczulin reports that py2exe won't like the pep440-style string
         # as FILEVERSION, but it can be used for PRODUCTVERSION, e.g.
         # setup(console=[{
@@ -2027,9 +2037,13 @@ def get_cmdclass(cmdclass: Optional[Dict[str, Any]] = None):
 
     if 'py2exe' in sys.modules:  # py2exe enabled?
         try:
-            from py2exe.setuptools_buildexe import py2exe as _py2exe  # type: ignore
+            from py2exe.setuptools_buildexe import (  # type: ignore
+                py2exe as _py2exe,
+            )
         except ImportError:
-            from py2exe.distutils_buildexe import py2exe as _py2exe  # type: ignore
+            from py2exe.distutils_buildexe import (  # type: ignore
+                py2exe as _py2exe,
+            )
 
         class cmd_py2exe(_py2exe):
             def run(self) -> None:
