@@ -1,4 +1,10 @@
-from ESSArch_Core.config.settings import ESSARCH_DIR, CONFIG_DIR, LOGGING_DIR, env
+import os
+
+from ESSArch_Core.config.settings import (
+    ESSARCH_DIR, CONFIG_DIR, LOGGING_DIR, env,
+    AUTHENTICATION_BACKENDS, INSTALLED_APPS,
+    MIDDLEWARE,
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = {debug}
