@@ -1,17 +1,22 @@
+############## BUILD-FRONTEND ##############
 FROM node:lts-alpine AS build-frontend
 
 WORKDIR /code
 RUN apk update && apk add g++ git make python3
-COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js tsconfig.json ./
-RUN yarn
-COPY ESSArch_Core/frontend/static/frontend /code/ESSArch_Core/frontend/static/frontend
-COPY ./.git .git
-RUN yarn build:dev
+COPY .git ./.git
+COPY package.json yarn.lock webpack.common.babel.js webpack.dev.babel.js webpack.prod.babel.js tsconfig.json ./
+COPY ESSArch_Core/frontend/static/frontend ./ESSArch_Core/frontend/static/frontend
+RUN yarn install
+RUN yarn build:prod
+RUN rm -rf ./node_modules
 
-FROM python:3.10-bullseye as base
+
+############## BASE-SLIM ##############
+FROM python:3.11-slim-bookworm as base-slim
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    #RUN apk update && apk add \
     default-libmysqlclient-dev \
     libcairo2-dev \
     libffi-dev \
@@ -19,74 +24,49 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpango1.0-dev \
     libsasl2-dev \
     libssl-dev \
-    netcat \
-    postgresql-client \
+    netcat-openbsd \
+    #postgresql-client \
     python3-cffi \
     unixodbc-dev \
+    git \
+    vim \
+    curl \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
-# Libreoffice
-RUN apt-get update && apt-get install -y --no-install-recommends libreoffice
 
-ADD requirements /code/requirements
-ADD setup.py /code/setup.py
-ADD setup.cfg /code/setup.cfg
-ADD versioneer.py /code/versioneer.py
-ADD README.md /code/README.md
-
-RUN pip install --no-cache-dir -e /code
-
-FROM base as build-docs
-
+############## BUILD-DOCS ##############
+FROM base-slim as build-docs
 WORKDIR /code/ESSArch_Core/docs
-RUN mkdir -p /ESSArch/log
-
-# Install docs requirements
-ADD requirements/docs.txt /code/requirements/docs.txt
-RUN pip install -r /code/requirements/docs.txt
 
 # Add source
 ADD . /code
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /ESSArch/log
+
+# Install docs requirements
+RUN pip install --no-cache-dir -e /code[docs]
+
 # Build docs
-ENV ESSARCH_DIR=/code
+#ENV ESSARCH_DIR=/code
 RUN mkdir -p /code/config
 RUN mkdir -p /code/log
 RUN essarch settings generate --debug --overwrite -p /code/config/local_essarch_settings.py
 ENV PYTHONPATH=/code/config
+RUN rm -rf /code/ESSArch_Core/docs/_build
 RUN for lang in "en" "sv"; do make html LANGUAGE="$lang"; done
 
+
+############## BUILD-SDIST ##############
+FROM base-slim as build-sdist
 WORKDIR /code
 
-FROM base
-
-WORKDIR /code
-EXPOSE 8000
-
-ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
-
-ENV PYTHONUNBUFFERED 1
-ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
-ENV PYTHONPATH=/ESSArch/config:/ESSArch/plugins
-
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-
-RUN apt-get update && apt-get install -y \
-    curl \
-    gettext \
-    git \
-    vim \
-    nodejs \
-    yarn \
-    watchman
-
-ADD requirements/optional.txt /code/requirements/optional.txt
-RUN pip install --no-cache-dir $(grep -v '^ *#\|^mod-wsgi\|^comtypes\|^pysaml2\| @ \| ; ' /code/requirements/optional.txt | grep .)
-RUN pip install --no-cache-dir -e .[dev,tests]
-RUN pip install --no-cache-dir datasette
+# Add source
+ADD . /code
 
 # Copy built frontend
 COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
@@ -94,8 +74,97 @@ COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /co
 # Copy built docs
 COPY --from=build-docs /code/ESSArch_Core/docs/_build /code/ESSArch_Core/docs/_build
 
+#RUN git config --global user.email docker@none.none
+#RUN git config --global user.name docker
+#RUN git tag -a "2023" -m "2023"
+#RUN git tag -a "0+docker" -m "0+docker"
+#RUN git tag -a "5.6.1.dev9" -m "5.6.1.dev9"
+RUN python setup.py sdist
+
+
+############## BASE ##############
+FROM base-slim as base
+WORKDIR /code
+
+ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+ENV PYTHONUNBUFFERED 1
+ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
+ENV PYTHONPATH=/ESSArch/config:/ESSArch/plugins
+
+# Libreoffice
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libreoffice \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir datasette
+
+
+############## PROD ##############
+FROM base as prod
+EXPOSE 443
+
+ARG ESSARCH_DIR=./
+ARG PYTHONPATH=./config
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    apache2 \
+    apache2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling
+
+# Copy built sdist
+COPY --from=build-sdist /code/dist ./dist
+ADD docker ./docker
+
+RUN pip install --no-cache-dir --upgrade `ls -t dist/ESSArch-*.tar.gz | head -n1`[apache,libreoffice_file_conversion,mysql]
+
+RUN mkdir -p ./config
+RUN mkdir -p ./log
+RUN essarch settings generate --debug --overwrite -p ./config/local_essarch_settings.py
+RUN django-admin collectstatic --noinput
+RUN rm -rf ./log
+RUN rm ./config/local_essarch_settings.py
+
+ADD docker/templates ./templates
+
+RUN export MOD_WSGI=`python -c "import mod_wsgi as _; print(_.__path__[0])"`; cp $MOD_WSGI/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so ./config/essarch/mod_wsgi.so
+RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`; cp $ESSARCH/config/wsgi.py ./config/essarch/wsgi.py
+
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
 
+
+############## DEV ##############
+FROM base as dev
+EXPOSE 8000
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gettext \
+    gpg \
+    watchman \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /etc/apt/keyrings
+RUN curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+ENV NODE_MAJOR=16
+RUN echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg arch=amd64] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+RUN echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | tee /etc/apt/sources.list.d/yarn.list
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nodejs \
+    yarn \
+    && rm -rf /var/lib/apt/lists/*
+
 # Add source
 ADD . /code
+
+RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,dev,tests]
+
+RUN mkdir -p ./config/essarch
+
+# Use python version that match installed libreoffice for unoconv
+RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv

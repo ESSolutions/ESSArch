@@ -525,7 +525,8 @@ CELERY_BEAT_SCHEDULE = {
     # },
 }
 
-CELERY_BEAT_SCHEDULE_FILENAME = os.path.join(ESSARCH_DIR, 'config/essarch/celerybeat-schedule')
+CELERY_BEAT_SCHEDULE_FILENAME = env.str('ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME',
+                                        os.path.join(ESSARCH_DIR, 'config/essarch/celerybeat-schedule'))
 
 # Rest auth settings
 OLD_PASSWORD_FIELD_ENABLED = True
