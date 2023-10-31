@@ -110,6 +110,7 @@ else:
     AUTHENTICATION_BACKENDS.append('djangosaml2.backends.Saml2Backend')
     MIDDLEWARE.append('djangosaml2.middleware.SamlSessionMiddleware')
     ENABLE_ADFS_LOGIN = False
+    ENABLE_SAML2_METADATA = True
     LOGIN_URL = '/saml2/login/'
     LOGIN_REDIRECT_URL = '/'
     SP_SERVICE_URL = 'https://nightlyx.essarch.org'
@@ -121,10 +122,10 @@ else:
 
     # Change Email/UserName/FirstName/LastName to corresponding SAML2 userprofile attributes.
     SAML_ATTRIBUTE_MAPPING = {
-        'UserName': ('username', ),
-        'Email': ('email', ),
-        'FirstName': ('first_name', ),
-        'LastName': ('last_name', ),
+        'uid': ('username', ),
+        'mail': ('email', ),
+        'givenName': ('first_name', ),
+        'sn': ('last_name', ),
     }
 
     SAML_LOGOUT_REQUEST_PREFERRED_BINDING = saml2.BINDING_HTTP_POST
@@ -180,10 +181,18 @@ else:
                 'name_id_format_allow_create': False,
 
                 # attributes that this project need to identify a user
-                'required_attributes': ["uid"],
+                'required_attributes': [
+                    "uid",  # urn:oid:0.9.2342.19200300.100.1.1
+                    # "sAMAccountName",
+                    # "eduPersonPrincipalName",  # urn:oid:1.3.6.1.4.1.5923.1.1.1.6
+                    # "UserName",
+                    "givenName",  # urn:oid:2.5.4.42
+                    "sn",  # urn:oid:2.5.4.4
+                    "mail",  # urn:oid:0.9.2342.19200300.100.1.3
+                ],
 
                 # attributes that may be useful to have but not required
-                'optional_attributes': ['eduPersonAffiliation'],
+                # 'optional_attributes': ['eduPersonAffiliation'],
 
                 'want_response_signed': False,
                 'authn_requests_signed': True,
@@ -224,23 +233,23 @@ else:
         # Save this xml file, rename it to idp_federation_metadata.xml
         'metadata': {
             'local': [os.path.join(CERTS_DIR, 'idp_federation_metadata.xml')],
-        },
+        } if ENABLE_ADFS_LOGIN else {},
 
         # set to 1 to output debugging information
         'debug': 1,
 
         # Signing
         # private key
-        'key_file': os.path.join(CERTS_DIR, 'essarch_cert_priv.key'),
+        'key_file': os.path.join(CERTS_DIR, 'saml2_essarch.key'),
         # cert
-        'cert_file': os.path.join(CERTS_DIR, 'essarch_cert.crt'),
+        'cert_file': os.path.join(CERTS_DIR, 'saml2_essarch.crt'),
 
         # Encryption
         'encryption_keypairs': [{
             # private key
-            'key_file': os.path.join(CERTS_DIR, 'essarch_cert_priv.key'),
+            'key_file': os.path.join(CERTS_DIR, 'saml2_essarch.key'),
             # cert
-            'cert_file': os.path.join(CERTS_DIR, 'essarch_cert.crt'),
+            'cert_file': os.path.join(CERTS_DIR, 'saml2_essarch.crt'),
         }],
         # own metadata settings
         'contact_person': [

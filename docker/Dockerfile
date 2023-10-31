@@ -14,6 +14,10 @@ RUN rm -rf ./node_modules
 ############## BASE-SLIM ##############
 FROM python:3.11-slim-bookworm as base-slim
 
+RUN groupadd "arch" && \
+    useradd "arch" -g "arch" -G sudo,tape -m -s /bin/bash && \
+    echo "arch:arch" | chpasswd
+
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     default-libmysqlclient-dev \
@@ -31,7 +35,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     vim \
     curl \
     procps \
+    sudo \
+    xmlsec1 \
     && rm -rf /var/lib/apt/lists/*
+
+RUN echo "arch    ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 
 ############## BUILD-DOCS ##############
@@ -73,11 +81,8 @@ COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /co
 # Copy built docs
 COPY --from=build-docs /code/ESSArch_Core/docs/_build /code/ESSArch_Core/docs/_build
 
-#RUN git config --global user.email docker@none.none
-#RUN git config --global user.name docker
-#RUN git tag -a "2023" -m "2023"
-#RUN git tag -a "0+docker" -m "0+docker"
-#RUN git tag -a "5.6.1.dev9" -m "5.6.1.dev9"
+RUN git status
+RUN git describe --tags --dirty --always --long
 RUN python setup.py sdist
 
 
@@ -85,10 +90,10 @@ RUN python setup.py sdist
 FROM base-slim as base
 WORKDIR /code
 
-ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=DontWarn
+ENV ESSARCH_DIR=/ESSArch
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
-ENV PYTHONPATH=/ESSArch/config:/ESSArch/plugins
+ENV PYTHONPATH=/ESSArch/config
 
 # Libreoffice
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -132,6 +137,9 @@ RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`;
 
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
+
+RUN chown -R arch:arch /code
+USER arch
 
 
 ############## DEV ##############

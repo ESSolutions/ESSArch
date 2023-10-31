@@ -8,11 +8,11 @@ services:
       dockerfile: docker/Dockerfile
       target: prod
     environment:
-      ESSARCH_DIR: /ESSArch
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
+      DAPHNE_URL: http://daphne:9000
     volumes:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
