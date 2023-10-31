@@ -14,14 +14,14 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/build/
-      - /code/ESSArch_Core/docs/_build/
-      - ../../ESSArch_Optional:/ESSArch/plugins
+      #- /code/ESSArch_Core/frontend/static/frontend/build/
+      #- /code/ESSArch_Core/docs/_build/
+      #- ../../ESSArch_Optional:/ESSArch/plugins
     command:
       - /bin/bash
       - -c
@@ -61,12 +61,12 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - ../../ESSArch_Optional:/ESSArch/plugins
+      #- ../../ESSArch_Optional:/ESSArch/plugins
     tty: true
     depends_on:
       - rabbitmq
@@ -93,10 +93,10 @@ services:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
-      ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
+      #ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -173,8 +173,6 @@ services:
       - essarch_mariadb_data:/var/lib/mysql
     ports:
       - 3306:3306
-    #    profiles:
-    #      - mariadb
     networks:
       - essarch
 

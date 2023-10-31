@@ -22,7 +22,7 @@ if [ ! -f $ESSARCH_DIR/config/local_essarch_settings.py ]; then
     echo "Found ESSArch in path: $ESSARCH"    
     echo "Installing SE profiles"
     python $ESSARCH/install/install_sa_profiles.py se
-    echo "Installing NO profiles"
+    #echo "Installing NO profiles"
     #python $ESSARCH/install/install_sa_profiles.py no
     echo "Installing EARK profiles"
     python $ESSARCH/install/install_sa_profiles.py eark
@@ -45,13 +45,9 @@ if [ ! -f $ESSARCH_DIR/config/httpd.conf ]; then
         mkdir -p $ESSARCH_DIR/config/ssl
         cd $ESSARCH_DIR/config/ssl; openssl req -x509 -sha256 -days 3652 -newkey rsa:2048 -subj "/C=SE/ST=Stockholm/O=ES Solutions AB/CN=${ServerName_essarch}" -keyout server_essarch.key -out server_essarch.crt -nodes
     fi
-#else
-#    echo "Check if any new static files need to be collected"
-#    django-admin collectstatic --noinput
 fi
 
 if [ /var/run/apache2/apache2.pid ]; then
-    echo "Remove old apache2.pid"
     rm -f /var/run/apache2/apache2.pid
 fi
 

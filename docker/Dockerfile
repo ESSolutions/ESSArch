@@ -16,7 +16,6 @@ FROM python:3.11-slim-bookworm as base-slim
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    #RUN apk update && apk add \
     default-libmysqlclient-dev \
     libcairo2-dev \
     libffi-dev \
@@ -25,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libsasl2-dev \
     libssl-dev \
     netcat-openbsd \
-    #postgresql-client \
+    postgresql-client \
     python3-cffi \
     unixodbc-dev \
     git \
@@ -111,13 +110,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apache2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling
+RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling remoteip
 
 # Copy built sdist
 COPY --from=build-sdist /code/dist ./dist
 ADD docker ./docker
 
-RUN pip install --no-cache-dir --upgrade `ls -t dist/ESSArch-*.tar.gz | head -n1`[apache,libreoffice_file_conversion,mysql]
+RUN pip install --no-cache-dir --upgrade `ls -t dist/ESSArch-*.tar.gz | head -n1`[apache,libreoffice_file_conversion,mysql,saml2,ldap]
 
 RUN mkdir -p ./config
 RUN mkdir -p ./log
@@ -162,9 +161,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Add source
 ADD . /code
 
-RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,dev,tests]
+# Copy built frontend
+COPY --from=build-frontend /code/ESSArch_Core/frontend/static/frontend/build /code/ESSArch_Core/frontend/static/frontend/build
 
-RUN mkdir -p ./config/essarch
+# Copy built docs
+COPY --from=build-docs /code/ESSArch_Core/docs/_build /code/ESSArch_Core/docs/_build
+
+RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,saml2,ldap,docs,tests,dev,lint]
+
+# RUN mkdir -p ./config/essarch
 
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv

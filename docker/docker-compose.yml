@@ -14,14 +14,9 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      #- ..:/code
-      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/build/
-      - /code/ESSArch_Core/docs/_build/
-      - ../../ESSArch_Optional:/ESSArch/plugins
     command:
       - /bin/bash
       - -c
@@ -32,9 +27,7 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/docker-entrypoint.sh
     ports:
-      #- 8000:8000
       - 443:443
-      #- 80:80
     restart: on-failure
     tty: true
     depends_on:
@@ -64,12 +57,9 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      #- ..:/code
-      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - ../../ESSArch_Optional:/ESSArch/plugins
     tty: true
     depends_on:
       - rabbitmq
@@ -98,8 +88,6 @@ services:
       ELASTICSEARCH_URL:
       ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
     volumes:
-      #- ..:/code
-      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -132,8 +120,6 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      #- ..:/code
-      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -167,8 +153,6 @@ services:
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
     volumes:
-      #- ..:/code
-      #- /code/ESSArch.egg-info/
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -201,7 +185,6 @@ services:
 
   mariadb:
     image: 'mariadb:11'
-    #command: mariadb --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     environment:
       MYSQL_DATABASE: essarch
@@ -212,8 +195,6 @@ services:
       - essarch_mariadb_data:/var/lib/mysql
     ports:
       - 3306:3306
-    #    profiles:
-    #      - mariadb
     networks:
       - essarch
 
