@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   essarch:
-    image: essarch
+    image: essarch_dev
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -45,7 +45,7 @@ services:
       - essarch
 
   worker:
-    image: essarch
+    image: essarch_dev
     command:
       - /bin/bash
       - -c
@@ -79,7 +79,7 @@ services:
       - essarch
 
   beat:
-    image: essarch
+    image: essarch_dev
     command:
       - /bin/bash
       - -c
@@ -113,7 +113,7 @@ services:
       - essarch
 
   datasette:
-    image: essarch
+    image: essarch_dev
     command:
       - /bin/bash
       - -c
@@ -151,7 +151,7 @@ services:
       - essarch
 
   yarn:
-    image: essarch
+    image: essarch_dev
     command:
       - /bin/bash
       - -c
