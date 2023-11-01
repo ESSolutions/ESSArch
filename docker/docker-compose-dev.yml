@@ -16,6 +16,7 @@ services:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -63,6 +64,7 @@ services:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -97,6 +99,7 @@ services:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -131,6 +134,7 @@ services:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
@@ -143,6 +147,41 @@ services:
     profiles:
       - datasette
       - all
+    networks:
+      - essarch
+
+  yarn:
+    image: essarch
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        yarn install
+        yarn build:watch
+    restart: on-failure
+    environment:
+      DATABASE_URL_ESSARCH:
+      REDIS_URL_ESSARCH: redis://redis/1
+      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
+      ELASTICSEARCH_URL:
+    volumes:
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+      #- ../../ESSArch_Optional:/ESSArch/plugins
+    tty: true
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - essarch
     networks:
       - essarch
 
@@ -268,6 +307,7 @@ volumes:
   essarch_elasticsearch_data:
   essarch_mariadb_data:
   essarch_postgres_data:
+  essarch_code:
 
 networks:
   essarch:

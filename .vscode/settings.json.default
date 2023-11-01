@@ -22,19 +22,10 @@
   "githubPullRequests.remotes": ["origin"],
   "workbench.tree.indent": 15,
   "window.zoomLevel": 0,
-  "python.formatting.provider": "autopep8",
   "python.languageServer": "Pylance",
-  "python.linting.flake8Enabled": true,
-  "python.linting.flake8Args": ["--max-line-length=119", "--ignore=W504,B305"],
-  "python.linting.pylintEnabled": false,
-  "python.linting.enabled": true,
-  "python.linting.pylintArgs": [
-    "--disable=all",
-    "--enable=F,E,unreachable,duplicate-key,unnecessary-semicolon,global-variable-not-assigned,binary-op-exception,bad-format-string,anomalous-backslash-in-string,bad-open-mode",
-    "--load-plugins=pylint_django",
-    "--max-line-length=119"
-  ],
+  "flake8.args": ["--max-line-length=119", "--ignore=W504,B305"],
   "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8",
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
     }

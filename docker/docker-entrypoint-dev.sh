@@ -12,5 +12,12 @@ python ESSArch_Core/install/install_sa_profiles.py se
 #python ESSArch_Core/install/install_sa_profiles.py no
 python ESSArch_Core/install/install_sa_profiles.py eark
 
+if [ ! -f .vscode/settings.json ]; then
+    cp .vscode/settings.json.default .vscode/settings.json
+fi
+if [ ! -f .vscode/extensionsjson ]; then
+    cp .vscode/extensions.json.default .vscode/extensionsjson
+fi
+
 echo "Starting server"
-python manage.py runserver 0:8000
+python manage.py runserver 0.0.0.0:8000

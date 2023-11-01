@@ -181,3 +181,6 @@ RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,saml2,ldap
 
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
+
+RUN chown -R arch:arch /code
+USER arch
