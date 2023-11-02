@@ -2,13 +2,12 @@ version: '3.8'
 
 services:
   essarch:
-    image: essarch_dev
+    image: essolutionsab/essarch_dev
     build:
       context: ..
       dockerfile: docker/Dockerfile
       target: dev
     environment:
-      ESSARCH_DIR: /ESSArch
       DATABASE_URL_ESSARCH:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
@@ -45,7 +44,7 @@ services:
       - essarch
 
   worker:
-    image: essarch_dev
+    image: essolutionsab/essarch_dev
     command:
       - /bin/bash
       - -c
@@ -79,7 +78,7 @@ services:
       - essarch
 
   beat:
-    image: essarch_dev
+    image: essolutionsab/essarch_dev
     command:
       - /bin/bash
       - -c
@@ -113,7 +112,7 @@ services:
       - essarch
 
   datasette:
-    image: essarch_dev
+    image: essolutionsab/essarch_dev
     command:
       - /bin/bash
       - -c
@@ -151,7 +150,7 @@ services:
       - essarch
 
   yarn:
-    image: essarch_dev
+    image: essolutionsab/essarch_dev
     command:
       - /bin/bash
       - -c
