@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     procps \
     sudo \
     xmlsec1 \
+    ssh \
     && rm -rf /var/lib/apt/lists/*
 
 RUN echo "arch    ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -131,6 +132,7 @@ RUN rm -rf ./log
 RUN rm ./config/local_essarch_settings.py
 
 ADD docker/templates ./templates
+RUN mkdir ./schema; curl -fsSL https://files.essarch.org/dist/ESSArch_schema-_linux.tar.gz | tar xvzf - -C ./schema
 
 RUN export MOD_WSGI=`python -c "import mod_wsgi as _; print(_.__path__[0])"`; cp $MOD_WSGI/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so ./config/essarch/mod_wsgi.so
 RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`; cp $ESSARCH/config/wsgi.py ./config/essarch/wsgi.py
