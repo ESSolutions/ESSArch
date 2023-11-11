@@ -38,6 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sudo \
     xmlsec1 \
     ssh \
+    locales \
     && rm -rf /var/lib/apt/lists/*
 
 RUN echo "arch    ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
@@ -60,7 +61,6 @@ RUN mkdir -p /ESSArch/log
 RUN pip install --no-cache-dir -e /code[docs]
 
 # Build docs
-#ENV ESSARCH_DIR=/code
 RUN mkdir -p /code/config
 RUN mkdir -p /code/log
 RUN essarch settings generate --debug --overwrite -p /code/config/local_essarch_settings.py
@@ -95,6 +95,11 @@ ENV ESSARCH_DIR=/ESSArch
 ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
 ENV PYTHONPATH=/ESSArch/config
+ENV LANG=en_US.UTF-8
+ENV TZ="Europe/Stockholm"
+
+RUN mv /etc/localtime /etc/localtime-old; ln -s /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
+RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen; locale-gen
 
 # Libreoffice
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -117,6 +122,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling remoteip
+RUN sed -i 's/export LANG=C/export LANG=en_US.UTF-8/g' /etc/apache2/envvars
 
 # Copy built sdist
 COPY --from=build-sdist /code/dist ./dist
