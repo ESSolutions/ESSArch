@@ -25,7 +25,7 @@ services:
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
-        /code/docker/docker-entrypoint.sh
+        /code/docker/entrypoint-essarch.sh
     ports:
       - 443:443
     restart: on-failure
@@ -48,9 +48,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 443
         /code/docker/wait_for.sh elasticsearch 9200
-        exec /code/docker/docker-entrypoint-celery-worker.sh
-        #django-admin worker -l INFO -Q celery,file_operation,validation,io_disk
-        #celery -l INFO -Q:worker_celery celery -c:worker_celery 1 -Q:worker_validation validation -c:worker_validation 4 -Q:worker_file_operation file_operation -c:worker_file_operation 4 -Q:worker_io_disk io_disk -c:worker_io_disk 4 -Q:worker_io_tape io_tape -c:worker_io_tape 4 -Ofair
+        exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
@@ -80,7 +78,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 443
         /code/docker/wait_for.sh elasticsearch 9200
-        essarch beat -l INFO
+        exec /code/docker/entrypoint-celery-beat.sh
     restart: on-failure
     environment:
       DATABASE_URL_ESSARCH:
@@ -144,7 +142,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 443
         /code/docker/wait_for.sh elasticsearch 9200
-        /code/docker/docker-entrypoint-datasette.sh
+        /code/docker/entrypoint-datasette.sh
     ports:
       - 8001:8001
     restart: on-failure

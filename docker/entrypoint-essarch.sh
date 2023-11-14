@@ -18,6 +18,7 @@ if [ ! -f $ESSARCH_DIR/config/local_essarch_settings.py ]; then
     essarch mimetypes generate -q --no-overwrite
     echo "Running essarch install -q "
     essarch install -q
+    mkdir -p /ESSArch/config/essarch
     ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`
     echo "Found ESSArch in path: $ESSARCH"    
     echo "Installing SE profiles"
@@ -56,6 +57,8 @@ fi
 if [ ! -f /etc/apache2/sites-enabled/httpd.conf ]; then
     echo "Enable apache http"
     sudo ln -fs $ESSARCH_DIR/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
+    echo "Enable XML schema server"
+    sed -i '/httpd-schema.conf/s/^#* *//g' $ESSARCH_DIR/config/httpd.conf
 fi
 
 if [ /var/run/apache2/apache2.pid ]; then

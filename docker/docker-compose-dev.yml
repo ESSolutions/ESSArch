@@ -30,7 +30,7 @@ services:
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
-        /code/docker/docker-entrypoint-dev.sh
+        /code/docker/entrypoint-essarch-dev.sh
     ports:
       - 8000:8000
     restart: on-failure
@@ -94,7 +94,6 @@ services:
       REDIS_URL_ESSARCH: redis://redis/1
       RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
       ELASTICSEARCH_URL:
-      #ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
@@ -121,7 +120,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        /code/docker/docker-entrypoint-datasette.sh
+        /code/docker/entrypoint-datasette.sh
     ports:
       - 8001:8001
     restart: on-failure
