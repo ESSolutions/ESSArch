@@ -39,6 +39,7 @@ if [ ! -f $ESSARCH_DIR/config/httpd.conf ]; then
     cp /code/docker/templates/config/httpd.conf $ESSARCH_DIR/config/httpd.conf
     cp /code/docker/templates/config/httpd-essarch.conf $ESSARCH_DIR/config/httpd-essarch.conf
     cp /code/docker/templates/config/httpd-schema.conf $ESSARCH_DIR/config/httpd-schema.conf
+    sed -i '/httpd-schema.conf/s/^#* *//g' $ESSARCH_DIR/config/httpd.conf
     sed -i "s;\(ServerName \)[^\]*;\1${ServerName_essarch};" $ESSARCH_DIR/config/httpd-essarch.conf
     sed -i "s;\(Redirect / https://\)[^\]*;\1${ServerName_essarch};" $ESSARCH_DIR/config/httpd-essarch.conf
     if [ ! -f $ESSARCH_DIR/config/certs/server_essarch.crt ]; then
@@ -54,22 +55,10 @@ if [ ! -f $ESSARCH_DIR/config/certs/saml2_essarch.crt ]; then
     #sudo -u arch bash -c "cd $ESSARCH_DIR/config/certs; wget --no-check-certificate https://fs.essarch.org/federationmetadata/2007-06/federationmetadata.xml -O idp_federation_metadata.xml || true"
 fi
 
-if [ ! -f /etc/apache2/sites-enabled/httpd.conf ]; then
-    echo "Enable apache http"
-    sudo ln -fs $ESSARCH_DIR/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
-    echo "Enable XML schema server"
-    sed -i '/httpd-schema.conf/s/^#* *//g' $ESSARCH_DIR/config/httpd.conf
-fi
 
 if [ /var/run/apache2/apache2.pid ]; then
-    sudo rm -f /var/run/apache2/apache2.pid
+    rm -f /var/run/apache2/apache2.pid
 fi
 
 echo "Starting server"
-#ENV="env -i $(grep -v '^#' /code/docker/templates/config/essarch_env | xargs) /bin/sh -l -c"
-#ENV="env $(grep -v '^#' /code/docker/templates/config/essarch_env | xargs) /bin/sh -l -c"
-#$ENV "apache2ctl -D FOREGROUND"
-#sudo -E $ENV "apache2ctl -D FOREGROUND"
-sudo -E PYTHONPATH=$PYTHONPATH apache2ctl -D FOREGROUND
-#$ENV "${apachectl} -f ${apacheconfig} -D FOREGROUND"
-#$ENV "/usr/sbin/apache2ctl -f /ESSArch/config/httpd.conf -D FOREGROUND"
+apache2ctl -D FOREGROUND

@@ -14,8 +14,8 @@ RUN rm -rf ./node_modules
 ############## BASE-SLIM ##############
 FROM python:3.11-slim-bookworm as base-slim
 
-RUN groupadd "arch" && \
-    useradd "arch" -g "arch" -G sudo,tape -m -s /bin/bash && \
+RUN groupadd "arch" -g 1001 && \
+    useradd "arch" -u 1001 -g "arch" -G sudo,tape -m -s /bin/bash && \
     echo "arch:arch" | chpasswd
 
 RUN pip install --no-cache-dir --upgrade pip setuptools
@@ -123,6 +123,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling remoteip
 RUN sed -i 's/export LANG=C/export LANG=en_US.UTF-8/g' /etc/apache2/envvars
+RUN sed -i 's/www-data/arch/g' /etc/apache2/envvars
+RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
+RUN mkdir -p /var/log/apache2
+RUN mkdir -p /var/run/apache2
+RUN chown -R arch:arch /var/log/apache2
+RUN chown -R arch:arch /var/run/apache2
+RUN chown -R arch:arch /etc/apache2
+RUN ln -fs /ESSArch/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
+RUN rm -f /etc/apache2/sites-enabled/000-default.conf
+RUN sed -e '/Listen 80/ s/^#*/#/' -i /etc/apache2/ports.conf
+RUN sed -e '/Listen 443/ s/^#*/#/' -i /etc/apache2/ports.conf
+
 
 # Copy built sdist
 COPY --from=build-sdist /code/dist ./dist
