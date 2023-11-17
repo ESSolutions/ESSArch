@@ -126,10 +126,16 @@ RUN sed -i 's/export LANG=C/export LANG=en_US.UTF-8/g' /etc/apache2/envvars
 RUN sed -i 's/www-data/arch/g' /etc/apache2/envvars
 RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
 RUN mkdir -p /var/log/apache2
-RUN mkdir -p /var/run/apache2
-RUN chown -R arch:arch /var/log/apache2
-RUN chown -R arch:arch /var/run/apache2
-RUN chown -R arch:arch /etc/apache2
+RUN mkdir -p /var/run/apache2/socks
+RUN mkdir -p /var/lock/apache2
+RUN chown -R arch:root /var/log/apache2
+RUN chown -R arch:root /var/run/apache2
+RUN chown -R arch:root /var/lock/apache2
+RUN chown -R arch:root /etc/apache2
+RUN chmod -R g+rwx /var/log/apache2
+RUN chmod -R g+rwx /var/run/apache2
+RUN chmod -R g+rwx /var/lock/apache2
+RUN chmod -R g+rwx /etc/apache2
 RUN ln -fs /ESSArch/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
 RUN rm -f /etc/apache2/sites-enabled/000-default.conf
 RUN sed -e '/Listen 80/ s/^#*/#/' -i /etc/apache2/ports.conf
@@ -158,7 +164,8 @@ RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`;
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
 
-RUN chown -R arch:arch /code
+RUN chown -R arch:root /code
+RUN chmod -R g+rwx /code
 USER arch
 
 
@@ -202,5 +209,5 @@ RUN pip install --no-cache-dir -e .[libreoffice_file_conversion,mysql,saml2,ldap
 # Use python version that match installed libreoffice for unoconv
 RUN sed -i 's/^#!\/usr\/local\/bin\/python/#!\/usr\/bin\/python3/' /usr/local/bin/unoconv
 
-RUN chown -R arch:arch /code
+RUN chown -R arch:root /code
 USER arch
