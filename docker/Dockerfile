@@ -97,6 +97,8 @@ ENV DJANGO_SETTINGS_MODULE ESSArch_Core.config.settings
 ENV PYTHONPATH=/ESSArch/config
 ENV LANG=en_US.UTF-8
 ENV TZ="Europe/Stockholm"
+ENV PIP_CACHE_DIR=/ESSArch/config/.pip_cache
+ENV PYTHON_EGG_CACHE=/ESSArch/config/.python_egg_cache
 
 RUN mv /etc/localtime /etc/localtime-old; ln -s /usr/share/zoneinfo/Europe/Stockholm /etc/localtime
 RUN sed -i 's/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen; locale-gen
@@ -111,7 +113,7 @@ RUN pip install --no-cache-dir datasette
 
 ############## PROD ##############
 FROM base as prod
-EXPOSE 443
+EXPOSE 8443 8080
 
 ARG ESSARCH_DIR=./
 ARG PYTHONPATH=./config
@@ -124,7 +126,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN a2enmod setenvif mime socache_shmcb ssl proxy proxy_http headers rewrite speling remoteip
 RUN sed -i 's/export LANG=C/export LANG=en_US.UTF-8/g' /etc/apache2/envvars
 RUN sed -i 's/www-data/arch/g' /etc/apache2/envvars
-RUN setcap 'cap_net_bind_service=+ep' /usr/sbin/apache2
 RUN mkdir -p /var/log/apache2
 RUN mkdir -p /var/run/apache2/socks
 RUN mkdir -p /var/lock/apache2
@@ -135,16 +136,17 @@ RUN chown -R arch:root /var/lock/apache2
 RUN chown -R arch:root /var/cache/apache2
 RUN chown -R arch:root /etc/apache2
 RUN chmod -R g+rwx /var/log
-RUN chmod -R g+rwx /var/run/apache2
-RUN chmod -R g+rwx /var/lock/apache2
-RUN chmod -R g+rwx /var/cache/apache2
+RUN chmod -R g+rwx /var/run
+RUN chmod -R g+rwx /var/lock
+RUN chmod -R g+rwx /var/cache
 RUN chmod -R g+rwx /etc/apache2
+RUN chmod -R g+rwx /usr/local/lib/python3.11
+RUN chmod -R g+rwx /usr/local/bin
 RUN chmod g+rwx /usr/sbin/apache2
 RUN ln -fs /ESSArch/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
 RUN rm -f /etc/apache2/sites-enabled/000-default.conf
 RUN sed -e '/Listen 80/ s/^#*/#/' -i /etc/apache2/ports.conf
 RUN sed -e '/Listen 443/ s/^#*/#/' -i /etc/apache2/ports.conf
-
 
 # Copy built sdist
 COPY --from=build-sdist /code/dist ./dist
