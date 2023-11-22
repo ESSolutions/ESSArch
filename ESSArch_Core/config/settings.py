@@ -19,6 +19,9 @@ PROJECT_NAME = 'ESSArch'
 SESSION_COOKIE_NAME = env.str('ESSARCH_SESSION_COOKIE_NAME', 'essarch')
 SESSION_COOKIE_SECURE = env.bool('ESSARCH_SESSION_COOKIE_SECURE', default=True)
 CSRF_COOKIE_SECURE = env.bool('ESSARCH_CSRF_COOKIE_SECURE', default=True)
+CSRF_HEADER_NAME = env.str('ESSARCH_CSRF_HEADER_NAME', 'HTTP_X_CSRFTOKEN')
+CSRF_TRUSTED_ORIGINS = env.list('ESSARCH_CSRF_TRUSTED_ORIGINS', default=[])
+ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('ESSARCH_DEBUG', default=True)
@@ -38,8 +41,6 @@ ESSARCH_WORKFLOW_POLLERS = {}
 
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
-
-ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
 EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
@@ -185,7 +186,6 @@ MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
 ])
 MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
-CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = 'ESSArch_Core.config.urls'
 
 TEMPLATES = [

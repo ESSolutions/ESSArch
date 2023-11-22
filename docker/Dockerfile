@@ -147,6 +147,7 @@ RUN ln -fs /ESSArch/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
 RUN rm -f /etc/apache2/sites-enabled/000-default.conf
 RUN sed -e '/Listen 80/ s/^#*/#/' -i /etc/apache2/ports.conf
 RUN sed -e '/Listen 443/ s/^#*/#/' -i /etc/apache2/ports.conf
+RUN sed -e '/basicConstraints/ s/^#*/#/' -i /usr/lib/ssl/openssl.cnf
 
 # Copy built sdist
 COPY --from=build-sdist /code/dist ./dist

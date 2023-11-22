@@ -27,7 +27,8 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/entrypoint-essarch.sh
     ports:
-      - 443:443
+      - 8080:8080
+      - 8443:8443
     restart: on-failure
     tty: true
     depends_on:
@@ -46,7 +47,7 @@ services:
       - |
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 443
+        /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
@@ -76,7 +77,7 @@ services:
       - |
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 443
+        /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         exec /code/docker/entrypoint-celery-beat.sh
     restart: on-failure
@@ -107,7 +108,7 @@ services:
       - |
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 443
+        /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         daphne ESSArch_Core.config.asgi:application --port 9000 --bind 0.0.0.0 --access-log /ESSArch/log/daphneessarch.log
     ports:
@@ -140,7 +141,7 @@ services:
       - |
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 443
+        /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
         /code/docker/entrypoint-datasette.sh
     ports:
