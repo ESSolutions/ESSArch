@@ -301,10 +301,10 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '[%(asctime)s %(levelname)s] %(message)s'
+            'format': '[%(asctime)s: %(levelname)s] %(message)s'
         },
         'verbose_process': {
-            'format': '[%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d] %(message)s'
+            'format': '[%(asctime)s: %(levelname)s %(module)s %(process)d %(thread)d] %(message)s'
         },
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
