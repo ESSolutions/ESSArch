@@ -110,7 +110,7 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8080
         /code/docker/wait_for.sh elasticsearch 9200
-        daphne ESSArch_Core.config.asgi:application --port 9000 --bind 0.0.0.0 --access-log /ESSArch/log/daphneessarch.log
+        daphne ESSArch_Core.config.asgi:application --port 9000 --bind 0.0.0.0 --access-log /ESSArch/log/daphneessarch.log --log-fmt '[%(asctime)s: %(levelname)s] %(message)s'
     ports:
       - 9000:9000
     restart: on-failure
