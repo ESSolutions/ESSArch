@@ -352,6 +352,14 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
+        'log_file_daphneessarch': {
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGGING_DIR, 'daphneessarch.log'),
+            'maxBytes': 1024 * 1024 * 100,  # 100MB
+            'backupCount': 5,
+        },
         # 'log_file_auth_saml2': {
         #    'level': 'DEBUG',
         #    'class' : 'logging.handlers.RotatingFileHandler',
@@ -391,6 +399,10 @@ LOGGING = {
             'level': 'INFO',
             'handlers': ['log_file_auth'],
             'propagate': False,
+        },
+        'daphne': {
+            'level': 'INFO',
+            'handlers': ['log_file_daphneessarch'],
         },
         # 'djangosaml2': {
         #    'level': 'INFO',
