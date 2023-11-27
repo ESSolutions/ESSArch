@@ -14,6 +14,8 @@ echo "ESSARCH_DIR = $ESSARCH_DIR"
 if [ ! -f $ESSARCH_DIR/config/local_essarch_settings.py ]; then
     echo "Generate settings"
     essarch settings generate -q --no-overwrite
+    echo "Add extra config to settings"
+    cat /code/docker/templates/local_essarch_settings.py >> $ESSARCH_DIR/config/local_essarch_settings.py
     echo "Generate mimetypes"
     essarch mimetypes generate -q --no-overwrite
     echo "Running essarch install -q "
