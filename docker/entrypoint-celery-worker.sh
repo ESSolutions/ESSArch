@@ -45,7 +45,7 @@ ${CELERY_BIN} -A ${CELERY_APP} multi start ${CELERYD_NODES} \
 trap "teardown" SIGTERM SIGINT SIGQUIT SIGHUP ERR
 
 # tail all the logs continuously to console for `docker logs` to see
-tail -f ${ESSARCH_DIR}/log/celery_*.log &
+tail -f $(for i in $CELERYD_NODES; do echo ${ESSARCH_DIR}/log/celery_${i}.log; done) &
 
 # capture process id of `tail` for tear down
 child=$!

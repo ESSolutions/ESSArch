@@ -8,11 +8,11 @@ services:
       dockerfile: docker/Dockerfile
       target: prod
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
-      DAPHNE_URL: http://daphne:9000
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+      ESSARCH_DAPHNE_URL: http://daphne:9000
     volumes:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
@@ -21,7 +21,7 @@ services:
       - /bin/bash
       - -c
       - |
-        /code/docker/wait_for.sh ${DATABASE_HOST_ESSARCH} ${DATABASE_PORT_ESSARCH}
+        /code/docker/wait_for.sh ${ESSARCH_DATABASE_HOST} ${ESSARCH_DATABASE_PORT}
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh elasticsearch 9200
@@ -32,7 +32,7 @@ services:
     restart: on-failure
     tty: true
     depends_on:
-      - ${DATABASE_SERVICE_ESSARCH}
+      - ${ESSARCH_DATABASE_SERVICE}
       - rabbitmq
       - redis
       - elasticsearch
@@ -52,10 +52,10 @@ services:
         exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
@@ -82,10 +82,10 @@ services:
         exec /code/docker/entrypoint-celery-beat.sh
     restart: on-failure
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
       ESSARCH_CELERY_BEAT_SCHEDULE_FILENAME: /code/config/essarch/celerybeat-schedule
     volumes:
       - ./data:/ESSArch/data
@@ -115,10 +115,10 @@ services:
       - 9000:9000
     restart: on-failure
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
@@ -148,10 +148,10 @@ services:
       - 8001:8001
     restart: on-failure
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config

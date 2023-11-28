@@ -106,6 +106,7 @@ try:
 except ImportError:
     pass
 else:
+    ESSARCH_URL = env.url('ESSARCH_URL', default='https://essarch.domain.xyz')
     INSTALLED_APPS.append('djangosaml2')
     AUTHENTICATION_BACKENDS.append('djangosaml2.backends.Saml2Backend')
     MIDDLEWARE.append('djangosaml2.middleware.SamlSessionMiddleware')
@@ -113,7 +114,9 @@ else:
     ENABLE_SAML2_METADATA = True
     LOGIN_URL = '/saml2/login/'
     LOGIN_REDIRECT_URL = '/'
-    SP_SERVICE_URL = 'https://nightlyx.essarch.org'
+    SP_SERVICE_URL = '{}://{}/{}'.format(ESSARCH_URL.scheme,
+                                         ESSARCH_URL.netloc,
+                                         ESSARCH_URL.path).rstrip('/')
     IDP_SERVICE_URL = 'https://fs.essarch.org'
     # XMLSEC_BINARY = '/usr/bin/xmlsec1'
     CERTS_DIR = os.path.join(CONFIG_DIR, 'certs')

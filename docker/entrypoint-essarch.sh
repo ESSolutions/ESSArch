@@ -8,14 +8,16 @@ else
     FQDN="`hostname`"
 fi
 SiteName_essarch="essarch"
-ServerName_essarch="$SiteName_essarch.$FQDN"
+ESSARCH_URL=${ESSARCH_PUBLIC_URL="https://$SiteName_essarch.$FQDN"}
+ESSARCH_SERVER_URL=${ESSARCH_SERVER_URL=$ESSARCH_URL}
+ServerName_essarch=`python -c 'import environ; env = environ.Env(); print(env.url("ESSARCH_SERVER_URL").netloc)'`
 
 echo "ESSARCH_DIR = $ESSARCH_DIR"
 if [ ! -f $ESSARCH_DIR/config/local_essarch_settings.py ]; then
     echo "Generate settings"
     essarch settings generate -q --no-overwrite
     echo "Add extra config to settings"
-    cat /code/docker/templates/local_essarch_settings.py >> $ESSARCH_DIR/config/local_essarch_settings.py
+    cat /code/docker/templates/config/local_essarch_settings.py >> $ESSARCH_DIR/config/local_essarch_settings.py
     echo "Generate mimetypes"
     essarch mimetypes generate -q --no-overwrite
     echo "Running essarch install -q "
