@@ -41,6 +41,15 @@ services:
 
   worker:
     image: essolutionsab/essarch
+    environment:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+    volumes:
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
     command:
       - /bin/bash
       - -c
@@ -51,15 +60,6 @@ services:
         /code/docker/wait_for.sh elasticsearch 9200
         exec /code/docker/entrypoint-celery-worker.sh
     restart: on-failure
-    environment:
-      ESSARCH_DATABASE_URL:
-      ESSARCH_REDIS_URL: redis://redis/1
-      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      ESSARCH_ELASTICSEARCH_URL:
-    volumes:
-      - ./data:/ESSArch/data
-      - ./config:/ESSArch/config
-      - ./log:/ESSArch/log
     tty: true
     depends_on:
       - rabbitmq
@@ -71,16 +71,6 @@ services:
 
   beat:
     image: essolutionsab/essarch
-    command:
-      - /bin/bash
-      - -c
-      - |
-        /code/docker/wait_for.sh redis 6379
-        /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 8080
-        /code/docker/wait_for.sh elasticsearch 9200
-        exec /code/docker/entrypoint-celery-beat.sh
-    restart: on-failure
     environment:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
@@ -91,6 +81,16 @@ services:
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8080
+        /code/docker/wait_for.sh elasticsearch 9200
+        exec /code/docker/entrypoint-celery-beat.sh
+    restart: on-failure
     tty: true
     depends_on:
       - rabbitmq
@@ -102,6 +102,16 @@ services:
 
   daphne:
     image: essolutionsab/essarch
+    environment:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+    volumes:
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+      - ../../ESSArch_Optional:/ESSArch/plugins
     command:
       - /bin/bash
       - -c
@@ -114,16 +124,6 @@ services:
     ports:
       - 9000:9000
     restart: on-failure
-    environment:
-      ESSARCH_DATABASE_URL:
-      ESSARCH_REDIS_URL: redis://redis/1
-      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      ESSARCH_ELASTICSEARCH_URL:
-    volumes:
-      - ./data:/ESSArch/data
-      - ./config:/ESSArch/config
-      - ./log:/ESSArch/log
-      - ../../ESSArch_Optional:/ESSArch/plugins
     tty: true
     depends_on:
       - rabbitmq
@@ -135,6 +135,15 @@ services:
 
   datasette:
     image: essolutionsab/essarch
+    environment:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+    volumes:
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
     command:
       - /bin/bash
       - -c
@@ -147,15 +156,6 @@ services:
     ports:
       - 8001:8001
     restart: on-failure
-    environment:
-      ESSARCH_DATABASE_URL:
-      ESSARCH_REDIS_URL: redis://redis/1
-      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      ESSARCH_ELASTICSEARCH_URL:
-    volumes:
-      - ./data:/ESSArch/data
-      - ./config:/ESSArch/config
-      - ./log:/ESSArch/log
     tty: true
     depends_on:
       - rabbitmq

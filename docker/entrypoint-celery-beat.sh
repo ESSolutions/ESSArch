@@ -28,6 +28,7 @@ teardown()
 # start celery beat with declared logfile for `tail -f`
 rm -f ${CELERYBEAT_PID_FILE}
 touch ${CELERYBEAT_LOG_FILE}
+mkdir -p ${ESSARCH_DIR}/config/essarch
 ${CELERY_BIN} -A ${CELERY_APP} beat \
   --pidfile=${CELERYBEAT_PID_FILE} \
   --logfile=${CELERYBEAT_LOG_FILE} --loglevel=${CELERYBEAT_LOG_LEVEL} ${CELERYBEAT_OPTS} &

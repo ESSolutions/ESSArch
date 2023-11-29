@@ -9,7 +9,7 @@ else
 fi
 SiteName_essarch="essarch"
 ESSARCH_URL=${ESSARCH_PUBLIC_URL="https://$SiteName_essarch.$FQDN"}
-ESSARCH_SERVER_URL=${ESSARCH_SERVER_URL=$ESSARCH_URL}
+export ESSARCH_SERVER_URL=${ESSARCH_SERVER_URL=$ESSARCH_URL}
 ServerName_essarch=`python -c 'import environ; env = environ.Env(); print(env.url("ESSARCH_SERVER_URL").netloc)'`
 
 echo "ESSARCH_DIR = $ESSARCH_DIR"
