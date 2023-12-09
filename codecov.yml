@@ -4,6 +4,7 @@ coverage:
       default:
         informational: true
       backend:
+        informational: true
         flags:
           - backend
     patch:
