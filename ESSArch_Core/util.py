@@ -589,7 +589,9 @@ def validate_remote_url(url):
 def get_charset(byte_str):
     decoded_flag = False
     guess = chardet.detect(byte_str)
-    charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252', guess['encoding']]
+    charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
+    if guess['encoding'] is not None:
+        charsets.append(guess['encoding'])
     for c in sorted(set(charsets), key=charsets.index):
         logger.debug('Trying to decode response in {}'.format(c))
         try:
@@ -603,8 +605,8 @@ def get_charset(byte_str):
         logger.debug('Decoded response in {}'.format(c))
         return c
     else:
-        logger.error('Failed to decode response in {}'.format(c))
-        return 'Unknown'
+        logger.warning('Failed to decode response in {}'.format(sorted(set(charsets))))
+        return None
 
 
 def get_filename_from_file_obj(file_obj, name):
