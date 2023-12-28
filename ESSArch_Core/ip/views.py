@@ -3489,9 +3489,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if len(relative_path) == 0:
             raise exceptions.ParseError('The path cannot be empty')
 
-        path = os.path.join(root, relative_path)
+        filepath = os.path.join(root, relative_path)
 
-        self.validate_path(path, root, existence=False)
+        self.validate_path(filepath, root, existence=False)
 
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
@@ -3499,10 +3499,16 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
 
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         try:
-            merge_file_chunks(chunks_path, path)
+            merge_file_chunks(chunks_path, filepath)
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
+
+        extra = {'event_type': 50700, 'object': str(workarea_obj.ip.pk),
+                 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
+        self.logger.info("Uploaded %s" % filepath, extra=extra)
 
         return Response({'detail': gettext('Merged chunks')})
 
