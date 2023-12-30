@@ -39,7 +39,7 @@ elasticsearch-dsl==7.4.1
 gevent==23.9.1 ; platform_system=='Windows'
 glob2==0.7
 jsonfield==3.1.0
-lxml==4.9.4
+lxml==5.0.0
 msoffcrypto-tool==5.1.1
 natsort==8.4.0
 opf-fido==1.6.1
