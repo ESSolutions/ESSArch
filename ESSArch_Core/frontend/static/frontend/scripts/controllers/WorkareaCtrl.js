@@ -268,19 +268,20 @@ export default class WorkareaCtrl {
       });
       return cardClass;
     };
-    $scope.resetUploadedFiles = function () {
+    $scope.resetUploadedFiles = function (ip) {
       $scope.uploadedFiles = 0;
+      $rootScope.flowObjects[ip.id] = null;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function (flow, transfers) {
+    $scope.flowComplete = function (ip, flow, transfers) {
       if (flow.progress() === 1) {
         flow.flowCompleted = true;
         flow.flowSize = flow.getSize();
         flow.flowFiles = transfers.length;
         flow.cancel();
         if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles();
+          $scope.resetUploadedFiles(ip);
         }
       }
 
@@ -308,7 +309,7 @@ export default class WorkareaCtrl {
         complete: $scope.flowComplete,
       });
       flowObj.on('complete', function () {
-        $scope.flowComplete(flowObj, flowObj.files);
+        $scope.flowComplete(ip, flowObj, flowObj.files);
       });
       flowObj.on('fileSuccess', function (file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);
