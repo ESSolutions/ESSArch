@@ -719,7 +719,10 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 def CreateWorkarea(self, ip, user, type, read_only):
     ip = InformationPackage.objects.get(pk=ip)
     user = User.objects.get(pk=user)
-    Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+    Workarea.objects.update_or_create(ip=ip, user=user, defaults={
+        'type': type,
+        'read_only': read_only,
+    })
     Notification.objects.create(
         message=gettext("{ip} is now in workspace").format(ip=ip),
         level=logging.INFO, user=user, refresh=True

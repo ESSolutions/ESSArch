@@ -510,7 +510,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not self.detail and view_type == 'aic':
             simple_inner = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(state='Ingest Workspace') |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
@@ -558,7 +558,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             simple = self.apply_filters(filtered)
@@ -589,7 +589,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         elif not self.detail and view_type == 'flat':
             filtered = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             qs = self.apply_filters(filtered)
