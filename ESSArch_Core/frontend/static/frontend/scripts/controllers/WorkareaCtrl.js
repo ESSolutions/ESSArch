@@ -36,6 +36,7 @@ export default class WorkareaCtrl {
       options: [],
     };
     vm.$onInit = function () {
+      $rootScope.flowObjects = {};
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
