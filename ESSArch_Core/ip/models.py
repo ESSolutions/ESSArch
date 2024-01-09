@@ -85,6 +85,7 @@ from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import parse_mets
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.fixity.receipt import AVAILABLE_RECEIPT_BACKENDS
 from ESSArch_Core.managers import OrganizationManager, OrganizationQuerySet
 from ESSArch_Core.profiles.models import (
     ProfileIP,
@@ -1995,6 +1996,8 @@ class InformationPackage(models.Model):
 
         aic_xml = True if self.aic else False
 
+        migration_receipt = 'api_ip_migrated' in AVAILABLE_RECEIPT_BACKENDS.keys()
+
         if tar:
             try:
                 storage_object = self.storage.readable().secure_storage().fastest()[0]
@@ -2201,6 +2204,22 @@ class InformationPackage(models.Model):
                     "queue": worker_queue,
                     "if": temp_aic_mets_path,
                     "args": [temp_aic_mets_path]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                    "label": "Acknowledge API IP Migrated",
+                    "queue": worker_queue,
+                    "if": migration_receipt,
+                    "params": {
+                        "task_id": None,
+                        "backend": "api_ip_migrated",
+                        "template": None,
+                        "destination": None,
+                        "outcome": "success",
+                        "short_message": "Migrated {{OBJID}}",
+                        "message": "Migrated {{OBJID}}",
+                        "storage_methods": [str(method.pk) for method in container_methods],
+                    },
                 },
             ]
         else:
@@ -2416,6 +2435,22 @@ class InformationPackage(models.Model):
                         "queue": worker_queue,
                         "if": temp_aic_mets_path,
                         "args": [temp_aic_mets_path]
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                        "label": "Acknowledge API IP Migrated",
+                        "queue": worker_queue,
+                        "if": migration_receipt,
+                        "params": {
+                            "task_id": None,
+                            "backend": "api_ip_migrated",
+                            "template": None,
+                            "destination": None,
+                            "outcome": "success",
+                            "short_message": "Migrated {{OBJID}}",
+                            "message": "Migrated {{OBJID}}",
+                            "storage_methods": [str(method.pk) for method in container_methods],
+                        },
                     },
                 ]
             else:
