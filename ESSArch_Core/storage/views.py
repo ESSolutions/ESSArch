@@ -48,6 +48,10 @@ from ESSArch_Core.configuration.serializers import (
     StorageTargetSerializer,
 )
 from ESSArch_Core.exceptions import Conflict
+from ESSArch_Core.fixity.receipt import (
+    AVAILABLE_RECEIPT_BACKENDS,
+    get_backend as get_receipt_backend,
+)
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.storage.filters import (
@@ -350,6 +354,17 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('{} is not fully migrated yet'.format(medium.medium_id))
 
         medium.deactivate()
+
+        medium_deactivated_receipt = 'api_medium_deactivated' in AVAILABLE_RECEIPT_BACKENDS.keys()
+        if medium_deactivated_receipt:
+            backend = get_receipt_backend('api_medium_deactivated')
+            backend.create(
+                template=None, destination=None, outcome='success',
+                short_message='Deactivated {{medium.medium_id}}',
+                message='Deactivated {{medium.medium_id}}',
+                medium_id=medium.medium_id,
+            )
+
         return Response(status=status.HTTP_200_OK)
 
 
