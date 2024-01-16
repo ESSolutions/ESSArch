@@ -2834,6 +2834,9 @@ class InformationPackage(models.Model):
         unique_together = (
             ('aic', 'generation'),
         )
+        indexes = [
+            models.Index(fields=['state', 'package_type', 'active', 'archived', 'generation', 'aic_id']),
+        ]
         permissions = (
             ('can_upload', 'Can upload files to IP'),
             ('set_uploaded', 'Can set IP as uploaded'),
