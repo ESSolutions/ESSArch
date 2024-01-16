@@ -373,7 +373,7 @@ class InformationPackage(models.Model):
         primary_key=True, default=uuid.uuid4, editable=False
     )
     object_identifier_value = models.CharField(_('object_identifier_value'), max_length=255, unique=True)
-    label = models.CharField(_('label'), max_length=255, blank=True)
+    label = models.CharField(_('label'), max_length=255, blank=True, db_index=True)
     content = models.CharField(max_length=255)
     create_date = models.DateTimeField(_('create date'), default=timezone.now, db_index=True)
     state = models.CharField(_('state'), max_length=255, db_index=True)
@@ -382,8 +382,8 @@ class InformationPackage(models.Model):
     object_size = models.BigIntegerField(_('object size'), default=0)
     object_num_items = models.IntegerField(default=0)
 
-    start_date = models.DateTimeField(_('start date'), null=True)
-    end_date = models.DateTimeField(_('end date'), null=True)
+    start_date = models.DateTimeField(_('start date'), null=True, db_index=True)
+    end_date = models.DateTimeField(_('end date'), null=True, db_index=True)
 
     appraisal_date = models.DateTimeField(null=True)
 
@@ -406,8 +406,8 @@ class InformationPackage(models.Model):
     linking_agent_identifier_value = models.CharField(max_length=255, blank=True)
     create_agent_identifier_value = models.CharField(max_length=255, blank=True)
 
-    entry_date = models.DateTimeField(_('entry date'), null=True)
-    entry_agent_identifier_value = models.CharField(max_length=255, blank=True)
+    entry_date = models.DateTimeField(_('entry date'), null=True, db_index=True)
+    entry_agent_identifier_value = models.CharField(max_length=255, blank=True, db_index=True)
 
     package_type = models.IntegerField(_('package type'), null=True, choices=PACKAGE_TYPE_CHOICES, default=SIP)
     preservation_level_value = models.IntegerField(choices=PRESERVATION_LEVEL_VALUE_CHOICES, default=1)
