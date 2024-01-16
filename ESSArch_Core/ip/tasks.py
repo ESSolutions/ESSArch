@@ -239,7 +239,7 @@ def PrepareAIP(self, sip_path):
 
             ProfileIP.objects.filter(ip=ip).delete()
             ip.submission_agreement.lock_to_information_package(ip, user)
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 profile_ip.lock(user)
     else:
         with transaction.atomic():

@@ -636,7 +636,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         org.add_object(ip)
         if data['submission_agreement']:
             data['submission_agreement'].lock_to_information_package(ip, data['responsible'])
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
                 except ValidationError as e:

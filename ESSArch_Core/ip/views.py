@@ -804,7 +804,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
             try:
                 profile_ip.clean()
             except ValidationError as e:
@@ -1592,7 +1592,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             archive = request.data.get('archive', None)
 
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
                 except ValidationError as e:

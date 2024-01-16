@@ -239,7 +239,7 @@ def append_events(ip, events, filename):
         id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
 
     target = generator.find_element('premis')
-    for event in events.iterator():
+    for event in events.iterator(chunk_size=1000):
         ip = InformationPackage.objects.get(pk=event.linkingObjectIdentifierValue)
         objid = ip.object_identifier_value
 

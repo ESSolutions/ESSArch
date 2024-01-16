@@ -420,7 +420,7 @@ def UnmountIdleDrives(self):
         if not idle_drives.exists():
             continue
 
-        for drive in idle_drives.iterator():
+        for drive in idle_drives.iterator(chunk_size=1000):
             if not drive.is_locked():
                 robot_queue_entry_exists = RobotQueue.objects.filter(
                     robot=robot, storage_medium=drive.storage_medium,
