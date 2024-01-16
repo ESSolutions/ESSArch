@@ -11,7 +11,7 @@ cryptography==41.0.7
 daphne==4.0.0 ; platform_system=='Linux'
 daphne==3.0.2 ; platform_system=='Windows'
 dj-rest-auth[with_social]==5.0.2
-django==4.2.9
+django==5.0.1
 django-allauth==0.57.0
 django-cors-headers==4.3.1
 django-countries-plus==2.2.0

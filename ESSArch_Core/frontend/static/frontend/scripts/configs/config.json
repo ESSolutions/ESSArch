@@ -3,7 +3,7 @@
     "appConfig": {
       "name": "production",
       "djangoUrl": "/api/",
-      "ipInterval": 10000,
+      "ipInterval": 60000,
       "recordInterval": 10000,
       "ipIdleInterval": 60000,
       "stateInterval": 10000,
@@ -26,7 +26,7 @@
     "appConfig": {
       "name": "development",
       "djangoUrl": "/api/",
-      "ipInterval": 10000,
+      "ipInterval": 60000,
       "recordInterval": 10000,
       "ipIdleInterval": 60000,
       "stateInterval": 10000,
