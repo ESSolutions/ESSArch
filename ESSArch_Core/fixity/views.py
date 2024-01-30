@@ -43,7 +43,7 @@ class ValidationFilesViewSet(ValidationViewSet):
         filename=OuterRef('filename'), passed=False, required=True,
     )
 
-    queryset = Validation.objects.distinct().values('filename').annotate(
+    queryset = Validation.objects.values('filename').annotate(
         time_started=Min('time_started'), time_done=Max('time_done'),
         passed=~Exists(sub),
     ).order_by('time_started')

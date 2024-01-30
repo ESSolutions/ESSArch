@@ -132,7 +132,7 @@ IP_LOCK_PREFIX = 'lock_ip_'
 
 class AgentQuerySet(models.QuerySet):
     def with_notes(self, notes):
-        qs = self.annotate(Count('notes', distinct=True)).filter(notes__count=len(notes))
+        qs = self.annotate(Count('notes', distinct=False)).filter(notes__count=len(notes))
         for n in notes:
             qs = qs.filter(notes__note=n)
 

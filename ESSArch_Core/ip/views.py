@@ -519,7 +519,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
+            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP])
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
@@ -549,10 +549,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('profileip_set', queryset=profile_ips,)
             )
 
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
             self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
-            self.outer_queryset = simple_outer.distinct() | dips_and_sips.distinct()
+            self.outer_queryset = simple_outer | dips_and_sips
             self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
@@ -630,7 +630,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            self.queryset = qs.distinct()
+            self.queryset = qs
             return self.queryset
 
         return self.queryset
@@ -3190,7 +3190,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips = inner.filter(package_type=InformationPackage.DIP).distinct()
+            dips = inner.filter(package_type=InformationPackage.DIP)
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
@@ -3203,10 +3203,10 @@ class WorkareaViewSet(InformationPackageViewSet):
             simple_outer = InformationPackage.objects.annotate(
                 has_ip=Exists(simple_inner.only('id').filter(aic=OuterRef('pk')))
             ).filter(package_type=InformationPackage.AIC, has_ip=True)
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
             self.queryset = aics | dips
-            self.outer_queryset = simple_outer.distinct() | dips.distinct()
+            self.outer_queryset = simple_outer | dips
             self.inner_queryset = simple_inner
             return self.queryset
         elif self.action == 'list' and view_type == 'ip':
@@ -3225,7 +3225,7 @@ class WorkareaViewSet(InformationPackageViewSet):
             inner = simple.filter(filtered_first_generation=False)
             outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            )
 
             self.inner_queryset = simple
             self.outer_queryset = simple
@@ -3238,7 +3238,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 package_type=InformationPackage.AIC
             )
             qs = self.annotate_generations(self.apply_filters(qs))
-            self.queryset = qs.distinct()
+            self.queryset = qs
             return self.queryset
 
         if self.action == 'retrieve':
@@ -3259,7 +3259,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 Prefetch('workareas', to_attr='prefetched_workareas')
             )
 
-            self.queryset = qs.distinct()
+            self.queryset = qs
 
         return self.queryset
 

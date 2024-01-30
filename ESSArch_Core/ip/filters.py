@@ -14,12 +14,12 @@ User = get_user_model()
 
 
 def states():
-    result = InformationPackage.objects.order_by().values_list('state', flat=True).distinct()
+    result = InformationPackage.objects.order_by().values_list('state', flat=True)
     return [(state, state.capitalize()) for state in result]
 
 
 class AgentFilter(filters.FilterSet):
-    ip_state = ListFilter(field_name='information_packages__state', distinct=True)
+    ip_state = ListFilter(field_name='information_packages__state', distinct=False)
 
     class Meta:
         model = Agent
@@ -53,12 +53,12 @@ class InformationPackageFilter(filters.FilterSet):
     medium = filters.ModelMultipleChoiceFilter(
         label='Storage Medium', queryset=StorageMedium.objects.all(),
         field_name='storage__storage_medium',
-        distinct=True
+        distinct=False
     )
     policy = filters.ModelChoiceFilter(
         label='Storage Policy', queryset=StoragePolicy.objects.all(),
         field_name='submission_agreement__policy',
-        distinct=True
+        distinct=False
     )
 
     def exclude_package_type_name(self, queryset, name, value):
