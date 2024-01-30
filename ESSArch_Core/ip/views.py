@@ -551,9 +551,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
-            self.outer_queryset = simple_outer | dips_and_sips
-            self.inner_queryset = simple_inner
+            if self.apply_ordering_filters(aics):
+                self.queryset = self.apply_ordering_filters(aics)
+            else:
+                self.queryset = self.apply_filters(dips_and_sips)
+            # self.outer_queryset = simple_outer | dips_and_sips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).exclude(
@@ -582,8 +585,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('aic__information_packages', queryset=inner)
             )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
@@ -630,7 +633,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            self.queryset = qs
+            self.queryset = qs.distinct()
             return self.queryset
 
         return self.queryset
@@ -3205,9 +3208,12 @@ class WorkareaViewSet(InformationPackageViewSet):
             ).filter(package_type=InformationPackage.AIC, has_ip=True)
             aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = aics | dips
-            self.outer_queryset = simple_outer | dips
-            self.inner_queryset = simple_inner
+            if aics:
+                self.queryset = aics
+            else:
+                self.queryset = dips
+            # self.outer_queryset = simple_outer | dips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif self.action == 'list' and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).annotate(
@@ -3227,8 +3233,8 @@ class WorkareaViewSet(InformationPackageViewSet):
                 Prefetch('aic__information_packages', queryset=inner)
             )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif self.action == 'list' and view_type == 'flat':

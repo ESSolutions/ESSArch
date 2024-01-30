@@ -381,7 +381,7 @@ class AppraisalJob(MaintenanceJob):
         document_tag_ips = InformationPackage.objects.exclude(appraisal_jobs=self).filter(
             tags__appraisal_jobs=self,
             tags__current_version__elastic_index='document',
-        )
+        ).distinct()
         for ip in document_tag_ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
