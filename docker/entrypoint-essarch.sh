@@ -55,8 +55,8 @@ fi
 if [ ! -f $ESSARCH_DIR/config/certs/saml2_essarch.crt ]; then
     # SAML2 Certs
     mkdir -p $ESSARCH_DIR/config/certs
-    cd $ESSARCH_DIR/config/certs; openssl req -x509 -sha256 -days 3652 -newkey rsa:2048 -subj '/C=SE/ST=Stockholm/O=ES Solutions AB/CN=${ServerName_essarch}' -keyout saml2_essarch.key -out saml2_essarch.crt -nodes
-    #sudo -u arch bash -c "cd $ESSARCH_DIR/config/certs; wget --no-check-certificate https://fs.essarch.org/federationmetadata/2007-06/federationmetadata.xml -O idp_federation_metadata.xml || true"
+    cd $ESSARCH_DIR/config/certs; openssl req -x509 -sha256 -days 3652 -newkey rsa:2048 -subj "/C=SE/ST=Stockholm/O=ES Solutions AB/CN=${ServerName_essarch}" -keyout saml2_essarch.key -out saml2_essarch.crt -nodes
+    #cd $ESSARCH_DIR/config/certs; wget --no-check-certificate https://idp.domain.xyz/federationmetadata/2007-06/federationmetadata.xml -O idp_federation_metadata.xml || true
 fi
 
 

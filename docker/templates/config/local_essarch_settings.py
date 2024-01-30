@@ -22,7 +22,7 @@ try:
 except ImportError:
     pass
 else:
-    ENABLE_LDAP_LOGIN = False
+    ENABLE_LDAP_LOGIN = env.bool('ESSARCH_ENABLE_LDAP_LOGIN', default=False)
     if ENABLE_LDAP_LOGIN:
         AUTHENTICATION_BACKENDS.insert(
             0, 'django_auth_ldap.backend.LDAPBackend')
@@ -106,18 +106,21 @@ try:
 except ImportError:
     pass
 else:
-    ESSARCH_URL = env.url('ESSARCH_URL', default='https://essarch.domain.xyz')
     INSTALLED_APPS.append('djangosaml2')
     AUTHENTICATION_BACKENDS.append('djangosaml2.backends.Saml2Backend')
     MIDDLEWARE.append('djangosaml2.middleware.SamlSessionMiddleware')
-    ENABLE_ADFS_LOGIN = False
-    ENABLE_SAML2_METADATA = True
+    ENABLE_ADFS_LOGIN = env.bool('ESSARCH_ENABLE_ADFS_LOGIN', default=False)
+    ENABLE_SAML2_METADATA = env.bool('ESSARCH_ENABLE_SAML2_METADATA', default=True)
     LOGIN_URL = '/saml2/login/'
     LOGIN_REDIRECT_URL = '/'
-    SP_SERVICE_URL = '{}://{}/{}'.format(ESSARCH_URL.scheme,
-                                         ESSARCH_URL.netloc,
-                                         ESSARCH_URL.path).rstrip('/')
-    IDP_SERVICE_URL = 'https://fs.essarch.org'
+    ESSARCH_PUBLIC_URL = env.url('ESSARCH_PUBLIC_URL', default='https://essarch.domain.xyz')
+    SP_SERVICE_URL = '{}://{}/{}'.format(ESSARCH_PUBLIC_URL.scheme,
+                                         ESSARCH_PUBLIC_URL.netloc,
+                                         ESSARCH_PUBLIC_URL.path).rstrip('/')
+    ESSARCH_IDP_SERVICE_URL = env.url('ESSARCH_IDP_SERVICE_URL', default='https://idp.domain.xyz')
+    IDP_SERVICE_URL = '{}://{}/{}'.format(ESSARCH_IDP_SERVICE_URL.scheme,
+                                          ESSARCH_IDP_SERVICE_URL.netloc,
+                                          ESSARCH_IDP_SERVICE_URL.path).rstrip('/')
     # XMLSEC_BINARY = '/usr/bin/xmlsec1'
     CERTS_DIR = os.path.join(CONFIG_DIR, 'certs')
     # ATTRIBUTE_MAP_DIR = os.path.join(CONFIG_DIR, 'attribute-maps')
@@ -130,6 +133,13 @@ else:
         'givenName': ('first_name', ),
         'sn': ('last_name', ),
     }
+
+    # SAML_ATTRIBUTE_MAPPING = {
+    #     'urn:oid:0.9.2342.19200300.100.1.1': ('username', ),
+    #     'urn:oid:0.9.2342.19200300.100.1.3': ('email', ),
+    #     'urn:oid:2.5.4.42': ('first_name', ),
+    #     'urn:oid:2.5.4.4': ('last_name', ),
+    # }
 
     SAML_LOGOUT_REQUEST_PREFERRED_BINDING = saml2.BINDING_HTTP_POST
 

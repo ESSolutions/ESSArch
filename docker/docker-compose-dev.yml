@@ -117,7 +117,7 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      ESSARCH_ESSARCH_ELASTICSEARCH_URL:
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
@@ -155,7 +155,7 @@ services:
       ESSARCH_DATABASE_URL:
       ESSARCH_REDIS_URL: redis://redis/1
       ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
-      ESSARCH_ESSARCH_ELASTICSEARCH_URL:
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
       #- ..:/code
       #- /code/ESSArch.egg-info/
