@@ -50,7 +50,7 @@ class StorageMediumOrderingFilter(filters.OrderingFilter):
 
 
 class StorageMediumFilter(filters.FilterSet):
-    status = ListFilter(field_name='status', distinct='true')
+    status = ListFilter(field_name='status', distinct='false')
     medium_type = filters.ChoiceFilter(field_name='storage_target__type', choices=medium_type_CHOICES)
     storage_type = filters.ChoiceFilter(
         field_name='storage_target__storage_method_target_relations__storage_method__type',
@@ -65,7 +65,7 @@ class StorageMediumFilter(filters.FilterSet):
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
         field_name='storage_target__storage_method_target_relations__storage_method__storage_policies',
-        distinct=True
+        distinct=False
     )
 
     def filter_include_inactive_ips(self, queryset, *args):
@@ -142,7 +142,7 @@ class StorageMethodFilter(filters.FilterSet):
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
         field_name='storage_policies',
-        distinct=True
+        distinct=False
     )
     has_enabled_target = filters.BooleanFilter(method='filter_has_enabled_target')
     has_migrate_target = filters.BooleanFilter(method='filter_has_migrate_target')

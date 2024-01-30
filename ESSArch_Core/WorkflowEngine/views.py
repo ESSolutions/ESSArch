@@ -91,7 +91,7 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
         user = self.request.user
         ips = InformationPackage.objects.visible_to_user(user)
         queryset = ProcessStep.objects.filter(
-            Q(information_package__in=ips) | Q(information_package__isnull=True)).distinct()
+            Q(information_package__in=ips) | Q(information_package__isnull=True))
         return queryset
 
     def get_serializer_class(self):
@@ -129,7 +129,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         ips = InformationPackage.objects.visible_to_user(user)
         queryset = ProcessTask.objects.select_related('responsible').filter(
             Q(information_package__in=ips) | Q(information_package__isnull=True)
-        ).distinct()
+        )
         return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
