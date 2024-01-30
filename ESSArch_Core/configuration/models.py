@@ -56,6 +56,7 @@ class CachedManagerMixin:
 class Site(models.Model):
     name = models.CharField(max_length=255)
     logo = models.ImageField(null=True, blank=True)
+    logo_middle = models.ImageField(null=True, blank=True)
     title = models.CharField(max_length=255, blank=True)
     text = models.TextField(blank=True)
 
