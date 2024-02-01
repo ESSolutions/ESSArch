@@ -183,8 +183,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
 def login_services(req):
     services = []
 
-    if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
-        services.append('adfs')
+    if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        services.append('sso')
 
     return Response(services)
 
@@ -212,7 +212,7 @@ class TokenLoginView(KnoxLoginView):
 
 class LogoutView(rest_auth_LogoutView):
     def get(self, request, *args, **kwargs):
-        if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
                 if _get_subject_id(request.saml_session):
                     return saml2_logout().get(request)

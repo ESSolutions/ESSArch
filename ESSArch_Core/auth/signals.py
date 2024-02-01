@@ -40,7 +40,7 @@ from ESSArch_Core.auth.util import get_organization_groups
 User = get_user_model()
 logger = logging.getLogger('essarch.auth')
 
-if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
     from djangosaml2.signals import pre_user_save as saml_pre_user_save
 
     @receiver(saml_pre_user_save, sender=User)

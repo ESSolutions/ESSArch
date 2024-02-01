@@ -401,6 +401,7 @@ const general = ($translateProvider) => {
     SHOW_RELEATED_IPS: 'Show releated information packages',
     SIZE: 'Size',
     SKIP: 'Skip',
+    SSO: 'SSO',
     START: 'Start',
     STARTED: 'Started',
     STARTMIGRATION: 'Start migration',

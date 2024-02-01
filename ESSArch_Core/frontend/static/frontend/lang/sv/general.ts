@@ -404,6 +404,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     SHOW_RELEATED_IPS: 'Visa relaterade informationspaket',
     SIZE: 'Storlek',
     SKIP: 'Hoppa över',
+    SSO: 'SSO',
     START: 'Start',
     STARTED: 'Startade',
     STARTMIGRATION: 'Starta migrering',

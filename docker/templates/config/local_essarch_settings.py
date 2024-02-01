@@ -99,7 +99,7 @@ else:
     }
 # ### END LDAP ###
 
-# ### BEGIN ADFS ###
+# ### BEGIN SSO ###
 try:
     import saml2
     import saml2.saml
@@ -109,7 +109,7 @@ else:
     INSTALLED_APPS.append('djangosaml2')
     AUTHENTICATION_BACKENDS.append('djangosaml2.backends.Saml2Backend')
     MIDDLEWARE.append('djangosaml2.middleware.SamlSessionMiddleware')
-    ENABLE_ADFS_LOGIN = env.bool('ESSARCH_ENABLE_ADFS_LOGIN', default=False)
+    ENABLE_SSO_LOGIN = env.bool('ESSARCH_ENABLE_SSO_LOGIN', default=False)
     ENABLE_SAML2_METADATA = env.bool('ESSARCH_ENABLE_SAML2_METADATA', default=True)
     LOGIN_URL = '/saml2/login/'
     LOGIN_REDIRECT_URL = '/'
@@ -229,8 +229,10 @@ else:
                     # present in our metadata
 
                     # the keys of this dictionary are entity ids
+                    # IDP_SERVICE_URL + '/idp/shibboleth': {
                     IDP_SERVICE_URL + '/federationmetadata/2007-06/federationmetadata.xml': {
                         'single_sign_on_service': {
+                            # saml2.BINDING_HTTP_REDIRECT: IDP_SERVICE_URL + '/idp/profile/SAML2/Redirect/SSO',
                             saml2.BINDING_HTTP_REDIRECT: IDP_SERVICE_URL + '/adfs/ls/idpinitiatedsignon.aspx',
                         },
                         'single_logout_service': {
@@ -246,7 +248,7 @@ else:
         # Save this xml file, rename it to idp_federation_metadata.xml
         'metadata': {
             'local': [os.path.join(CERTS_DIR, 'idp_federation_metadata.xml')],
-        } if ENABLE_ADFS_LOGIN else {},
+        } if ENABLE_SSO_LOGIN else {},
 
         # set to 1 to output debugging information
         'debug': 1,
@@ -305,7 +307,7 @@ else:
             },
         },
     }
-# ### END ADFS ###
+# ### END SSO ###
 
 # INSTALLED_APPS.append('axes')
 # AUTHENTICATION_BACKENDS.insert(0, 'axes.backends.AxesStandaloneBackend')
