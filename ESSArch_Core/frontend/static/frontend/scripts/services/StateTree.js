@@ -2,6 +2,12 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
   //Get data for status view. child steps and tasks
   function getTreeData(ip, expandedNodes, paginationParams, sortString, searchString, columnFilters) {
     let promise;
+    let filter_name;
+    filter_name = null;
+    if ($state.includes('**.storageMigration.**')) {
+      filter_name = 'Migrate Information Package';
+    }
+    console.log('columnFilters after - :', filter_name);
     if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
       promise = Workarea.workflow(
         angular.extend(
@@ -17,8 +23,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
           columnFilters
         )
       ).$promise;
-    } else if ($state.includes('**.storageMigration.**')) {
-      console.log('Step - :', Step);
+    } else if ($state.includes('**.storageMigration.**') && angular.isUndefined(ip)) {
       promise = Step.query(
         angular.extend(
           {
@@ -39,6 +44,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
         angular.extend(
           {
             id: ip.id,
+            name: filter_name,
             hidden: false,
             page: paginationParams.pageNumber,
             page_size: paginationParams.number,

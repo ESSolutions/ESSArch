@@ -93,6 +93,7 @@
                 </thead>
                 <tbody>
                   <tr
+                    ng-if="!mediumLoading"
                     ng-class="{'selected': vm.mediumSelected(row)}"
                     ng-repeat="row in vm.displayedMediums"
                     ng-attr-context-menu="menuOptions"
@@ -111,7 +112,7 @@
                   <tr ng-if="!vm.displayedMediums.length && !mediumLoading" class="empty-table-indicator">
                     <td colspan="8">{{'NO_RESULTS_FOUND' | translate}}</td>
                   </tr>
-                  <tr ng-if="!vm.displayedMediums.length && mediumLoading" class="empty-table-indicator">
+                  <tr ng-if="mediumLoading" class="empty-table-indicator">
                     <td class="loading-column" colspan="8">{{'LOADING' | translate}}</td>
                   </tr>
                 </tbody>
@@ -265,6 +266,7 @@
                 </thead>
                 <tbody>
                   <tr
+                    ng-if="!ipLoading"
                     ng-repeat="row in vm.displayedIps"
                     ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
                     class="table-item selectable"
@@ -278,7 +280,7 @@
                   <tr ng-if="!vm.displayedIps.length && !ipLoading" class="empty-table-indicator">
                     <td colspan="{{listViewColumns.length}}">{{'NO_RESULTS_FOUND' | translate}}</td>
                   </tr>
-                  <tr ng-if="!vm.displayedIps.length && ipLoading" class="empty-table-indicator">
+                  <tr ng-if="ipLoading" class="empty-table-indicator">
                     <td class="loading-column" colspan="{{listViewColumns.length}}">{{'LOADING' | translate}}</td>
                   </tr>
                 </tbody>

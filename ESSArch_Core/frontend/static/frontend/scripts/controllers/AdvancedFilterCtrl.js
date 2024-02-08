@@ -127,6 +127,9 @@ export default class AdvancedFilterCtrl {
       if (!angular.isUndefined(vm.update)) {
         $timeout(() => {
           vm.update();
+          vm.showAdvancedFilters = !vm.showAdvancedFilters;
+          $window.onclick = null;
+          $scope.$apply();
         });
       }
     };

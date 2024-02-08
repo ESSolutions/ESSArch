@@ -18,6 +18,7 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
         $scope.initLoad = true;
       }
       if (!angular.isUndefined(tableState)) {
+        $ctrl.previewLoading = true;
         $ctrl.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
