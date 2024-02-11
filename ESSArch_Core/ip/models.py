@@ -3008,7 +3008,7 @@ class EventIP(models.Model):
         'configuration.EventType',
         on_delete=models.CASCADE
     )
-    eventDateTime = models.DateTimeField(default=timezone.now)
+    eventDateTime = models.DateTimeField(default=timezone.now, db_index=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask', on_delete=models.CASCADE, null=True,
         related_name='events',
@@ -3019,7 +3019,7 @@ class EventIP(models.Model):
     eventOutcomeDetailNote = models.CharField(max_length=1024, blank=True)  # Result or traceback from IP
     linkingAgentIdentifierValue = models.CharField(max_length=255, blank=True)
     linkingAgentRole = models.CharField(max_length=255, blank=True)
-    linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True)
+    linkingObjectIdentifierValue = models.CharField(max_length=255, blank=True, db_index=True)
     transfer = models.ForeignKey(
         'tags.Transfer', null=True, on_delete=models.SET_NULL,
         related_name='events', verbose_name=_('transfer')
