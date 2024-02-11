@@ -8,7 +8,10 @@
       </div>
       <h3 class="page-title" ng-class="{'page-title-with-logo': site.logo}" ng-click="infoPage()">ESSArch</h3>
       <div class="logo">
-        <div ng-if="!angular.isUndefined(site) && site !== null && site.logo_middle !== null" class="custom-logo">
+        <div
+          ng-if="!angular.isUndefined(site) && site !== null && site.logo_middle !== null"
+          class="custom-logo-middle"
+        >
           <img ng-src="{{site.logo_middle}}" width="36" alt="logo" ng-click="infoPage()" />
         </div>
       </div>
