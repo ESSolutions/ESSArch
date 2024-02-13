@@ -50,6 +50,11 @@ tail -f $(for i in $CELERYD_NODES; do echo ${ESSARCH_DIR}/log/celery_${i}.log; d
 # capture process id of `tail` for tear down
 child=$!
 
+sleep 30
+celery_childs=$(for i in $CELERYD_NODES; do cat ${ESSARCH_DIR}/log/proc/celery_${i}.pid; done)
+echo "Starting to monitor if pid: $child $celery_childs is running"
 # waits for `tail -f` indefinitely and allows external signals,
 # including docker stop signals, to be captured by `trap`
-wait "$child"
+x=true
+while [ $x = true ]; do for i in $child $celery_childs; do if ! kill -0 $i > /dev/null 2>&1; then echo "Missing pid:$i, try to restart";x=false;else sleep 5;fi;done;done
+teardown
