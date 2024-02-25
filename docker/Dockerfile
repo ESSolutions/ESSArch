@@ -12,7 +12,7 @@ RUN rm -rf ./node_modules
 
 
 ############## BASE-SLIM ##############
-FROM python:3.11-slim-bookworm as base-slim
+FROM python:3.12-slim-bookworm as base-slim
 
 RUN groupadd "arch" -g 1001 && \
     useradd "arch" -u 1001 -g "arch" -G sudo,tape -m -s /bin/bash && \
@@ -140,7 +140,7 @@ RUN chmod -R g+rwx /var/run
 RUN chmod -R g+rwx /var/lock
 RUN chmod -R g+rwx /var/cache
 RUN chmod -R g+rwx /etc/apache2
-RUN chmod -R g+rwx /usr/local/lib/python3.11
+RUN chmod -R g+rwx /usr/local/lib/python3.12
 RUN chmod -R g+rwx /usr/local/bin
 RUN chmod g+rwx /usr/sbin/apache2
 RUN ln -fs /ESSArch/config/httpd.conf /etc/apache2/sites-enabled/httpd.conf
@@ -165,7 +165,7 @@ RUN rm ./config/local_essarch_settings.py
 ADD docker/templates ./templates
 RUN mkdir ./schema; curl -fsSL https://files.essarch.org/dist/ESSArch_schema-_linux.tar.gz | tar xvzf - -C ./schema
 
-RUN export MOD_WSGI=`python -c "import mod_wsgi as _; print(_.__path__[0])"`; cp $MOD_WSGI/server/mod_wsgi-py311.cpython-311-x86_64-linux-gnu.so ./config/essarch/mod_wsgi.so
+RUN export MOD_WSGI=`python -c "import mod_wsgi as _; print(_.__path__[0])"`; cp $MOD_WSGI/server/mod_wsgi-py312.cpython-312-x86_64-linux-gnu.so ./config/essarch/mod_wsgi.so
 RUN export ESSARCH=`python -c "import ESSArch_Core as _; print(_.__path__[0])"`; cp $ESSARCH/config/wsgi.py ./config/essarch/wsgi.py
 
 # Use python version that match installed libreoffice for unoconv
