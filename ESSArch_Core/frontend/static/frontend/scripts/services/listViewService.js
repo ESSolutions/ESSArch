@@ -131,18 +131,18 @@ const listViewService = (
     }
 
     if ($rootScope.selectedTag != null) {
-      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(function (
-        resource
-      ) {
-        let count = resource.$httpHeaders('Count');
-        if (count == null) {
-          count = resource.length;
+      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(
+        function (resource) {
+          let count = resource.$httpHeaders('Count');
+          if (count == null) {
+            count = resource.length;
+          }
+          return {
+            count: count,
+            data: resource,
+          };
         }
-        return {
-          count: count,
-          data: resource,
-        };
-      });
+      );
     } else {
       return IP.query(data).$promise.then(function (resource) {
         let count = resource.$httpHeaders('Count');

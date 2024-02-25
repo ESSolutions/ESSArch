@@ -27,9 +27,9 @@ export default class ProfileMakerCtrl {
       vm.generate = !vm.generate;
     };
     vm.saveStructure = function (structure) {
-      ProfileMakerTemplate.update({templateName: vm.template.name}, {structure: structure}).$promise.then(function (
-        resource
-      ) {});
+      ProfileMakerTemplate.update({templateName: vm.template.name}, {structure: structure}).$promise.then(
+        function (resource) {}
+      );
     };
     vm.delete = function (template) {
       const modalInstance = $uibModal.open({
