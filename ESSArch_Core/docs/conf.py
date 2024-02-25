@@ -81,7 +81,7 @@ suppress_warnings = [
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3.11', None),
+    'python': ('https://docs.python.org/3.12', None),
     'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
     'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
     'celery': ('https://celery.readthedocs.io/en/latest/', None),

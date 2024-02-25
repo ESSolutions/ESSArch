@@ -322,17 +322,17 @@ class StructureValidatorTests(TestCase):
 
         # txt without related pdf
         open(os.path.join(self.root, 'foo.txt'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+        with self.assertRaisesRegex(ValidationError, 'foo.txt missing related file foo.pdf'):
             validator.validate(self.root)
 
         # pdf with wrong name added
         open(os.path.join(self.root, 'bar.pdf'), 'a').close()
         try:
-            with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+            with self.assertRaisesRegex(ValidationError, 'foo.txt missing related file foo.pdf'):
                 validator.validate(self.root)
         except AssertionError:
             # ordering of files (especially on Windows)
-            with self.assertRaisesRegexp(ValidationError, 'bar.pdf missing related file bar.txt'):
+            with self.assertRaisesRegex(ValidationError, 'bar.pdf missing related file bar.txt'):
                 validator.validate(self.root)
         os.remove(os.path.join(self.root, 'bar.pdf'))
 
@@ -342,7 +342,7 @@ class StructureValidatorTests(TestCase):
 
         # txt deleted
         os.remove(os.path.join(self.root, 'foo.txt'))
-        with self.assertRaisesRegexp(ValidationError, 'foo.pdf missing related file foo.txt'):
+        with self.assertRaisesRegex(ValidationError, 'foo.pdf missing related file foo.txt'):
             validator.validate(self.root)
 
     def test_valid_multiple_related_paths(self):
@@ -361,22 +361,22 @@ class StructureValidatorTests(TestCase):
 
         # add mkv
         open(os.path.join(self.root, 'foo.mkv'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
+        with self.assertRaisesRegex(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
             validator.validate(self.root)
 
         # add txt
         open(os.path.join(self.root, 'foo.txt'), 'a').close()
         try:
-            with self.assertRaisesRegexp(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
+            with self.assertRaisesRegex(ValidationError, 'foo.mkv missing related file foo.mkv.md5'):
                 validator.validate(self.root)
         except AssertionError:
             # this is also a valid exception that might occur
-            with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+            with self.assertRaisesRegex(ValidationError, 'foo.txt missing related file foo.pdf'):
                 validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'foo.mkv.md5'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, 'foo.txt missing related file foo.pdf'):
+        with self.assertRaisesRegex(ValidationError, 'foo.txt missing related file foo.pdf'):
             validator.validate(self.root)
 
         # add pdf
@@ -406,17 +406,17 @@ class StructureValidatorTests(TestCase):
 
         # add mkv
         open(os.path.join(self.root, 'c/test.mkv'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv missing related file c/test.mkv.md5'):
+        with self.assertRaisesRegex(ValidationError, r'c/test\.mkv missing related file c/test.mkv.md5'):
             validator.validate(self.root)
 
         # add mkv.md5
         open(os.path.join(self.root, 'c/test.mkv.md5'), 'a').close()
-        with self.assertRaisesRegexp(ValidationError, r'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
+        with self.assertRaisesRegex(ValidationError, r'c/test\.mkv(\.md5)? missing related file p/test.mp4'):
             validator.validate(self.root)
 
         # add mp4
         open(os.path.join(self.root, 'p/test.mp4'), 'a').close()
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
                 ValidationError, r'(c/test\.mkv(\.md5)?|p/test\.mp4) missing related file p/test.mp4.md5'):
             validator.validate(self.root)
 
@@ -555,7 +555,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_added_file(self):
@@ -568,7 +568,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_renamed_file(self):
@@ -581,7 +581,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_changed_file(self):
@@ -593,7 +593,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_checksum_missing(self):
@@ -608,7 +608,7 @@ class DiffCheckValidatorTests(TestCase):
 
             self.validator = DiffCheckValidator(context=self.fname, options=self.options)
             msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-            with self.assertRaisesRegexp(ValidationError, msg):
+            with self.assertRaisesRegex(ValidationError, msg):
                 self.validator.validate(self.datadir)
 
         with self.subTest('no checksum type'):
@@ -622,7 +622,7 @@ class DiffCheckValidatorTests(TestCase):
             os.remove(files[0])
             self.validator = DiffCheckValidator(context=self.fname, options=self.options)
             msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-            with self.assertRaisesRegexp(ValidationError, msg):
+            with self.assertRaisesRegex(ValidationError, msg):
                 self.validator.validate(self.datadir)
 
     def test_validation_with_incorrect_size(self):
@@ -636,7 +636,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_size_attribute_missing(self):
@@ -663,7 +663,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_two_identical_files_one_renamed(self):
@@ -681,7 +681,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_two_identical_files_one_renamed_one_deleted(self):
@@ -701,7 +701,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_three_identical_files_two_renamed_one_deleted(self):
@@ -725,7 +725,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_three_identical_files_two_renamed_one_added(self):
@@ -751,7 +751,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_two_identical_files_one_changed(self):
@@ -768,7 +768,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_added_identical_file(self):
@@ -782,7 +782,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_added_identical_file_reversed_walk(self):
@@ -799,7 +799,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
     def test_validation_with_all_alterations(self):
@@ -816,7 +816,7 @@ class DiffCheckValidatorTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.fname, options=self.options)
         msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
 
@@ -966,7 +966,7 @@ class DiffCheckValidatorRecursiveTests(TestCase):
 
         self.validator = DiffCheckValidator(context=self.root_xml, options=self.options)
         msg = '4 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.datadir)
 
 
@@ -1184,7 +1184,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '2 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_added_file(self):
@@ -1198,7 +1198,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_renamed_file(self):
@@ -1212,7 +1212,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '2 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_changed_file(self):
@@ -1225,7 +1225,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_checksum_attribute_missing(self):
@@ -1240,7 +1240,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_incorrect_size(self):
@@ -1255,7 +1255,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '2 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_size_attribute_missing(self):
@@ -1284,7 +1284,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '1 confirmed, 0 added, 0 changed, 0 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_two_identical_files_one_renamed(self):
@@ -1303,7 +1303,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '1 confirmed, 0 added, 0 changed, 1 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_two_identical_files_one_renamed_one_deleted(self):
@@ -1324,7 +1324,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '0 confirmed, 0 added, 0 changed, 1 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_three_identical_files_two_renamed_one_deleted(self):
@@ -1349,7 +1349,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '0 confirmed, 0 added, 0 changed, 2 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_three_identical_files_two_renamed_one_added(self):
@@ -1376,7 +1376,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '1 confirmed, 1 added, 0 changed, 2 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_two_identical_files_one_changed(self):
@@ -1394,7 +1394,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '1 confirmed, 0 added, 1 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_added_identical_file(self):
@@ -1409,7 +1409,7 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '3 confirmed, 1 added, 0 changed, 0 renamed, 0 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
 
     def test_validation_with_all_alterations(self):
@@ -1427,5 +1427,5 @@ class XMLComparisonValidatorTests(TestCase):
 
         self.validator = XMLComparisonValidator(context=self.mets, options=self.options)
         msg = '0 confirmed, 1 added, 1 changed, 1 renamed, 1 deleted$'
-        with self.assertRaisesRegexp(ValidationError, msg):
+        with self.assertRaisesRegex(ValidationError, msg):
             self.validator.validate(self.premis)
