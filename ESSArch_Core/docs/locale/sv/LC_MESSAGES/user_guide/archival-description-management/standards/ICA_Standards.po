@@ -14,13 +14,16 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Language: sv\n"
+"X-Source-Language: en\n"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:5
 msgid "ESSArch - ICA-Standards"
-msgstr ""
+msgstr "ESSArch - ICA-Standarder"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:10
 msgid "ISAAR (CPF)"
@@ -30,10 +33,16 @@ msgstr ""
 msgid ""
 "This section provides a detailed documentation of the entry fields of an "
 "authority record in ESSArch, their relation to `ISAAR (CPF), 2nd Edition "
-"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-"
-"edition_EN.pdf>`_  and default values available from a standard "
-"installation."
+"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-edition_EN.pdf>`_ "
+" and default values available from a standard installation."
 msgstr ""
+"Det här avsnitttet ger en detaljerad dokumentation över de uppgifter som är "
+"möjliga att registrera för auktoritets-/arkivbildareposter i ESSArch och "
+"deras relation till "
+"<https://www.ica.org/sites/default/files/CBPS_Guidelines_ISAAR_Second-edition_EN.pdf>`_ "
+"Då det inte finns någon officiell översättning till svenska av ISAAR-CPF och "
+"för att det ska vara möjligt att korsläsa mot standarden har ingen "
+"översättning gjorts av de engelska termerna."
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:14
 msgid "Identity Area"
@@ -41,8 +50,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:16
 msgid ""
-"This sections purpose is to uniquely identify the entity being described "
-"and define standardized access points for the record."
+"This sections purpose is to uniquely identify the entity being described and "
+"define standardized access points for the record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:19
@@ -84,7 +93,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:295
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:321
 msgid "Default Value"
-msgstr ""
+msgstr "Standardvärde"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:19
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:43
@@ -104,7 +113,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:295
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:321
 msgid "Purpose"
-msgstr ""
+msgstr "Definition"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:19
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:43
@@ -124,7 +133,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:295
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:321
 msgid "Remarks"
-msgstr ""
+msgstr "Kommentar"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:21
 msgid "5.1.1 Type of entity"
@@ -134,7 +143,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:147
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:244
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:21
 msgid "[cooperate body, person, family]"
@@ -142,15 +151,16 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:21
 msgid ""
-"To indicates whether the entity being described is a corporate body, "
-"person or family."
+"To indicates whether the entity being described is a corporate body, person "
+"or family."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:21
 msgid ""
-"The values can be subtyped through admin configuration (Agent) this can "
-"be used for sub classifications of CPF"
+"The values can be subtyped through admin configuration (Agent) this can be "
+"used for sub classifications of CPF"
 msgstr ""
+"Värden kan underindelas genom ESSArchs administrationsgränssnitt (Agent)"
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:23
 msgid "5.1.2 Authorized form(s) of name"
@@ -169,8 +179,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:23
 msgid ""
-"To create an authorized access point that uniquely identifies a corporate"
-" body, person or family"
+"To create an authorized access point that uniquely identifies a corporate "
+"body, person or family"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:23
@@ -178,8 +188,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:27
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:29
 msgid ""
-"The entity being described can have multiple names which is distinguished"
-" trough types  (alternative, abbreviations,parallel, etc.)"
+"The entity being described can have multiple names which is distinguished "
+"trough types  (alternative, abbreviations,parallel, etc.)"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:25
@@ -192,8 +202,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:25
 msgid ""
-"To indicate the various forms in which the Authorized form of name occurs"
-" in other languages or script"
+"To indicate the various forms in which the Authorized form of name occurs in "
+"other languages or script"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:27
@@ -207,8 +217,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:27
 msgid ""
 "To indicate standardized forms of name for the corporate body, person or "
-"family that have been constructed according to rules other than those "
-"used to construct the authorised form of name."
+"family that have been constructed according to rules other than those used "
+"to construct the authorised form of name."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:29
@@ -221,8 +231,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:29
 msgid ""
-"To indicate any other name(s) for the corporate body, person or family "
-"not used elsewhere in the Identity Area"
+"To indicate any other name(s) for the corporate body, person or family not "
+"used elsewhere in the Identity Area"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:31
@@ -301,9 +311,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:31
 msgid ""
-"By default ESSArch uses an UUID for identifying Authority Records, "
-"there's however no limitations on creating custom identifiers.  E.g. VAT "
-"or other unique identifiers."
+"By default ESSArch uses an UUID for identifying Authority Records, there's "
+"however no limitations on creating custom identifiers.  E.g. VAT or other "
+"unique identifiers."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:33
@@ -318,7 +328,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:33
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:45
-msgid "To indicate the dates of existence of the corporate body, person or family"
+msgid ""
+"To indicate the dates of existence of the corporate body, person or family"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:38
@@ -327,8 +338,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:40
 msgid ""
-"This sections purpose is to record information about the nature, context "
-"and activities of the entity being described."
+"This sections purpose is to record information about the nature, context and "
+"activities of the entity being described."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:47
@@ -357,9 +368,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:49
 msgid ""
-"To indicate the predominant places and/or jurisdictions where the "
-"corporate body, person or family was based, lived or resided or had some "
-"other connection."
+"To indicate the predominant places and/or jurisdictions where the corporate "
+"body, person or family was based, lived or resided or had some other "
+"connection."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:51
@@ -397,9 +408,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:53
 msgid ""
-"ESSArch implements ISDF for describing functions, If one don't want to "
-"use Classifications there's always the possibility to use a customized "
-"note"
+"ESSArch implements ISDF for describing functions, If one don't want to use "
+"Classifications there's always the possibility to use a customized note"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:55
@@ -419,8 +429,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:55
 msgid ""
-"Mandates and reference to sources of authority is documented in the "
-"mandates section"
+"Mandates and reference to sources of authority is documented in the mandates "
+"section"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:57
@@ -433,8 +443,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:57
 msgid ""
-"To describe and/or represent the internal administrative structure(s) of "
-"a corporate body or the genealogy of a family."
+"To describe and/or represent the internal administrative structure(s) of a "
+"corporate body or the genealogy of a family."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:59
@@ -448,8 +458,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:59
 msgid ""
 "To provide significant information on the general social, cultural, "
-"economic, political and/or historical context in which the corporate "
-"body, person or family operated, lived or was active."
+"economic, political and/or historical context in which the corporate body, "
+"person or family operated, lived or was active."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:64
@@ -458,13 +468,14 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:66
 msgid ""
-"This sections purpose is to document and describe relationships with "
-"other corporate bodies, persons and/or families."
+"This sections purpose is to document and describe relationships with other "
+"corporate bodies, persons and/or families."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:71
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:79
-msgid "5.3.1 Names/Identifiers of related corporate bodies, persons or families"
+msgid ""
+"5.3.1 Names/Identifiers of related corporate bodies, persons or families"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:71
@@ -475,9 +486,9 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:71
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:79
 msgid ""
-"To indicate the names and any unique identifiers of related entities and "
-"to support linkages to the authority records for related corporate "
-"bodies, persons or families."
+"To indicate the names and any unique identifiers of related entities and to "
+"support linkages to the authority records for related corporate bodies, "
+"persons or families."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:73
@@ -500,15 +511,15 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:73
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:81
 msgid ""
-"To identify the general category of relationship between the entity being"
-" described and another corporate body, person or family."
+"To identify the general category of relationship between the entity being "
+"described and another corporate body, person or family."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:73
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:81
 msgid ""
-"Any other associative relationship can be used if set up as a mirrored "
-"typed relationship e.g. Provider/client, parent/children"
+"Any other associative relationship can be used if set up as a mirrored typed "
+"relationship e.g. Provider/client, parent/children"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:75
@@ -534,15 +545,14 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:77
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:85
 msgid ""
-"Related Authority Records (Period of validity start/Period of validity "
-"end)"
+"Related Authority Records (Period of validity start/Period of validity end)"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:77
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:85
 msgid ""
-"To indicate the dates of duration of the relationship with another "
-"corporate body, person or family."
+"To indicate the dates of duration of the relationship with another corporate "
+"body, person or family."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:89
@@ -587,8 +597,7 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:98
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:141
 msgid ""
-"Combined key made up from country code eg. SE and institutional code eg. "
-"999"
+"Combined key made up from country code eg. SE and institutional code eg. 999"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:100
@@ -601,8 +610,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:100
 msgid ""
-"To identify the national or international conventions or rules applied in"
-" creating the archival authority record."
+"To identify the national or international conventions or rules applied in "
+"creating the archival authority record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:100
@@ -627,8 +636,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:102
 msgid ""
-"To indicate the drafting status of the authority record so that users can"
-" understand the current status of the authority record."
+"To indicate the drafting status of the authority record so that users can "
+"understand the current status of the authority record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:104
@@ -682,8 +691,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:108
 msgid ""
-"To indicate the language(s) and/or script(s) used to create the authority"
-" record."
+"To indicate the language(s) and/or script(s) used to create the authority "
+"record."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:110
@@ -733,9 +742,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:122
 msgid ""
-"To identify uniquely the related resources and/or enable the linking of "
-"the authority record to a description of the related resources, where "
-"such descriptions exist."
+"To identify uniquely the related resources and/or enable the linking of the "
+"authority record to a description of the related resources, where such "
+"descriptions exist."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:124
@@ -780,8 +789,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:128
 msgid ""
-"To provide any relevant dates for the related resources and/or the dates "
-"of the relationship between the corporate body, person or family and the "
+"To provide any relevant dates for the related resources and/or the dates of "
+"the relationship between the corporate body, person or family and the "
 "related resources, and to indicate the significance of those dates."
 msgstr ""
 
@@ -801,10 +810,16 @@ msgstr ""
 msgid ""
 "This section provides a detailed documentation of the entry fields of an "
 "archival description in ESSArch, their relation to `ISAD-G 2nd edition "
-"<https://www.ica.org/sites/default/files/CBPS_2000_Guidelines_ISAD%28G"
-"%29_Second-edition_EN.pdf>`_  and default values available from a "
-"standard installation."
+"<https://www.ica.org/sites/default/files/CBPS_2000_Guidelines_ISAD%28G%29_Second-edition_EN.pdf>`_ "
+" and default values available from a standard installation."
 msgstr ""
+"Det här avsnitttet ger en detaljerad dokumentation över de uppgifter som är "
+"möjliga att registrera för olika resurser (Arkiv/Samlingar) och deras "
+"realtion till `ISAD-G 2nd edition "
+"<https://www.ica.org/sites/default/files/CBPS_2000_Guidelines_ISAD%28G%29_Second-edition_EN.pdf>`_ "
+" Då det inte finns någon officiell översättning till svenska av ISAD-G och "
+"för att det ska vara möjligt att korsläsa mot standarden har ingen "
+"översättning gjorts av de engelska termerna."
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:137
 msgid "Identity statement Area"
@@ -830,8 +845,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:141
 msgid ""
-"To identify uniquely the unit of description and to provide a link to the"
-" description that represents it."
+"To identify uniquely the unit of description and to provide a link to the "
+"description that represents it."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:143
@@ -873,20 +888,18 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:147
 msgid ""
-"Values can be user defined to fit other purposes e.g. describing "
-"collections"
+"Values can be user defined to fit other purposes e.g. describing collections"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:149
 msgid ""
-"3.1.5 Extent and medium of the unit of description (quantity, bulk, or "
-"size)"
+"3.1.5 Extent and medium of the unit of description (quantity, bulk, or size)"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:149
 msgid ""
-"To identify and describe a.the physical or logical extent and b.the "
-"medium of the unit of description."
+"To identify and describe a.the physical or logical extent and b.the medium "
+"of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:153
@@ -932,9 +945,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:159
 msgid ""
-"Archival descriptions are created and controlled separately from "
-"authority records in ESSArch and are associated by linking. One can "
-"however use a custom noted if there's a need to record this information."
+"Archival descriptions are created and controlled separately from authority "
+"records in ESSArch and are associated by linking. One can however use a "
+"custom noted if there's a need to record this information."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:161
@@ -961,9 +974,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:163
 msgid ""
-"Archival descriptions are created and controlled separately from "
-"accession records one can however also record this information with a "
-"custom note"
+"Archival descriptions are created and controlled separately from accession "
+"records one can however also record this information with a custom note"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:167
@@ -981,8 +993,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:171
 msgid ""
-"To enable users to judge the potential relevance of the unit of "
-"description."
+"To enable users to judge the potential relevance of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:173
@@ -995,8 +1006,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:173
 msgid ""
-"To provide information on any appraisal, destruction and scheduling "
-"action."
+"To provide information on any appraisal, destruction and scheduling action."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:175
@@ -1014,9 +1024,9 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:175
 msgid ""
 "Besides using the note type  accruals to record information of foreseen "
-"additions there's also the possibility to have this information in either"
-" a submission agreement or by preparing a accession record as an expected"
-" transfer"
+"additions there's also the possibility to have this information in either a "
+"submission agreement or by preparing a accession record as an expected "
+"transfer"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
@@ -1030,14 +1040,14 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
 msgid ""
-"To  provide  information  on  the  internal  structure,  the  order  "
-"and/or  the  system  of classification of the unit of description."
+"To  provide  information  on  the  internal  structure,  the  order  and/or  "
+"the  system  of classification of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:177
 msgid ""
-"Specifications of the system of classification are provided on the "
-"structure level in ESSArch"
+"Specifications of the system of classification are provided on the structure "
+"level in ESSArch"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:181
@@ -1063,7 +1073,8 @@ msgid "Notes[Reproduction restriction]"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:187
-msgid "To identify any restrictions on reproduction of the unit of description."
+msgid ""
+"To identify any restrictions on reproduction of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:189
@@ -1072,8 +1083,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:189
 msgid ""
-"To  identify  the  language(s),  script(s)  and  symbol  systems  "
-"employed  in  the  unit  of description"
+"To  identify  the  language(s),  script(s)  and  symbol  systems  employed  "
+"in  the  unit  of description"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:191
@@ -1086,9 +1097,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:191
 msgid ""
-"To  provide  information  about  any  important  physical  "
-"characteristics  or  technical requirements that affect use of the unit "
-"of description."
+"To  provide  information  about  any  important  physical  characteristics  "
+"or  technical requirements that affect use of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:193
@@ -1110,8 +1120,8 @@ msgstr ""
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:193
 msgid ""
 "If the finding aid is another unit of description a relation record is "
-"preferred if the finding aid is located elsewhere a note of type Finding "
-"Aid can be created"
+"preferred if the finding aid is located elsewhere a note of type Finding Aid "
+"can be created"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:197
@@ -1138,9 +1148,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:201
 msgid ""
-"If an original of the unit of description is available in the institution"
-" a relation record is preferred. If an original is available elsewhere a "
-"note of type Location of originals can be created"
+"If an original of the unit of description is available in the institution a "
+"relation record is preferred. If an original is available elsewhere a note "
+"of type Location of originals can be created"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:203
@@ -1157,8 +1167,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:203
 msgid ""
-"To indicate the existence, location and availability of copies of the "
-"unit of description."
+"To indicate the existence, location and availability of copies of the unit "
+"of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:203
@@ -1186,10 +1196,9 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:205
 msgid ""
-"If a related unit of description is available in the institution a "
-"relation record is preferred. If a related unit of description is "
-"available elsewhere a note of type Related unit of description can be "
-"created."
+"If a related unit of description is available in the institution a relation "
+"record is preferred. If a related unit of description is available elsewhere "
+"a note of type Related unit of description can be created."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:207
@@ -1206,8 +1215,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:207
 msgid ""
-"To identify any publications that are about or are based on the use, "
-"study, or analysis of the unit of description."
+"To identify any publications that are about or are based on the use, study, "
+"or analysis of the unit of description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:211
@@ -1228,8 +1237,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:215
 msgid ""
-"To provide information that cannot be accommodated in any of the other "
-"areas."
+"To provide information that cannot be accommodated in any of the other areas."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:219
@@ -1291,17 +1299,16 @@ msgstr ""
 msgid ""
 "This section provides a detailed documentation of the entry fields of an "
 "authority record in ESSArch, their relation to `ISDF 1st edition "
-"<https://www.ica.org/sites/default/files/CBPS_2007_Guidelines_ISDF_First-"
-"edition_EN.pdf>`_  and default values available from a standard "
-"installation."
+"<https://www.ica.org/sites/default/files/CBPS_2007_Guidelines_ISDF_First-edition_EN.pdf>`_ "
+" and default values available from a standard installation."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:235
 msgid ""
-"ESSArch uses the term “function” in the same way as ISDF do; to include "
-"not only functions but also any of the subdivisions of a function such as"
-" subfunction, business process, activity, task, transaction or other term"
-" in international, national or local usage."
+"ESSArch uses the term “function” in the same way as ISDF do; to include not "
+"only functions but also any of the subdivisions of a function such as "
+"subfunction, business process, activity, task, transaction or other term in "
+"international, national or local usage."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:238
@@ -1320,8 +1327,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:244
 msgid ""
-"To indicate whether the description is a function or one of its "
-"subdivisions"
+"To indicate whether the description is a function or one of its subdivisions"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:246
@@ -1352,8 +1358,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:248
 msgid ""
-"To indicate the various forms in which the authorised form(s) of name "
-"occurs in other languages or scripts."
+"To indicate the various forms in which the authorised form(s) of name occurs "
+"in other languages or scripts."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:250
@@ -1435,8 +1441,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:278
 msgid ""
-"To provide the authorised form(s) of name and any unique identifier of "
-"the related function."
+"To provide the authorised form(s) of name and any unique identifier of the "
+"related function."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:278
@@ -1450,8 +1456,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:280
 msgid ""
-"To indicate whether the relationship is established with a function or "
-"one of its subdivisions."
+"To indicate whether the relationship is established with a function or one "
+"of its subdivisions."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:282
@@ -1468,8 +1474,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:282
 msgid ""
-"To identify the general category of relationship between the function and"
-" the related function."
+"To identify the general category of relationship between the function and "
+"the related function."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:284
@@ -1494,8 +1500,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:286
 msgid ""
-"To indicate the dates of duration of the relationship of the function "
-"with the related function."
+"To indicate the dates of duration of the relationship of the function with "
+"the related function."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:291
@@ -1518,8 +1524,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:297
 msgid ""
-"To identify uniquely the function description within the context in which"
-" it will be used."
+"To identify uniquely the function description within the context in which it "
+"will be used."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:299
@@ -1536,8 +1542,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:301
 msgid ""
-"To identify the national or international conventions or rules applied in"
-" creating the description."
+"To identify the national or international conventions or rules applied in "
+"creating the description."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:301
@@ -1558,9 +1564,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:303
 msgid ""
-"In ESSArch a structure can be either published or unpublished this "
-"applies to the structure as a whole and not on individual function "
-"descriptions"
+"In ESSArch a structure can be either published or unpublished this applies "
+"to the structure as a whole and not on individual function descriptions"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:305
@@ -1578,7 +1583,8 @@ msgid "To indicate when this description was created, revised or deleted."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:309
-msgid "To indicate the language(s) and/or script(s) used to describe the function"
+msgid ""
+"To indicate the language(s) and/or script(s) used to describe the function"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:311
@@ -1624,8 +1630,8 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:323
 msgid ""
-"Functions in ESSArch and are associated by linking when a resource  "
-"applies a given Structure"
+"Functions in ESSArch and are associated by linking when a resource  applies "
+"a given Structure"
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:325
@@ -1640,10 +1646,10 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:325
 msgid ""
-"When a resource applies a structure it generally should be understand as "
-"a Corporate body/family/person is performing the activity more detailed "
-"information could be recorded in the instance description of the function"
-" itself."
+"When a resource applies a structure it generally should be understand as a "
+"Corporate body/family/person is performing the activity more detailed "
+"information could be recorded in the instance description of the function "
+"itself."
 msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:327
@@ -1652,6 +1658,6 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/standards/ICA_Standards.rst:327
 msgid ""
-"To indicate the dates of duration of the relationship between the "
-"function and the related resource."
+"To indicate the dates of duration of the relationship between the function "
+"and the related resource."
 msgstr ""
