@@ -146,6 +146,7 @@
       </thead>
       <tbody>
         <tr
+          ng-if="!ipLoading"
           ng-repeat-start="row in vm.displayedIps"
           ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
           class="table-item selectable"
@@ -169,7 +170,7 @@
           </td>
         </tr>
         <tr
-          ng-if="!row.collapsed"
+          ng-if="!ipLoading && !row.collapsed"
           ng-repeat="subrow in row.information_packages"
           ng-repeat-end
           class="table-item selectable"
@@ -189,7 +190,7 @@
         <tr ng-if="!vm.displayedIps.length && !ipLoading" class="empty-table-indicator">
           <td colspan="{{listViewColumns.length+1}}">{{'NO_RESULTS_FOUND' | translate}}</td>
         </tr>
-        <tr ng-if="!vm.displayedIps.length && ipLoading" class="empty-table-indicator">
+        <tr ng-if="ipLoading" class="empty-table-indicator">
           <td class="loading-column" colspan="{{listViewColumns.length+1}}">{{'LOADING' | translate}}</td>
         </tr>
       </tbody>

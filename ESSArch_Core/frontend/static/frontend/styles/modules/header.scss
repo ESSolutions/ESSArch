@@ -37,6 +37,24 @@
   }
 }
 
+.custom-logo-middle {
+  display: block;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 3px;
+  img {
+    cursor: pointer;
+    width: auto;
+    height: 27px;
+  }
+  @include medium-screen-up {
+    img {
+      width: auto;
+      height: 27px;
+    }
+  }
+}
+
 .logo {
   height: 100%;
   display: inline-block;

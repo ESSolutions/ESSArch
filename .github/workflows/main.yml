@@ -41,12 +41,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install
         run: |
@@ -101,7 +101,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Build
         run: |
@@ -122,7 +122,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
@@ -172,7 +172,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
@@ -200,7 +200,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Install
         run: |
@@ -274,7 +274,7 @@ jobs:
             port: 3306
             health_cmd: mysqladmin ping --user=root -ppassword
           - db: postgres
-            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=read committed'
+            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=1'
             image: postgres
             port: 5432
             health_cmd: pg_isready
@@ -348,7 +348,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
@@ -376,7 +376,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '16'
+          node-version: '20'
 
       - name: Setup apache http schemaserver
         run: |

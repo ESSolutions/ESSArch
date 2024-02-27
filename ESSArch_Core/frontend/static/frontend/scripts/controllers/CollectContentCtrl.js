@@ -255,13 +255,13 @@ export default class CollectContentCtrl {
       const width = $window.innerWidth
         ? $window.innerWidth
         : document.documentElement.clientWidth
-        ? document.documentElement.clientWidth
-        : screen.width;
+          ? document.documentElement.clientWidth
+          : screen.width;
       const height = $window.innerHeight
         ? $window.innerHeight
         : document.documentElement.clientHeight
-        ? document.documentElement.clientHeight
-        : screen.height;
+          ? document.documentElement.clientHeight
+          : screen.height;
 
       const left = width / 2 - w / 2 + dualScreenLeft;
       const top = height / 2 - h / 2 + dualScreenTop;
@@ -306,19 +306,20 @@ export default class CollectContentCtrl {
       });
       return cardClass;
     };
-    $scope.resetUploadedFiles = function () {
+    $scope.resetUploadedFiles = function (ip) {
       $scope.uploadedFiles = 0;
+      $rootScope.flowObjects[ip.id] = null;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function (flow, transfers) {
+    $scope.flowComplete = function (ip, flow, transfers) {
       if (flow.progress() === 1) {
         flow.flowCompleted = true;
         flow.flowSize = flow.getSize();
         flow.flowFiles = transfers.length;
         flow.cancel();
         if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles();
+          $scope.resetUploadedFiles(ip);
         }
       }
       $scope.updateGridArray();
@@ -349,7 +350,7 @@ export default class CollectContentCtrl {
       });
       flowObj.on('complete', function () {
         vm.uploading = false;
-        $scope.flowComplete(flowObj, flowObj.files);
+        $scope.flowComplete(ip, flowObj, flowObj.files);
       });
       flowObj.on('fileSuccess', function (file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);

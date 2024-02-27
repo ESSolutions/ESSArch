@@ -3,11 +3,14 @@ import logging
 import os
 import pathlib
 import tarfile
+from time import sleep
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
@@ -25,6 +28,7 @@ from tenacity import (
 from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -73,6 +77,7 @@ from ESSArch_Core.util import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True, event_type=10500)
@@ -234,7 +239,7 @@ def PrepareAIP(self, sip_path):
 
             ProfileIP.objects.filter(ip=ip).delete()
             ip.submission_agreement.lock_to_information_package(ip, user)
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 profile_ip.lock(user)
     else:
         with transaction.atomic():
@@ -547,8 +552,13 @@ def WriteInformationPackageToSearchIndex(self):
 
 
 @app.task(bind=True)
-def CreateReceipt(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
-    ip = self.get_information_package()
+def CreateReceipt(self, task_id=None, backend=None, template=None, destination=None, outcome=None,
+                  short_message=None, message=None, date=None, **kwargs):
+    try:
+        ip = self.get_information_package()
+    except ObjectDoesNotExist:
+        logger.warning('exception ip DoesNotExist in CreateReceipt. task_id: {}, ip: {}'.format(task_id, self.ip))
+        ip = None
     template, destination, outcome, short_message, message, date = self.parse_params(
         template, destination, outcome, short_message, message, date
     )
@@ -564,11 +574,59 @@ def CreateReceipt(self, task_id, backend, template, destination, outcome, short_
 
 
 @app.task(bind=True)
-def MarkArchived(self):
-    ip = self.get_information_package()
-    ip.archived = True
-    ip.state = 'Preserved'
-    ip.save()
+def MarkArchived(self, remote_host=None, remote_credentials=None):
+    requests_session = None
+    if remote_credentials:
+        user, passw = decrypt_remote_credentials(remote_credentials)
+        requests_session = requests.Session()
+        requests_session.verify = settings.REQUESTS_VERIFY
+        requests_session.auth = (user, passw)
+
+        task = self.get_processtask()
+        r = task.get_remote_copy(requests_session, remote_host)
+        if r.status_code == 404:
+            # the task does not exist
+            task.create_remote_copy(requests_session, remote_host)
+            task.run_remote_copy(requests_session, remote_host)
+        else:
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            if task.status == celery_states.PENDING:
+                task.run_remote_copy(requests_session, remote_host)
+            elif task.status != celery_states.SUCCESS:
+                logger.debug('task.status: {}'.format(task.status))
+                task.retry_remote_copy(requests_session, remote_host)
+                task.status = celery_states.PENDING
+
+        while task.status not in celery_states.READY_STATES:
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+            r = task.get_remote_copy(requests_session, remote_host)
+
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            sleep(5)
+
+        if task.status in celery_states.EXCEPTION_STATES:
+            task.reraise()
+    else:
+        ip = self.get_information_package()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
 
 
 @app.task(bind=True)
@@ -637,11 +695,13 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
     self.set_progress(99, 100)
 
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
-    try:
-        ip.get_doc().delete()
-    except NotFoundError:
-        if ip.archived:
-            logger.warning('Information package document not found: {}'.format(ip.pk))
+
+    if settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
+        try:
+            ip.get_doc().delete()
+        except NotFoundError:
+            if ip.archived:
+                logger.warning('Information package document not found: {}'.format(ip.pk))
 
     if from_db:
         with transaction.atomic():
@@ -659,7 +719,10 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 def CreateWorkarea(self, ip, user, type, read_only):
     ip = InformationPackage.objects.get(pk=ip)
     user = User.objects.get(pk=user)
-    Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+    Workarea.objects.update_or_create(ip=ip, user=user, defaults={
+        'type': type,
+        'read_only': read_only,
+    })
     Notification.objects.create(
         message=gettext("{ip} is now in workspace").format(ip=ip),
         level=logging.INFO, user=user, refresh=True

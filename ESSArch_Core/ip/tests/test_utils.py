@@ -158,7 +158,7 @@ class ParseSubmitDescriptionFromIpTests(TestCase):
         self.ip.submission_agreement = self.sa
         self.ip.save()
 
-        with self.assertRaisesRegexp(ValueError, "Information class.*{}.*{}.*".format(1, 2)):
+        with self.assertRaisesRegex(ValueError, "Information class.*{}.*{}.*".format(1, 2)):
             parse_submit_description_from_ip(self.ip)
 
         self.assertEqual(self.ip.information_class, 1)

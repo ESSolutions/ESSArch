@@ -542,7 +542,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             structure = self.request.query_params.get('structure')
             qs = ancestor.get_descendants(structure)
 
-        return qs.distinct()
+        return qs
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
@@ -657,7 +657,7 @@ class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSe
         return queryset.filter(
             Q(tags__in=leaves) | Q(information_packages__tags__in=leaves) |
             Q(aic__information_packages__tags__in=leaves)
-        ).distinct()
+        )
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')

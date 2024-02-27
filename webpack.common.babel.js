@@ -8,7 +8,7 @@ const gitRevisionPlugin = new GitRevisionPlugin();
 const basedir = path.resolve(__dirname, 'ESSArch_Core/frontend/static/frontend');
 
 module.exports = (env, argv) => {
-  mode = argv.mode || 'development';
+  const mode = argv.mode || 'development';
   return {
     entry: './ESSArch_Core/frontend/static/frontend/scripts/index.ts',
     resolve: {

@@ -70,6 +70,7 @@
         </thead>
         <tbody>
           <tr
+            ng-if="!eventLoading"
             ng-click="eventClick(row)"
             ng-repeat="row in vm.displayed"
             ng-class="{'failed': getEventOutcome(row.eventOutcome) === 'failure', 'success': getEventOutcome(row.eventOutcome) === 'success', }"
@@ -100,7 +101,7 @@
           <tr ng-if="!vm.displayed.length && !eventLoading" class="empty-table-indicator">
             <td colspan="5">{{ "NO_RESULTS_FOUND" | translate }}</td>
           </tr>
-          <tr ng-if="!vm.displayed.length && eventLoading" class="empty-table-indicator">
+          <tr ng-if="eventLoading" class="empty-table-indicator">
             <td class="loading-column" colspan="5">{{ "LOADING" | translate }}</td>
           </tr>
         </tbody>

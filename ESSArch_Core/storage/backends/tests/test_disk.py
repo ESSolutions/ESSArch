@@ -39,7 +39,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend = DiskStorageBackend()
         mock_storage_medium.storage_target.target = "some_bad_destination"
 
-        with self.assertRaisesRegexp(ValueError, "{} is not a directory".format("some_bad_destination")):
+        with self.assertRaisesRegex(ValueError, "{} is not a directory".format("some_bad_destination")):
             disk_storage_backend.write(
                 src="some_src",
                 ip=mock.ANY,
@@ -47,7 +47,7 @@ class DiskStorageBackendTests(TestCase):
                 storage_medium=mock_storage_medium
             )
 
-        with self.assertRaisesRegexp(ValueError, "{} is not a directory".format("some_bad_destination")):
+        with self.assertRaisesRegex(ValueError, "{} is not a directory".format("some_bad_destination")):
             disk_storage_backend.write(
                 src=["some_src"],
                 ip=mock.ANY,

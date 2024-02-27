@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-02 11:06+0200\n"
+"POT-Creation-Date: 2023-09-14 16:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,6 +42,18 @@ msgstr "Viktiga datum"
 msgid "Groups"
 msgstr "Grupper"
 
+#: auth/admin.py:226 auth/models.py:280 auth/models.py:288
+msgid "group type"
+msgstr "grupptyp"
+
+#: auth/admin.py:230 auth/models.py:295
+msgid "parent"
+msgstr "överordnad"
+
+#: auth/admin.py:309
+msgid "content type"
+msgstr ""
+
 #: auth/apps.py:7
 msgid "Authentication and Authorization"
 msgstr ""
@@ -60,7 +72,7 @@ msgstr "behörigheter"
 
 #: auth/models.py:176 auth/models.py:296
 msgid "external id"
-msgstr ""
+msgstr "externt id"
 
 #: auth/models.py:187
 msgid "role"
@@ -90,17 +102,9 @@ msgstr "användare"
 msgid "permission"
 msgstr ""
 
-#: auth/models.py:280 auth/models.py:288
-msgid "group type"
-msgstr "grupptyp"
-
 #: auth/models.py:281
 msgid "group types"
 msgstr "grupptyper"
-
-#: auth/models.py:295
-msgid "parent"
-msgstr "överordnad"
 
 #: auth/models.py:297
 msgid "properties"

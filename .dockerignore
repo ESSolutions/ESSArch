@@ -1,6 +1,8 @@
 node_modules
-/docker/
-!/docker/*.sh
+/docker/config
+/docker/data
+/docker/log
+/docker/scripts
 /dist/
 /htmlcov/
 /venv/

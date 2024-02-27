@@ -1,5 +1,6 @@
 import os
 import tarfile
+from copy import deepcopy
 from datetime import timedelta
 from urllib.parse import quote_plus as urlquote, urlparse
 
@@ -11,12 +12,16 @@ env = environ.Env()
 ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
 env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
 CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
+LOGGING_DIR = env.str('ESSARCH_LOGGING_DIR', os.path.join(ESSARCH_DIR, 'log'))
 
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
 SESSION_COOKIE_NAME = env.str('ESSARCH_SESSION_COOKIE_NAME', 'essarch')
 SESSION_COOKIE_SECURE = env.bool('ESSARCH_SESSION_COOKIE_SECURE', default=True)
 CSRF_COOKIE_SECURE = env.bool('ESSARCH_CSRF_COOKIE_SECURE', default=True)
+CSRF_HEADER_NAME = env.str('ESSARCH_CSRF_HEADER_NAME', 'HTTP_X_CSRFTOKEN')
+CSRF_TRUSTED_ORIGINS = env.list('ESSARCH_CSRF_TRUSTED_ORIGINS', default=[])
+ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('ESSARCH_DEBUG', default=True)
@@ -36,8 +41,6 @@ ESSARCH_WORKFLOW_POLLERS = {}
 
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
-
-ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # Exclude file formats keys from content indexing. Example: ['fmt/569',]
 EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
@@ -65,6 +68,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+DRF_CACHED_PAGINATION_COUNT_TIME = 0
 DRF_DYNAMIC_FIELDS = {
     'SUPPRESS_CONTEXT_WARNING': True,
 }
@@ -180,10 +184,10 @@ MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ])
 MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
-CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = 'ESSArch_Core.config.urls'
 
 TEMPLATES = [
@@ -294,16 +298,15 @@ ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
 TARFILE_FORMAT = tarfile.GNU_FORMAT
 
 # Logging
-LOGGING_DIR = os.path.join(ESSARCH_DIR, 'log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s %(levelname)s %(message)s'
+            'format': '[%(asctime)s: %(levelname)s] %(message)s'
         },
         'verbose_process': {
-            'format': '%(asctime)s %(levelname)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '[%(asctime)s: %(levelname)s %(module)s %(process)d %(thread)d] %(message)s'
         },
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
@@ -351,11 +354,27 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
-        # 'log_file_ldap': {
+        'log_file_daphneessarch': {
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGGING_DIR, 'daphneessarch.log'),
+            'maxBytes': 1024 * 1024 * 100,  # 100MB
+            'backupCount': 5,
+        },
+        # 'log_file_auth_saml2': {
         #    'level': 'DEBUG',
         #    'class' : 'logging.handlers.RotatingFileHandler',
         #    'formatter': 'verbose',
-        #    'filename': os.path.join(LOGGING_DIR, 'ldap.log'),
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_saml2.log'),
+        #    'maxBytes': 1024*1024*100, # 100MB
+        #    'backupCount': 5,
+        # },
+        # 'log_file_auth_ldap': {
+        #    'level': 'DEBUG',
+        #    'class' : 'logging.handlers.RotatingFileHandler',
+        #    'formatter': 'verbose',
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_ldap.log'),
         #    'maxBytes': 1024*1024*100, # 100MB
         #    'backupCount': 5,
         # },
@@ -372,30 +391,34 @@ LOGGING = {
         },
         # 'django.db.backends': {
         #     'handlers': ['file_essarch_db'],
-        #     'level': 'DEBUG',
+        #     'level': 'INFO',
         # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'essarch.auth': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['log_file_auth'],
             'propagate': False,
         },
+        'daphne': {
+            'level': 'INFO',
+            'handlers': ['log_file_daphneessarch'],
+        },
         # 'djangosaml2': {
-        #    'level': 'DEBUG',
-        #    'handlers': ['log_file_auth'],
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'saml2': {
-        #    'level': 'DEBUG',
-        #    'handlers': ['log_file_auth'],
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_saml2'],
         #    'propagate': True,
         # },
         # 'django_auth_ldap': {
-        #    'level': 'DEBUG',
-        #    'handlers': ['log_file_ldap'],
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_ldap'],
         #    'propagate': False,
         # },
     },
@@ -486,6 +509,7 @@ CELERY_IMPORTS = (
 CELERY_RESULT_BACKEND = 'processtask'
 CELERY_BROKER_HEARTBEAT = 0
 CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True}
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
@@ -515,7 +539,6 @@ CELERY_BEAT_SCHEDULE = {
     # },
 }
 
-CELERY_BEAT_SCHEDULE_FILENAME = os.path.join(ESSARCH_DIR, 'config/essarch/celerybeat-schedule')
 
 # Rest auth settings
 OLD_PASSWORD_FIELD_ENABLED = True
@@ -526,3 +549,20 @@ except ImportError as e:
     if e.name == 'local_essarch_settings':
         raise ImportError('No settings file found, create one by running `essarch settings generate`')
     raise
+
+
+def dict_deep_merge(a: dict, b: dict):
+    result = deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = dict_deep_merge(av, bv)
+        else:
+            result[bk] = deepcopy(bv)
+    return result
+
+
+# Extend LOGGING config with prefix LOGGING_xyz
+for x in list(locals().keys()):
+    if x.startswith('LOGGING_') and not x == 'LOGGING_DIR':
+        LOGGING = dict_deep_merge(LOGGING, locals()[x])

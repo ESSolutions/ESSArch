@@ -7,6 +7,7 @@ export default class StateTreeCtrl {
     Step,
     Task,
     appConfig,
+    $state,
     $timeout,
     $interval,
     PermPermissionStore,
@@ -24,20 +25,25 @@ export default class StateTreeCtrl {
     $scope.myTreeControl = {};
     $scope.myTreeControl.scope = this;
     $scope.tree_data = [];
+    $scope.newPage = true;
     $scope.angular = angular;
     $scope.statusShow = false;
     $scope.eventShow = false;
 
     $scope.$translate = $translate;
+    vm.displayedJobs = [];
 
     vm.$onChanges = function () {
       $scope.tree_data = [];
+      $scope.paginationParams = {};
+      $scope.columnFilters = {};
       $scope.ip = vm.ip;
       $scope.responsible = $translate.instant('RESPONSIBLE');
       $scope.label = $translate.instant('LABEL');
       $scope.date = $translate.instant('DATE');
       $scope.state = $translate.instant('STATE');
       $scope.status = $translate.instant('STATUS');
+      $scope.information_package = $translate.instant('INFORMATION_PACKAGE');
       $scope.expanding_property = {
         field: 'label',
         displayName: $scope.label,
@@ -60,16 +66,21 @@ export default class StateTreeCtrl {
           cellTemplate: '<div ng-include src="\'static/frontend/views/step_task_progressbar.html\'"></div>',
         },
       ];
+      if ($state.includes('**.storageMigration.**')) {
+        $scope.col_defs.push({
+          field: 'information_package_str',
+          displayName: $scope.information_package,
+        });
+      }
       if ($scope.checkPermission('WorkflowEngine.can_retry')) {
         $scope.col_defs.push({
           cellTemplate: '<div ng-include src="\'static/frontend/views/workflow/redo.html\'"></div>',
         });
       }
 
-      $scope.statusViewUpdate($scope.ip);
       $interval.cancel(stateInterval);
       stateInterval = $interval(function () {
-        $scope.statusViewUpdate($scope.ip);
+        $scope.statusViewUpdate($scope.tableState);
       }, appConfig.stateInterval);
     };
 
@@ -114,7 +125,7 @@ export default class StateTreeCtrl {
               branch.expanded = false;
             } else {
               branch.expanded = true;
-              $scope.statusViewUpdate($scope.ip);
+              $scope.stepClick(branch);
             }
           }
           break;
@@ -134,7 +145,7 @@ export default class StateTreeCtrl {
         .$retry()
         .then(function (response) {
           $timeout(function () {
-            $scope.statusViewUpdate($scope.ip);
+            $scope.statusViewUpdate($scope.tableState);
           }, 1000);
         })
         .catch(function () {
@@ -225,30 +236,61 @@ export default class StateTreeCtrl {
     };
     $scope.myTreeControl.scope.stateLoading = false;
     //Update status view data
-    $scope.statusViewUpdate = function (row) {
-      $scope.myTreeControl.scope.stateLoading = true;
-      let expandedNodes = [];
-      if ($scope.tree_data != []) {
-        expandedNodes = checkExpanded($scope.tree_data);
-      }
-      return StateTree.getTreeData(row, expandedNodes).then(function (value) {
-        return $q.all(value).then(function (values) {
-          if ($scope.tree_data.length && values.length) {
-            $scope.tree_data = updateStepProperties($scope.tree_data, values);
-          } else {
-            $scope.tree_data = value;
-          }
-          $scope.myTreeControl.scope.stateLoading = false;
-          return value;
+    $scope.statusViewUpdate = function (tableState) {
+      if (!angular.isUndefined(tableState)) {
+        $scope.tableState = tableState;
+        $scope.myTreeControl.scope.stateLoading = true;
+        let expandedNodes = [];
+        if ($scope.tree_data != []) {
+          expandedNodes = checkExpanded($scope.tree_data);
+        }
+
+        var search = '';
+        if (tableState.search.predicateObject) {
+          var search = tableState.search.predicateObject['$'];
+        }
+        const sorting = tableState.sort;
+        const paginationParams = listViewService.getPaginationParams(tableState.pagination, $scope.tree_data);
+        // if page Number is changed set newPage flag to reload tree_data instead of update
+        if (paginationParams['pageNumber'] != $scope.paginationParams['pageNumber']) {
+          $scope.newPage = true;
+        } else {
+          $scope.newPage = false;
+        }
+        $scope.paginationParams = angular.copy(paginationParams);
+        // if andvanced filter "columnFilters" changed reset pagination to page 1
+        if (JSON.stringify(vm.columnFilters) !== JSON.stringify($scope.columnFilters)) {
+          paginationParams['pageNumber'] = 1;
+          tableState.pagination['start'] = 0;
+        }
+        $scope.columnFilters = angular.copy(vm.columnFilters);
+        return StateTree.getTreeData(
+          $scope.ip,
+          expandedNodes,
+          paginationParams,
+          sorting,
+          search,
+          vm.columnFilters
+        ).then(function (value) {
+          return $q.all(value).then(function (values) {
+            if ($scope.tree_data.length && values.length && !$scope.newPage) {
+              $scope.tree_data = updateStepProperties($scope.tree_data, values);
+            } else {
+              $scope.tree_data = value;
+            }
+            tableState.pagination.numberOfPages = Math.ceil(value.$httpHeaders('Count') / paginationParams.number); //set the number of pages so the pagination can update
+            $scope.myTreeControl.scope.stateLoading = false;
+            return value;
+          });
         });
-      });
+      }
     };
 
     // Calculates difference in two sets of steps and tasks recursively
     // and updates the old set with the differances.
     function updateStepProperties(A, B) {
-      if (A.length > B.length) {
-        A.splice(0, B.length);
+      if (angular.isUndefined(A) || A.length > B.length) {
+        A = B;
       }
       for (let i = 0; i < B.length; i++) {
         if (A[i]) {

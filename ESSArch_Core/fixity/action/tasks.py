@@ -44,7 +44,7 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
     self.create_success_event(msg)
 
     if tool.file_processing:
-        for path in iglob(rootdir + '/' + pattern, case_sensitive=False):
+        for path in iglob(rootdir + '/' + pattern, case_sensitive=False, include_hidden=True):
             if not in_directory(path, rootdir):
                 raise ValueError('Invalid file-pattern accessing files outside of package')
 

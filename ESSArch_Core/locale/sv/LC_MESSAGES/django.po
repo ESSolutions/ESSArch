@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-02 16:14+0200\n"
+"POT-Creation-Date: 2023-09-14 16:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,19 +22,19 @@ msgstr ""
 msgid "Parent step position"
 msgstr ""
 
-#: WorkflowEngine/models.py:546
+#: WorkflowEngine/models.py:549
 msgid "state"
 msgstr ""
 
-#: WorkflowEngine/models.py:556
+#: WorkflowEngine/models.py:559
 msgid "started at"
 msgstr "startade"
 
-#: WorkflowEngine/models.py:557
+#: WorkflowEngine/models.py:560
 msgid "done at"
 msgstr "färdig"
 
-#: WorkflowEngine/models.py:565
+#: WorkflowEngine/models.py:568
 msgid "ProcessStep position"
 msgstr ""
 
@@ -83,7 +83,7 @@ msgstr "Lägg till en annan %(verbose_name)s"
 msgid "Remove"
 msgstr "Ta bort"
 
-#: celery/backends/database.py:63
+#: celery/backends/database.py:65
 #, python-format
 msgid "\"%(task)s\" failed"
 msgstr ""
@@ -92,48 +92,48 @@ msgstr ""
 msgid "Config"
 msgstr "Konfiguration"
 
-#: tasks.py:265
+#: tasks.py:266
 #, python-brace-format
 msgid "Validation of \"{ip}\" failed with {errcount} error(s)"
 msgstr ""
 
-#: tasks.py:274
+#: tasks.py:275
 #, python-brace-format
 msgid "\"{ip}\" was successfully validated"
 msgstr ""
 
-#: tasks.py:453
+#: tasks.py:461
 msgid "Creating"
 msgstr "Skapas"
 
-#: tasks.py:454
+#: tasks.py:462
 msgid "Created"
 msgstr "Skapad"
 
-#: tasks.py:455
+#: tasks.py:463
 msgid "Transforming"
 msgstr "Omvandlar"
 
-#: tasks.py:456
+#: tasks.py:464
 msgid "Transformed"
 msgstr "Omvandlad"
 
-#: tasks.py:457
+#: tasks.py:465
 msgid "Submitting"
 msgstr "Skickar"
 
-#: tasks.py:458
+#: tasks.py:466
 msgid "Submitted"
 msgstr "Skickad"
 
-#: tasks.py:459
+#: tasks.py:467
 msgid "Receiving"
 msgstr "Tar emot"
 
-#: tasks.py:460
+#: tasks.py:468
 msgid "Received"
 msgstr "Mottagen"
 
-#: tasks.py:461
+#: tasks.py:469
 msgid "Preserving"
 msgstr "Bevarar"

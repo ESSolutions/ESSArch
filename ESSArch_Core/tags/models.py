@@ -323,7 +323,7 @@ class Structure(models.Model):
         ).latest('published_date')
 
     def is_compatible_with_other_structure(self, other):
-        for old_unit in other.units.iterator():
+        for old_unit in other.units.iterator(chunk_size=1000):
             assert old_unit.related_structure_units.filter(structure=self).exists()
 
         return True

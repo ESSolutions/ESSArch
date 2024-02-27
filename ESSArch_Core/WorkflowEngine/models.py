@@ -105,7 +105,7 @@ class Process(models.Model):
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
     name = models.CharField(max_length=255)
     queue = models.CharField(max_length=255, blank=True, null=True, default=None)
-    hidden = models.BooleanField(editable=False, null=True, default=None, db_index=True)
+    hidden = models.BooleanField(null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
     time_created = models.DateTimeField(auto_now_add=True)
     result = PickledObjectField(null=True, default=None, editable=False)
@@ -144,19 +144,22 @@ class ProcessStep(MPTTModel, Process):
 
     type = models.IntegerField(null=True, choices=Type_CHOICES)
     user = models.CharField(max_length=45)
-    parent_step = TreeForeignKey(
+    parent = TreeForeignKey(
         'self',
         related_name='child_steps',
         on_delete=models.CASCADE,
         null=True
     )
-    parent_step_pos = models.IntegerField(_('Parent step position'), default=0)
+    parent_pos = models.IntegerField(_('Parent step position'), default=0)
     information_package = models.ForeignKey(
         'ip.InformationPackage',
         on_delete=models.CASCADE,
         related_name='steps',
         blank=True,
         null=True
+    )
+    responsible = models.ForeignKey(
+        'auth.User', on_delete=models.SET_NULL, related_name='steps', null=True
     )
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
@@ -165,7 +168,7 @@ class ProcessStep(MPTTModel, Process):
     subtree = MPTTSubtree()
 
     def get_pos(self):
-        return self.parent_step_pos
+        return self.parent_pos
 
     def get_descendants_tasks(self):
         steps = self.get_descendants(include_self=True)
@@ -212,8 +215,8 @@ class ProcessStep(MPTTModel, Process):
         cache.delete(self.cache_status_key)
         cache.delete(self.cache_progress_key)
 
-        if self.parent_step:
-            self.parent_step.clear_cache()
+        if self.parent:
+            self.parent.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
         tasks = tasks.filter(status=celery_states.PENDING,)
@@ -336,7 +339,7 @@ class ProcessStep(MPTTModel, Process):
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         ProcessTask.objects.filter(
             processstep__in=self.get_descendants(include_self=True),
-            status__in=[celery_states.PENDING, celery_states.FAILURE],
+            status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
         ).update(
             status=celery_states.PENDING,
             time_started=None,
@@ -506,7 +509,7 @@ class ProcessStep(MPTTModel, Process):
             if tasks.filter(status=celery_states.STARTED).exists():
                 status = celery_states.STARTED
 
-            for cs in child_steps.only('parent_step').iterator():
+            for cs in child_steps.only('parent').iterator(chunk_size=1000):
                 if cs.status == celery_states.STARTED:
                     status = cs.status
                 if (cs.status == celery_states.PENDING and
@@ -521,11 +524,11 @@ class ProcessStep(MPTTModel, Process):
 
     class Meta:
         db_table = 'ProcessStep'
-        ordering = ('parent_step_pos', 'time_created')
+        ordering = ('parent_pos', 'time_created')
         get_latest_by = "time_created"
 
     class MPTTMeta:
-        parent_attr = 'parent_step'
+        parent_attr = 'parent'
 
 
 class OrderedProcessTaskManager(models.Manager):
@@ -606,10 +609,13 @@ class ProcessTask(Process):
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def create_remote_copy(self, session, host):
+    def create_remote_copy(self, session, host, exclude_remote_params=True):
         create_remote_task_url = urljoin(host, reverse('processtask-list'))
         params = copy.deepcopy(self.params)
         params.pop('_options', None)
+        if exclude_remote_params:
+            params.pop('remote_host', None)
+            params.pop('remote_credentials', None)
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
         data = {
             'id': str(self.pk),
@@ -622,17 +628,27 @@ class ProcessTask(Process):
         r = session.post(create_remote_task_url, json=data, timeout=60)
 
         if r.status_code == 409:
+            logger.exception("Problem to add task {} for IP: {} to remote server. Response: {}".format(
+                self.pk, ip_id, r.text))
             r = self.update_remote_copy(session, host)
 
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to create_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def update_remote_copy(self, session, host):
+    def update_remote_copy(self, session, host, exclude_remote_params=True):
         update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         params = copy.deepcopy(self.params)
         params.pop('_options', None)
+        if exclude_remote_params:
+            params.pop('remote_host', None)
+            params.pop('remote_credentials', None)
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
         data = {
             'name': self.name,
@@ -642,8 +658,12 @@ class ProcessTask(Process):
             'information_package': ip_id,
         }
         r = session.patch(update_remote_task_url, json=data, timeout=60)
-
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to update_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -651,7 +671,12 @@ class ProcessTask(Process):
     def run_remote_copy(self, session, host):
         run_remote_task_url = urljoin(host, reverse('processtask-run', args=(str(self.pk),)))
         r = session.post(run_remote_task_url, timeout=60)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to run_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -660,7 +685,12 @@ class ProcessTask(Process):
         self.update_remote_copy(session, host)
         retry_remote_task_url = urljoin(host, reverse('processtask-retry', args=(str(self.pk),)))
         r = session.post(retry_remote_task_url, timeout=60)
-        r.raise_for_status()
+        try:
+            r.raise_for_status()
+        except RequestException:
+            logger.exception("Problem to retry_remote_copy task: {} for IP: {} to remote server. Response: {}".format(
+                self.pk, self.information_package, r.text))
+            raise
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -669,7 +699,12 @@ class ProcessTask(Process):
         remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         r = session.get(remote_task_url, timeout=60)
         if r.status_code >= 400 and r.status_code != 404:
-            r.raise_for_status()
+            try:
+                r.raise_for_status()
+            except RequestException:
+                logger.exception("Problem to get_remote_copy task: {} for IP: {} to remote server. Response: {}\
+".format(self.pk, self.information_package, r.text))
+                raise
         return r
 
     def reset(self):
@@ -731,7 +766,8 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger.debug('Revoking task ({})'.format(self.pk))
-        current_app.control.revoke(self.celery_id, terminate=True)
+        current_app.control.revoke(str(self.celery_id), terminate=True)
+        self.status = celery_states.REVOKED
         self.celery_id = uuid.uuid4()
         self.save()
         logger.info('Revoked task ({})'.format(self.pk))
@@ -771,9 +807,7 @@ class ProcessTask(Process):
         ordering = ('processstep_pos', 'time_created')
         get_latest_by = "time_created"
         unique_together = (('reference', 'processstep'))
-        index_together = (
-            ('retried', 'processstep', 'information_package'),
-        )
+        indexes = [models.Index(fields=['retried', 'processstep', 'information_package'])]
 
         permissions = (
             ('can_run', 'Can run tasks'),

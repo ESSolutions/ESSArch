@@ -8,17 +8,18 @@ from ESSArch_Core.auth.util import users_in_organization
 from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.ip.models import Agent, EventIP, InformationPackage, Workarea
 from ESSArch_Core.storage.models import StorageMedium
+from ESSArch_Core.util import strtobool
 
 User = get_user_model()
 
 
 def states():
-    result = InformationPackage.objects.order_by().values_list('state', flat=True).distinct()
+    result = InformationPackage.objects.order_by().values_list('state', flat=True)
     return [(state, state.capitalize()) for state in result]
 
 
 class AgentFilter(filters.FilterSet):
-    ip_state = ListFilter(field_name='information_packages__state', distinct=True)
+    ip_state = ListFilter(field_name='information_packages__state', distinct=False)
 
     class Meta:
         model = Agent
@@ -47,16 +48,17 @@ class InformationPackageFilter(filters.FilterSet):
         method='exclude_package_type_name'
     )
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
+    exportable = filters.BooleanFilter(label='exportable', method='filter_exportable')
     workarea = filters.ChoiceFilter(label=_("Workarea"), field_name='workareas__type', choices=Workarea.TYPE_CHOICES)
-    medium = filters.ModelChoiceFilter(
+    medium = filters.ModelMultipleChoiceFilter(
         label='Storage Medium', queryset=StorageMedium.objects.all(),
         field_name='storage__storage_medium',
-        distinct=True
+        distinct=False
     )
     policy = filters.ModelChoiceFilter(
         label='Storage Policy', queryset=StoragePolicy.objects.all(),
         field_name='submission_agreement__policy',
-        distinct=True
+        distinct=False
     )
 
     def exclude_package_type_name(self, queryset, name, value):
@@ -66,7 +68,12 @@ class InformationPackageFilter(filters.FilterSet):
         return queryset.none()
 
     def filter_migratable(self, queryset, name, value):
-        return queryset.migratable()
+        exportable = strtobool(self.data.get('exportable', False))
+        export_path = 'dummy' if exportable else ''
+        return queryset.migratable(export_path=export_path) if value else queryset
+
+    def filter_exportable(self, queryset, name, value):
+        return queryset.migratable(export_path='dummy') if value else queryset
 
     class Meta:
         model = InformationPackage

@@ -32,7 +32,7 @@ def get_organization_groups(user):
         Q(sub_essauth_group_set__django_group__user=user)
     )
     return Group.objects.filter(Q(Q(sub_group_filter) | Q(django_group__user=user)),
-                                group_type__codename=ORGANIZATION_TYPE).distinct()
+                                group_type__codename=ORGANIZATION_TYPE)
 
 
 def users_in_organization(user):

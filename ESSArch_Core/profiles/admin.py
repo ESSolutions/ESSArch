@@ -50,7 +50,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
-    list_display = ('name', 'type', 'status', 'label')
+    list_display = ('name', 'label', 'type', 'status', 'published')
     search_fields = ('name', )
     readonly_fields = ('id',)
     list_filter = ('name', 'type')
@@ -59,7 +59,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
         (None, {
             'classes': ('wide'),
             'fields': (
-                'id', 'name', 'type', 'status', 'label', 'archivist_organization',
+                'id', 'name', 'label', 'type', 'status', 'published', 'archivist_organization',
                 'overall_submission_agreement', 'policy',
             )
         }),

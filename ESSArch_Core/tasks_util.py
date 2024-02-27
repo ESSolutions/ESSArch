@@ -95,7 +95,7 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     """
 
     medium = StorageMedium.objects.get(pk=medium_id)
-    slot_id = medium.tape_slot.slot_id
+    slot = medium.tape_slot
     tape_drive = TapeDrive.objects.get(pk=drive_id)
 
     if tape_drive.locked:
@@ -105,14 +105,14 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     tape_drive.save(update_fields=['locked'])
 
     try:
-        mount_tape(tape_drive.robot.device, slot_id, tape_drive.drive_id)
+        mount_tape(tape_drive.robot.device, slot.slot_id, tape_drive.drive_id)
         wait_to_come_online(tape_drive.device, timeout)
     except BaseException:
         StorageMedium.objects.filter(pk=medium_id).update(
             status=100, last_changed_local=timezone.now(),
         )
         TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
-        TapeSlot.objects.filter(slot_id=slot_id).update(status=100)
+        TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
 
     TapeDrive.objects.filter(pk=drive_id).update(
@@ -125,10 +125,10 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
         last_changed_local=timezone.now(),
     )
 
-    write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive)
+    write_medium_label_to_drive(drive_id, medium, slot, tape_drive)
 
 
-def write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive):
+def write_medium_label_to_drive(drive_id, medium, slot, tape_drive):
     xmlfile = tempfile.NamedTemporaryFile(delete=False)
     try:
         arcname = '%s_label.xml' % medium.medium_id
@@ -163,7 +163,7 @@ def write_medium_label_to_drive(drive_id, medium, slot_id, tape_drive):
             status=100, last_changed_local=timezone.now(),
         )
         TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
-        TapeSlot.objects.filter(slot_id=slot_id).update(status=100)
+        TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
     finally:
         xmlfile.close()
@@ -239,7 +239,7 @@ def append_events(ip, events, filename):
         id_types[id_type] = Parameter.objects.cached('entity', entity, 'value')
 
     target = generator.find_element('premis')
-    for event in events.iterator():
+    for event in events.iterator(chunk_size=1000):
         ip = InformationPackage.objects.get(pk=event.linkingObjectIdentifierValue)
         objid = ip.object_identifier_value
 

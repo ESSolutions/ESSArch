@@ -24,7 +24,7 @@
 
 from django import forms
 from django.contrib import admin
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
@@ -173,7 +173,7 @@ class TapeDriveAdmin(admin.ModelAdmin):
     readonly_fields = ["locked_by"]
     actions = ["clear_lock"]
 
-    @admin.action(permissions=["change"], description="Clear lock for selected drives")
+    @admin.action(permissions=["change"], description=_("Clear lock for selected drives"))
     def clear_lock(self, request, queryset):
         for obj in queryset:
             obj.clear_lock()

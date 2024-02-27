@@ -182,7 +182,7 @@ class GetSchemasTest(SimpleTestCase):
         self.assertIs(type(schema), etree._Element)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
-        with self.assertRaisesRegexp(AttributeError, "'NoneType' object has no attribute 'getroot'"):
+        with self.assertRaisesRegex(AttributeError, "'NoneType' object has no attribute 'getroot'"):
             getSchemas()
 
     def test_get_schema_from_none_existing_file_should_raise_exception(self):

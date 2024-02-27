@@ -39,6 +39,7 @@ export default class CreateDipCtrl {
     vm.listViewTitle = $translate.instant('DISSEMINATION_PACKAGES');
 
     vm.$onInit = function () {
+      $rootScope.flowObjects = {};
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
@@ -765,19 +766,20 @@ export default class CreateDipCtrl {
       return cardClass;
     };
 
-    $scope.resetUploadedFiles = function () {
+    $scope.resetUploadedFiles = function (ip) {
       $scope.uploadedFiles = 0;
+      $rootScope.flowObjects[ip.id] = null;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function (flow, transfers) {
+    $scope.flowComplete = function (ip, flow, transfers) {
       if (flow.progress() === 1) {
         flow.flowCompleted = true;
         flow.flowSize = flow.getSize();
         flow.flowFiles = transfers.length;
         flow.cancel();
         if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles();
+          $scope.resetUploadedFiles(ip);
         }
       }
       $scope.updateGridArray();
@@ -808,7 +810,7 @@ export default class CreateDipCtrl {
       });
       flowObj.on('complete', function () {
         vm.uploading = false;
-        $scope.flowComplete(flowObj, flowObj.files);
+        $scope.flowComplete(ip, flowObj, flowObj.files);
       });
       flowObj.on('fileSuccess', function (file, message) {
         $scope.fileUploadSuccess(ip, file, message, flowObj);

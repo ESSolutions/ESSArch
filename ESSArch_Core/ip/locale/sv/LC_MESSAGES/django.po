@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-02 18:36+0200\n"
+"POT-Creation-Date: 2023-09-14 17:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,160 +18,172 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ip/apps.py:7
+#: admin.py:99
+msgid "Clear lock for selected ip"
+msgstr "Rensa lås för markerade informationspaket"
+
+#: apps.py:7
 msgid "Information Package"
 msgstr "Informationspaket"
 
-#: ip/filters.py:30
+#: filters.py:31
 msgid "Archivist Organization"
 msgstr "Arkivorganisation"
 
-#: ip/filters.py:46
+#: filters.py:47
 msgid "Excluded Package Type"
 msgstr "Exkluderad pakettyp"
 
-#: ip/filters.py:50
+#: filters.py:52
 msgid "Workarea"
 msgstr "Arbetsyta"
 
-#: ip/models.py:366
+#: models.py:374
+msgid "object_identifier_value"
+msgstr "Objekt id"
+
+#: models.py:375
+msgid "label"
+msgstr ""
+
+#: models.py:377
 msgid "create date"
 msgstr "skapandedatum"
 
-#: ip/models.py:367
+#: models.py:378
 msgid "state"
 msgstr "tillstånd"
 
-#: ip/models.py:370
+#: models.py:381
 msgid "object size"
 msgstr "objektstorlek"
 
-#: ip/models.py:373
+#: models.py:384
 msgid "start date"
 msgstr "startdatum"
 
-#: ip/models.py:374
+#: models.py:385
 msgid "end date"
 msgstr "slutdatum"
 
-#: ip/models.py:397
+#: models.py:408
 msgid "entry date"
 msgstr "skapandedatum (SIP)"
 
-#: ip/models.py:400
+#: models.py:411
 msgid "package type"
 msgstr "pakettyp"
 
-#: ip/models.py:407
+#: models.py:418
 msgid "cached"
 msgstr "cachad"
 
-#: ip/models.py:408
+#: models.py:419
 msgid "archived"
 msgstr "arkiverad"
 
-#: ip/models.py:414
+#: models.py:425
 msgid "responsible"
 msgstr "ansvarig"
 
-#: ip/models.py:2163
+#: models.py:2797
 msgid "information package"
 msgstr "informationspaket"
 
-#: ip/models.py:2164
+#: models.py:2798
 msgid "information packages"
 msgstr "informationspaket"
 
-#: ip/models.py:2353
+#: models.py:2987
 msgid "transfer"
 msgstr "överföring"
 
-#: ip/models.py:2357
+#: models.py:2991
 msgid "delivery"
 msgstr "leverans"
 
-#: ip/models.py:2434 ip/models.py:2445
+#: models.py:3068 models.py:3079
 msgid "name"
 msgstr "namn"
 
-#: ip/models.py:2440
+#: models.py:3074
 msgid "order type"
 msgstr "beställningstyp"
 
-#: ip/models.py:2441
+#: models.py:3075
 msgid "order types"
 msgstr "beställningstyper"
 
-#: ip/models.py:2451 ip/models.py:2470
+#: models.py:3085 models.py:3104
 msgid "consign method"
 msgstr "utlämnandemetod"
 
-#: ip/models.py:2452
+#: models.py:3086
 msgid "consign methods"
 msgstr "utlämnandemetoder"
 
-#: ip/models.py:2460
+#: models.py:3094
 msgid "type"
 msgstr "typ"
 
-#: ip/tasks.py:498
+#: tasks.py:503
 #, python-brace-format
 msgid "{backend} job done for {ip}"
 msgstr "{backend} jobb är klart för {ip}"
 
-#: ip/tasks.py:654
+#: tasks.py:714
 #, python-brace-format
 msgid "{ip} has been deleted"
 msgstr "{ip} har tagits bort"
 
-#: ip/tasks.py:664
+#: tasks.py:724
 #, python-brace-format
 msgid "{ip} is now in workspace"
 msgstr "{ip} är nu i arbetsytan"
 
-#: ip/views.py:1559 ip/views.py:2788
+#: views.py:1562 views.py:2791
 #, python-brace-format
 msgid "Receiving {ip}"
 msgstr "Tar emot {ip}..."
 
-#: ip/views.py:1717
+#: views.py:1720
 msgid "Preserved {{OBJID}}"
 msgstr "Bevarad {{OBJID}}"
 
-#: ip/views.py:1718
+#: views.py:1721
 msgid "{{OBJLABEL}} ({{OBJID}}) is now preserved"
 msgstr "{{OBJLABEL}} ({{OBJID}}) är nu bevarad"
 
-#: ip/views.py:1725
+#: views.py:1728
 #, python-brace-format
 msgid "{ip} is now preserved"
 msgstr "{ip} är nu bevarad"
 
-#: ip/views.py:1750
+#: views.py:1753
 #, python-brace-format
 msgid "Preserving {ip}..."
 msgstr "Bevarar {ip}..."
 
-#: ip/views.py:1779
+#: views.py:1782
 #, python-brace-format
 msgid "New generation created {ip}"
 msgstr "Ny generation skapad {ip}"
 
-#: ip/views.py:1850
+#: views.py:1853
 #, python-brace-format
 msgid "Accessing {ip}..."
 msgstr "Hämtar {ip}..."
 
-#: ip/views.py:2250
+#: views.py:2253
 #, python-brace-format
 msgid "Unlocking profile with type \"{type}\" in IP \"{ip}\""
 msgstr ""
 
-#: ip/views.py:3014
+#: views.py:3017
 #, python-brace-format
 msgid "Upload of {filepath} complete"
 msgstr "Lyckad uppladdning av {filepath}"
 
-#: ip/views.py:3495
+#: views.py:3498
 msgid "Merged chunks"
 msgstr ""

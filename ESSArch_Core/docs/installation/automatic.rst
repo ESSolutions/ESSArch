@@ -4,7 +4,7 @@
 Automatic installation
 **********************
 
-If you are installing on Ubuntu, Debian, CentOS, RHEL, OpenSUSE or SLES, and have access to the root
+If you are installing on Ubuntu, Debian, RHEL, OpenSUSE or SLES, and have access to the root
 user then there is a script available that automates the installation for you:
 
 

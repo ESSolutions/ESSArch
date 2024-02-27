@@ -483,3 +483,6 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
                         logger.debug('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                    elif slot.status == 100:
+                        slot.status = 20
+                        slot.save(update_fields=['status'])

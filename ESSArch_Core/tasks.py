@@ -93,6 +93,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True)
@@ -443,7 +444,14 @@ def CompareRepresentationXMLFiles(self):
 @transaction.atomic
 def UpdateIPStatus(self, status, prev=None):
     status, = self.parse_params(status)
-    ip = InformationPackage.objects.get(pk=self.ip)
+    try:
+        ip = InformationPackage.objects.get(pk=self.ip)
+    except InformationPackage.DoesNotExist:
+        msg = 'exception in UpdateIPStatus for task_id: {}, step_id: {}, DoesNotExist when get ip: {} - return'.format(
+            self.task_id, self.step, self.ip)
+        logger.warning(msg)
+
+        return msg
     if prev is None:
         t = self.get_processtask()
         t.params['prev'] = ip.state
@@ -506,9 +514,9 @@ def UpdateIPSizeAndCount(self):
 
 
 @app.task(bind=True, event_type=50710)
-def DeleteFiles(self, path):
+def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
     path, = self.parse_params(path)
-    delete_path(path)
+    delete_path(path, remote_host=remote_host, remote_credentials=remote_credentials, task=self.get_processtask())
 
     msg = "Deleted %s" % path
     self.create_success_event(msg)

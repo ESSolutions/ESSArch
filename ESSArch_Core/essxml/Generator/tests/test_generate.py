@@ -2235,7 +2235,7 @@ class GenerateXMLTestCase(TestCase):
         }
 
         target = self.generator.find_element('foo')
-        with self.assertRaisesRegexp(TypeError, "Can't insert"):
+        with self.assertRaisesRegex(TypeError, "Can't insert"):
             self.generator.insert_from_specification(
                 target, append_specification, {},
             )

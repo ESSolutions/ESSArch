@@ -2,6 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
 
 from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
@@ -417,6 +418,7 @@ router.register(r'search', ComponentSearchViewSet, basename='search').register(
 urlpatterns = [
     re_path(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
     re_path(r'^admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url='/static/frontend/favicon.ico')),
     re_path(r'^api/auth/', include('ESSArch_Core.auth.urls')),
     re_path(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     re_path(r'^api/stats/$', stats, name='stats'),
@@ -446,7 +448,8 @@ urlpatterns = [
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False) or \
+        getattr(settings, 'ENABLE_SAML2_METADATA', False):
     from djangosaml2.views import EchoAttributesView
     urlpatterns.append(re_path(r'^saml2/', include('djangosaml2.urls')))
     urlpatterns.append(re_path(r'^saml2test/', EchoAttributesView.as_view()))

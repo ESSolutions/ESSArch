@@ -1,12 +1,13 @@
-django-auth-ldap==4.1.0
+django-auth-ldap==4.6.0
 django-auto-logout==0.5.1
-django-axes==5.41.1
-djangosaml2==1.5.5
+django-axes==6.3.0
+pysaml2 @ git+https://github.com/ESSolutions/pysaml2.git@2f1ba6beaef3f6189ace26e0efb5f2d031624e04 ; platform_system=='Windows'
+djangosaml2==1.9.2
 unoconv==0.9.0
-comtypes==1.1.14;platform_system=='Windows'
+comtypes==1.2.1 ; platform_system=='Windows'
 wfastcgi==3.0.0
-mod-wsgi==4.9.4
-mssql-django==1.2
-mysqlclient==2.1.1
-psycopg2==2.9.5
+mod-wsgi==5.0.0
+mssql-django==1.4
+mysqlclient==2.2.4
+psycopg2==2.9.9
 python-logstash-async==1.6.4

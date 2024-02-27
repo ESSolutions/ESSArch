@@ -210,11 +210,11 @@ def ReceiveAIP(self, workarea):
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
               aic_xml=False, object_identifier_value="", dst=None):
     aip = InformationPackage.objects.get(pk=aip)
-    responsible = User.objects.get(pk=self.responsible)
 
     # if it is a received IP, i.e. from ingest and not from storage,
     # then we read it directly from disk and move it to the ingest workarea
     if aip.state == 'Received':
+        responsible = User.objects.get(pk=self.responsible)
         if not extracted and not new:
             raise ValueError('An IP must be extracted when transferred to ingest workarea')
 
@@ -348,8 +348,7 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                         entry.delete()
                     finally:
                         if entry.pk is not None:
-                            entry.robot = None
-                            entry.save(update_fields=['robot', 'status'])
+                            entry.save(update_fields=['status'])
 
             elif entry.req_type in [20, 30]:  # unmount
                 if medium.tape_drive is None:  # already unmounted
@@ -421,7 +420,7 @@ def UnmountIdleDrives(self):
         if not idle_drives.exists():
             continue
 
-        for drive in idle_drives.iterator():
+        for drive in idle_drives.iterator(chunk_size=1000):
             if not drive.is_locked():
                 robot_queue_entry_exists = RobotQueue.objects.filter(
                     robot=robot, storage_medium=drive.storage_medium,

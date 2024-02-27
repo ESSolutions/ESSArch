@@ -1,5 +1,11 @@
+import logging
+
+from django.db import connection
 from django.db.models import Case, CharField, F, IntegerField, Value, When
 from django.db.models.functions import Cast, Length, StrIndex, Substr, Trim
+from django.db.utils import OperationalError
+
+logger = logging.getLogger('essarch')
 
 
 def natural_sort(qs, field):
@@ -25,3 +31,23 @@ def natural_sort(qs, field):
             output_field=IntegerField(),
         )
     ).order_by('ns_code', 'ns_weight', 'ns_len', field)
+
+
+def check_db_connection():
+    """
+    Checks to see if the database connection is healthy.
+    """
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("select 1")
+            one = cursor.fetchone()[0]
+            if one != 1:
+                raise Exception('The database did not pass the health check')
+    except OperationalError:
+        connection.close()
+        logger.warning('check_db_connection - OperationalError, try to establish new connection')
+        with connection.cursor() as cursor:
+            cursor.execute("select 1")
+            one = cursor.fetchone()[0]
+            if one != 1:
+                raise Exception('The database did not pass the health check')

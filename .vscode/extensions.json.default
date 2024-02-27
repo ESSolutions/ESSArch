@@ -11,6 +11,7 @@
     "ms-python.vscode-pylance",
     "ms-python.python",
     "ms-python.flake8",
+    "ms-python.autopep8",
     "ms-python.isort",
     "ms-vscode-remote.remote-wsl",
     "ms-vscode.powershell",
