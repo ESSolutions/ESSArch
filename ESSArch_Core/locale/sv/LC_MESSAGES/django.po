@@ -1,0 +1,139 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-14 16:48+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: WorkflowEngine/models.py:153
+msgid "Parent step position"
+msgstr ""
+
+#: WorkflowEngine/models.py:549
+msgid "state"
+msgstr ""
+
+#: WorkflowEngine/models.py:559
+msgid "started at"
+msgstr "startade"
+
+#: WorkflowEngine/models.py:560
+msgid "done at"
+msgstr "färdig"
+
+#: WorkflowEngine/models.py:568
+msgid "ProcessStep position"
+msgstr ""
+
+#: access/apps.py:7
+msgid "access"
+msgstr "åtkomst"
+
+#: access/models.py:14 access/models.py:51
+msgid "name"
+msgstr "namn"
+
+#: access/models.py:16
+msgid "description"
+msgstr "beskrivning"
+
+#: access/models.py:17
+msgid "start date"
+msgstr "Startdatum"
+
+#: access/models.py:18
+msgid "end date"
+msgstr "Slutdatum"
+
+#: access/models.py:19
+msgid "security level"
+msgstr "säkerhetsnivå"
+
+#: access/models.py:20
+msgid "link"
+msgstr "länk"
+
+#: access/models.py:57
+msgid "access aid type"
+msgstr "typ av sökingång"
+
+#: access/models.py:58
+msgid "access aid types"
+msgstr "typer av sökningångar"
+
+#: admin/templates/essadmin/edit_inline/stacked-nested-without-header.html:75
+#, python-format
+msgid "Add another %(verbose_name)s"
+msgstr "Lägg till en annan %(verbose_name)s"
+
+#: admin/templates/essadmin/edit_inline/stacked-nested-without-header.html:78
+msgid "Remove"
+msgstr "Ta bort"
+
+#: celery/backends/database.py:65
+#, python-format
+msgid "\"%(task)s\" failed"
+msgstr ""
+
+#: config/apps.py:7
+msgid "Config"
+msgstr "Konfiguration"
+
+#: tasks.py:266
+#, python-brace-format
+msgid "Validation of \"{ip}\" failed with {errcount} error(s)"
+msgstr ""
+
+#: tasks.py:275
+#, python-brace-format
+msgid "\"{ip}\" was successfully validated"
+msgstr ""
+
+#: tasks.py:461
+msgid "Creating"
+msgstr "Skapas"
+
+#: tasks.py:462
+msgid "Created"
+msgstr "Skapad"
+
+#: tasks.py:463
+msgid "Transforming"
+msgstr "Omvandlar"
+
+#: tasks.py:464
+msgid "Transformed"
+msgstr "Omvandlad"
+
+#: tasks.py:465
+msgid "Submitting"
+msgstr "Skickar"
+
+#: tasks.py:466
+msgid "Submitted"
+msgstr "Skickad"
+
+#: tasks.py:467
+msgid "Receiving"
+msgstr "Tar emot"
+
+#: tasks.py:468
+msgid "Received"
+msgstr "Mottagen"
+
+#: tasks.py:469
+msgid "Preserving"
+msgstr "Bevarar"

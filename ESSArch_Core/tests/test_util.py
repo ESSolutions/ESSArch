@@ -182,7 +182,7 @@ class GetSchemasTest(SimpleTestCase):
         self.assertIs(type(schema), etree._Element)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
-        with self.assertRaisesRegexp(AttributeError, "'NoneType' object has no attribute 'getroot'"):
+        with self.assertRaisesRegex(AttributeError, "'NoneType' object has no attribute 'getroot'"):
             getSchemas()
 
     def test_get_schema_from_none_existing_file_should_raise_exception(self):
@@ -293,7 +293,7 @@ class ListFilesTest(TestCase):
 
     def test_list_files_tarfile_with_default_args_should_return_response(self):
         file_path = self.create_archive_file('tar')
-        resp = list_files(file_path)
+        resp = list_files(file_path, expand_container=True)
         self.assertEqual(resp.status_code, 200)
         file_names = ["./0.txt", "./1.txt", "./2.txt"]  # TODO: bug in shutil for tar is adding an extra './'
 
@@ -311,7 +311,7 @@ class ListFilesTest(TestCase):
 
     def test_list_files_zip_file_with_default_args_should_return_response(self):
         file_path = self.create_archive_file('zip')
-        resp = list_files(file_path)
+        resp = list_files(file_path, expand_container=True)
         self.assertEqual(resp.status_code, 200)
         file_names = ["0.txt", "1.txt", "2.txt"]
 
@@ -501,11 +501,11 @@ class GenerateFileResponseTests(SimpleTestCase):
         self.assertEqual(
             headers,
             {
+                'Content-Type': 'text/plain; charset=utf-8', 'Content-Length': '14',
+                'Content-Disposition': "inline; filename*=utf-8''{}".format("none_ascii_%C3%A5_name.txt"),
                 'Cache-Control': 'no-cache, no-store, must-revalidate',
                 'Pragma': 'no-cache',
-                'Expires': '0',
-                'Content-Type': 'text/plain; charset=utf-8',
-                'Content-Disposition': "inline; filename*=utf-8''{}".format("none_ascii_%C3%A5_name.txt")
+                'Expires': '0'
             }
         )
 

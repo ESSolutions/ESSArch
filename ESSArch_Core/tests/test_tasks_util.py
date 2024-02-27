@@ -102,7 +102,7 @@ class TapeMountOrUnmountTests(TestCase):
     def test_unmount_when_no_medium_exists_should_raise_exception(self):
         tape_drive = self.create_tape_drive()
 
-        with self.assertRaisesRegexp(ValueError, "No tape in tape drive to unmount"):
+        with self.assertRaisesRegex(ValueError, "No tape in tape drive to unmount"):
             unmount_tape_from_drive(tape_drive.pk)
 
     @mock.patch('ESSArch_Core.tasks_util.mount_tape_medium_into_drive.retry.sleep')

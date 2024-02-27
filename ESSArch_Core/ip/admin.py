@@ -26,6 +26,7 @@ import os
 from os import walk
 
 from django.contrib import admin
+from django.utils.translation import gettext_lazy as _
 
 from .models import ConsignMethod, InformationPackage, OrderType
 
@@ -70,15 +71,18 @@ class IPAdmin(admin.ModelAdmin):
     """
     Information Package
     """
-    list_display = ('label', 'id', 'object_path', 'state')
-    readonly_fields = ('id',)
-    list_filter = ('label',)
+    list_display = ('label', 'object_identifier_value', 'id', 'package_type', 'state')
+    readonly_fields = ['id', 'is_locked']
+    search_fields = ['label', 'object_identifier_value', 'id']
+    list_filter = ['state', ('state', admin.EmptyFieldListFilter),
+                   'package_type']
     fieldsets = (
                 (None, {
                     'classes': ('wide'),
                     'fields': (
                         'id',
                         'label',
+                        'object_identifier_value',
                         'content',
                         'responsible',
                         'state',
@@ -87,8 +91,15 @@ class IPAdmin(admin.ModelAdmin):
                         'end_date',
                         'package_type',
                         'submission_agreement',
+                        'is_locked',
                     )}),
     )
+    actions = ["clear_lock"]
+
+    @admin.action(permissions=["change"], description=_("Clear lock for selected ip"))
+    def clear_lock(self, request, queryset):
+        for obj in queryset:
+            obj.clear_lock()
 
 
 admin.site.register(ConsignMethod)

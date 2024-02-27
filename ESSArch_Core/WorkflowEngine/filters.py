@@ -25,6 +25,8 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from ESSArch_Core.api.filters import ListFilter
+from ESSArch_Core.auth.util import users_in_organization
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
@@ -32,6 +34,13 @@ class ProcessTaskFilter(filters.FilterSet):
     retry_type = filters.BooleanFilter(field_name='retry_type', method='filter_retry_type')
     retried = filters.BooleanFilter(method='filter_retried')
     hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+    name = ListFilter(field_name='label')
+    time_created = filters.IsoDateTimeFromToRangeFilter()
+    responsible = filters.ModelMultipleChoiceFilter(
+        field_name="responsible__username",
+        to_field_name="username",
+        queryset=lambda request: users_in_organization(request.user),
+    )
 
     def filter_hidden(self, queryset, name, value):
         if value is False:
@@ -51,12 +60,19 @@ class ProcessTaskFilter(filters.FilterSet):
     class Meta:
         model = ProcessTask
         fields = [
-            'retry_type', 'hidden',
+            'retry_type', 'hidden', 'name', 'responsible',
         ]
 
 
 class ProcessStepFilter(filters.FilterSet):
     hidden = filters.BooleanFilter(field_name='hidden', method='filter_hidden')
+    name = ListFilter(field_name='name')
+    time_created = filters.IsoDateTimeFromToRangeFilter()
+    responsible = filters.ModelMultipleChoiceFilter(
+        field_name="responsible__username",
+        to_field_name="username",
+        queryset=lambda request: users_in_organization(request.user),
+    )
 
     def filter_hidden(self, queryset, name, value):
         if value is False:
@@ -68,5 +84,5 @@ class ProcessStepFilter(filters.FilterSet):
     class Meta:
         model = ProcessStep
         fields = [
-            'hidden',
+            'hidden', 'name', 'responsible',
         ]

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<formats xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xsi:noNamespaceSchemaLocation="fido-formats.xsd" version="0.3">
+  <!--
+  <format>
+    <puid>x-fmt/18</puid>
+    <mime>text/csv</mime>
+    <name>Comma Separated Values</name>
+    <version />
+    <alias />
+    <pronom_id>45</pronom_id>
+    <extension>csv</extension>
+    <extension>res</extension>
+    <details>
+      <dc:description>A comma-separated values (CSV) file file stores tabular data (numbers and text) in plain text. Plain text means that the file is interpreted a sequence of characters, so that it is human-readable with a standard text editor. Each line of the file is a data record.</dc:description>
+      <dcterms:available />
+      <dc:creator />
+      <dcterms:publisher />
+      <content_type>Dataset</content_type>
+      <record_metadata>
+        <status>unknown</status>
+        <dc:creator>Digital Preservation Department / The National Archives</dc:creator>
+        <dcterms:created>02 Aug 2005</dcterms:created>
+        <dcterms:modified>03 Aug 2015</dcterms:modified>
+        <dc:description />
+      </record_metadata>
+    </details>
+  </format>
+  -->
+</formats>

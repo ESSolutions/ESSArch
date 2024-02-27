@@ -3,7 +3,9 @@
 </div>
 <form id="request-form" name="$ctrl.requestForm" ng-submit="$ctrl.submit()">
   <div class="modal-body" id="modal-body">
-    <p ng-if="$ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount'">ID: {{$ctrl.object.id}}</p>
+    <p ng-if="$ctrl.request.type == 'inventory' || $ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount'">
+      ID: {{$ctrl.object.id}}
+    </p>
     <div class="request-layout request-form">
       <div class="request-type">
         <div ng-repeat="type in $ctrl.requestTypes">
@@ -18,14 +20,15 @@
           <label> {{'COMMENT' | translate}} </label>
           <input required class="form-control" ng-model="$ctrl.request.purpose" focused="true" />
         </div>
-        <div ng-if="$ctrl.request.type == 'mount' && $ctrl.tapeSlot == null">
+        <div ng-if="$ctrl.request.type == 'mount' && $ctrl.object.storage_medium == null">
           <label> {{'STORAGEMEDIUM' | translate}} </label>
-          <select
-            required
-            class="form-control"
-            ng-model="$ctrl.request.storageMedium"
-            ng-options="medium.medium_id for medium in storageMediums"
-          ></select>
+          <input required class="form-control" ng-model="$ctrl.request.storageMedium" />
+        </div>
+        <div
+          ng-if="($ctrl.request.type == 'mount' || $ctrl.request.type == 'unmount') && $ctrl.object.storage_medium != null"
+        >
+          <label> {{'STORAGEMEDIUM' | translate}} </label>
+          <input disabled class="form-control" ng-model="$ctrl.request.storageMedium" />
         </div>
       </div>
     </div>

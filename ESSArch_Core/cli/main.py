@@ -205,6 +205,22 @@ list(
 
 
 @cli.group()
+def system():
+    """System Information
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: system.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.system.version',
+        )
+    )
+)
+
+
+@cli.group()
 def mimetypes():
     """Manage mime.types
     """

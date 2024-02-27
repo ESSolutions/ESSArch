@@ -1,7 +1,16 @@
 import os
 
-CONFIG_DIR = os.path.dirname(os.path.abspath(__file__))
-ESSARCH_DIR = os.path.dirname(CONFIG_DIR)
+from ESSArch_Core.config.settings import (
+    AUTHENTICATION_BACKENDS,
+    CONFIG_DIR,
+    ESSARCH_DIR,
+    INSTALLED_APPS,
+    LOGGING_DIR,
+    MIDDLEWARE,
+    env,
+)
+
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = {debug}
 
 # SECURITY WARNING: keep the secret key used in production secret!

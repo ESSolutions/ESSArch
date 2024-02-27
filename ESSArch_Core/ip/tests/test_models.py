@@ -11,7 +11,12 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIRequestFactory, APITestCase
 
-from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+    Parameter,
+    Path,
+    StoragePolicy,
+)
 from ESSArch_Core.ip.models import Agent, InformationPackage, Workarea
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -127,7 +132,7 @@ class InformationPackageListFilesTests(TestCase):
         self.ip.object_path = archive_path
         self.ip.save()
 
-        entries = self.ip.list_files(path='archive_file.tar')
+        entries = self.ip.list_files(path='archive_file.tar', expand_container=True)
         self.assertEqual(len(entries), 3)
 
         # FIXME: remove ./ when issue is fixed https://bugs.python.org/issue35964
@@ -145,7 +150,7 @@ class InformationPackageListFilesTests(TestCase):
         self.ip.object_path = archive_path
         self.ip.save()
 
-        entries = self.ip.list_files(path='archive_file.zip')
+        entries = self.ip.list_files(path='archive_file.zip', expand_container=True)
         self.assertEqual(len(entries), 3)
 
         file_names = ['0.txt', '1.txt', '2.txt']
@@ -250,7 +255,7 @@ class GetPathResponseTests(TestCase):
 
         relpath = os.path.basename(path)
         self.ip.get_path_response(relpath, self.request)
-        mock_list_files.assert_called_once_with(relpath)
+        mock_list_files.assert_called_once_with(relpath, expand_container=False)
 
     @mock.patch('ESSArch_Core.ip.models.InformationPackage.open_file')
     @mock.patch('ESSArch_Core.ip.models.generate_file_response')
@@ -284,12 +289,12 @@ class GetPathResponseContainerTests(TestCase):
     @mock.patch('ESSArch_Core.ip.models.FormatIdentifier')
     def test_list_files_in_ip_container(self, mock_fid, mock_list_files, mock_open_file):
         path = os.path.basename(self.file)
-        response = self.ip.get_path_response(path, self.request)
+        response = self.ip.get_path_response(path, self.request, expand_container=True)
         response.close()
 
         mock_open_file.return_value
         mock_fid.return_value.get_mimetype.return_value
-        mock_list_files.assert_called_once_with(path)
+        mock_list_files.assert_called_once_with(path, expand_container=True)
 
 
 class StatusTest(APITestCase):
@@ -342,10 +347,10 @@ class StatusTest(APITestCase):
 
     def test_status_from_steps_and_tasks(self):
         root_step = ProcessStep.objects.create(information_package=self.ip)
-        child_step_a = ProcessStep.objects.create(parent_step=root_step)
+        child_step_a = ProcessStep.objects.create(parent=root_step)
         ProcessTask.objects.create(processstep=child_step_a, information_package=self.ip, progress=50)
 
-        child_step_b = ProcessStep.objects.create(parent_step=root_step)
+        child_step_b = ProcessStep.objects.create(parent=root_step)
         ProcessTask.objects.create(processstep=child_step_b, information_package=self.ip, progress=75)
 
         ProcessTask.objects.create(information_package=self.ip, progress=25)
@@ -679,14 +684,15 @@ class InformationPackageGetChecksumAlgorithmTests(TestCase):
         )
 
     def test_sip(self):
-        sip = self.create_ip(InformationPackage.SIP, self.create_policy(StoragePolicy.SHA256))
+        sip = self.create_ip(InformationPackage.SIP, self.create_policy(
+            MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['SHA-256']))
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', sip, data)
 
         self.assertEqual(sip.get_checksum_algorithm(), 'SHA-512')
 
     def test_aip(self):
-        policy = self.create_policy(StoragePolicy.SHA384)
+        policy = self.create_policy(MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['SHA-384'])
         aip = self.create_ip(InformationPackage.AIP, policy=policy)
         data = {'checksum_algorithm': 'SHA-512'}
         self.create_profile('transfer_project', aip, data)

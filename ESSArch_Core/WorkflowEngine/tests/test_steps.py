@@ -59,7 +59,7 @@ class test_status(TestCase):
         parent = self.step
 
         for _ in range(depth):
-            parent = ProcessStep.objects.create(parent_step=parent)
+            parent = ProcessStep.objects.create(parent=parent)
 
         with self.assertNumQueries((6 * depth) + 2):
             self.assertEqual(self.step.status, celery_states.PENDING)
@@ -76,7 +76,7 @@ class test_status(TestCase):
         parent = self.step
 
         for _ in range(depth):
-            parent = ProcessStep.objects.create(parent_step=parent)
+            parent = ProcessStep.objects.create(parent=parent)
 
         self.step.status
 
@@ -109,7 +109,7 @@ class test_status(TestCase):
     def test_cached_status_create_child_step(self):
         self.step.status
 
-        ProcessStep.objects.create(parent_step=self.step)
+        ProcessStep.objects.create(parent=self.step)
 
         with self.assertNumQueries(8):
             self.assertEqual(self.step.status, celery_states.PENDING)
@@ -137,7 +137,7 @@ class test_status(TestCase):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_task_in_nested_step(self):
-        s = ProcessStep.objects.create(parent_step=self.step)
+        s = ProcessStep.objects.create(parent=self.step)
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             processstep=s
@@ -151,7 +151,7 @@ class test_status(TestCase):
             self.assertEqual(self.step.status, celery_states.SUCCESS)
 
     def test_cached_status_run_step(self):
-        s = ProcessStep.objects.create(parent_step=self.step)
+        s = ProcessStep.objects.create(parent=self.step)
         ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             processstep=s
@@ -299,7 +299,7 @@ class test_progress(TestCase):
         parent = self.step
 
         for _ in range(depth):
-            parent = ProcessStep.objects.create(parent_step=parent)
+            parent = ProcessStep.objects.create(parent=parent)
 
         with self.assertNumQueries((3 * (depth + 1)) - 1):
             self.assertEqual(self.step.progress, 0)
@@ -316,7 +316,7 @@ class test_progress(TestCase):
         parent = self.step
 
         for _ in range(depth):
-            parent = ProcessStep.objects.create(parent_step=parent)
+            parent = ProcessStep.objects.create(parent=parent)
 
         self.step.progress
 
@@ -348,7 +348,7 @@ class test_progress(TestCase):
     def test_cached_progress_create_child_step(self):
         self.step.progress
 
-        ProcessStep.objects.create(parent_step=self.step)
+        ProcessStep.objects.create(parent=self.step)
 
         with self.assertNumQueries(5):
             self.assertEqual(self.step.progress, 0)
@@ -376,7 +376,7 @@ class test_progress(TestCase):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_run_task_in_nested_step(self):
-        s = ProcessStep.objects.create(parent_step=self.step)
+        s = ProcessStep.objects.create(parent=self.step)
         t = ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             processstep=s
@@ -390,7 +390,7 @@ class test_progress(TestCase):
             self.assertEqual(self.step.progress, 100)
 
     def test_cached_progress_run_step(self):
-        s = ProcessStep.objects.create(parent_step=self.step)
+        s = ProcessStep.objects.create(parent=self.step)
         ProcessTask.objects.create(
             name="ESSArch_Core.WorkflowEngine.tests.tasks.First",
             processstep=s
@@ -581,13 +581,13 @@ class test_running_steps(TransactionTestCase):
     def test_child_steps(self):
         main_step = ProcessStep.objects.create()
         step1 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=1
+            parent=main_step, parent_pos=1
         )
         step2 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=2
+            parent=main_step, parent_pos=2
         )
         step3 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=3
+            parent=main_step, parent_pos=3
         )
 
         ProcessTask.objects.create(
@@ -689,13 +689,13 @@ class test_running_steps(TransactionTestCase):
     def test_failing_with_child_steps(self):
         main_step = ProcessStep.objects.create()
         step1 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=1
+            parent=main_step, parent_pos=1
         )
         step2 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=2
+            parent=main_step, parent_pos=2
         )
         step3 = ProcessStep.objects.create(
-            parent_step=main_step, parent_step_pos=3
+            parent=main_step, parent_pos=3
         )
 
         ProcessTask.objects.create(
@@ -831,7 +831,7 @@ class test_retrying_steps(TestCase):
 
     def test_empty_nested_child_step(self):
         main_step = ProcessStep.objects.create()
-        ProcessStep.objects.create(parent_step=main_step)
+        ProcessStep.objects.create(parent=main_step)
 
         self.assertEqual(len(main_step.retry().get()), 0)
 

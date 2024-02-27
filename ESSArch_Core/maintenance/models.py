@@ -290,7 +290,7 @@ class AppraisalJob(MaintenanceJob):
         delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
         tmpdir = Path.objects.get(entity='temp').value
 
-        for ip in ips.iterator():
+        for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage
@@ -382,7 +382,7 @@ class AppraisalJob(MaintenanceJob):
             tags__appraisal_jobs=self,
             tags__current_version__elastic_index='document',
         ).distinct()
-        for ip in document_tag_ips.iterator():
+        for ip in document_tag_ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage
@@ -620,7 +620,7 @@ class ConversionJob(MaintenanceJob):
         ips = self.information_packages
         tmpdir = Path.objects.get(entity='temp').value
 
-        for ip in ips.iterator():
+        for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage

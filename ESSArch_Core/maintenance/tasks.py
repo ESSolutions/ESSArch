@@ -30,7 +30,7 @@ def PollAppraisalJobs(self):
         status=celery_states.PENDING, start_date__lte=now,
     )
 
-    for job in jobs.iterator():
+    for job in jobs.iterator(chunk_size=1000):
         if job.task is None:
             job.task = ProcessTask.objects.create(
                 name='ESSArch_Core.maintenance.tasks.RunAppraisalJob',
@@ -48,7 +48,7 @@ def PollConversionJobs(self):
         status=celery_states.PENDING, start_date__lte=now,
     )
 
-    for job in jobs.iterator():
+    for job in jobs.iterator(chunk_size=1000):
         if job.task is None:
             job.task = ProcessTask.objects.create(
                 name='ESSArch_Core.maintenance.tasks.RunConversionJob',

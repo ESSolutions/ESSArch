@@ -114,7 +114,11 @@ class WorkareaEntryViewSetTestCase(TestCase):
     def test_delete_aip_in_read_only_workarea(self):
         aic = InformationPackage.objects.create(package_type=InformationPackage.AIC)
         aip = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=0)
+        aip.package_mets_path = '{}.xml'.format(aip.pk)
+        aip.save(update_fields=["package_mets_path"])
         aip2 = InformationPackage.objects.create(aic=aic, package_type=InformationPackage.AIP, generation=1)
+        aip2.package_mets_path = '{}.xml'.format(aip2.pk)
+        aip2.save(update_fields=["package_mets_path"])
 
         workarea = Workarea.objects.create(user=self.user, ip=aip, type=Workarea.ACCESS)
         workarea2 = Workarea.objects.create(user=self.user, ip=aip2, type=Workarea.ACCESS)
@@ -125,6 +129,7 @@ class WorkareaEntryViewSetTestCase(TestCase):
         open(workarea.package_xml_path, 'a').close()
         open(workarea.aic_xml_path, 'a').close()
         open(workarea2.package_xml_path, 'a').close()
+        open(workarea2.aic_xml_path, 'a').close()
 
         self.org.add_object(aip)
         self.org.add_object(aip2)
@@ -140,9 +145,10 @@ class WorkareaEntryViewSetTestCase(TestCase):
 
         self.assertFalse(os.path.exists(workarea.path))
         self.assertFalse(os.path.exists(workarea.package_xml_path))
-        self.assertTrue(os.path.exists(workarea.aic_xml_path))
+        self.assertFalse(os.path.exists(workarea.aic_xml_path))
         self.assertTrue(os.path.exists(workarea2.path))
         self.assertTrue(os.path.exists(workarea2.package_xml_path))
+        self.assertTrue(os.path.exists(workarea2.aic_xml_path))
 
         with self.assertRaises(Workarea.DoesNotExist):
             workarea.refresh_from_db()

@@ -13,6 +13,9 @@ from tenacity import (
     wait_fixed,
 )
 
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+)
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -23,11 +26,7 @@ from ESSArch_Core.essxml.util import (
     parse_submit_description,
 )
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import (
-    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    Agent,
-    InformationPackage,
-)
+from ESSArch_Core.ip.models import Agent, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     creation_date,
@@ -90,7 +89,10 @@ def add_agents_from_dict(ip, agents):
     for agent_key in agents:
         agent_role, agent_type = agent_key.split('_')
         agent = Agent.objects.from_agent_dict(agents[agent_key], agent_role, agent_type)
-        ip.agents.add(agent)
+        if len(agents) == 1 and ip is None:
+            return agent
+        if ip is not None:
+            ip.agents.add(agent)
 
 
 def generate_content_mets(ip):

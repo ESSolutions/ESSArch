@@ -1,10 +1,11 @@
 import uuid
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 
-from ESSArch_Core.auth.models import GroupGenericObjects
+from ESSArch_Core.auth.models import GroupObjectsBase
+from ESSArch_Core.auth.util import get_group_objs_model
 from ESSArch_Core.managers import OrganizationManager
 
 
@@ -21,21 +22,28 @@ class AccessAid(models.Model):
     objects = OrganizationManager()
 
     @transaction.atomic
-    def change_organization(self, organization):
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
-        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                     defaults={'group': organization})
+    def change_organization(self, organization, force=False):
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization, force=force)
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-
-        return gg_obj
+        group_objs_model = get_group_objs_model(self)
+        return group_objs_model.objects.get_organization(self)
 
     def __str__(self):
         return self.name
+
+
+class AccessAidUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(AccessAid, on_delete=models.CASCADE)
+
+
+class AccessAidGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(AccessAid, on_delete=models.CASCADE)
+
+
+class AccessAidGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(AccessAid, on_delete=models.CASCADE)
 
 
 class AccessAidType(models.Model):

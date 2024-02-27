@@ -1,4 +1,6 @@
-export default class {
+import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
+
+export default class CreateDipCtrl {
   constructor(
     IP,
     StoragePolicy,
@@ -26,6 +28,9 @@ export default class {
     const ipSortString = [];
     const watchers = [];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
+    vm.browserstate = {
+      path: '',
+    };
     vm.organizationMember = {
       current: null,
       options: [],
@@ -34,6 +39,7 @@ export default class {
     vm.listViewTitle = $translate.instant('DISSEMINATION_PACKAGES');
 
     vm.$onInit = function () {
+      $rootScope.flowObjects = {};
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
@@ -121,7 +127,7 @@ export default class {
     vm.callServer = function callServer(tableState) {
       $scope.ipLoading = true;
       if (vm.displayedIps.length == 0) {
-        $scope.initLoad = true;
+        $scope.initLoadcallServer = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
@@ -143,7 +149,7 @@ export default class {
             vm.displayedIps = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
             $scope.ipLoading = false;
-            $scope.initLoad = false;
+            $scope.initLoadcallServer = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
           })
           .catch(function (response) {
@@ -184,6 +190,16 @@ export default class {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
         $state.go($state.current.name, {id: $scope.ip.id});
+        if (!$rootScope.flowObjects[row.id]) {
+          $scope.createNewFlow(row);
+        }
+        $scope.currentFlowObject = $rootScope.flowObjects[row.id];
+        if ($scope.select) {
+          $scope.showFileUpload = false;
+          $timeout(function () {
+            $scope.showFileUpload = true;
+          });
+        }
         $scope.select = true;
         $scope.edit = true;
         $scope.filesPerPage = $cookies.get('files-per-page') || 50;
@@ -239,7 +255,8 @@ export default class {
               $scope.previousGridArraysString(1),
               file,
               $scope.previousGridArraysString(2),
-              'access'
+              'access',
+              vm.organizationMember.current.id
             )
             .then(function (result) {
               $scope.updateGridArray();
@@ -302,7 +319,8 @@ export default class {
             $scope.previousGridArraysString(1),
             file,
             $scope.previousGridArraysString(2),
-            'access'
+            'access',
+            vm.organizationMember.current.id
           )
           .then(function (result) {
             $scope.updateGridArray();
@@ -418,13 +436,14 @@ export default class {
     $scope.workareaPipe = function (tableState) {
       $scope.workArrayLoading = true;
       if ($scope.deckGridData.length == 0) {
-        $scope.initLoad = true;
+        $scope.initLoadworkareaPipe = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.workarea_tableState = tableState;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, 50);
         listViewService
           .getWorkareaDir(
+            null,
             'access',
             $scope.previousGridArraysString(1),
             paginationParams,
@@ -434,7 +453,7 @@ export default class {
             $scope.deckGridData = dir.data;
             $scope.workarea_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
             $scope.workArrayLoading = false;
-            $scope.initLoad = false;
+            $scope.initLoadworkareaPipe = false;
           })
           .catch(function (response) {
             if (response.status == 404) {
@@ -442,15 +461,19 @@ export default class {
               $scope.workarea_tableState.pagination.numberOfPages = 0; //set the number of pages so the pagination can update
               $scope.workarea_tableState.pagination.start = 0; //set the number of pages so the pagination can update
               $scope.workArrayLoading = false;
-              $scope.initLoad = false;
+              $scope.initLoadworkareaPipe = false;
             }
           });
       }
     };
+    $scope.chosenFiles = [];
     $scope.dipPipe = function (tableState) {
+      if (vm.browserstate) {
+        vm.browserstate.path = $scope.previousGridArraysString(2);
+      }
       $scope.gridArrayLoading = true;
-      if ($scope.deckGridData.length == 0) {
-        $scope.initLoad = true;
+      if ($scope.chosenFiles.length == 0) {
+        $scope.initLoaddipPipe = true;
       }
       if (!angular.isUndefined(tableState)) {
         $scope.dip_tableState = tableState;
@@ -458,20 +481,35 @@ export default class {
         listViewService
           .getDipDir($scope.ip, $scope.previousGridArraysString(2), paginationParams)
           .then(function (dir) {
-            $scope.chosenFiles = dir.data;
-            $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-            $scope.gridArrayLoading = false;
-            $scope.initLoad = false;
+            if (
+              $scope.initLoaddipPipe &&
+              vm.activeTab == 'create_dip' &&
+              !$scope.initExpanded &&
+              $scope.ip.state == 'Prepared'
+            ) {
+              for (let i = 0; i < dir.data.length; i++) {
+                if (dir.data[i].name == 'content') {
+                  $scope.expandFile(2, $scope.ip, dir.data[0]);
+                  $scope.initExpanded = true;
+                  break;
+                }
+              }
+            } else {
+              $scope.chosenFiles = dir.data;
+              $scope.dip_tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+              $scope.gridArrayLoading = false;
+              $scope.initLoaddipPipe = false;
+            }
           });
       }
     };
     $scope.deckGridInit = function (ip) {
       $scope.previousGridArrays1 = [];
       $scope.previousGridArrays2 = [];
-      if ($scope.dip_tablestate && $sope.workarea_tablestate) {
-        $scope.workareaPipe($scope.workarea_tableState);
-        $scope.dipPipe($scope.dip_tableState);
-      }
+      $scope.chosenFiles = [];
+      $scope.initExpanded = false;
+      $scope.workareaPipe($scope.workarea_tableState);
+      $scope.dipPipe($scope.dip_tableState);
     };
 
     $scope.resetWorkareaGridArrays = function () {
@@ -505,8 +543,14 @@ export default class {
         $scope.dipPipe($scope.dip_tableState);
       }
     };
-    $scope.expandFile = function (whichArray, ip, card) {
-      if (card.type == 'dir') {
+    $scope.expandFile = function (whichArray, ip, card, expandContainer) {
+      if (
+        card.type == 'dir' ||
+        (card.name.endsWith('.tar') && whichArray == 1) ||
+        (card.name.endsWith('.tar') && expandContainer) ||
+        (card.name.endsWith('.zip') && whichArray == 1) ||
+        (card.name.endsWith('.zip') && expandContainer)
+      ) {
         if (whichArray == 1) {
           $scope.selectedCards1 = [];
           $scope.previousGridArrays1.push(card);
@@ -549,54 +593,7 @@ export default class {
       }
       $window.open(file.content, '_blank');
     };
-    $scope.selectedCards1 = [];
-    $scope.selectedCards2 = [];
-    $scope.cardSelect = function (whichArray, card) {
-      if (whichArray == 1) {
-        if (includesWithProperty($scope.selectedCards1, 'name', card.name)) {
-          $scope.selectedCards1.splice($scope.selectedCards1.indexOf(card), 1);
-        } else {
-          $scope.selectedCards1.push(card);
-        }
-      } else {
-        if (includesWithProperty($scope.selectedCards2, 'name', card.name)) {
-          $scope.selectedCards2.splice($scope.selectedCards2.indexOf(card), 1);
-        } else {
-          $scope.selectedCards2.push(card);
-        }
-      }
-    };
 
-    function includesWithProperty(array, property, value) {
-      for (let i = 0; i < array.length; i++) {
-        if (array[i][property] === value) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    $scope.isSelected = function (whichArray, card) {
-      let cardClass = '';
-      if (whichArray == 1) {
-        $scope.selectedCards1.forEach(function (file) {
-          if (card.name == file.name) {
-            cardClass = 'card-selected';
-          }
-        });
-      } else {
-        $scope.selectedCards2.forEach(function (file) {
-          if (card.name == file.name) {
-            cardClass = 'card-selected';
-          }
-        });
-      }
-      return cardClass;
-    };
-
-    $scope.getFileExtension = function (file) {
-      return file.name.split('.').pop().toUpperCase();
-    };
     $scope.prepareNewDipModal = function () {
       const modalInstance = $uibModal.open({
         animation: true,
@@ -666,6 +663,163 @@ export default class {
       modalInstance.result.then(function (data) {
         $scope.createDipFolder(data.dir_name);
       });
+    };
+
+    $scope.filebrowserClick = function (ip) {
+      $scope.previousGridArrays = [];
+      $scope.filebrowser = true;
+      if (!$rootScope.flowObjects[$scope.ip.id]) {
+        $scope.createNewFlow($scope.ip);
+      }
+      $scope.currentFlowObject = $rootScope.flowObjects[$scope.ip.id];
+      if ($scope.filebrowser) {
+        $scope.showFileUpload = false;
+        $timeout(function () {
+          $scope.showFileUpload = true;
+        });
+      }
+      $scope.previousGridArrays = [];
+    };
+
+    // **********************************
+    //            Upload
+    // **********************************
+    $scope.getFlowTarget = function () {
+      return appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/upload/';
+    };
+    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
+      return {destination: vm.browserstate.path};
+    };
+    $scope.fileUploadSuccess = function (ip, file, message, flow) {
+      $scope.uploadedFiles++;
+      const path = flow.opts.query.destination + file.relativePath;
+
+      IP.mergeChunks({
+        id: ip.id,
+        path: path,
+      });
+    };
+    $scope.fileTransferFilter = function (file) {
+      return file.isUploading();
+    };
+    $scope.removeFiles = function () {
+      $scope.selectedCards2.forEach(function (file) {
+        listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function () {
+          $scope.updateGridArray();
+        });
+      });
+      $scope.selectedCards2 = [];
+    };
+
+    $scope.selectedCardIsContainer = function () {
+      let array = $scope.selectedCards2;
+      for (let i = 0; i < array.length; i++) {
+        if (array[i]['name'].endsWith('.tar') || array[i]['name'].endsWith('.zip')) {
+          return array[i];
+        }
+      }
+      return false;
+    };
+
+    $scope.selectedCards1 = [];
+    $scope.selectedCards2 = [];
+    $scope.cardSelect = function (whichArray, card) {
+      if (whichArray == 1) {
+        if (includesWithProperty($scope.selectedCards1, 'name', card.name)) {
+          $scope.selectedCards1.splice($scope.selectedCards1.indexOf(card), 1);
+        } else {
+          $scope.selectedCards1.push(card);
+        }
+      } else {
+        if (includesWithProperty($scope.selectedCards2, 'name', card.name)) {
+          $scope.selectedCards2.splice($scope.selectedCards2.indexOf(card), 1);
+        } else {
+          $scope.selectedCards2.push(card);
+        }
+      }
+    };
+
+    function includesWithProperty(array, property, value) {
+      for (let i = 0; i < array.length; i++) {
+        if (array[i][property] === value) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    $scope.isSelected = function (whichArray, card) {
+      let cardClass = '';
+      if (whichArray == 1) {
+        $scope.selectedCards1.forEach(function (file) {
+          if (card.name == file.name) {
+            cardClass = 'card-selected';
+          }
+        });
+      } else {
+        $scope.selectedCards2.forEach(function (file) {
+          if (card.name == file.name) {
+            cardClass = 'card-selected';
+          }
+        });
+      }
+      return cardClass;
+    };
+
+    $scope.resetUploadedFiles = function (ip) {
+      $scope.uploadedFiles = 0;
+      $rootScope.flowObjects[ip.id] = null;
+    };
+    $scope.uploadedFiles = 0;
+    $scope.flowCompleted = false;
+    $scope.flowComplete = function (ip, flow, transfers) {
+      if (flow.progress() === 1) {
+        flow.flowCompleted = true;
+        flow.flowSize = flow.getSize();
+        flow.flowFiles = transfers.length;
+        flow.cancel();
+        if (flow == $scope.currentFlowObject) {
+          $scope.resetUploadedFiles(ip);
+        }
+      }
+      $scope.updateGridArray();
+    };
+    $scope.hideFlowCompleted = function (flow) {
+      flow.flowCompleted = false;
+    };
+    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
+      if (totalSize == 0 || uploadedSize / totalSize == 1) {
+        return ($scope.uploadedFiles / totalFiles) * 100;
+      } else {
+        return (uploadedSize / totalSize) * 100;
+      }
+    };
+
+    $scope.getFileExtension = function (file) {
+      return file.name.split('.').pop().toUpperCase();
+    };
+    $scope.createNewFlow = function (ip) {
+      const flowObj = new Flow({
+        target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
+        simultaneousUploads: 15,
+        chunkSize: 10 * 1024 * 1024, // 50MB
+        maxChunkRetries: 5,
+        chunkRetryInterval: 1000,
+        headers: {'X-CSRFToken': $cookies.get('csrftoken')},
+        complete: $scope.flowComplete,
+      });
+      flowObj.on('complete', function () {
+        vm.uploading = false;
+        $scope.flowComplete(ip, flowObj, flowObj.files);
+      });
+      flowObj.on('fileSuccess', function (file, message) {
+        $scope.fileUploadSuccess(ip, file, message, flowObj);
+      });
+      flowObj.on('uploadStart', function () {
+        vm.uploading = true;
+        flowObj.opts.query = {destination: vm.browserstate.path};
+      });
+      $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
 }

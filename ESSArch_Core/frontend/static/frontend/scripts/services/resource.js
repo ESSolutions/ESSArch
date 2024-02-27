@@ -177,15 +177,15 @@ const resource = (listViewService, Storage, $rootScope) => {
     if (sort.reverse) {
       sortString = '-' + sortString;
     }
-    return Storage.getStorageMediums(pagination, $rootScope.navigationFilter, sortString, search).then(function (
-      value
-    ) {
-      const storageMediumCollection = value.data;
-      return {
-        data: storageMediumCollection,
-        numberOfPages: Math.ceil(value.count / pagination.number),
-      };
-    });
+    return Storage.getStorageMediums(pagination, $rootScope.navigationFilter, sortString, search).then(
+      function (value) {
+        const storageMediumCollection = value.data;
+        return {
+          data: storageMediumCollection,
+          numberOfPages: Math.ceil(value.count / pagination.number),
+        };
+      }
+    );
   }
   function getStorageObjectsForMedium(mediumId, pagination, params, medium, sort, search) {
     let sortString = sort.predicate;

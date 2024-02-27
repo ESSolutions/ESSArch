@@ -23,19 +23,19 @@
                 <div ng-if="checkPermission('ip.get_from_storage')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="get" />
-                    {{'RETRIEVE_AS_READ_ONLY' | translate}}
+                    <i class="fas fa-book-open"></i> {{'RETRIEVE_AS_UNPACKED' | translate}}
                   </label>
                 </div>
                 <div ng-if="checkPermission('ip.get_tar_from_storage')">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="get_tar" />
-                    {{'RETRIEVE_AS_CONTAINER' | translate}}
+                    <i class="fas fa-book-open"></i> {{'RETRIEVE_AS_CONTAINER' | translate}}
                   </label>
                 </div>
-                <div ng-if="checkPermission('ip.get_from_storage_as_new')">
+                <div ng-if="(checkPermission('ip.get_from_storage_as_new'))">
                   <label>
                     <input type="radio" ng-model="vm.request.type" value="get_as_new" />
-                    {{'RETRIEVE_AS_NEW_GENERATION' | translate}}
+                    <i class="fas fa-code-branch"></i> {{'PROCESS_AS_NEW_GENERATION' | translate}}
                   </label>
                 </div>
               </div>
@@ -47,17 +47,21 @@
                   <label> {{'COMMENT' | translate}} </label>
                   <input class="form-control" ng-model="vm.request.purpose" />
                 </div>
-                <div
-                  ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
-                >
+                <div ng-if="vm.request.type == 'get_tar'">
                   <input type="checkbox" ng-model="vm.request.package_xml" />
                   <label> {{'INCLUDE_PACKAGE_XML' | translate}} </label>
                 </div>
                 <div
                   ng-if="vm.request.type == 'get' || vm.request.type == 'get_tar' || vm.request.type == 'get_as_new'"
                 >
-                  <input type="checkbox" ng-model="vm.request.aic_xml" />
-                  <label> {{'INCLUDE_AIC_XML' | translate}} </label>
+                  <div ng-if="ip.aic">
+                    <input type="checkbox" ng-model="vm.request.aic_xml" />
+                    <label> {{'INCLUDE_AIC_XML' | translate}} </label>
+                  </div>
+                  <div>
+                    <input type="checkbox" ng-model="vm.request.diff_check" />
+                    <label> {{'DIFFCHECK' | translate}} </label>
+                  </div>
                 </div>
               </div>
             </form>

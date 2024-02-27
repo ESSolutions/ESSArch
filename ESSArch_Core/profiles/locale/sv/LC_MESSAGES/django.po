@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-19 11:36+0100\n"
+"POT-Creation-Date: 2023-06-02 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps.py:7
+#: profiles/apps.py:7
 msgid "Profiles"
 msgstr "Profiler"
 
-#: models.py:270
+#: profiles/models.py:278
 msgid "submission agreement"
 msgstr "leveransöverenskommelse"
 
-#: models.py:271
+#: profiles/models.py:279
 msgid "submission agreements"
 msgstr "leveransöverenskommelser"
 
-#: models.py:369
+#: profiles/models.py:429
 msgid "profile"
 msgstr "profil"
 
-#: models.py:370
+#: profiles/models.py:430
 msgid "profiles"
 msgstr "profiler"

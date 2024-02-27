@@ -33,14 +33,7 @@ export default class QueuesCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.ioPerPage);
-        Resource.getIoQueue(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        )
+        Resource.getIoQueue(paginationParams, tableState, sorting, search)
           .then(function (result) {
             vm.ioQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update
@@ -74,14 +67,7 @@ export default class QueuesCtrl {
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.robotsPerPage);
-        Resource.getRobotQueue(
-          paginationParams.start,
-          paginationParams.number,
-          paginationParams.pageNumber,
-          tableState,
-          sorting,
-          search
-        )
+        Resource.getRobotQueue(paginationParams, tableState, sorting, search)
           .then(function (result) {
             vm.robotQueue = result.data;
             tableState.pagination.numberOfPages = result.numberOfPages; //set the number of pages so the pagination can update

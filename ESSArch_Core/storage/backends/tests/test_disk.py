@@ -39,7 +39,7 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend = DiskStorageBackend()
         mock_storage_medium.storage_target.target = "some_bad_destination"
 
-        with self.assertRaisesRegexp(ValueError, "{} is not a directory".format("some_bad_destination")):
+        with self.assertRaisesRegex(ValueError, "{} is not a directory".format("some_bad_destination")):
             disk_storage_backend.write(
                 src="some_src",
                 ip=mock.ANY,
@@ -47,7 +47,7 @@ class DiskStorageBackendTests(TestCase):
                 storage_medium=mock_storage_medium
             )
 
-        with self.assertRaisesRegexp(ValueError, "{} is not a directory".format("some_bad_destination")):
+        with self.assertRaisesRegex(ValueError, "{} is not a directory".format("some_bad_destination")):
             disk_storage_backend.write(
                 src=["some_src"],
                 ip=mock.ANY,
@@ -165,12 +165,14 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend = DiskStorageBackend()
         full_path_to_src = "the/full/path/to/src"
         container_path = "container/path"
+        packge_mets = "p_mets.xml"
 
         mock_storage_obj.container = True
         mock_storage_obj.get_full_path.return_value = full_path_to_src
         mock_storage_obj.storage_medium.storage_target.target = container_path
         mock_storage_obj.ip = mock_ip
         mock_ip.aic.pk = 1234
+        mock_ip.package_mets_path = packge_mets
 
         disk_storage_backend.read(
             storage_object=mock_storage_obj,
@@ -178,7 +180,7 @@ class DiskStorageBackendTests(TestCase):
         )
 
         expected_copy_calls = [
-            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=DEFAULT_BLOCK_SIZE),
+            mock.call(os.path.join(container_path, packge_mets), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
             mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
             mock.call(f"{full_path_to_src}", "some_dest", block_size=DEFAULT_BLOCK_SIZE)
         ]
@@ -216,12 +218,14 @@ class DiskStorageBackendTests(TestCase):
         disk_storage_backend = DiskStorageBackend()
         full_path_to_src = "the/full/path/to/src"
         container_path = "container/path"
+        packge_mets = "p_mets.xml"
 
         mock_storage_obj.container = True
         mock_storage_obj.get_full_path.return_value = full_path_to_src
         mock_storage_obj.storage_medium.storage_target.target = container_path
         mock_storage_obj.ip = mock_ip
         mock_ip.aic.pk = 1234
+        mock_ip.package_mets_path = packge_mets
 
         disk_storage_backend.read(
             storage_object=mock_storage_obj,
@@ -230,7 +234,7 @@ class DiskStorageBackendTests(TestCase):
         )
 
         expected_copy_calls = [
-            mock.call(f"{full_path_to_src}.xml", "some_dest", block_size=DEFAULT_BLOCK_SIZE),
+            mock.call(os.path.join(container_path, packge_mets), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
             mock.call(os.path.join(container_path, "1234.xml"), "some_dest", block_size=DEFAULT_BLOCK_SIZE),
         ]
 

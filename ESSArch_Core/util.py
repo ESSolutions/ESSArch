@@ -36,12 +36,16 @@ import sys
 import tarfile
 import uuid
 import zipfile
+from copy import deepcopy
 from datetime import datetime
 from os import scandir, walk
 from subprocess import PIPE, Popen
+from time import sleep
 from urllib.parse import quote
 
 import chardet
+import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.core.cache import cache
 from django.core.validators import RegexValidator
@@ -52,11 +56,14 @@ from natsort import natsorted
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
+from ESSArch_Core._version import get_versions
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.exceptions import NoFileChunksFound
 from ESSArch_Core.fixity.format import FormatIdentifier
 
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
+VERSION = get_versions()['version']
 
 logger = logging.getLogger('essarch')
 
@@ -366,21 +373,68 @@ def get_premis_ip_object_element_spec():
         return json.load(json_file)
 
 
-def delete_path(path):
-    try:
-        shutil.rmtree(path)
-    except NotADirectoryError:
-        os.remove(path)
-    except FileNotFoundError:
-        pass
-    except OSError as e:
-        if os.name == 'nt':
-            if e.errno == 267:
-                os.remove(path)
-            elif e.errno != 3:
-                raise
+def delete_path(path, remote_host=None, remote_credentials=None, task=None):
+    requests_session = None
+    if remote_credentials:
+        user, passw = decrypt_remote_credentials(remote_credentials)
+        requests_session = requests.Session()
+        requests_session.verify = settings.REQUESTS_VERIFY
+        requests_session.auth = (user, passw)
+
+        r = task.get_remote_copy(requests_session, remote_host)
+        if r.status_code == 404:
+            # the task does not exist
+            task.create_remote_copy(requests_session, remote_host)
+            task.run_remote_copy(requests_session, remote_host)
         else:
-            raise
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            if task.status == celery_states.PENDING:
+                task.run_remote_copy(requests_session, remote_host)
+            elif task.status != celery_states.SUCCESS:
+                logger.debug('task.status: {}'.format(task.status))
+                task.retry_remote_copy(requests_session, remote_host)
+                task.status = celery_states.PENDING
+
+        while task.status not in celery_states.READY_STATES:
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+            r = task.get_remote_copy(requests_session, remote_host)
+
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            sleep(5)
+
+        if task.status in celery_states.EXCEPTION_STATES:
+            task.reraise()
+    else:
+        try:
+            shutil.rmtree(path)
+        except NotADirectoryError:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+        except OSError as e:
+            if os.name == 'nt':
+                if e.errno == 267:
+                    os.remove(path)
+                elif e.errno != 3:
+                    raise
+            else:
+                raise
 
 
 def delete_content(folder):
@@ -533,18 +587,26 @@ def validate_remote_url(url):
 
 
 def get_charset(byte_str):
+    decoded_flag = False
+    guess = chardet.detect(byte_str)
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
+    if guess['encoding'] is not None:
+        charsets.append(guess['encoding'])
     for c in sorted(set(charsets), key=charsets.index):
         logger.debug('Trying to decode response in {}'.format(c))
         try:
             byte_str.decode(c)
+            decoded_flag = True
+            break
         except UnicodeDecodeError:
-            logger.exception('Failed to decode response in {}'.format(c))
-        else:
-            logger.info('Decoded response in {}'.format(c))
-            return c
+            continue
 
-    return chardet.detect(byte_str)['encoding']
+    if decoded_flag:
+        logger.debug('Decoded response in {}'.format(c))
+        return c
+    else:
+        logger.warning('Failed to decode response in {}'.format(sorted(set(charsets))))
+        return None
 
 
 def get_filename_from_file_obj(file_obj, name):
@@ -586,7 +648,7 @@ def generate_file_response(file_obj, content_type, force_download=False, name=No
     return response
 
 
-def list_files(path, force_download=False, request=None, paginator=None):
+def list_files(path, force_download=False, expand_container=False, request=None, paginator=None):
     if isinstance(path, list):
         if paginator is not None:
             paginated = paginator.paginate_queryset(path, request)
@@ -597,7 +659,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
     path = path.rstrip('/ ')
 
     if os.path.isfile(path):
-        if tarfile.is_tarfile(path):
+        if expand_container and tarfile.is_tarfile(path):
             with tarfile.open(path) as tar:
                 entries = []
                 for member in tar.getmembers():
@@ -615,7 +677,7 @@ def list_files(path, force_download=False, request=None, paginator=None):
                     return paginator.get_paginated_response(paginated)
                 return Response(entries)
 
-        elif zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
+        elif expand_container and zipfile.is_zipfile(path) and os.path.splitext(path)[1] == '.zip':
             with zipfile.ZipFile(path) as zipf:
                 entries = []
                 for member in zipf.filelist:
@@ -792,3 +854,80 @@ def open_file(path='', *args, container=None, container_prefix='', **kwargs):
             raise OSError(errno.ENOENT, os.strerror(errno.ENOENT), os.path.join(container, path))
 
     return open(os.path.join(container, path), *args, **kwargs)
+
+
+def add_preservation_agent(generator, target=None, software_name='ESSArch', software_version=VERSION):
+    if target is None:
+        target = generator.find_element('metsHdr')
+
+    template = {
+        "-name": "agent",
+        "-namespace": "mets",
+        "-hideEmptyContent": True,
+        "-attr": [
+            {
+                "-name": "ROLE",
+                "-req": True,
+                "#content": [{"text": "PRESERVATION"}]
+            },
+            {
+                "-name": "TYPE",
+                "-req": True,
+                "#content": [{"text": "OTHER"}]
+            },
+            {
+                "-name": "OTHERTYPE",
+                "-req": True,
+                "#content": [{"text": "SOFTWARE"}]
+            }
+        ],
+        "-children": [
+            {
+                "-name": "name",
+                "-namespace": "mets",
+                "-req": True,
+                "#content": [{"var": "preservation_software_name"}]
+            },
+            {
+                "-name": "note",
+                "-namespace": "mets",
+                "-req": True,
+                "#content": [{"var": "preservation_software_note"}]
+            }
+        ]
+    }
+    data = {
+        "preservation_software_name": software_name,
+        "preservation_software_note": 'VERSION={}'.format(software_version)
+    }
+
+    generator.insert_from_specification(
+        target, template, data, before='altRecordID')
+
+
+def strtobool(val):
+    """Convert a string representation of truth to true (1) or false (0).
+    True values are 'y', 'yes', 't', 'true', 'on', and '1'; false values
+    are 'n', 'no', 'f', 'false', 'off', and '0'.  Raises ValueError if
+    'val' is anything else.
+    """
+    if isinstance(val, bool):
+        return val
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError("invalid truth value %r" % (val,))
+
+
+def dict_deep_merge(a: dict, b: dict):
+    result = deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = dict_deep_merge(av, bv)
+        else:
+            result[bk] = deepcopy(bv)
+    return result

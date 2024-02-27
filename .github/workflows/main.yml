@@ -41,12 +41,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '20'
 
       - name: Install
         run: |
@@ -101,7 +101,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '20'
 
       - name: Build
         run: |
@@ -122,17 +122,22 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+          echo "ESSARCH_DIR=/home/runner/work/ESSArch/ESSArch" >> $GITHUB_ENV
 
       - name: Install
         run: |
           mkdir -p log
           mkdir -p config
           python -m pip install --upgrade pip wheel setuptools
+          git config user.email test
+          git config user.name test
+          t="0+`git rev-parse --short HEAD`"
+          git tag -a $t -m $t
           pip install -e .[docs]
           essarch settings generate -qp config/local_essarch_settings.py
 
@@ -167,11 +172,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=D:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ESSARCH_DIR=D:\a\ESSArch\ESSArch" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Get yarn cache
         id: yarn_cache
@@ -194,7 +200,7 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '20'
 
       - name: Install
         run: |
@@ -203,10 +209,15 @@ jobs:
           powershell wget https://download.microsoft.com/download/1/a/4/1a4a49b8-9fe6-4237-be0d-a6b8f2d559b5/en-US/18.0.1.1/x64/msodbcsql.msi -OutFile msodbcsql.msi
           powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
 
+          choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           choco install imagemagick
           choco install redis-64 --version 3.0.503
 
           python -m pip install --upgrade pip wheel setuptools
+          git config user.email test
+          git config user.name test
+          $t=&git rev-parse --short HEAD
+          git tag -a "0+$t" -m "0+$t"
           pip install .[mssql]
           pip install -r requirements/tests.txt
           pip check
@@ -228,16 +239,15 @@ jobs:
       - name: Test
         run: |
           start redis-server
-          docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=MyPassword42" -p 1433:1433 -d tobiasfenster/mssql-server-exp-unsupported:2019-cu15
-          coverage run manage.py test --exclude-tag=requires-elasticsearch
+          coverage run manage.py test --verbosity=2 --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.6
+        uses: codecov/codecov-action@v3
         with:
           name: Windows
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: backend
 
   test-linux:
@@ -264,7 +274,7 @@ jobs:
             port: 3306
             health_cmd: mysqladmin ping --user=root -ppassword
           - db: postgres
-            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=read committed'
+            database_url: 'postgres://postgres:postgres@127.0.0.1:13306/essarch?isolation_level=1'
             image: postgres
             port: 5432
             health_cmd: pg_isready
@@ -338,11 +348,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
       - name: Set PYTHONPATH
         run: |
           echo "PYTHONPATH=/home/runner/work/ESSArch/ESSArch/config" >> $GITHUB_ENV
+          echo "ESSARCH_DIR=/home/runner/work/ESSArch/ESSArch" >> $GITHUB_ENV
 
       - name: Get yarn cache
         id: yarn_cache
@@ -365,7 +376,21 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12'
+          node-version: '20'
+
+      - name: Setup apache http schemaserver
+        run: |
+          sudo apt-get update && sudo apt-get install apache2
+          sudo a2enmod speling
+          sudo wget https://files.essarch.org/dist/ESSArch_schema-3.1.2_linux.tar.gz
+          sudo mkdir /var/www/schema
+          sudo tar -x -v -f ESSArch_schema-3.1.2_linux.tar.gz -C /var/www/schema
+          sudo wget https://files.essarch.org/dist/httpd-schema.conf
+          sudo sed -e "s?\${ESSARCH_DIR}?\/var\/www?g" --in-place httpd-schema.conf
+          sudo mv httpd-schema.conf /etc/apache2/sites-enabled/
+          sudo echo "Adding entrys for locale schemaserver to /etc/hosts"
+          sudo echo "127.0.0.1       www.w3.org schema.arkivverket.no arkivverket.no www.loc.gov xml.ra.se www.arkivverket.no www.dasboard.eu xml.essarch.org" | sudo tee -a /etc/hosts
+          sudo service apache2 restart
 
       - name: Install
         run: |
@@ -373,12 +398,15 @@ jobs:
           docker restart elasticsearch
 
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/18.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
           sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
 
           python -m pip install --upgrade pip wheel setuptools
-
+          git config user.email test
+          git config user.name test
+          t="0+`git rev-parse --short HEAD`"
+          git tag -a $t -m $t
           pip install .[mssql,mysql,postgres]
           pip install -r requirements/tests.txt
           pip check
@@ -386,7 +414,7 @@ jobs:
           mkdir log
           essarch settings generate --overwrite -qp config/local_essarch_settings.py
 
-          wget https://github.com/mozilla/geckodriver/releases/download/v0.29.1/geckodriver-v0.29.1-linux64.tar.gz
+          wget https://github.com/mozilla/geckodriver/releases/download/v0.32.2/geckodriver-v0.32.2-linux64.tar.gz
           tar -xvzf geckodriver*
           sudo mv geckodriver /usr/local/bin
 
@@ -404,8 +432,8 @@ jobs:
         run: |
           coverage xml
       - name: Codecov
-        uses: codecov/codecov-action@v1.0.7
+        uses: codecov/codecov-action@v3
         with:
           name: Linux (${{matrix.db}})
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: backend

@@ -58,11 +58,11 @@ export default class NodeLocationModalInstanceCtrl {
         const promises = [];
         $ctrl.nodes.forEach(function (node) {
           promises.push(
-            Search.updateNode(node, {location: $ctrl.location !== null ? $ctrl.location.id : null}).then(function (
-              response
-            ) {
-              return response;
-            })
+            Search.updateNode(node, {location: $ctrl.location !== null ? $ctrl.location.id : null}).then(
+              function (response) {
+                return response;
+              }
+            )
           );
         });
         $q.all(promises)

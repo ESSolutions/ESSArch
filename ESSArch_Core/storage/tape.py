@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import re
+import shlex
 import tarfile
 import time
 from subprocess import PIPE, Popen
@@ -41,7 +42,7 @@ def mount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
             slot=slot, drive=drive, robot=robot, cmd=cmd
@@ -81,7 +82,7 @@ def unmount_tape(robot, slot, drive):
     """
 
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
         'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
             drive=drive, slot=slot, robot=robot, cmd=cmd
@@ -115,7 +116,7 @@ def rewind_tape(drive):
     """
 
     cmd = 'mt -f %s rewind' % (drive)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Rewinding tape in {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -147,7 +148,7 @@ def is_tape_drive_online(drive):
     """
 
     cmd = 'mt -f %s status' % drive
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Checking if {drive} is online: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -296,8 +297,8 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
 
 
 def get_tape_file_number(drive):
-    cmd = 'mt -f %s status | grep -i "file number"' % drive
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    cmd = 'mt -f %s status' % drive
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Getting tape file number of {drive}: {cmd}'.format(drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -309,7 +310,12 @@ def get_tape_file_number(drive):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    file_number = int(out.split(',')[0].split('=')[1])
+    file_line = ''
+    for item in out.split("\n"):
+        if "file number" in item.lower():
+            file_line = item
+            break
+    file_number = int(file_line.split(',')[0].split('=')[1])
     logger.debug('Got {num} as file number of {drive}'.format(num=file_number, drive=drive))
     return file_number
 
@@ -323,7 +329,7 @@ def set_tape_file_number(drive, num=0):
     new_num, op = get_tape_op_and_count(current_num, num)
 
     cmd = 'mt -f %s %s %d' % (drive, op, new_num)
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Setting file number of {drive} to {num}: {cmd}'.format(num=num, drive=drive, cmd=cmd))
     out, err = p.communicate()
 
@@ -377,7 +383,7 @@ def robot_inventory(robot):
     backend = get_tape_identification_backend(backend_name)
 
     cmd = 'mtx -f %s status' % robot
-    p = Popen(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True)
+    p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 
@@ -402,11 +408,22 @@ def robot_inventory(robot):
 
             try:
                 drive = TapeDrive.objects.get(drive_id=drive_id, robot=robot)
-                logger.debug(
-                    'Drive {row} (drive_id={drive}, robot={robot}) found in database'.format(
-                        row=row, drive=drive_id, robot=robot
-                    )
+                logger.debug('Drive {row} (drive_id={drive}, robot={robot}) found in database'.format(
+                    row=row, drive=drive_id, robot=robot
                 )
+                )
+                if not drive.status == 20:
+                    logger.debug('Drive {row} (drive_id={drive}, robot={robot}) update status for drive \
+from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_status=drive.status)
+                                 )
+                    drive.status = 20
+                    drive.save(update_fields=["status"])
+                try:
+                    if not drive.storage_medium.tape_slot.status == 20:
+                        drive.storage_medium.tape_slot.status = 20
+                        drive.storage_medium.tape_slot.save(update_fields=["status"])
+                except TapeDrive.storage_medium.RelatedObjectDoesNotExist:
+                    pass
 
                 if status == 'Full':
                     slot_id = dt_el[7]
@@ -436,11 +453,15 @@ def robot_inventory(robot):
                 status = s_el[4]
 
                 if status == 'Full':
-                    medium_id = s_el[6][:6]
+                    try:
+                        medium_id = s_el[6][:6]
+                    except IndexError:
+                        logger.warning('Missing medium id for tape slot: {slot}'.format(slot=slot_id))
+                        medium_id = None
                     backend.identify_tape(medium_id)
 
                     slot, created = TapeSlot.objects.update_or_create(
-                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id}
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
                     )
                     if created:
                         logger.debug(
@@ -462,3 +483,6 @@ def robot_inventory(robot):
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
                         logger.debug('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                    elif slot.status == 100:
+                        slot.status = 20
+                        slot.save(update_fields=['status'])

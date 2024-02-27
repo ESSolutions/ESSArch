@@ -1,6 +1,7 @@
 import errno
 import logging
 import os
+import pickle
 import tarfile
 import uuid
 from datetime import timedelta
@@ -10,12 +11,12 @@ from urllib.parse import urljoin
 import requests
 from celery import states as celery_states
 from django.conf import settings
+from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models, transaction
 from django.db.models import (
     Case,
     Exists,
-    F,
     IntegerField,
     OuterRef,
     Q,
@@ -43,8 +44,11 @@ from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
+from ESSArch_Core.util import delete_path
 
 logger = logging.getLogger('essarch.storage.models')
+
+DRIVE_LOCK_PREFIX = 'lock_drive_'
 
 DISK = 200
 TAPE = 300
@@ -81,7 +85,7 @@ remote_status_CHOICES = (
 robot_req_type_CHOICES = (
     (10, 'mount'),
     (20, 'unmount'),
-    (30, 'unmount (force)'),
+    (30, 'unmount_force'),
 )
 
 medium_type_CHOICES = (
@@ -92,8 +96,14 @@ medium_type_CHOICES = (
     (304, 'IBM-LTO4'),
     (305, 'IBM-LTO5'),
     (306, 'IBM-LTO6'),
+    (307, 'IBM-LTO7'),
+    (308, 'IBM-LTO8'),
+    (309, 'IBM-LTO9'),
     (325, 'HP-LTO5'),
     (326, 'HP-LTO6'),
+    (327, 'HP-LTO7'),
+    (328, 'HP-LTO8'),
+    (329, 'HP-LTO9'),
     (401, 'HDFS'),
     (402, 'HDFS-REST'),
 )
@@ -411,7 +421,7 @@ class StorageMediumQueryset(models.QuerySet):
         return self.filter(storage_target__status=True, status__in=[20, 30])
 
     def readable(self):
-        return self.filter(status__in=[20, 30], location_status=50)
+        return self.filter(Q(location_status=50) | Q(tape_slot__status=20), status__in=[20, 30])
 
     def writeable(self):
         return self.filter(status__in=[20], location_status=50)
@@ -487,26 +497,43 @@ class StorageMediumQueryset(models.QuerySet):
         )
         return self.filter(pk__in=qs)
 
-    def migratable(self):
-        return self.exclude(status=0).filter(
-            Q(
-                Exists(
-                    StorageMethodTargetRelation.objects.filter(
-                        storage_method=Subquery(
-                            StorageMethodTargetRelation.objects.filter(
-                                storage_target=OuterRef(OuterRef('storage_target')),
-                                status=STORAGE_TARGET_STATUS_MIGRATE,
-                            ).values('storage_method')[:1]
-                        ),
-                        status=STORAGE_TARGET_STATUS_ENABLED,
-                    )
-                ),
-                self._has_non_migrated_storage_object_in_method(False),
-            ) |
-            Q(
-                self._missing_storage_object_in_other_method_in_policy()
-            )
+    def migratable(self, export_path='', missing_storage=False):
+        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.filter(
+            storage_method=Subquery(
+                StorageMethodTargetRelation.objects.filter(
+                    storage_target=OuterRef(OuterRef('storage_target')),
+                    status=STORAGE_TARGET_STATUS_MIGRATE,
+                ).values('storage_method')[:1]
+            ),
+            status=STORAGE_TARGET_STATUS_ENABLED,
         )
+        method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.none()
+        if export_path:
+            method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.filter(
+                storage_method=Subquery(
+                    StorageMethodTargetRelation.objects.filter(
+                        storage_target=OuterRef(OuterRef('storage_target')),
+                        status=STORAGE_TARGET_STATUS_MIGRATE,
+                    ).values('storage_method')[:1]
+                )
+            )
+        if missing_storage:
+            return self.exclude(status=0).filter(
+                Q(
+                    Q(Exists(method_target_rel_with_old_migrate_and_new_enabled),
+                      self._has_non_migrated_storage_object_in_method(False)) |
+                    Q(Exists(method_target_rel_with_old_migrate_and_export))
+                ) |
+                Q(
+                    self._missing_storage_object_in_other_method_in_policy()
+                )
+            )
+        else:
+            return self.exclude(status=0).filter(
+                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled),
+                  self._has_non_migrated_storage_object_in_method(False)) |
+                Q(Exists(method_target_rel_with_old_migrate_and_export))
+            )
 
     def non_migratable(self):
         return self.exclude(pk__in=self.migratable())
@@ -559,14 +586,14 @@ class StorageMedium(models.Model):
     storage_target = models.ForeignKey('StorageTarget', on_delete=models.CASCADE)
     tape_slot = models.OneToOneField(
         'TapeSlot',
-        models.PROTECT,
+        models.SET_NULL,
         related_name='storage_medium',
         null=True,
         blank=True,
     )
     tape_drive = models.OneToOneField(
         'TapeDrive',
-        models.PROTECT,
+        models.SET_NULL,
         related_name='storage_medium',
         null=True,
         blank=True,
@@ -578,7 +605,7 @@ class StorageMedium(models.Model):
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
-    def create_from_remote_copy(cls, host, session, object_id):
+    def create_from_remote_copy(cls, host, session, object_id, create_tape_drive=False, create_tape_slot=False):
         remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
         r.raise_for_status()
@@ -586,15 +613,21 @@ class StorageMedium(models.Model):
         data = r.json()
         data.pop('location_status_display', None)
         data.pop('status_display', None)
-        data['storage_target_id'] = data.pop('storage_target')
-        if data.get('tape_drive') is not None:
+        data.pop('block_size_display', None)
+        data.pop('format_display', None)
+        data['storage_target_id'] = data.pop('storage_target')['id']
+        if data.get('tape_drive') is not None and create_tape_drive:
             data['tape_drive'] = TapeDrive.create_from_remote_copy(
                 host, session, data['tape_drive'], create_storage_medium=False
             )
-        if data.get('tape_slot') is not None:
+        else:
+            data.pop('tape_drive', None)
+        if data.get('tape_slot') is not None and create_tape_slot:
             data['tape_slot'] = TapeSlot.create_from_remote_copy(
                 host, session, data['tape_slot'], create_storage_medium=False
             )
+        else:
+            data.pop('tape_slot', None)
         data['last_changed_local'] = timezone.now
         storage_medium, _ = StorageMedium.objects.update_or_create(
             pk=data.pop('id'),
@@ -606,13 +639,19 @@ class StorageMedium(models.Model):
     def get_type(self):
         return get_storage_type_from_medium_type(self.storage_target.type)
 
-    def prepare_for_read(self):
+    def prepare_for_read(self, io_lock_key=None):
         storage_backend = self.storage_target.get_storage_backend()
-        storage_backend.prepare_for_read(self)
+        if storage_backend.type == 300:
+            storage_backend.prepare_for_read(self, io_lock_key)
+        else:
+            storage_backend.prepare_for_read(self)
 
-    def prepare_for_write(self):
+    def prepare_for_write(self, io_lock_key=None):
         storage_backend = self.storage_target.get_storage_backend()
-        storage_backend.prepare_for_write(self)
+        if storage_backend.type == 300:
+            storage_backend.prepare_for_write(self, io_lock_key)
+        else:
+            storage_backend.prepare_for_write(self)
 
     def is_migrated(self, include_inactive_ips=False) -> True:
         return self in StorageMedium.objects.deactivatable(include_inactive_ips=include_inactive_ips)
@@ -671,14 +710,14 @@ class StorageObjectQueryset(models.QuerySet):
 
     def readable(self):
         return self.filter(
-            storage_medium__storage_target__methods__storage_policies__submission_agreements__information_packages=F('ip'),  # noqa
+            Q(storage_medium__location_status=50) | Q(storage_medium__tape_slot__status=20),
             storage_medium__storage_target__status=True,
             storage_medium__storage_target__storage_method_target_relations__status__in=[
                 STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY,
                 STORAGE_TARGET_STATUS_MIGRATE,
             ],
             storage_medium__storage_target__storage_method_target_relations__storage_method__enabled=True,
-            storage_medium__status__in=[20, 30], storage_medium__location_status=50
+            storage_medium__status__in=[20, 30]
         )
 
     def natural_sort(self):
@@ -710,7 +749,7 @@ class StorageObjectQueryset(models.QuerySet):
             remote=remote,
             storage_type=storage_type,
             content_location_value_int=content_location_value_int,
-        ).order_by('remote', 'container_order', 'storage_type', 'content_location_value_int')
+        ).order_by('remote', 'container_order', 'storage_type', 'storage_medium', 'content_location_value_int')
 
 
 class StorageObject(models.Model):
@@ -748,6 +787,8 @@ class StorageObject(models.Model):
         data.pop('medium_id', None)
         data.pop('target_name', None)
         data.pop('target_target', None)
+        data.pop('ip_object_identifier_value', None)
+        data.pop('ip_object_size', None)
         data['last_changed_local'] = timezone.now
         obj, _ = StorageObject.objects.update_or_create(
             pk=data.pop('id'),
@@ -772,6 +813,11 @@ class StorageObject(models.Model):
         return self.storage_medium.storage_target.get_storage_backend()
 
     def readable(self):
+        if self.storage_medium.tape_slot is not None and self.storage_medium.tape_slot.status == 20:
+            tape_in_tape_slot = True
+        else:
+            tape_in_tape_slot = False
+
         return all((
             self.storage_medium.storage_target.status,
             self.storage_medium.storage_target.storage_method_target_relations.filter(
@@ -782,8 +828,7 @@ class StorageObject(models.Model):
                 storage_method__enabled=True,
             ),
             self.storage_medium.status in [20, 30],
-            self.storage_medium.location_status == 50,
-        ))
+        )) and (self.storage_medium.location_status == 50 or tape_in_tape_slot)
 
     def is_cache_for_ip(self, ip):
         return self.storage_medium.storage_target.storage_method_target_relations.filter(
@@ -827,10 +872,17 @@ class StorageObject(models.Model):
                 task.exception = remote_data['exception']
                 task.save()
 
-                if task.status in celery_states.EXCEPTION_STATES:
+                if task.status == celery_states.PENDING:
+                    task.run_remote_copy(session, host)
+                elif task.status != celery_states.SUCCESS:
+                    logger.debug('task.status: {}'.format(task.status))
                     task.retry_remote_copy(session, host)
+                    task.status = celery_states.PENDING
 
             while task.status not in celery_states.READY_STATES:
+                session = requests.Session()
+                session.verify = settings.REQUESTS_VERIFY
+                session.auth = (user, passw)
                 r = task.get_remote_copy(session, host)
 
                 remote_data = r.json()
@@ -847,14 +899,14 @@ class StorageObject(models.Model):
                 task.reraise()
         else:
             storage_backend = self.get_storage_backend()
-            storage_medium.prepare_for_read()
+            storage_medium.prepare_for_read(io_lock_key=self)
 
             if storage_target.master_server:
                 # we are on a remote host that has been requested
                 # by master to write to its temp directory
                 temp_dir = Path.objects.get(entity='temp').value
 
-                user, passw, host = storage_target.master_server.split(',')
+                host, user, passw = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
                 session.auth = (user, passw)
@@ -873,11 +925,15 @@ class StorageObject(models.Model):
                         new_tar.format = settings.TARFILE_FORMAT
                         new_tar.add(temp_object_path)
                     copy_file(temp_container_path, dst, requests_session=session)
+                    delete_path(temp_container_path)
 
                 else:
                     copy_file(temp_container_path, dst, requests_session=session)
                     copy_file(temp_mets_path, dst, requests_session=session)
                     copy_file(temp_aic_mets_path, dst, requests_session=session)
+                    delete_path(temp_container_path)
+                    delete_path(temp_mets_path)
+                    delete_path(temp_aic_mets_path)
 
             else:
                 storage_backend.read(self, dst, extract=extract)
@@ -950,7 +1006,7 @@ class StorageObject(models.Model):
 class TapeDrive(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
-        (20, 'Write'),
+        (20, 'Ok'),
         (100, 'FAIL'),
     )
 
@@ -966,6 +1022,29 @@ class TapeDrive(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
 
     @classmethod
+    def clear_locks(cls):
+        return cache.delete_pattern(DRIVE_LOCK_PREFIX + '*')
+
+    def clear_lock(self):
+        self.locked = False
+        self.save()
+        return cache.delete_pattern(self.get_lock_key())
+
+    def get_lock_key(self):
+        return '{}{}'.format(DRIVE_LOCK_PREFIX, str(self.pk))
+
+    def is_locked(self):
+        return self.get_lock_key() in cache
+
+    def locked_by(self):
+        if self.is_locked():
+            return pickle.loads(cache.get(self.get_lock_key()))
+        elif self.locked:
+            return 'robot'
+        else:
+            return ''
+
+    @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
@@ -976,6 +1055,8 @@ class TapeDrive(models.Model):
 
         data = r.json()
         data.pop('status_display', None)
+        data.pop('idle_timer', None)
+        data.pop('idle_time', None)
 
         data['robot'] = Robot.create_from_remote_copy(
             host, session, data['robot']
@@ -996,7 +1077,7 @@ class TapeDrive(models.Model):
 class TapeSlot(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
-        (20, 'Write'),
+        (20, 'Ok'),
         (100, 'FAIL'),
     )
 
@@ -1076,10 +1157,10 @@ class RobotQueue(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey('auth.User', on_delete=models.PROTECT, related_name='robot_queue_entries')
     posted = models.DateTimeField(default=timezone.now)
-    robot = models.OneToOneField('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
-    io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, null=True)
+    robot = models.ForeignKey('Robot', on_delete=models.CASCADE, related_name='robot_queue', null=True)
+    io_queue_entry = models.ForeignKey('IOQueue', models.SET_NULL, blank=True, null=True)
     storage_medium = models.ForeignKey('StorageMedium', models.PROTECT)
-    tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, null=True)
+    tape_drive = models.ForeignKey('TapeDrive', models.CASCADE, blank=True, null=True)
     req_type = models.IntegerField(choices=robot_req_type_CHOICES)
     status = models.IntegerField(default=0, choices=req_status_CHOICES)
 

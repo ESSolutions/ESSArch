@@ -12,6 +12,7 @@ import general from './general';
 import _import from './import';
 import ip from './ip';
 import keyboardShortcuts from './keyboardShortcuts';
+import media from './media';
 import notifications from './notifications';
 import organization from './organization';
 import stateTree from './stateTree';
@@ -34,6 +35,7 @@ export default [
   _import,
   ip,
   keyboardShortcuts,
+  media,
   notifications,
   organization,
   stateTree,

@@ -24,7 +24,7 @@
 
 import logging
 
-import celery
+from ESSArch_Core.config.celery import app
 
 default_app_config = 'ESSArch_Core.WorkflowEngine.apps.WorkflowEngineConfig'
 logger = logging.getLogger('essarch.workflowengine')
@@ -36,7 +36,7 @@ def get_workers(rabbitmq):
         return None
 
     try:
-        return celery.current_app.control.inspect().stats()
+        return app.control.inspect().stats()
     except Exception:
         logger.exception("Error when checking stats of celery workers.")
         return None

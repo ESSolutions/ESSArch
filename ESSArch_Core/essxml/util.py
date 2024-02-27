@@ -28,7 +28,7 @@ import pathlib
 import re
 import tempfile
 import uuid
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from lxml import etree
 
@@ -175,6 +175,11 @@ def parse_mets(xmlfile):
     # save root attributes without namespace prefix
     localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
     for k, v in root.attrib.items():
+        data[re.search(localname_pattern, k).group(1)] = v
+
+    # save metsHdr attributes without namespace prefix
+    localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
+    for k, v in root.xpath(".//*[local-name()='metsHdr']")[0].attrib.items():
         data[re.search(localname_pattern, k).group(1)] = v
 
     data['agents'] = {}
@@ -424,7 +429,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
                     file_num += 1
                     continue
             file_el = XMLFileElement(el, props, rootdir=rootdir)  # rootdir not used in XMLFileElement
-            file_el.path = win_to_posix(os.path.join(prefix, file_el.path))
+            file_el.path = win_to_posix(os.path.join(prefix, unquote(file_el.path)))
 
             if file_el.path in skip_files:
                 continue

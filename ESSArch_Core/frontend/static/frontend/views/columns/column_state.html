@@ -5,7 +5,7 @@
     tooltip-placement="auto top"
     tooltip-append-to-body="true"
   >
-    <span>{{::row.state}}</span>
+    <span>{{::row.state.toUpperCase().split(" ").join("_") | translate}}</span>
   </div>
 </div>
 <div ng-if="::subrow">
@@ -15,6 +15,6 @@
     tooltip-placement="auto top"
     tooltip-append-to-body="true"
   >
-    <span>{{::subrow.state}}</span>
+    <span>{{::subrow.state.toUpperCase().split(" ").join("_") | translate}}</span>
   </div>
 </div>

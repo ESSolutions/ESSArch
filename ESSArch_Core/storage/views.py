@@ -26,7 +26,7 @@ import os
 import uuid
 
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import (
     exceptions,
@@ -48,6 +48,10 @@ from ESSArch_Core.configuration.serializers import (
     StorageTargetSerializer,
 )
 from ESSArch_Core.exceptions import Conflict
+from ESSArch_Core.fixity.receipt import (
+    AVAILABLE_RECEIPT_BACKENDS,
+    get_backend as get_receipt_backend,
+)
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.mixins import PaginatedViewMixin
 from ESSArch_Core.storage.filters import (
@@ -85,10 +89,10 @@ from ESSArch_Core.storage.serializers import (
     TapeSlotSerializer,
 )
 from ESSArch_Core.util import parse_content_range_header
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
-    ProcessTaskDetailSerializer,
-    ProcessTaskSerializer,
+    ProcessStepDetailSerializer,
+    ProcessStepSerializer,
 )
 
 
@@ -314,6 +318,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=medium,
+            robot=medium.tape_slot.robot,
             req_type=10, status__in=[0, 2], defaults={'status': 0}
         )
 
@@ -332,6 +337,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=medium,
+            robot=medium.tape_slot.robot,
             req_type=req_type, status__in=[0, 2], defaults={'status': 0}
         )
 
@@ -348,6 +354,17 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('{} is not fully migrated yet'.format(medium.medium_id))
 
         medium.deactivate()
+
+        medium_deactivated_receipt = 'api_medium_deactivated' in AVAILABLE_RECEIPT_BACKENDS.keys()
+        if medium_deactivated_receipt:
+            backend = get_receipt_backend('api_medium_deactivated')
+            backend.create(
+                template=None, destination=None, outcome='success',
+                short_message='Deactivated {{medium.medium_id}}',
+                message='Deactivated {{medium.medium_id}}',
+                medium_id=medium.medium_id,
+            )
+
         return Response(status=status.HTTP_200_OK)
 
 
@@ -381,6 +398,17 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     search_fields = (
         'ip__object_identifier_value', 'content_location_value',
     )
+
+    def create(self, request, *args, **kwargs):
+        items = request.data
+        if isinstance(items, list):
+            serializer = self.get_serializer(instance='', data=items, many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            return super().create(request, *args, **kwargs)
 
 
 class StorageTargetViewSet(viewsets.ModelViewSet):
@@ -425,7 +453,8 @@ class RobotViewSet(viewsets.ModelViewSet):
         t.run()
         t_id = str(t.pk)
 
-        return Response({'detail': 'Running robot inventory: {}'.format(t_id)}, status=status.HTTP_202_ACCEPTED)
+        return Response({'detail': gettext('Running robot inventory: {}').format(t_id)},
+                        status=status.HTTP_202_ACCEPTED)
 
 
 class AccessQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
@@ -460,7 +489,7 @@ class RobotQueueViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     )
 
 
-class TapeDriveViewSet(viewsets.ModelViewSet):
+class TapeDriveViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for TapeDrive
     """
@@ -477,30 +506,31 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
     )
 
     @action(detail=True, methods=['post'])
-    def mount(self, request, pk=None):
+    def mount(self, request, pk=None, parent_lookup_robot_id=None):
         drive = self.get_object()
 
         try:
-            storage_medium = StorageMedium.objects.get(pk=request.data['storage_medium'])
+            storage_medium = StorageMedium.objects.get(medium_id=request.data['medium_id'])
         except KeyError:
-            raise exceptions.ParseError('Missing parameter storage_medium')
+            raise exceptions.ParseError('Missing parameter medium_id')
         except StorageMedium.DoesNotExist:
-            raise exceptions.ParseError('Invalid storage_medium')
+            raise exceptions.ParseError('Invalid medium_id')
 
         if storage_medium.get_type() != TAPE:
             raise exceptions.ParseError('%s is not a tape' % storage_medium)
 
         RobotQueue.objects.get_or_create(
             user=self.request.user,
-            storage_medium_id=storage_medium,
+            storage_medium_id=storage_medium.id,
             tape_drive=drive,
+            robot=storage_medium.tape_slot.robot,
             req_type=10, status__in=[0, 2], defaults={'status': 0}
         )
 
         return Response()
 
     @action(detail=True, methods=['post'])
-    def unmount(self, request, pk=None):
+    def unmount(self, request, pk=None, parent_lookup_robot_id=None):
         drive = self.get_object()
         force = request.data.get('force', False)
 
@@ -512,13 +542,14 @@ class TapeDriveViewSet(viewsets.ModelViewSet):
         RobotQueue.objects.get_or_create(
             user=self.request.user,
             storage_medium=drive.storage_medium,
+            robot=drive.storage_medium.tape_slot.robot,
             req_type=req_type, status__in=[0, 2], defaults={'status': 0}
         )
 
         return Response()
 
 
-class TapeSlotViewSet(viewsets.ModelViewSet):
+class TapeSlotViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for TapeSlot
     """
@@ -536,8 +567,8 @@ class TapeSlotViewSet(viewsets.ModelViewSet):
 
 
 class StorageMigrationViewSet(viewsets.ModelViewSet):
-    queryset = ProcessTask.objects.filter(name='ESSArch_Core.storage.tasks.StorageMigration')
-    serializer_class = ProcessTaskDetailSerializer
+    queryset = ProcessStep.objects.filter(name='Migrate Information Package')
+    serializer_class = ProcessStepDetailSerializer
     filter_backends = (SearchFilter,)
     search_fields = (
         'label', 'information_package__id', 'information_package__object_identifier_value',
@@ -549,9 +580,9 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
             return StorageMigrationCreateSerializer
 
         if self.action == 'list':
-            return ProcessTaskSerializer
+            return ProcessStepSerializer
 
-        return ProcessTaskDetailSerializer
+        return ProcessStepDetailSerializer
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -564,7 +595,7 @@ class StorageMigrationViewSet(viewsets.ModelViewSet):
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response(
-            {'detail': 'Migration jobs created and queued'},
+            {'detail': gettext('Migration jobs created and queued')},
             status=status.HTTP_201_CREATED, headers=headers,
         )
 
@@ -596,15 +627,20 @@ class StorageMigrationPreviewDetailView(views.APIView):
         data = serializer.validated_data
 
         policy = data['policy']
-        storage_methods = data.get('storage_methods', policy.storage_methods.all())
+        storage_methods = data['storage_methods']
+        export_path = data.get('export_path', '')
         if isinstance(storage_methods, list):
             storage_methods = StorageMethod.objects.filter(
                 pk__in=[s.pk for s in storage_methods]
             )
-
-        qs = InformationPackage.objects.migratable(storage_methods=storage_methods).filter(
+        qs = InformationPackage.objects.migratable(
+            storage_methods=storage_methods, export_path=export_path).filter(
             submission_agreement__policy=policy,
         )
-        ip = get_object_or_404(qs, pk=pk)
+
+        try:
+            ip = qs.get(pk=pk)
+        except InformationPackage.DoesNotExist:
+            return Response(data=[{"id": '-', "name": '-'}])
 
         return Response(serializer.save(information_package=ip))

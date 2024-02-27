@@ -958,13 +958,13 @@
 		{
 			"key": "allow_unknown_file_types",
 			"type": "select",
-			"defaultValue": "False",
+			"defaultValue": false,
 			"hidden": false,
 			"templateOptions": {
 				"required": false,
 				"disabled": false,
 				"label": "Tillåt okända filtyper",
-				"options": [{"name": "Yes","value": "True"},{"name": "No","value": "False"}]
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
 			},
 			"ngModelElAttrs": {
 				"uib-popover": "Tillåter okända filformat i leveransen. Tillägg till specifikationen",
@@ -975,13 +975,13 @@
 		{
 			"key": "allow_encrypted_files",
 			"type": "select",
-			"defaultValue": "False",
+			"defaultValue": false,
 			"hidden": false,
 			"templateOptions": {
 				"required": false,
 				"disabled": false,
 				"label": "Tillåt krypterade filer",
-				"options": [{"name": "Yes","value": "True"},{"name": "No","value": "False"}]
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
 			},
 			"ngModelElAttrs": {
 				"uib-popover": "Tillåter krypterade filer i leveransen. Tillägg till specifikationen",
@@ -992,13 +992,13 @@
 		{
 			"key": "index_files",
 			"type": "select",
-			"defaultValue": "True",
+			"defaultValue": true,
 			"hidden": false,
 			"templateOptions": {
 				"required": false,
 				"disabled": false,
 				"label": "Indexera filer",
-				"options": [{"name": "Yes","value": "True"},{"name": "No","value": "False"}]
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
 			},
 			"ngModelElAttrs": {
 				"uib-popover": "Indexera innehåll i leveransen. Tillägg till specifikationen",

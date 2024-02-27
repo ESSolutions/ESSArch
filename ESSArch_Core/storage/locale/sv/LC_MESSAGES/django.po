@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-19 11:38+0100\n"
+"POT-Creation-Date: 2023-09-14 16:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,6 +18,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps.py:7
+#: storage/admin.py:49 storage/models.py:300
+msgid "Only 1 target can be enabled for a storage method at a time"
+msgstr "Endast 1 mottagare kan vara aktiv för en lagringsmetod åt gången"
+
+#: storage/admin.py:91 storage/admin.py:142
+msgid "Robot slot"
+msgstr "Bandplats"
+
+#: storage/admin.py:96 storage/admin.py:147
+msgid "Yes"
+msgstr "Ja"
+
+#: storage/admin.py:97 storage/admin.py:148
+msgid "No"
+msgstr "Nej"
+
+#: storage/admin.py:176
+msgid "Clear lock for selected drives"
+msgstr "Rensa lås för valda enheter"
+
+#: storage/apps.py:7
 msgid "Storage"
 msgstr "Lagring"
+
+#: storage/views.py:430
+msgid "Running robot inventory: {}"
+msgstr "Kör robotinventering"
+
+#: storage/views.py:572
+msgid "Migration jobs created and queued"
+msgstr "Migreringjobb skapad och lagt på kö"

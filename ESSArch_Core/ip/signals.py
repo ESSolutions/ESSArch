@@ -3,11 +3,9 @@ import logging
 import os
 import shutil
 
-from django.contrib.contenttypes.models import ContentType
 from django.db.models.signals import post_delete, pre_delete
 from django.dispatch import receiver
 
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 
 logger = logging.getLogger('essarch.core')
@@ -21,9 +19,7 @@ def ip_pre_delete(sender, instance, using, **kwargs):
 @receiver(post_delete, sender=InformationPackage)
 def ip_post_delete(sender, instance, using, **kwargs):
     logger.info('Information package %s was deleted' % instance.pk)
-
-    ip_content_type = ContentType.objects.get_for_model(instance)
-    GroupGenericObjects.objects.filter(object_id=str(instance.pk), content_type=ip_content_type).delete()
+    instance.informationpackagegroupobjects_set.all().delete()
 
     try:
         if instance.aic is not None and not instance.aic.information_packages.exists():
@@ -53,9 +49,10 @@ def workarea_post_delete(sender, instance, using, **kwargs):
         if e.errno != errno.ENOENT:
             raise
 
-    if not Workarea.objects.filter(ip__aic=instance.ip.aic).exists():
-        try:
-            os.remove(instance.aic_xml_path)
-        except OSError as e:
-            if e.errno != errno.ENOENT:
-                raise
+    if instance.ip.aic is not None:
+        if not Workarea.objects.filter(ip__aic=instance.ip.aic).exists():
+            try:
+                os.remove(instance.aic_xml_path)
+            except OSError as e:
+                if e.errno != errno.ENOENT:
+                    raise

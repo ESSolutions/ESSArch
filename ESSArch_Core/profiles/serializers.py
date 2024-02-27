@@ -27,6 +27,7 @@ from lxml import etree
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from ESSArch_Core.configuration.models import StoragePolicy
 from ESSArch_Core.essxml.ProfileMaker.models import (
     extensionPackage,
     templatePackage,
@@ -35,7 +36,6 @@ from ESSArch_Core.essxml.ProfileMaker.xsdtojson import (
     generateExtensionRef,
     generateJsonRes,
 )
-from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.profiles.models import (
     Profile,
@@ -157,65 +157,84 @@ class ProfileIPWriteSerializer(ProfileIPSerializer):
 
 
 class SubmissionAgreementSerializer(serializers.ModelSerializer):
-    published = serializers.BooleanField(read_only=True)
-
     profile_transfer_project = serializers.PrimaryKeyRelatedField(
         default=None, allow_null=True,
-        queryset=Profile.objects.filter(profile_type='transfer_project')
+        queryset=Profile.objects.filter(profile_type='transfer_project'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_content_type = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='content_type'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_data_selection = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='data_selection'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_authority_information = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='authority_information'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_archival_description = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='archival_description'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_import = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='import'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_submit_description = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='submit_description'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_sip = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='sip'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_aic_description = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aic_description'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_aip = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_aip_description = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='aip_description'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_dip = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='dip'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_workflow = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='workflow'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_preservation_metadata = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='preservation_metadata'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_event = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='event'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
     profile_validation = serializers.PrimaryKeyRelatedField(
-        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation')
+        default=None, allow_null=True, queryset=Profile.objects.filter(profile_type='validation'),
+        pk_field=serializers.UUIDField(format='hex_verbose')
+    )
+    policy = serializers.PrimaryKeyRelatedField(
+        default=None, allow_null=True, queryset=StoragePolicy.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose')
     )
 
     template = serializers.JSONField(required=False)
 
-    def validate(self, data):
-        if self.instance is None and SubmissionAgreement.objects.filter(pk=data.get('id')).exists():
-            raise Conflict('Submission agreement already exists')
-
-        return data
+    def create(self, validated_data):
+        obj, _ = SubmissionAgreement.objects.update_or_create(
+            id=validated_data.get('id', None),
+            defaults=validated_data
+        )
+        return obj
 
     class Meta:
         model = SubmissionAgreement
@@ -223,6 +242,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
             'id', 'name', 'published', 'type', 'status', 'label', 'policy',
 
             'archivist_organization',
+            'overall_submission_agreement',
 
             'include_profile_transfer_project',
             'include_profile_content_type',
@@ -260,6 +280,7 @@ class SubmissionAgreementSerializer(serializers.ModelSerializer):
             'id': {
                 'read_only': False,
                 'required': False,
+                'validators': [],
             }
         }
 
@@ -329,12 +350,6 @@ class ProfileSerializer(serializers.ModelSerializer):
                 continue
 
         return obj.template
-
-    def validate(self, data):
-        if self.instance is None and Profile.objects.filter(pk=data.get('id')).exists():
-            raise Conflict('Profile already exists')
-
-        return data
 
     class Meta:
         model = Profile
@@ -437,6 +452,13 @@ class ProfileDetailSerializer(ProfileSerializer):
 
 class ProfileWriteSerializer(ProfileDetailSerializer):
     template = serializers.JSONField(default={})
+
+    def create(self, validated_data):
+        obj, _ = Profile.objects.update_or_create(
+            id=validated_data.get('id', None),
+            defaults=validated_data
+        )
+        return obj
 
     class Meta:
         model = ProfileDetailSerializer.Meta.model

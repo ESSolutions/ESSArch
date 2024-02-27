@@ -81,16 +81,23 @@ export default class RobotInformationCtrl {
 
     $scope.initRequestData = function (types) {
       vm.requestTypes = types;
+      var medium_id = null;
+      if (vm.tapeSlot != null) {
+        medium_id = vm.tapeSlot.medium_id;
+      }
+      if (vm.tapeDrive != null && vm.tapeDrive.storage_medium != null) {
+        medium_id = vm.tapeDrive.storage_medium.medium_id;
+      }
       vm.request = {
         type: types[0],
         purpose: '',
-        storageMedium: null,
+        storageMedium: medium_id,
       };
     };
 
     // Getters
     $scope.getDrives = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.driveTableState = tableState;
         $scope.tapeDrivesLoading = true;
         var search = '';
@@ -123,7 +130,7 @@ export default class RobotInformationCtrl {
     };
 
     $scope.getSlots = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.slotTableState = tableState;
         $scope.tapeSlotsLoading = true;
         var search = '';
@@ -156,7 +163,7 @@ export default class RobotInformationCtrl {
     };
 
     $scope.getRobotQueue = function (tableState) {
-      if (!angular.isUndefined(tableState)) {
+      if (!angular.isUndefined(tableState) && vm.selectedRobot.id) {
         vm.robotQueueTableState = tableState;
         $scope.robotQueueLoading = true;
         var search = '';
@@ -264,18 +271,13 @@ export default class RobotInformationCtrl {
             types.push('unmount_force');
           }
         }
-        if (types.includes('mount')) {
-          vm.getStorageMediumsByState(20).then(function (result) {
-            $scope.storageMediums = result;
-          });
-        }
         $scope.initRequestData(types);
         requestModal(vm.request, vm.tapeDrive);
       }
     };
 
     vm.tapeSlotClick = function (tapeSlot) {
-      if (tapeSlot.medium_id === '') {
+      if (tapeSlot.medium_id === '' || tapeSlot.storage_medium == null) {
         return;
       }
       if (tapeSlot == vm.tapeSlot) {
@@ -300,29 +302,26 @@ export default class RobotInformationCtrl {
       }
     };
 
-    vm.getStorageMediumsByState = function (status) {
-      return StorageMedium.query({status: status}).$promise.then(function (data) {
-        return data;
-      });
-    };
-
     // Actions
     vm.inventoryRobot = function (robot, request) {
       Storage.inventoryRobot(robot).then(function (result) {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
+      // TODO: Robot is not selected after inventory, rows below as a temporary fix that close the selected robot.
+      $scope.select = false;
+      $scope.loadRobots(vm.robotTableState);
     };
 
-    vm.mountTapeDrive = function (tapeDrive, request) {
-      Storage.mountTapeDrive(tapeDrive, request.storageMedium).then(function () {
+    vm.mountTapeDrive = function (robot, tapeDrive, request) {
+      Storage.mountTapeDrive(robot, tapeDrive, request.storageMedium).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
     };
 
-    vm.unmountTapeDrive = function (tapeDrive, request, force) {
-      Storage.unmountTapeDrive(tapeDrive, force).then(function () {
+    vm.unmountTapeDrive = function (robot, tapeDrive, request, force) {
+      Storage.unmountTapeDrive(robot, tapeDrive, force).then(function () {
         $scope.requestForm = false;
         $scope.eventlog = false;
       });
@@ -349,21 +348,21 @@ export default class RobotInformationCtrl {
           break;
         case 'mount':
           if (vm.tapeDrive != null) {
-            vm.mountTapeDrive(vm.tapeDrive, request);
+            vm.mountTapeDrive(vm.selectedRobot, vm.tapeDrive, request);
           } else if (vm.tapeSlot != null) {
             vm.mountTapeSlot(vm.tapeSlot, request);
           }
           break;
         case 'unmount':
           if (vm.tapeDrive != null) {
-            vm.unmountTapeDrive(vm.tapeDrive, request, false);
+            vm.unmountTapeDrive(vm.selectedRobot, vm.tapeDrive, request, false);
           } else if (vm.tapeSlot != null) {
             vm.unmountTapeSlot(vm.tapeSlot, request, false);
           }
           break;
         case 'unmount_force':
           if (vm.tapeDrive != null) {
-            vm.unmountTapeDrive(vm.tapeDrive, request, true);
+            vm.unmountTapeDrive(vm.selectedRobot, vm.tapeDrive, request, true);
           } else if (vm.tapeSlot != null) {
             vm.unmountTapeSlot(vm.tapeSlot, request, true);
           }

@@ -1,8 +1,14 @@
 coverage:
   status:
     project:
-      default: off
+      default:
+        informational: true
       backend:
-        flags: backend
+        informational: true
+        flags:
+          - backend
+    patch:
+      default:
+        informational: true
 comment:
   after_n_builds: 6

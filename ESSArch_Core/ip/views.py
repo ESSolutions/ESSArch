@@ -8,7 +8,9 @@ import logging
 import math
 import os
 import shutil
+import tarfile
 import uuid
+import zipfile
 
 from celery import states as celery_states
 from django.conf import settings
@@ -31,6 +33,7 @@ from django.db.models import (
 from django.http import Http404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
 from elasticsearch.exceptions import TransportError
@@ -47,6 +50,8 @@ from rest_framework import (
     viewsets,
 )
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -57,10 +62,10 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from ESSArch_Core.api.filters import SearchFilter, string_to_bool
+from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
-from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
+# from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.cache.decorators import lock_obj
@@ -142,6 +147,10 @@ from ESSArch_Core.util import (
     remove_prefix,
     timestamp_to_datetime,
     zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.filters import (
+    ProcessStepFilter,
+    ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
@@ -388,8 +397,9 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
     def destroy(self, request, pk=None, **kwargs):
         workarea = self.get_object()
 
-        if not workarea.read_only:
+        if not workarea.read_only and not workarea.ip.archived:
             workarea.delete_files()
+            workarea.delete_temp_files()
             workarea.ip.delete_files()
             workarea.ip.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -413,9 +423,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        '=id', 'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
+        '=id', 'object_identifier_value', 'label',
         'aic__object_identifier_value', 'aic__label',
     )
     filterset_class = InformationPackageFilter
@@ -459,8 +467,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @staticmethod
     def annotate_generations(qs):
         lower_higher = InformationPackage.objects.filter(
-            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
-        ).order_by().values('aic')
+            Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
+        ).exclude(state='Ingest Workspace', archived=False).order_by().values('aic')
         lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
         return qs.annotate(first_generation=InformationPackageViewSet.first_generation_case(lower_higher),
@@ -468,7 +476,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     def annotate_filtered_first_generation(self, qs, user):
         lower_higher = InformationPackage.objects.visible_to_user(user).filter(
-            Q(Q(workareas=None) | Q(workareas__read_only=True)),
+            Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             aic=OuterRef('aic'),
         ).order_by().values('aic')
         lower_higher = self.apply_filters(queryset=lower_higher).order_by()
@@ -498,19 +506,21 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             workareas = workareas.filter(user=self.request.user)
 
         if not self.detail and view_type == 'aic':
-            simple_inner = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+            simple_inner = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(state='Ingest Workspace') |
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
+
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
 
             inner = simple_inner.select_related('responsible').prefetch_related(
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
+            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP])
 
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
@@ -537,19 +547,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('profileip_set', queryset=profile_ips,)
             )
 
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
-            self.outer_queryset = simple_outer.distinct() | dips_and_sips.distinct()
-            self.inner_queryset = simple_inner
+            if self.apply_ordering_filters(aics):
+                self.queryset = self.apply_ordering_filters(aics)
+            else:
+                self.queryset = self.apply_filters(dips_and_sips)
+            # self.outer_queryset = simple_outer | dips_and_sips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
-            filtered = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            ).exclude(package_type=InformationPackage.AIC)
+            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
+            )
 
             simple = self.apply_filters(filtered)
-
             simple = self.annotate_generations(simple)
             simple = self.annotate_filtered_first_generation(simple, user)
             simple = self.get_related(simple, workareas)
@@ -568,17 +581,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
             outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
-            qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
-            ).exclude(package_type=InformationPackage.AIC)
-            qs = self.apply_filters(qs).order_by(*InformationPackage._meta.ordering)
+            filtered = InformationPackage.objects.visible_to_user(user).exclude(
+                Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
+            )
+
+            qs = self.apply_filters(filtered)
 
             profile_ips = ProfileIP.objects.select_related(
                 'profile', 'ip', 'data',
@@ -591,7 +606,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas'),
                 Prefetch('profileip_set', queryset=profile_ips,),
             )
-            qs = self.annotate_generations(self.apply_filters(qs))
+            qs = self.annotate_generations(qs)
 
             self.queryset = qs
             return self.queryset
@@ -601,12 +616,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if self.detail:
             lower_higher = InformationPackage.objects.filter(
-                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
+                Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
             ).order_by().values('aic')
             lower_higher = lower_higher.annotate(min_gen=Min('generation'), max_gen=Max('generation'))
 
             qs = InformationPackage.objects.visible_to_user(user).filter(
-                Q(Q(workareas=None) | Q(workareas__read_only=True)),
+                Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True)),
             )
 
             qs = self.apply_filters(qs)
@@ -629,28 +644,30 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         org = serializer.validated_data['organization']
 
-        ip.change_organization(org)
+        if ip.get_organization() is None:
+            force = True
+        else:
+            force = False
+        ip.change_organization(org, force)
         return Response()
 
     @action(detail=True)
     def workflow(self, request, pk=None):
         ip = self.get_object()
-        hidden = request.query_params.get('hidden')
 
-        steps = ip.steps.filter(parent_step__information_package__isnull=True)
+        steps = ip.steps.filter(parent__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
 
-        if hidden is not None:
-            hidden = string_to_bool(hidden)
-            if hidden is False:
-                query = Q(Q(hidden=hidden) | Q(hidden__isnull=True))
-            else:
-                query = Q(hidden=hidden)
-
-            steps = steps.filter(query)
-            tasks = tasks.filter(query)
+        steps = ProcessStepFilter(data=request.query_params, queryset=steps, request=self.request).qs
+        tasks = ProcessTaskFilter(data=request.query_params, queryset=tasks, request=self.request).qs
 
         flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
+
+        if self.paginator is not None:
+            paginated = self.paginator.paginate_queryset(flow, request)
+            serializer = ProcessStepChildrenSerializer(data=paginated, many=True, context={'request': request})
+            serializer.is_valid()
+            return self.paginator.get_paginated_response(serializer.data)
 
         serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
         serializer.is_valid()
@@ -788,7 +805,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
             try:
                 profile_ip.clean()
             except ValidationError as e:
@@ -818,8 +835,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.state not in ['Prepared', 'Uploading']:
             raise exceptions.ParseError('IP must be in state "Prepared" or "Uploading"')
 
-        ip.state = "Uploading"
-        ip.save()
+        if ip.package_type == 'SIP':
+            ip.state = "Uploading"
+            ip.save()
 
         data = request.GET if request.method == 'GET' else request.data
 
@@ -853,7 +871,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='merge-uploaded-chunks', permission_classes=[CanUpload])
     def merge_uploaded_chunks(self, request, pk=None):
         ip = self.get_object()
-        if ip.state != 'Uploading':
+        if ip.package_type == 'SIP' and ip.state != 'Uploading':
             raise exceptions.ParseError('IP must be in state "Uploading"')
 
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
@@ -1351,19 +1369,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return InformationPackageDetailSerializer
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context['view'] = self
-
-        checker = ObjectPermissionChecker(self.request.user)
-        if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
-            checker.prefetch_perms(self.outer_queryset.distinct() | self.inner_queryset.distinct())
-        else:
-            checker.prefetch_perms(self.queryset)
-
-        context['perm_checker'] = checker
-
-        return context
+#    def get_serializer_context(self):
+#        context = super().get_serializer_context()
+#        context['view'] = self
+#
+#        checker = ObjectPermissionChecker(self.request.user)
+#        if hasattr(self, 'outer_queryset') and hasattr(self, 'inner_queryset'):
+#            checker.prefetch_perms(self.outer_queryset.distinct() | self.inner_queryset.distinct())
+#        else:
+#            checker.prefetch_perms(self.queryset)
+#
+#        context['perm_checker'] = checker
+#
+#        return context
 
     @action(detail=False, methods=['get'], url_path='get-xsds')
     def get_xsds(self, request, pk=None):
@@ -1374,13 +1392,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='add-from-master')
     def add_from_master(self, request, pk=None):
-        serializer = InformationPackageFromMasterSerializer(
-            data=request.data, context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        ip = serializer.save()
-
-        return Response(reverse('informationpackage-detail', args=(ip.pk,)))
+        items = request.data
+        if isinstance(items, list):
+            serializer = InformationPackageFromMasterSerializer(instance='', data=items,
+                                                                context={'request': request},
+                                                                many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            serializer = InformationPackageFromMasterSerializer(
+                data=request.data, context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            ip = serializer.save()
+            return Response(reverse('informationpackage-detail', args=(ip.pk,)))
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
@@ -1542,7 +1569,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             'Started receiving {objid} from workspace'.format(objid=ip.object_identifier_value),
             extra={'user': request.user.pk},
         )
-        return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+        return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
     @action(detail=True, methods=['post'], url_path='preserve')
     def preserve(self, request, pk=None):
@@ -1557,16 +1584,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 raise exceptions.ParseError('IP already being preserved')
 
             reception_dir = Path.objects.get(entity='ingest_reception').value
-            ingest_dir = ip.policy.ingest_path.value
+            ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
             ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value)
+            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
 
             archive = request.data.get('archive', None)
 
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
                 except ValidationError as e:
@@ -1700,15 +1727,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         "receipts/xml.json",
                         "{{PATH_RECEIPTS}}/xml/{{_OBJID}}_{% now 'ymdHis' %}.xml",
                         "success",
-                        "Preserved {{OBJID}}",
-                        "{{OBJID}} is now preserved",
+                        gettext("Preserved {{OBJID}}"),
+                        gettext("{{OBJLABEL}} ({{OBJID}}) is now preserved"),
                     ],
                 },
                 {
                     "name": "ESSArch_Core.tasks.Notify",
                     "label": "Notify responsible user",
                     "args": [
-                        "{{OBJID}} is now preserved",
+                        gettext("{ip} is now preserved").format(ip=ip),
                         logging.INFO,
                         True,
                     ],
@@ -1721,6 +1748,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
+                    "if": ip_ingest_path,
                     "args": [ip_ingest_path]
                 },
                 {
@@ -1732,7 +1760,36 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             ]
             workflow = create_workflow(workflow, ip, name='Preserve Information Package')
         workflow.run()
-        return Response({'detail': 'Preserving %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({'detail': gettext('Preserving {ip}...').format(ip=ip), 'step': workflow.pk})
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='create_new_generation')
+    def create_new_generation(self, request, pk=None):
+        ip = self.get_object()
+        workarea = ip.workareas.get()
+        data = request.data
+        new_object_identifier_value = data.get('object_identifier_value') or str(uuid.uuid4())
+        access_workarea = Path.objects.get(entity='access_workarea').value
+        access_workarea_user = os.path.join(access_workarea, request.user.username, new_object_identifier_value)
+        access_workarea_user_extracted = os.path.join(access_workarea_user, new_object_identifier_value)
+        new_aip = ip.create_new_generation('Access Workarea', request.user, new_object_identifier_value)
+        new_aip.object_path = access_workarea_user_extracted
+        new_aip.save()
+
+        os.makedirs(access_workarea_user, exist_ok=True)
+        for f in os.listdir(workarea.path):
+            src_path = os.path.join(workarea.path, f)
+            if os.path.isdir(src_path) and f == ip.object_identifier_value:
+                dst_path = os.path.join(access_workarea_user, new_aip.object_identifier_value)
+            else:
+                dst_path = os.path.join(access_workarea_user, f)
+            shutil.move(src_path, dst_path)
+
+        os.removedirs(workarea.path)
+        workarea.ip = new_aip
+        workarea.read_only = False
+        workarea.save()
+        return Response({'detail': gettext('New generation created {ip}').format(ip=new_aip)})
 
     @transaction.atomic
     @action(detail=True, methods=['post'])
@@ -1799,10 +1856,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             object_identifier_value=data.get('object_identifier_value'),
             package_xml=data.get('package_xml', False),
             aic_xml=data.get('aic_xml', False),
+            diff_check=data.get('diff_check', False),
             edit=data.get('edit', False),
         )
         workflow.run()
-        return Response({'detail': 'Accessing %s...' % ip.object_identifier_value, 'step': workflow.pk})
+        return Response({'detail': gettext('Accessing {ip}...').format(ip=ip), 'step': workflow.pk})
 
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
@@ -1972,9 +2030,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def files(self, request, pk=None):
         ip = self.get_object()
         download = request.query_params.get('download', False)
+        if download is not False:
+            download = string_to_bool(download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
         path = request.query_params.get('path', '').rstrip('/')
 
-        if ip.archived:
+        if ip.archived and settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
             if request.method in ['DELETE', 'POST']:
                 raise exceptions.ParseError('You cannot modify preserved content')
             # check if path exists
@@ -1998,9 +2061,44 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 try:
                     hit = hits[0]
                 except IndexError:
+                    if len(path.split('.tar/')) == 2:
+                        tar_path, tar_subpath = path.split('.tar/')
+                        tar_path += '.tar'
+
+                        with tarfile.open(fileobj=ip.open_file(tar_path, 'rb')) as tar:
+                            try:
+                                f = io.BytesIO(tar.extractfile(tar_subpath).read())
+                                fid = FormatIdentifier(allow_unknown_file_types=True)
+                                content_type = fid.get_mimetype(tar_subpath)
+                                return generate_file_response(
+                                    f,
+                                    content_type=content_type,
+                                    force_download=download, name=tar_subpath)
+                            except KeyError:
+                                raise exceptions.NotFound
+
+                    if len(path.split('.zip/')) == 2:
+                        zip_path, zip_subpath = path.split('.zip/')
+                        zip_path += '.zip'
+
+                        with zipfile.ZipFile(ip.open_file(zip_path, 'rb')) as zipf:
+                            try:
+                                f = io.BytesIO(zipf.read(zip_subpath))
+                                fid = FormatIdentifier(allow_unknown_file_types=True)
+                                content_type = fid.get_mimetype(zip_subpath)
+                                return generate_file_response(
+                                    f,
+                                    content_type=content_type,
+                                    force_download=download, name=zip_subpath)
+                            except KeyError:
+                                raise exceptions.NotFound
                     raise exceptions.NotFound
 
                 if hit.meta.index.startswith('document'):
+                    if expand_container and (path.endswith('.tar') or path.endswith('.zip')):
+                        entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
+                        return Response(entries)
+
                     fid = FormatIdentifier(allow_unknown_file_types=True)
                     content_type = fid.get_mimetype(path)
                     return generate_file_response(
@@ -2143,7 +2241,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             return Response(path, status=status.HTTP_201_CREATED)
 
-        return ip.get_path_response(path, request, force_download=download, paginator=self.paginator)
+        return ip.get_path_response(path, request, force_download=download, expand_container=expand_container,
+                                    paginator=self.paginator)
 
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
@@ -2161,9 +2260,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ip.unlock_profile(ptype)
 
         return Response({
-            'detail': 'Unlocking profile with type "%s" in IP "%s"' % (
-                ptype, ip.pk
-            )
+            'detail': gettext('Unlocking profile with type "{type}" in IP "{ip}"').format(type=ptype, ip=ip)
         })
 
     @transaction.atomic
@@ -2556,8 +2653,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             except RetryError:
                 pass
 
+        aic_xml = True
         if sa.profile_aic_description is None:
-            raise exceptions.ParseError('Submission agreement missing AIC Description profile')
+            aic_xml = False
+            # raise exceptions.ParseError('Submission agreement missing AIC Description profile')
 
         if sa.profile_aip is None:
             raise exceptions.ParseError('Submission agreement missing AIP profile')
@@ -2571,14 +2670,15 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ip.sip_objid = pk
         ip.sip_path = pk
         ip.package_type = InformationPackage.AIP
-        ip.generation = 0
-        ip.aic = InformationPackage.objects.create(
-            package_type=InformationPackage.AIC,
-            responsible=ip.responsible,
-            label=ip.label,
-            start_date=ip.start_date,
-            end_date=ip.end_date,
-        )
+        if aic_xml:
+            ip.generation = 0
+            ip.aic = InformationPackage.objects.create(
+                package_type=InformationPackage.AIC,
+                responsible=ip.responsible,
+                label=ip.label,
+                start_date=ip.start_date,
+                end_date=ip.end_date,
+            )
         ip.state = 'At reception'
         ip.object_path = normalize_path(container)
         ip.package_mets_path = normalize_path(xmlfile)
@@ -2615,6 +2715,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             has_cts = cts is not None and os.path.exists(cts)
 
             aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+            aip_object_structure = ip.get_profile_rel('aip').profile.structure
 
             if ip_is_directory:
                 workflow_spec = [
@@ -2668,7 +2769,10 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     {
                         "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
                         "label": "Create Physical Model",
-                        'params': {'root': aip_object_path}
+                        'params': {
+                            'structure': aip_object_structure,
+                            'root': aip_object_path
+                        }
                     },
                     {
                         "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
@@ -2694,7 +2798,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
                 extra={'user': request.user.pk},
             )
-            return Response({'detail': 'Receiving %s' % ip.object_identifier_value})
+            return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
     @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
@@ -2840,10 +2944,16 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         reception = Path.objects.get(entity='ingest_reception').value
         path = request.query_params.get('path', '').rstrip('/ ')
         download = request.query_params.get('download', False)
+        if download is not False:
+            download = string_to_bool(download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
 
         if os.path.isdir(os.path.join(reception, pk)):
             path = os.path.join(reception, pk, path)
-            return list_files(path, force_download=download, paginator=self.paginator, request=request)
+            return list_files(path, force_download=download, expand_container=expand_container,
+                              paginator=self.paginator, request=request)
 
         xml = os.path.join(reception, "%s.xml" % pk)
 
@@ -2855,7 +2965,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         if len(path):
             path = os.path.join(os.path.dirname(container), path)
-            return list_files(path, download, paginator=self.paginator, request=request)
+            return list_files(path, force_download=download, expand_container=expand_container,
+                              paginator=self.paginator, request=request)
 
         entry = {
             "name": os.path.basename(container),
@@ -2913,7 +3024,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         options = {'expected': md5, 'algorithm': 'md5'}
         validator = ChecksumValidator(context='checksum_str', options=options)
         validator.validate(filepath)
-        return Response({'detail': 'Upload of %s complete' % filepath})
+        return Response({'detail': gettext('Upload of {filepath} complete').format(filepath=filepath)})
 
     def parse_ip_with_xmlfile(self, xmlfile):
         if xmlfile.startswith(self.uip):
@@ -3080,7 +3191,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips = inner.filter(package_type=InformationPackage.DIP).distinct()
+            dips = inner.filter(package_type=InformationPackage.DIP)
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
@@ -3093,11 +3204,14 @@ class WorkareaViewSet(InformationPackageViewSet):
             simple_outer = InformationPackage.objects.annotate(
                 has_ip=Exists(simple_inner.only('id').filter(aic=OuterRef('pk')))
             ).filter(package_type=InformationPackage.AIC, has_ip=True)
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = aics | dips
-            self.outer_queryset = simple_outer.distinct() | dips.distinct()
-            self.inner_queryset = simple_inner
+            if aics:
+                self.queryset = aics
+            else:
+                self.queryset = dips
+            # self.outer_queryset = simple_outer | dips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif self.action == 'list' and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).annotate(
@@ -3115,10 +3229,10 @@ class WorkareaViewSet(InformationPackageViewSet):
             inner = simple.filter(filtered_first_generation=False)
             outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif self.action == 'list' and view_type == 'flat':
@@ -3128,7 +3242,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 package_type=InformationPackage.AIC
             )
             qs = self.annotate_generations(self.apply_filters(qs))
-            self.queryset = qs.distinct()
+            self.queryset = qs
             return self.queryset
 
         if self.action == 'retrieve':
@@ -3149,7 +3263,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 Prefetch('workareas', to_attr='prefetched_workareas')
             )
 
-            self.queryset = qs.distinct()
+            self.queryset = qs
 
         return self.queryset
 
@@ -3157,8 +3271,21 @@ class WorkareaViewSet(InformationPackageViewSet):
 class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def __init__(self, *args, **kwargs):
+        self.logger = logging.getLogger('essarch.workspace')
+        super().__init__(*args, **kwargs)
+
+    def get_object(self, request):
+        requested_id = self.request.query_params.get('id', self.request.data.get('id'))
+        user_id = self.request.query_params.get('user', self.request.data.get('user'))
+        try:
+            obj = Workarea.objects.get(ip__id=requested_id, user__id=user_id)
+        except Workarea.DoesNotExist:
+            raise exceptions.NotFound
+        return obj
+
     def get_user(self, request):
-        requested_user = self.request.query_params.get('user')
+        requested_user = self.request.query_params.get('user', self.request.data.get('user'))
         if requested_user in EMPTY_VALUES or requested_user == str(request.user.pk):
             return request.user
 
@@ -3166,13 +3293,18 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.PermissionDenied('No permission to see files in other users workspaces')
 
         try:
-            user_id = self.request.query_params['user']
+            user_id = requested_user
             organization = self.request.user.user_profile.current_organization
             organization_users = organization.get_members(subgroups=True)
             user = User.objects.get(pk=user_id, essauth_member__in=organization_users)
             return user
         except User.DoesNotExist:
-            raise exceptions.NotFound('User not found in organization')
+            if requested_user is not None:
+                user = User.objects.get(pk=requested_user)
+            else:
+                user = request.user
+            raise exceptions.NotFound('User: {} not found in organization: {}'.format(
+                user.username, organization.name))
 
     def validate_workarea(self, area_type):
         workarea_type_reverse = dict((v.lower(), k) for k, v in Workarea.TYPE_CHOICES)
@@ -3183,9 +3315,14 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Workarea of type "%s" does not exist' % area_type)
 
     def validate_path(self, path, root, existence=True):
+        path = os.path.normpath(path)
+        root = os.path.normpath(root)
         relpath = os.path.relpath(path, root)
 
         if not in_directory(path, root):
+            raise exceptions.ParseError('Illegal path %s' % relpath)
+
+        if not path.startswith(root):
             raise exceptions.ParseError('Illegal path %s' % relpath)
 
         if existence and not os.path.exists(path):
@@ -3193,18 +3330,26 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def list(self, request):
         try:
-            workarea = self.request.query_params['type'].lower()
+            workarea = request.query_params['type'].lower()
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        user = self.get_user(request)
+        if request.query_params.get('id') in EMPTY_VALUES:
+            root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        else:
+            workarea_obj = self.get_object(request)
+            root = workarea_obj.path
         os.makedirs(root, exist_ok=True)
 
         path = request.query_params.get('path', '').strip('/ ')
         force_download = request.query_params.get('download', False)
+        if force_download is not False:
+            force_download = string_to_bool(force_download)
+        expand_container = request.query_params.get('expand_container', False)
+        if expand_container is not False:
+            expand_container = string_to_bool(expand_container)
         fullpath = os.path.join(root, path)
 
         try:
@@ -3215,10 +3360,16 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 tar_path += '.tar'
                 if not os.path.isfile(tar_path):
                     raise
+            elif len(fullpath.split('.zip/')) == 2:
+                zip_path, zip_subpath = fullpath.split('.zip/')
+                zip_path += '.zip'
+                if not os.path.isfile(zip_path):
+                    raise
             else:
                 raise
 
-        return list_files(fullpath, force_download, paginator=self.paginator, request=request)
+        return list_files(fullpath, force_download=force_download, expand_container=expand_container,
+                          paginator=self.paginator, request=request)
 
     @action(detail=False, methods=['post'], url_path='add-directory')
     def add_directory(self, request):
@@ -3227,20 +3378,12 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
 
         path = os.path.join(root, request.data.get('path', ''))
         self.validate_path(path, root, existence=False)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
@@ -3261,32 +3404,23 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
-
-        path = os.path.join(root, request.data.get('path', ''))
-        self.validate_path(path, root)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
+        workarea_obj = self.get_object(request)
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
             raise exceptions.MethodNotAllowed(method=request.method, detail=detail)
 
+        root = workarea_obj.path
+        path = request.data.get('path', '')
+        fullpath = os.path.normpath(os.path.join(root, path))
+        self.validate_path(fullpath, root)
         try:
-            shutil.rmtree(path)
+            shutil.rmtree(fullpath)
         except OSError as e:
             if e.errno != errno.ENOTDIR:
                 raise
-
-            os.remove(path)
+            os.remove(fullpath)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -3297,21 +3431,14 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
 
         data = request.GET if request.method == 'GET' else request.data
         dst = data.get('destination', '').strip('/ ')
 
         self.validate_path(os.path.join(root, dst), root)
-        relative_root = os.path.join(root, dst)[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
 
         if workarea_obj.read_only:
             detail = 'You are not allowed to modify read-only IPs'
@@ -3358,25 +3485,17 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        workarea_obj = self.get_object(request)
+        root = workarea_obj.path
         relative_path = request.data.get('path', '')
 
         if len(relative_path) == 0:
             raise exceptions.ParseError('The path cannot be empty')
 
-        path = os.path.join(root, relative_path)
+        filepath = os.path.join(root, relative_path)
 
-        self.validate_path(path, root, existence=False)
-
-        relative_root = path[len(root) + 1:].split('/')[0]
-
-        try:
-            workarea_obj = Workarea.objects.get(ip__object_identifier_value=relative_root)
-        except Workarea.DoesNotExist:
-            raise exceptions.NotFound
+        self.validate_path(filepath, root, existence=False)
 
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
@@ -3384,12 +3503,18 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
 
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         try:
-            merge_file_chunks(chunks_path, path)
+            merge_file_chunks(chunks_path, filepath)
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 
-        return Response({'detail': 'Merged chunks'})
+        extra = {'event_type': 50700, 'object': str(workarea_obj.ip.pk),
+                 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
+        self.logger.info("Uploaded %s" % filepath, extra=extra)
+
+        return Response({'detail': gettext('Merged chunks')})
 
     @action(detail=False, methods=['post'], url_path='add-to-dip')
     def add_to_dip(self, request):
@@ -3398,9 +3523,13 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing type parameter')
 
-        user = self.get_user(request)
-
         self.validate_workarea(workarea)
+        try:
+            user = self.get_user(request)
+        except exceptions.NotFound as e:
+            self.logger.warning('{}'.format(e))
+            user = request.user
+
         root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
 
         try:
@@ -3430,9 +3559,40 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Missing dst parameter')
 
         src = os.path.join(root, src)
-        self.validate_path(src, root)
-
         dst = os.path.join(ip.object_path, dst)
+
+        try:
+            self.validate_path(src, root)
+        except exceptions.NotFound:
+            if len(src.split('.tar/')) == 2:
+                tar_path, tar_subpath = src.split('.tar/')
+                tar_path += '.tar'
+                if not os.path.isfile(tar_path):
+                    raise
+                with tarfile.open(tar_path) as tar:
+                    try:
+                        tarinfo_obj = tar.getmember(tar_subpath)
+                        tarinfo_obj.name = tar_subpath.split('/')[-1]
+                        tar.extract(tarinfo_obj, dst)
+                        return Response(root)
+                    except KeyError:
+                        raise NotFound
+
+            elif len(src.split('.zip/')) == 2:
+                zip_path, zip_subpath = src.split('.zip/')
+                zip_path += '.zip'
+                if not os.path.isfile(zip_path):
+                    raise
+                with zipfile.ZipFile(zip_path) as zipf:
+                    try:
+                        zipinfo_obj = zipf.getinfo(zip_subpath)
+                        zipinfo_obj.filename = zip_subpath.split('/')[-1]
+                        zipf.extract(zipinfo_obj, dst)
+                        return Response(root)
+                    except KeyError:
+                        raise NotFound
+            else:
+                raise
 
         if os.path.isfile(src):
             shutil.copy2(src, dst)

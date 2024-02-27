@@ -17,11 +17,14 @@ def get_result(step, reference):
     return results[reference]
 
 
-def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
+def _create_on_error_tasks(parent, errors, ip=None, responsible=None, eager=False, status=celery_states.PENDING):
     for on_error_idx, on_error in enumerate(errors):
         args = on_error.get('args', [])
         params = on_error.get('params', {})
         result_params = on_error.get('result_params', {})
+        progress = 0
+        if status == celery_states.SUCCESS:
+            progress = 100
         yield ProcessTask(
             name=on_error['name'],
             reference=on_error.get('reference', None),
@@ -33,13 +36,14 @@ def _create_on_error_tasks(parent_step, errors, ip=None, responsible=None, eager
             eager=eager,
             information_package=ip,
             responsible=responsible,
-            processstep=parent_step,
+            processstep=parent,
             processstep_pos=on_error_idx,
             status=status,
+            progress=progress,
         )
 
 
-def _create_step(parent_step, flow, ip, responsible, context=None):
+def _create_step(parent, flow, ip, responsible, context=None):
     if context is None:
         context = {}
     for e_idx, flow_entry in enumerate(flow):
@@ -59,16 +63,17 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             child_s = ProcessStep.objects.create(
                 name=flow_entry['name'],
                 parallel=flow_entry.get('parallel', False),
-                parent_step=parent_step,
-                parent_step_pos=e_idx,
-                eager=parent_step.eager,
+                parent=parent,
+                parent_pos=e_idx,
+                eager=parent.eager,
                 information_package=ip,
                 context=context,
+                responsible=responsible,
             )
 
             on_error_tasks = list(_create_on_error_tasks(
                 child_s, flow_entry.get('on_error', []), ip=ip, responsible=responsible,
-                eager=parent_step.eager
+                eager=parent.eager
             ))
             ProcessTask.objects.bulk_create(on_error_tasks)
             child_s.on_error.add(*on_error_tasks)
@@ -86,23 +91,24 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
             result_params = flow_entry.get('result_params', {})
             task = ProcessTask.objects.create(
                 name=name,
+                queue=flow_entry.get('queue', None),
                 reference=flow_entry.get('reference', None),
                 label=flow_entry.get('label'),
                 args=args,
                 params=params,
                 result_params=result_params,
-                eager=parent_step.eager,
+                eager=parent.eager,
                 allow_failure=flow_entry.get('allow_failure', False),
                 information_package=ip,
                 responsible=responsible,
-                processstep=parent_step,
+                processstep=parent,
                 processstep_pos=e_idx,
                 hidden=flow_entry.get('hidden', False),
                 run_if=flow_entry.get('run_if', ''),
             )
 
             on_error_tasks = list(
-                _create_on_error_tasks(parent_step, flow_entry.get('on_error', []), ip=ip, responsible=responsible)
+                _create_on_error_tasks(parent, flow_entry.get('on_error', []), ip=ip, responsible=responsible)
             )
             ProcessTask.objects.bulk_create(on_error_tasks)
             task.on_error.add(*on_error_tasks)
@@ -110,16 +116,18 @@ def _create_step(parent_step, flow, ip, responsible, context=None):
 
 @retry(reraise=True, stop=stop_after_delay(30),
        wait=wait_random_exponential(multiplier=1, max=60))
-def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None):
+def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None, responsible=None):
     if on_error is None:
         on_error = []
     if context is None:
         context = {}
-    responsible = getattr(ip, 'responsible', None)
+    if responsible is None:
+        responsible = getattr(ip, 'responsible', None)
 
     with transaction.atomic():
         with ProcessStep.objects.delay_mptt_updates():
-            root_step = ProcessStep.objects.create(name=name, eager=eager, information_package=ip, context=context)
+            root_step = ProcessStep.objects.create(
+                name=name, eager=eager, information_package=ip, context=context, responsible=responsible)
 
             on_error_tasks = list(_create_on_error_tasks(
                 root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))

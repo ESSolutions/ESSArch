@@ -131,18 +131,18 @@ const listViewService = (
     }
 
     if ($rootScope.selectedTag != null) {
-      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(function (
-        resource
-      ) {
-        let count = resource.$httpHeaders('Count');
-        if (count == null) {
-          count = resource.length;
+      return Tag.information_packages(angular.extend({id: $rootScope.selectedTag.id}, data)).$promise.then(
+        function (resource) {
+          let count = resource.$httpHeaders('Count');
+          if (count == null) {
+            count = resource.length;
+          }
+          return {
+            count: count,
+            data: resource,
+          };
         }
-        return {
-          count: count,
-          data: resource,
-        };
-      });
+      );
     } else {
       return IP.query(data).$promise.then(function (resource) {
         let count = resource.$httpHeaders('Count');
@@ -412,10 +412,11 @@ const listViewService = (
       return response;
     });
   }
-  function getWorkareaDir(workareaType, pathStr, pagination, user) {
+  function getWorkareaDir(workareaId, workareaType, pathStr, pagination, user) {
     let sendData;
     if (pathStr == '') {
       sendData = {
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
@@ -424,12 +425,14 @@ const listViewService = (
       };
     } else {
       sendData = {
+        id: workareaId,
         page: pagination.pageNumber,
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
         type: workareaType,
         user: user,
+        expand_container: true,
       };
     }
 
@@ -465,6 +468,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     return IP.files(sendData).$promise.then(function (data) {
@@ -479,14 +483,18 @@ const listViewService = (
     });
   }
 
-  function addFileToDip(ip, path, file, destination, type) {
+  function addFileToDip(ip, path, file, destination, type, user) {
     const src = path + file.name;
-    const dst = destination + file.name;
+    let dst = destination + file.name;
+    if (path.endsWith('.tar/') || path.endsWith('.zip/')) {
+      dst = destination;
+    }
     return WorkareaFiles.addToDip({
       dip: ip.id,
       src: src,
       dst: dst,
       type: type,
+      user: user,
     }).$promise.then(function (response) {
       return response;
     });
@@ -506,8 +514,9 @@ const listViewService = (
     });
   }
 
-  function addNewWorkareaFolder(workareaType, path, file, user) {
+  function addNewWorkareaFolder(ip, workareaType, path, file, user) {
     return WorkareaFiles.addDirectory({
+      id: ip.id,
       type: workareaType,
       path: path + file.name,
       user: user,
@@ -525,8 +534,9 @@ const listViewService = (
     });
   }
 
-  function deleteWorkareaFile(workareaType, path, file, user) {
+  function deleteWorkareaFile(ip, workareaType, path, file, user) {
     return WorkareaFiles.removeFile({
+      id: ip.id,
       type: workareaType,
       path: path + file.name,
       user: user,
@@ -555,6 +565,7 @@ const listViewService = (
         page_size: pagination.number,
         pager: pagination.pager,
         path: pathStr,
+        expand_container: true,
       };
     }
     if ($state.is('home.ingest.reception') && (ip.state == 'At reception' || ip.state == 'Prepared')) {
