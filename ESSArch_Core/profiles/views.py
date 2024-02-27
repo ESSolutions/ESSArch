@@ -149,8 +149,7 @@ class SubmissionAgreementViewSet(viewsets.ModelViewSet):
         if SubmissionAgreement.objects.values_list('published', flat=True).get(pk=pk):
             raise exceptions.ParseError('Submission agreement is already published')
 
-        template = get_sa_template()
-        SubmissionAgreement.objects.filter(pk=pk).update(published=True, template=template)
+        SubmissionAgreement.objects.filter(pk=pk).update(published=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request, *args, **kwargs):
@@ -581,7 +580,7 @@ class ProfileMakerTemplateViewSet(viewsets.ModelViewSet):
 
         nsmap = obj.nsmap
 
-        for ext in obj.extensions.iterator():
+        for ext in obj.extensions.iterator(chunk_size=1000):
             nsmap.update(ext.nsmap)
 
         schemaLocation = ['%s %s' % (obj.targetNamespace, obj.schemaURL)]

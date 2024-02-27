@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       FILEBROWSER: 'Content',
       FOLDER_NAME: 'Name',
       NEWFOLDER: 'New folder',
+      EXPAND: 'Show content',
     },
   });
 };

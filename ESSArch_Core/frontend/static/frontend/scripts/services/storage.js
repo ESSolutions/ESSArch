@@ -83,6 +83,7 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
   // Get tape slots given robot
   function getTapeSlots(pagination, sortString, searchString, robot) {
     return TapeSlot.query({
+      robot_id: robot.id,
       page: pagination.pageNumber,
       page_size: pagination.number,
       pager: pagination.pager,
@@ -100,9 +101,10 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
     });
   }
 
-  // Get tape drives
+  // Get tape drives given robot
   function getTapeDrives(pagination, sortString, searchString, robot) {
     return TapeDrive.query({
+      robot_id: robot.id,
       page: pagination.pageNumber,
       page_size: pagination.number,
       pager: pagination.pager,
@@ -190,14 +192,16 @@ const storage = (StorageMedium, StorageObject, Robot, RobotQueue, IOQueue, TapeS
       });
   }
 
-  function mountTapeDrive(tapeDrive, medium) {
-    return TapeDrive.mount({id: tapeDrive.id, storage_medium: medium.id}).$promise.then(function (response) {
-      return response;
-    });
+  function mountTapeDrive(robot, tapeDrive, medium_id) {
+    return TapeDrive.mount({robot_id: robot.id, id: tapeDrive.id, medium_id: medium_id}).$promise.then(
+      function (response) {
+        return response;
+      }
+    );
   }
 
-  function unmountTapeDrive(tapeDrive, force) {
-    return TapeDrive.unmount({id: tapeDrive.id, force: force}).$promise.then(function (response) {
+  function unmountTapeDrive(robot, tapeDrive, force) {
+    return TapeDrive.unmount({robot_id: robot.id, id: tapeDrive.id, force: force}).$promise.then(function (response) {
       return response;
     });
   }

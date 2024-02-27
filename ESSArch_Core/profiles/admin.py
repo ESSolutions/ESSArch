@@ -28,13 +28,13 @@ from django.db import models
 from django_json_widget.widgets import JSONEditorWidget
 
 from .models import Profile, SubmissionAgreement
-from .utils import lowercase_profile_types
+from .utils import lowercase_profile_types_no_action_workflow
 
 
 class SubmissionAgreementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for pt in lowercase_profile_types:
+        for pt in lowercase_profile_types_no_action_workflow:
             self.fields['profile_{}'.format(pt)].required = False
 
     class Meta:
@@ -44,30 +44,32 @@ class SubmissionAgreementForm(forms.ModelForm):
 
 class SubmissionAgreementAdmin(admin.ModelAdmin):
     def render_change_form(self, request, context, *args, **kwargs):
-        for pt in lowercase_profile_types:
+        for pt in lowercase_profile_types_no_action_workflow:
             qs = Profile.objects.filter(profile_type=pt)
             context['adminform'].form.fields['profile_{}'.format(pt)].queryset = qs
         return super().render_change_form(request, context, args, kwargs)
 
     form = SubmissionAgreementForm
-    list_display = ('name', 'type', 'status', 'label')
+    list_display = ('name', 'label', 'type', 'status', 'published')
     search_fields = ('name', )
     readonly_fields = ('id',)
     list_filter = ('name', 'type')
+
     fieldsets = (
         (None, {
             'classes': ('wide'),
-            'fields': ('id', 'name', 'type', 'status', 'label', 'template',)
-        }),
-        ('Information about Archival organization', {
-            'classes': ('collapse', 'wide'),
             'fields': (
-                'archivist_organization',
+                'id', 'name', 'label', 'type', 'status', 'published', 'archivist_organization',
+                'overall_submission_agreement', 'policy',
             )
         }),
-        ('Profiles', {
+        ('form template', {
             'classes': ('collapse', 'wide'),
-            'fields': tuple(['profile_{}'.format(pt) for pt in lowercase_profile_types])
+            'fields': ('template',)
+        }),
+        ('profiles', {
+            'classes': ('collapse', 'wide'),
+            'fields': tuple(['profile_{}'.format(pt) for pt in lowercase_profile_types_no_action_workflow])
         }),
     )
     formfield_overrides = {

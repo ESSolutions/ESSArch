@@ -1,5 +1,6 @@
 import errno
 import os
+from pathlib import Path
 
 import requests
 from django.conf import settings
@@ -12,17 +13,20 @@ from tenacity import (
     wait_fixed,
 )
 
+from ESSArch_Core.configuration.models import (
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+)
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
 )
-from ESSArch_Core.essxml.util import get_agents, parse_submit_description
-from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.ip.models import (
-    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    Agent,
-    InformationPackage,
+from ESSArch_Core.essxml.util import (
+    find_file,
+    get_agents,
+    parse_submit_description,
 )
+from ESSArch_Core.fixity.checksum import calculate_checksum
+from ESSArch_Core.ip.models import Agent, InformationPackage
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     creation_date,
@@ -79,6 +83,16 @@ def add_agents_from_xml(ip, xml):
     for agent_el in get_agents(etree.parse(xml)):
         agent = Agent.objects.from_mets_element(agent_el)
         ip.agents.add(agent)
+
+
+def add_agents_from_dict(ip, agents):
+    for agent_key in agents:
+        agent_role, agent_type = agent_key.split('_')
+        agent = Agent.objects.from_agent_dict(agents[agent_key], agent_role, agent_type)
+        if len(agents) == 1 and ip is None:
+            return agent
+        if ip is not None:
+            ip.agents.add(agent)
 
 
 def generate_content_mets(ip):
@@ -143,7 +157,11 @@ def generate_package_mets(ip, package_path, xml_path):
     )
     generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
-    ip.package_mets_path = normalize_path(xml_path)
+    package_xml_el, _ = find_file(Path(package_path).name, xml_path)
+
+    ip.message_digest = package_xml_el.checksum
+    ip.message_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[package_xml_el.checksum_type.upper()]
+    ip.package_mets_path = Path(normalize_path(xml_path)).name
     ip.package_mets_create_date = timestamp_to_datetime(creation_date(xml_path)).isoformat()
     ip.package_mets_size = os.path.getsize(xml_path)
     ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
@@ -152,16 +170,21 @@ def generate_package_mets(ip, package_path, xml_path):
 
 
 def generate_aic_mets(ip, xml_path):
-    aicinfo = fill_specification_data(ip.get_profile_data('aic_description'), ip=ip.aic)
-    aic_desc_profile = ip.get_profile('aic_description')
-    algorithm = ip.policy.get_checksum_algorithm_display().upper()
+    sa = ip.submission_agreement
+    profile_type = 'aic_description'
+    profile_rel = ip.get_profile_rel(profile_type)
+    profile_data = ip.get_profile_data(profile_type)
+
+    data = fill_specification_data(profile_data, ip=ip.aic, sa=sa)
 
     filesToCreate = {
         xml_path: {
-            'spec': aic_desc_profile.specification,
-            'data': aicinfo
+            'spec': profile_rel.profile.specification,
+            'data': data
         }
     }
+
+    algorithm = ip.get_checksum_algorithm()
 
     parsed_files = []
 
@@ -193,13 +216,61 @@ def generate_aic_mets(ip, xml_path):
     generator.generate(filesToCreate, parsed_files=parsed_files, algorithm=algorithm)
 
 
+def generate_content_metadata(ip):
+    files_to_create = {}
+
+    generate_premis = ip.profile_locked('preservation_metadata')
+    if generate_premis:
+        premis_profile_type = 'preservation_metadata'
+        premis_profile_rel = ip.get_profile_rel(premis_profile_type)
+        premis_profile_data = ip.get_profile_data(premis_profile_type)
+        data = fill_specification_data(premis_profile_data, ip=ip)
+        premis_path = parseContent(ip.get_premis_file_path(), data)
+        full_premis_path = os.path.join(ip.object_path, premis_path)
+        files_to_create[full_premis_path] = {
+            'spec': premis_profile_rel.profile.specification,
+            'data': data,
+        }
+
+    mets_path = ip.get_content_mets_file_path()
+    full_mets_path = os.path.join(ip.object_path, mets_path)
+    profile_type = ip.get_package_type_display().lower()
+    profile_rel = ip.get_profile_rel(profile_type)
+    profile_data = ip.get_profile_data(profile_type)
+    files_to_create[full_mets_path] = {
+        'spec': profile_rel.profile.specification,
+        'data': fill_specification_data(profile_data, ip=ip),
+    }
+
+    parsed_files = profile_rel.data.parsed_files
+    extra_paths_to_parse = profile_rel.data.extra_paths_to_parse
+    algorithm = ip.get_checksum_algorithm()
+    allow_unknown_file_types = ip.get_allow_unknown_file_types()
+    allow_encrypted_files = ip.get_allow_encrypted_files()
+    generator = XMLGenerator(
+        allow_unknown_file_types=allow_unknown_file_types,
+        allow_encrypted_files=allow_encrypted_files,
+    )
+    generator.generate(files_to_create, folderToParse=ip.object_path, algorithm=algorithm,
+                       parsed_files=parsed_files, extra_paths_to_parse=extra_paths_to_parse)
+
+    ip.content_mets_path = mets_path
+    ip.content_mets_create_date = timestamp_to_datetime(creation_date(full_mets_path)).isoformat()
+    ip.content_mets_size = os.path.getsize(full_mets_path)
+    ip.content_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
+    ip.content_mets_digest = calculate_checksum(full_mets_path, algorithm=algorithm)
+    ip.save()
+
+
 def generate_premis(ip):
-    premis_profile_rel = ip.get_profile_rel('preservation_metadata')
-    premis_profile_data = ip.get_profile_data('preservation_metadata')
+    premis_profile_type = 'preservation_metadata'
+    premis_profile_rel = ip.get_profile_rel(premis_profile_type)
+    premis_profile_data = ip.get_profile_data(premis_profile_type)
     data = fill_specification_data(premis_profile_data, ip=ip)
     premis_path = parseContent(ip.get_premis_file_path(), data)
+    full_premis_path = os.path.join(ip.object_path, premis_path)
     files_to_create = {
-        premis_path: {
+        full_premis_path: {
             'spec': premis_profile_rel.profile.specification,
             'data': data,
         }

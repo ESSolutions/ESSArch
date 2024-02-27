@@ -1,0 +1,981 @@
+{
+	"structure" : [],
+	"template" : [
+		{
+			"key": "start_date",
+			"type": "datepicker",
+			"defaultValue": "2016-11-10",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Startdatum"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Startdatum för den överförda informationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "end_date",
+			"type": "datepicker",
+			"defaultValue": "2016-12-20",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Slutdatum"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Slutdatum för den överförda informationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_organization_name",
+			"type": "input",
+			"defaultValue": "_IP_ARCHIVIST_ORGANIZATION",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Arkivbildare"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Arkivbildaren är den organisation som har skapat arkivmaterialet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator",
+			"type": "input",
+			"defaultValue": "Förslagsmyndigheten, Personal",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Levererande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som levererar SIP:en till e-arkivet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "producer_organization",
+			"type": "input",
+			"defaultValue": "Förslagsmyndigheten, arkivfunktionen",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Producerande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som skapat den SIP som levereras till e-arkivet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "producer_individual",
+			"type": "input",
+			"defaultValue": "Jan Jansson, 08-12 34 56, jan.jansson@fm.se",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Producerande organisations kontaktperson"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Kontaktperson hos producerande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "submitter_organization",
+			"type": "input",
+			"defaultValue": "Förslagsmyndigheten, servicefunktionen",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Avsändande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som är avsändare till den SIP som levereras till e-arkivet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "submitter_individual",
+			"type": "input",
+			"defaultValue": "Karl Karlsson, 08-12 34 56, karl.karlsson@fm.se",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Avsändande organisations kontaktperson"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Kontaktperson hos avsändande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "ipowner",
+			"type": "input",
+			"defaultValue": "Förslagsmyndigheten, Juridikavdelningen",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Informationsägande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som är informationsägare till informationen ingående i den levererade SIP:en",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "preservation_organization",
+			"type": "input",
+			"defaultValue": "Arkivverket",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Mottagande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som är mottagare av SIP:en",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "systemname",
+			"type": "input",
+			"defaultValue": "W3D3",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Källsystem"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på det system ur vilket överföringens filer är exporterade",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "systemversion",
+			"type": "input",
+			"defaultValue": "5.0.34",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Källsystem version"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Version för det system ur vilket överföringens filer är exporterade",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "systemtype",
+			"type": "input",
+			"defaultValue": "Noark 5",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Systemtyp"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Den systemtyp som informationspaketet tillhör",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "SUBMISSIONAGREEMENT",
+			"type": "input",
+			"defaultValue": "_OSA_NAME",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Leveransöverenskommelse"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse mellan arkivbildande och bevarande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "SUBMISSIONAGREEMENT_SPECIFIED",
+			"type": "input",
+			"defaultValue": "_SA_NAME",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Leveransöverenskommelse specificerad"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse specificerad med angivna förutsättningar",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification" : {
+		"-name": "mets",
+		"-namespace": "mets",
+		"-nsmap": {
+			"mets": "http://www.loc.gov/METS/",
+			"xsi": "http://www.w3.org/2001/XMLSchema-instance",
+			"xlink": "http://www.w3.org/1999/xlink"
+		},
+		"-schemasToPreserve": ["http://xml.essarch.org/METS/version10/SubmitDescription.xsd"],
+		"-schemaPreservationLocation": "xsd_files",
+		"-attr": [
+			{
+				"-name": "schemaLocation",
+				"-namespace": "xsi",
+				"-req": true,
+				"#content": [{"text": "http://www.loc.gov/METS/ http://xml.essarch.org/METS/version10/SubmitDescription.xsd"}]
+			},
+			{
+				"-name": "PROFILE",
+				"-req": true,
+				"#content": [{"text": "http://xml.ra.se/e-arkiv/METS/version12/CommonSpecificationSwedenPackageProfile.xml"}]
+			},
+			{
+				"-name": "ID",
+				"-req": false,
+				"#content": [{"text": "ID"},{"var": "_UUID"}]
+			},
+			{
+				"-name": "OBJID",
+				"-req": true,
+				"#content": [{"text": "UUID:"},{"var": "_OBJID"}]
+			},
+			{
+				"-name": "LABEL",
+				"-req": false,
+				"#content": [{"var": "_OBJLABEL"}]
+			},
+			{
+				"-name": "TYPE",
+				"-req": true,
+				"#content": [{"text": "SIP"}]
+			}
+		],
+		"-children": [
+			{
+				"-name": "metsHdr",
+				"-namespace": "mets",
+				"-attr": [
+					{
+						"-name": "CREATEDATE",
+						"-req": true,
+						"#content": [{"var": "_IP_CREATEDATE"}]
+					}
+				],
+				"-children": [
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-foreach": "_AGENTS",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": true,
+								"#content": [{"var": "_AGENTS_ROLE"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": true,
+								"#content": [{"var": "_AGENTS_TYPE"}]
+							},
+							{
+								"-name": "OTHERROLE",
+								"-req": false,
+								"#content": [{"var": "_AGENTS_OTHERROLE"}]
+							},
+							{
+								"-name": "OTHERTYPE",
+								"-req": false,
+								"#content": [{"var": "_AGENTS_OTHERTYPE"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": true,
+								"#content": [{"var": "_AGENTS_NAME"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": true,
+								"-foreach": "_AGENTS_NOTES",
+								"#content": [{"var": "_AGENTS_NOTE"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "CREATOR"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "creator"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERROLE",
+								"-req": false,
+								"#content": [{"text": "PRODUCER"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "producer_organization"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERROLE",
+								"-req": false,
+								"#content": [{"text": "PRODUCER"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "INDIVIDUAL"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "producer_individual"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERROLE",
+								"-req": false,
+								"#content": [{"text": "SUBMITTER"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "submitter_organization"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERROLE",
+								"-req": false,
+								"#content": [{"text": "SUBMITTER"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "INDIVIDUAL"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "submitter_individual"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "IPOWNER"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "ipowner"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "PRESERVATION"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "preservation_organization"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": false,
+								"#content": [{"text": "ARCHIVIST"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERTYPE",
+								"-req": false,
+								"#content": [{"text": "SOFTWARE"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "systemname"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "systemversion"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "systemtype"}]
+							}
+						]
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "SUBMISSIONAGREEMENT"}]
+							}
+						],
+						"#content": [{"var": "_SA_ID"}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_TRANSFER_PROJECT"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_TRANSFER_PROJECT_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_SUBMIT_DESCRIPTION"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_SUBMIT_DESCRIPTION_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_SIP"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_SIP_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_AIP"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_AIP_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_DIP"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_DIP_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_CONTENT_TYPE"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_CONTENT_TYPE_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_AUTHORITY_INFORMATION"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_AUTHORITY_INFORMATION_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_ARCHIVAL_DESCRIPTION"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_ARCHIVAL_DESCRIPTION_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_PRESERVATION_METADATA"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_PRESERVATION_METADATA_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_DATA_SELECTION"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_DATA_SELECTION_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_IMPORT"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_IMPORT_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "PROFILE_WORKFLOW"}]
+							}
+						],
+						"#content": [{"text": "ESSARCH_"},{"var": "_PROFILE_WORKFLOW_ID","hide_content_if_missing": true}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "STARTDATE"}]
+							}
+						],
+						"#content": [{"var": "start_date"}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "ENDDATE"}]
+							}
+						],
+						"#content": [{"var": "end_date"}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "POLICYID"}]
+							}
+						],
+						"#content": [{ "var": "_POLICYID"}],
+						"-children": []
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"-req": false,
+								"#content": [{"text": "POLICYNAME"}]
+							}
+						],
+						"#content": [{ "var": "_POLICYNAME"}],
+						"-children": []
+					},
+					{
+						"-namespace": "mets",
+						"-name": "metsDocumentID",
+						"-hideEmptyContent": true,
+						"-req": false,
+						"-attr": [],
+						"#content": [{"var": "_XML_FILENAME"}],
+						"-children": []
+					}
+				]
+			},
+			{
+				"-attr": [
+					{
+						"-name": "ID",
+						"-req": false,
+						"#content": [{"text": "ID"},{"var": "_UUID"}]
+					}
+				],
+				"-name": "fileSec",
+				"-namespace": "mets",
+				"-children": [
+					{
+						"-attr": [
+							{
+								"-name": "ID",
+								"-req": false,
+								"#content": [{"text": "ID"},{"var": "_UUID"}]
+							},
+							{
+								"-name": "USE",
+								"-req": false,
+								"#content": [{"var": "Files"}]
+							}
+						],
+						"-name": "fileGrp",
+						"-namespace": "mets",
+						"-children": [
+							{
+								"-containsFiles": true,
+								"-filters": {"href":"^(?!.*(metadata/premis.xml|metadata/administrative/premis.xml)).*$"},
+								"-attr": [
+									{
+										"-name": "ID",
+										"-req": true,
+										"#content": [{"text": "ID"},{"var": "FID"}]
+									},
+									{
+										"-name": "MIMETYPE",
+										"-req": true,
+										"#content": [{"var": "FMimetype"}]
+									},
+									{
+										"-name": "SIZE",
+										"-req": true,
+										"#content": [{"var": "FSize"}]
+									},
+									{
+										"-name": "USE",
+										"-req": false,
+										"#content": [{"var": "FUse"}]
+									},
+									{
+										"-name": "CREATED",
+										"-req": true,
+										"#content": [{"var": "FCreated"}]
+									},
+									{
+										"-name": "CHECKSUM",
+										"-req": false,
+										"#content": [{"var": "FChecksum"}]
+									},
+									{
+										"-name": "CHECKSUMTYPE",
+										"-req": false,
+										"#content": [{"var": "FChecksumType"}]
+									}
+								],
+								"-name": "file",
+								"-namespace": "mets",
+								"-children": [
+									{
+										"-name": "FLocat",
+										"-namespace": "mets",
+										"-attr": [
+											{
+												"-name": "LOCTYPE",
+												"-req": true,
+												"#content": [{"text": "URL"}]
+											},
+											{
+												"-name": "href",
+												"-namespace": "xlink",
+												"-req": true,
+												"#content": [{"text": "file:///"},{"var": "href"}]
+											},
+											{
+												"-name": "type",
+												"-namespace": "xlink",
+												"-req": true,
+												"#content": [{"text": "simple"}]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"-name": "structMap",
+				"-namespace": "mets",
+				"-children": [
+					{
+						"-name": "div",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "LABEL",
+								"-req": false,
+								"#content": [{"text": "Package"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "div",
+								"-namespace": "mets",
+								"-allowEmpty": true,
+								"-attr": [
+									{
+										"-name": "LABEL",
+										"-req": false,
+										"#content": [{"text": "Datafiles"}]
+									}
+								],
+								"-children": [
+									{
+										"-name": "fptr",
+										"-namespace": "mets",
+										"-containsFiles": true,
+										"-attr": [
+											{
+												"-name": "FILEID",
+												"-req": false,
+												"#content": [{"text": "ID"},{"var": "FID"}]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

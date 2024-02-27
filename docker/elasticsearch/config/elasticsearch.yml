@@ -12,3 +12,8 @@ discovery.type: single-node
 
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/disk-allocator.html
 cluster.routing.allocation.disk.threshold_enabled: false
+
+http.cors.allow-origin: '*'
+http.cors.enabled: true
+http.cors.allow-headers: '*'
+http.cors.allow-credentials: true

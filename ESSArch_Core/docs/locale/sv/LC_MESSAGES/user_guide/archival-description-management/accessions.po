@@ -1,0 +1,386 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2022, ES Solutions
+# This file is distributed under the same license as the ESSArch package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2022.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ESSArch nightly-12-gbc60d415-dirty\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-10-12 21:44+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.10.3\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Language: sv\n"
+"X-Source-Language: C\n"
+
+#: ../../user_guide/archival-description-management/accessions.rst:3
+msgid "Accession Records"
+msgstr "Leveransliggare/Accessionshantering"
+
+#: ../../user_guide/archival-description-management/accessions.rst:5
+msgid ""
+"Accession records store information about the receipt of materials to the "
+"archive. Accession records tell you what material that was received, who it "
+"was received from, when it was received, and what resource(s)/collection(s) "
+"the material will be dispersed into. ESSArchs accession management is "
+"designed to be used with different levels of complexity when describing "
+"accessions ranging from a simple logging of events to transfer management "
+"with linking to resource(s)/collection(s)."
+msgstr ""
+"Accessionsposter lagrar information om mottagandet av material till arkivet "
+"och dokumenterar vilke material som tagits emot, från vem det togs emot "
+"ifrån och när. ESSarchs leverans- och accessionshantering är designad för "
+"att kunna användas på olika sätt och med olika komplexitet från en enkel "
+"loggning av händelser till hantering av fler överföringar inom samma "
+"leverans med länkningt till det levererade materialet."
+
+#: ../../user_guide/archival-description-management/accessions.rst:10
+msgid "Adding new accession records"
+msgstr "Lägg till en ny accession/leverans"
+
+#: ../../user_guide/archival-description-management/accessions.rst:12
+msgid ""
+"Accession records are located under the accession tab in ESSArchs archival "
+"description section."
+msgstr ""
+"Leveranshanteringen nås genom att klicka på \"Leveransfilken\" i ESSArcs "
+"arkivredovisningssektion."
+
+msgid "Accessions overview"
+msgstr "Leveransöversikt"
+
+#: ../../user_guide/archival-description-management/accessions.rst:20
+msgid "Basic accession information"
+msgstr "Grundläggande information om leveransen"
+
+#: ../../user_guide/archival-description-management/accessions.rst:22
+msgid ""
+"The Basic Information section of an ESSArch accession record helps "
+"archivists document the new acquisitions and also record key details about "
+"the nature and scope of materials. ESSArch will automatically generate a "
+"numeric identifier when a new accession is created; it is an automatic "
+"increment of 1. This identifier, which is the Accession ID, is used to track "
+"accessions and is also employed in preservation workflows."
+msgstr ""
+"Den grundläggande informationen om en leverans är till för att dokumentera "
+"vissa nyckel värden om leveransen så som innehållet av leveransen. ESSArch "
+"skapar automatiskt ett numeriskt accessionsnummer för leveransen som "
+"inkrementeras med 1 för varje ny leverans."
+
+msgid "Accession basic information modal"
+msgstr "Leveransfomulär med grundläggande information"
+
+#: ../../user_guide/archival-description-management/accessions.rst:31
+msgid "Field"
+msgstr "Fält"
+
+#: ../../user_guide/archival-description-management/accessions.rst:31
+#: ../../user_guide/archival-description-management/accessions.rst:37
+msgid "Description"
+msgstr "Beskrivning"
+
+#: ../../user_guide/archival-description-management/accessions.rst:33
+msgid "Name"
+msgstr "Namn"
+
+#: ../../user_guide/archival-description-management/accessions.rst:33
+msgid "The name of the accession"
+msgstr "Leveransens namn/titel"
+
+#: ../../user_guide/archival-description-management/accessions.rst:35
+msgid "Acquisition Type"
+msgstr "Typ av leverans"
+
+#: ../../user_guide/archival-description-management/accessions.rst:35
+msgid ""
+"A general term for the means by which Archives came to have custody of the "
+"accessioned materials."
+msgstr ""
+"Beskriver på vilket sätt arkivet har fått arkivet i sin vård. t.ex. genom en "
+"gåva eller deposition."
+
+#: ../../user_guide/archival-description-management/accessions.rst:37
+msgid ""
+"A description of the materials contained within the accession. Can include "
+"information about physical condition, inventory, disposition and provenance "
+"etc."
+msgstr ""
+"En beskrivning av materialet som levereras. Kan inkludera information om "
+"fysiskt skick, inventarielistor m.m."
+
+#: ../../user_guide/archival-description-management/accessions.rst:39
+msgid "Producer organization"
+msgstr "Arkivbildare"
+
+#: ../../user_guide/archival-description-management/accessions.rst:39
+msgid ""
+"Links to an authority record that is responsible in some way for the "
+"accession's creation or custody transfer to the archive."
+msgstr ""
+"Kopplar en auktoritetspost(arkivbildare) som på något sätt har med "
+"leveransen att göra. Antingen som arkivbildare eller som ansvarig för "
+"överföringen till arkivet."
+
+#: ../../user_guide/archival-description-management/accessions.rst:41
+msgid "Submission agreement"
+msgstr "Leveransöverenskommelse"
+
+#: ../../user_guide/archival-description-management/accessions.rst:41
+msgid ""
+"Link to a specific submission agreement that regulates the custody transfer "
+"to the archive"
+msgstr ""
+"Koppling till en specifik leveransöverenskommelse som reglerar överföringen "
+"till arkivet"
+
+#: ../../user_guide/archival-description-management/accessions.rst:43
+msgid "Reference code"
+msgstr "Referenskod"
+
+#: ../../user_guide/archival-description-management/accessions.rst:43
+msgid "Can be used for external reference or as a custom accession number"
+msgstr "Referens till externt id t.ex. ett diarenummer"
+
+#: ../../user_guide/archival-description-management/accessions.rst:47
+msgid "Accession Events"
+msgstr "Leveranshändelser"
+
+#: ../../user_guide/archival-description-management/accessions.rst:49
+msgid ""
+"ESSArch utilizes provenance events for logging the accession process. The "
+"events follow the same syntax and logic as for the rest of ESSArch and can "
+"also be employed in preservation workflows. When a new accession record is "
+"added an registered event is automatically created."
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:59
+msgid "Adding events"
+msgstr "Lägg till händelser"
+
+#: ../../user_guide/archival-description-management/accessions.rst:60
+msgid ""
+"By clicking the add button new events can be appended to the accession record"
+msgstr ""
+"Klicka på \"Lägg till knappen\" för att lägga till nya händelser i leveransen"
+
+msgid "Create Accession events"
+msgstr "Skapa Leveranshändelser"
+
+#: ../../user_guide/archival-description-management/accessions.rst:68
+msgid "Event Types"
+msgstr "Händelsetyper"
+
+#: ../../user_guide/archival-description-management/accessions.rst:70
+msgid ""
+"The following event types is available from a standard installation of "
+"ESSArch. Event types can be edited and new types can be added through "
+"ESSArchs administration interface."
+msgstr ""
+"Följande händelsetyper finns tillgängliga i standardinstallationen av "
+"ESSarch Händelsetyperna namn är på engelska för att följa internationellt "
+"vedertagna vokabluär men det är möjligt att redigera eller lägga till nya "
+"typer genom ESSArchs adminstrationsgränssnitt."
+
+#: ../../user_guide/archival-description-management/accessions.rst:75
+msgid "Event"
+msgstr "Händelse"
+
+#: ../../user_guide/archival-description-management/accessions.rst:75
+msgid "Event Code"
+msgstr "Händelsekod"
+
+#: ../../user_guide/archival-description-management/accessions.rst:77
+msgid "Accession registered"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:77
+msgid "20300"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:79
+msgid "Delivery received"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:79
+msgid "20100"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:81
+msgid "Delivery registered in journal system"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:81
+msgid "20310"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:83
+msgid "Delivery registered in archival information system"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:83
+msgid "20320"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:85
+msgid "Delivery receipt sent"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:85
+msgid "20400"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:87
+msgid "Delivery ready for hand over"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:87
+msgid "20500"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:89
+msgid "Delivery transferred"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:89
+msgid "20600"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:91
+msgid "Delivery approved"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:91
+msgid "20700"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:93
+msgid "Delivery rejected"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:93
+msgid "20800"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:95
+msgid "Delivery checked"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:95
+msgid "20200"
+msgstr ""
+
+#: ../../user_guide/archival-description-management/accessions.rst:99
+msgid ""
+"Be careful when updating Event types! Some event types have dependecies to "
+"preservation workflows that might break if event codes are changed."
+msgstr ""
+"Var försiktig när du uppdaterar händelsetyper! Vissa händelsetyper har "
+"beroenden till bevarandeflöden som kan förstöras om koderna ändras."
+
+#: ../../user_guide/archival-description-management/accessions.rst:105
+msgid "Adding transfers"
+msgstr "Lägg till överföringar"
+
+#: ../../user_guide/archival-description-management/accessions.rst:107
+msgid ""
+"Accession records can also include information about physical transfer of "
+"material to the archive. Transfers are sub records to an accession records "
+"which holds their own set of events. This is very useful for keeping track "
+"of acquisition that have multiple transfer sessions or from different "
+"actors. e.g. a digital registry might be transfered at one point in time by "
+"one actor (service provider), the physical records described by the registry "
+"might be located, and hence transfered by yet another actor."
+msgstr ""
+"Leveranser kan ocksp inkludera information om fysiska överföringar till "
+"arkivet. Överföringar är en undernivå till leveranser som kan ha sina egna "
+"händelser. Detta är användbart för att hålla reda på leveranser som har "
+"flera överföringar från olika håll. T.ex. kan ett digitalt register "
+"levereras vid ett tillfälle medan de fysiska handlingarna som är "
+"registrerade kan levereras vid ett annat tillfälle men hänga ihop i en och "
+"samma leveransärende."
+
+msgid "Accessions transfer tab"
+msgstr "Överföringsflik"
+
+#: ../../user_guide/archival-description-management/accessions.rst:119
+msgid ""
+"To add a new accession record hit the add button and fill in the basic "
+"information, there is also optional fields for recording information about "
+"the submitter (Organization/Individual)."
+msgstr ""
+"För att lägga till en ny överföring klicka på \"Lägg till knappen\" och fyll "
+"i den grundläggande informationen. Det finns även en uppsättning med valfria "
+"fält som kan användas för att dokumentera information om den levererande "
+"organisationen."
+
+#: ../../user_guide/archival-description-management/accessions.rst:127
+msgid ""
+"After the creation of the transfer record, transfer specific events can be "
+"created to track the transfer process."
+msgstr ""
+"När överföringen är skapad kan nya händelser läggas till för att spåra "
+"överföringsprocessen."
+
+msgid "Transfer record overview"
+msgstr "Översikt av en överföring"
+
+#: ../../user_guide/archival-description-management/accessions.rst:134
+msgid ""
+"An overview of all events both the ones that refer to the accession record "
+"it self and all transfer records, is available under the event tab"
+msgstr ""
+"En översikt av alla händelser både de som avser leveransen som helhet och de "
+"individuella överföringarna finns tillgänglig under händelsefliken"
+
+msgid "Event tab overview"
+msgstr "Översikt av händelseflik"
+
+#: ../../user_guide/archival-description-management/accessions.rst:142
+msgid "Linking resources"
+msgstr "Länka resurser"
+
+#: ../../user_guide/archival-description-management/accessions.rst:144
+msgid ""
+"The linking of materials to a specific transfer is managed through Archival "
+"descriptions and is done either by selecting multiple containers in the "
+"archival description tree and clicking the shortcut button \"Link to "
+"transfer\"."
+msgstr ""
+"Länkning av material i arkivredovisningen till en specifik överföring görs "
+"genom att antingen välja flera volymer (eller andra noder) i "
+"redovsiningsträdet och därefter klicka på \"Koppla till överföring\"."
+
+msgid "Transfer checkbox selection i tree"
+msgstr "Kryssruta för att välja överföring i redovisningsträdet"
+
+#: ../../user_guide/archival-description-management/accessions.rst:152
+msgid ""
+"The Linking can also be done by right clicking a container in the tree and "
+"select \"Link to transfer\""
+msgstr ""
+"Länkning kan också göras direkt från redovisningsträdet genom att "
+"högerklicka på en nod(volym) och välja \"Lägg till i överföring\""
+
+msgid "Right click to select transfer"
+msgstr "Högerklicka för att välja överföring"
+
+#: ../../user_guide/archival-description-management/accessions.rst:159
+msgid "Select the desired accession and transfer records and click \"save\""
+msgstr ""
+"Välj den önskade leverans/accessionsposten samt överföringen och klicka på "
+"\"Spara\""
+
+msgid "Transfer link modal"
+msgstr "Överföring länkningsformulär"
+
+#: ../../user_guide/archival-description-management/accessions.rst:166
+msgid "The linked containers are now accessible from the transfer record."
+msgstr ""
+"De länkade noderna (volymer) listas nu under den aktuella överföringen."

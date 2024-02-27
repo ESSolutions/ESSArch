@@ -84,6 +84,7 @@ from ESSArch_Core.tags.serializers import (
     TransferSerializer,
 )
 from ESSArch_Core.util import mptt_to_dict
+from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
@@ -237,7 +238,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureSerializer
     permission_classes = (ActionPermissions,)
     filter_backends = (DjangoFilterBackend, OrderingFilterWithNulls, SearchFilter,)
-    filter_class = StructureFilter
+    filterset_class = StructureFilter
     ordering_fields = ('name', 'create_date', 'version', 'type', 'published_date',)
     search_fields = ('=id', 'name',)
     ordering = ('-create_date',)
@@ -260,11 +261,22 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.published:
             raise exceptions.ParseError(_('{} is already published').format(obj))
 
-        try:
-            obj.publish()
-        except AssertionError:
-            raise exceptions.ParseError(_('Can only publish latest version'))
-        return Response()
+        if obj.is_new_version():
+            try:
+                obj.is_compatible_with_last_version()
+            except AssertionError:
+                raise exceptions.ParseError(_('Structure is not compatible with latest publish version'))
+
+        t = ProcessTask.objects.create(
+            name='ESSArch_Core.tags.tasks.PublishStructure',
+            params={
+                'structure_id': obj.id
+            },
+            eager=False,
+            responsible=request.user,
+        )
+        t.run()
+        return Response({"detail": "Publish structure", "task": t.pk}, status=status.HTTP_202_ACCEPTED)
 
     @transaction.atomic
     @permission_required_or_403('tags.unpublish_structure')
@@ -315,10 +327,10 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             'structure_unit_relations_a',
         ).annotate(
             tag_leaf_node=~Exists(
-                TagVersion.objects.filter(
+                TagVersion.objects.for_user(request.user, None).filter(
                     tag__structures__structure=OuterRef('structure'),
                     tag__structures__structure_unit=OuterRef('pk'),
-                ).for_user(request.user),
+                ),
             )
         )
         root_nodes = cache_tree_children(qs)
@@ -328,6 +340,15 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             dicts.append(mptt_to_dict(n, StructureUnitSerializer, context=context))
 
         return Response(dicts)
+
+    @action(detail=True, methods=['get'])
+    def instancestree(self, request, pk=None):
+        obj = self.get_object()
+        qs = obj.instances.all()
+        root_nodes = qs
+        context = self.get_serializer_context()
+
+        return Response(StructureSerializer(root_nodes, many=True, context=context).data)
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
@@ -357,7 +378,7 @@ class StructureUnitViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     serializer_class = StructureUnitSerializer
     permission_classes = (AddStructureUnit, ChangeStructureUnit, DeleteStructureUnit,)
     filter_backends = (DjangoFilterBackend, SearchFilter,)
-    filter_class = StructureUnitFilter
+    filterset_class = StructureUnitFilter
     search_fields = ('name',)
 
     def get_queryset(self):
@@ -521,7 +542,7 @@ class TagViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
             structure = self.request.query_params.get('structure')
             qs = ancestor.get_descendants(structure)
 
-        return qs.distinct()
+        return qs
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')
@@ -636,7 +657,7 @@ class TagInformationPackagesViewSet(NestedViewSetMixin, InformationPackageViewSe
         return queryset.filter(
             Q(tags__in=leaves) | Q(information_packages__tags__in=leaves) |
             Q(aic__information_packages__tags__in=leaves)
-        ).distinct()
+        )
 
 
 @method_decorator(feature_enabled_or_404('archival descriptions'), name='initial')

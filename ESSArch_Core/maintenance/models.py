@@ -290,7 +290,7 @@ class AppraisalJob(MaintenanceJob):
         delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
         tmpdir = Path.objects.get(entity='temp').value
 
-        for ip in ips.iterator():
+        for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage
@@ -382,7 +382,7 @@ class AppraisalJob(MaintenanceJob):
             tags__appraisal_jobs=self,
             tags__current_version__elastic_index='document',
         ).distinct()
-        for ip in document_tag_ips.iterator():
+        for ip in document_tag_ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage
@@ -456,8 +456,9 @@ def preserve_new_generation(new_ip):
         premis_profile_data = new_ip.get_profile_data('preservation_metadata')
         data = fill_specification_data(premis_profile_data, ip=new_ip)
         premis_path = parseContent(new_ip.get_premis_file_path(), data)
+        full_premis_path = os.path.join(new_ip.object_path, premis_path)
         try:
-            os.remove(premis_path)
+            os.remove(full_premis_path)
         except FileNotFoundError:
             pass
 
@@ -490,13 +491,8 @@ def preserve_new_generation(new_ip):
                     ]
                 },
                 {
-                    "name": "ESSArch_Core.ip.tasks.GeneratePremis",
-                    "if": generate_premis,
-                    "label": "Generate premis",
-                },
-                {
-                    "name": "ESSArch_Core.ip.tasks.GenerateContentMets",
-                    "label": "Generate content-mets",
+                    "name": "ESSArch_Core.ip.tasks.GenerateContentMetadata",
+                    "label": "Generate contentmetadata",
                 },
             ]
         },
@@ -624,7 +620,7 @@ class ConversionJob(MaintenanceJob):
         ips = self.information_packages
         tmpdir = Path.objects.get(entity='temp').value
 
-        for ip in ips.iterator():
+        for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
             if storage_obj is None:
                 raise NoReadableStorage

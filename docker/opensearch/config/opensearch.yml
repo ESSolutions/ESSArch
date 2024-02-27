@@ -1,0 +1,56 @@
+cluster.name: 'docker-cluster'
+network.host: 0.0.0.0
+
+# minimum_master_nodes need to be explicitly set when bound on a public IP
+# set to 1 to allow single node clusters
+# Details: https://github.com/elastic/elasticsearch/pull/17288
+discovery.zen.minimum_master_nodes: 1
+
+## Use single node discovery in order to disable production mode and avoid bootstrap checks
+## see https://www.elastic.co/guide/en/elasticsearch/reference/current/bootstrap-checks.html
+discovery.type: single-node
+
+# https://www.elastic.co/guide/en/elasticsearch/reference/current/disk-allocator.html
+cluster.routing.allocation.disk.threshold_enabled: false
+
+http.cors.allow-origin: '*'
+http.cors.enabled: true
+http.cors.allow-headers: '*'
+http.cors.allow-credentials: true
+
+######## Start OpenSearch Security Demo Configuration ########
+# WARNING: revise all the lines below before you go into production
+plugins.security.disabled: false
+plugins.security.ssl.transport.pemcert_filepath: node-ess.pem
+plugins.security.ssl.transport.pemkey_filepath: node-ess-key.pem
+plugins.security.ssl.transport.pemtrustedcas_filepath: root-ess-ca.pem
+plugins.security.ssl.transport.enforce_hostname_verification: false
+plugins.security.ssl.http.enabled: false
+plugins.security.ssl.http.pemcert_filepath: node-ess.pem
+plugins.security.ssl.http.pemkey_filepath: node-ess-key.pem
+plugins.security.ssl.http.pemtrustedcas_filepath: root-ess-ca.pem
+plugins.security.allow_unsafe_democertificates: true
+plugins.security.allow_default_init_securityindex: true
+plugins.security.authcz.admin_dn:
+  - CN=opensearch,OU=client,O=client,L=test, C=SE
+
+plugins.security.audit.type: internal_opensearch
+plugins.security.enable_snapshot_restore_privilege: true
+plugins.security.check_snapshot_restore_write_privileges: true
+plugins.security.restapi.roles_enabled: ['all_access', 'security_rest_api_access']
+plugins.security.system_indices.enabled: true
+plugins.security.system_indices.indices:
+  [
+    '.opendistro-alerting-config',
+    '.opendistro-alerting-alert*',
+    '.opendistro-anomaly-results*',
+    '.opendistro-anomaly-detector*',
+    '.opendistro-anomaly-checkpoints',
+    '.opendistro-anomaly-detection-state',
+    '.opendistro-reports-*',
+    '.opendistro-notifications-*',
+    '.opendistro-notebooks',
+    '.opendistro-asynchronous-search-response*',
+    '.replication-metadata-store',
+  ]
+######## End OpenSearch Security Demo Configuration ########

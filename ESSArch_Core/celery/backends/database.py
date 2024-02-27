@@ -17,6 +17,7 @@ from django.utils.translation import gettext as _
 from kombu.utils.encoding import from_utf8
 
 from ESSArch_Core.auth.models import Notification
+from ESSArch_Core.db.utils import check_db_connection
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 
@@ -26,6 +27,7 @@ class DatabaseBackend(BaseDictBackend):
     def _store_result(self, task_id, result, status,
                       traceback=None, request=None, using=None):
         """Store return value and status of an executed task."""
+        check_db_connection()
 
         if traceback is None:
             traceback = ''
@@ -70,6 +72,7 @@ class DatabaseBackend(BaseDictBackend):
         return result
 
     def update_state(self, task_id, meta, status, request=None):
+        check_db_connection()
         if meta is not None:
             progress = (meta['current'] / meta['total']) * 100
         else:
@@ -83,6 +86,7 @@ class DatabaseBackend(BaseDictBackend):
         return status
 
     def _get_task_meta_for(self, task_id):
+        check_db_connection()
         try:
             obj = ProcessTask.objects.get(celery_id=task_id)
         except ProcessTask.DoesNotExist:

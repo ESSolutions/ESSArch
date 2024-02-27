@@ -13,6 +13,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       PROGRESS: 'Progress',
       TRANSFERS: 'Transfers',
       UPLOAD: 'Upload',
+      UPLOADCONTENT: 'Upload content',
       UPLOADED: 'Uploaded',
       UPLOAD_COMPLETE: 'Upload complete',
     },

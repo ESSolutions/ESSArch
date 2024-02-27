@@ -598,38 +598,6 @@ API endpoint that allows node note types to be viewed or edited
 .. http:post:: /api/node-note-types/
 
 
-Node Relation Type
-------------------
-
-API endpoint that allows node relation types to be viewed or edited
-
-.. http:get:: /api/node-relation-types/
-
-..  http:example:: curl
-
-   GET /api/node-relation-types/ HTTP/1.1
-   Host: localhost
-   Accept: application/json
-   Authorization: Basic YWRtaW46YWRtaW4=
-
-
-   HTTP/1.1 200 OK
-   Content-Type: application/json
-
-    [
-        {
-            "id": 1,
-            "name": "ingår i"
-        },
-        {
-            "id": 2,
-            "name": "här i även"
-        }
-    ]
-
-.. http:post:: /api/node-relation-types/
-
-
 Node Identifier Type
 --------------------
 
@@ -658,40 +626,6 @@ API endpoint that allows node identifier types to be viewed or edited
 
 .. http:post:: /api/node-identifier-types/
 
-Node Note Type
---------------
-
-API endpoint that allows node note types to be viewed or edited
-
-.. http:get:: /api/node-note-types/
-
-..  http:example:: curl
-
-   GET /api/node-note-types/ HTTP/1.1
-   Host: localhost
-   Accept: application/json
-   Authorization: Basic YWRtaW46YWRtaW4=
-
-
-   HTTP/1.1 200 OK
-   Content-Type: application/json
-
-    [
-        {
-            "id": 1,
-            "name": "historik"
-        },
-        {
-            "id": 2,
-            "name": "administrativ anmärkning"
-        },
-        {
-            "id": 3,
-            "name": "allmän anmärkning"
-        }
-    ]
-
-.. http:post:: /api/node-note-types/
 
 Structures
 ----------

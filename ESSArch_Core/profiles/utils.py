@@ -1,4 +1,3 @@
-import collections
 import os
 from collections.abc import Mapping
 from pathlib import PurePath
@@ -29,6 +28,8 @@ profile_types = [
 ]
 
 lowercase_profile_types = [x.lower().replace(' ', '_') for x in profile_types]
+lowercase_profile_types_no_action_workflow = [
+    x.lower().replace(' ', '_') for x in profile_types if x.lower().replace(' ', '_') != "action_workflow"]
 
 
 class LazyDict(Mapping):
@@ -80,7 +81,7 @@ def _remove_leading_underscores(d):
 
     for k, v in d.items():
         new_key = k.lstrip('_')
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, Mapping):
             new_mapping[new_key] = _remove_leading_underscores(v)
         else:
             new_mapping[new_key] = v
@@ -92,6 +93,7 @@ def _fill_sa_specification_data(sa):
     return {
         '_SA_ID': str(sa.pk),
         '_SA_NAME': sa.name,
+        '_OSA_NAME': sa.overall_submission_agreement,
         '_IP_ARCHIVIST_ORGANIZATION': sa.archivist_organization,
     }
 
@@ -128,6 +130,20 @@ def _get_agents(ip):
         agents[agent_key] = agent
 
     return agents
+
+
+def _get_sip_altrecordids(ip):
+    sip_altrecordids = {}
+    try:
+        for k, v in ip.get_profile_data('AIP')['SIP_ALTRECORDIDS'].items():
+            sip_altrecordids[k] = {
+                '_SIP_ALTRECORDIDS_TYPE': k,
+                '_SIP_ALTRECORDIDS_VALUE': v[0]
+            }
+    except KeyError:
+        pass
+
+    return sip_altrecordids
 
 
 def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
@@ -179,7 +195,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
         data['_CONTENT_METS_DIGEST'] = ip.content_mets_digest
 
-        data['_PACKAGE_METS_PATH'] = ip.package_mets_path
+        data['_PACKAGE_METS_PATH'] = os.path.join(os.path.dirname(ip.object_path), ip.package_mets_path)
         data['_PACKAGE_METS_CREATE_DATE'] = ip.package_mets_create_date
         data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
@@ -190,7 +206,8 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_TEMP_AIC_METS_PATH'] = (ip.get_temp_container_aic_xml_path,) if ip.aic else None
 
         if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
-            data['_PREMIS_PATH'] = (ip.get_premis_file_path,)
+            data['_PREMIS_PATH'] = os.path.join(ip.object_path, ip.get_premis_file_path()
+                                                ) if ip.get_premis_file_path() else None
             data['allow_unknown_file_types'] = (ip.get_allow_unknown_file_types,)
 
         data['_IP_CONTAINER_FORMAT'] = (ip.get_container_format,)
@@ -200,7 +217,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
             data['_POLICYUUID'] = ip.policy.pk
             data['_POLICYID'] = ip.policy.policy_id
             data['_POLICYNAME'] = ip.policy.policy_name
-            data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
+            if ip.policy.ingest_path:
+                data['POLICY_INGEST_PATH'] = ip.policy.ingest_path.value
+            else:
+                data['POLICY_INGEST_PATH'] = ''
         else:
             try:
                 transfer_project_data = ip.get_profile_data('transfer_project')
@@ -211,6 +231,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
                 pass
 
         data['_AGENTS'] = (_get_agents, ip,)
+        data['_SIP_ALTRECORDIDS'] = _get_sip_altrecordids(ip)
 
         profile_ids = zip(
             lowercase_profile_types,
@@ -220,10 +241,10 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         for (profile_type, key) in profile_ids:
             data[key] = (_get_profile_id_by_type, profile_type, ip)
 
-    for p in Parameter.objects.iterator():
+    for p in Parameter.objects.iterator(chunk_size=1000):
         data['_PARAMETER_%s' % p.entity.upper()] = p.value
 
-    for p in Path.objects.iterator():
+    for p in Path.objects.iterator(chunk_size=1000):
         data['_PATH_%s' % p.entity.upper()] = p.value
 
     return data

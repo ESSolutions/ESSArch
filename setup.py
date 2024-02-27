@@ -18,14 +18,15 @@
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 
     Contact information:
-    Web - http://www.essolutions.se
+    Web - https://www.essolutions.se
     Email - essarch@essolutions.se
 """
 
 import os
 
-import versioneer
 from setuptools import find_packages, setup
+
+import versioneer
 
 
 def get_requirements(env):
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         long_description_content_type='text/markdown',
         author='Henrik Ek',
         author_email='henrik@essolutions.se',
-        url='http://www.essolutions.se',
+        url='https://www.essolutions.se',
         entry_points={
             'console_scripts': [
                 'essarch = ESSArch_Core.cli.main:cli',
@@ -63,7 +64,7 @@ if __name__ == '__main__':
             ],
         },
         project_urls={
-            'Documentation': 'http://docs.essarch.org/',
+            'Documentation': 'https://docs.essarch.org/',
             'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versions_dict['full-revisionid'],
             'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
         },
@@ -81,12 +82,16 @@ if __name__ == '__main__':
         extras_require={
             "docs": get_requirements('docs'),
             "tests": get_requirements('tests'),
+            "dev": get_requirements('dev'),
+            "lint": get_requirements('lint'),
+            "optional": get_requirements('optional'),
             "ldap": [get_optional("django-auth-ldap")],
-            "saml2": [get_optional("djangosaml2")],
+            "saml2": [get_optional("djangosaml2"), get_optional("pysaml2")],
             "libreoffice_file_conversion": [get_optional("unoconv")],
             "ms_office_file_conversion": [get_optional("comtypes")],
             "iis": [get_optional("wfastcgi")],
-            "mssql": [get_optional("django-mssql-backend")],
+            "apache": [get_optional("mod-wsgi")],
+            "mssql": [get_optional("mssql-django")],
             "mysql": [get_optional("mysqlclient")],
             "postgres": [get_optional("psycopg2")],
             "logstash": [get_optional("python-logstash-async")],

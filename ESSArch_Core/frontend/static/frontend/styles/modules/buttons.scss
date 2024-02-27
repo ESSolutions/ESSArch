@@ -1,12 +1,14 @@
+@use 'sass:color';
+
 .btn-dark {
-  background-color: darken($header-color, 5%);
+  background-color: color.adjust($header-color, $lightness: -5%);
   color: white;
-  border-color: darken($header-color, 7%);
+  border-color: color.adjust($header-color, $lightness: -7%);
   &:hover,
   &:focus {
     color: white;
-    border-color: darken($header-color, 6%);
-    background-color: darken($header-color, 4%);
+    border-color: color.adjust($header-color, $lightness: -6%);
+    background-color: color.adjust($header-color, $lightness: -4%);
   }
   outline: 0;
 }

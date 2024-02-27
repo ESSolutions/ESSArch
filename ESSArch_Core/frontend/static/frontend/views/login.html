@@ -9,10 +9,10 @@
           <div ng-if="auth_services.length > 0">
             <div class="auth-services-container">
               <a
-                ng-if="auth_services.includes('adfs')"
+                ng-if="auth_services.includes('sso')"
                 href="/saml2/login/"
-                class="login-service-button login-service-adfs"
-                ><i class="fab fa-windows" aria-hidden="true"></i> ADFS</a
+                class="login-service-button login-service-sso"
+                ><i aria-hidden="true"></i>{{ "SSO" | translate }}</a
               >
             </div>
             <div class="or-container">

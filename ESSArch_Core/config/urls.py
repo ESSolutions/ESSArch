@@ -1,12 +1,10 @@
 from django.conf import settings
-from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.urls import path
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from django.urls import include, path, re_path
+from django.views.generic.base import RedirectView
 
+from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
     AgentIdentifierTypeViewSet,
     AgentNameTypeViewSet,
@@ -144,6 +142,14 @@ router.register(r'agents', AgentViewSet).register(
     basename='agent-archives',
     parents_query_lookups=['agent']
 )
+router.register(r'access-aids', AccessAidViewSet)
+router.register(r'access-aids', AccessAidViewSet).register(
+    r'structure-units',
+    StructureUnitViewSet,
+    basename='access-aids-structure-units',
+    parents_query_lookups=['access_aids'],
+)
+router.register(r'access-aid-types', AccessAidTypeViewSet)
 router.register(r'agent-types', AgentTypeViewSet)
 router.register(r'agent-identifier-types', AgentIdentifierTypeViewSet)
 router.register(r'agent-name-types', AgentNameTypeViewSet)
@@ -188,6 +194,12 @@ router.register(r'structures', StructureViewSet).register(
     StructureUnitViewSet,
     basename='structure-units',
     parents_query_lookups=['structure']
+)
+router.register(r'structure-units', StructureUnitViewSet).register(
+    r'access-aids',
+    AccessAidViewSet,
+    basename='structure-unit-access-aids',
+    parents_query_lookups=['structure_units'],
 )
 router.register(r'structure-units', StructureUnitViewSet).register(
     r'transfers',
@@ -387,7 +399,7 @@ router.register(r'robots', ProcessStepViewSet, basename='robots').register(
     r'queue',
     RobotQueueViewSet,
     basename='robots-queue',
-    parents_query_lookups=['robot']
+    parents_query_lookups=['robot_id']
 )
 router.register(r'robot-queue', RobotQueueViewSet)
 
@@ -395,13 +407,13 @@ router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-slots',
     TapeSlotViewSet,
     basename='robots-tapeslots',
-    parents_query_lookups=['tape_slots']
+    parents_query_lookups=['robot_id']
 )
 router.register(r'robots', RobotViewSet, basename='robots').register(
     r'tape-drives',
     TapeDriveViewSet,
     basename='robots-tapedrives',
-    parents_query_lookups=['tape_drives']
+    parents_query_lookups=['robot_id']
 )
 
 router.register(r'ip-reception', InformationPackageReceptionViewSet, basename="ip-reception")
@@ -414,14 +426,14 @@ router.register(r'search', ComponentSearchViewSet, basename='search').register(
 )
 
 urlpatterns = [
-    url(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
-    url(r'^admin/', admin.site.urls),
-    url(r'^api/auth/', include('ESSArch_Core.auth.urls')),
-    url(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    url(r'^api/site/', SiteView.as_view(), name='configuration-site'),
-    url(r'^api/stats/$', stats, name='stats'),
-    url(r'^api/stats/export/$', export_stats, name='stats-export'),
-    url(
+    re_path(r'^', include('ESSArch_Core.frontend.urls'), name='home'),
+    re_path(r'^admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url='/static/frontend/favicon.ico')),
+    re_path(r'^api/auth/', include('ESSArch_Core.auth.urls')),
+    re_path(r'^api/site/', SiteView.as_view(), name='configuration-site'),
+    re_path(r'^api/stats/$', stats, name='stats'),
+    re_path(r'^api/stats/export/$', export_stats, name='stats-export'),
+    re_path(
         r'^api/storage-migrations-preview/$',
         StorageMigrationPreviewView.as_view(),
         name='storage-migrations-preview',
@@ -431,20 +443,23 @@ urlpatterns = [
         StorageMigrationPreviewDetailView.as_view(),
         name='storage-migrations-preview-detail',
     ),
-    url(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
-    url(r'^api/me/$', MeView.as_view(), name='me'),
-    url(r'^api/', include(router.urls)),
-    url(r'^rest-framework/', include('rest_framework.urls', namespace='rest_framework')),
-    url(
+    re_path(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
+    re_path(r'^api/me/$', MeView.as_view(), name='me'),
+    re_path(r'^api/', include(router.urls)),
+    re_path(r'^rest-framework/', include('rest_framework.urls', namespace='rest_framework')),
+    re_path(
         r'^api/submission-agreement-template/$',
         SubmissionAgreementTemplateView.as_view(),
         name='profiles-submission-agreement-template',
     ),
-    url(r'^docs/', include('ESSArch_Core.docs.urls')),
-    url(r'^template/', include('ESSArch_Core.essxml.ProfileMaker.urls')),
+    re_path(r'^docs/', include('ESSArch_Core.docs.urls')),
+    re_path(r'^template/', include('ESSArch_Core.essxml.ProfileMaker.urls')),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
-    urlpatterns.append(url(r'^saml2/', include('djangosaml2.urls')))
+if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False) or \
+        getattr(settings, 'ENABLE_SAML2_METADATA', False):
+    from djangosaml2.views import EchoAttributesView
+    urlpatterns.append(re_path(r'^saml2/', include('djangosaml2.urls')))
+    urlpatterns.append(re_path(r'^saml2test/', EchoAttributesView.as_view()))

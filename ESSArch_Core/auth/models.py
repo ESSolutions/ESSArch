@@ -22,12 +22,20 @@
     Email - essarch@essolutions.se
 """
 
+import logging
+
 from django.apps import apps
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group as DjangoGroup, Permission
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import (
+    FieldDoesNotExist,
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+)
 from django.db import models, transaction
+from django.db.models.query import QuerySet
 from django.utils.translation import gettext_lazy as _
 from groups_manager import exceptions_gm
 from groups_manager.models import (
@@ -42,50 +50,130 @@ from picklefield.fields import PickledObjectField
 from relativity.mptt import MPTTDescendants
 
 DjangoUser = get_user_model()
+logger = logging.getLogger('essarch.auth')
 
 
-class GroupGenericObjects(models.Model):
-    group = models.ForeignKey('essauth.Group', on_delete=models.CASCADE)
+class BaseGenericObjects(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=255)
     content_object = GenericForeignKey()
 
-    def get_related_ip_objs(self):
-        from ESSArch_Core.ip.models import InformationPackage
-        ip_objs = []
-        ctype = ContentType.objects.get_for_model(InformationPackage)
-        for gg_ip in GroupGenericObjects.objects.filter(group=self.group, content_type=ctype):
-            ip_objs.append(InformationPackage.objects.get(id=gg_ip.object_id))
-        return ip_objs
-
-    def get_related_tv_objs(self):
-        from ESSArch_Core.tags.models import TagVersion
-        tv_objs = []
-        ctype = ContentType.objects.get_for_model(TagVersion)
-        for gg_tv in GroupGenericObjects.objects.filter(group=self.group, content_type=ctype):
-            tv_objs.append(TagVersion.objects.get(id=gg_tv.object_id))
-        return tv_objs
-
     class Meta:
-        unique_together = ['group', 'object_id', 'content_type']
+        abstract = True
         indexes = [
             models.Index(fields=['content_type', 'object_id']),
         ]
 
 
+class GroupObjectsManager(models.Manager):
+
+    def is_generic(self):
+        try:
+            self.model._meta.get_field('object_id')
+            # logger.debug('GroupObjects {} is using GenericForeignKey'.format(self.model._meta.object_name))
+            return True
+        except FieldDoesNotExist:
+            # logger.debug('GroupObjects {} is using direct ForeignKey'.format(self.model._meta.object_name))
+            return False
+
+    def get_objects_for_group(self, group):
+        objs = []
+        if self.model.objects.is_generic():
+            ctype = ContentType.objects.get_for_model(getattr(group, 'model', group))
+            for go_obj in self.model.objects.filter(group=group, content_type=ctype):
+                objs.append(go_obj.content_object)
+        else:
+            for go_obj in self.model.objects.filter(group=group):
+                objs.append(go_obj.content_object)
+        return objs
+
+    def get_organization(self, obj, list=False):
+        if self.model.objects.is_generic():
+            ctype = ContentType.objects.get_for_model(getattr(obj, 'model', obj))
+            if list:
+                return self.model.objects.filter(object_id=obj.pk, content_type=ctype)
+            else:
+                return self.model.objects.get(object_id=obj.pk, content_type=ctype)
+        else:
+            if list:
+                return self.model.objects.filter(content_object_id=obj.pk)
+            else:
+                return self.model.objects.get(content_object_id=obj.pk)
+
+    def change_organization(self, obj, organization, force=False):
+        if organization.group_type.codename != 'organization':
+            raise ValueError('{} is not an organization'.format(organization))
+        if isinstance(obj, list) or isinstance(obj, QuerySet):
+            obj_list = obj
+        else:
+            obj_list = [obj]
+        if self.model.objects.is_generic():
+            # obj_list = list(obj_list)
+            # logger.debug('Change org to {} for "generic" objs: {}'.format(organization, obj_list))
+            ctype = ContentType.objects.get_for_model(getattr(obj, 'model', obj))
+            for obj in obj_list:
+                self.model.objects.update_or_create(object_id=obj.pk, content_type=ctype,
+                                                    defaults={'group': organization})
+        else:
+            # obj_list = list(obj_list)
+            # logger.debug('Change org to {} for "direct" objs: {}'.format(organization, obj_list))
+            for obj in obj_list:
+                try:
+                    go_obj = self.model.objects.get(content_object_id=obj.pk)
+                    go_obj.group = organization
+                    go_obj.save()
+                except ObjectDoesNotExist:
+                    # message_info = 'GroupObjects for {} {} does not exists for organization: {}'.format(
+                    #                                           obj._meta.model_name, obj, organization)
+                    # logger.warning(message_info)
+                    if force:
+                        self.model.objects.create(content_object=obj, group=organization)
+                except MultipleObjectsReturned as e:
+                    go_objs = self.get_organization(obj, list=True)
+                    group_list = [x.group for x in go_objs]
+                    message_info = 'Expected one GroupObjects for {} {} but got multiple go_objs \
+with folowing groups: {}'.format(obj._meta.model_name, obj, group_list)
+                    logger.warning(message_info)
+                    if force:
+                        logger.warning('Change organiztion with force to {} for {} {}'.format(
+                            organization, obj._meta.model_name, obj))
+                        go_objs.delete()
+                        self.model.objects.create(content_object=obj, group=organization)
+                    else:
+                        raise e
+
+
+class GroupObjectsBase(models.Model):
+    """
+    **Manager**: :manager:`GroupObjectPermissionManager`
+    """
+    group = models.ForeignKey('essauth.Group', on_delete=models.CASCADE)
+
+    objects = GroupObjectsManager()
+
+    class Meta:
+        abstract = True
+        unique_together = ['group', 'content_object']
+
+
+class GroupObjectsAbstract(GroupObjectsBase, BaseGenericObjects):
+
+    class Meta(GroupObjectsBase.Meta, BaseGenericObjects.Meta):
+        abstract = True
+        unique_together = ['group', 'object_id']
+
+
+class GroupGenericObjects(GroupObjectsAbstract):
+
+    class Meta(GroupObjectsAbstract.Meta):
+        abstract = False
+
+
 class GroupMemberRole(GroupMemberRoleMixin):
-    codename = models.CharField(_('name'), unique=True, max_length=255)
-    label = models.SlugField(_('label'), blank=True, max_length=255)
+    label = models.CharField(_('name'), max_length=255)
     permissions = models.ManyToManyField(Permission, related_name='roles', blank=True, verbose_name=_('permissions'))
     external_id = models.CharField(_('external id'), max_length=255, blank=True, unique=True, null=True)
-
-    def __str__(self):
-        return self.label
-
-    def save(self, *args, **kwargs):
-        if not self.label:
-            self.label = self.codename
-        super().save(*args, **kwargs)
+    codename = models.SlugField(_('codename'), unique=True, blank=True, max_length=255)
 
     class Meta:
         verbose_name = _('role')
@@ -211,7 +299,7 @@ class Group(GroupMixin):
         return apps.get_model('essauth', 'GroupMember')
 
     @property
-    def subgroups(self):
+    def sub_groups_manager_group_set(self):
         return self.sub_essauth_group_set
 
     def get_users(self, subgroups=True):
@@ -225,13 +313,28 @@ class Group(GroupMixin):
     def add_object(self, obj):
         if self.group_type is None or self.group_type.codename != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
-        obj_content_type = ContentType.objects.get_for_model(obj)
-        return GroupGenericObjects.objects.get_or_create(group=self, content_type=obj_content_type, object_id=obj.pk)
+        from ESSArch_Core.auth.util import get_group_objs_model
+        group_objs_model = get_group_objs_model(obj)
+        kwargs = {'group': self}
+        if group_objs_model.objects.is_generic():
+            ctype = ContentType.objects.get_for_model(obj)
+            kwargs['content_type'] = ctype
+            kwargs['object_id'] = obj.pk
+        else:
+            kwargs['content_object'] = obj
+        return group_objs_model.objects.get_or_create(**kwargs)
 
     def remove_object(self, obj):
         if self.group_type is None or self.group_type.codename != 'organization':
             raise ValueError('objects cannot be added to non-organization groups')
-        return GroupGenericObjects.objects.filter(group=self, content_object=obj).delete()
+        from ESSArch_Core.auth.util import get_group_objs_model
+        group_objs_model = get_group_objs_model(obj)
+        kwargs = {'group': self}
+        if group_objs_model.objects.is_generic():
+            kwargs['object_id'] = obj.pk
+        else:
+            kwargs['content_object'] = obj
+        return group_objs_model.objects.filter(**kwargs).delete()
 
     def add_user(self, user, roles=None, expiration_date=None):
         """Add a user to the group.

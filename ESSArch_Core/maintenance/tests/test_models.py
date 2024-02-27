@@ -168,8 +168,9 @@ class MaintenanceJobRunTests(TestCase):
 
     def remove_deny_write_permission_acl_on_win_for_file(self, path):
         if os.name == 'nt':
-            import win32security as w32
             import getpass
+
+            import win32security as w32
 
             w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
 
@@ -193,9 +194,10 @@ class MaintenanceJobRunTests(TestCase):
 
     def remove_write_access_rights_win(self, path):
         if os.name == 'nt':
-            import win32security as w32
-            import ntsecuritycon as con
             import getpass
+
+            import ntsecuritycon as con
+            import win32security as w32
 
             w_user, _, _ = w32.LookupAccountName("", getpass.getuser())
 

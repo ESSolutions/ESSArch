@@ -24,6 +24,7 @@
 
 import logging
 import os
+import shutil
 import tarfile
 from os import walk
 from pathlib import PurePath
@@ -35,6 +36,7 @@ from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext
 from django_redis import get_redis_connection
 from lxml import etree
 from tenacity import (
@@ -91,6 +93,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True)
@@ -196,6 +199,7 @@ def CreateTAR(self, dirname=None, tarname=None, compress=False):
     compression = ':gz' if compress else ''
     base_dir = os.path.basename(os.path.normpath(dirname))
     with tarfile.open(tarname, 'w%s' % compression) as new_tar:
+        new_tar.format = settings.TARFILE_FORMAT
         new_tar.add(dirname, base_dir)
 
     self.set_progress(100, total=100)
@@ -259,8 +263,8 @@ def ValidateWorkarea(self, workarea, validators, stop_at_failure=True):
 
         if errcount:
             Notification.objects.create(
-                message='Validation of "{ip}" failed with {errcount} error(s)'.format(
-                    ip=ip.object_identifier_value, errcount=errcount
+                message=gettext('Validation of "{ip}" failed with {errcount} error(s)').format(
+                    ip=ip, errcount=errcount
                 ),
                 level=logging.ERROR,
                 user_id=self.responsible,
@@ -268,8 +272,8 @@ def ValidateWorkarea(self, workarea, validators, stop_at_failure=True):
             )
         else:
             Notification.objects.create(
-                message='"{ip}" was successfully validated'.format(
-                    ip=ip.object_identifier_value
+                message=gettext('"{ip}" was successfully validated').format(
+                    ip=ip
                 ),
                 level=logging.INFO,
                 user_id=self.responsible,
@@ -370,12 +374,10 @@ def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, 
     ip = InformationPackage.objects.get(pk=self.ip)
     validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
                                    task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
-    validator.validate(path)
+    msg = validator.validate(path)
 
-    msg = "Successfully validated logical and physical structure of {path} against {xml}".format(
-        path=path, xml=xmlfile
-    )
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='validation', event_type=50240)
@@ -426,6 +428,7 @@ def CompareRepresentationXMLFiles(self):
             options={
                 'rootdir': os.path.join(representations_dir, rep_path),
                 'representation': rep_path,
+                'recursive': False,
             },
             task=self.get_processtask(),
             ip=self.ip,
@@ -441,15 +444,35 @@ def CompareRepresentationXMLFiles(self):
 @transaction.atomic
 def UpdateIPStatus(self, status, prev=None):
     status, = self.parse_params(status)
-    ip = InformationPackage.objects.get(pk=self.ip)
+    try:
+        ip = InformationPackage.objects.get(pk=self.ip)
+    except InformationPackage.DoesNotExist:
+        msg = 'exception in UpdateIPStatus for task_id: {}, step_id: {}, DoesNotExist when get ip: {} - return'.format(
+            self.task_id, self.step, self.ip)
+        logger.warning(msg)
+
+        return msg
     if prev is None:
         t = self.get_processtask()
         t.params['prev'] = ip.state
         t.save()
     ip.state = status
     ip.save()
-    Notification.objects.create(message='{} {}'.format(status.capitalize(), ip.object_identifier_value),
-                                level=logging.INFO, user_id=self.responsible, refresh=True)
+    ip_state_dict = {'Creating': gettext('Creating'),
+                     'Created': gettext('Created'),
+                     'Transforming': gettext('Transforming'),
+                     'Transformed': gettext('Transformed'),
+                     'Submitting': gettext('Submitting'),
+                     'Submitted': gettext('Submitted'),
+                     'Receiving': gettext('Receiving'),
+                     'Received': gettext('Received'),
+                     'Preserving': gettext('Preserving'),
+                     }
+    Notification.objects.create(message='{} {}'.format(
+        ip_state_dict.get(status.capitalize(), status.capitalize()),
+        ip,
+    ),
+        level=logging.INFO, user_id=self.responsible, refresh=True)
 
     msg = "Updated status of {} to {}".format(ip.object_identifier_value, status)
     self.create_success_event(msg)
@@ -459,6 +482,8 @@ def UpdateIPStatus(self, status, prev=None):
 @transaction.atomic
 def UpdateIPPath(self, path, prev=None):
     path, = self.parse_params(path)
+    if path is None:
+        path = ''
     ip = InformationPackage.objects.get(pk=self.ip)
     if prev is None:
         t = self.get_processtask()
@@ -489,9 +514,9 @@ def UpdateIPSizeAndCount(self):
 
 
 @app.task(bind=True, event_type=50710)
-def DeleteFiles(self, path):
+def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
     path, = self.parse_params(path)
-    delete_path(path)
+    delete_path(path, remote_host=remote_host, remote_credentials=remote_credentials, task=self.get_processtask())
 
     msg = "Deleted %s" % path
     self.create_success_event(msg)
@@ -512,6 +537,15 @@ def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SI
     copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
+    self.create_success_event(msg)
+
+
+@app.task(bind=True)
+def MoveDir(self, src, dst):
+    src, dst = self.parse_params(src, dst)
+    shutil.move(src, dst)
+
+    msg = "Moved %s to %s" % (src, dst)
     self.create_success_event(msg)
 
 
@@ -576,7 +610,7 @@ def DownloadFile(self, src=None, dst=None):
                 f.write(chunk)
 
 
-@app.task(bind=True, queue='robot', event_type=40200)
+@app.task(bind=True, queue='io_tape', event_type=40200)
 def MountTape(self, medium_id, drive_id=None, timeout=120):
     if drive_id is None:
         drive = TapeDrive.objects.filter(
@@ -591,7 +625,7 @@ def MountTape(self, medium_id, drive_id=None, timeout=120):
     mount_tape_medium_into_drive(drive_id, medium_id, timeout)
 
 
-@app.task(bind=True, queue='robot', event_type=40100)
+@app.task(bind=True, queue='io_tape', event_type=40100)
 def UnmountTape(self, drive_id):
     return unmount_tape_from_drive(drive_id)
 
@@ -691,7 +725,7 @@ def SetTapeFileNumber(self, medium=None, num=0):
     return set_tape_file_number(drive.device, num)
 
 
-@app.task(bind=True)
+@app.task(bind=True, queue='robot')
 def RobotInventory(self, robot):
     """
     Updates the slots and drives in the robot
@@ -763,7 +797,7 @@ def RunWorkflowPollers(self):
                         continue
                     raise
 
-                yield create_workflow(spec['tasks'], ip=ip, name=spec.get('name', ''),
+                yield create_workflow(spec['tasks'], ip=ip, name=profile.label,
                                       on_error=spec.get('on_error'), context=context)
 
     self.logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')

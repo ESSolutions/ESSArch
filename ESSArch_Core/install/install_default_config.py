@@ -40,7 +40,15 @@ from elasticsearch_dsl.connections import get_connection  # noqa isort:skip
 
 from ESSArch_Core.search import alias_migration  # noqa isort:skip
 from ESSArch_Core.auth.models import Group, GroupMemberRole  # noqa isort:skip
-from ESSArch_Core.configuration.models import EventType, Feature, Parameter, Path, Site, StoragePolicy  # noqa isort:skip
+from ESSArch_Core.configuration.models import (  # noqa isort:skip
+    EventType,
+    Feature,
+    Parameter,
+    Path,
+    Site,
+    StoragePolicy,
+    MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
+)
 from ESSArch_Core.storage.models import (  # noqa isort:skip
     DISK,
     StorageMedium,
@@ -244,20 +252,21 @@ def installDefaultUsers():
     #
 
     try:
-        role_user = GroupMemberRole.objects.get(Q(codename='User') | Q(codename='user'))
+        role_user = GroupMemberRole.objects.get(Q(label='User') | Q(label='user'))
         click.secho("-> role 'User' or 'user' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'User' or 'user' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'User'")
-        role_user, _ = GroupMemberRole.objects.get_or_create(codename='User')
+        role_user, _ = GroupMemberRole.objects.get_or_create(label='User')
         permission_list_user = [
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
             ['set_uploaded', 'ip', 'informationpackage'],  # Can set IP as uploaded
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['view_workarea', 'ip', 'workarea'],  # Can view workarea
             ['view_order', 'ip', 'order'],  # Can view order
             ['view_ordertype', 'ip', 'ordertype'],  # Can view order type
@@ -309,19 +318,20 @@ def installDefaultUsers():
             role_user.permissions.add(p_obj)
 
     try:
-        role_producer = GroupMemberRole.objects.get(codename='Producer')
+        role_producer = GroupMemberRole.objects.get(Q(label='Producer') | Q(label='producer'))
         click.secho("-> role 'Producer' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Producer'")
-        role_producer, _ = GroupMemberRole.objects.get_or_create(codename='Producer')
+        role_producer, _ = GroupMemberRole.objects.get_or_create(label='Producer')
         permission_list_user = [
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['see_other_user_ip_files', 'ip', 'informationpackage'],  # Can see files in other users IPs
             ['add_eventip', 'ip', 'eventip'],  # Can add Events related to IP
             ['change_profileip', 'profiles', 'profileip'],  # Can change profile ip
@@ -337,11 +347,11 @@ def installDefaultUsers():
             role_producer.permissions.add(p_obj)
 
     try:
-        role_submitter = GroupMemberRole.objects.get(codename='Submitter')
+        role_submitter = GroupMemberRole.objects.get(Q(label='Submitter') | Q(label='submitter'))
         click.secho("-> role 'Submitter' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Submitter'")
-        role_submitter, _ = GroupMemberRole.objects.get_or_create(codename='Submitter')
+        role_submitter, _ = GroupMemberRole.objects.get_or_create(label='Submitter')
         permission_list_user = [
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
@@ -357,16 +367,17 @@ def installDefaultUsers():
             role_submitter.permissions.add(p_obj)
 
     try:
-        role_delivery_manager = GroupMemberRole.objects.get(codename='Delivery Manager')
+        role_delivery_manager = GroupMemberRole.objects.get(label='Delivery Manager')
         click.secho("-> role 'Delivery Manager' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Delivery Manager'")
-        role_delivery_manager, _ = GroupMemberRole.objects.get_or_create(codename='Delivery Manager')
+        role_delivery_manager, _ = GroupMemberRole.objects.get_or_create(label='Delivery Manager')
         permission_list_user = [
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
+            ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP
             ['transfer_sip', 'ip', 'informationpackage'],  # Can transfer SIP
@@ -377,7 +388,7 @@ def installDefaultUsers():
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
-            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
             ['delete_first_generation', 'ip', 'informationpackage'],  # Can delete first generation of IP
             ['delete_last_generation', 'ip', 'informationpackage'],  # Can delete last generation of IP
             ['see_other_user_ip_files', 'ip', 'informationpackage'],  # Can see files in other users IPs
@@ -395,11 +406,11 @@ def installDefaultUsers():
             role_delivery_manager.permissions.add(p_obj)
 
     try:
-        role_archivist = GroupMemberRole.objects.get(codename='Archivist')
+        role_archivist = GroupMemberRole.objects.get(Q(label='Archivist') | Q(label='archivist'))
         click.secho("-> role 'Archivist' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Archivist'")
-        role_archivist, _ = GroupMemberRole.objects.get_or_create(codename='Archivist')
+        role_archivist, _ = GroupMemberRole.objects.get_or_create(label='Archivist')
         permission_list_user = [
             ['view_agent', 'agents', 'agent'],  # Can view agent
             ['view_agentfunction', 'agents', 'agentfunction'],  # Can view agent function
@@ -429,10 +440,14 @@ def installDefaultUsers():
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
             ['receive', 'ip', 'informationpackage'],  # Can receive IP
             ['preserve', 'ip', 'informationpackage'],  # Can preserve IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
+            ['prepare_dip', 'ip', 'informationpackage'],  # Can prepare DIP
             ['preserve_dip', 'ip', 'informationpackage'],  # Can preserve DIP
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
+            ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
+            ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -532,13 +547,14 @@ def installDefaultUsers():
             role_archivist.permissions.add(p_obj)
 
     try:
-        role_administrator = GroupMemberRole.objects.get(Q(codename='Administrator') | Q(codename='admin'))
+        role_administrator = GroupMemberRole.objects.get(
+            Q(label='Administrator') | Q(label='administrator') | Q(label='admin'))
         click.secho("-> role 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'Administrator' or 'admin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'Administrator'")
-        role_administrator, _ = GroupMemberRole.objects.get_or_create(codename='Administrator')
+        role_administrator, _ = GroupMemberRole.objects.get_or_create(label='Administrator')
         permission_list_user = [
             ['add_agent', 'agents', 'agent'],  # Can add agent
             ['change_agent', 'agents', 'agent'],  # Can change agent
@@ -628,10 +644,14 @@ def installDefaultUsers():
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
             ['receive', 'ip', 'informationpackage'],  # Can receive IP
             ['preserve', 'ip', 'informationpackage'],  # Can preserve IP
+            ['prepare_ip', 'ip', 'informationpackage'],  # Can prepare IP "backend"
+            ['prepare_dip', 'ip', 'informationpackage'],  # Can prepare DIP
             ['preserve_dip', 'ip', 'informationpackage'],  # Can preserve DIP
             ['get_from_storage', 'ip', 'informationpackage'],  # Can get extracted IP from storage
             ['get_tar_from_storage', 'ip', 'informationpackage'],  # Can get packaged IP from storage
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
+            ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
+            ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -846,13 +866,13 @@ def installDefaultUsers():
 
     try:
         role_system_administrator = GroupMemberRole.objects.get(
-            Q(codename='System Administrator') | Q(codename='sysadmin'))
+            Q(label='System Administrator') | Q(label='sysadmin'))
         click.secho("-> role 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.MultipleObjectsReturned:
         click.secho("-> multiple roles exists for 'System Administrator' or 'sysadmin' already exist", fg='red')
     except GroupMemberRole.DoesNotExist:
         click.echo("-> installing role 'System Administrator'")
-        role_system_administrator, _ = GroupMemberRole.objects.get_or_create(codename='System Administrator')
+        role_system_administrator, _ = GroupMemberRole.objects.get_or_create(label='System Administrator')
         permission_list_user = [
             ['add_emailaddress', 'account', 'emailaddress'],  # Can add email address
             ['change_emailaddress', 'account', 'emailaddress'],  # Can change email address
@@ -1047,7 +1067,7 @@ def installDefaultUsers():
     except User.DoesNotExist:
         click.echo("-> installing user 'superuser'")
         user_superuser, created = User.objects.get_or_create(
-            first_name='superuser', last_name='Lastname',
+            first_name='Superuser', last_name='Lastname',
             username='superuser', email='superuser@essolutions.se',
         )
         if created:
@@ -1137,7 +1157,7 @@ def installDefaultStoragePolicies():
     policy, created_policy = StoragePolicy.objects.get_or_create(
         policy_id='1',
         defaults={
-            'checksum_algorithm': StoragePolicy.MD5,
+            'checksum_algorithm': MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['MD5'],
             'policy_name': 'default',
             'cache_storage': cache_method, 'ingest_path': ingest,
             'receive_extract_sip': True,

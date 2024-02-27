@@ -108,7 +108,7 @@ export default class ArchiveModalInstanceCtrl {
       return $http({
         url: appConfig.djangoUrl + 'structures/',
         mathod: 'GET',
-        params: {page: 1, page_size: 10, search: search, is_template: true, published: true, latest_version: true},
+        params: {page: 1, page_size: 10, search: search, is_template: true, published: true},
       }).then(function (response) {
         StructureName.parseStructureNames(response.data);
         $ctrl.options.structures = response.data;
@@ -302,11 +302,7 @@ export default class ArchiveModalInstanceCtrl {
       }
       $ctrl.saving = true;
       const extraDiff = {};
-      if (
-        data.archive &&
-        data.archive.structures &&
-        data.archive.structures.length !== $ctrl.archive.structures.length
-      ) {
+      if (data.archive && data.archive.structures && $ctrl.archive.structures.length) {
         extraDiff.structures = $ctrl.archive.structures;
       }
       Search.updateNode(

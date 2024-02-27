@@ -9,18 +9,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ESSArch Core 3.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-10-21 12:36+0200\n"
+"POT-Creation-Date: 2022-10-12 21:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.10.3\n"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:3
 msgid "Archival Descriptions"
-msgstr ""
+msgstr "Arkivbeskrivningar/Förteckningar"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:4
 #, python-format
@@ -35,11 +35,18 @@ msgid ""
 "separately from authority records in ESSArch and are associated by "
 "linking."
 msgstr ""
+"ESSArch stöd för arkivredovisning bygger på `ISAD (G), 2nd Edition "
+"<https://www.ica.org/sites/default/files/CBPS_2000_Guidelines_ISAD%28G "
+"%29_Second-edition_EN.pdf>`_  Arkivbeskrivningar/Förteckningar och "
+"auktoritetsposter upprättas var för sig i systemet och hålls samman genom"
+" länkning för att ge maximal flexibilitet vid beskrivning av relationer "
+"inom och mellan olika resurser och de auktoriteter som har eller haft en "
+"relation till resurserna så som arkivbildare, medskapare eller ägare."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:10
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:130
 msgid "Structures"
-msgstr ""
+msgstr "Strukurer"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:11
 msgid ""
@@ -49,6 +56,13 @@ msgid ""
 "classification system that can be represented as either a flat or a tree "
 "hierarchy structure."
 msgstr ""
+"Strukturer utgör grunden för organisering av resurser (arkiv/samlingar). "
+"ESSArch sätter inga begränsningar till vilka strukturer som kan byggas "
+"upp och användas så länge de kan representeras som flata eller nästlade "
+"trädstrukturer.Det går alltså lika bra att upprätta en "
+"klassificeringsstruktur utifrån verksamhetsbaserad arkivredovisning som "
+"en förteckningsplan baserad på Allmänna arkivschemat så väl som  "
+"strukturer anpassade för specialsamlingar."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:14
 msgid ""
@@ -57,34 +71,48 @@ msgid ""
 "edition_EN.pdf>`_ For a detailed crosswalk between ESSArch and ISDF "
 "please see the :ref:`ICA Standards <ICA_Standards>` section."
 msgstr ""
+"Strukturer i ESSArch bygger på standarden `ISDF 1st edition "
+"<https://www.ica.org/sites/default/files/CBPS_2007_Guidelines_ISDF_First-"
+"edition_EN.pdf>`_ Se även :ref:`ICA Standards <ICA_Standards>` För en "
+"detaljerad beskrivning av tillämpningen av ISDF."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:19
 msgid "Adding new structure types"
-msgstr ""
+msgstr "Lägg till nya strukturtyper"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:20
 msgid "New structure types are added through ESSArch's administration interface."
 msgstr ""
+"Nya strukturtyper kan läggas till genom ESSArch's "
+"administrationsgränssnitt"
+
+#, fuzzy
+msgid "Add structure type admin form"
+msgstr "Lägg till nya strukturtyper"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:28
 msgid "A structure type can be configured to either allow or disallow:"
 msgstr ""
+"Det är möjligt att sätta regler för strukturer så att de aningen tillåts "
+"eller förbjuds att: "
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:30
 msgid "Editable instances of a template"
-msgstr ""
+msgstr "Redigerbara instanser av en mall"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:31
 msgid "Editable relations (to other levels or structures) of a template"
 msgstr ""
+"Redigerbara relationer (till andra nivåer inom samma struktur eller till "
+"andra strukturer)"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:32
 msgid "Movable instance units (nodes in a tree) of a template"
-msgstr ""
+msgstr "Flyttbara strukturenheter/noder"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:35
 msgid "Adding new Structure Unit Types"
-msgstr ""
+msgstr "Lägg till strukturenhetsttyper"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:36
 msgid ""
@@ -92,96 +120,118 @@ msgid ""
 " given structure and are added to a structure type through ESSArch's "
 "administration interface."
 msgstr ""
+"En strukturs ingående delar kallas alla för strukturenheter oavsett "
+"vilken nivå de tillhör. Benämningen strukturenhet används också oavsett "
+"vilken struktur som avses. Det vill säga att strukturenhet som begrepp "
+"används oavsett om strukturen avser verksamhetsbaserad arkivredovisning "
+"eller redovisning utifrån annat system."
+
+msgid "Add structure unit type admin form"
+msgstr "Lägg till strukturenhetstyp"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:45
 msgid "two different structure types with example structure units (levels)."
 msgstr ""
+"Nedan ett exempel på två olika strukturer med olika typer av "
+"strukturenheter "
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:48
 msgid "**Structure Type**"
-msgstr ""
+msgstr "**Strukturtyp**"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:48
 msgid "**Structure Unit**"
-msgstr ""
+msgstr "**Strukturenhet**"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:50
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:52
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:54
 msgid "Business Classification Scheme"
-msgstr ""
+msgstr "Klassificeringsstruktur"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:50
 msgid "Transaction"
-msgstr ""
+msgstr "Verksamhetsområdet"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:52
 msgid "Activity"
-msgstr ""
+msgstr "Processgrupp"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:54
 msgid "Function"
-msgstr ""
+msgstr "Process"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:56
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:58
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:60
 msgid "Catalogue structure"
-msgstr ""
+msgstr "Allmänna arkivschemat"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:56
 msgid "Series"
-msgstr ""
+msgstr "Huvudavdelning"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:58
 msgid "Sub-series"
-msgstr ""
+msgstr "Underavdelning"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:60
 msgid "File"
-msgstr ""
+msgstr "Akt"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:64
 msgid "Adding new Structure"
-msgstr ""
+msgstr "Lägg till en ny struktur"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:65
 msgid ""
 "Structures (template) are administrated under the structure section of "
 "ESSArch."
-msgstr ""
+msgstr "Strukturer (mallar) administreras under menyn strukturer"
+
+#, fuzzy
+msgid "New structure modal"
+msgstr "Lägg till nya strukturenheter"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:72
 msgid "To add a new structure, click the new structure button ."
-msgstr ""
+msgstr "För att lägg till en ny struktur, klicka på knappen ny struktur"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:81
 msgid "Adding Structure units"
-msgstr ""
+msgstr "Lägg till strukturenheter"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:82
 msgid ""
 "Structure units are added to a structure by right clicking on a node in "
 "the tree."
 msgstr ""
+"Strukturenheter läggs till genom att högerklicka på strukturen eller på "
+"en annan strukturenhet i trädet."
+
+#, fuzzy
+msgid "Add structure unit"
+msgstr "Lägg till strukturenheter"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:92
 msgid "Adding relationships to other Structures / Structure units"
-msgstr ""
+msgstr "Upprätta relattioner mellan andra strukturer / strukturenheter"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:99
 msgid "Publish"
-msgstr ""
+msgstr "Publicera"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:100
 msgid ""
 "When a Structure has been published it becomes available for use through "
 "out ESSArch."
 msgstr ""
+"När en struktur är publicerad blir den tillgänglig för användning för "
+"användning av andra användare i systemet (med tillämplig behörighet)."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:104
 msgid "Top-level Resources"
-msgstr ""
+msgstr "Toppnoder"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:105
 msgid ""
@@ -189,6 +239,8 @@ msgid ""
 "Intellectually this can represent the archival descriptions on the fonds "
 "or collections level."
 msgstr ""
+"Samtliga resursers som beskrivs i ESSArch behöver ha en toppnod. En "
+"toppnod kan vara men är inte begränsat till Arkiv eller Samling"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:108
 msgid ""
@@ -197,10 +249,18 @@ msgid ""
 "whilst another has a need for distinguish different types of archives or "
 "collections."
 msgstr ""
+"Det finns inga begränsningar till hur många typer av toppnoder man kan "
+"använda i ESSArch. För en institution kan det vara fullt tillräckligt att"
+" bara använda en enda (Arkiv) medan andra har behov att göra åtskillnad "
+"mellan olika typer av arkiv eller samlingar. "
+
+#, fuzzy
+msgid "Add top-level resource"
+msgstr "Lägg till en ny toppnod"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:117
 msgid "Adding a new top-level resource"
-msgstr ""
+msgstr "Lägg till en ny toppnod"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:118
 msgid ""
@@ -209,32 +269,36 @@ msgid ""
 "template for the the top-level resource it self and underlying resource "
 "descriptions defined in the structure."
 msgstr ""
+"Under fliken Arkiv, klicka på \"Nytt Arkiv\"Från listan av tillgängliga "
+"strukturer väljs en eller flera strukturer som används som mall för "
+"toppnoden och de underliggande strukturenheterna som definerats för "
+"strukturen"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:127
 msgid ""
 "When initially creating an top-level resource record the following fields"
 " are required:"
-msgstr ""
+msgstr "Vid skapandet av en en ny toppnod är följande fält obligatoriska: "
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:129
 msgid "Name (ISAD-G Title)"
-msgstr ""
+msgstr "Namn (ISAD-G Title)"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:131
 msgid "Creator"
-msgstr ""
+msgstr "Arkivbildare"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:132
 msgid "Type"
-msgstr ""
+msgstr "Typ"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:133
 msgid "Reference code"
-msgstr ""
+msgstr "Referenskod"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:137
 msgid "Adding new structure units"
-msgstr ""
+msgstr "Lägg till nya strukturenheter"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:138
 msgid ""
@@ -242,16 +306,20 @@ msgid ""
 " given structure. If the user has the right permissions new structure "
 "units can be added to an instance (top-level resource) of a structure."
 msgstr ""
+"Användare med rätt behörighet kan lägga till strukturenheter till en "
+"instans (toppnod) av en struktur."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:141
 msgid ""
 "To add a new structure unit, right click on the tree node and select "
 "\"add structure unit\""
 msgstr ""
+"För att lägga till en ny strukturenhet så högerklicka på en strukturenhet"
+" i trädet och välj \"lägg till strukturenhet\""
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:155
 msgid "Adding nodes"
-msgstr ""
+msgstr "Lägga till noder"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:156
 msgid ""
@@ -260,86 +328,94 @@ msgid ""
 "information packages archival boxes, other containers as well as digital "
 "information packages (AIP) and items contained in these packages."
 msgstr ""
+"Noder kan beskrivas som något som har en fysisk representation inom en "
+"logisk struktur. Ofta något som kan flyttas t.ex. arkivboxar eller andra "
+"förvaringsenheter såväl som digital arkivpaket (AIP) och objekt som dessa"
+" förvaringsenheter innehåller så som fotografier eller andra handlingar."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:159
 msgid ""
 "Nodes are added under structure units by right clicking on a structure "
 "unit in the tree and select \"add node\"."
 msgstr ""
+"Noder läggs till under strukturenheter genom att högerklicka på "
+"respektive strukturenhet i trädet och välj \"lägg till nod\". "
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:168
 msgid ""
 "When a structure unit is selected in the tree, an overview of the "
 "contents is displayed."
-msgstr ""
+msgstr "När en strukturenhet väljs i trädet visas en översikt av dess innehåll."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:177
 msgid "Adding descriptive texts and notes"
-msgstr ""
+msgstr "Lägg till beskrivningar och anteckningar"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:178
 msgid ""
 "In ESSArch one can have multiple descriptive texts / notes for resource "
 "records"
-msgstr ""
+msgstr "Det är möjligt att lägga till flera beskrivningar och anteckningar."
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:180
 msgid "Standard type of notes that can be used in ESSArch:"
-msgstr ""
+msgstr "Fördefinerade typer:"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:182
 msgid "Archival history"
-msgstr ""
+msgstr "Historik"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:183
 msgid "Administrative / Biographical history"
-msgstr ""
+msgstr "Administrativ historik"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:184
 msgid "Immediate source of acquisition or transfer"
-msgstr ""
+msgstr "Källa"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:185
 msgid "Appraisal"
-msgstr ""
+msgstr "Värdering"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:186
 msgid "Destruction"
-msgstr ""
+msgstr "Gallring"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:187
 msgid "Scheduling"
-msgstr ""
+msgstr "Accessioner"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:188
 msgid "Accruals"
-msgstr ""
+msgstr "Leveranser"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:189
 msgid "System of arrangement"
-msgstr ""
+msgstr "Redovisningssätt"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:190
 msgid "Physical characteristics"
-msgstr ""
+msgstr "Fysiskt skick"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:191
 msgid "Finding aid"
-msgstr ""
+msgstr "Sökingångar"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:192
 msgid "Publication note"
-msgstr ""
+msgstr "Allmänn anmärkning"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:193
 msgid "Archivist's note"
-msgstr ""
+msgstr "Administrativ anmärkning"
 
 #: ../../user_guide/archival-description-management/archival-descriptions.rst:196
 msgid ""
 "To add a new descriptive text click on the History or Remarks tab and "
 "then the add button."
 msgstr ""
+"För att lägga till beskrivningar och anteckningar klicka på historik "
+"eller anmärkningaroch sedan lägg till"
 
 #~ msgid "Applying rules to a structures and structure units"
 #~ msgstr ""

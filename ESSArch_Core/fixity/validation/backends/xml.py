@@ -57,17 +57,18 @@ class DiffCheckValidator(BaseValidator):
                 logical_path = logical.path
             logical_path = win_to_posix(logical_path)
 
-            try:
-                self.initial_deleted[logical.checksum].append(logical_path)
-            except KeyError:
-                self.initial_deleted[logical.checksum] = [logical_path]
-            try:
-                self.initial_present[logical.checksum].append(logical_path)
-            except KeyError:
-                self.initial_present[logical.checksum] = [logical_path]
-            self.checksums[logical_path] = logical.checksum
-            self.checksum_algorithms[logical_path] = logical.checksum_type
-            self.sizes[logical_path] = logical.size
+            if logical_path not in self.exclude:
+                try:
+                    self.initial_deleted[logical.checksum].append(logical_path)
+                except KeyError:
+                    self.initial_deleted[logical.checksum] = [logical_path]
+                try:
+                    self.initial_present[logical.checksum].append(logical_path)
+                except KeyError:
+                    self.initial_present[logical.checksum] = [logical_path]
+                self.checksums[logical_path] = logical.checksum
+                self.checksum_algorithms[logical_path] = logical.checksum_type
+                self.sizes[logical_path] = logical.size
 
     def _reset_dicts(self):
         self.present = copy.deepcopy(self.initial_present)
@@ -124,31 +125,32 @@ class DiffCheckValidator(BaseValidator):
         newhash = self._get_checksum(filepath, relpath=relpath)
         newsize = self._get_size(filepath)
 
-        try:
-            self._pop_checksum_dict(self.deleted, newhash, relpath)
-        except (KeyError, ValueError):
-            pass
-
-        if newhash in self.present:
-            try:
-                self._pop_checksum_dict(self.present, newhash, relpath)
-            except ValueError:
-                self.present[newhash].append(relpath)
-                return
-        else:
+        if newhash not in self.present:
             self.present[newhash] = [relpath]
+        elif relpath not in self.present[newhash]:
+            self.present[newhash].append(relpath)
 
         if relpath not in self.checksums:
             return
 
         oldhash = self.checksums[relpath]
+        oldsize = self.sizes[relpath]
 
-        if oldhash is None:
+        if (oldhash is None and self.checksum_algorithms[relpath] is None) or oldhash == newhash:
+            if (oldsize is None or newsize is None or
+                    (oldsize is not None and newsize is not None and oldsize == newsize)):
+                if oldhash is None:
+                    self._pop_checksum_dict(self.deleted, None, relpath)
+                else:
+                    self._pop_checksum_dict(self.deleted, oldhash, relpath)
+            if oldhash is None:
+                self._pop_checksum_dict(self.present, None, relpath)
+            else:
+                self._pop_checksum_dict(self.present, oldhash, relpath)
+            if oldhash != newhash:
+                self._pop_checksum_dict(self.present, newhash, relpath)
+        elif (oldhash is None and self.checksum_algorithms[relpath]) or oldhash != newhash:
             self._pop_checksum_dict(self.deleted, oldhash, relpath)
-            self._pop_checksum_dict(self.present, oldhash, relpath)
-            self._pop_checksum_dict(self.present, newhash, relpath)
-        elif oldhash != newhash:
-            self.deleted.pop(oldhash, None)
             self.changed += 1
             msg = '{f} checksum has been changed: {old} != {new}'.format(f=relpath, old=oldhash, new=newhash)
             logger.error(msg)
@@ -156,9 +158,8 @@ class DiffCheckValidator(BaseValidator):
             self._pop_checksum_dict(self.present, newhash, relpath)
             return self._create_obj(relpath, False, msg)
 
-        oldsize = self.sizes[relpath]
         if oldsize is not None and newsize is not None and oldsize != newsize:
-            self.deleted.pop(oldhash, None)
+            self._pop_checksum_dict(self.deleted, oldhash, relpath)
             self.changed += 1
             msg = '{f} size has been changed: {old} != {new}'.format(f=relpath, old=oldsize, new=newsize)
             logger.error(msg)
@@ -238,7 +239,10 @@ class DiffCheckValidator(BaseValidator):
             logger.warning(msg)
             raise ValidationError(msg)
 
-        logger.info("Successful diff-check validation of {path} against {xml}".format(path=path, xml=self.context))
+        msg = "Successfully validated logical and physical structure of {path} against {xml}. \
+{cfmd} files confirmed.".format(path=path, xml=self.context, cfmd=self.confirmed)
+        logger.info(msg)
+        return msg
 
 
 class XMLComparisonValidator(DiffCheckValidator):

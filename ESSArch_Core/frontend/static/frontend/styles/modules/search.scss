@@ -334,10 +334,10 @@
     @include medium-screen-up {
       width: 50%;
       &:nth-child(odd) {
-        padding-right: $padding-base-horizontal !important;
+        padding-right: 12px !important;
       }
       &:nth-child(even) {
-        padding-left: $padding-base-horizontal !important;
+        padding-left: 12px !important;
       }
     }
   }

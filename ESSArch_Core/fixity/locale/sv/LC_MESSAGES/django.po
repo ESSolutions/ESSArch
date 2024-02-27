@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-03 15:51+0100\n"
+"POT-Creation-Date: 2023-06-02 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,34 +18,53 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: models.py:21
+#: fixity/models.py:36
 msgid "type"
 msgstr "typ"
 
-#: models.py:22
+#: fixity/models.py:37
 msgid "name"
 msgstr "namn"
 
-#: models.py:23
+#: fixity/models.py:38
+msgid "description"
+msgstr "beskrivning"
+
+#: fixity/models.py:39
 msgid "path"
 msgstr "sökväg"
 
-#: models.py:24
-msgid "command"
-msgstr "kommando"
+#: fixity/models.py:40
+msgid "options, or command"
+msgstr ""
 
-#: models.py:25
+#: fixity/models.py:41
 msgid "enabled"
 msgstr "aktiverad"
 
-#: models.py:26
+#: fixity/models.py:42
+msgid "environment"
+msgstr ""
+
+#: fixity/models.py:44
+msgid "file processing (pattern)"
+msgstr ""
+
+#: fixity/models.py:45
+msgid "remove orginal file after processing"
+msgstr ""
+
+#: fixity/models.py:46 fixity/models.py:72
 msgid "form"
 msgstr "formulär"
 
-#: models.py:37
-msgid "conversion tool"
-msgstr "konverteringsverktyg"
+#: fixity/models.py:75
+msgid "action tool"
+msgstr "Åtgärdsverktyg"
 
-#: models.py:38
-msgid "conversion tools"
-msgstr "konverteringsverktyg"
+#: fixity/models.py:76
+msgid "action tools"
+msgstr "Åtgärdsverktyg"
+
+#~ msgid "command"
+#~ msgstr "kommando"

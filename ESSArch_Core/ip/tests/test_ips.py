@@ -35,6 +35,7 @@ from datetime import datetime
 from unittest import mock
 
 import requests
+from django.conf import settings
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -582,6 +583,9 @@ class WorkareaFilesViewTestCase(TestCase):
         self.group = Group.objects.create(name='organization', group_type=self.org_group_type)
         self.group.add_member(self.member)
 
+        self.aip = InformationPackage.objects.create(package_type=InformationPackage.AIP, generation=0)
+        self.wip = Workarea.objects.create(user=self.user, ip=self.aip, type=Workarea.ACCESS, read_only=False)
+
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
 
@@ -596,24 +600,26 @@ class WorkareaFilesViewTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_illegal_path(self):
-        res = self.client.get(self.url, {'type': 'access', 'path': '..'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': '..', 'user': self.user.id})
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_non_existing_path(self):
-        res = self.client.get(self.url, {'type': 'access', 'path': 'does/not/exist'})
+        res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access',
+                              'path': 'does/not/exist', 'user': self.user.id})
         self.assertEqual(res.status_code, status.HTTP_404_NOT_FOUND)
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
-        path = 'does/exist'
-        fullpath = os.path.join(self.access, self.user.username, path)
+        path = os.path.normpath('does/exist')
+        fullpath = os.path.normpath(os.path.join(self.wip.path, path))
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
-            res = self.client.get(self.url, {'type': 'access', 'path': path})
+            res = self.client.get(self.url, {'id': self.aip.id, 'type': 'access', 'path': path, 'user': self.user.id})
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        mock_list_files.assert_called_once_with(fullpath, False, paginator=mock.ANY, request=mock.ANY)
+        mock_list_files.assert_called_once_with(fullpath, force_download=False,
+                                                expand_container=False, paginator=mock.ANY, request=mock.ANY)
 
     def test_add_to_dip_not_responsible(self):
         self.url = reverse('workarea-files-add-to-dip')
@@ -1783,6 +1789,15 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         )
         self.sa.save()
 
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('application/xml xml xsd\n')
+            f.write('text/plain txt\n')
+            f.write('application/x-tar tar\n')
+
     @TaskRunner()
     @mock.patch('ESSArch_Core.fixity.validation.backends.xml.validate_against_schema')
     def test_preserve_aip(self, mock_validate_schema):
@@ -1811,6 +1826,8 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
             object_path=tempfile.mkdtemp(dir=self.datadir), responsible=self.user,
             generation=0, aic=aic,
         )
+        ip.package_mets_path = '{}.xml'.format(ip.pk)
+        ip.save(update_fields=["package_mets_path"])
         with open(os.path.join(ip.object_path, 'foo.txt'), 'w') as f:
             f.write('bar')
 
@@ -2040,6 +2057,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
     def create_ip_package(self, objid):
         path = self.get_package_path(objid)
         with tarfile.open(path, 'w') as tar:
+            tar.format = settings.TARFILE_FORMAT
             tar.add(__file__, arcname='content/test.txt')
         return path
 
@@ -2687,6 +2705,7 @@ class IdentifyIP(TestCase):
         self.objid = 'unidentified_ip'
         fpath = os.path.join(self.path, '%s.tar' % self.objid)
         with tarfile.open(fpath, 'w') as tar:
+            tar.format = settings.TARFILE_FORMAT
             tar.add(__file__, arcname='content/test.txt')
 
     def test_identify_ip(self):
@@ -3464,7 +3483,8 @@ class FilesActionTests(APITestCase):
         mock_ip_get_path_response.assert_called_once_with(
             '',
             mock.ANY,
-            force_download='True',
+            force_download=True,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3479,7 +3499,8 @@ class FilesActionTests(APITestCase):
         mock_ip_get_path_response.assert_called_once_with(
             '',
             mock.ANY,
-            force_download='False',
+            force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3495,6 +3516,7 @@ class FilesActionTests(APITestCase):
             'here_is_some/other_path',
             mock.ANY,
             force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -3510,6 +3532,7 @@ class FilesActionTests(APITestCase):
             'here_is_some/other_path',
             mock.ANY,
             force_download=False,
+            expand_container=False,
             paginator=mock.ANY
         )
 
@@ -4028,6 +4051,7 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
         File._index.refresh()
 
         with tarfile.open(long_term_obj.get_full_path(), 'w') as t:
+            t.format = settings.TARFILE_FORMAT
             t.add(test_file, arcname='foo.txt')
             t.add(nested_test_file, arcname='nested/bar.txt')
 

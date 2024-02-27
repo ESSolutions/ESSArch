@@ -566,6 +566,7 @@
                           <th class="cursor-pointer" st-sort="start_date">
                             {{'ACCESS.RELATIONSHIP_TIME_RANGE' | translate}}
                           </th>
+                          <th>{{'SEARCH' | translate}}</th>
                           <th permission permission-only="'agents.change_agent'" class="shrink">
                             {{'EDIT' | translate}}
                           </th>
@@ -590,6 +591,12 @@
                               {{x.start_date | date:x.type.date_render_format}}&nbsp;-&nbsp;{{x.end_date |
                               date:x.type.date_render_format}}
                             </div>
+                          </td>
+                          <td class="text-center shrink">
+                            <button
+                              class="fas fa-search btn btn-default btn-sm"
+                              ng-click="$event.stopPropagation(); vm.searchClick(x)"
+                            ></button>
                           </td>
                           <td permission permission-only="'agents.change_agent'" class="text-center shrink">
                             <button
@@ -711,7 +718,13 @@
                   <div class="pt-base" ng-bind-html="x.text"></div>
                   <div ng-if="x.href && x.href !== ''">
                     <label> {{'ACCESS.HREF' | translate}}:&nbsp; </label>
-                    <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
+                    <a
+                      href="{{x.href}}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      uib-tooltip="{{x.href}}"
+                      tooltip-position="top auto"
+                    >
                       {{x.href}}
                     </a>
                   </div>
@@ -797,7 +810,13 @@
                   <div class="pt-base" ng-bind-html="x.text"></div>
                   <div ng-if="x.href && x.href !== ''">
                     <label> {{'ACCESS.HREF' | translate}}:&nbsp; </label>
-                    <a href="{{x.href}}" target="_blank" uib-tooltip="{{x.href}}" tooltip-position="top auto">
+                    <a
+                      href="{{x.href}}"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      uib-tooltip="{{x.href}}"
+                      tooltip-position="top auto"
+                    >
                       {{x.href}}
                     </a>
                   </div>

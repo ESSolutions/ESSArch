@@ -9,7 +9,7 @@
       <uib-tab
         ng-if="ip.state === 'Created' || vm.specificTabs.includes('preserve')"
         index="'preserve'"
-        heading="{{'PRESERVE' | translate}}"
+        heading="{{'DISSEMINATION' | translate}}"
       >
         <div ng-if="vm.activeTab === 'preserve'">
           <div class="request-layout" tabindex="-1" ng-keydown="vm.contentViewsKeydownListener($event)">
@@ -138,23 +138,6 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
-        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
-          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
-        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
-          <div class="status-view" style="margin: 5px">
-            <state-tree-view ip="ip"></state-tree-view>
-          </div>
-        </div>
-      </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
-        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
-          <event-table ip="ip"></event-table>
-        </div>
-      </uib-tab>
       <uib-tab
         ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
         index="'filebrowser'"
@@ -166,7 +149,24 @@
           tabindex="-1"
           ng-keydown="vm.contentViewsKeydownListener($event)"
         >
-          <filebrowser ip="ip"></filebrowser>
+          <filebrowser ip="ip" user="vm.organizationMember.current" browserstate="vm.browserstate"></filebrowser>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+        <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
+          <conversion-view ip="ip" base-url="information-packages"></conversion-view>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+        <div ng-if="vm.activeTab === 'events'" class="events-status-wrapper">
+          <event-table ip="ip"></event-table>
+        </div>
+      </uib-tab>
+      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+        <div ng-if="vm.activeTab === 'tasks'" class="events-status-wrapper">
+          <div class="status-view" style="margin: 5px">
+            <state-tree-view ip="ip"></state-tree-view>
+          </div>
         </div>
       </uib-tab>
     </uib-tabset>

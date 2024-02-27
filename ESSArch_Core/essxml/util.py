@@ -28,7 +28,7 @@ import pathlib
 import re
 import tempfile
 import uuid
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from lxml import etree
 
@@ -150,7 +150,10 @@ def get_objectpath(el):
             try:
                 return val.split('file:///')[1]
             except IndexError:
-                return val
+                try:
+                    return val.split('file:')[1]
+                except IndexError:
+                    return val
     except IndexError:
         return None
 
@@ -174,6 +177,11 @@ def parse_mets(xmlfile):
     for k, v in root.attrib.items():
         data[re.search(localname_pattern, k).group(1)] = v
 
+    # save metsHdr attributes without namespace prefix
+    localname_pattern = re.compile(r'^(?:{[^{}]*})?(.*)$')
+    for k, v in root.xpath(".//*[local-name()='metsHdr']")[0].attrib.items():
+        data[re.search(localname_pattern, k).group(1)] = v
+
     data['agents'] = {}
     for a in get_agents(root):
         other_role = a.get("ROLE") == 'OTHER'
@@ -182,7 +190,11 @@ def parse_mets(xmlfile):
         agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
         name = a.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in a.xpath('*[local-name()="note"]')]
-        data['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
+        if len(notes) == 1:
+            if notes[0] is None:
+                notes = []
+        data['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {
+            'name': name, 'notes': notes, 'other_role': other_role, 'other_type': other_type}
 
     return data
 
@@ -250,7 +262,11 @@ def parse_submit_description(xmlfile, srcdir=''):
         agent_type = a.get("OTHERTYPE") if other_type else a.get("TYPE")
         name = a.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in a.xpath('*[local-name()="note"]')]
-        ip['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {'name': name, 'notes': notes}
+        if len(notes) == 1:
+            if notes[0] is None:
+                notes = []
+        ip['agents']['{role}_{type}'.format(role=agent_role, type=agent_type)] = {
+            'name': name, 'notes': notes, 'other_role': other_role, 'other_type': other_type}
 
     try:
         ip['system_version'] = get_agent(root, ROLE='ARCHIVIST', TYPE='OTHER', OTHERTYPE='SOFTWARE')['notes'][0],
@@ -399,33 +415,42 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
     for elname, props in FILE_ELEMENTS.items():
         file_elements = doc.xpath('.//*[local-name()="%s"]' % elname)
 
-        # Remove first object in premis file if it is a "fake" entry describing the tar
-        if len(file_elements) and file_elements[0].get('{%s}type' % XSI_NAMESPACE) == 'premis:file':
-            # In XPath 1 we use translate() to make a case insensitive comparison
-            xpath_upper = 'translate(.,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")'
-            xpath_query = './/*[local-name()="formatName"][{up} = "TAR" or {up} = "ZIP"]'.format(up=xpath_upper)
-            if len(file_elements[0].xpath(xpath_query)):
-                file_elements.pop(0)
-
+        file_num = 0
         for el in file_elements:
-            file_el = XMLFileElement(el, props, rootdir=rootdir)
-            file_el.path = win_to_posix(os.path.join(prefix, file_el.path))
+            # Skip intellectualEntity object in premis file
+            if el.get('{%s}type' % XSI_NAMESPACE) == 'premis:intellectualEntity':
+                continue
+            # Skip first premis:file object in premis file if it is a "fake" entry describing the tar
+            if el.get('{%s}type' % XSI_NAMESPACE) == 'premis:file' and file_num == 0:
+                # In XPath 1 we use translate() to make a case insensitive comparison
+                xpath_upper = 'translate(.,"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZ")'
+                xpath_query = './/*[local-name()="formatName"][{up} = "TAR" or {up} = "ZIP"]'.format(up=xpath_upper)
+                if len(el.xpath(xpath_query)):
+                    file_num += 1
+                    continue
+            file_el = XMLFileElement(el, props, rootdir=rootdir)  # rootdir not used in XMLFileElement
+            file_el.path = win_to_posix(os.path.join(prefix, unquote(file_el.path)))
 
             if file_el.path in skip_files:
                 continue
 
             files.add(file_el)
+            file_num += 1
 
     if recursive:
         for pointer in find_pointers(xmlfile=xmlfile):
-            current_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
-            pointer_path = os.path.join(current_dir, os.path.basename(pointer.path))
+            current_pointer_dir = os.path.join(current_dir, os.path.dirname(pointer.path))
+            pointer_path = os.path.join(current_pointer_dir, os.path.basename(pointer.path))
+
+            prefix = os.path.relpath(current_dir, rootdir)
+            if prefix == '.':
+                prefix = ''
 
             if pointer.path not in skip_files:
                 pointer.path = os.path.join(prefix, pointer.path)
                 files.add(pointer)
 
-            prefix = os.path.relpath(current_dir, rootdir)
+            prefix = os.path.relpath(current_pointer_dir, rootdir)
             if prefix == '.':
                 prefix = ''
 
@@ -434,7 +459,7 @@ def find_files(xmlfile, rootdir='', prefix='', skip_files=None, recursive=True, 
                 rootdir,
                 prefix,
                 recursive=recursive,
-                current_dir=current_dir,
+                current_dir=current_pointer_dir,
             )
 
     return files

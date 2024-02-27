@@ -271,7 +271,7 @@ export default class AgentModalInstanceCtrl {
                 type: 'datepicker',
                 key: 'start_date',
                 templateOptions: {
-                  label: $translate.instant('ACCESS.CREATOR_START_YEAR'),
+                  label: $translate.instant('ACCESS.START_DATE'),
                   appendToBody: false,
                   dateFormat: 'YYYY-MM-DD',
                 },
@@ -281,7 +281,7 @@ export default class AgentModalInstanceCtrl {
                 type: 'datepicker',
                 key: 'end_date',
                 templateOptions: {
-                  label: $translate.instant('ACCESS.CREATOR_END_YEAR'),
+                  label: $translate.instant('ACCESS.END_DATE'),
                   appendToBody: false,
                   dateFormat: 'YYYY-MM-DD',
                 },

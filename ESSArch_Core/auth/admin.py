@@ -12,7 +12,9 @@ from django.contrib.auth.admin import (
 from django.contrib.auth.models import Group as DjangoGroup
 from django.db import transaction
 from django.db.models import Q
+from django.db.models.functions import Lower
 from django.utils.decorators import method_decorator
+from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_protect
 from groups_manager.models import (
@@ -209,6 +211,7 @@ class GroupInline(admin.StackedInline):
 
 
 class GroupAdmin(DjangoGroupAdmin):
+    list_display = ('__str__', 'get_group_type', 'get_parent')
     add_form_template = 'essauth/admin/group/add_form.html'
     change_list_template = 'admin/mptt_change_list.html'
     inlines = [GroupInline]
@@ -219,6 +222,14 @@ class GroupAdmin(DjangoGroupAdmin):
         """
         mptt_opts = Group._mptt_meta
         return ('essauth_group__{}'.format(mptt_opts.tree_id_attr), 'essauth_group__{}'.format(mptt_opts.left_attr))
+
+    def get_group_type(self, obj):
+        return obj.essauth_group.group_type
+    get_group_type.short_description = _('group type')
+
+    def get_parent(self, obj):
+        return obj.essauth_group.parent
+    get_parent.short_description = _('parent')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == 'permissions':
@@ -253,6 +264,11 @@ class GroupAdmin(DjangoGroupAdmin):
 
 
 class GroupTypeAdmin(admin.ModelAdmin):
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        form.base_fields["label"].label = capfirst(_("name"))
+        return form
+
     def has_add_permission(self, request):
         return request.user.has_perm("%s.%s" % ('groups_manager', 'add_grouptype'))
 
@@ -276,8 +292,9 @@ class GroupTypeAdmin(admin.ModelAdmin):
 
 
 class GroupMemberRoleAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'external_id', 'codename')
+    search_fields = ['codename', 'label', 'external_id']
     filter_horizontal = ['permissions']
-    exclude = ('label',)
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create role '{object}' with msg: '{message}'.")
@@ -290,6 +307,26 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
 
 
 class ProxyPermissionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'get_content_type', 'codename')
+    search_fields = ['name', 'content_type__app_label', 'codename']
+    ordering = (Lower('content_type__app_label'),)
+
+    def get_content_type(self, obj):
+        return obj.content_type
+    get_content_type.admin_order_field = Lower('content_type__app_label')
+    get_content_type.short_description = _("content type")
+
+    def has_add_permission(self, request):
+        return request.user.has_perm("%s.%s" % ('auth', 'add_permission'))
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'change_permission'))
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'delete_permission'))
+
+    def has_view_permission(self, request, obj=None):
+        return request.user.has_perm("%s.%s" % ('auth', 'view_permission'))
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create permission '{object.name}' with msg: '{message}'.")

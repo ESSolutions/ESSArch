@@ -1,7 +1,7 @@
 const tapeSlot = ($resource, appConfig) => {
   return $resource(
-    appConfig.djangoUrl + 'tape-slots/:id/:action/',
-    {id: '@id'},
+    appConfig.djangoUrl + 'robots/:robot_id/tape-slots/:id/:action/',
+    {robot_id: '@robot_id', id: '@id'},
     {
       get: {
         method: 'GET',

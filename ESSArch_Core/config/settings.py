@@ -1,52 +1,49 @@
 import os
+import tarfile
+from copy import deepcopy
 from datetime import timedelta
-from urllib.parse import urlparse
+from urllib.parse import quote_plus as urlquote, urlparse
 
-import dj_database_url
+import environ
 
 from ESSArch_Core import BASE_DIR
 
+env = environ.Env()
+ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
+env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
+CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
+LOGGING_DIR = env.str('ESSARCH_LOGGING_DIR', os.path.join(ESSARCH_DIR, 'log'))
+
 PROJECT_SHORTNAME = 'ESSArch'
 PROJECT_NAME = 'ESSArch'
-
-try:
-    from local_essarch_settings import ESSARCH_DIR
-except ImportError:
-    ESSARCH_DIR = os.environ.get('ESSARCH_DIR', '/ESSArch')
-
-try:
-    from local_essarch_settings import REDIS_URL
-except ImportError:
-    REDIS_URL = os.environ.get('REDIS_URL_ESSARCH', 'redis://localhost/1')
-
-SESSION_COOKIE_NAME = 'essarch'
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_NAME = env.str('ESSARCH_SESSION_COOKIE_NAME', 'essarch')
+SESSION_COOKIE_SECURE = env.bool('ESSARCH_SESSION_COOKIE_SECURE', default=True)
+CSRF_COOKIE_SECURE = env.bool('ESSARCH_CSRF_COOKIE_SECURE', default=True)
+CSRF_HEADER_NAME = env.str('ESSARCH_CSRF_HEADER_NAME', 'HTTP_X_CSRFTOKEN')
+CSRF_TRUSTED_ORIGINS = env.list('ESSARCH_CSRF_TRUSTED_ORIGINS', default=[])
+ALLOWED_HOSTS = env.list('ESSARCH_ALLOWED_HOSTS', default=['*'])
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env.bool('ESSARCH_DEBUG', default=True)
 
 # XSD is not listed in any mime types on macOS
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/xml", ".xsd", True)
 
+try:
+    from local_essarch_settings import REDIS_URL
+except ImportError:
+    REDIS_URL = env.str('ESSARCH_REDIS_URL', env.str('REDIS_URL_ESSARCH', env.str('REDIS_URL', 'redis://localhost/1')))
 
 # Workflow Pollers
-ESSARCH_WORKFLOW_POLLERS = {
-    'dir': {
-        'class': 'ESSArch_Core.workflow.polling.backends.directory.DirectoryWorkflowPoller',
-        'path': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
-        'sa': 'SA National Archive and Government SE',
-    }
-}
-
+ESSARCH_WORKFLOW_POLLERS = {}
 
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
-ALLOWED_HOSTS = ['*']
-
+# Exclude file formats keys from content indexing. Example: ['fmt/569',]
+EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT = env.list('ESSARCH_EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT', default=[])
 
 # Verify TLS certificate on remote servers
 #
@@ -54,7 +51,7 @@ ALLOWED_HOSTS = ['*']
 # Either a boolean, in which case it controls whether we verify
 # the server’s TLS certificate, or a string, in which case it
 # must be a path to a CA bundle to use.
-REQUESTS_VERIFY = True
+REQUESTS_VERIFY = env.bool('ESSARCH_REQUESTS_VERIFY', default=True)
 
 REST_FRAMEWORK = {
     'DEFAULT_METADATA_CLASS': 'ESSArch_Core.api.metadata.CustomMetadata',
@@ -63,6 +60,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'ESSArch_Core.auth.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
+        'knox.auth.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'ESSArch_Core.auth.permissions.ActionPermissions',
@@ -70,6 +68,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+DRF_CACHED_PAGINATION_COUNT_TIME = 0
 DRF_DYNAMIC_FIELDS = {
     'SUPPRESS_CONTEXT_WARNING': True,
 }
@@ -78,15 +77,18 @@ PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
 
+# Add support to extract zipfiles with "\" as separator in pathname components
+OS_PATH_ALTSEP = env.str('ESSARCH_OS_PATH_ALTSEP', "\\")
 
 # Application definition
 
-INSTALLED_APPS = [
+INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'channels',
     'corsheaders',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -106,14 +108,16 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration',
     'rest_framework',
-    'rest_framework.authtoken',
+    'knox',
     'ESSArch_Core.admin',
+    'ESSArch_Core.access',
     'ESSArch_Core.agents',
     'ESSArch_Core.api',
     'ESSArch_Core.auth',
     'ESSArch_Core.config',
     'ESSArch_Core.configuration',
     'ESSArch_Core.docs',
+    'ESSArch_Core.essarch',
     'ESSArch_Core.frontend',
     'ESSArch_Core.ip',
     'ESSArch_Core.profiles',
@@ -127,7 +131,8 @@ INSTALLED_APPS = [
     'ESSArch_Core.tags',
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
-]
+])
+INSTALLED_APPS.extend(env.list('ESSARCH_INSTALLED_APPS_EXTRA', default=[]))
 
 try:
     import test_without_migrations  # noqa
@@ -136,11 +141,12 @@ except ImportError:
 else:
     INSTALLED_APPS.append('test_without_migrations')
 
-AUTHENTICATION_BACKENDS = [
+AUTHENTICATION_BACKENDS = env.list('ESSARCH_AUTHENTICATION_BACKENDS', default=[
     'django.contrib.auth.backends.ModelBackend',
     'ESSArch_Core.auth.backends.GroupRoleBackend',
     'guardian.backends.ObjectPermissionBackend',
-]
+])
+AUTHENTICATION_BACKENDS.extend(env.list('ESSARCH_AUTHENTICATION_BACKENDS_EXTRA', default=[]))
 
 GROUPS_MANAGER = {
     'AUTH_MODELS_SYNC': True,
@@ -169,7 +175,7 @@ ASGI_APPLICATION = 'ESSArch_Core.routing.application'
 
 SITE_ID = 1
 
-MIDDLEWARE = [
+MIDDLEWARE = env.list('ESSARCH_MIDDLEWARE', default=[
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -179,9 +185,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+    'allauth.account.middleware.AccountMiddleware',
+])
+MIDDLEWARE.extend(env.list('ESSARCH_MIDDLEWARE_EXTRA', default=[]))
 
-CORS_ORIGIN_ALLOW_ALL = True
 ROOT_URLCONF = 'ESSArch_Core.config.urls'
 
 TEMPLATES = [
@@ -203,18 +210,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ESSArch_Core.config.wsgi.application'
 
-
 # Database
+env.DB_SCHEMES['mssql'] = 'mssql'
 try:
     from local_essarch_settings import DATABASE_URL
+    DATABASES = {'default': env.db_url_config(DATABASE_URL)}
 except ImportError:
-    DATABASE_URL = os.environ.get('DATABASE_URL_ESSARCH', 'sqlite:///db.sqlite')
-DATABASES = {'default': dj_database_url.parse(url=DATABASE_URL)}
+    DATABASES = {'default': env.db_url('ESSARCH_DATABASE_URL', default=env.str(
+        'DATABASE_URL_ESSARCH', default='sqlite:///db.sqlite'))}
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Cache
-REDIS_CLIENT_CLASS = os.environ.get('REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
-DJANGO_REDIS_CONNECTION_FACTORY = os.environ.get('DJANGO_REDIS_CONNECTION_FACTORY',
-                                                 'django_redis.pool.ConnectionFactory')
+REDIS_CLIENT_CLASS = env.str('ESSARCH_REDIS_CLIENT_CLASS', 'redis.client.StrictRedis')
+DJANGO_REDIS_CONNECTION_FACTORY = env.str('ESSARCH_DJANGO_REDIS_CONNECTION_FACTORY',
+                                          'django_redis.pool.ConnectionFactory')
 
 CACHES = {
     'default': {
@@ -231,9 +240,8 @@ CACHES = {
 try:
     from local_essarch_settings import ELASTICSEARCH_URL
 except ImportError:
-    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9200')
+    ELASTICSEARCH_URL = env.str('ESSARCH_ELASTICSEARCH_URL', env.str('ELASTICSEARCH_URL', 'http://localhost:9200'))
 elasticsearch_url = urlparse(ELASTICSEARCH_URL)
-
 ELASTICSEARCH_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -246,13 +254,18 @@ ELASTICSEARCH_CONNECTIONS = {
         'max_retries': 1,
     }
 }
+if elasticsearch_url.username is not None and elasticsearch_url.password is not None:
+    ELASTICSEARCH_CONNECTIONS['default']['http_auth'] = (
+        elasticsearch_url.username + ':' + urlquote(elasticsearch_url.password))
+if elasticsearch_url.scheme == 'https':
+    ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['use_ssl'] = True
 
 try:
     from local_essarch_settings import ELASTICSEARCH_TEST_URL
 except ImportError:
-    ELASTICSEARCH_TEST_URL = os.environ.get('ELASTICSEARCH_TEST_URL', 'http://localhost:19200')
+    ELASTICSEARCH_TEST_URL = env.str('ESSARCH_ELASTICSEARCH_TEST_URL', env.str(
+        'ELASTICSEARCH_TEST_URL', 'http://localhost:19200'))
 elasticsearch_test_url = urlparse(ELASTICSEARCH_TEST_URL)
-
 ELASTICSEARCH_TEST_CONNECTIONS = {
     'default': {
         'hosts': [
@@ -283,15 +296,18 @@ ELASTICSEARCH_BATCH_SIZE = 1000
 # Storage
 
 ESSARCH_TAPE_IDENTIFICATION_BACKEND = 'base'
+TARFILE_FORMAT = tarfile.GNU_FORMAT
 
 # Logging
-LOGGING_DIR = os.path.join(ESSARCH_DIR, 'log')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s %(levelname)s %(message)s'
+            'format': '[%(asctime)s: %(levelname)s] %(message)s'
+        },
+        'verbose_process': {
+            'format': '[%(asctime)s: %(levelname)s %(module)s %(process)d %(thread)d] %(message)s'
         },
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
@@ -323,6 +339,14 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
+        # 'file_essarch_db': {
+        #     'level': 'DEBUG',
+        #     'formatter': 'verbose',
+        #     'class': 'logging.handlers.RotatingFileHandler',
+        #     'filename': os.path.join(LOGGING_DIR, 'essarch_db.log'),
+        #     'maxBytes': 1024 * 1024 * 100,  # 100MB
+        #     'backupCount': 5,
+        # },
         'log_file_auth': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
@@ -331,6 +355,30 @@ LOGGING = {
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
+        'log_file_daphneessarch': {
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOGGING_DIR, 'daphneessarch.log'),
+            'maxBytes': 1024 * 1024 * 100,  # 100MB
+            'backupCount': 5,
+        },
+        # 'log_file_auth_saml2': {
+        #    'level': 'DEBUG',
+        #    'class' : 'logging.handlers.RotatingFileHandler',
+        #    'formatter': 'verbose',
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_saml2.log'),
+        #    'maxBytes': 1024*1024*100, # 100MB
+        #    'backupCount': 5,
+        # },
+        # 'log_file_auth_ldap': {
+        #    'level': 'DEBUG',
+        #    'class' : 'logging.handlers.RotatingFileHandler',
+        #    'formatter': 'verbose',
+        #    'filename': os.path.join(LOGGING_DIR, 'auth_ldap.log'),
+        #    'maxBytes': 1024*1024*100, # 100MB
+        #    'backupCount': 5,
+        # },
     },
     'loggers': {
         'django': {
@@ -342,15 +390,38 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        # 'django.db.backends': {
+        #     'handlers': ['file_essarch_db'],
+        #     'level': 'INFO',
+        # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         },
         'essarch.auth': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'handlers': ['log_file_auth'],
             'propagate': False,
         },
+        'daphne': {
+            'level': 'INFO',
+            'handlers': ['log_file_daphneessarch'],
+        },
+        # 'djangosaml2': {
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_saml2'],
+        #    'propagate': True,
+        # },
+        # 'saml2': {
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_saml2'],
+        #    'propagate': True,
+        # },
+        # 'django_auth_ldap': {
+        #    'level': 'INFO',
+        #    'handlers': ['log_file_auth_ldap'],
+        #    'propagate': False,
+        # },
     },
 }
 
@@ -373,10 +444,11 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Django Rest Auth serializers
-# http://django-rest-auth.readthedocs.io/en/latest/configuration.html
+# https://dj-rest-auth.readthedocs.io/en/latest/configuration.html
 
-REST_AUTH_SERIALIZERS = {
-    'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer'
+REST_AUTH = {
+    'USER_DETAILS_SERIALIZER': 'ESSArch_Core.auth.serializers.UserLoggedInSerializer',
+    'TOKEN_MODEL': None,
 }
 
 LOGIN_REDIRECT_URL = '/'
@@ -387,6 +459,8 @@ LOGOUT_REDIRECT_URL = '/?ref=logout'
 
 LANGUAGE_COOKIE_NAME = 'essarch_language'
 LANGUAGE_CODE = 'en-us'
+
+LOCALE_PATHS = [os.path.join(BASE_DIR, 'locale')]
 
 TIME_ZONE = 'Europe/Stockholm'
 
@@ -404,7 +478,7 @@ MEDIA_ROOT = os.path.join(ESSARCH_DIR, 'config/essarch/media')
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.environ.get('STATIC_ROOT_ESSARCH', os.path.join(ESSARCH_DIR, 'config/essarch/static_root'))
+STATIC_ROOT = env.str('ESSARCH_STATIC_ROOT', os.path.join(ESSARCH_DIR, 'config/essarch/static_root'))
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
 
 DJANGO_REV_MANIFEST_PATH = os.path.join(BASE_DIR, 'frontend/static/frontend/build/rev-manifest.json')
@@ -419,7 +493,8 @@ DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')
 try:
     from local_essarch_settings import RABBITMQ_URL
 except ImportError:
-    RABBITMQ_URL = os.environ.get('RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672')
+    RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str(
+        'RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
 CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.fixity.action.tasks",
@@ -427,6 +502,7 @@ CELERY_IMPORTS = (
     "ESSArch_Core.maintenance.tasks",
     "ESSArch_Core.preingest.tasks",
     "ESSArch_Core.storage.tasks",
+    "ESSArch_Core.tags.tasks",
     "ESSArch_Core.tasks",
     "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
@@ -434,6 +510,7 @@ CELERY_IMPORTS = (
 CELERY_RESULT_BACKEND = 'processtask'
 CELERY_BROKER_HEARTBEAT = 0
 CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True}
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
@@ -445,10 +522,6 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ESSArch_Core.tasks.RunWorkflowPollers',
         'schedule': timedelta(seconds=60),
     },
-    'UnmountIdleDrives-queue-every-10-minutes': {
-        'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
-        'schedule': timedelta(minutes=10),
-    },
     'PollAppraisalJobs-every-10-minutes': {
         'task': 'ESSArch_Core.maintenance.tasks.PollAppraisalJobs',
         'schedule': timedelta(minutes=10),
@@ -457,7 +530,16 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
     },
+    # 'PollRobotQueue-every-10-seconds': {
+    #     'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',
+    #     'schedule': timedelta(seconds=10),
+    # },
+    # 'UnmountIdleDrives-every-20-seconds': {
+    #     'task': 'ESSArch_Core.workflow.tasks.UnmountIdleDrives',
+    #     'schedule': timedelta(seconds=20),
+    # },
 }
+
 
 # Rest auth settings
 OLD_PASSWORD_FIELD_ENABLED = True
@@ -468,3 +550,20 @@ except ImportError as e:
     if e.name == 'local_essarch_settings':
         raise ImportError('No settings file found, create one by running `essarch settings generate`')
     raise
+
+
+def dict_deep_merge(a: dict, b: dict):
+    result = deepcopy(a)
+    for bk, bv in b.items():
+        av = result.get(bk)
+        if isinstance(av, dict) and isinstance(bv, dict):
+            result[bk] = dict_deep_merge(av, bv)
+        else:
+            result[bk] = deepcopy(bv)
+    return result
+
+
+# Extend LOGGING config with prefix LOGGING_xyz
+for x in list(locals().keys()):
+    if x.startswith('LOGGING_') and not x == 'LOGGING_DIR':
+        LOGGING = dict_deep_merge(LOGGING, locals()[x])

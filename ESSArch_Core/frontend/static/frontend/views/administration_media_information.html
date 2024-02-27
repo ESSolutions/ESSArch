@@ -67,11 +67,15 @@
             <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}
             </td>
-            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.status}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">
+              {{row.status_display.toUpperCase() | translate}}
+            </td>
             <td class="clickable" style="white-space: nowrap" ng-click="storageMediumTableClick(row)">
               {{row.location}}
             </td>
-            <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.location_status}}</td>
+            <td class="clickable" ng-click="storageMediumTableClick(row)">
+              {{row.location_status_display.toUpperCase() | translate}}
+            </td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">{{row.used_capacity | filesize}}</td>
             <td class="clickable" ng-click="storageMediumTableClick(row)">
               {{row.storage_target.max_capacity | filesize}}
@@ -114,7 +118,7 @@
             </tr>
             <tr>
               <td>{{'STATUS' | translate}}</td>
-              <td>{{storageMedium.status}}</td>
+              <td>{{storageMedium.status_display}}</td>
             </tr>
             <tr>
               <td>{{'LOCATION' | translate}}</td>
@@ -122,19 +126,23 @@
             </tr>
             <tr>
               <td>{{'LOCATIONSTATUS' | translate}}</td>
-              <td>{{storageMedium.location_status}}</td>
+              <td>{{storageMedium.location_status_display}}</td>
             </tr>
             <tr>
               <td>{{'BLOCKSIZE' | translate}}</td>
-              <td>{{storageMedium.block_size}}</td>
+              <td>{{storageMedium.block_size_display}}</td>
             </tr>
             <tr>
               <td>{{'FORMAT' | translate}}</td>
-              <td>{{storageMedium.format}}</td>
+              <td>{{storageMedium.format_display}}</td>
+            </tr>
+            <tr>
+              <td>{{'TYPE' | translate}}</td>
+              <td>{{storageMedium.storage_target.type_display}}</td>
             </tr>
             <tr>
               <td>{{'USEDCAPACITY' | translate}}</td>
-              <td>{{storageMedium.used_capacity}}</td>
+              <td>{{storageMedium.used_capacity}} B</td>
             </tr>
             <tr>
               <td>{{'NUMBEROFMOUNTS' | translate}}</td>
@@ -187,6 +195,7 @@
             <thead>
               <tr>
                 <th st-sort="ip__object_identifier_value" class="clickable" class="column-label">IP</th>
+                <th class="column-label">{{'OBJECT_SIZE' | translate}}</th>
                 <th st-sort="content_location_value" class="clickable" class="column-label">
                   {{'CONTENTLOCATION' | translate}}
                 </th>
@@ -202,7 +211,8 @@
                 ng-attr-context-menu="menuOptions"
                 class="table-item selectable"
               >
-                <td>{{row.ip.object_identifier_value}}</td>
+                <td>{{row.ip_object_identifier_value}}</td>
+                <td>{{row.ip_object_size | filesize}}</td>
                 <td>{{row.content_location_value}}</td>
                 <td>{{row.last_changed_local | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               </tr>

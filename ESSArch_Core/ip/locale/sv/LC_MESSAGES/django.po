@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-15 12:26+0100\n"
+"POT-Creation-Date: 2023-09-14 17:12+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,108 +18,172 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+#: admin.py:99
+msgid "Clear lock for selected ip"
+msgstr "Rensa lås för markerade informationspaket"
+
 #: apps.py:7
 msgid "Information Package"
 msgstr "Informationspaket"
 
-#: filters.py:28
+#: filters.py:31
 msgid "Archivist Organization"
 msgstr "Arkivorganisation"
 
-#: filters.py:44
+#: filters.py:47
 msgid "Excluded Package Type"
 msgstr "Exkluderad pakettyp"
 
-#: filters.py:48
+#: filters.py:52
 msgid "Workarea"
 msgstr "Arbetsyta"
 
-#: models.py:322
+#: models.py:374
+msgid "object_identifier_value"
+msgstr "Objekt id"
+
+#: models.py:375
+msgid "label"
+msgstr ""
+
+#: models.py:377
 msgid "create date"
 msgstr "skapandedatum"
 
-#: models.py:323
+#: models.py:378
 msgid "state"
 msgstr "tillstånd"
 
-#: models.py:326
+#: models.py:381
 msgid "object size"
 msgstr "objektstorlek"
 
-#: models.py:329
+#: models.py:384
 msgid "start date"
 msgstr "startdatum"
 
-#: models.py:330
+#: models.py:385
 msgid "end date"
 msgstr "slutdatum"
 
-#: models.py:353
+#: models.py:408
 msgid "entry date"
 msgstr "skapandedatum (SIP)"
 
-#: models.py:356
+#: models.py:411
 msgid "package type"
 msgstr "pakettyp"
 
-#: models.py:363
+#: models.py:418
 msgid "cached"
 msgstr "cachad"
 
-#: models.py:364
+#: models.py:419
 msgid "archived"
 msgstr "arkiverad"
 
-#: models.py:370
+#: models.py:425
 msgid "responsible"
 msgstr "ansvarig"
 
-#: models.py:1834
+#: models.py:2797
 msgid "information package"
 msgstr "informationspaket"
 
-#: models.py:1835
+#: models.py:2798
 msgid "information packages"
 msgstr "informationspaket"
 
-#: models.py:2006
+#: models.py:2987
 msgid "transfer"
-msgstr ""
+msgstr "överföring"
 
-#: models.py:2010
+#: models.py:2991
 msgid "delivery"
-msgstr ""
+msgstr "leverans"
 
-#: models.py:2066 models.py:2077
+#: models.py:3068 models.py:3079
 msgid "name"
-msgstr ""
+msgstr "namn"
 
-#: models.py:2072
+#: models.py:3074
 msgid "order type"
 msgstr "beställningstyp"
 
-#: models.py:2073
+#: models.py:3075
 msgid "order types"
 msgstr "beställningstyper"
 
-#: models.py:2083 models.py:2102
+#: models.py:3085 models.py:3104
 msgid "consign method"
 msgstr "utlämnandemetod"
 
-#: models.py:2084
+#: models.py:3086
 msgid "consign methods"
 msgstr "utlämnandemetoder"
 
-#: models.py:2092
+#: models.py:3094
 msgid "type"
+msgstr "typ"
+
+#: tasks.py:503
+#, python-brace-format
+msgid "{backend} job done for {ip}"
+msgstr "{backend} jobb är klart för {ip}"
+
+#: tasks.py:714
+#, python-brace-format
+msgid "{ip} has been deleted"
+msgstr "{ip} har tagits bort"
+
+#: tasks.py:724
+#, python-brace-format
+msgid "{ip} is now in workspace"
+msgstr "{ip} är nu i arbetsytan"
+
+#: views.py:1562 views.py:2791
+#, python-brace-format
+msgid "Receiving {ip}"
+msgstr "Tar emot {ip}..."
+
+#: views.py:1720
+msgid "Preserved {{OBJID}}"
+msgstr "Bevarad {{OBJID}}"
+
+#: views.py:1721
+msgid "{{OBJLABEL}} ({{OBJID}}) is now preserved"
+msgstr "{{OBJLABEL}} ({{OBJID}}) är nu bevarad"
+
+#: views.py:1728
+#, python-brace-format
+msgid "{ip} is now preserved"
+msgstr "{ip} är nu bevarad"
+
+#: views.py:1753
+#, python-brace-format
+msgid "Preserving {ip}..."
+msgstr "Bevarar {ip}..."
+
+#: views.py:1782
+#, python-brace-format
+msgid "New generation created {ip}"
+msgstr "Ny generation skapad {ip}"
+
+#: views.py:1853
+#, python-brace-format
+msgid "Accessing {ip}..."
+msgstr "Hämtar {ip}..."
+
+#: views.py:2253
+#, python-brace-format
+msgid "Unlocking profile with type \"{type}\" in IP \"{ip}\""
 msgstr ""
 
-#: serializers.py:299
-#, python-format
-msgid "IP with object identifer value \"%s\" already exists"
-msgstr ""
+#: views.py:3017
+#, python-brace-format
+msgid "Upload of {filepath} complete"
+msgstr "Lyckad uppladdning av {filepath}"
 
-#: tasks.py:462
-#, python-format
-msgid "%(ip)s has been deleted"
-msgstr "%(ip)s borttagen"
+#: views.py:3498
+msgid "Merged chunks"
+msgstr ""

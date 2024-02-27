@@ -1,0 +1,23 @@
+{
+	"structure" : [],
+	"template" : [],
+	"specification" : [
+		{
+			"name": "Action tool",
+			"step": true,
+			"children": [
+				{
+					"args": [
+						  "Validate file format",
+						  "**/*.*",
+						  {"path": "**/*.*"},
+						  null,
+						  null
+					],
+					"name": "ESSArch_Core.fixity.action.tasks.Action",
+					"label": "Validate file format"
+				}
+			 ]
+		}
+	]
+}

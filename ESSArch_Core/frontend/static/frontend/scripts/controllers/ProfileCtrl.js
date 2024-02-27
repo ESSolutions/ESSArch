@@ -115,7 +115,9 @@ export default class ProfileCtrl {
 
     vm.getSas = (search) => {
       return $http
-        .get(appConfig.djangoUrl + 'submission-agreements/', {params: {page: 1, page_size: 10, search}})
+        .get(appConfig.djangoUrl + 'submission-agreements/', {
+          params: {page: 1, page_size: 10, search, published: true},
+        })
         .then((response) => {
           $scope.saProfile.profiles = response.data;
           return response.data;
@@ -284,7 +286,7 @@ export default class ProfileCtrl {
     };
 
     vm.getSaData = function (ip, sa) {
-      return SaIpData.get({ip: ip.id, sa: sa.id, pager: 'none'}).$promise.then(function (resource) {
+      return SaIpData.get({ip: ip.id, sa: sa.id, pager: 'none', published: true}).$promise.then(function (resource) {
         let current = null;
         resource.forEach((x) => {
           if (x.id === ip.submission_agreement_data) {

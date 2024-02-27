@@ -29,12 +29,15 @@ from dj_rest_auth.views import (
     LogoutView as rest_auth_LogoutView,
 )
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth.models import Permission
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import resolve_url
 from django_filters.rest_framework import DjangoFilterBackend
+from knox.views import LoginView as KnoxLoginView
 from rest_framework import permissions, status, viewsets
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.generics import RetrieveUpdateAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -57,7 +60,10 @@ from ESSArch_Core.auth.serializers import (
 from ESSArch_Core.auth.util import users_in_organization
 
 try:
-    from djangosaml2.views import logout as saml2_logout
+    from djangosaml2.views import (
+        LogoutInitView as saml2_logout,
+        _get_subject_id,
+    )
 except ImportError:
     pass
 
@@ -177,8 +183,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
 def login_services(req):
     services = []
 
-    if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
-        services.append('adfs')
+    if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        services.append('sso')
 
     return Response(services)
 
@@ -193,13 +199,30 @@ class LoginView(rest_auth_LoginView):
         return Response(serializer.data)
 
 
+class TokenLoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        return super(TokenLoginView, self).post(request, format=None)
+
+
 class LogoutView(rest_auth_LogoutView):
     def get(self, request, *args, **kwargs):
-        if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+        if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
-                return saml2_logout(request)
+                if _get_subject_id(request.saml_session):
+                    return saml2_logout().get(request)
             except Exception:
                 logger.exception('Failed to logout using SAML, no active identity found')
+
+        try:
+            request._auth.delete()
+        except (AttributeError, ObjectDoesNotExist):
+            pass
 
         self.logout(request)
         next_page = resolve_url(settings.LOGOUT_REDIRECT_URL)

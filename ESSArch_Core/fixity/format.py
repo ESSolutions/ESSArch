@@ -3,7 +3,9 @@ import mimetypes
 import os
 import time
 
+from django.conf import settings
 from fido.fido import Fido
+from fido.versions import get_local_versions
 
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.exceptions import (
@@ -24,15 +26,37 @@ DEFAULT_MIMETYPE = 'application/octet-stream'
 class FormatIdentifier:
     _fido = None
 
-    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False):
+    def __init__(self, allow_unknown_file_types=False, allow_encrypted_files=False,
+                 use_fido_pronom_formats=True, use_fido_extension_formats=True,
+                 use_ess_formats=True):
         self.allow_unknown_file_types = allow_unknown_file_types
         self.allow_encrypted_files = allow_encrypted_files
+        self.use_fido_pronom_formats = use_fido_pronom_formats
+        self.use_fido_extension_formats = use_fido_extension_formats
+        self.use_ess_formats = use_ess_formats
 
     @property
     def fido(self):
         if self._fido is None:
             logger.debug('Initiating fido')
-            self._fido = Fido(handle_matches=self.handle_matches)
+            format_files = []
+            if self.use_fido_pronom_formats or self.use_fido_extension_formats:
+                versions = get_local_versions()
+                format_files.append(versions.pronom_signature) if self.use_fido_pronom_formats else None
+                format_files.append(versions.fido_extension_signature) if self.use_fido_extension_formats else None
+
+            self._fido = Fido(
+                handle_matches=self.handle_matches,
+                nocontainer=True,
+                format_files=format_files,
+            )
+            if self.use_ess_formats:
+                config_dir = settings.CONFIG_DIR
+                try:
+                    self._fido.load_fido_xml(os.path.join(config_dir, 'file_formats.xml'))
+                except FileNotFoundError as e:
+                    logger.warning('FIDO missing local formats configuration. Error: {}'.format(e))
+
             logger.info('Initiated fido')
         return self._fido
 
@@ -43,32 +67,34 @@ class FormatIdentifier:
             ).value
             if os.path.isfile(mimetypes_file):
                 logger.debug('Initiating mimetypes from %s' % mimetypes_file)
-                mimetypes.suffix_map = {}
-                mimetypes.encodings_map = {}
-                mimetypes.types_map = {}
-                mimetypes.common_types = {}
-                mimetypes.init(files=[mimetypes_file])
+                mime = mimetypes.MimeTypes()
+                mime.suffix_map = {}
+                mime.encodings_map = {}
+                mime.types_map = ({}, {})
+                mime.types_map_inv = ({}, {})
+                mime.read(mimetypes_file)
                 logger.info('Initiated mimetypes from %s' % mimetypes_file)
-                return
+                return mime
             else:
                 logger.debug('Custom mimetypes file %s does not exist' % mimetypes_file)
         except Path.DoesNotExist:
             logger.debug('No custom mimetypes file specified')
 
         logger.debug('Initiating default mimetypes')
-        mimetypes.init()
+        mime = mimetypes.MimeTypes()
         logger.info('Initiated default mimetypes')
+        return mime
 
     def get_mimetype(self, fname):
         logger.debug('Getting mimetype for %s' % fname)
-        self._init_mimetypes()
+        mime = self._init_mimetypes()
 
-        content_type, encoding = mimetypes.guess_type(fname)
+        content_type, encoding = mime.guess_type(fname)
         logger.info('Guessed mimetype for %s: type: %s, encoding: %s' % (fname, content_type, encoding))
 
         if content_type is None:
             if self.allow_unknown_file_types:
-                logger.info('Got mimetype %s for %s' % (DEFAULT_MIMETYPE, fname))
+                logger.info('Got mimetype %s setting to %s for %s' % (content_type, DEFAULT_MIMETYPE, fname))
                 return DEFAULT_MIMETYPE
 
             raise FileFormatNotAllowed("Extension of '%s' is missing from mimetypes and is not allowed" % fname)

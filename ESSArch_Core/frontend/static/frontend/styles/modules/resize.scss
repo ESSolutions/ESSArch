@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 .resize-grabber {
   height: 100%;
   width: 1px;
@@ -10,7 +12,7 @@
   margin-right: -7px;
   &:hover {
     .resize-grabber {
-      background-color: darken(#eee, 10%);
+      background-color: color.adjust(#eee, $lightness: -10%);
     }
   }
 }

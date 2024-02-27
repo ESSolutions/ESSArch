@@ -34,7 +34,10 @@ from ESSArch_Core.configuration.models import (
     Site,
     StoragePolicy,
 )
+from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_DISABLED,
+    STORAGE_TARGET_STATUS_ENABLED,
     StorageMethod,
     StorageMethodTargetRelation,
     StorageTarget,
@@ -75,11 +78,25 @@ class PathSerializer(DynamicModelSerializer):
 
 
 class StorageTargetSerializer(serializers.ModelSerializer):
+    type_display = serializers.SerializerMethodField()
+    default_block_size_display = serializers.SerializerMethodField()
+    default_format_display = serializers.SerializerMethodField()
+
+    def get_type_display(self, obj):
+        return obj.get_type_display()
+
+    def get_default_block_size_display(self, obj):
+        return obj.get_default_block_size_display()
+
+    def get_default_format_display(self, obj):
+        return obj.get_default_format_display()
+
     class Meta:
         model = StorageTarget
         fields = (
-            'id', 'name', 'status', 'type', 'default_block_size', 'default_format', 'min_chunk_size',
-            'min_capacity_warning', 'max_capacity', 'remote_server', 'master_server', 'target'
+            'id', 'name', 'status', 'type', 'type_display', 'default_block_size', 'default_block_size_display',
+            'default_format', 'default_format_display', 'min_chunk_size', 'min_capacity_warning', 'max_capacity',
+            'remote_server', 'master_server', 'target'
         )
         extra_kwargs = {
             'id': {
@@ -133,9 +150,73 @@ class StorageMethodSerializer(serializers.ModelSerializer):
 
 
 class StoragePolicySerializer(serializers.ModelSerializer):
-    cache_storage = StorageMethodSerializer()
+    cache_storage = StorageMethodSerializer(allow_null=True)
     storage_methods = StorageMethodSerializer(many=True)
-    ingest_path = PathSerializer()
+    ingest_path = PathSerializer(allow_null=True)
+    sa = serializers.DictField(allow_null=True, required=False, write_only=True)
+
+    def create(self, validated_data):
+        storage_method_set_data = validated_data.pop('storage_methods')
+        if 'sa' in validated_data.keys():
+            sa_data = validated_data.pop('sa')
+        else:
+            sa_data = None
+        storage_method_list = []
+
+        for storage_method_data in storage_method_set_data:
+            storage_method_target_set_data = storage_method_data.pop('storage_method_target_relations')
+            storage_method, _ = StorageMethod.objects.update_or_create(
+                id=storage_method_data['id'],
+                defaults=storage_method_data
+            )
+
+            for storage_method_target_data in storage_method_target_set_data:
+                StorageMethodTargetRelation.objects.filter(id=storage_method_target_data['id']).update(status=0)
+
+            for storage_method_target_data in storage_method_target_set_data:
+                storage_target_data = storage_method_target_data.pop('storage_target')
+                storage_target, _ = StorageTarget.objects.update_or_create(
+                    id=storage_target_data['id'],
+                    defaults=storage_target_data
+                )
+                storage_method_target_data['storage_method'] = storage_method
+                storage_method_target_data['storage_target'] = storage_target
+                StorageMethodTargetRelation_objs = StorageMethodTargetRelation.objects.filter(
+                    id=storage_method_target_data['id'])
+                if (storage_method_target_data['status'] == STORAGE_TARGET_STATUS_ENABLED and
+                        StorageMethodTargetRelation_objs.exists()):
+                    # If another target already is enabled then update status to disabled.
+                    if StorageMethodTargetRelation_objs.exists():
+                        StorageMethodTargetRelation_enabled_objs = StorageMethodTargetRelation.objects.filter(
+                            storage_method=storage_method,
+                            status=STORAGE_TARGET_STATUS_ENABLED,
+                        ).exclude(id=storage_method_target_data['id'])
+
+                        if StorageMethodTargetRelation_enabled_objs.exists():
+                            StorageMethodTargetRelation_enabled_objs.update(status=STORAGE_TARGET_STATUS_DISABLED)
+                storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
+                    id=storage_method_target_data['id'],
+                    defaults=storage_method_target_data
+                )
+            storage_method_list.append(storage_method)
+
+        sp_ingest_path_data = validated_data.pop('ingest_path')
+        if sp_ingest_path_data:
+            validated_data['ingest_path'], _ = Path.objects.update_or_create(
+                entity=sp_ingest_path_data['entity'], defaults=sp_ingest_path_data
+            )
+
+        policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
+                                                           defaults=validated_data)
+        policy.storage_methods.set(storage_method_list)
+        if sa_data:
+            sa_data['policy'] = policy
+            if sa_data.get('id', False):
+                sa, _ = SubmissionAgreement.objects.update_or_create(id=sa_data['id'], defaults=sa_data)
+            else:
+                sa, _ = SubmissionAgreement.objects.update_or_create(name=sa_data['name'], defaults=sa_data)
+
+        return policy
 
     class Meta:
         model = StoragePolicy
@@ -149,11 +230,13 @@ class StoragePolicySerializer(serializers.ModelSerializer):
             "preingest_metadata", "ingest_metadata",
             "information_class", "ingest_delete",
             "receive_extract_sip", "cache_storage", "ingest_path",
-            "storage_methods",
+            "storage_methods", "sa",
         )
         extra_kwargs = {
             'id': {
+                'read_only': False,
                 'validators': [],
+                'default': uuid.uuid4,
             },
             'policy_id': {
                 'validators': [],
@@ -179,4 +262,4 @@ class StoragePolicyNestedSerializer(StoragePolicySerializer):
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
-        fields = ('name', 'logo', 'title', 'text')
+        fields = ('name', 'logo', 'logo_middle', 'title', 'text')

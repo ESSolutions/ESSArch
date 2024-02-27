@@ -22,12 +22,13 @@ Dependencies
 
 .. warning::
     Elasticsearch requires ``vm.max_map_count`` to be at least 262144, see
-    `Install Elasticsearch with Docker <https://www.elastic.co/guide/en/elasticsearch/reference/6.5/docker.html#docker-cli-run-prod-mode>`_
+    `Install Elasticsearch with Docker <https://www.elastic.co/guide/en/elasticsearch/reference/7.17/docker.html#docker-cli-run-prod-mode>`_
     for more information
 
 .. code-block:: bash
 
     $ cd docker
+    $ docker-compose build essarch
     $ docker-compose up -d
 
 3. Wait for the essarch service to start by examining the logs

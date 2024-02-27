@@ -47,7 +47,7 @@ class AgentDocument(DocumentBase):
             id=str(obj.pk),
             task_id=task_id,
             names=[
-                AgentNameDocument.from_obj(name) for name in obj.names.iterator()
+                AgentNameDocument.from_obj(name) for name in obj.names.iterator(chunk_size=1000)
             ],
             start_date=obj.start_date,
             end_date=obj.end_date,

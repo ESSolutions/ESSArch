@@ -28,6 +28,7 @@ from copy import copy
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.profiles.utils import (
     fill_specification_data,
@@ -164,6 +165,8 @@ class ProfileIPData(models.Model):
     version = models.IntegerField(default=0)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
+    parsed_files = PickledObjectField(default=list)
+    extra_paths_to_parse = PickledObjectField(default=list)
 
     class Meta:
         ordering = ['version']
@@ -186,7 +189,6 @@ class SubmissionAgreement(models.Model):
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
-        editable=False
     )
 
     name = models.CharField(max_length=255)
@@ -194,11 +196,14 @@ class SubmissionAgreement(models.Model):
     type = models.CharField(max_length=255)
     status = models.CharField(max_length=255)
     label = models.CharField(max_length=255)
+    overall_submission_agreement = models.CharField(blank=True, max_length=255)
     archivist_organization = models.CharField(blank=True, max_length=255)
     policy = models.ForeignKey(
         'configuration.StoragePolicy',
         on_delete=models.PROTECT,
+        verbose_name="storage policy",
         related_name='submission_agreements',
+        null=True,
     )
     include_profile_transfer_project = models.BooleanField(default=False)
     include_profile_content_type = models.BooleanField(default=False)
@@ -297,6 +302,19 @@ class SubmissionAgreement(models.Model):
 
         return None
 
+    def get_archivist_organization_agent(self):
+        from ESSArch_Core.ip.models import Agent
+        if self.archivist_organization:
+            try:
+                ao_agent = Agent.objects.get(
+                    role='ARCHIVIST', type='ORGANIZATION',
+                    name=self.archivist_organization
+                )
+                return ao_agent
+            except Agent.DoesNotExist:
+                return None
+        return None
+
     def lock_to_information_package(self, ip, user):
         from ESSArch_Core.ip.models import Agent
 
@@ -306,10 +324,10 @@ class SubmissionAgreement(models.Model):
             ip.submission_agreement_data.clean()
 
         if self.archivist_organization:
-            existing_agents_with_notes = Agent.objects.all().with_notes([])
+            # existing_agents_with_notes = Agent.objects.all().with_notes([])
             ao_agent, _ = Agent.objects.get_or_create(
                 role='ARCHIVIST', type='ORGANIZATION',
-                name=self.archivist_organization, pk__in=existing_agents_with_notes
+                name=self.archivist_organization,  # pk__in=existing_agents_with_notes
             )
             ip.agents.add(ao_agent)
         ip.save()
@@ -336,7 +354,7 @@ class SubmissionAgreement(models.Model):
 
         clone.save()
 
-        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator():
+        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator(chunk_size=1000):
             ProfileSA.objects.create(submission_agreement=clone, profile=profile_sa.profile)
 
         return clone

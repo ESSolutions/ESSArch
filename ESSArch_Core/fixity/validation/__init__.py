@@ -11,21 +11,18 @@ logger = logging.getLogger('essarch.fixity.validation')
 
 AVAILABLE_VALIDATORS = {
     'checksum': 'ESSArch_Core.fixity.validation.backends.checksum.ChecksumValidator',
-    'csv': 'ESSArch_Core.fixity.validation.backends.csv.CSVValidator',
     'diff_check': 'ESSArch_Core.fixity.validation.backends.xml.DiffCheckValidator',
     'encryption': 'ESSArch_Core.fixity.validation.backends.encryption.FileEncryptionValidator',
     'filename': 'ESSArch_Core.fixity.validation.backends.filename.FilenameValidator',
     'fixed_width': 'ESSArch_Core.fixity.validation.backends.fixed_width.FixedWidthValidator',
     'format': 'ESSArch_Core.fixity.validation.backends.format.FormatValidator',
-    'mediaconch': 'ESSArch_Core.fixity.validation.backends.mediaconch.MediaconchValidator',
     'repeated_extension': 'ESSArch_Core.fixity.validation.backends.repeated_extension.RepeatedExtensionValidator',
     'structure': 'ESSArch_Core.fixity.validation.backends.structure.StructureValidator',
-    'verapdf': 'ESSArch_Core.fixity.validation.backends.verapdf.VeraPDFValidator',
     'xml_comparison': 'ESSArch_Core.fixity.validation.backends.xml.XMLComparisonValidator',
     'xml_iso_schematron': 'ESSArch_Core.fixity.validation.backends.xml.XMLISOSchematronValidator',
     'xml_schema': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchemaValidator',
     'xml_schematron': 'ESSArch_Core.fixity.validation.backends.xml.XMLSchematronValidator',
-    'xml_syntax': 'ESSArch_Core.fixity.validation.backends.xml.XMLSyntaxValidator',
+    'xml_syntax': 'ESSArch_Core.fixity.validation.backends.xml.XMLSyntaxValidator'
 }
 
 extra_validators = getattr(settings, 'ESSARCH_VALIDATORS', {})

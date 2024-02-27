@@ -1,12 +1,14 @@
+import logging
 from itertools import chain
 
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import MultipleObjectsReturned
 from django.db.models import F, Value
 from django.db.models.functions import Concat
 
-from ESSArch_Core.auth.models import GroupGenericObjects
-from ESSArch_Core.auth.util import get_user_groups, get_user_roles
+from ESSArch_Core.auth.util import get_group_objs_model, get_user_roles
+
+logger = logging.getLogger('essarch.auth')
 
 
 def _get_permission_objs(user, obj=None):
@@ -21,7 +23,7 @@ def _get_permission_objs(user, obj=None):
         roles = get_user_roles(user, start_grp)
         perms = Permission.objects.filter(roles__in=roles)
 
-    return perms.distinct()
+    return perms
 
 
 class GroupRoleBackend:
@@ -31,13 +33,20 @@ class GroupRoleBackend:
         return None
 
     def get_all_permissions(self, user_obj, obj=None):
-        groups = get_user_groups(user_obj)
+        go_obj = None
 
         if obj is not None:
-            ctype = ContentType.objects.get_for_model(obj)
+            group_objs_model = get_group_objs_model(obj)
             try:
-                obj = GroupGenericObjects.objects.get(content_type=ctype, object_id=obj.pk, group__in=groups)
-            except GroupGenericObjects.DoesNotExist:
+                go_obj = group_objs_model.objects.get_organization(obj)
+            except MultipleObjectsReturned as e:
+                go_objs = group_objs_model.objects.get_organization(obj, list=True)
+                group_list = [x.group for x in go_objs]
+                message_info = 'Expected one GroupObjects for {} {} but got multiple go_objs \
+with folowing groups: {}'.format(obj._meta.model_name, obj, group_list)
+                logger.warning(message_info)
+                raise e
+            except group_objs_model.DoesNotExist:
                 return set()
 
             full_name = F('codename')
@@ -45,7 +54,7 @@ class GroupRoleBackend:
             full_name = Concat(F('content_type__app_label'), Value('.'), F('codename'))
 
         return list(set(chain(
-            *_get_permission_objs(user_obj, obj).annotate(full_name=full_name).values_list('full_name')
+            *_get_permission_objs(user_obj, go_obj).annotate(full_name=full_name).values_list('full_name')
         )))
 
     def has_perm(self, user_obj, perm, obj=None):

@@ -651,6 +651,15 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         open(os.path.join(self.datadir, 'test.pdf'), 'a').close()
         open(os.path.join(self.datadir, 'example.txt'), 'a').close()
 
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('application/xml xml xsd\n')
+            f.write('application/pdf pdf\n')
+            f.write('text/plain txt\n')
+
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -1039,7 +1048,7 @@ class AppraisalJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
             [normalize_path(os.path.join(x['href'], x['filename'])) for x in new_document_tags],
             [
                 'foo.pdf', 'logs/1.txt', 'logs/2.txt',
-                'ipevents.xml', 'mets.xml', 'premis.xsd',
+                'ipevents.xml', 'mets.xml', 'premis.xsd'
             ],
         )
 
@@ -1448,6 +1457,16 @@ class ConversionJobViewSetRunTests(MaintenanceJobViewSetRunBaseTests):
         # add non-package files
         open(os.path.join(self.datadir, 'test.docx'), 'a').close()
         open(os.path.join(self.datadir, 'example.mkv'), 'a').close()
+
+        mimetypes_file = Path.objects.create(
+            entity="mimetypes_definitionfile",
+            value=os.path.join(self.datadir, "mime.types"),
+        ).value
+        with open(mimetypes_file, 'w') as f:
+            f.write('video/x-matroska mpv mkv\n')
+            f.write('video/mp4 mp4\n')
+            f.write('application/xml xml xsd\n')
+            f.write('text/plain txt\n')
 
     def test_unauthenticated(self):
         response = self.client.post(self.url, {'name': 'foo'})

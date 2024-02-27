@@ -2,7 +2,7 @@
   <div class="content-wrapper">
     <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
     <uib-tabset
-      ng-if="ip.state == 'At reception' && (ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
+      ng-if="(ip.state == 'At reception' || ip.state == 'Receiving') && (ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
       active="vm.activeTab"
       class="tabs tabs-style-bar"
     >
@@ -175,7 +175,7 @@
         </div>
       </uib-tab>
       <uib-tab
-        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1 && ip.state !== 'Receiving'"
+        ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || ip.responsible == null || ip.permissions.includes('see_other_user_ip_files')) && ip.package_type != 1"
         index="'filebrowser'"
         heading="{{'FILEBROWSER.FILEBROWSER' | translate}}"
       >
@@ -194,7 +194,7 @@
         </div>
       </uib-tab>
       <uib-tab
-        ng-if="ip !== null && ips.length == 0 && ip.state == 'At reception'"
+        ng-if="ip !== null && ips.length == 0 && (ip.state == 'At reception' || ip.state == 'Receiving')"
         index="'tasks'"
         heading="{{'TASKS' | translate}}"
       >

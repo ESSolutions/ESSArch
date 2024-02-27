@@ -1,4 +1,5 @@
 <div class="file-explorer" st-table="deckGridData" st-pipe="workareaPipe">
+  <h4>{{'WORKSPACECONTENT' | translate}}</h4>
   <div class="nav-refresh-wrapper">
     <div class="file-explorer-nav">
       <li
@@ -141,6 +142,7 @@
 <hr />
 
 <div class="file-explorer" st-table="chosenFiles" st-pipe="dipPipe">
+  <h4>{{'CONTENT' | translate}}</h4>
   <div class="nav-refresh-wrapper">
     <div class="file-explorer-nav">
       <li
@@ -275,3 +277,16 @@
 </div>
 <button ng-if="selectedCards2.length" ng-click="removeFiles()" class="btn btn-default" translate="REMOVE"></button>
 <button ng-click="newDirModal()" class="btn btn-default">{{'FILEBROWSER.NEWFOLDER' | translate}}</button>
+<button
+  ng-if="selectedCards2.length == 1 && selectedCardIsContainer()"
+  class="btn btn-default"
+  ng-click="expandFile(2, ip, selectedCardIsContainer(), selectedCardIsContainer())"
+  translate="FILEBROWSER.EXPAND"
+></button>
+<hr />
+<div
+  id="file-upload"
+  ng-if="ip !== null && ips.length == 0 && (ip.responsible.id == auth.id || checkPermission('ip.can_upload'))"
+  ng-include
+  src="'static/frontend/views/file_upload.html'"
+></div>

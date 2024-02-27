@@ -16,7 +16,7 @@ export default class ExportCtrl {
     };
 
     $scope.encodeJson = function (obj) {
-      return angular.toJson(obj);
+      return JSON.stringify(obj, null, 4);
     };
 
     vm.profileFileName = function (item) {

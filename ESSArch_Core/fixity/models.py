@@ -8,6 +8,7 @@ from subprocess import PIPE, Popen
 from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from picklefield.fields import PickledObjectField
 
 from ESSArch_Core.fixity.exceptions import (
     CollectionError,
@@ -185,14 +186,14 @@ class ActionTool(ExternalTool):
 
 class Validation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    filename = models.CharField(max_length=255)
+    filename = models.CharField(max_length=1024)
     validator = models.CharField(max_length=255)
     specification = models.JSONField(null=True)
     time_started = models.DateTimeField(null=True)
     time_done = models.DateTimeField(null=True)
     passed = models.BooleanField(null=True)
     required = models.BooleanField(default=True)
-    message = models.TextField(max_length=255, blank=True)
+    message = PickledObjectField(null=True, default=None, editable=False)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',

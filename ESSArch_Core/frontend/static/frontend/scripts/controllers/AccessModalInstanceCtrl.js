@@ -21,18 +21,18 @@ export default class AccessModalInstanceCtrl {
     $ctrl.accessTitle = function (type) {
       switch (type) {
         case 'get':
-          return 'GET';
+          return 'PROCESS_AS_READ_ONLY';
         case 'get_tar':
-          return 'GET_AS_CONTAINER';
+          return 'RETRIEVE_AS_CONTAINER';
         case 'get_as_new':
-          return 'GET_AS_NEW_GENERATION';
+          return 'PROCESS_AS_NEW_GENERATION';
         case 'edit':
-          return 'GET_AS_EDITABLE';
+          return 'PROCESS_AS_EDITABLE';
         default:
           return 'GET';
       }
     };
-    // Preserve IP
+    // Access IP
     $ctrl.access = function () {
       $ctrl.accessing = true;
       const data = {
@@ -42,6 +42,7 @@ export default class AccessModalInstanceCtrl {
         new: $ctrl.data.request.type === 'get_as_new',
         edit: $ctrl.data.request.type === 'edit',
         package_xml: $ctrl.data.request.package_xml,
+        diff_check: $ctrl.data.request.diff_check,
         aic_xml: $ctrl.data.request.aic_xml,
       };
       const promises = [];

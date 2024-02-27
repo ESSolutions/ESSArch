@@ -23,13 +23,13 @@
 
 .pr-md-base {
   @include medium-screen-up {
-    padding-right: $padding-base-horizontal !important;
+    padding-right: 12px !important;
   }
 }
 
 .pl-md-base {
   @include medium-screen-up {
-    padding-left: $padding-base-horizontal !important;
+    padding-left: 12px !important;
   }
 }
 
@@ -51,36 +51,36 @@
 .p-base,
 .py-base,
 .pt-base {
-  padding-top: $padding-base-vertical;
+  padding-top: 6px;
 }
 
 .p-base,
 .py-base,
 .pb-base {
-  padding-bottom: $padding-base-vertical;
+  padding-bottom: 6px;
 }
 
 .p-base,
 .px-base,
 .pl-base {
-  padding-left: $padding-base-horizontal;
+  padding-left: 12px;
 }
 
 .p-base,
 .px-base,
 .pr-base {
-  padding-right: $padding-base-horizontal;
+  padding-right: 12px;
 }
 
 .pl-lg-base {
   @include large-screen-up {
-    padding-left: $padding-base-horizontal !important;
+    padding-left: 12px !important;
   }
 }
 
 .pr-lg-base {
   @include large-screen-up {
-    padding-right: $padding-base-horizontal !important;
+    padding-right: 12px !important;
   }
 }
 
@@ -113,7 +113,7 @@
 }
 
 .mb-base {
-  margin-bottom: $padding-base-vertical;
+  margin-bottom: 6px;
 }
 .mt-0,
 .my-0 {
@@ -128,25 +128,25 @@
 .m-base,
 .mx-base,
 .ml-base {
-  margin-left: $padding-base-horizontal;
+  margin-left: 12px;
 }
 
 .m-base,
 .mx-base,
 .mr-base {
-  margin-right: $padding-base-horizontal;
+  margin-right: 12px;
 }
 
 .m-base,
 .my-base,
 .mt-base {
-  margin-top: $padding-base-vertical;
+  margin-top: 6px;
 }
 
 .m-base,
 .my-base,
 .mb-base {
-  margin-bottom: $padding-base-vertical;
+  margin-bottom: 6px;
 }
 
 .mb-1 {

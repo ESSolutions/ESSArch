@@ -65,14 +65,6 @@ export default class FilebrowserController {
     $scope.previousGridArraysString = function () {
       if ($scope.ip) {
         let retString = '';
-        if ($state.includes('**.workarea.**')) {
-          retString = $scope.ip.object_identifier_value;
-          if ($scope.ip.workarea[0].packaged && !$scope.ip.workarea[0].extracted) {
-            retString += '.tar';
-          }
-          retString += '/';
-        }
-
         $scope.previousGridArrays.forEach(function (card) {
           retString = retString.concat(card.name, '/');
         });
@@ -94,25 +86,57 @@ export default class FilebrowserController {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .getWorkareaDir(
+              $scope.ip.id,
               vm.workarea,
               $scope.previousGridArraysString(),
               paginationParams,
               vm.user ? vm.user.id : null
             )
             .then(function (dir) {
+              if (
+                $scope.initLoad &&
+                !$scope.initExpanded &&
+                !$scope.ip.workarea[0].packaged &&
+                $scope.ip.workarea[0].extracted
+              ) {
+                for (let i = 0; i < dir.data.length; i++) {
+                  if (dir.data[i].name == $scope.ip.object_identifier_value) {
+                    $scope.expandFile($scope.ip, dir.data[i]);
+                    $scope.initExpanded = true;
+                    break;
+                  }
+                }
+              } else {
+                $scope.deckGridData = dir.data;
+                tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+                $scope.gridArrayLoading = false;
+                $scope.initLoad = false;
+                $scope.openingNewPage = false;
+              }
+            });
+        } else {
+          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function (dir) {
+            //console.log('$scope.ip: ' + JSON.stringify($scope.ip));
+            if (
+              $scope.initLoad &&
+              !$scope.initExpanded &&
+              $scope.ip.package_type_display == 'SIP' &&
+              $scope.ip.state == 'Prepared'
+            ) {
+              for (let i = 0; i < dir.data.length; i++) {
+                if (dir.data[i].name == 'content') {
+                  $scope.expandFile($scope.ip, dir.data[i]);
+                  $scope.initExpanded = true;
+                  break;
+                }
+              }
+            } else {
               $scope.deckGridData = dir.data;
               tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
               $scope.gridArrayLoading = false;
               $scope.initLoad = false;
               $scope.openingNewPage = false;
-            });
-        } else {
-          listViewService.getDir($scope.ip, $scope.previousGridArraysString(), paginationParams).then(function (dir) {
-            $scope.deckGridData = dir.data;
-            tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
-            $scope.gridArrayLoading = false;
-            $scope.initLoad = false;
-            $scope.openingNewPage = false;
+            }
           });
         }
       }
@@ -162,8 +186,12 @@ export default class FilebrowserController {
         $scope.dirPipe($scope.tableState);
       }
     };
-    $scope.expandFile = function (ip, card) {
-      if (card.type == 'dir' || card.name.endsWith('.tar') || card.name.endsWith('.zip')) {
+    $scope.expandFile = function (ip, card, expandContainer) {
+      if (
+        card.type == 'dir' ||
+        (card.name.endsWith('.tar') && expandContainer) ||
+        (card.name.endsWith('.zip') && expandContainer)
+      ) {
         $scope.previousGridArrays.push(card);
         if ($scope.tableState) {
           $scope.tableState.pagination.start = 0;
@@ -185,6 +213,24 @@ export default class FilebrowserController {
       }
       return false;
     }
+
+    $scope.inWorkarea = function () {
+      if ($state.includes('**.workarea.**')) {
+        return true;
+      } else {
+        return false;
+      }
+    };
+
+    $scope.selectedCardIsContainer = function () {
+      let array = $scope.selectedCards;
+      for (let i = 0; i < array.length; i++) {
+        if (array[i]['name'].endsWith('.tar') || array[i]['name'].endsWith('.zip')) {
+          return array[i];
+        }
+      }
+      return false;
+    };
 
     $scope.cardSelect = function (card) {
       if (includesWithProperty($scope.selectedCards, 'name', card.name)) {
@@ -216,6 +262,7 @@ export default class FilebrowserController {
         if ($state.includes('**.workarea.**')) {
           listViewService
             .deleteWorkareaFile(
+              $scope.ip,
               vm.workarea,
               $scope.previousGridArraysString(),
               fileToOverwrite,
@@ -251,7 +298,13 @@ export default class FilebrowserController {
       if (!fileExists) {
         if ($state.includes('**.workarea.**')) {
           listViewService
-            .addNewWorkareaFolder(vm.workarea, $scope.previousGridArraysString(), folder, vm.user ? vm.user.id : null)
+            .addNewWorkareaFolder(
+              $scope.ip,
+              vm.workarea,
+              $scope.previousGridArraysString(),
+              folder,
+              vm.user ? vm.user.id : null
+            )
             .then(function (response) {
               $scope.updateGridArray();
             });
@@ -267,7 +320,9 @@ export default class FilebrowserController {
       if ($state.includes('**.workarea.**')) {
         file.content = $sce.trustAsResourceUrl(
           appConfig.djangoUrl +
-            'workarea-files/?type=' +
+            'workarea-files/?id=' +
+            $scope.ip.id +
+            '&type=' +
             vm.workarea +
             '&path=' +
             $scope.previousGridArraysString() +
@@ -317,7 +372,13 @@ export default class FilebrowserController {
       $scope.selectedCards.forEach(function (file) {
         if ($state.includes('**.workarea.**')) {
           listViewService
-            .deleteWorkareaFile(vm.workarea, $scope.previousGridArraysString(), file, vm.user ? vm.user.id : null)
+            .deleteWorkareaFile(
+              $scope.ip,
+              vm.workarea,
+              $scope.previousGridArraysString(),
+              file,
+              vm.user ? vm.user.id : null
+            )
             .then(function () {
               $scope.updateGridArray();
             });

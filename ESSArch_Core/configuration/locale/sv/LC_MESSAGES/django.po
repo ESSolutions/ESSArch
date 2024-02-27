@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-15 11:17+0100\n"
+"POT-Creation-Date: 2023-06-02 11:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,70 +18,75 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: admin.py:110
+#: configuration/admin.py:111
 msgid "Cache must be a local disk without containers"
 msgstr ""
 
-#: apps.py:7
+#: configuration/apps.py:7
 msgid "Configuration"
 msgstr "Konfiguration"
 
-#: models.py:64 models.py:95
+#: configuration/models.py:75 configuration/models.py:106
 msgid "entity"
 msgstr "entitet"
 
-#: models.py:65 models.py:96
+#: configuration/models.py:76 configuration/models.py:107
 msgid "value"
 msgstr "värde"
 
-#: models.py:71
+#: configuration/models.py:82
 msgid "parameter"
 msgstr "parameter"
 
-#: models.py:72
+#: configuration/models.py:83
 msgid "parameters"
 msgstr "parametrar"
 
-#: models.py:105
+#: configuration/models.py:116
 msgid "path"
 msgstr "sökväg"
 
-#: models.py:106
+#: configuration/models.py:117
 msgid "paths"
 msgstr "sökvägar"
 
-#: models.py:118
+#: configuration/models.py:129
 msgid "Information package"
-msgstr ""
+msgstr "Informationspaket"
 
-#: models.py:119
+#: configuration/models.py:130
 msgid "Delivery"
-msgstr ""
+msgstr "Leverans"
 
-#: models.py:241
+#: configuration/models.py:240
 msgid "storage policy"
 msgstr "lagringspolicy"
 
-#: models.py:242
+#: configuration/models.py:241
 msgid "storage policies"
 msgstr "lagringspolicyer"
 
-#: models.py:270
+#: configuration/models.py:269
 msgid "name"
-msgstr ""
+msgstr "namn"
 
-#: models.py:271
+#: configuration/models.py:270
 msgid "description"
-msgstr ""
+msgstr "beskrivning"
 
-#: models.py:272
+#: configuration/models.py:271
 msgid "enabled"
 msgstr "aktiverad"
 
-#: models.py:279
+#: configuration/models.py:278
 msgid "feature"
 msgstr "funktion"
 
-#: models.py:280
+#: configuration/models.py:279
 msgid "features"
 msgstr "funktioner"
+
+#: configuration/templatetags/tags_meta.py:39
+#, python-format
+msgid "%s tag requires a queryset"
+msgstr ""

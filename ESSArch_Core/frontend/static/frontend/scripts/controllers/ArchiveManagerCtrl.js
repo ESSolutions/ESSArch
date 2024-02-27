@@ -118,6 +118,12 @@ export default class ArchiveManagerCtrl {
       }
     };
 
+    vm.searchClick = function (archive) {
+      vm.archiveLoading = true;
+      vm.record = {_id: archive.current_version.id};
+      $state.go('home.archivalDescriptions.search.component', {id: vm.record._id});
+    };
+
     vm.getArchive = function (id) {
       return $http.get(appConfig.djangoUrl + 'search/' + id + '/').then(function (response) {
         return response.data;

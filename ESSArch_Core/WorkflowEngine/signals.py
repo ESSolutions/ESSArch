@@ -21,6 +21,6 @@ def task_post_save(sender, instance, created, **kwargs):
 @receiver(post_save, sender=ProcessStep)
 def step_post_save(sender, instance, created, **kwargs):
     try:
-        instance.parent_step.clear_cache()
+        instance.parent.clear_cache()
     except AttributeError:
         pass

@@ -40,7 +40,7 @@ from ESSArch_Core.auth.util import get_organization_groups
 User = get_user_model()
 logger = logging.getLogger('essarch.auth')
 
-if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
+if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
     from djangosaml2.signals import pre_user_save as saml_pre_user_save
 
     @receiver(saml_pre_user_save, sender=User)
@@ -52,6 +52,11 @@ if getattr(settings, 'ENABLE_ADFS_LOGIN', False):
 
         backend.map(instance, attributes)
         return user_modified
+
+
+async def closing_group_send(channel_layer, channel, message):
+    await channel_layer.group_send(channel, message)
+    await channel_layer.close_pools()
 
 
 @receiver(post_save, sender=User)
@@ -77,7 +82,7 @@ def user_logged_in(sender, user, request, **kwargs):
         if cookie_language:
             user.user_profile.language = cookie_language
         else:
-            user.user_profile.language = 'en'
+            user.user_profile.language = 'DEFAULT'
 
         user.user_profile.save()
 
@@ -176,14 +181,17 @@ def notification_post_save(sender, instance, created, **kwargs):
 
     channel_layer = channels.layers.get_channel_layer()
     grp = 'notifications_{}'.format(instance.user.pk)
-    async_to_sync(channel_layer.group_send)(grp, {
-        'type': 'notify',
-        'id': instance.id,
-        'message': instance.message,
-        'level': instance.get_level_display(),
-        'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
-        'refresh': instance.refresh,
-    })
+    async_to_sync(closing_group_send)(
+        channel_layer,
+        grp,
+        {
+            'type': 'notify',
+            'id': instance.id,
+            'message': instance.message,
+            'level': instance.get_level_display(),
+            'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
+            'refresh': instance.refresh,
+        })
 
 
 @receiver(m2m_changed, sender=User.groups.through)

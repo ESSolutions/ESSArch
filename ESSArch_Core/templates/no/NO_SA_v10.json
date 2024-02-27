@@ -1,0 +1,57 @@
+{
+	"structure" : [],
+	"template" : [
+		{
+			"key": "_OSA_NAME",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"label": "Leveransöverenskommelse",
+				"required": true,
+				"disabled": true,
+				"type": "text"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse mellan arkivbildande och bevarande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "_SA_NAME",
+			"type": "input",
+			"defaultValue": "",
+			"hidden": false,
+			"templateOptions": {
+				"label": "Leveransöverenskommelse specificerad",
+				"required": false,
+				"disabled": true,
+				"type": "text"
+
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse specificerad med angivna förutsättningar",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "_IP_ARCHIVIST_ORGANIZATION",
+			"type": "input",
+			"defaultValue": "",
+			"templateOptions": {
+				"label": "Arkivbildare",
+				"type": "text",
+				"required": true,
+				"disabled": true
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Arkivbildaren är den organisation som har skapat arkivmaterialet.",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification" : []
+}

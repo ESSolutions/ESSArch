@@ -1,9 +1,9 @@
-from django.conf.urls import url
+from django.urls import re_path
 
 from .views import detail, index
 
 app_name = 'docs'
 urlpatterns = [
-    url(r'^$', index, name='index'),
-    url(r'^(?P<lang>[a-z-]+)/(?P<path>.*)$', detail, name='detail'),
+    re_path(r'^$', index, name='index'),
+    re_path(r'^(?P<lang>[a-z-]+)/(?P<path>.*)$', detail, name='detail'),
 ]

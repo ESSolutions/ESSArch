@@ -24,8 +24,23 @@ class DiskStorageBackend(BaseStorageBackend):
 
         with tarfile.open(path) as t:
             root = os.path.commonprefix(t.getnames())
-            t.extractall(dst)
 
+            def is_within_directory(directory, target):
+                abs_directory = os.path.abspath(directory)
+                abs_target = os.path.abspath(target)
+                prefix = os.path.commonprefix([abs_directory, abs_target])
+
+                return prefix == abs_directory
+
+            def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                for member in tar.getmembers():
+                    member_path = os.path.join(path, member.name)
+                    if not is_within_directory(path, member_path):
+                        raise Exception("Attempted Path Traversal in Tar File")
+
+                tar.extractall(path, members, numeric_owner=numeric_owner)
+
+            safe_extract(t, dst)
         return os.path.join(dst, root)
 
     def open(self, storage_object: StorageObject, file, mode='r', *args, **kwargs):
@@ -43,14 +58,24 @@ class DiskStorageBackend(BaseStorageBackend):
 
         if storage_object.container:
             ip = storage_object.ip
+            aic_xml = True if ip.aic else False
             target = storage_object.storage_medium.storage_target.target
             src_tar = src
-            src_xml = os.path.splitext(src)[0] + '.xml'
-            src_aic_xml = os.path.join(target, str(ip.aic.pk)) + '.xml'
+            src_xml = os.path.join(target, ip.package_mets_path.split('/')[-1]) if ip.package_mets_path else None
+            if aic_xml:
+                src_aic_xml = os.path.join(target, str(ip.aic.pk)) + '.xml'
 
             if include_xml:
-                copy(src_xml, dst, block_size=block_size)
-                copy(src_aic_xml, dst, block_size=block_size)
+                try:
+                    copy(src_xml, dst, block_size=block_size)
+                except FileNotFoundError as e:
+                    logger.warning(
+                        'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
+                if aic_xml:
+                    try:
+                        copy(src_aic_xml, dst, block_size=block_size)
+                    except FileNotFoundError as e:
+                        logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
                 return self._extract(storage_object, dst)
             else:
@@ -120,8 +145,12 @@ class DiskStorageBackend(BaseStorageBackend):
         else:
             tar = path
             xml = os.path.splitext(tar)[0] + '.xml'
-            aic_xml = os.path.join(os.path.dirname(tar), str(storage_object.ip.aic.pk) + '.xml')
-            files = [tar, xml, aic_xml]
+            aic_xml = True if storage_object.ip.aic else False
+            if aic_xml:
+                aic_xml = os.path.join(os.path.dirname(tar), str(storage_object.ip.aic.pk) + '.xml')
+                files = [tar, xml, aic_xml]
+            else:
+                files = [tar, xml]
             for f in files:
                 try:
                     os.remove(f)

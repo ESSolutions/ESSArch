@@ -3,16 +3,18 @@ import logging
 import os
 import pathlib
 import tarfile
+from time import sleep
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext
 from elasticsearch import NotFoundError
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
@@ -23,9 +25,10 @@ from tenacity import (
     wait_exponential,
 )
 
-from ESSArch_Core.auth.models import GroupGenericObjects, Member, Notification
+from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
     parseContent,
@@ -38,10 +41,14 @@ from ESSArch_Core.fixity.validation import (
     get_backend as get_validator,
 )
 from ESSArch_Core.ip.models import EventIP, InformationPackage, Workarea
+from ESSArch_Core.ip.serializers import (
+    InformationPackageReceptionReceiveSerializer,
+)
 from ESSArch_Core.ip.utils import (
     download_schemas,
     fill_specification_data,
     generate_aic_mets,
+    generate_content_metadata,
     generate_content_mets,
     generate_events_xml,
     generate_package_mets,
@@ -55,6 +62,12 @@ from ESSArch_Core.storage.exceptions import (
     NoWriteableStorage,
 )
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
+from ESSArch_Core.tags.models import (
+    Tag,
+    TagStructure,
+    TagVersion,
+    TagVersionType,
+)
 from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
@@ -64,6 +77,7 @@ from ESSArch_Core.util import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
+logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True, event_type=10500)
@@ -181,6 +195,10 @@ def PrepareAIP(self, sip_path):
         package_type=InformationPackage.SIP
     ).first()
     xmlfile = sip_path.with_suffix('.xml')
+    if os.path.exists(xmlfile):
+        xmlfile_posix = xmlfile.as_posix()
+    else:
+        xmlfile_posix = ''
 
     if existing_sip is None:
         parsed = parse_submit_description(xmlfile.as_posix(), srcdir=sip_path.parent)
@@ -202,7 +220,7 @@ def PrepareAIP(self, sip_path):
                 submission_agreement=sa,
                 submission_agreement_locked=True,
                 object_path=sip_path.as_posix(),
-                package_mets_path=xmlfile.as_posix(),
+                package_mets_path=xmlfile_posix,
             )
 
             member = Member.objects.get(django_user=user)
@@ -218,6 +236,11 @@ def PrepareAIP(self, sip_path):
             # refresh date fields to convert them to datetime instances instead of
             # strings to allow further datetime manipulation
             ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+
+            ProfileIP.objects.filter(ip=ip).delete()
+            ip.submission_agreement.lock_to_information_package(ip, user)
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
+                profile_ip.lock(user)
     else:
         with transaction.atomic():
             ip = existing_sip
@@ -227,7 +250,7 @@ def PrepareAIP(self, sip_path):
             ip.responsible = user
             ip.state = 'Prepared'
             ip.object_path = sip_path.as_posix()
-            ip.package_mets_path = xmlfile.as_posix()
+            ip.package_mets_path = xmlfile_posix
 
     ip.generation = 0
     ip.aic = InformationPackage.objects.create(
@@ -238,9 +261,6 @@ def PrepareAIP(self, sip_path):
         end_date=ip.end_date,
     )
     ip.save()
-
-    ProfileIP.objects.filter(ip=ip).delete()
-    ip.submission_agreement.lock_to_information_package(ip, user)
 
     return str(ip.pk)
 
@@ -257,8 +277,8 @@ def GenerateContentMets(self):
 def GeneratePackageMets(self, package_path=None, xml_path=None):
     package_path, xml_path = self.parse_params(package_path, xml_path)
     ip = self.get_information_package()
-    package_path = package_path if package_path is not None else ip.object_path
-    xml_path = xml_path if xml_path is not None else os.path.splitext(package_path)[0] + '.xml'
+    package_path = package_path if package_path else ip.object_path
+    xml_path = xml_path if xml_path else os.path.splitext(package_path)[0] + '.xml'
 
     generate_package_mets(ip, package_path, xml_path)
     msg = 'Generated {xml}'.format(xml=xml_path)
@@ -281,9 +301,23 @@ def GeneratePremis(self):
     generate_premis(self.get_information_package())
     ip = self.get_information_package()
     data = fill_specification_data(ip=ip)
-    path = parseContent(ip.get_premis_file_path(), data)
-    msg = 'Generated {xml}'.format(xml=path)
+    premis_path = parseContent(ip.get_premis_file_path(), data)
+    msg = 'Generated {xml}'.format(xml=premis_path)
     self.create_success_event(msg)
+
+
+@app.task(bind=True, event_type=50600)
+def GenerateContentMetadata(self):
+    generate_content_metadata(self.get_information_package())
+    ip = self.get_information_package()
+    msg = 'Generated {xml}'.format(xml=ip.content_mets_path)
+    generate_premis = ip.profile_locked('preservation_metadata')
+    if generate_premis:
+        data = fill_specification_data(ip=ip)
+        premis_path = parseContent(ip.get_premis_file_path(), data)
+        msg = '{msg} and {xml}'.format(msg=msg, xml=premis_path)
+    self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, event_type=50600)
@@ -331,12 +365,14 @@ def CreatePhysicalModel(self, structure=None, root=""):
     """
 
     ip = self.get_information_package()
-    ip.create_physical_model(structure, root)
+    created = ip.create_physical_model(structure, root)
 
     self.set_progress(1, total=1)
 
     msg = "Created physical model for %s" % ip.object_identifier_value
     self.create_success_event(msg)
+
+    return created
 
 
 @app.task(bind=True)
@@ -366,6 +402,7 @@ def CreateContainer(self, src, dst):
         compression = ':gz' if compress else ''
         base_dir = os.path.basename(os.path.normpath(src))
         with tarfile.open(dst, 'w%s' % compression) as new_tar:
+            new_tar.format = settings.TARFILE_FORMAT
             new_tar.add(src, base_dir)
 
     msg = "Created {}".format(self.parse_params(dst))
@@ -463,9 +500,9 @@ def Validate(self, backend, path=None, context=None, include=None,
                        responsible=user)
 
     Notification.objects.create(
-        message='{backend} job done for "{ip}"'.format(
+        message=gettext('{backend} job done for {ip}').format(
             backend=backend_name,
-            ip=ip.object_identifier_value
+            ip=ip
         ),
         level=logging.INFO,
         user_id=self.responsible,
@@ -499,8 +536,9 @@ def PreserveInformationPackage(self, storage_method_pk):
         src = [
             ip.get_temp_container_path(),
             ip.get_temp_container_xml_path(),
-            ip.get_temp_container_aic_xml_path(),
         ]
+        if ip.profile_locked('aic_description'):
+            src.append(ip.get_temp_container_aic_xml_path())
     else:
         src = [ip.object_path]
 
@@ -514,8 +552,13 @@ def WriteInformationPackageToSearchIndex(self):
 
 
 @app.task(bind=True)
-def CreateReceipt(self, task_id, backend, template, destination, outcome, short_message, message, date=None, **kwargs):
-    ip = self.get_information_package()
+def CreateReceipt(self, task_id=None, backend=None, template=None, destination=None, outcome=None,
+                  short_message=None, message=None, date=None, **kwargs):
+    try:
+        ip = self.get_information_package()
+    except ObjectDoesNotExist:
+        logger.warning('exception ip DoesNotExist in CreateReceipt. task_id: {}, ip: {}'.format(task_id, self.ip))
+        ip = None
     template, destination, outcome, short_message, message, date = self.parse_params(
         template, destination, outcome, short_message, message, date
     )
@@ -531,11 +574,89 @@ def CreateReceipt(self, task_id, backend, template, destination, outcome, short_
 
 
 @app.task(bind=True)
-def MarkArchived(self):
+def MarkArchived(self, remote_host=None, remote_credentials=None):
+    requests_session = None
+    if remote_credentials:
+        user, passw = decrypt_remote_credentials(remote_credentials)
+        requests_session = requests.Session()
+        requests_session.verify = settings.REQUESTS_VERIFY
+        requests_session.auth = (user, passw)
+
+        task = self.get_processtask()
+        r = task.get_remote_copy(requests_session, remote_host)
+        if r.status_code == 404:
+            # the task does not exist
+            task.create_remote_copy(requests_session, remote_host)
+            task.run_remote_copy(requests_session, remote_host)
+        else:
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            if task.status == celery_states.PENDING:
+                task.run_remote_copy(requests_session, remote_host)
+            elif task.status != celery_states.SUCCESS:
+                logger.debug('task.status: {}'.format(task.status))
+                task.retry_remote_copy(requests_session, remote_host)
+                task.status = celery_states.PENDING
+
+        while task.status not in celery_states.READY_STATES:
+            requests_session = requests.Session()
+            requests_session.verify = settings.REQUESTS_VERIFY
+            requests_session.auth = (user, passw)
+            r = task.get_remote_copy(requests_session, remote_host)
+
+            remote_data = r.json()
+            task.status = remote_data['status']
+            task.progress = remote_data['progress']
+            task.result = remote_data['result']
+            task.traceback = remote_data['traceback']
+            task.exception = remote_data['exception']
+            task.save()
+
+            sleep(5)
+
+        if task.status in celery_states.EXCEPTION_STATES:
+            task.reraise()
+    else:
+        ip = self.get_information_package()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
+
+
+@app.task(bind=True)
+def InsertArchivalDescription(self, data):
     ip = self.get_information_package()
-    ip.archived = True
-    ip.state = 'Preserved'
-    ip.save()
+    serializer = InformationPackageReceptionReceiveSerializer(data=data)
+    serializer.is_valid(raise_exception=True)
+    serializer_data = serializer.validated_data
+
+    archive = serializer_data.get('archive')
+    structure = serializer_data.get('structure')
+    structure_unit = serializer_data.get('structure_unit')
+    archive_structure = TagStructure.objects.get(tag=archive.tag, structure=structure)
+
+    tag = Tag.objects.create(
+        information_package=ip,
+    )
+    TagVersion.objects.create(
+        name=ip.label or ip.object_identifier_value,
+        reference_code=ip.object_identifier_value,
+        tag=tag,
+        type=TagVersionType.objects.get(information_package_type=True),
+        elastic_index='component',
+    )
+    TagStructure.objects.create(
+        tag=tag,
+        structure=structure,
+        structure_unit=structure_unit,
+        parent=archive_structure,
+    )
 
 
 @app.task(bind=True)
@@ -574,22 +695,23 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
     self.set_progress(99, 100)
 
     logger = logging.getLogger('essarch.core.ip.tasks.DeleteInformationPackage')
-    try:
-        ip.get_doc().delete()
-    except NotFoundError:
-        if ip.archived:
-            logger.warning('Information package document not found: {}'.format(ip.pk))
+
+    if settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
+        try:
+            ip.get_doc().delete()
+        except NotFoundError:
+            if ip.archived:
+                logger.warning('Information package document not found: {}'.format(ip.pk))
 
     if from_db:
         with transaction.atomic():
-            ip_content_type = ContentType.objects.get_for_model(ip)
-            GroupGenericObjects.objects.filter(object_id=str(ip.pk), content_type=ip_content_type).delete()
+            ip.informationpackagegroupobjects_set.all().delete()
             ip.delete()
     else:
         ip.state = 'deleted'
         ip.save()
 
-    Notification.objects.create(message=_('%(ip)s has been deleted') % {'ip': ip.object_identifier_value},
+    Notification.objects.create(message=gettext('{ip} has been deleted').format(ip=ip),
                                 level=logging.INFO, user_id=self.responsible, refresh=True)
 
 
@@ -597,9 +719,12 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 def CreateWorkarea(self, ip, user, type, read_only):
     ip = InformationPackage.objects.get(pk=ip)
     user = User.objects.get(pk=user)
-    Workarea.objects.create(ip=ip, user=user, type=type, read_only=read_only)
+    Workarea.objects.update_or_create(ip=ip, user=user, defaults={
+        'type': type,
+        'read_only': read_only,
+    })
     Notification.objects.create(
-        message="%s is now in workspace" % ip.object_identifier_value,
+        message=gettext("{ip} is now in workspace").format(ip=ip),
         level=logging.INFO, user=user, refresh=True
     )
 

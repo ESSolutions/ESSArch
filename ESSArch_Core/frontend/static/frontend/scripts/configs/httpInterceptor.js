@@ -69,6 +69,10 @@ const httpInterceptor = [
                       msg = response.data.detail;
                     }
                     $rootScope.$broadcast('add_notification', {message: msg, level: 'error', time: null});
+                    if (response.data && typeof response.data == 'object') {
+                      msg = JSON.stringify(response.data);
+                    }
+                    $rootScope.$broadcast('add_notification', {message: msg, level: 'error', time: null});
                   }
                   if (response.status <= 0) {
                     $rootScope.$broadcast('disconnected', {detail: translation.instant('ERROR.CONNECTION_LOST')});

@@ -1,0 +1,934 @@
+{
+	"structure" : [
+		{
+			"type": "file",
+			"name": "mets.xml",
+			"use": "mets_file"
+		},
+		{
+			"type": "folder",
+			"name": "content",
+			"use": "content",
+			"children": [
+				{
+					"type": "file",
+					"name": "mets_grp",
+					"use": "mets_grp"
+				},
+				{
+					"type": "folder",
+					"name": "{{INNER_IP_OBJID}}",
+					"use": "sip",
+					"children": [
+						{
+							"type": "file",
+							"name": "content/metadata.xml",
+							"use": "content_type_specification"
+						},
+						{
+							"type": "file",
+							"name": "content/metadata.xsd",
+							"use": "content_type_specification_schema"
+						}
+					]
+				}
+			]
+		},
+		{
+			"type": "folder",
+			"name": "metadata",
+			"use": "metadata",
+			"children": [
+				{
+					"type": "file",
+					"use": "xsd_files",
+					"name": "xsd_files"
+				},
+				{
+					"type": "file",
+					"name": "premis.xml",
+					"use": "preservation_description_file"
+				},
+				{
+					"type": "file",
+					"name": "ead.xml",
+					"use": "archival_description_file"
+				},
+				{
+					"type": "file",
+					"name": "eac.xml",
+					"use": "authoritive_information_file"
+				}
+			]
+		}
+	],
+	"template" : [
+		{
+			"key": "CITS",
+			"type": "select",
+			"defaultValue": "Unstructured",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": false,
+				"label": "Informationstyp",
+				"options": [
+					{
+						"name": "Electronic Record Management System",
+						"value": "ERMS"
+					},
+					{
+						"name": "Personnel system",
+						"value": "Personnel"
+					},
+					{
+						"name": "Medical record(s)",
+						"value": "Medical record"
+					},
+					{
+						"name": "Economics systems",
+						"value": "Economics"
+					},
+					{
+						"name": "Databases",
+						"value": "Databases"
+					},
+					{
+						"name": "Webpages",
+						"value": "Webpages"
+					},
+					{
+						"name": "Geografical Information Systems",
+						"value": "GIS"
+					},
+					{
+						"name": "No specification",
+						"value": "No specification"
+					},
+					{
+						"name": "Archival Information Collection",
+						"value": "AIC"
+					},
+					{
+						"name": "Archival Information",
+						"value": "Archival information"
+					},
+					{
+						"name": "Unstructured",
+						"value": "Unstructured"
+					},
+					{
+						"name": "Single records",
+						"value": "Single records"
+					},
+					{
+						"name": "Publication",
+						"value": "Publication"
+					}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Ange vilken informationstyp den överförda informationen tillhör. En AIP kan tillhöra en och endast en informationstyp.",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "RECORDSTATUS",
+			"type": "select",
+			"defaultValue": "NEW",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Status",
+				"options": [
+					{
+						"name": "SUPPLEMENT",
+						"value": "SUPPLEMENT"
+					},
+					{
+						"name": "REPLACEMENT",
+						"value": "REPLACEMENT"
+					},
+					{
+						"name": "NEW",
+						"value": "NEW"
+					},
+					{
+						"name": "TEST",
+						"value": "TEST"
+					},
+					{
+						"name": "VERSION",
+						"value": "VERSION"
+					},
+					{
+						"name": "OTHER",
+						"value": "OTHER"
+					}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Status på paketet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "OAISSTATUS",
+			"type": "select",
+			"defaultValue": "AIP",
+			"hidden": true,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"label": "Pakettyp",
+				"options": [
+					{
+						"name": "SIP",
+						"value": "SIP"
+					},
+					{
+						"name": "AIP",
+						"value": "AIP"
+					},
+					{
+						"name": "DIP",
+						"value": "DIP"
+					},
+					{
+						"name": "AIU",
+						"value": "AIU"
+					},
+					{
+						"name": "AIC",
+						"value": "AIC"
+					}
+				]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Typ av informationspaket",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_organization_name",
+			"type": "input",
+			"defaultValue": "_IP_ARCHIVIST_ORGANIZATION",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Arkivbildare"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Arkivbildaren är den organisation som har skapat arkivmaterialet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_organization_note",
+			"type": "input",
+			"defaultValue": "VAT:SE201345098701",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Arkivbildare Identitetskod"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Identifiering med unik identitetskod för arkivbildare",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_organization_name",
+			"type": "input",
+			"defaultValue": "Förslagsmyndigheten, Personal",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Levererande organisation"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på den organisation som levererar SIP:en till e-arkivet",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "creator_organization_note",
+			"type": "input",
+			"defaultValue": "HSA:SE2098109810-AF87",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Levererande organisation Identitetskod"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Identifiering med unik identitetskod för levererande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_software_name",
+			"type": "input",
+			"defaultValue": "W3D3",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Källsystem"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Namn på det system ur vilket överföringens filer är exporterade",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "archivist_software_note",
+			"type": "input",
+			"defaultValue": "5.0.34",
+			"hidden": true,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Källsystem version"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Version för det system ur vilket överföringens filer är exporterade",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "SUBMISSIONAGREEMENT",
+			"type": "input",
+			"defaultValue": "_OSA_NAME",
+			"hidden": false,
+			"templateOptions": {
+				"required": true,
+				"disabled": true,
+				"type": "text",
+				"label": "Leveransöverenskommelse"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse mellan arkivbildande och bevarande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "PREVIOUSSUBMISSIONAGREEMENT",
+			"type": "input",
+			"defaultValue": "FM 12-2387/12726, 2007-09-19",
+			"hidden": true,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"type": "text",
+				"label": "Tidigare leveransöverenskommelse"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Tidigare leveransöverenskommelse mellan arkivbildande och bevarande organisation",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "SUBMISSIONAGREEMENT_SPECIFIED",
+			"type": "input",
+			"defaultValue": "_SA_NAME",
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": true,
+				"type": "text",
+				"label": "Leveransöverenskommelse specificerad"
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Leveransöverenskommelse specificerad med angivna förutsättningar",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "allow_unknown_file_types",
+			"type": "select",
+			"defaultValue": false,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Tillåt okända filtyper",
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Tillåter okända filformat i leveransen. Tillägg till specifikationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "allow_encrypted_files",
+			"type": "select",
+			"defaultValue": false,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Tillåt krypterade filer",
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Tillåter krypterade filer i leveransen. Tillägg till specifikationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "index_files",
+			"type": "select",
+			"defaultValue": true,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Indexera filer",
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Indexera innehåll i leveransen. Tillägg till specifikationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		}
+	],
+	"specification" : {
+		"-name": "mets",
+		"-namespace": "mets",
+		"-nsmap": {
+			"mets": "http://www.loc.gov/METS/",
+			"xsi": "http://www.w3.org/2001/XMLSchema-instance",
+			"xlink": "http://www.w3.org/1999/xlink",
+			"ext": "ExtensionMETS"
+		},
+		"-schemasToPreserve": [
+			"http://xml.ra.se/e-arkiv/METS/version12/CSPackageMETS.xsd",
+			"http://xml.ra.se/e-arkiv/METS/version12/CSPackageExtensionMETS.xsd",
+			"http://xml.ra.se/e-arkiv/xlink/xlink.xsd"
+		],
+		"-schemaPreservationLocation": "xsd_files",
+		"-attr": [
+			{
+				"-name": "schemaLocation",
+				"-namespace": "xsi",
+				"-req": true,
+				"#content": [{"text": "http://www.loc.gov/METS/ http://xml.ra.se/e-arkiv/METS/version12/CSPackageMETS.xsd ExtensionMETS http://xml.ra.se/e-arkiv/METS/version12/CSPackageExtensionMETS.xsd"}]
+			},
+			{
+				"-name": "PROFILE",
+				"-req": true,
+				"#content": [{"text": "http://xml.ra.se/e-arkiv/METS/version12/CommonSpecificationSwedenPackageProfile.xml"}]
+			},
+			{
+				"-name": "ID",
+				"-req": false,
+				"#content": [{"text": "ID"},{"var": "_UUID"}]
+			},
+			{
+				"-name": "OBJID",
+				"-req": true,
+				"#content": [{"text": "UUID:"},{"var": "_OBJID"}]
+			},
+			{
+				"-name": "LABEL",
+				"-req": false,
+				"#content": [{"var": "_OBJLABEL"}]
+			},
+			{
+				"-name": "TYPE",
+				"-req": true,
+				"#content": [{"var": "CITS"}]
+			},
+			{
+				"-name": "CONTENTTYPESPECIFICATION",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "CONTENTTYPESPECIFICATION"}]
+			},
+			{
+				"-name": "SYSTEMTYPE",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "SYSTEMTYPE"}]
+			},
+			{
+				"-name": "DATASUBMISSIONSESSION",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "DATASUBMISSIONSESSION"}]
+			},
+			{
+				"-name": "PACKAGENUMBER",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "PACKAGENUMBER"}]
+			},
+			{
+				"-name": "ARCHIVALNAME",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "ARCHIVALNAME"}]
+			},
+			{
+				"-name": "APPRAISAL",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "APPRAISAL"}]
+			},
+			{
+				"-name": "ACCESSRESTRICT",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "ACCESSRESTRICT"}]
+			},
+			{
+				"-name": "INFORMATIONCLASS",
+				"-namespace": "ext",
+				"-req": false,
+				"#content": [{"var": "INFORMATION_CLASSIFICATION"}]
+			}
+		],
+		"-children": [
+			{
+				"-name": "metsHdr",
+				"-namespace": "mets",
+				"-attr": [
+					{
+						"-name": "CREATEDATE",
+						"-hideEmptyContent": true,
+						"-req": true,
+						"#content": [{"var": "_NOW"}]
+					},
+					{
+						"-name": "RECORDSTATUS",
+						"-hideEmptyContent": true,
+						"-req": false,
+						"#content": [{"var": "RECORDSTATUS"}]
+					},
+					{
+						"-name": "OAISSTATUS",
+						"-namespace": "ext",
+						"-hideEmptyContent": true,
+						"-req": true,
+						"#content": [{"var": "OAISSTATUS"}]
+					},
+					{
+						"-name": "AGREEMENTFORM",
+						"-namespace": "ext",
+						"-hideEmptyContent": true,
+						"-req": false,
+						"#content": [{"var": "AGREEMENTFORM"}]
+					}
+				],
+				"-children": [
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": true,
+								"#content": [{"text": "ARCHIVIST"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": true,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": true,
+								"#content": [{"var": "_IP_ARCHIVIST_ORGANIZATION"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": true,
+								"#content": [{"var": "archivist_organization_note"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": true,
+								"#content": [{"text": "CREATOR"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": true,
+								"#content": [{"text": "ORGANIZATION"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": true,
+								"#content": [{"var": "creator_organization_name"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "creator_organization_note"}]
+							}
+						]
+					},
+					{
+						"-name": "agent",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "ROLE",
+								"-req": true,
+								"#content": [{"text": "ARCHIVIST"}]
+							},
+							{
+								"-name": "TYPE",
+								"-req": true,
+								"#content": [{"text": "OTHER"}]
+							},
+							{
+								"-name": "OTHERTYPE",
+								"-req": true,
+								"#content": [{"text": "SOFTWARE"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "name",
+								"-namespace": "mets",
+								"-req": true,
+								"#content": [{"var": "archivist_software_name"}]
+							},
+							{
+								"-name": "note",
+								"-namespace": "mets",
+								"-req": false,
+								"#content": [{"var": "archivist_software_note"}]
+							}
+						]
+					},
+					{
+						"-name": "altRecordID",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-req": true,
+						"-attr": [
+							{
+								"-name": "TYPE",
+								"#content": [{"text": "SUBMISSIONAGREEMENT"}]
+							}
+						],
+						"#content": [{"var": "_OSA_NAME"},{"text": " // "},{"var": "_SA_NAME"}],
+						"-children": []
+					},
+					{
+						"-name": "metsDocumentID",
+						"-namespace": "mets",
+						"-req": false,
+						"#content": [{"var": "_XML_FILENAME"}]
+					}
+				]
+			},
+			{
+				"-name": "amdSec",
+				"-namespace": "mets",
+				"-hideEmptyContent": true,
+				"-attr": [
+					{
+						"-name": "ID",
+						"#content": [{"text": "ID"},{"var": "_UUID"}]
+					}
+				],
+				"-children": [
+					{
+						"-name": "digiprovMD",
+						"-namespace": "mets",
+						"-hideEmptyContent": true,
+						"-attr": [
+							{
+								"-name": "ID",
+								"#content": [{"text": "ID"},{"var": "_UUID"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "mdRef",
+								"-namespace": "mets",
+								"-containsFiles": true,
+								"-filters": {
+									"href": "^metadata/premis.xml$"
+								},
+								"-attr": [
+									{
+										"-name": "MIMETYPE",
+										"#content": [{"var": "FMimetype"}]
+									},
+									{
+										"-name": "href",
+										"-namespace": "xlink",
+										"#content": [{"text": "file:///"},{"var": "href"}]
+									},
+									{
+										"-name": "LOCTYPE",
+										"#content": [{"var": "FLoctype"}]
+									},
+									{
+										"-name": "CREATED",
+										"#content": [{"var": "FCreated"}]
+									},
+									{
+										"-name": "CHECKSUM",
+										"#content": [{"var": "FChecksum"}]
+									},
+									{
+										"-name": "type",
+										"-namespace": "xlink",
+										"#content": [{"text": "simple"}]
+									},
+									{
+										"-name": "ID",
+										"#content": [{"text": "ID"},{"var": "FID"}]
+									},
+									{
+										"-name": "MDTYPE",
+										"#content": [{"text": "PREMIS"}]
+									},
+									{
+										"-name": "CHECKSUMTYPE",
+										"#content": [{"var": "FChecksumType"}]
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"-name": "fileSec",
+				"-namespace": "mets",
+				"-attr": [
+					{
+						"-name": "ID",
+						"#content": [{"text": "ID"},{"var": "_UUID"}]
+					}
+				],
+				"-children": [
+					{
+						"-name": "fileGrp",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "ID",
+								"#content": [{"text": "ID"},{"var": "_UUID"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "file",
+								"-namespace": "mets",
+								"-containsFiles": true,
+								"-filters": {"href": "^((?!^metadata/premis\\.xml$).)*$"},
+								"-attr": [
+									{
+										"-name": "ID",
+										"-req": true,
+										"#content": [{"text": "ID"},{"var": "FID"}]
+									},
+									{
+										"-name": "MIMETYPE",
+										"-req": true,
+										"#content": [{"var": "FMimetype"}]
+									},
+									{
+										"-name": "SIZE",
+										"-req": true,
+										"#content": [{"var": "FSize"}]
+									},
+									{
+										"-name": "CREATED",
+										"-req": true,
+										"#content": [{"var": "FCreated"}]
+									},
+									{
+										"-name": "CHECKSUM",
+										"-req": false,
+										"#content": [{"var": "FChecksum"}]
+									},
+									{
+										"-name": "CHECKSUMTYPE",
+										"-req": false,
+										"#content": [{"var": "FChecksumType"}]
+									}
+								],
+								"-children": [
+									{
+										"-name": "FLocat",
+										"-namespace": "mets",
+										"-attr": [
+											{
+												"-name": "LOCTYPE",
+												"-req": true,
+												"#content": [{"text": "URL"}]
+											},
+											{
+												"-name": "href",
+												"-namespace": "xlink",
+												"-req": true,
+												"#content": [{"text": "file:///"},{"var": "href"}]
+											},
+											{
+												"-name": "type",
+												"-namespace": "xlink",
+												"-req": true,
+												"#content": [{"text": "simple"}]
+											}
+										]
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			{
+				"-name": "structMap",
+				"-namespace": "mets",
+				"-attr": [
+					{
+						"-name": "ID",
+						"#content": [{"text": "ID"},{"var": "_UUID"}]
+					}
+				],
+				"-children": [
+					{
+						"-name": "div",
+						"-namespace": "mets",
+						"-attr": [
+							{
+								"-name": "LABEL",
+								"#content": [{"text": "Package:"},{"var": "_OBJID"}]
+							}
+						],
+						"-children": [
+							{
+								"-name": "div",
+								"-namespace": "mets",
+								"-attr": [
+									{
+										"-name": "LABEL",
+										"#content": [{"text": "root"}]
+									}
+								],
+								"-children": [
+									{
+										"-name": "fptr",
+										"-namespace": "mets",
+										"-containsFiles": true,
+										"-filters": {"href": "^[^/]+$"},
+										"-attr": [
+											{
+												"-name": "FILEID",
+												"-req": true,
+												"#content": [{"text": "ID"},{"var": "FID"}]
+											}
+										]
+									}
+								]
+							},
+							{
+								"-name": "div",
+								"-namespace": "mets",
+								"-attr": [
+									{
+										"-name": "LABEL",
+										"#content": [{"text": "content"}]
+									}
+								],
+								"-children": [
+									{
+										"-name": "fptr",
+										"-namespace": "mets",
+										"-containsFiles": true,
+										"-filters": {"href": "content/*"},
+										"-attr": [
+											{
+												"-name": "FILEID",
+												"-req": true,
+												"#content": [{"text": "ID"},{"var": "FID"}]
+											}
+										],
+										"-children": []
+									}
+								]
+							},
+							{
+								"-name": "div",
+								"-namespace": "mets",
+								"-attr": [
+									{
+										"-name": "LABEL",
+										"#content": [{"text": "metadata"}]
+									}
+								],
+								"-children": [
+									{
+										"-name": "fptr",
+										"-namespace": "mets",
+										"-containsFiles": true,
+										"-filters": {"href": "metadata/*"},
+										"-attr": [
+											{
+												"-name": "FILEID",
+												"-req": true,
+												"#content": [{"text": "ID"},{"var": "FID"}]
+											}
+										],
+										"-children": []
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}

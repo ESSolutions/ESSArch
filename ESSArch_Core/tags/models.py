@@ -3,9 +3,12 @@ import uuid
 from copy import deepcopy
 
 from django.contrib.auth import get_user_model
-from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
+from django.core.exceptions import (
+    MultipleObjectsReturned,
+    ObjectDoesNotExist,
+    ValidationError,
+)
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import FileExtensionValidator
 from django.db import models, transaction
@@ -14,14 +17,15 @@ from django.utils import timezone
 from django.utils.timezone import localdate
 from django.utils.translation import gettext_lazy as _
 from elasticsearch_dsl.connections import get_connection
+from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel, TreeForeignKey
 from mptt.querysets import TreeQuerySet
 from relativity.mptt import MPTTSubtree
 
 from ESSArch_Core.agents.models import Agent, AgentTagLink
-from ESSArch_Core.auth.models import GroupGenericObjects
-from ESSArch_Core.auth.util import get_objects_for_user
+from ESSArch_Core.auth.models import GroupObjectsBase
+from ESSArch_Core.auth.util import get_group_objs_model, get_objects_for_user
 from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
@@ -248,13 +252,18 @@ class Structure(models.Model):
         )
 
     def create_template_instance(self, archive_tag):
+        try:
+            old_archive_ts = archive_tag.current_version.get_active_structure()
+        except ObjectDoesNotExist:
+            old_archive_ts = None
+
         new_structure = self._create_template_instance()
 
         archive_tagstructure = TagStructure.objects.create(tag=archive_tag, structure=new_structure)
 
         # create descendants from structure
         for unit in self.units.prefetch_related('notes', 'identifiers').select_related('parent'):
-            unit.create_template_instance(new_structure)
+            unit.create_template_instance(new_structure, old_archive_ts)
 
         return new_structure, archive_tagstructure
 
@@ -297,12 +306,15 @@ class Structure(models.Model):
         return new_structure
 
     def is_new_version(self):
-        return Structure.objects.filter(
+        if self.published_date is None and Structure.objects.filter(
             is_template=True, published=True,
             version_link=self.version_link
         ).exclude(
             pk=self.pk
-        ).exists()
+        ).exists():
+            return True
+        else:
+            return False
 
     def get_last_version(self):
         return Structure.objects.filter(
@@ -311,7 +323,7 @@ class Structure(models.Model):
         ).latest('published_date')
 
     def is_compatible_with_other_structure(self, other):
-        for old_unit in other.units.iterator():
+        for old_unit in other.units.iterator(chunk_size=1000):
             assert old_unit.related_structure_units.filter(structure=self).exists()
 
         return True
@@ -329,15 +341,20 @@ class Structure(models.Model):
             self.is_compatible_with_last_version()
             last_version = self.get_last_version()
 
+            su_objs_values = []
             for old_instance in last_version.instances.all():
                 archive_tag_structure = old_instance.tagstructure_set.get(
                     structure_unit__isnull=True, parent__isnull=True
                 )
                 new_instance, new_archive_tag_structure = self.create_template_instance(archive_tag_structure.tag)
-                for instance_unit in new_instance.units.all():
-                    StructureUnitDocument.from_obj(instance_unit).save()
-
+                su_objs_values.extend(new_instance.units.all().values_list('pk', flat=True))
                 archive_tag_structure.copy_descendants_to_new_structure(new_instance)
+                logger.info('Finished to publish new structure: {} to archive: {}'.format(
+                    new_instance, archive_tag_structure))
+
+            logger.info('Start to bulk import structure_unit to index for structure: {}'.format(self))
+            StructureUnitDocument.index_documents(queryset=StructureUnit.objects.filter(pk__in=su_objs_values))
+            logger.info('Finished to bulk import structure_unit to index for structure: {}'.format(self))
 
         self.is_editable = False
         self.published = True
@@ -446,6 +463,10 @@ class StructureUnit(MPTTModel):
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
     transfers = models.ManyToManyField('tags.Transfer', verbose_name=_('transfers'), related_name='structure_units')
+    access_aids = models.ManyToManyField(
+        'access.AccessAid',
+        verbose_name=_('access_aids'),
+        related_name='structure_units')
     task = models.ForeignKey(
         'WorkflowEngine.ProcessTask',
         on_delete=models.SET_NULL,
@@ -460,7 +481,7 @@ class StructureUnit(MPTTModel):
     )
 
     @transaction.atomic
-    def copy_to_structure(self, structure, template_unit=None):
+    def copy_to_structure(self, structure, template_unit=None, old_archive_ts=None):
         old_parent_ref_code = getattr(self.parent, 'reference_code', None)
         parent = None
 
@@ -479,6 +500,15 @@ class StructureUnit(MPTTModel):
             end_date=self.end_date,
             template=template_unit,
         )
+
+        try:
+            if old_archive_ts is not None:
+                old_unit = old_archive_ts.structure.units.get(reference_code=self.reference_code)
+                group = old_unit.structureunitgroupobjects_set.get().group
+                group.add_object(new_unit)
+                logger.debug('Add new_unit: {} to group: {}'.format(new_unit, group))
+        except ObjectDoesNotExist:
+            pass
 
         ref_cache_key = structure._get_unit_by_ref_cache_key(self.reference_code)
         cache.set(ref_cache_key, new_unit.pk, 60)
@@ -502,8 +532,8 @@ class StructureUnit(MPTTModel):
 
         return new_unit
 
-    def create_template_instance(self, structure_instance):
-        new_unit = self.copy_to_structure(structure_instance, template_unit=self)
+    def create_template_instance(self, structure_instance, old_archive_ts=None):
+        new_unit = self.copy_to_structure(structure_instance, template_unit=self, old_archive_ts=old_archive_ts)
 
         new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
         for relation in StructureUnitRelation.objects.filter(structure_unit_a=self):
@@ -554,6 +584,13 @@ class StructureUnit(MPTTModel):
                     )
                 except StructureUnit.DoesNotExist:
                     continue
+                except BaseException as e:
+                    related_unit_instances = StructureUnit.objects.filter(
+                        template=relation.structure_unit_a,
+                        structure__tagstructure__tag=new_archive_structure.tag,
+                    )
+                    logger.error('related_unit_instances: {}'.format(repr([x.id for x in related_unit_instances])))
+                    raise e
 
                 StructureUnitRelation.objects.create(
                     structure_unit_a=related_unit_instance,
@@ -673,20 +710,49 @@ class StructureUnit(MPTTModel):
 
     def get_related_in_other_structure(self, other_structure):
         structure = self.structure
+        logger.debug('other_structure: {}, other_structure.is_template: {}, other_structure.template: {}, \
+other_structure.id: {}'.format(other_structure, other_structure.is_template, other_structure.template,
+                               other_structure.id))
         other_structure_template = other_structure if other_structure.is_template else other_structure.template
+        logger.debug('self: {}, structure.is_template: {}, self.template: {}'.format(self, structure.is_template,
+                                                                                     self.template))
 
         template_unit = self if structure.is_template else self.template
-        template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+        if template_unit is not None:
+            template_units = template_unit.related_structure_units.filter(structure=other_structure_template)
+        else:
+            # if not StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure
+            #   ).exists():
+            #    self.copy_to_structure(other_structure)
+            # return StructureUnit.objects.filter(reference_code=self.reference_code, structure=other_structure)
+            template_units = []
 
         if other_structure.is_template:
             return template_units
 
-        return StructureUnit.objects.filter(template__in=template_units)
+        return StructureUnit.objects.filter(template__in=template_units, structure=other_structure)
 
     def __str__(self):
         return '{} {}'.format(self.reference_code, self.name)
 
     objects = StructureUnitManager()
+
+    @transaction.atomic
+    def change_organization(self, organization, force=False):
+        group_objs_model = get_group_objs_model(self)
+        group_objs_model.objects.change_organization(self, organization, force=force)
+        if self.is_leaf_node():
+            structure = self.structure
+            if structure.tagstructure_set.exists():
+                nodes = structure.tagstructure_set.first().get_root().tag.current_version.get_descendants(structure)
+                tv_objs = nodes.filter(tag__structures__structure_unit=self)
+                for tv_obj in tv_objs:
+                    group_objs_model_tv = get_group_objs_model(tv_obj)
+                    group_objs_model_tv.objects.change_organization(tv_obj, organization, force=force)
+
+    def get_organization(self):
+        group_objs_model = get_group_objs_model(self)
+        return group_objs_model.objects.get_organization(self)
 
     class Meta:
         unique_together = (('structure', 'reference_code'),)
@@ -696,6 +762,18 @@ class StructureUnit(MPTTModel):
             ('delete_structureunit_instance', _('Can delete instances of structure units')),
             ('move_structureunit_instance', _('Can move instances of structure units')),
         )
+
+
+class StructureUnitUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
+
+
+class StructureUnitGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
+
+
+class StructureUnitGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(StructureUnit, on_delete=models.CASCADE)
 
 
 class Tag(models.Model):
@@ -795,6 +873,18 @@ class Tag(models.Model):
             ('security_level_5', 'Can see security level 5'),
             ('security_level_exists_5', 'Can see security level 5 exists'),
         )
+
+
+class TagUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class TagGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
+
+
+class TagGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(Tag, on_delete=models.CASCADE)
 
 
 class TagVersionRelation(models.Model):
@@ -1122,11 +1212,9 @@ class TagVersion(models.Model):
         new.save()
 
         try:
-            ctype = ContentType.objects.get_for_model(self)
-            gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
-            GroupGenericObjects.objects.update_or_create(object_id=new.pk, content_type=ctype,
-                                                         defaults={'group': gg_obj.group})
-        except GroupGenericObjects.DoesNotExist:
+            org = self.get_organization()
+            org.group.add_object(new)
+        except ObjectDoesNotExist:
             pass
 
         for agent_link in AgentTagLink.objects.filter(tag=self):
@@ -1201,18 +1289,41 @@ class TagVersion(models.Model):
         return self.tag.is_leaf_node(user, structure)
 
     @transaction.atomic
-    def change_organization(self, organization):
-        if organization.group_type.codename != 'organization':
-            raise ValueError('{} is not an organization'.format(organization))
-        ctype = ContentType.objects.get_for_model(self)
-        GroupGenericObjects.objects.update_or_create(object_id=self.pk, content_type=ctype,
-                                                     defaults={'group': organization})
+    def change_organization(self, organization, force=False):
+        group_objs_model = get_group_objs_model(self)
+        # print('update tag: %s with org: %s (in tv)' % (repr(self), organization))
+        group_objs_model.objects.change_organization(self, organization, force=force)
+
+        su_objs = []
+        accessaid_objs = []
+        for ts_obj in self.get_structures().all():
+            for su_obj in ts_obj.structure.units.all():
+                su_objs.append(su_obj)
+                for accessaid_obj in su_obj.access_aids.all():
+                    if accessaid_obj not in accessaid_objs:
+                        accessaid_objs.append(accessaid_obj)
+        for accessaid_obj in accessaid_objs:
+            # print('update accessaid: %s with org: %s (in tv)' % (repr(accessaid_obj), organization))
+            accessaid_obj.change_organization(organization, force=force)
+        for su_obj in su_objs:
+            # print('update structure_unit: %s with org: %s (in tv)' % (repr(su_obj), organization))
+            su_obj.change_organization(organization, force=force)
+
+        # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
 
     def get_organization(self):
-        ctype = ContentType.objects.get_for_model(self)
-        gg_obj = GroupGenericObjects.objects.get(object_id=self.pk, content_type=ctype)
+        group_objs_model = get_group_objs_model(self)
+        try:
+            go_obj = group_objs_model.objects.get_organization(self)
+        except MultipleObjectsReturned as e:
+            go_objs = group_objs_model.objects.get_organization(self, list=True)
+            group_list = [x.group for x in go_objs]
+            message_info = 'Expected one GroupObjects for organization (TagVersion: {}) but got multiple go_objs \
+with folowing groups: {}'.format(self, group_list)
+            logger.warning(message_info)
+            raise e
 
-        return gg_obj
+        return go_obj
 
     def get_name_with_dates(self):
         date_format = '%x'
@@ -1241,6 +1352,18 @@ class TagVersion(models.Model):
     class Meta:
         get_latest_by = 'create_date'
         ordering = ('reference_code',)
+
+
+class TagVersionUserObjectPermission(UserObjectPermissionBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
+
+
+class TagVersionGroupObjectPermission(GroupObjectPermissionBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
+
+
+class TagVersionGroupObjects(GroupObjectsBase):
+    content_object = models.ForeignKey(TagVersion, on_delete=models.CASCADE)
 
 
 class TagStructure(MPTTModel):
@@ -1276,6 +1399,21 @@ class TagStructure(MPTTModel):
             except StructureUnit.DoesNotExist:
                 logger.exception('Structure unit instance of {self} does not exist in new structure {new_structure}')
                 raise
+            except StructureUnit.MultipleObjectsReturned:
+                new_units = self.structure_unit.get_related_in_other_structure(new_structure).all()
+                new_units_list = [[x, x.id, x.name, x.parent, x.structure] for x in new_units]
+                logger.debug('Structure unit MultipleObjectsReturned: {} , self: {}, self.id: {}, \
+self.structure_unit: {},  self.structure_unit.id: {}, new structure {}'.format(new_units_list, self, self.id,
+                                                                               self.structure_unit,
+                                                                               self.structure_unit.id, new_structure))
+                for new_unit in new_units:
+                    logger.debug('TS x with tag_id: {}, structure: {}, structure.id: {}, structure_unit: {}, \
+structure_unit.id: {}, parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_unit.id,
+                                          new_parent_tag))
+                raise
+
+        logger.debug('Create TS with tag_id: {}, structure: {}, structure.id: {}, structure_unit: {}, \
+parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_parent_tag))
 
         return TagStructure.objects.create(
             tag_id=self.tag_id, structure=new_structure,
@@ -1285,6 +1423,7 @@ class TagStructure(MPTTModel):
     @transaction.atomic
     def copy_descendants_to_new_structure(self, new_structure):
         for old_descendant in self.get_descendants(include_self=False):
+            logger.debug('old_descendant: {} copy to new_structure: {}'.format(old_descendant, new_structure))
             old_descendant.copy_to_new_structure(new_structure)
 
     def create_new(self, representation):

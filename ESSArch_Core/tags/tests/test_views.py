@@ -53,6 +53,7 @@ from ESSArch_Core.tags.serializers import (
     STRUCTURE_INSTANCE_RELATION_ERROR,
 )
 from ESSArch_Core.tags.tests.test_search import ESSArchSearchBaseTestCase
+from ESSArch_Core.testing.runner import TaskRunner
 
 User = get_user_model()
 
@@ -477,6 +478,7 @@ class PublishStructureTests(TestCase):
         self.assertFalse(structure.published)
         self.assertIsNone(structure.published_date)
 
+    @TaskRunner()
     def test_publish_template(self):
         structure = create_structure(self.structure_type)
         url = reverse('structure-publish', args=[structure.pk])
@@ -486,11 +488,12 @@ class PublishStructureTests(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post(url)
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         structure.refresh_from_db()
         self.assertTrue(structure.published)
         self.assertIsNotNone(structure.published_date)
 
+    @TaskRunner()
     def test_publish_instance(self):
         structure = create_structure(self.structure_type, False)
         url = reverse('structure-publish', args=[structure.pk])
@@ -1919,7 +1922,8 @@ class CreateArchiveTests(ESSArchSearchBaseTestCase):
             record_status=Agent.DRAFT,
             create_date=timezone.now(),
         )
-        structure = Structure.objects.create(is_template=True, published=True, type=StructureType.objects.create())
+        structure = Structure.objects.create(is_template=True, published=True,
+                                             published_date=timezone.now(), type=StructureType.objects.create())
 
         tag_version_type = TagVersionType.objects.create(archive_type=True)
         note_type = NodeNoteType.objects.create()

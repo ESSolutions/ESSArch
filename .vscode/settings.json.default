@@ -1,0 +1,50 @@
+{
+  "breadcrumbs.enabled": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": true,
+  "editor.renderWhitespace": "none",
+  "files.associations": {
+    "*.html": "html"
+  },
+  "git.autofetch": true,
+  "gitlens.views.repositories.branches.layout": "list",
+  "git.confirmSync": false,
+  "git.pullTags": false,
+  "gitlens.views.repositories.files.layout": "tree",
+  "gitlens.gitCommands.skipConfirmations": [
+    "fetch:command",
+    "stash-push:command",
+    "switch:command",
+    "tag-create:command",
+    "push:command"
+  ],
+  "githubPullRequests.remotes": ["origin"],
+  "workbench.tree.indent": 15,
+  "window.zoomLevel": 0,
+  "python.languageServer": "Pylance",
+  "flake8.args": ["--max-line-length=119", "--ignore=W504,B305"],
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.autopep8",
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    }
+  },
+  "esbonio.sphinx.confDir": "${workspaceFolder}/ESSArch_Core/docs",
+  "esbonio.server.enabled": true,
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

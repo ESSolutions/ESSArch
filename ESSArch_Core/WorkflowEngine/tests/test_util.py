@@ -192,11 +192,12 @@ class CreateWorkflowTestCase(TestCase):
         self.assertEqual(ProcessStep.objects.count(), 1)
         self.assertEqual(ProcessTask.objects.count(), 2)
 
-        self.assertEqual(root_step.tasks.count(), 1)
+        self.assertEqual(root_step.tasks.count(), 2)
         self.assertEqual(root_step.child_steps.count(), 0)
         self.assertEqual(root_step.on_error.count(), 0)
 
-        task = root_step.tasks.get()
+        # Workaround exclude "on_error tasks" when both "task" and "on_error task" is created with same timestamp
+        task = root_step.tasks.exclude(on_error__isnull=True).first()
 
         self.assertEqual(task.name, spec[0]['name'])
         self.assertEqual(task.on_error.count(), 1)
@@ -238,6 +239,6 @@ class CreateWorkflowTestCase(TestCase):
         child_step = root_step.child_steps.get()
 
         self.assertEqual(child_step.name, spec[0]['name'])
-        self.assertEqual(child_step.tasks.count(), 1)
+        self.assertEqual(child_step.tasks.count(), 2)
         self.assertEqual(child_step.on_error.count(), 1)
         self.assertEqual(child_step.on_error.get().name, spec[0]['on_error'][0]['name'])

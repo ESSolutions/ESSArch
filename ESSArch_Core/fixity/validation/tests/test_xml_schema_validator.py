@@ -126,7 +126,12 @@ class XMLSchemaValidatorTests(TestCase):
             validator.validate(xml_file_path)
 
         expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
-        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        # self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        num = 0
+        for v in Validation.objects.all():
+            if v.message is not None and expected_error_message in v.message:
+                num += 1
+        self.assertGreater(num, 0)
 
     def mock_download_schema(dirname, logger, schema, verify=None):
         path = os.path.join(dirname, 'foo.xsd')
@@ -155,7 +160,12 @@ class XMLSchemaValidatorTests(TestCase):
         mock_download.assert_called_once()
 
         expected_error_message = "Element 'price': 'foo' is not a valid value of the atomic type 'xs:decimal'"
-        self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        # self.assertTrue(Validation.objects.filter(message__icontains=expected_error_message).exists())
+        num = 0
+        for v in Validation.objects.all():
+            if v.message is not None and expected_error_message in v.message:
+                num += 1
+        self.assertGreater(num, 0)
 
         # ensure that the schema has only been modified in memory and not the file
         schema_doc = etree.parse(schema_file_path)
@@ -396,7 +406,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
 
-        with self.assertRaisesRegexp(OSError, expected_error_message):
+        with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_non_existing_file_path_should_raise_exception(self):
@@ -413,7 +423,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
 
-        with self.assertRaisesRegexp(OSError, expected_err_msg):
+        with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_bad_file_should_raise_exception(self):
@@ -430,7 +440,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_error_message = ".*The element Person should have the child elements Name and Gender.*"
 
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaisesRegex(DocumentInvalid, expected_error_message):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_successful_validation_should_return(self):
@@ -591,7 +601,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
 
-        with self.assertRaisesRegexp(OSError, expected_error_message):
+        with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_non_existing_file_path_should_raise_exception(self):
@@ -608,7 +618,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
 
-        with self.assertRaisesRegexp(OSError, expected_err_msg):
+        with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_bad_file_should_raise_exception(self):
@@ -625,7 +635,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_error_message = ".*The element Person should have the child elements Name and Gender.*"
 
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaisesRegex(DocumentInvalid, expected_error_message):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_successful_validation_should_return(self):

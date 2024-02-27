@@ -159,7 +159,7 @@ class CharSuffixRangeFilter(filters.RangeFilter):
 
         suffix_pos = start_suffix_pos if start else stop_suffix_pos
 
-        prefix_regex = r'^([\D|0]*)[0-9]*$'
+        prefix_regex = r'^(.*\D|[0-9]*)[0-9]*$'
         start_prefix = re.match(prefix_regex, start).group(1)
         stop_prefix = re.match(prefix_regex, stop).group(1)
 
@@ -180,7 +180,7 @@ class CharSuffixRangeFilter(filters.RangeFilter):
             }
 
         if connection.vendor == 'microsoft':
-            from sql_server.pyodbc.functions import TryCast
+            from mssql.functions import TryCast
             cast_func = TryCast
 
             base = qs.filter(

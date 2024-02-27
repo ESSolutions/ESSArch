@@ -2,6 +2,7 @@ import uuid
 
 import elasticsearch
 from django.core.cache import cache
+from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q
 from django.utils import timezone
@@ -21,7 +22,6 @@ from ESSArch_Core.agents.serializers import (
 )
 from ESSArch_Core.api.validators import StartDateEndDateValidator
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
-from ESSArch_Core.auth.models import GroupGenericObjects
 from ESSArch_Core.auth.serializers import GroupSerializer, UserSerializer
 from ESSArch_Core.configuration.models import EventType
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -188,13 +188,26 @@ class StructureSerializer(serializers.ModelSerializer):
     related_structures = StructureRelationSerializer(
         source='structure_relations_a', many=True, required=False
     )
+    archive_name = serializers.SerializerMethodField(read_only=True)
+    instances_num = serializers.SerializerMethodField(read_only=True)
+
+    def get_archive_name(self, obj):
+        tag_structure = obj.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.name
+        return None
+
+    def get_instances_num(self, obj):
+        return obj.instances.all().count()
 
     class Meta:
         model = Structure
-        fields = ('id', 'name', 'type', 'description', 'template', 'is_template', 'version',
-                  'create_date', 'revise_date', 'start_date', 'end_date', 'specification',
-                  'rule_convention_type', 'created_by', 'revised_by', 'published', 'published_date',
-                  'related_structures', 'is_editable',)
+        fields = ('id', 'name', 'type', 'description', 'template', 'is_template', 'version', 'version_link',
+                  'create_date', 'revise_date', 'start_date', 'end_date', 'specification', 'rule_convention_type',
+                  'created_by', 'revised_by', 'published', 'published_date', 'related_structures', 'is_editable',
+                  'archive_name', 'instances_num')
         extra_kwargs = {
             'is_template': {'read_only': True},
             'template': {'read_only': True},
@@ -355,6 +368,10 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     related_structure_units = StructureUnitRelationSerializer(
         source='structure_unit_relations_a', many=True, required=False
     )
+    archive = serializers.SerializerMethodField(read_only=True)
+    archive_name = serializers.SerializerMethodField(read_only=True)
+    structure_name = serializers.SerializerMethodField(read_only=True)
+    structure_version = serializers.SerializerMethodField(read_only=True)
 
     @staticmethod
     def get_is_unit_leaf_node(obj):
@@ -377,13 +394,50 @@ class StructureUnitSerializer(serializers.ModelSerializer):
     def get_is_leaf_node(self, obj):
         return self.get_is_unit_leaf_node(obj) and self.get_is_tag_leaf_node(obj)
 
+    def get_structure_name(self, obj):
+        name = obj.structure.name
+
+        if name is not None:
+            return name
+
+        return None
+
+    def get_structure_version(self, obj):
+        version = obj.structure.version
+
+        if version is not None:
+            return version
+
+        return None
+
+    def get_archive(self, obj):
+        tag_structure = obj.structure.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.pk
+
+        return None
+
+    def get_archive_name(self, obj):
+        tag_structure = obj.structure.tagstructure_set.filter(
+            tag__current_version__elastic_index='archive'
+        ).first()
+
+        if tag_structure is not None:
+            return tag_structure.tag.current_version.name
+
+        return None
+
     class Meta:
         model = StructureUnit
         fields = (
             'id', 'parent', 'name', 'type', 'description',
             'reference_code', 'start_date', 'end_date', 'is_leaf_node',
             'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
-            'identifiers', 'notes', 'related_structure_units',
+            'identifiers', 'notes', 'related_structure_units', 'archive', 'archive_name',
+            'structure_name', 'structure_version'
         )
 
 
@@ -507,6 +561,15 @@ class StructureUnitWriteSerializer(StructureUnitSerializer):
 
         return super().validate(data)
 
+    """class Meta:
+        model = StructureUnit
+        fields = (
+            'id', 'parent', 'name', 'type', 'description',
+            'reference_code', 'start_date', 'end_date', 'is_leaf_node',
+            'is_tag_leaf_node', 'is_unit_leaf_node', 'structure',
+            'identifiers', 'notes', 'related_structure_units',
+        )"""
+
     @staticmethod
     def create_relations(structure_unit, structure_unit_relations):
         for relation in structure_unit_relations:
@@ -557,7 +620,9 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
             return None
 
     def get_name_with_dates(self, obj):
@@ -598,7 +663,9 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
             return None
 
     class Meta:
@@ -711,12 +778,20 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
     appraisal_job = serializers.SerializerMethodField()
     is_mixed_type = serializers.SerializerMethodField()
     name_with_dates = serializers.SerializerMethodField()
+    is_content_indexed = serializers.SerializerMethodField()
 
     def get_archive(self, obj):
         return getattr(obj, 'archive', None)
 
     def get_is_leaf_node(self, obj):
         return obj.is_leaf_node(self.context['request'].user, structure=self.context.get('structure'))
+
+    def get_is_content_indexed(self, obj):
+        try:
+            attachment = getattr(obj.get_doc(), 'attachment', None)
+            return True if attachment else None
+        except elasticsearch.NotFoundError:
+            return None
 
     def get_is_mixed_type(self, obj):
         return self.context.get('is_mixed_type')
@@ -769,7 +844,7 @@ class TagVersionNestedSerializer(serializers.ModelSerializer):
             'is_leaf_node', '_source', 'masked_fields', 'tag', 'appraisal_date', 'security_level',
             'medium_type', 'identifiers', 'agents', 'description', 'reference_code',
             'custom_fields', 'metric', 'location', 'capacity', 'information_package',
-            'appraisal_job', 'is_mixed_type', 'rendering',
+            'appraisal_job', 'is_mixed_type', 'rendering', 'is_content_indexed',
         )
 
 
@@ -839,7 +914,9 @@ class TagVersionSerializer(TagVersionNestedSerializer):
         try:
             serializer = GroupSerializer(instance=obj.get_organization().group)
             return serializer.data
-        except GroupGenericObjects.DoesNotExist:
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
             return None
 
     def get_structures(self, obj):
@@ -1204,7 +1281,7 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
     security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
     structures = serializers.PrimaryKeyRelatedField(
-        queryset=Structure.objects.filter(is_template=True, published=True),
+        queryset=Structure.objects.filter(is_template=True, published_date__isnull=False),
         many=True,
     )
     archive_creator = serializers.PrimaryKeyRelatedField(queryset=Agent.objects.all())
@@ -1234,6 +1311,8 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
 
             for structure in structures:
                 structure_instance, _ = structure.create_template_instance(tag)
+                structure_instance.create_date = timezone.now()
+                structure_instance.save()
                 for instance_unit in structure_instance.units.all():
                     StructureUnitDocument.from_obj(instance_unit).save()
 
@@ -1264,8 +1343,14 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
 
         with transaction.atomic():
             for structure in structures:
-                if not TagStructure.objects.filter(tag=instance.tag, structure__template=structure).exists():
+                try:
+                    ts = TagStructure.objects.get(tag=instance.tag, structure__template=structure)
+                    ts.structure.create_date = timezone.now()
+                    ts.structure.save()
+                except TagStructure.DoesNotExist:
                     structure_instance, _ = structure.create_template_instance(instance.tag)
+                    structure_instance.create_date = timezone.now()
+                    structure_instance.save()
                     for instance_unit in structure_instance.units.all():
                         StructureUnitDocument.from_obj(instance_unit).save()
 
@@ -1287,18 +1372,20 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
             existing_structures = Structure.objects.filter(instances__tagstructure__tag=self.instance.tag)
 
             for existing_structure in existing_structures:
-                structure_instance = Structure.objects.get(
+                structure_instances = Structure.objects.filter(
                     template=existing_structure, tagstructure__tag=self.instance.tag,
                 )
-                if existing_structure not in structures:
-                    empty_structure = not structure_instance.tagstructure_set.filter(
-                        tag__versions__type__archive_type=False
-                    ).exists()
-                    if not empty_structure:
-                        raise serializers.ValidationError(_("Non-empty structures cannot be deleted from archives"))
-                    else:
-                        TagStructure.objects.filter(structure=structure_instance).delete()
-                        structure_instance.delete()
+                for structure_instance in structure_instances:
+                    if existing_structure not in structures:
+                        empty_structure = not structure_instance.tagstructure_set.filter(
+                            tag__versions__type__archive_type=False
+                        ).exists()
+                        if not empty_structure:
+                            raise serializers.ValidationError(
+                                _("Non-empty structures cannot be deleted from archives"))
+                        else:
+                            TagStructure.objects.filter(structure=structure_instance).delete()
+                            structure_instance.delete()
 
         return structures
 

@@ -18,6 +18,7 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
         $scope.initLoad = true;
       }
       if (!angular.isUndefined(tableState)) {
+        $ctrl.previewLoading = true;
         $ctrl.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
@@ -40,7 +41,9 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
             pager: paginationParams.pager,
             policy: data.policy,
             information_packages: data.information_packages,
+            storage_mediums: data.storage_mediums,
             storage_methods: data.storage_methods,
+            export_path: data.export_path,
           },
         })
           .then(function (response) {
@@ -100,6 +103,7 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
       let params = {
         policy: data.policy,
         storage_methods: data.storage_methods,
+        export_path: data.export_path,
       };
       return $http
         .get(appConfig.djangoUrl + 'storage-migrations-preview/' + previewItem.id + '/', {params})
