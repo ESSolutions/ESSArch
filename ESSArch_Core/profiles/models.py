@@ -354,7 +354,7 @@ class SubmissionAgreement(models.Model):
 
         clone.save()
 
-        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator():
+        for profile_sa in ProfileSA.objects.filter(submission_agreement_id=self).iterator(chunk_size=1000):
             ProfileSA.objects.create(submission_agreement=clone, profile=profile_sa.profile)
 
         return clone

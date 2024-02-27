@@ -1,5 +1,5 @@
 pywatchman==1.4.1
 watchdog==3.0.0
 django-sslserver==0.22
-sentry-sdk==1.17.0
-esbonio==0.16.1
+sentry-sdk==1.39.2
+esbonio==0.16.4

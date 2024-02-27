@@ -51,6 +51,7 @@ from rest_framework import (
 )
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
+from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -61,7 +62,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from ESSArch_Core.api.filters import SearchFilter, string_to_bool
+from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
 from ESSArch_Core.auth.models import Member
 # from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
@@ -146,6 +147,10 @@ from ESSArch_Core.util import (
     remove_prefix,
     timestamp_to_datetime,
     zip_directory,
+)
+from ESSArch_Core.WorkflowEngine.filters import (
+    ProcessStepFilter,
+    ProcessTaskFilter,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.serializers import (
@@ -418,9 +423,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        '=id', 'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
+        '=id', 'object_identifier_value', 'label',
         'aic__object_identifier_value', 'aic__label',
     )
     filterset_class = InformationPackageFilter
@@ -505,7 +508,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not self.detail and view_type == 'aic':
             simple_inner = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(state='Ingest Workspace') |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             simple_inner = self.apply_filters(simple_inner).order_by(*InformationPackage._meta.ordering)
@@ -514,7 +517,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP]).distinct()
+            dips_and_sips = inner.filter(package_type__in=[InformationPackage.DIP, InformationPackage.SIP])
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True) | Q(archived=True))
@@ -544,16 +547,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('profileip_set', queryset=profile_ips,)
             )
 
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = self.apply_ordering_filters(aics) | self.apply_filters(dips_and_sips)
-            self.outer_queryset = simple_outer.distinct() | dips_and_sips.distinct()
-            self.inner_queryset = simple_inner
+            if self.apply_ordering_filters(aics):
+                self.queryset = self.apply_ordering_filters(aics)
+            else:
+                self.queryset = self.apply_filters(dips_and_sips)
+            # self.outer_queryset = simple_outer | dips_and_sips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif not self.detail and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             simple = self.apply_filters(filtered)
@@ -577,14 +583,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 Prefetch('aic__information_packages', queryset=inner)
             )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif not self.detail and view_type == 'flat':
             filtered = InformationPackage.objects.visible_to_user(user).exclude(
                 Q(Q(state='Ingest Workspace') | Q(package_type=InformationPackage.AIC)) |
-                Q(Q(workareas__isnull=False) & Q(archived=False))
+                Q(Q(workareas__isnull=False) & Q(workareas__read_only=False) & Q(archived=False))
             )
 
             qs = self.apply_filters(filtered)
@@ -648,22 +654,20 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def workflow(self, request, pk=None):
         ip = self.get_object()
-        hidden = request.query_params.get('hidden')
 
-        steps = ip.steps.filter(parent_step__information_package__isnull=True)
+        steps = ip.steps.filter(parent__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
 
-        if hidden is not None:
-            hidden = string_to_bool(hidden)
-            if hidden is False:
-                query = Q(Q(hidden=hidden) | Q(hidden__isnull=True))
-            else:
-                query = Q(hidden=hidden)
-
-            steps = steps.filter(query)
-            tasks = tasks.filter(query)
+        steps = ProcessStepFilter(data=request.query_params, queryset=steps, request=self.request).qs
+        tasks = ProcessTaskFilter(data=request.query_params, queryset=tasks, request=self.request).qs
 
         flow = sorted(itertools.chain(steps, tasks), key=lambda x: (x.time_created, x.get_pos()))
+
+        if self.paginator is not None:
+            paginated = self.paginator.paginate_queryset(flow, request)
+            serializer = ProcessStepChildrenSerializer(data=paginated, many=True, context={'request': request})
+            serializer.is_valid()
+            return self.paginator.get_paginated_response(serializer.data)
 
         serializer = ProcessStepChildrenSerializer(data=flow, many=True, context={'request': request})
         serializer.is_valid()
@@ -801,7 +805,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
             try:
                 profile_ip.clean()
             except ValidationError as e:
@@ -1388,13 +1392,22 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @transaction.atomic
     @action(detail=False, methods=['post'], url_path='add-from-master')
     def add_from_master(self, request, pk=None):
-        serializer = InformationPackageFromMasterSerializer(
-            data=request.data, context={'request': request},
-        )
-        serializer.is_valid(raise_exception=True)
-        ip = serializer.save()
-
-        return Response(reverse('informationpackage-detail', args=(ip.pk,)))
+        items = request.data
+        if isinstance(items, list):
+            serializer = InformationPackageFromMasterSerializer(instance='', data=items,
+                                                                context={'request': request},
+                                                                many=True)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        else:
+            serializer = InformationPackageFromMasterSerializer(
+                data=request.data, context={'request': request},
+            )
+            serializer.is_valid(raise_exception=True)
+            ip = serializer.save()
+            return Response(reverse('informationpackage-detail', args=(ip.pk,)))
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
@@ -1580,7 +1593,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             archive = request.data.get('archive', None)
 
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator():
+            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
                 except ValidationError as e:
@@ -2024,7 +2037,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             expand_container = string_to_bool(expand_container)
         path = request.query_params.get('path', '').rstrip('/')
 
-        if ip.archived:
+        if ip.archived and settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
             if request.method in ['DELETE', 'POST']:
                 raise exceptions.ParseError('You cannot modify preserved content')
             # check if path exists
@@ -3178,7 +3191,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 'agents', 'steps',
                 Prefetch('workareas', queryset=workareas, to_attr='prefetched_workareas')
             )
-            dips = inner.filter(package_type=InformationPackage.DIP).distinct()
+            dips = inner.filter(package_type=InformationPackage.DIP)
 
             lower_higher = InformationPackage.objects.filter(
                 Q(aic=OuterRef('aic')), Q(Q(workareas=None) | Q(workareas__read_only=True))
@@ -3191,11 +3204,14 @@ class WorkareaViewSet(InformationPackageViewSet):
             simple_outer = InformationPackage.objects.annotate(
                 has_ip=Exists(simple_inner.only('id').filter(aic=OuterRef('pk')))
             ).filter(package_type=InformationPackage.AIC, has_ip=True)
-            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner)).distinct()
+            aics = simple_outer.prefetch_related(Prefetch('information_packages', queryset=inner))
 
-            self.queryset = aics | dips
-            self.outer_queryset = simple_outer.distinct() | dips.distinct()
-            self.inner_queryset = simple_inner
+            if aics:
+                self.queryset = aics
+            else:
+                self.queryset = dips
+            # self.outer_queryset = simple_outer | dips
+            # self.inner_queryset = simple_inner
             return self.queryset
         elif self.action == 'list' and view_type == 'ip':
             filtered = InformationPackage.objects.visible_to_user(user).annotate(
@@ -3213,10 +3229,10 @@ class WorkareaViewSet(InformationPackageViewSet):
             inner = simple.filter(filtered_first_generation=False)
             outer = simple.filter(filtered_first_generation=True).prefetch_related(
                 Prefetch('aic__information_packages', queryset=inner)
-            ).distinct()
+            )
 
-            self.inner_queryset = simple
-            self.outer_queryset = simple
+            # self.inner_queryset = simple
+            # self.outer_queryset = simple
             self.queryset = outer
             return self.queryset
         elif self.action == 'list' and view_type == 'flat':
@@ -3226,7 +3242,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 package_type=InformationPackage.AIC
             )
             qs = self.annotate_generations(self.apply_filters(qs))
-            self.queryset = qs.distinct()
+            self.queryset = qs
             return self.queryset
 
         if self.action == 'retrieve':
@@ -3247,7 +3263,7 @@ class WorkareaViewSet(InformationPackageViewSet):
                 Prefetch('workareas', to_attr='prefetched_workareas')
             )
 
-            self.queryset = qs.distinct()
+            self.queryset = qs
 
         return self.queryset
 
@@ -3477,9 +3493,9 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if len(relative_path) == 0:
             raise exceptions.ParseError('The path cannot be empty')
 
-        path = os.path.join(root, relative_path)
+        filepath = os.path.join(root, relative_path)
 
-        self.validate_path(path, root, existence=False)
+        self.validate_path(filepath, root, existence=False)
 
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
@@ -3487,10 +3503,16 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
 
+        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
         try:
-            merge_file_chunks(chunks_path, path)
+            merge_file_chunks(chunks_path, filepath)
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
+
+        extra = {'event_type': 50700, 'object': str(workarea_obj.ip.pk),
+                 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
+        self.logger.info("Uploaded %s" % filepath, extra=extra)
 
         return Response({'detail': gettext('Merged chunks')})
 

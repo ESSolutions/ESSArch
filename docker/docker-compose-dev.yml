@@ -1,113 +1,63 @@
-version: '3.3'
+version: '3.8'
 
 services:
   essarch:
-    image: essarch
+    image: essolutionsab/essarch_dev
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      target: dev
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - /code/ESSArch_Core/frontend/static/frontend/build/
-      - /code/ESSArch_Core/docs/_build/
-      - ../../ESSArch_Optional:/ESSArch/plugins
+      #- /code/ESSArch_Core/frontend/static/frontend/build/
+      #- /code/ESSArch_Core/docs/_build/
+      #- ../../ESSArch_Optional:/ESSArch/plugins
     command:
       - /bin/bash
       - -c
       - |
-        /code/docker/wait_for.sh ${DATABASE_HOST_ESSARCH} ${DATABASE_PORT_ESSARCH}
+        /code/docker/wait_for.sh ${ESSARCH_DATABASE_HOST} ${ESSARCH_DATABASE_PORT}
         /code/docker/wait_for.sh redis 6379
         /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh opensearch 9200
-        /code/docker/docker-entrypoint.sh
+        /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/entrypoint-essarch-dev.sh
     ports:
       - 8000:8000
     restart: on-failure
     tty: true
     depends_on:
-      - ${DATABASE_SERVICE_ESSARCH}
+      - ${ESSARCH_DATABASE_SERVICE}
       - rabbitmq
       - redis
-      - opensearch
+      - elasticsearch
     networks:
       - essarch
 
   worker:
-    image: essarch
-    command:
-      - /bin/bash
-      - -c
-      - |
-        /code/docker/wait_for.sh redis 6379
-        /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 8000
-        /code/docker/wait_for.sh opensearch 9200
-        django-admin worker -l INFO -Q celery,file_operation,validation,io_disk
-    restart: on-failure
+    image: essolutionsab/essarch_dev
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
       - ./log:/ESSArch/log
-      - ../../ESSArch_Optional:/ESSArch/plugins
-    tty: true
-    depends_on:
-      - rabbitmq
-      - redis
-      - opensearch
-      - essarch
-    networks:
-      - essarch
-
-  beat:
-    image: essarch
-    command:
-      - /bin/bash
-      - -c
-      - |
-        /code/docker/wait_for.sh redis 6379
-        /code/docker/wait_for.sh rabbitmq 5672
-        /code/docker/wait_for.sh essarch 8000
-        /code/docker/wait_for.sh opensearch 9200
-        essarch beat -l INFO
-    restart: on-failure
-    environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
-    volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
-      - ./data:/ESSArch/data
-      - ./config:/ESSArch/config
-      - ./log:/ESSArch/log
-    tty: true
-    depends_on:
-      - rabbitmq
-      - redis
-      - opensearch
-      - essarch
-    networks:
-      - essarch
-
-  datasette:
-    image: essarch
+      #- ../../ESSArch_Optional:/ESSArch/plugins    
     command:
       - /bin/bash
       - -c
@@ -116,21 +66,77 @@ services:
         /code/docker/wait_for.sh rabbitmq 5672
         /code/docker/wait_for.sh essarch 8000
         /code/docker/wait_for.sh elasticsearch 9200
-        datasette -h 0.0.0.0 -p 8001
-    ports:
-      - 8001:8001        
+        django-admin worker -l INFO -Q celery,file_operation,validation,io_disk
     restart: on-failure
+    tty: true
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - essarch
+    networks:
+      - essarch
+
+  beat:
+    image: essolutionsab/essarch_dev
     environment:
-      DATABASE_URL_ESSARCH:
-      REDIS_URL_ESSARCH: redis://redis/1
-      RABBITMQ_URL_ESSARCH: amqp://guest:guest@rabbitmq:5672
-      ELASTICSEARCH_URL:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
     volumes:
-      - ..:/code
-      - /code/ESSArch.egg-info/
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
       - ./data:/ESSArch/data
       - ./config:/ESSArch/config
-      - ./log:/ESSArch/log
+      - ./log:/ESSArch/log    
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        mkdir -p /ESSArch/config/essarch
+        essarch beat -l INFO -s /ESSArch/config/essarch/celerybeat-schedule
+    restart: on-failure
+    tty: true
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - essarch
+    networks:
+      - essarch
+
+  datasette:
+    image: essolutionsab/essarch_dev
+    environment:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+    volumes:
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log    
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        /code/docker/entrypoint-datasette.sh
+    ports:
+      - 8001:8001
+    restart: on-failure
     tty: true
     depends_on:
       - rabbitmq
@@ -140,6 +146,41 @@ services:
     profiles:
       - datasette
       - all
+    networks:
+      - essarch
+
+  yarn:
+    image: essolutionsab/essarch_dev
+    environment:
+      ESSARCH_DATABASE_URL:
+      ESSARCH_REDIS_URL: redis://redis/1
+      ESSARCH_RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ESSARCH_ELASTICSEARCH_URL:
+    volumes:
+      #- ..:/code
+      #- /code/ESSArch.egg-info/
+      - essarch_code:/code
+      - ./data:/ESSArch/data
+      - ./config:/ESSArch/config
+      - ./log:/ESSArch/log
+      #- ../../ESSArch_Optional:/ESSArch/plugins
+    command:
+      - /bin/bash
+      - -c
+      - |
+        /code/docker/wait_for.sh redis 6379
+        /code/docker/wait_for.sh rabbitmq 5672
+        /code/docker/wait_for.sh essarch 8000
+        /code/docker/wait_for.sh elasticsearch 9200
+        yarn install
+        yarn build:watch
+    restart: on-failure
+    tty: true
+    depends_on:
+      - rabbitmq
+      - redis
+      - elasticsearch
+      - essarch
     networks:
       - essarch
 
@@ -153,11 +194,14 @@ services:
       - essarch_postgres_data:/var/lib/postgresql/data/
     ports:
       - 5432:5432
+    profiles:
+      - postgres
     networks:
       - essarch
 
   mariadb:
-    image: 'mariadb:10.4.6'
+    image: 'mariadb:11'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     environment:
       MYSQL_DATABASE: essarch
       MYSQL_USER: arkiv
@@ -167,8 +211,6 @@ services:
       - essarch_mariadb_data:/var/lib/mysql
     ports:
       - 3306:3306
-    profiles:
-      - mariadb
     networks:
       - essarch
 
@@ -186,32 +228,32 @@ services:
     networks:
       - essarch
 
-  opensearch:
+  elasticsearch:
     build:
-      context: opensearch
+      context: elasticsearch
       args:
         ELASTICSEARCH_DISTRO: ${ELASTICSEARCH_DISTRO}
         ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION}
     volumes:
-      - ${ELASTICSEARCH_CONFIG}:/usr/share/opensearch/config/opensearch.yml
-      # - ./opensearch/config/internal_users.yml:/usr/share/opensearch/plugins/opensearch-security/securityconfig/internal_users.yml
-      - essarch_elasticsearch_data:/usr/share/opensearch/data
+      - ${ELASTICSEARCH_CONFIG}:/usr/share/elasticsearch/config/elasticsearch.yml
+      #- ./elasticsearch/config/internal_users.yml:/usr/share/elasticsearch/plugins/opendistro_security/securityconfig/internal_users.yml
+      - essarch_elasticsearch_data:/usr/share/elasticsearch/data
     ports:
       - '9200:9200'
       - '9300:9300'
     environment:
-      - 'OPENSEARCH_JAVA_OPTS=-Xmx1g -Xms1g'
+      ES_JAVA_OPTS: '-Xmx1g -Xms1g'
     networks:
       - essarch
 
-  opensearch-test:
+  elasticsearch-test:
     build:
-      context: opensearch
+      context: elasticsearch
       args:
         ELASTICSEARCH_DISTRO: ${ELASTICSEARCH_DISTRO}
         ELASTICSEARCH_VERSION: ${ELASTICSEARCH_VERSION}
     volumes:
-      - ${ELASTICSEARCH_CONFIG}:/usr/share/opensearch/config/opensearch.yml:ro
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
     ports:
       - '19200:9200'
       - '19300:9300'
@@ -237,7 +279,7 @@ services:
     environment:
       LS_JAVA_OPTS: '-Xmx256m -Xms256m'
     depends_on:
-      - opensearch
+      - elasticsearch
     profiles:
       - all
     networks:
@@ -252,9 +294,9 @@ services:
     ports:
       - '5601:5601'
     environment:
-      OPENSEARCH_HOSTS: http://opensearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
-      - opensearch
+      - elasticsearch
     profiles:
       - all
     networks:
@@ -264,6 +306,7 @@ volumes:
   essarch_elasticsearch_data:
   essarch_mariadb_data:
   essarch_postgres_data:
+  essarch_code:
 
 networks:
   essarch:

@@ -23,7 +23,7 @@ def _get_permission_objs(user, obj=None):
         roles = get_user_roles(user, start_grp)
         perms = Permission.objects.filter(roles__in=roles)
 
-    return perms.distinct()
+    return perms
 
 
 class GroupRoleBackend:

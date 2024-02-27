@@ -32,11 +32,11 @@ export default class TemplateModalInstanceCtrl {
     };
     $ctrl.saveStructure = function (structure) {
       $ctrl.data = structure;
-      ProfileMakerTemplate.update({templateName: $ctrl.template.name}, {structure: structure}).$promise.then(function (
-        resource
-      ) {
-        $uibModalInstance.close(resource);
-      });
+      ProfileMakerTemplate.update({templateName: $ctrl.template.name}, {structure: structure}).$promise.then(
+        function (resource) {
+          $uibModalInstance.close(resource);
+        }
+      );
     };
     $ctrl.addTemplate = function () {
       $ctrl.data = $ctrl.model;

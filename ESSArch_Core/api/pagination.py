@@ -22,10 +22,44 @@
     Email - essarch@essolutions.se
 """
 
+import hashlib
+
+from django.conf import settings
+from django.core.cache import caches
 from django.db.models import F, Subquery
+from django.db.models.query import QuerySet
 from rest_framework import exceptions, pagination
 from rest_framework.response import Response
 from rest_framework.utils.urls import remove_query_param, replace_query_param
+
+DRF_CACHED_PAGINATION_COUNT_TIME = getattr(settings, 'DRF_CACHED_PAGINATION_COUNT_TIME', 0)
+
+
+def CachedCountQueryset(queryset, timeout=DRF_CACHED_PAGINATION_COUNT_TIME, cache_name='default'):
+    """
+        Return copy of queryset with queryset.count() wrapped to cache result for `timeout` seconds.
+    """
+    if not isinstance(queryset, QuerySet):
+        return queryset
+    cache = caches[cache_name]
+    queryset = queryset._chain()
+    real_count = queryset.count
+
+    def count(queryset):
+        cache_key = 'query-count:' + hashlib.md5(str(queryset.query).encode('utf8')).hexdigest()
+
+        # return existing value, if any
+        value = cache.get(cache_key)
+        if value is not None:
+            return value
+
+        # cache new value
+        value = real_count()
+        cache.set(cache_key, value, timeout)
+        return value
+
+    queryset.count = count.__get__(queryset, type(queryset))
+    return queryset
 
 
 class LinkHeaderPagination(pagination.PageNumberPagination):
@@ -76,6 +110,9 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
             current = model.objects.filter(**current_filter)
             queryset = queryset.exclude(**current_filter)
             queryset = queryset.annotate(current=Subquery(current.values(after_field)[:1])).filter(**after_filter)
+
+        if hasattr(queryset, 'count') and DRF_CACHED_PAGINATION_COUNT_TIME > 0:
+            queryset = CachedCountQueryset(queryset)
 
         return super().paginate_queryset(queryset, request, view)
 

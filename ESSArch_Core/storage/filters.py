@@ -36,6 +36,7 @@ from ESSArch_Core.storage.models import (
     medium_type_CHOICES,
     storage_type_CHOICES,
 )
+from ESSArch_Core.util import strtobool
 
 
 class StorageMediumOrderingFilter(filters.OrderingFilter):
@@ -49,7 +50,7 @@ class StorageMediumOrderingFilter(filters.OrderingFilter):
 
 
 class StorageMediumFilter(filters.FilterSet):
-    status = ListFilter(field_name='status', distinct='true')
+    status = ListFilter(field_name='status', distinct='false')
     medium_type = filters.ChoiceFilter(field_name='storage_target__type', choices=medium_type_CHOICES)
     storage_type = filters.ChoiceFilter(
         field_name='storage_target__storage_method_target_relations__storage_method__type',
@@ -58,11 +59,13 @@ class StorageMediumFilter(filters.FilterSet):
     deactivatable = filters.BooleanFilter(label='deactivatable', method='filter_deactivatable')
     include_inactive_ips = filters.BooleanFilter(method='filter_include_inactive_ips')
     migratable = filters.BooleanFilter(label='migratable', method='filter_migratable')
+    exportable = filters.BooleanFilter(label='exportable', method='filter_exportable')
+    missing_storage = filters.BooleanFilter(label='missing_storage', method='filter_missing_storage')
     medium_id_range = CharSuffixRangeFilter(field_name='medium_id')
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
         field_name='storage_target__storage_method_target_relations__storage_method__storage_policies',
-        distinct=True
+        distinct=False
     )
 
     def filter_include_inactive_ips(self, queryset, *args):
@@ -75,10 +78,21 @@ class StorageMediumFilter(filters.FilterSet):
         return queryset.deactivatable(include_inactive_ips=include_inactive_ips)
 
     def filter_migratable(self, queryset, name, value):
+        exportable = strtobool(self.data.get('exportable', False))
+        export_path = 'dummy' if exportable else ''
+        missing_storage = strtobool(self.data.get('missing_storage', False))
         if value:
-            return queryset.migratable()
+            return queryset.migratable(export_path=export_path, missing_storage=missing_storage)
         else:
             return queryset.non_migratable()
+
+    def filter_exportable(self, queryset, name, value):
+        missing_storage = strtobool(self.data.get('missing_storage', False))
+        return queryset.migratable(export_path='dummy', missing_storage=missing_storage) if value else queryset
+
+    def filter_missing_storage(self, queryset, *args):
+        # this filter is only used together with migratable or exportable
+        return queryset
 
     ordering = StorageMediumOrderingFilter(
         fields=(
@@ -128,7 +142,7 @@ class StorageMethodFilter(filters.FilterSet):
     policy = filters.ModelChoiceFilter(
         label='Policy', queryset=StoragePolicy.objects.all(),
         field_name='storage_policies',
-        distinct=True
+        distinct=False
     )
     has_enabled_target = filters.BooleanFilter(method='filter_has_enabled_target')
     has_migrate_target = filters.BooleanFilter(method='filter_has_migrate_target')

@@ -92,17 +92,20 @@ def get_database_info():
 
 
 def get_elasticsearch_info(full):
-    try:
-        props = get_es_connection().info()
-        if full:
-            return props
-        return {'version': props['version']}
-    except ElasticsearchException:
-        logger.exception("Could not connect to Elasticsearch.")
-        return {
-            'version': 'unknown',
-            'error': 'Error connecting to Elasticsearch. Check the logs for more detail.'
-        }
+    if settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
+        try:
+            props = get_es_connection().info()
+            if full:
+                return props
+            return {'version': props['version']}
+        except ElasticsearchException:
+            logger.exception("Could not connect to Elasticsearch.")
+            return {
+                'version': 'unknown',
+                'error': 'Error connecting to Elasticsearch. Check the logs for more detail.'
+            }
+    else:
+        return {'version': '-'}
 
 
 def get_redis_info(full=False):

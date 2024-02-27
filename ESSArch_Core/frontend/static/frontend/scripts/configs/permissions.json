@@ -93,10 +93,10 @@
             "_permissions": ["storage.storage_management"]
           },
           "robotInformation": {
-            "_permissions": ["storage.storage_management"]
+            "_permissions": ["storage.view_robot"]
           },
           "queues": {
-            "_permissions": ["storage.storage_management"]
+            "_permissions": ["storage.view_ioqueue", "storage.view_robotqueue"]
           },
           "storageMigration": {
             "_permissions": ["storage.storage_migration"]

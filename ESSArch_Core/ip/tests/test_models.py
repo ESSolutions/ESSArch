@@ -347,10 +347,10 @@ class StatusTest(APITestCase):
 
     def test_status_from_steps_and_tasks(self):
         root_step = ProcessStep.objects.create(information_package=self.ip)
-        child_step_a = ProcessStep.objects.create(parent_step=root_step)
+        child_step_a = ProcessStep.objects.create(parent=root_step)
         ProcessTask.objects.create(processstep=child_step_a, information_package=self.ip, progress=50)
 
-        child_step_b = ProcessStep.objects.create(parent_step=root_step)
+        child_step_b = ProcessStep.objects.create(parent=root_step)
         ProcessTask.objects.create(processstep=child_step_b, information_package=self.ip, progress=75)
 
         ProcessTask.objects.create(information_package=self.ip, progress=25)

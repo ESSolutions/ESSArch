@@ -36,6 +36,8 @@ from ESSArch_Core.configuration.models import (
 )
 from ESSArch_Core.profiles.models import SubmissionAgreement
 from ESSArch_Core.storage.models import (
+    STORAGE_TARGET_STATUS_DISABLED,
+    STORAGE_TARGET_STATUS_ENABLED,
     StorageMethod,
     StorageMethodTargetRelation,
     StorageTarget,
@@ -179,11 +181,30 @@ class StoragePolicySerializer(serializers.ModelSerializer):
                 )
                 storage_method_target_data['storage_method'] = storage_method
                 storage_method_target_data['storage_target'] = storage_target
+                StorageMethodTargetRelation_objs = StorageMethodTargetRelation.objects.filter(
+                    id=storage_method_target_data['id'])
+                if (storage_method_target_data['status'] == STORAGE_TARGET_STATUS_ENABLED and
+                        StorageMethodTargetRelation_objs.exists()):
+                    # If another target already is enabled then update status to disabled.
+                    if StorageMethodTargetRelation_objs.exists():
+                        StorageMethodTargetRelation_enabled_objs = StorageMethodTargetRelation.objects.filter(
+                            storage_method=storage_method,
+                            status=STORAGE_TARGET_STATUS_ENABLED,
+                        ).exclude(id=storage_method_target_data['id'])
+
+                        if StorageMethodTargetRelation_enabled_objs.exists():
+                            StorageMethodTargetRelation_enabled_objs.update(status=STORAGE_TARGET_STATUS_DISABLED)
                 storage_method_target, _ = StorageMethodTargetRelation.objects.update_or_create(
                     id=storage_method_target_data['id'],
                     defaults=storage_method_target_data
                 )
             storage_method_list.append(storage_method)
+
+        sp_ingest_path_data = validated_data.pop('ingest_path')
+        if sp_ingest_path_data:
+            validated_data['ingest_path'], _ = Path.objects.update_or_create(
+                entity=sp_ingest_path_data['entity'], defaults=sp_ingest_path_data
+            )
 
         policy, _ = StoragePolicy.objects.update_or_create(policy_id=validated_data['policy_id'],
                                                            defaults=validated_data)
@@ -241,4 +262,4 @@ class StoragePolicyNestedSerializer(StoragePolicySerializer):
 class SiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Site
-        fields = ('name', 'logo', 'title', 'text')
+        fields = ('name', 'logo', 'logo_middle', 'title', 'text')

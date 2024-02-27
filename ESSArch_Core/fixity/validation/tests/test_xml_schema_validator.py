@@ -406,7 +406,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
 
-        with self.assertRaisesRegexp(OSError, expected_error_message):
+        with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_non_existing_file_path_should_raise_exception(self):
@@ -423,7 +423,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
 
-        with self.assertRaisesRegexp(OSError, expected_err_msg):
+        with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_bad_file_should_raise_exception(self):
@@ -440,7 +440,7 @@ class XMLSchematronValidatorTests(TestCase):
 
         expected_error_message = ".*The element Person should have the child elements Name and Gender.*"
 
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaisesRegex(DocumentInvalid, expected_error_message):
             validator._validate_schematron(xml_file_path)
 
     def test_validate_schematron_successful_validation_should_return(self):
@@ -601,7 +601,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
 
-        with self.assertRaisesRegexp(OSError, expected_error_message):
+        with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_non_existing_file_path_should_raise_exception(self):
@@ -618,7 +618,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
 
-        with self.assertRaisesRegexp(OSError, expected_err_msg):
+        with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_bad_file_should_raise_exception(self):
@@ -635,7 +635,7 @@ class XMLISOSchematronValidatorTests(TestCase):
 
         expected_error_message = ".*The element Person should have the child elements Name and Gender.*"
 
-        with self.assertRaisesRegexp(DocumentInvalid, expected_error_message):
+        with self.assertRaisesRegex(DocumentInvalid, expected_error_message):
             validator._validate_isoschematron(xml_file_path)
 
     def test_validate_schematron_successful_validation_should_return(self):

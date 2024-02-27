@@ -580,7 +580,7 @@ class ProfileMakerTemplateViewSet(viewsets.ModelViewSet):
 
         nsmap = obj.nsmap
 
-        for ext in obj.extensions.iterator():
+        for ext in obj.extensions.iterator(chunk_size=1000):
             nsmap.update(ext.nsmap)
 
         schemaLocation = ['%s %s' % (obj.targetNamespace, obj.schemaURL)]

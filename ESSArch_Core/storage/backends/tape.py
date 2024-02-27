@@ -14,7 +14,6 @@ from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.copy import copy
 from ESSArch_Core.storage.exceptions import StorageMediumFull
 from ESSArch_Core.storage.models import (
     TAPE,
@@ -102,14 +101,15 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     storage_medium.medium_id, str(storage_medium.pk)))
             return
 
-        logger.debug('Queueing mount of storage medium {} ({})'.format(
-            storage_medium.medium_id, str(storage_medium.pk)))
-        rq, _ = RobotQueue.objects.get_or_create(
-            user=User.objects.get(username='system'),
-            storage_medium=storage_medium,
-            robot=storage_medium.tape_slot.robot,
-            req_type=10, status__in=[0, 2], defaults={'status': 0},
-        )
+        with cache.lock('RobotQueue-lock', blocking_timeout=300):
+            logger.debug('Queueing mount of storage medium {} ({})'.format(
+                storage_medium.medium_id, str(storage_medium.pk)))
+            rq, _ = RobotQueue.objects.get_or_create(
+                user=User.objects.get(username='system'),
+                storage_medium=storage_medium,
+                robot=storage_medium.tape_slot.robot,
+                req_type=10, status__in=[0, 2], defaults={'status': 0},
+            )
 
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(
@@ -144,8 +144,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         ip = storage_object.ip
         block_size = medium.block_size * 512
 
-        # TODO: Create temp dir inside configured temp directory
-        tmp_path = tempfile.mkdtemp()
+        tmp_path = tempfile.mkdtemp(prefix='.tmp', dir=dst)
 
         try:
             drive = TapeDrive.objects.get(storage_medium=medium)
@@ -171,13 +170,13 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
             if include_xml:
                 try:
-                    copy(src_xml, dst, block_size=block_size)
+                    shutil.move(src_xml, dst)
                 except FileNotFoundError as e:
                     logger.warning(
                         'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
                 if aic_xml:
                     try:
-                        copy(src_aic_xml, dst, block_size=block_size)
+                        shutil.move(src_aic_xml, dst)
                     except FileNotFoundError as e:
                         logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
@@ -202,9 +201,9 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     safe_extract(t, dst)
                     new = os.path.join(dst, root)
             else:
-                new = copy(src_tar, dst, block_size=block_size)
+                new = shutil.move(src_tar, dst)
         else:
-            new = copy(src, dst, block_size=block_size)
+            new = shutil.move(src, dst)
 
         try:
             shutil.rmtree(tmp_path)

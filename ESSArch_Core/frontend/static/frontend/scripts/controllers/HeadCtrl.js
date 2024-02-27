@@ -1,5 +1,4 @@
 export default class HeadCtrl {
-  /*@ngInject*/
   constructor($scope, $rootScope, $translate, $state, $transitions) {
     const vm = this;
     const appName = ' | ESSArch';

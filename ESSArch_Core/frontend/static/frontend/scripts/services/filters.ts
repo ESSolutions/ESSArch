@@ -192,6 +192,22 @@ export default (
     },
   };
 
+  const exportable: IFieldObject = {
+    key: 'exportable',
+    type: 'checkbox',
+    templateOptions: {
+      label: $translate.instant('INCLUDE_EXPORTABLE_IPS'),
+    },
+  };
+
+  const missing_storage: IFieldObject = {
+    key: 'missing_storage',
+    type: 'checkbox',
+    templateOptions: {
+      label: $translate.instant('INCLUDE_MISSING_STORAGE'),
+    },
+  };
+
   const archived: IFieldObject = {
     key: 'archived',
     type: 'checkbox',
@@ -356,7 +372,7 @@ export default (
     'home.access.accessIp': addSpecialFieldsBeforeBase([active, cached, archived]),
     'home.access.orders': ipBaseFields,
     'home.access.createDip': ipBaseFields,
-    'home.administration.storageMigration': addSpecialFieldsBeforeBase([active]),
+    'home.administration.storageMigration': addSpecialFieldsBeforeBase([active, exportable]),
     'home.administration.storageMaintenance': addSpecialFieldsBeforeBase([active]),
   };
 
@@ -465,7 +481,7 @@ export default (
   // Storage medium filters
 
   // Base filter fields for storage medium views
-  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [policy, currentMedium];
+  let storageMediumBaseFields: (IFieldObject | IFieldGroup)[] = [policy, currentMedium, exportable, missing_storage];
 
   // Map states and additional IP filter fields
   let storageMediumStateFieldMap = {
@@ -487,6 +503,67 @@ export default (
     return storageMediumStateModelMap[state] || storageMediumStateModelMap.default;
   };
 
+  // Process filters
+
+  // Base filter fields for process views
+  let processBaseFields: (IFieldObject | IFieldGroup)[] = [
+    {
+      key: 'responsible',
+      type: 'checkbox',
+      templateOptions: {
+        label: $translate.instant('SEE_MY_PROCSESS'),
+        trueValue: $rootScope.auth.username,
+        falseValue: null,
+      },
+    },
+    {
+      key: 'name',
+      type: 'input',
+      templateOptions: {
+        label: $translate.instant('LABEL'),
+      },
+    },
+    {
+      className: 'row m-0',
+      fieldGroup: [
+        {
+          key: 'time_created_after',
+          type: 'datepicker',
+          templateOptions: {
+            label: $translate.instant('IP_CREATE_DATE_START'),
+          },
+        },
+        {
+          key: 'time_created_before',
+          type: 'datepicker',
+          templateOptions: {
+            label: $translate.instant('IP_CREATE_DATE_END'),
+          },
+        },
+      ],
+    },
+  ];
+
+  // Map states and additional IP filter fields
+  let processStateFieldMap = {
+    default: processBaseFields,
+  };
+
+  // Map states and additional Process filter fields
+  let processStateModelMap = {
+    default: {},
+  };
+
+  // Get process form fields given state name
+  const getProcessFilterFields = (state: string): (IFieldObject | IFieldGroup)[] => {
+    return processStateFieldMap[state] || processStateFieldMap.default;
+  };
+
+  // Get process form model widh default values given state name
+  const getProcessFilterModel = (state: string) => {
+    return processStateModelMap[state] || processStateModelMap.default;
+  };
+
   // Public service methods and properties
   let service = {
     getIpFilters(state: string) {
@@ -502,6 +579,11 @@ export default (
     getStorageMediumFilters(state: string) {
       const fields = getStorageMediumFilterFields(state);
       const model = getStorageMediumFilterModel(state);
+      return {fields, model};
+    },
+    getProcessFilters(state: string) {
+      const fields = getProcessFilterFields(state);
+      const model = getProcessFilterModel(state);
       return {fields, model};
     },
   };
