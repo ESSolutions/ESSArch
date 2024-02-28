@@ -4,3 +4,4 @@ sphinx-rtd-theme==2.0.0
 sphinx==7.2.6
 sphinxcontrib-httpdomain==1.8.1
 sphinxcontrib-httpexample==1.1
+sphinxcontrib-openapi==0.8.4

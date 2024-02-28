@@ -3,6 +3,9 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 
 from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
@@ -430,6 +433,7 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url='/static/frontend/favicon.ico')),
     re_path(r'^api/auth/', include('ESSArch_Core.auth.urls')),
+    re_path(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     re_path(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     re_path(r'^api/stats/$', stats, name='stats'),
     re_path(r'^api/stats/export/$', export_stats, name='stats-export'),

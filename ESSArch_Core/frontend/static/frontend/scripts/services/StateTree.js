@@ -89,32 +89,6 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
     });
   }
 
-  function getTreeActionData(ip, expandedNodes) {
-    let promise;
-    if ($state.includes('**.workarea.**') && ip.workarea && ip.workarea.length > 0) {
-      promise = Workarea.workflow({
-        id: ip.id,
-        hidden: false,
-      }).$promise;
-    } else {
-      promise = IP.workflow({
-        id: ip.id,
-        hidden: false,
-      }).$promise;
-    }
-    return promise.then(function (workflow) {
-      workflow.forEach(function (flow_node) {
-        flow_node.time_started = $filter('date')(flow_node.time_started, 'yyyy-MM-dd HH:mm:ss');
-        flow_node.children = flow_node.flow_type == 'step' ? [{val: -1}] : [];
-        flow_node.childrenFetched = false;
-      });
-      return expandAndGetActionChildren(workflow, expandedNodes);
-    });
-  }
-
-  // Takes an array of steps, expands the ones that should be expanded and
-  // populates children recursively.
-
   // Takes an array of steps, expands the ones that should be expanded and
   // populates children recursively.
 

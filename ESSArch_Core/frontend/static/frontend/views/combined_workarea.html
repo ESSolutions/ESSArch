@@ -131,7 +131,7 @@
           ></filebrowser>
           <div
             id="file-upload"
-            ng-if="(ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
+            ng-if="!ip.workarea[0].read_only && (ip.responsible.id == auth.id || checkPermission('ip.can_upload')) && showFileUpload"
             ng-include
             src="'static/frontend/views/file_upload.html'"
           ></div>
