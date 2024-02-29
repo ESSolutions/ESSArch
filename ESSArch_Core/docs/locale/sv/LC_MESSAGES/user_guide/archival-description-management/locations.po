@@ -48,7 +48,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/locations.rst:10
 msgid "Creating and managing location records"
-msgstr "Uupprättta och hantera placeringar"
+msgstr "Upprättta och hantera placeringar"
 
 #: ../../user_guide/archival-description-management/locations.rst:11
 msgid ""

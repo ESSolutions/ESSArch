@@ -20,6 +20,7 @@ class FilenameValidator(BaseValidator):
     """
     Validates file and directory names against at given regex
     """
+
     def validate(self, filepath, expected=None):
         """
         Args:

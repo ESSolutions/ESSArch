@@ -8,7 +8,7 @@ from ESSArch_Core.util import find_destination
 class ContentTransformer(BaseTransformer):
     def transform(self, path):
         """
-        move all dirs and files (except those specified in IP profile) to content folder
+        Move all dirs and files (except those specified in IP profile) to content folder
 
         """
 

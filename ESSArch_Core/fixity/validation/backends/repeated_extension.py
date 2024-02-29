@@ -23,6 +23,7 @@ class RepeatedExtensionValidator(BaseValidator):
         path: The file to validate
 
     """
+
     def validate(self, filepath):
         logger.debug('Validating extension of %s' % filepath)
 
