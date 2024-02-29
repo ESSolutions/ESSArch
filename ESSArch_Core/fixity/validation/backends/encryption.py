@@ -16,7 +16,10 @@ logger = logging.getLogger('essarch.fixity.validation.encryption')
 
 class FileEncryptionValidator(BaseValidator):
     """
-    Validates if a file is encrypted or not.
+    Validates if a file is encrypted or not
+
+    Works with zip-files and office documents
+
     """
 
     def __init__(self, *args, **kwargs):

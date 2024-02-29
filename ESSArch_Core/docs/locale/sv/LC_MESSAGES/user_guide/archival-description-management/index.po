@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../user_guide/archival-description-management/index.rst:3
 msgid "Archival description management"
-msgstr ""
+msgstr "Arkivredovisning"
 
 #: ../../user_guide/archival-description-management/index.rst:5
 msgid ""
@@ -29,4 +29,8 @@ msgid ""
 "functionality for managing accessions, locations, classifications and "
 "preservation planning of archival holdings."
 msgstr ""
+"ESSArch erbjuder en komplett lösning för arkivredovisning. "
+"Den följer ICA standarder (ISAAR-CPF, ISAD-G, ISDF) och har "
+"funktionalitet för att hantera anslutningar, platser, klassificeringar och "
+"bevarandeplanering av arkivbestånd."
 

@@ -565,6 +565,9 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])
 
+    class Meta:
+        model = None
+
 
 class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
     class Meta:

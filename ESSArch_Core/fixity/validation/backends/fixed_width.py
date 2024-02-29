@@ -13,6 +13,17 @@ logger = logging.getLogger('essarch.fixity.validation.fixed_width')
 
 
 class FixedWidthValidator(BaseValidator):
+    """
+    Validates fixed width files
+
+    * ``options``
+
+       * ``filepath``: The file to validate
+       * ``fields``: Expected number of columns
+       * ``encoding``: Expected file encoding
+       * ``filler``: The expected filler char
+    """
+
     invalid_datatype_err = 'Invalid datatype for value {} on row {}, expected {}'
     invalid_datatype_warn = 'Possible invalid datatype for value {} on row {}, expected {}'
 
