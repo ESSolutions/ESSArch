@@ -2,7 +2,7 @@ name: Tests
 
 on:
   pull_request:
-  merge_group:  
+  merge_group:
   push:
     branches:
       - staging
