@@ -15,6 +15,15 @@ REPEATED_PATTERN = r'\.(\w+)\.\1'
 
 
 class RepeatedExtensionValidator(BaseValidator):
+    """
+    Validates file extensions.
+    e.g. foo.bar.bar will fail but foo.bar.baz will pass
+
+    Args:
+        path: The file to validate
+
+    """
+
     def validate(self, filepath):
         logger.debug('Validating extension of %s' % filepath)
 

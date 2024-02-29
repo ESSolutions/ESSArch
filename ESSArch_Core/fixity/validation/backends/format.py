@@ -24,6 +24,11 @@ class FormatValidator(BaseValidator):
         self.fid = FormatIdentifier(allow_unknown_file_types=allow_unknown)
 
     def validate(self, filepath, expected=None):
+        """
+        Args:
+            filepath: The file to validate
+            expected: The expected format registry key (PUID) e.g. fmt/354
+        """
         logger.debug('Validating format of %s' % filepath)
 
         name, version, reg_key = expected
