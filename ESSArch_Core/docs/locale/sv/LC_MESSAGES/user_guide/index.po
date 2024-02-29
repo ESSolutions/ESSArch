@@ -20,5 +20,5 @@ msgstr ""
 
 #: ../../user_guide/index.rst:3
 msgid "User guide"
-msgstr ""
+msgstr "Användarguide"
 

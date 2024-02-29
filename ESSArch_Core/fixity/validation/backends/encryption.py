@@ -51,6 +51,11 @@ class FileEncryptionValidator(BaseValidator):
         return None
 
     def validate(self, filepath, expected=None):
+        """
+        Args:
+            filepath: The file to validate
+            excpected: If the expected outcome is: Encrypted(True) or not(False)
+        """
         logger.debug('Validating encryption of %s' % filepath)
         result = self.is_file_encrypted(filepath)
 

@@ -19,17 +19,19 @@ msgstr ""
 
 #: ../../user_guide/administration/storage-migration/index.rst:5
 msgid "Storage migration"
-msgstr ""
+msgstr "Lagringsmigrering"
 
 #: ../../user_guide/administration/storage-migration/index.rst:7
 msgid ""
 "Storage migration basically means moving data from one storage target to "
 "another."
 msgstr ""
+"Lagringsmigrering innebär i princip att flytta data från ett lagringsmedia till "
+"annan."
 
 #: ../../user_guide/administration/storage-migration/index.rst:10
 msgid "Select storage mediums"
-msgstr ""
+msgstr "Välj lagringsmedier"
 
 #: ../../user_guide/administration/storage-migration/index.rst:11
 msgid ""
@@ -40,6 +42,12 @@ msgid ""
 "has a storage target with status \"Enabled\" that does not yet have "
 "given."
 msgstr ""
+"Vid migrerar av informationspaket börjar man att välja lagringsmedier "
+"som innehåller informationspaketen. När ett lagringsmedium är synligt "
+"i listan för lagringsmedier betyder det att den har informationspaket "
+"som har en lagringsmetod med en \"target\" med status \"Migrate\" och "
+"en annan \"target\" med status \"Enabled\" som då ännu inte har någon "
+"lagringspost."
 
 #: ../../user_guide/administration/storage-migration/index.rst:17
 msgid ""
@@ -58,10 +66,24 @@ msgid ""
 "range filter is disabled and its values are cleared in favor of single "
 "medium ID filtering."
 msgstr ""
+"Listan med lagringsmedier har två filtreringsalternativ, lagringspolicy och "
+"medium ID (enkelt eller intervall). Medier kan filtreras efter lagringspolicy "
+"som initialt är inställd på den första lagringspolicyn. Lagringspolicyn "
+"filter krävs och kommer alltid att ha ett värde för att kunna fylla i "
+"lagringsmedielistan. Media-ID-filtret har två olika "
+"alternativ. Det första alternativet är att söka och välja på en enda lagring "
+"medium. Det andra är för att filtrera medium inom ett från och till "
+"intervall av medier. Filtret för medium ID-intervall kan aktiveras av "
+"markera kryssrutan märkt **Ange spann för medium ID**. Den här kryssrutan "
+"inaktiverar också alternativet för enstaka medium-ID och rensar dess värde. "
+"Intervallfilter tillåter en användare att välja första och sista medium-ID med "
+"söka och välja medium-ID. När du avmarkerar kryssrutan visas "
+"intervallfiltret är inaktiverat och dess värden rensas till förmån för singel "
+"medium ID-filtrering."
 
 #: ../../user_guide/administration/storage-migration/index.rst:31
 msgid "Select Information packages"
-msgstr ""
+msgstr "Nu kan man välja att påbörja migreringen direkt av valda medier eller välja ut enskilda informationspaket för migrering"
 
 #: ../../user_guide/administration/storage-migration/index.rst:33
 msgid ""
@@ -73,6 +95,13 @@ msgid ""
 "means that if multiple mediums are selected, IP's stored on one of the "
 "selected mediums will be visible."
 msgstr ""
+"Flera lagringsmedier kan väljas genom att klicka på motsvarande"
+"rader i listan med lagringsmedier. När minst ett lagringsmedium är "
+"valt går det att starta migreringen av media alternativt välja enskilda "
+"informationspaket för migrering. Informationspaket "
+"listan filtreras efter valda medier i listan med lagringsmedier, som "
+"betyder att om flera medier väljs presenteras en aggregerad lista av informationspaket för "
+"utvalda medier."
 
 #: ../../user_guide/administration/storage-migration/index.rst:39
 msgid ""
@@ -83,28 +112,42 @@ msgid ""
 "alt/shift key and clicking as usual). When IPs are selected click the "
 "**Start migration** button."
 msgstr ""
+"IP-listan fungerar på samma sätt som andra IP-listvyer i ESSArch och "
+"vi kan se jobb- och händelselistan samt innehåll och "
+"huvudfliken \"Migrera\" som är där vi fortsätter med migreringsprocessen "
+" efter att ha valt IP för migrering (välj flera genom att hålla ned "
+"ctrl-tangenten och klicka som vanligt). När IP är valda klickar du på "
+"knappen **Starta migrering**."
 
 #: ../../user_guide/administration/storage-migration/index.rst:45
 msgid "Storage migration options"
-msgstr ""
+msgstr "Alternativ för lagringsmigrering"
 
 #: ../../user_guide/administration/storage-migration/index.rst:47
 msgid ""
 "In the storage migration modal window we get a list of selected "
 "information packages along with options for the migration job."
 msgstr ""
+"I modalfönstret för lagringsmigrering får vi en lista över valda"
+"informationspaket tillsammans med alternativ för migreringsjobbet."
 
 #: ../../user_guide/administration/storage-migration/index.rst:50
 msgid ""
 "**Temporary path** is where the content we are migrating will be stored "
 "during the data move, it is prepopulated with configured temp path."
 msgstr ""
+"**Temporär sökväg** är där innehållet vi migrerar kommer att mellanlagras "
+"under migreringen och den är förifylld med konfigurerad temp-sökväg. "
+"Det går även att välja om man önskar att exportera extra kopia genom att klicka i \"Exportera kopia\" "
+"följt av att man anger en sökväg för exporten."
 
 #: ../../user_guide/administration/storage-migration/index.rst:53
 msgid ""
 "**Purpose** is a text field that will be used as comment for the storage "
 "migration event."
 msgstr ""
+"**Syfte** är ett textfält som kommer att användas som kommentar för lagringen"
+"migreringshändelsen."
 
 #: ../../user_guide/administration/storage-migration/index.rst:55
 msgid ""
@@ -114,10 +157,14 @@ msgid ""
 "choices and search where storage methods can be manually selected for "
 "migration."
 msgstr ""
+"**Migrera till lagringsmetoder** är markerat som standard vilket betyder att "
+"migreringsjobbet kommer att migrera till alla lagringsmetoder för varje vald "
+"IP eller media. Om du avmarkerar det här alternativet kommer ingen skrivning till nytt media att ske, "
+"vilket är användbart om endast en export kopia skall framställas."
 
 #: ../../user_guide/administration/storage-migration/index.rst:60
 msgid "Preview storage migration"
-msgstr ""
+msgstr "Förhandsgranska lagringsmigrering"
 
 #: ../../user_guide/administration/storage-migration/index.rst:62
 msgid ""
@@ -126,10 +173,14 @@ msgid ""
 "storage targets for each IP. Clicking an IP row will expand it and show "
 "which storage targets it will be migrated to."
 msgstr ""
+"När alla alternativ för lagringsmigrering ser OK ut kan vi förhandsgranska "
+"migrering för att se informationspaket som kommer att migreras tillsammans med "
+"lagringsmål för varje IP. Klicka på en IP-rad för att expandera och visa "
+"vilka lagringsmål den kommer att migreras till eller exporteras."
 
 #: ../../user_guide/administration/storage-migration/index.rst:67
 msgid "Start storage migration"
-msgstr ""
+msgstr "Starta lagringsmigrering"
 
 #: ../../user_guide/administration/storage-migration/index.rst:69
 msgid ""
@@ -137,10 +188,14 @@ msgid ""
 "by first closing the preview window then clicking the **Start migration**"
 " button."
 msgstr ""
+"Om förhandsgranskningen ser bra ut är vi redo att påbörja migreringsjobbet "
+"genom att först stänga förhandsgranskningsfönstret och sedan klicka på **Starta migrering**"
+" knappen."
 
 #: ../../user_guide/administration/storage-migration/index.rst:72
 msgid ""
 "All migration jobs can be found under the **Migration tasks** tab. Click "
 "a migration job row to see the task information modal."
 msgstr ""
-
+"Alla migreringsjobb finns under fliken **Migreringsjobb**. Klicka på "
+"en migreringsjobbrad för att se detaljer."
