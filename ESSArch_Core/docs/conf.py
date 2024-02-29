@@ -80,8 +80,6 @@ suppress_warnings = [
     'autosectionlabel.*',
 ]
 
-nitpick_ignore = [('http:obj', 'string'), ('http:obj', 'integer')]
-
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.12', None),
     'sphinx': ('http://www.sphinx-doc.org/en/master/', None),

@@ -66,6 +66,7 @@ REST_FRAMEWORK = {
         'ESSArch_Core.auth.permissions.ActionPermissions',
     ),
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 DRF_CACHED_PAGINATION_COUNT_TIME = 0
@@ -76,6 +77,16 @@ DRF_DYNAMIC_FIELDS = {
 PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ESSArch API',
+    'DESCRIPTION': 'ESSArch REST-API documentation',
+    'VERSION': '3',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_DIST': 'SIDECAR',
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+}
 
 # Add support to extract zipfiles with "\" as separator in pathname components
 OS_PATH_ALTSEP = env.str('ESSARCH_OS_PATH_ALTSEP', "\\")
@@ -98,7 +109,8 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'django.contrib.staticfiles',
     'django_filters',
     'django_json_widget',
-    'drf_yasg',
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
     'countries_plus',
     'languages_plus',
     'groups_manager',

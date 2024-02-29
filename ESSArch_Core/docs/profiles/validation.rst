@@ -29,7 +29,6 @@ applied on different sets of files.
     configuration values. See :ref:`xml-variables` for more information.
 
 
-
 Built-in validators
 -------------------
 ESSArch has a range of built-in :ref:`preservation-tools-validators`

@@ -3,9 +3,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic.base import RedirectView
-from drf_yasg import openapi
-from drf_yasg.views import get_schema_view
-from rest_framework import permissions
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 from ESSArch_Core.access.views import AccessAidTypeViewSet, AccessAidViewSet
 from ESSArch_Core.agents.views import (
@@ -125,16 +127,6 @@ from ESSArch_Core.WorkflowEngine.views import (
 
 admin.site.site_header = 'ESSArch Administration'
 admin.site.site_title = 'ESSArch Administration'
-
-schema_view = get_schema_view(
-    openapi.Info(
-        title="ESSArch API",
-        default_version='v3',
-        description="ESSArch REST-API documentation",
-    ),
-    public=True,
-    permission_classes=(permissions.AllowAny,),
-)
 
 router = ESSArchRouter()
 router.register(r'users', UserViewSet)
@@ -433,7 +425,9 @@ urlpatterns = [
     re_path(r'^admin/', admin.site.urls),
     path('favicon.ico', RedirectView.as_view(url='/static/frontend/favicon.ico')),
     re_path(r'^api/auth/', include('ESSArch_Core.auth.urls')),
-    re_path(r'^api/docs/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    re_path(r'^api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    re_path(r'^api/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    re_path(r'^api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     re_path(r'^api/site/', SiteView.as_view(), name='configuration-site'),
     re_path(r'^api/stats/$', stats, name='stats'),
     re_path(r'^api/stats/export/$', export_stats, name='stats-export'),
