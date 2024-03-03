@@ -21,20 +21,26 @@ from ESSArch_Core.util import generate_file_response
 User = get_user_model()
 
 
-def get_data():
+def get_data(user):
+    ip_objs = InformationPackage.objects.for_user(user, [])
     data = {
         'appraisals': AppraisalJob.objects.filter(status=celery_states.SUCCESS).count(),
-        'deliveries': Delivery.objects.count(),
-        'information_packages': InformationPackage.objects.count(),
-        'ordered_information_packages': InformationPackage.objects.filter(orders__isnull=False).count(),
+        'deliveries': Delivery.objects.for_user(user, []).count(),
+        # 'information_packages': ip_objs.count(),
+        # 'information_packages_sip': ip_objs.filter(package_type=0).count(),
+        # 'information_packages_aic': ip_objs.filter(package_type=1).count(),
+        'information_packages_aip': ip_objs.filter(package_type=2).count(),
+        'ordered_information_packages': ip_objs.filter(orders__isnull=False).count(),
         'permissions': Permission.objects.count(),
         'roles': GroupMemberRole.objects.count(),
-        'total_object_size': InformationPackage.objects.aggregate(Sum('object_size'))['object_size__sum'] or 0,
+        # 'total_object_size': InformationPackage.objects.aggregate(Sum('object_size'))['object_size__sum'] or 0,
+        'aip_object_size': ip_objs.filter(package_type=2).aggregate(Sum('object_size'))['object_size__sum'] or 0,
         'users': User.objects.count(),
     }
 
     if Feature.objects.filter(name='archival descriptions', enabled=True).exists():
-        data['tags'] = list(TagVersion.objects.values('type__name').annotate(total=Count('type')).order_by('type'))
+        data['tags'] = list(TagVersion.objects.for_user(user, []).values(
+            'type__name').annotate(total=Count('type')).order_by('type'))
 
     return data
 
@@ -42,13 +48,15 @@ def get_data():
 @api_view()
 @permission_classes((permissions.IsAuthenticated,))
 def stats(request):
-    return Response(get_data())
+    user = request.user
+    return Response(get_data(user))
 
 
 @api_view()
 @permission_classes((permissions.IsAuthenticated,))
 def export(request):
-    data = get_data()
+    user = request.user
+    data = get_data(user)
 
     try:
         fields = request.query_params['fields'].split(',')

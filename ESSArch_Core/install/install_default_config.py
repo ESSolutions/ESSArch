@@ -448,6 +448,13 @@ def installDefaultUsers():
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
             ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
             ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
+            ['add_accessaid', 'access', 'accessaid'],  # Can add accessAid
+            ['change_accessaid', 'access', 'accessaid'],  # Can change accessAid
+            ['delete_accessaid', 'access', 'accessaid'],  # Can delete accessAid
+            ['view_accessaidtype', 'access', 'accessaidtype'],  # Can view accessAidType
+            ['add_accessaidtype', 'access', 'accessaidtype'],  # Can add accessAidType
+            ['change_accessaidtype', 'access', 'accessaidtype'],  # Can change accessAidType
+            ['delete_accessaidtype', 'access', 'accessaidtype'],  # Can delete accessAidType
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -652,6 +659,13 @@ def installDefaultUsers():
             ['get_from_storage_as_new', 'ip', 'informationpackage'],  # Can get IP "as new" from storage
             ['create_as_new', 'ip', 'informationpackage'],  # Can create IP as new generation
             ['view_accessaid', 'access', 'accessaid'],  # Can view accessAid
+            ['add_accessaid', 'access', 'accessaid'],  # Can add accessAid
+            ['change_accessaid', 'access', 'accessaid'],  # Can change accessAid
+            ['delete_accessaid', 'access', 'accessaid'],  # Can delete accessAid
+            ['view_accessaidtype', 'access', 'accessaidtype'],  # Can view accessAidType
+            ['add_accessaidtype', 'access', 'accessaidtype'],  # Can add accessAidType
+            ['change_accessaidtype', 'access', 'accessaidtype'],  # Can change accessAidType
+            ['delete_accessaidtype', 'access', 'accessaidtype'],  # Can delete accessAidType
             ['add_to_ingest_workarea', 'ip', 'informationpackage'],  # Can add IP to ingest workarea
             ['add_to_ingest_workarea_as_tar', 'ip', 'informationpackage'],  # Can add IP as tar to ingest workarea
             ['add_to_ingest_workarea_as_new', 'ip', 'informationpackage'],  # Can add IP as new generation to ingest workarea  # noqa isort:skip
@@ -722,6 +736,7 @@ def installDefaultUsers():
             ['change_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can change conversion template
             ['delete_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can delete conversion template
             ['view_conversiontemplate', 'maintenance', 'conversiontemplate'],  # Can view conversion template
+            ['add_processstep', 'WorkflowEngine', 'processstep'],  # Can add process step for Storage migration
             ['storage_migration', 'storage', 'storageobject'],  # Storage migration
             ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance
             ['storage_management', 'storage', 'storageobject'],  # Storage management
@@ -931,6 +946,7 @@ def installDefaultUsers():
             ['add_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can add Storage Method/Target Relation  # noqa isort:skip
             ['change_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can change Storage Method/Target Relation  # noqa isort:skip
             ['delete_storagemethodtargetrelation', 'storage', 'storagemethodtargetrelation'],  # Can delete Storage Method/Target Relation  # noqa isort:skip
+            ['add_processstep', 'WorkflowEngine', 'processstep'],  # Can add process step for Storage migration
             ['storage_migration', 'storage', 'storageobject'],  # Storage migration
             ['storage_maintenance', 'storage', 'storageobject'],  # Storage maintenance
             ['storage_management', 'storage', 'storageobject'],  # Storage management

@@ -94,7 +94,7 @@
 </table>
 {% endif %}
 <table>
-  <thead><h3>{% trans "System" %}</h3></thead>
+  <thead><h3>{% trans "Preserved" %}</h3></thead>
   <tbody>
   {% for field, value in data.items %}
   {% if field != 'tags' %}
@@ -105,7 +105,7 @@
     <td>{% trans "Disposal Jobs" %}</td>
     {% elif field == 'deliveries' %}
     <td>{% trans "Registred Accessions " %}</td>
-    {% elif field == 'information_packages' %}
+    {% elif field == 'information_packages_aip' %}
     <td>{% trans "Information Packages" %}</td>
     {% elif field == 'ordered_information_packages' %}
     <td>{% trans "Ordered Information Packages" %}</td>
@@ -113,7 +113,7 @@
     <td>{% trans "Permissions" %}</td>
     {% elif field == 'roles' %}
     <td>{% trans "Roles" %}</td>
-    {% elif field == 'total_object_size' %}
+    {% elif field == 'aip_object_size' %}
     <td>{% trans "Total Object Size" %}</td>
     {% elif field == 'users' %}
     <td>{% trans "Users" %}</td>
