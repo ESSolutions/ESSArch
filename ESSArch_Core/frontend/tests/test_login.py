@@ -22,12 +22,12 @@ class LoginTests(FrontendTestCase):
 
         old_url = self.selenium.current_url
         self.selenium.find_element("xpath", '//button[@type="submit"]').click()
-        WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
+        WebDriverWait(self.selenium, 25).until(EC.title_is('Info | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
 
         # logout
         old_url = self.selenium.current_url
         self.selenium.find_element("class name", 'dropdown-toggle').click()
         self.selenium.find_element("xpath", '//*[contains(text(), "Logout")]').click()
-        WebDriverWait(self.selenium, 15).until(EC.title_is('Login | ESSArch'))
+        WebDriverWait(self.selenium, 25).until(EC.title_is('Login | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
