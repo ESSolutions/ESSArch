@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-02 11:06+0200\n"
+"POT-Creation-Date: 2024-03-03 20:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,61 +18,58 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: stats/templates/stats/export.html:73
+#: templates/stats/export.html:73
 msgid "Statistics"
 msgstr "Statistik"
 
-#: stats/templates/stats/export.html:74
+#: templates/stats/export.html:74
 msgid "Print Date"
 msgstr "Utskriftsdatum"
 
-#: stats/templates/stats/export.html:78
+#: templates/stats/export.html:78
 msgid "Overview"
 msgstr "Översikt"
 
-#: stats/templates/stats/export.html:81
+#: templates/stats/export.html:81
 msgid "Archival Descriptions"
 msgstr "Arkivredovisning"
 
-#: stats/templates/stats/export.html:97
-msgid "System"
-msgstr "System"
+#: templates/stats/export.html:97
+msgid "Preserved"
+msgstr "Bevarat bestånd"
 
-#: stats/templates/stats/export.html:103
+#: templates/stats/export.html:103
 msgid "Authority Records"
 msgstr "Arkivbildare"
 
-#: stats/templates/stats/export.html:105
+#: templates/stats/export.html:105
 msgid "Disposal Jobs"
 msgstr "Utförda Gallringar"
 
-#: stats/templates/stats/export.html:107
+#: templates/stats/export.html:107
 msgid "Registred Accessions "
 msgstr "Registrerade Leveranser"
 
-#: stats/templates/stats/export.html:109
+#: templates/stats/export.html:109
 msgid "Information Packages"
 msgstr "Informationspaket"
 
-#: stats/templates/stats/export.html:111
+#: templates/stats/export.html:111
 msgid "Ordered Information Packages"
 msgstr "Beställda Informationspaket"
 
-#: stats/templates/stats/export.html:113
+#: templates/stats/export.html:113
 msgid "Permissions"
 msgstr "Rättigheter"
 
-#: stats/templates/stats/export.html:115
+#: templates/stats/export.html:115
 msgid "Roles"
 msgstr "Roller"
 
-#: stats/templates/stats/export.html:117
+#: templates/stats/export.html:117
 msgid "Total Object Size"
 msgstr "Total Storlek (bytes)"
 
-#: stats/templates/stats/export.html:119
+#: templates/stats/export.html:119
 msgid "Users"
 msgstr "Användare"
-
-#~ msgid "Date"
-#~ msgstr "Datum"
