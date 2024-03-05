@@ -14,7 +14,7 @@ class AlterField_char32_to_realUUID(AlterField):
         if self.allow_migrate_model(schema_editor.connection.alias, to_model):
             from_model = from_state.apps.get_model(app_label, self.model_name)
             from_field = from_model._meta.get_field(self.name)
-            if schema_editor.connection.mysql_is_mariadb:
+            if hasattr(schema_editor.connection, 'mysql_is_mariadb') and schema_editor.connection.mysql_is_mariadb:
                 cursor = schema_editor.connection.cursor()
                 cursor.execute(
                     'SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME=%s and COLUMN_NAME=%s',
