@@ -59,11 +59,6 @@ from ESSArch_Core.storage.models import (  # noqa isort:skip
 
 User = get_user_model()
 
-if hasattr(settings, 'ESSARCH_DIR'):
-    ESSARCH_DIR = settings.ESSARCH_DIR
-else:
-    ESSARCH_DIR = '/ESSArch'
-
 
 def installDefaultConfiguration():
 
@@ -1100,22 +1095,22 @@ def installDefaultPaths():
     click.echo("Installing paths...")
 
     dct = {
-        'mimetypes_definitionfile': os.path.join(ESSARCH_DIR, 'config/mime.types'),
-        'preingest': os.path.join(ESSARCH_DIR, 'data/preingest/packages'),
-        'preingest_reception': os.path.join(ESSARCH_DIR, 'data/preingest/reception'),
-        'ingest': os.path.join(ESSARCH_DIR, 'data/ingest/packages'),
-        'ingest_reception': os.path.join(ESSARCH_DIR, 'data/ingest/reception'),
-        'ingest_transfer': os.path.join(ESSARCH_DIR, 'data/ingest/transfer'),
-        'ingest_unidentified': os.path.join(ESSARCH_DIR, 'data/ingest/uip'),
-        'access_workarea': os.path.join(ESSARCH_DIR, 'data/workspace'),
-        'ingest_workarea': os.path.join(ESSARCH_DIR, 'data/workspace'),
-        'disseminations': os.path.join(ESSARCH_DIR, 'data/disseminations'),
-        'orders': os.path.join(ESSARCH_DIR, 'data/orders'),
-        'verify': os.path.join(ESSARCH_DIR, 'data/verify'),
-        'temp': os.path.join(ESSARCH_DIR, 'data/temp'),
-        'appraisal_reports': os.path.join(ESSARCH_DIR, 'data/reports/appraisal'),
-        'conversion_reports': os.path.join(ESSARCH_DIR, 'data/reports/conversion'),
-        'receipts': os.path.join(ESSARCH_DIR, 'data/receipts'),
+        'mimetypes_definitionfile': os.path.join(settings.CONFIG_DIR, 'mime.types'),
+        'preingest': os.path.join(settings.DATA_DIR, 'preingest/packages'),
+        'preingest_reception': os.path.join(settings.DATA_DIR, 'preingest/reception'),
+        'ingest': os.path.join(settings.DATA_DIR, 'ingest/packages'),
+        'ingest_reception': os.path.join(settings.DATA_DIR, 'ingest/reception'),
+        'ingest_transfer': os.path.join(settings.DATA_DIR, 'ingest/transfer'),
+        'ingest_unidentified': os.path.join(settings.DATA_DIR, 'ingest/uip'),
+        'access_workarea': os.path.join(settings.DATA_DIR, 'workspace'),
+        'ingest_workarea': os.path.join(settings.DATA_DIR, 'workspace'),
+        'disseminations': os.path.join(settings.DATA_DIR, 'disseminations'),
+        'orders': os.path.join(settings.DATA_DIR, 'orders'),
+        'verify': os.path.join(settings.DATA_DIR, 'verify'),
+        'temp': os.path.join(settings.DATA_DIR, 'temp'),
+        'appraisal_reports': os.path.join(settings.DATA_DIR, 'reports/appraisal'),
+        'conversion_reports': os.path.join(settings.DATA_DIR, 'reports/conversion'),
+        'receipts': os.path.join(settings.DATA_DIR, 'receipts'),
     }
 
     for key in dct:
@@ -1143,7 +1138,7 @@ def installDefaultStoragePolicies():
             defaults={
                 'status': True,
                 'type': DISK,
-                'target': os.path.join(ESSARCH_DIR, 'data/store/cache'),
+                'target': os.path.join(settings.DATA_DIR, 'store/cache'),
             }
         )
 
@@ -1222,7 +1217,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': os.path.join(ESSARCH_DIR, 'data/store/disk1'),
+            'target': os.path.join(settings.DATA_DIR, 'store/disk1'),
         }
     )
 
@@ -1245,7 +1240,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': os.path.join(ESSARCH_DIR, 'data/store/longterm_disk1'),
+            'target': os.path.join(settings.DATA_DIR, 'store/longterm_disk1'),
         }
     )
 
