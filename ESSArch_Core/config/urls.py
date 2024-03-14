@@ -125,8 +125,8 @@ from ESSArch_Core.WorkflowEngine.views import (
     ProcessViewSet,
 )
 
-admin.site.site_header = 'ESSArch Administration'
-admin.site.site_title = 'ESSArch Administration'
+admin.site.site_header = 'ESSArch Settings'
+admin.site.site_title = 'ESSArch Settings'
 
 router = ESSArchRouter()
 router.register(r'users', UserViewSet)
