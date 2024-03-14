@@ -12,6 +12,7 @@ env = environ.Env()
 ESSARCH_DIR = env.str('ESSARCH_DIR', '/ESSArch')
 env.read_env(os.path.join(ESSARCH_DIR, 'config', 'essarch_env'))
 CONFIG_DIR = env.str('ESSARCH_CONFIG_DIR', os.path.join(ESSARCH_DIR, 'config'))
+DATA_DIR = env.str('ESSARCH_DATA_DIR', os.path.join(ESSARCH_DIR, 'data'))
 LOGGING_DIR = env.str('ESSARCH_LOGGING_DIR', os.path.join(ESSARCH_DIR, 'log'))
 
 PROJECT_SHORTNAME = 'ESSArch'
