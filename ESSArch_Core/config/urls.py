@@ -137,7 +137,6 @@ router.register(r'agents', AgentViewSet).register(
     basename='agent-archives',
     parents_query_lookups=['agent']
 )
-router.register(r'access-aids', AccessAidViewSet)
 router.register(r'access-aids', AccessAidViewSet).register(
     r'structure-units',
     StructureUnitViewSet,
