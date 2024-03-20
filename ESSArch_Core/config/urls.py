@@ -280,6 +280,7 @@ r_information_packages.register(
 router.register(r'io-queue', IOQueueViewSet)
 
 router.register(r'notifications', NotificationViewSet)
+router.register(r'steps', ProcessStepViewSet)
 r_steps = router.register(r'steps', ProcessStepViewSet, basename='steps')
 r_steps.register(
     r'tasks',
@@ -387,7 +388,7 @@ router.register(r'workareas', WorkareaViewSet, basename='workarea').register(
 )
 router.register(r'workarea-files', WorkareaFilesViewSet, basename='workarea-files')
 
-
+router.register(r'robots', RobotViewSet)
 r_robots = router.register(r'robots', RobotViewSet, basename='robots')
 r_robots.register(
     r'tape-slots',
