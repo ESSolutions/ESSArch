@@ -137,7 +137,6 @@ router.register(r'agents', AgentViewSet).register(
     basename='agent-archives',
     parents_query_lookups=['agent']
 )
-router.register(r'access-aids', AccessAidViewSet)
 router.register(r'access-aids', AccessAidViewSet).register(
     r'structure-units',
     StructureUnitViewSet,
@@ -153,32 +152,34 @@ router.register(r'agent-place-types', AgentPlaceTypeViewSet)
 router.register(r'agent-relation-types', AgentRelationTypeViewSet)
 router.register(r'agent-tag-relation-types', AgentTagLinkRelationTypeViewSet)
 router.register(r'authority-types', AuthorityTypeViewSet)
-router.register(r'deliveries', DeliveryViewSet).register(
+r_deliveries = router.register(r'deliveries', DeliveryViewSet)
+r_deliveries.register(
     r'transfers',
     TransferViewSet,
     basename='transfers',
     parents_query_lookups=['delivery']
 )
-router.register(r'deliveries', DeliveryViewSet).register(
+r_deliveries.register(
     r'events',
     EventIPViewSet,
     basename='delivery-events',
     parents_query_lookups=['delivery'],
 )
 router.register(r'delivery-types', DeliveryTypeViewSet)
-router.register(r'transfers', TransferViewSet).register(
+r_transfers = router.register(r'transfers', TransferViewSet)
+r_transfers.register(
     r'events',
     EventIPViewSet,
     basename='transfer-events',
     parents_query_lookups=['transfer'],
 )
-router.register(r'transfers', TransferViewSet).register(
+r_transfers.register(
     r'structure-units',
     StructureUnitViewSet,
     basename='transfer-structure-units',
     parents_query_lookups=['transfers'],
 )
-router.register(r'transfers', TransferViewSet).register(
+r_transfers.register(
     r'tags',
     TagVersionViewSet,
     basename='transfer-tags',
@@ -190,19 +191,20 @@ router.register(r'structures', StructureViewSet).register(
     basename='structure-units',
     parents_query_lookups=['structure']
 )
-router.register(r'structure-units', StructureUnitViewSet).register(
+r_structure_units = router.register(r'structure-units', StructureUnitViewSet)
+r_structure_units.register(
     r'access-aids',
     AccessAidViewSet,
     basename='structure-unit-access-aids',
     parents_query_lookups=['structure_units'],
 )
-router.register(r'structure-units', StructureUnitViewSet).register(
+r_structure_units.register(
     r'transfers',
     TransferViewSet,
     basename='structure-unit-transfers',
     parents_query_lookups=['structure_units'],
 )
-router.register(r'structure-units', StructureUnitViewSet).register(
+r_structure_units.register(
     r'deliveries',
     DeliveryViewSet,
     basename='structure-unit-deliveries',
@@ -222,53 +224,53 @@ router.register(r'locations', LocationViewSet).register(
 router.register(r'metric-types', MetricTypeViewSet)
 router.register(r'location-level-types', LocationLevelTypeViewSet)
 router.register(r'location-function-types', LocationFunctionTypeViewSet)
-router.register(r'structure-units', StructureUnitViewSet)
 router.register(r'tag-version-types', TagVersionTypeViewSet)
 
 router.register(r'ref-codes', RefCodeViewSet)
 router.register(r'languages', LanguageViewSet)
-router.register(r'me/searches', StoredSearchViewSet)
+router.register(r'me/searches', StoredSearchViewSet, basename='me_search')
 router.register(r'permissions', PermissionViewSet)
 router.register(r'profilemaker-extensions', ProfileMakerExtensionViewSet)
 router.register(r'profilemaker-templates', ProfileMakerTemplateViewSet)
-router.register(r'information-packages', InformationPackageViewSet, basename='informationpackage')
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages = router.register(
+    r'information-packages', InformationPackageViewSet, basename='informationpackage')
+r_information_packages.register(
     r'appraisal-templates',
     AppraisalTemplateViewSet,
     basename='ip-appraisal-templates',
     parents_query_lookups=['information_packages']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'conversion-templates',
     ConversionTemplateViewSet,
     basename='ip-conversion-templates',
     parents_query_lookups=['information_packages']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'events',
     EventIPViewSet,
     basename='ip-events',
     parents_query_lookups=['linkingObjectIdentifierValue']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'profiles',
     InformationPackageProfileIPViewSet,
     basename='ip-profiles',
     parents_query_lookups=['ip']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'storage-objects',
     StorageObjectViewSet,
     basename='ip-storage-objects',
     parents_query_lookups=['ip']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'validations',
     ValidationViewSet,
     basename='ip-validations',
     parents_query_lookups=['information_package']
 )
-router.register(r'information-packages', InformationPackageViewSet).register(
+r_information_packages.register(
     r'validation-files',
     ValidationFilesViewSet,
     basename='ip-validation-files',
@@ -279,57 +281,58 @@ router.register(r'io-queue', IOQueueViewSet)
 
 router.register(r'notifications', NotificationViewSet)
 router.register(r'steps', ProcessStepViewSet)
-router.register(r'steps', ProcessStepViewSet, basename='steps').register(
+r_steps = router.register(r'steps', ProcessStepViewSet, basename='steps')
+r_steps.register(
     r'tasks',
     ProcessTaskViewSet,
     basename='steps-tasks',
     parents_query_lookups=['processstep']
 )
-router.register(r'steps', ProcessStepViewSet, basename='steps').register(
+r_steps.register(
     r'children',
     ProcessViewSet,
     basename='steps-children',
     parents_query_lookups=['processstep']
 )
 
-router.register(r'tags', TagViewSet)
-router.register(r'tags', TagViewSet, basename='tags').register(
+router.register(r'tags', TagViewSet, basename='tag')
+r_tags = router.register(r'tags', TagViewSet, basename='tags')
+r_tags.register(
     r'information-packages',
     TagInformationPackagesViewSet,
     basename='tags-informationpackages',
     parents_query_lookups=['tag']
 )
-router.register(r'tags', TagViewSet, basename='tags').register(
+r_tags.register(
     r'descendants',
     TagViewSet,
     basename='tags-descendants',
     parents_query_lookups=['tag']
 )
 
-router.register(r'tasks', ProcessTaskViewSet)
-router.register(r'tasks', ProcessTaskViewSet).register(
+r_tasks = router.register(r'tasks', ProcessTaskViewSet)
+r_tasks.register(
     r'validations',
     ValidationViewSet,
     basename='task-validations',
     parents_query_lookups=['task']
 )
 
-
 router.register(r'organizations', OrganizationViewSet, basename='organizations')
 
-router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
+r_appraisal_jobs = router.register(r'appraisal-jobs', AppraisalJobViewSet)
+r_appraisal_jobs.register(
     r'information-packages',
     AppraisalJobInformationPackageViewSet,
     basename='appraisal-job-information-packages',
     parents_query_lookups=['appraisal_jobs'],
 )
-router.register(r'appraisal-jobs', AppraisalJobViewSet).register(
+r_appraisal_jobs.register(
     r'tags',
     AppraisalJobTagViewSet,
     basename='appraisal-job-tags',
     parents_query_lookups=['appraisal_jobs'],
 )
-
 
 router.register(r'appraisal-templates', AppraisalTemplateViewSet)
 
@@ -341,7 +344,7 @@ router.register(r'conversion-jobs', ConversionJobViewSet).register(
 )
 router.register(r'conversion-templates', ConversionTemplateViewSet)
 router.register(r'action-tools', ActionToolViewSet)
-router.register(r'save-action-tools', SaveActionToolViewSet)
+router.register(r'save-action-tools', SaveActionToolViewSet, basename='save-action-tools')
 router.register(r'features', FeatureViewSet, basename='features')
 router.register(r'validations', ValidationViewSet)
 router.register(r'events', EventIPViewSet)
@@ -357,7 +360,13 @@ router.register(r'parameters', ParameterViewSet)
 router.register(r'paths', PathViewSet)
 
 router.register(r'storage-objects', StorageObjectViewSet)
-router.register(r'storage-mediums', StorageMediumViewSet)
+r_storage_mediums = router.register(r'storage-mediums', StorageMediumViewSet, basename='storagemedium')
+r_storage_mediums.register(
+    r'storage-objects',
+    StorageObjectViewSet,
+    basename='storagemedium-storageobject',
+    parents_query_lookups=['storage_medium']
+)
 router.register(r'storage-methods', StorageMethodViewSet)
 router.register(r'storage-method-target-relations', StorageMethodTargetRelationViewSet)
 router.register(r'storage-migrations', StorageMigrationViewSet, basename='storage-migrations')
@@ -366,20 +375,11 @@ router.register(r'storage-targets', StorageTargetViewSet)
 router.register(r'tape-drives', TapeDriveViewSet)
 router.register(r'tape-slots', TapeSlotViewSet)
 
-
-router.register(r'storage-mediums', StorageMediumViewSet, basename='storagemedium').register(
-    r'storage-objects',
-    StorageObjectViewSet,
-    basename='storagemedium-storageobject',
-    parents_query_lookups=['storage_medium']
-)
-
 router.register(r'consign-methods', ConsignMethodViewSet)
 router.register(r'order-types', OrderTypeViewSet)
 router.register(r'orders', OrderViewSet)
 
 router.register(r'workarea-entries', WorkareaEntryViewSet, basename='workarea-entries')
-router.register(r'workareas', WorkareaViewSet, basename='workarea')
 router.register(r'workareas', WorkareaViewSet, basename='workarea').register(
     r'events',
     EventIPViewSet,
@@ -388,28 +388,27 @@ router.register(r'workareas', WorkareaViewSet, basename='workarea').register(
 )
 router.register(r'workarea-files', WorkareaFilesViewSet, basename='workarea-files')
 
-
 router.register(r'robots', RobotViewSet)
-router.register(r'robots', ProcessStepViewSet, basename='robots').register(
+r_robots = router.register(r'robots', RobotViewSet, basename='robots')
+r_robots.register(
+    r'tape-slots',
+    TapeSlotViewSet,
+    basename='robots-tapeslots',
+    parents_query_lookups=['robot_id']
+)
+r_robots.register(
+    r'tape-drives',
+    TapeDriveViewSet,
+    basename='robots-tapedrives',
+    parents_query_lookups=['robot_id']
+)
+router.register(r'robots', ProcessStepViewSet, basename='robots_processstep').register(
     r'queue',
     RobotQueueViewSet,
     basename='robots-queue',
     parents_query_lookups=['robot_id']
 )
 router.register(r'robot-queue', RobotQueueViewSet)
-
-router.register(r'robots', RobotViewSet, basename='robots').register(
-    r'tape-slots',
-    TapeSlotViewSet,
-    basename='robots-tapeslots',
-    parents_query_lookups=['robot_id']
-)
-router.register(r'robots', RobotViewSet, basename='robots').register(
-    r'tape-drives',
-    TapeDriveViewSet,
-    basename='robots-tapedrives',
-    parents_query_lookups=['robot_id']
-)
 
 router.register(r'ip-reception', InformationPackageReceptionViewSet, basename="ip-reception")
 
