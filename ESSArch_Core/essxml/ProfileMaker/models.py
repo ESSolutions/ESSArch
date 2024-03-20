@@ -45,7 +45,7 @@ class templatePackage(models.Model):
     structure = models.JSONField(default=list)
     # isTreeCreated = models.BooleanField(default=True)
     name = models.CharField(max_length=255, primary_key=True)
-    root_element = models.CharField(max_length=55, default='')
+    root_element = models.CharField(max_length=55)
     extensions = models.ManyToManyField(extensionPackage)
 
     prefix = models.CharField(max_length=20)
