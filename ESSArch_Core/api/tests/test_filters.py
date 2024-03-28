@@ -118,7 +118,7 @@ class SearchFilterTests(TestCase):
             permission_classes = (permissions.IsAuthenticated,)
             serializer_class = SearchFilterSerializer
             filter_backends = (SearchFilter,)
-            search_fields = ('id',)
+            search_fields = ('=id',)
 
         ip = InformationPackage.objects.create()
 
