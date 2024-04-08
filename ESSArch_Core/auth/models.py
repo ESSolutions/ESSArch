@@ -454,7 +454,7 @@ class UserProfile(models.Model):
 
     user = models.OneToOneField(DjangoUser, on_delete=models.CASCADE, related_name='user_profile')
     current_organization = models.ForeignKey(Group, on_delete=models.SET_NULL, null=True)
-    language = models.CharField(max_length=10, default='')
+    language = models.CharField(max_length=10, default='DEFAULT')
     ip_list_columns = PickledObjectField(default=default_ip_list_columns)
     ip_list_view_type = models.CharField(max_length=10, choices=IP_LIST_VIEW_CHOICES, default=IP,)
     file_browser_view_type = models.CharField(max_length=10, choices=FILE_BROWSER_LIST_VIEW_CHOICES, default=LIST, )
