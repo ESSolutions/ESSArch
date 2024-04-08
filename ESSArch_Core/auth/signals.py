@@ -78,13 +78,8 @@ def user_post_save(sender, instance, created, *args, **kwargs):
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
     if user.user_profile.language == '':
-        cookie_language = request.COOKIES.get('essarch_language')
-        if cookie_language:
-            user.user_profile.language = cookie_language
-        else:
-            user.user_profile.language = 'DEFAULT'
-
-        user.user_profile.save()
+        user.user_profile.language = 'DEFAULT'
+        user.user_profile.save(update_fields=['language'])
 
     host = request.META.get('REMOTE_ADDR')
     if host is None:
