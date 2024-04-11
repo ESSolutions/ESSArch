@@ -4,7 +4,7 @@ django-axes==6.3.0
 pysaml2 @ git+https://github.com/ESSolutions/pysaml2.git@2f1ba6beaef3f6189ace26e0efb5f2d031624e04 ; platform_system=='Windows'
 djangosaml2==1.9.2
 unoconv==0.9.0
-comtypes==1.2.1 ; platform_system=='Windows'
+comtypes==1.4.1 ; platform_system=='Windows'
 wfastcgi==3.0.0
 mod-wsgi==5.0.0
 mssql-django==1.4.2
