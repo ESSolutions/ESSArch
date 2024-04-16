@@ -153,7 +153,7 @@ RUN sed -e '/basicConstraints/ s/^#*/#/' -i /usr/lib/ssl/openssl.cnf
 COPY --from=build-sdist /code/dist ./dist
 ADD docker ./docker
 
-RUN pip install --no-cache-dir --upgrade `ls -t dist/ESSArch-*.tar.gz | head -n1`[apache,libreoffice_file_conversion,mysql,saml2,ldap]
+RUN pip install --no-cache-dir --upgrade `ls -t dist/essarch-*.tar.gz | head -n1`[apache,libreoffice_file_conversion,mysql,saml2,ldap]
 
 RUN mkdir -p ./config
 RUN mkdir -p ./log
