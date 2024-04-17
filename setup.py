@@ -47,9 +47,9 @@ if __name__ == '__main__':
     versions_dict = versioneer.get_versions()
     cmdclass = versioneer.get_cmdclass()
     setup(
-        name='ESSArch',
+        name='essarch',
         version=versions_dict['version'],
-        description='ESSArch',
+        description='ESSArch (ES Solutions Archive)',
         long_description=open("README.md").read(),
         long_description_content_type='text/markdown',
         author='Henrik Ek',

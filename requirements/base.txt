@@ -14,7 +14,7 @@ django-allauth==0.57.0
 django-cors-headers==4.3.1
 django-countries-plus==2.2.0
 django-csp==3.7
-django-environ @ git+https://github.com/ESSolutions/django-environ.git@cffc7c72c900e5bf876b88dd6c14f3d0ca1470dc
+django-environ==0.11.2
 django-filter==24.1
 django-groups-manager==1.3.0
 django-guardian==2.4.0
