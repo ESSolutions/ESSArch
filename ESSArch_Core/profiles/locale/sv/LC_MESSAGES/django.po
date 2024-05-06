@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-02 11:06+0200\n"
+"POT-Creation-Date: 2024-05-06 21:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,22 +18,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: profiles/apps.py:7
+#: admin.py:35
+msgid "Duplicate selected items"
+msgstr "Duplicera markerade objekt"
+
+#: apps.py:7
 msgid "Profiles"
 msgstr "Profiler"
 
-#: profiles/models.py:278
+#: models.py:278
 msgid "submission agreement"
 msgstr "leveransöverenskommelse"
 
-#: profiles/models.py:279
+#: models.py:279
 msgid "submission agreements"
 msgstr "leveransöverenskommelser"
 
-#: profiles/models.py:429
+#: models.py:429
 msgid "profile"
 msgstr "profil"
 
-#: profiles/models.py:430
+#: models.py:430
 msgid "profiles"
 msgstr "profiler"
