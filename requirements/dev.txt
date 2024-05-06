@@ -4,5 +4,5 @@ django-sslserver==0.22
 sentry-sdk==1.39.2
 esbonio==0.16.4
 django-extensions==3.2.3
-Werkzeug==3.0.1
+Werkzeug==3.0.3
 pyOpenSSL==24.1.0

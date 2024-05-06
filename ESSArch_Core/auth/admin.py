@@ -193,7 +193,7 @@ class GroupForm(forms.ModelForm):
 
     class Meta:
         model = Group
-        fields = ['group_type', 'parent']
+        fields = ['group_type', 'parent', 'external_id']
 
 
 class GroupInline(admin.StackedInline):
@@ -211,10 +211,11 @@ class GroupInline(admin.StackedInline):
 
 
 class GroupAdmin(DjangoGroupAdmin):
-    list_display = ('__str__', 'get_group_type', 'get_parent')
+    list_display = ('__str__', 'get_group_type', 'get_parent', 'get_external_id')
     add_form_template = 'essauth/admin/group/add_form.html'
     change_list_template = 'admin/mptt_change_list.html'
     inlines = [GroupInline]
+    search_fields = ("name", "essauth_group__external_id")
 
     def get_ordering(self, request):
         """
@@ -230,6 +231,10 @@ class GroupAdmin(DjangoGroupAdmin):
     def get_parent(self, obj):
         return obj.essauth_group.parent
     get_parent.short_description = _('parent')
+
+    def get_external_id(self, obj):
+        return obj.essauth_group.external_id
+    get_external_id.short_description = _('external id')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == 'permissions':

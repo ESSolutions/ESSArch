@@ -107,12 +107,14 @@ medium_type_CHOICES = (
     (401, 'HDFS'),
     (402, 'HDFS-REST'),
 )
+medium_type_CHOICES_DICT = {v: k for k, v in medium_type_CHOICES}
 
 storage_type_CHOICES = (
     (DISK, 'DISK'),
     (TAPE, 'TAPE'),
     (CAS, 'CAS'),
 )
+storage_type_CHOICES_DICT = {v: k for k, v in storage_type_CHOICES}
 
 medium_format_CHOICES = (
     (103, '103 (AIC support)'),
@@ -120,6 +122,7 @@ medium_format_CHOICES = (
     (101, '101 (Old read only)'),
     (100, '100 (Old read only)'),
 )
+medium_format_CHOICES_DICT = {v: k for k, v in medium_format_CHOICES}
 
 medium_status_CHOICES = (
     (0, 'Inactive'),
@@ -127,6 +130,7 @@ medium_status_CHOICES = (
     (30, 'Full'),
     (100, 'FAIL'),
 )
+medium_status_CHOICES_DICT = {v: k for k, v in medium_status_CHOICES}
 
 medium_location_status_CHOICES = (
     (10, 'Delivered'),
@@ -135,6 +139,7 @@ medium_location_status_CHOICES = (
     (40, 'Collected'),
     (50, 'Robot'),
 )
+medium_location_status_CHOICES_DICT = {v: k for k, v in medium_location_status_CHOICES}
 
 medium_block_size_CHOICES = (
     (128, '64K'),
@@ -144,6 +149,7 @@ medium_block_size_CHOICES = (
     (1024, '512K'),
     (2048, '1024K'),
 )
+medium_block_size_CHOICES_DICT = {v: k for k, v in medium_block_size_CHOICES}
 
 STORAGE_TARGET_STATUS_DISABLED = 0
 STORAGE_TARGET_STATUS_ENABLED = 1
@@ -156,6 +162,7 @@ storage_target_status_CHOICES = (
     (STORAGE_TARGET_STATUS_READ_ONLY, 'ReadOnly'),
     (STORAGE_TARGET_STATUS_MIGRATE, 'Migrate'),
 )
+storage_target_status_CHOICES_DICT = {v: k for k, v in storage_target_status_CHOICES}
 
 min_chunk_size_CHOICES = (
     (0, 'Disabled'),
@@ -169,6 +176,7 @@ min_chunk_size_CHOICES = (
     (429496729600, '400 GByte'),
     (536870912000, '500 GByte'),
 )
+min_chunk_size_CHOICES_DICT = {v: k for k, v in min_chunk_size_CHOICES}
 
 
 def get_backend_from_storage_type(type):

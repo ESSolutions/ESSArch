@@ -25,10 +25,21 @@
 from django import forms
 from django.contrib import admin
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 
 from .models import Profile, SubmissionAgreement
 from .utils import lowercase_profile_types_no_action_workflow
+
+
+@admin.action(permissions=["change"], description=_("Duplicate selected items"))
+def duplicate(modeladmin, request, queryset):
+    import copy
+    for obj in queryset:
+        obj_copy = copy.copy(obj)
+        obj_copy.id = None
+        obj_copy.name = '{} ***'.format(obj_copy.name)
+        obj_copy.save()
 
 
 class SubmissionAgreementForm(forms.ModelForm):
@@ -75,6 +86,7 @@ class SubmissionAgreementAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.JSONField: {'widget': JSONEditorWidget},
     }
+    actions = [duplicate]
 
 
 admin.site.register(SubmissionAgreement, SubmissionAgreementAdmin)
@@ -115,6 +127,7 @@ class ProfileAdmin(admin.ModelAdmin):
     formfield_overrides = {
         models.JSONField: {'widget': JSONEditorWidget},
     }
+    actions = [duplicate]
 
 
 admin.site.register(Profile, ProfileAdmin)
