@@ -27,7 +27,7 @@ class S3StorageBackend(BaseStorageBackend):
         raise NotImplementedError
 
     def open(self, storage_object, file, *args, **kwargs):
-        data = io.StringIO()
+        data = io.BytesIO()
         bucket_name, key = storage_object.content_location_value.split('/', 1)
         key = os.path.join(key, file)
         bucket = s3.Bucket(bucket_name)

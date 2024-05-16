@@ -152,7 +152,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             raise ValueError("Tape not mounted")
 
         set_tape_file_number(drive.device, tape_pos)
-        read_tape(drive.device, path=tmp_path, block_size=block_size)
+        read_tape(drive.device, path=tmp_path, block_size=block_size, medium_id=medium.medium_id)
 
         drive.last_change = timezone.now()
         drive.save(update_fields=['last_change'])
@@ -238,7 +238,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
         try:
             set_tape_file_number(drive.device, tape_pos)
-            write_to_tape(drive.device, src, block_size=block_size)
+            write_to_tape(drive.device, src, block_size=block_size, medium_id=storage_medium.medium_id)
         except OSError as e:
             if e.errno == errno.ENOSPC:
                 storage_medium.mark_as_full()
