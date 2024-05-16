@@ -26,6 +26,7 @@ from ESSArch_Core.storage.tape_identification import (
     get_backend as get_tape_identification_backend,
 )
 
+MB = 1024 * 1024
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 logger = logging.getLogger('essarch.storage.tape')
 
@@ -250,17 +251,17 @@ def verify_tape_label(medium, xmlstring):
     return equal_id
 
 
-def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE):
+def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE, medium_id=''):
     logger.info(
-        'Extracting content from {device} to {path}, with block size {size}'.format(
-            device=device, path=path, size=block_size
+        'Extracting content from {device} ({medium_id}) to {path}, with block size {size}'.format(
+            device=device, medium_id=medium_id, path=path, size=block_size
         )
     )
     with tarfile.open(device, 'r|', bufsize=block_size) as tar:
         tar.extractall(path)
 
 
-def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None):
+def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=None, medium_id=''):
     """
     Writes content to a tape
 
@@ -279,8 +280,8 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         paths = [paths]
 
     logger.info(
-        'Writing {paths} to {device} with block size {size}'.format(
-            paths=",".join(paths), device=device, size=block_size
+        'Writing {paths} to {device} ({medium_id}) with block size {size}'.format(
+            paths=",".join(paths), device=device, medium_id=medium_id, size=block_size
         )
     )
 
@@ -292,8 +293,22 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         for path in paths:
             if len(paths) > 1 or arcname is None:
                 arcname = os.path.basename(os.path.normpath(path))
-
+            fsize = os.stat(path).st_size
+            time_start = time.time()
             tar.add(path, arcname)
+            time_end = time.time()
+            time_elapsed = time_end - time_start
+            fsize_mb = fsize / MB
+            try:
+                mb_per_sec = fsize_mb / time_elapsed
+            except ZeroDivisionError:
+                mb_per_sec = fsize_mb
+
+            logger.info(
+                'Added {} ({} MB) to {} ({}) at {} MB/Sec ({} sec)'.format(
+                    path, fsize_mb, device, medium_id, mb_per_sec, time_elapsed
+                )
+            )
 
 
 def get_tape_file_number(drive):
