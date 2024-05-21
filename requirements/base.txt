@@ -48,7 +48,7 @@ python-dateutil==2.8.2
 pywin32==306 ; platform_system=='Windows'
 redis==5.0.4
 regex==2024.5.15
-requests==2.31.0
+requests==2.32.0
 requests_toolbelt==1.0.0
 tenacity==8.3.0
 wand==0.6.13
