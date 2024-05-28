@@ -19,28 +19,9 @@ export default class EventCtrl {
     const vm = this;
     $scope.$translate = $translate;
 
-    vm.getCookieName = function () {
-      let name;
-      switch ($rootScope.app) {
-        case 'ESSArch Preservation Platform':
-          name = 'epp-events-per-page';
-          break;
-        case 'ESSArch Tools For Producer':
-          name = 'etp-events-per-page';
-          break;
-        case 'ESSArch Tools Archive':
-          name = 'eta-events-per-page';
-          break;
-        default:
-          name = 'etp-events-per-page';
-          break;
-      }
-      return name;
-    };
-
-    vm.itemsPerPage = $cookies.get(vm.getCookieName) || 10;
+    vm.itemsPerPage = $cookies.get('essarch-events-per-page') || 10;
     $scope.updateEventsPerPage = function (items) {
-      $cookies.put(vm.getCookieName, items);
+      $cookies.put('essarch-events-per-page', items);
     };
     $scope.selected = [];
     vm.displayed = [];

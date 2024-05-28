@@ -296,10 +296,30 @@ class GroupTypeAdmin(admin.ModelAdmin):
         logger.info(f"User '{request.user}' attempts to delete the group type '{object}' with msg: '{message}'.")
 
 
+@admin.action(permissions=["change"], description=_("Duplicate selected items"))
+def duplicate(modeladmin, request, queryset):
+    import copy
+
+    from django.db import IntegrityError
+    from django.utils.text import slugify
+    for obj in queryset:
+        obj_copy = copy.copy(obj)
+        obj_copy.id = None
+        obj_copy.label = '{} ***'.format(obj_copy.label)
+        obj_copy.codename = slugify(obj_copy.label)
+        try:
+            obj_copy.save()
+        except IntegrityError:
+            obj_copy.codename = obj_copy.label
+            obj_copy.save()
+        obj_copy.permissions.add(*obj.permissions.all())
+
+
 class GroupMemberRoleAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'external_id', 'codename')
     search_fields = ['codename', 'label', 'external_id']
     filter_horizontal = ['permissions']
+    actions = [duplicate]
 
     def log_addition(self, request, object, message):
         logger.info(f"User '{request.user}' attempts to create role '{object}' with msg: '{message}'.")
