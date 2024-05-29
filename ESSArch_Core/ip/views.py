@@ -2109,7 +2109,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])
-            s = s.filter('term', **{'ip': str(ip.pk)}).query('term', **{'href': path})
+            s = s.filter('term', **{'ip': str(ip.pk)}).query('term', **{'href': path}).sort('type', 'name.keyword')
 
             if self.paginator is not None:
                 # Paginate in search engine
