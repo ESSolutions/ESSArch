@@ -31,6 +31,8 @@ export default class FilebrowserController {
     vm.$onChanges = function (changes) {
       if (changes.user) {
         $scope.previousGridArrays = [];
+        $scope.initLoad = true;
+        $scope.initExpanded = false;
         $scope.dirPipe($scope.tableState);
       }
       if (changes.ip) {
@@ -77,9 +79,6 @@ export default class FilebrowserController {
         vm.browserstate.path = $scope.previousGridArraysString();
       }
       $scope.gridArrayLoading = true;
-      if ($scope.deckGridData.length == 0) {
-        $scope.initLoad = true;
-      }
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, $scope.filesPerPage);
@@ -124,11 +123,18 @@ export default class FilebrowserController {
               $scope.ip.state == 'Prepared'
             ) {
               for (let i = 0; i < dir.data.length; i++) {
-                if (dir.data[i].name == 'content') {
+                if (dir.data[i].name == 'content' || dir.data[i].name == 'c') {
                   $scope.expandFile($scope.ip, dir.data[i]);
                   $scope.initExpanded = true;
                   break;
                 }
+              }
+              if (!$scope.initExpanded) {
+                $scope.deckGridData = dir.data;
+                tableState.pagination.numberOfPages = dir.numberOfPages; //set the number of pages so the pagination can update
+                $scope.gridArrayLoading = false;
+                $scope.initLoad = false;
+                $scope.openingNewPage = false;
               }
             } else {
               $scope.deckGridData = dir.data;
@@ -149,6 +155,8 @@ export default class FilebrowserController {
     $scope.deckGridInit = function (ip) {
       $scope.previousGridArrays = [];
       if ($scope.tableState) {
+        $scope.initLoad = true;
+        $scope.initExpanded = false;
         $scope.dirPipe($scope.tableState);
         $scope.selectedCards = [];
       }
