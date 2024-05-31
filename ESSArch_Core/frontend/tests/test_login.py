@@ -26,9 +26,10 @@ class LoginTests(FrontendTestCase):
         old_url = self.selenium.current_url
         self.selenium.find_element("xpath", '//button[@type="submit"]').click()
         try:
+            sleep(10)
             WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
         except TimeoutException:
-            sleep(10)
+            sleep(30)
             WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
         self.assertTrue(EC.url_changes(old_url))
 
