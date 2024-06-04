@@ -86,6 +86,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             storage_medium.refresh_from_db()
 
     def prepare_for_io(self, storage_medium, io_lock_key=None, wait_timeout=10 * 60):
+        storage_medium.refresh_from_db()
         if storage_medium.tape_drive is not None:
             self.wait_for_media_transit(storage_medium)
 

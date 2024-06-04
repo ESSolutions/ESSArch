@@ -569,7 +569,14 @@ def CreateReceipt(self, task_id=None, backend=None, template=None, destination=N
     if task_id is None:
         task = self.get_processtask()
     else:
-        task = ProcessTask.objects.get(celery_id=task_id)
+        try:
+            task = ProcessTask.objects.get(celery_id=task_id)
+        except ProcessTask.DoesNotExist as e:
+            logger.warning('exception ProcessTask DoesNotExist for failed task_id: {} in CreateReceipt. ip: {}, \
+CreateReceipt_task_id: {}'.format(task_id, self.ip, self.get_processtask()))
+            logger.exception(e)
+            task = None
+
     return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
 
 
