@@ -36,22 +36,25 @@ class S3StorageBackend(BaseStorageBackend):
         return data
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
-        ip = storage_object.ip
-
         bucket_name, key = storage_object.content_location_value.split('/', 1)
         bucket = s3.Bucket(bucket_name)
 
         if storage_object.container:
+            ip = storage_object.ip
+            aic_xml = True if ip.aic else False
+            os.makedirs(dst, exist_ok=True)
             src_tar = key
             src_xml = os.path.splitext(key)[0] + '.xml'
-            src_aic_xml = str(ip.aic.pk) + '.xml'
             dst_tar = os.path.join(dst, os.path.basename(src_tar))
             dst_xml = os.path.join(dst, os.path.basename(src_xml))
-            dst_aic_xml = os.path.join(dst, os.path.basename(src_aic_xml))
+            if aic_xml:
+                src_aic_xml = str(ip.aic.pk) + '.xml'
+                dst_aic_xml = os.path.join(dst, os.path.basename(src_aic_xml))
 
             if include_xml:
                 bucket.download_file(src_xml, dst_xml)
-                bucket.download_file(src_aic_xml, dst_aic_xml)
+                if aic_xml:
+                    bucket.download_file(src_aic_xml, dst_aic_xml)
             if extract:
                 return self._extract(storage_object, dst)
             else:
@@ -59,7 +62,8 @@ class S3StorageBackend(BaseStorageBackend):
                 return dst_tar
         else:
             for object_summary in bucket.objects.filter(Prefix=key):
-                dst_file = os.path.join(dst, os.path.basename(object_summary.key))
+                dst_file = os.path.join(dst, os.path.relpath(object_summary.key, key))
+                os.makedirs(os.path.dirname(dst_file), exist_ok=True)
                 bucket.download_file(object_summary.key, dst_file)
             return dst
 
