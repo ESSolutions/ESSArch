@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     ACCESS_WORKAREA: 'Workspace access',
     ACCESS_WORKSPACE: 'Workspace access',
     ADVANCED_FILTERS_ON: 'Advanced filter active',
+    AGGREGATING: 'Aggregating',
     ARCHIVAL_INSTITUTION: 'Archival Institution',
     ARCHIVAL_INSTITUTION_DESC: 'Archival institution',
     ARCHIVIST_ORGANIZATION: 'Archivist organization',
