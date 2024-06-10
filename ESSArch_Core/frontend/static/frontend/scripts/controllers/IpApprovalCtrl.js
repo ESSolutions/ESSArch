@@ -1,7 +1,7 @@
 export default class IpApprovalCtrl {
   constructor($scope, $controller, $rootScope, $translate, ContextMenuBase) {
     const vm = this;
-    const ipSortString = ['Received', 'Preserving'];
+    const ipSortString = ['Aggregating', 'Received', 'Preserving'];
     $controller('BaseCtrl', {$scope: $scope, vm: vm, ipSortString: ipSortString, params: {}});
 
     //Request form data

@@ -751,7 +751,7 @@ class LocationWriteSerializer(LocationSerializer):
 class TagVersionInformationPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = InformationPackage
-        fields = ('id', 'object_identifier_value', 'label',)
+        fields = ('id', 'object_identifier_value', 'label', 'state')
 
 
 class TagVersionNestedSerializer(serializers.ModelSerializer):

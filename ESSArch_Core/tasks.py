@@ -458,7 +458,8 @@ def UpdateIPStatus(self, status, prev=None):
         t.save()
     ip.state = status
     ip.save()
-    ip_state_dict = {'Creating': gettext('Creating'),
+    ip_state_dict = {'Aggregating': gettext('Aggregating'),
+                     'Creating': gettext('Creating'),
                      'Created': gettext('Created'),
                      'Transforming': gettext('Transforming'),
                      'Transformed': gettext('Transformed'),

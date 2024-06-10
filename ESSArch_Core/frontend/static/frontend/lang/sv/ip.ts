@@ -6,6 +6,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     ACCESS_WORKAREA: 'Arbetsyta åtkomst',
     ACCESS_WORKSPACE: 'Arbetsyta åtkomst',
     ADVANCED_FILTERS_ON: 'Avancerad filtrering aktiv',
+    AGGREGATING: 'Aggregerar',
     ARCHIVAL_INSTITUTION: 'Arkivinstitution',
     ARCHIVAL_INSTITUTION_DESC: 'Arkivinstitution',
     ARCHIVIST_ORGANIZATION: 'Arkivorganisation',

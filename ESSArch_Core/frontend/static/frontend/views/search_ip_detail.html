@@ -64,9 +64,22 @@
       </button>
     </div>
   </div>
-  <div class="detail-field pt-base" ng-if="vm.record.information_package">
+  <div
+    class="detail-field pt-base"
+    ng-if="vm.record.information_package && vm.record.information_package.state == 'Preserved'"
+  >
     <label> {{'INFORMATION_PACKAGE' | translate}}:&nbsp; </label>
     <a ui-sref="home.access.accessIp({id: vm.record.information_package.id})">
+      {{vm.record.information_package.label ? vm.record.information_package.label :
+      vm.record.information_package.object_identifier_value}}
+    </a>
+  </div>
+  <div
+    class="detail-field pt-base"
+    ng-if="vm.record.information_package && ['Aggregating', 'Received', 'Preserving'].includes(vm.record.information_package.state)"
+  >
+    <label> {{'INFORMATION_PACKAGE' | translate}}:&nbsp; </label>
+    <a ui-sref="home.ingest.ipApproval({id: vm.record.information_package.id})">
       {{vm.record.information_package.label ? vm.record.information_package.label :
       vm.record.information_package.object_identifier_value}}
     </a>
