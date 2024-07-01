@@ -196,6 +196,7 @@ class StoragePolicy(models.Model):
         (2, '2'),
         (3, '3'),
         (4, '4'),
+        (5, '5'),
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

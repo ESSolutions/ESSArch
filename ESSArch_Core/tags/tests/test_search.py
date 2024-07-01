@@ -458,7 +458,7 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
         cls.url = reverse('search-list')
         Feature.objects.create(name='archival descriptions', enabled=True)
         cls.component_type = TagVersionType.objects.create(name='component', archive_type=False)
-        cls.security_levels = [1, 2, 3, 4, 5]
+        cls.security_levels = [0, 1, 2, 3, 4, 5]
 
     def setUp(self):
         super().setUp()
