@@ -158,7 +158,7 @@ jobs:
           docker-compose build essarch
 
   test-windows:
-    runs-on: windows-latest
+    runs-on: windows-2019
     env:
       DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
     steps:
