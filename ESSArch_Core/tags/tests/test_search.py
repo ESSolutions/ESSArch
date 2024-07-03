@@ -531,8 +531,9 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
 
     def test_user_with_multiple_security_levels(self):
         self.user.user_permissions.add(
-            Permission.objects.get(codename='security_level_1'),
+            Permission.objects.get(codename='security_level_0'),
             Permission.objects.get(codename='security_level_3'),
+            Permission.objects.get(codename='security_level_5'),
         )
         self.user = User.objects.get(pk=self.user.pk)
 
@@ -557,7 +558,7 @@ class SecurityLevelTestCase(ESSArchSearchBaseTestCase):
                 component_tag_version.save()
                 Component.from_obj(component_tag_version).save(refresh='true')
 
-                if lvl in [1, 3]:
+                if lvl in [0, 3, 5]:
                     res = self.client.get(self.url)
                     self.assertEqual(res.status_code, status.HTTP_200_OK)
                     self.assertEqual(len(res.data['hits']), 1)

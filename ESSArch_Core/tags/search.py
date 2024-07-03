@@ -177,12 +177,10 @@ class ComponentSearch(FacetedSearch):
             s = s.filter(Q('bool', minimum_should_match=1, should=[
                 Q('terms', security_level=user_security_levels),
                 Q('bool', must_not=Q('exists', field='security_level')),
-                Q('term', security_level=0),
             ]))
         else:
             s = s.filter(Q('bool', minimum_should_match=1, should=[
                 Q('bool', must_not=Q('exists', field='security_level')),
-                Q('term', security_level=0),
             ]))
 
         if self.personal_identification_number not in EMPTY_VALUES:
