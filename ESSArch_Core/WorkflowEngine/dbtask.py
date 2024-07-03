@@ -45,9 +45,6 @@ from ESSArch_Core.WorkflowEngine.util import get_result
 
 User = get_user_model()
 
-logger = logging.getLogger('essarch')
-
-
 # import time
 # from contextlib import contextmanager
 #
@@ -75,6 +72,7 @@ class DBTask(Task):
     event_type = None
     queue = 'celery'
     track = True
+    logger = logging.getLogger('essarch')
 
     def __call__(self, *args, **kwargs):
         for k, v in self.result_params.items():
@@ -144,20 +142,20 @@ class DBTask(Task):
                         try:
                             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
                         except InformationPackage.DoesNotExist as e:
-                            logger.warning(
+                            self.logger.warning(
                                 'exception in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
 - retry'.format(self.task_id, self.step, self.ip))
                             raise e
             except RetryError:
-                logger.warning('RetryError in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
+                self.logger.warning('RetryError in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
 - try to _run_task without IP'.format(self.task_id, self.step, self.ip))
                 return self._run_task(*args, **kwargs)
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
-            logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
+            self.logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
             # with cache_lock(ip.get_lock_key()):
             with cache.lock(ip.get_lock_key(), blocking_timeout=300):
-                logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
+                self.logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
 
                 t = self.get_processtask()
                 if t.run_if and not self.parse_params(t.run_if)[0]:
@@ -166,7 +164,7 @@ class DBTask(Task):
                     t.save()
                 else:
                     r = self._run_task(*args, **kwargs)
-            logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
+            self.logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
             return r
 
         return self._run_task(*args, **kwargs)
@@ -178,7 +176,7 @@ class DBTask(Task):
                 for ancestor in step.get_ancestors(include_self=True):
                     self.extra_data.update(ancestor.context)
             except ProcessStep.DoesNotExist:
-                logger.warning('exception in _run_task for task_id: {}, step_id: {}, DoesNotExist when get \
+                self.logger.warning('exception in _run_task for task_id: {}, step_id: {}, DoesNotExist when get \
 step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
 
         try:
@@ -202,7 +200,7 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
                     exception=einfo.exception,
                     traceback=einfo.traceback,
                 )
-                logger.error('Task with flag "allow failure" failed with exception {}'.format(einfo.exception))
+                self.logger.error('Task with flag "allow failure" failed with exception {}'.format(einfo.exception))
                 return None
 
             raise
@@ -258,7 +256,7 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
             'task': ProcessTask.objects.get(celery_id=self.task_id).pk,
             'outcome': outcome
         }
-        logger.log(level, outcome_detail_note, extra=extra)
+        self.logger.log(level, outcome_detail_note, extra=extra)
 
     def failure(self, exc, einfo):
         '''

@@ -66,8 +66,6 @@ from ESSArch_Core.configuration.serializers import (
 )
 from ESSArch_Core.WorkflowEngine import get_workers
 
-logger = logging.getLogger('essarch.configuration')
-
 
 def get_database_info():
     vendor = connection.vendor
@@ -92,6 +90,7 @@ def get_database_info():
 
 
 def get_elasticsearch_info(full):
+    logger = logging.getLogger('essarch.configuration')
     if settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
         try:
             props = get_es_connection().info()
@@ -109,6 +108,7 @@ def get_elasticsearch_info(full):
 
 
 def get_redis_info(full=False):
+    logger = logging.getLogger('essarch.configuration')
     try:
         props = get_redis_connection().info()
         if full:
@@ -124,6 +124,7 @@ def get_redis_info(full=False):
 
 
 def get_rabbitmq_info(full=False):
+    logger = logging.getLogger('essarch.configuration')
     try:
         props = current_app.connection(transport_options={'max_retries': 5}).connection.server_properties
         if full:

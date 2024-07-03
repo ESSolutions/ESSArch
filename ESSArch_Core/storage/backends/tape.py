@@ -29,7 +29,6 @@ from ESSArch_Core.storage.tape import (
 )
 
 User = get_user_model()
-logger = logging.getLogger('essarch.storage.backends.tape')
 
 
 class TapeStorageBackend(BaseStorageBackend):
@@ -37,6 +36,7 @@ class TapeStorageBackend(BaseStorageBackend):
 
     @staticmethod
     def lock_or_wait_for_drive(storage_medium, io_lock_key, wait_timeout=10 * 60):
+        logger = logging.getLogger('essarch.storage.backends.tape')
         drive = storage_medium.tape_drive
         if isinstance(io_lock_key, StorageObject):
             io_lock_key = pickle.dumps(str(io_lock_key.pk))
@@ -75,6 +75,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
     @staticmethod
     def wait_for_media_transit(storage_medium, wait_timeout=10 * 60):
+        logger = logging.getLogger('essarch.storage.backends.tape')
         timeout_at = time.monotonic() + wait_timeout
         while storage_medium.tape_drive.locked:
             logger.debug('Storage medium {} ({}) is in transit, sleeps for 5 seconds and checking again'.format(
@@ -86,6 +87,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             storage_medium.refresh_from_db()
 
     def prepare_for_io(self, storage_medium, io_lock_key=None, wait_timeout=10 * 60):
+        logger = logging.getLogger('essarch.storage.backends.tape')
         storage_medium.refresh_from_db()
         if storage_medium.tape_drive is not None:
             self.wait_for_media_transit(storage_medium)
@@ -140,6 +142,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         return self.prepare_for_io(storage_medium, io_lock_key)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        logger = logging.getLogger('essarch.storage.backends.tape')
         tape_pos = int(storage_object.content_location_value)
         medium = storage_object.storage_medium
         ip = storage_object.ip
@@ -219,6 +222,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         return self.prepare_for_io(storage_medium, io_lock_key)
 
     def write(self, src, ip, container, storage_medium, block_size=DEFAULT_TAPE_BLOCK_SIZE):
+        logger = logging.getLogger('essarch.storage.backends.tape')
         block_size = storage_medium.block_size * 512
 
         last_written_obj = StorageObject.objects.filter(
@@ -266,6 +270,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
     def post_mark_as_full(cls, storage_medium):
         """Called after a medium has been successfully marked as full"""
 
+        logger = logging.getLogger('essarch.storage.backends.tape')
         drive = str(storage_medium.drive)
 
         logger.debug('Release lock for drive {} and storage medium {} ({})'.format(

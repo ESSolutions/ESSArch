@@ -65,8 +65,6 @@ XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 VERSION = get_versions()['version']
 
-logger = logging.getLogger('essarch')
-
 
 def make_unicode(text):
     try:
@@ -93,6 +91,7 @@ def remove_prefix(text, prefix):
 
 
 def stable_path(path):
+    logger = logging.getLogger('essarch')
     current_size, current_count = get_tree_size_and_count(path)
     cache_size_key = 'path_size_{}'.format(path)
     cache_count_key = 'path_count_{}'.format(path)
@@ -165,6 +164,7 @@ def get_value_from_path(root, path):
         path: The path to the text or attribute
     """
 
+    logger = logging.getLogger('essarch')
     if path is None:
         return None
 
@@ -374,6 +374,7 @@ def get_premis_ip_object_element_spec():
 
 
 def delete_path(path, remote_host=None, remote_credentials=None, task=None):
+    logger = logging.getLogger('essarch')
     requests_session = None
     if remote_credentials:
         user, passw = decrypt_remote_credentials(remote_credentials)
@@ -535,6 +536,7 @@ def get_script_directory():
 
 
 def convert_file(path, new_format):
+    logger = logging.getLogger('essarch')
     if sys.platform == "win32":
         cmd = ['python.exe', os.path.join(get_script_directory(), 'unoconv.py')]
     else:
@@ -587,6 +589,7 @@ def validate_remote_url(url):
 
 
 def get_charset(byte_str):
+    logger = logging.getLogger('essarch')
     decoded_flag = False
     guess = chardet.detect(byte_str)
     charsets = [settings.DEFAULT_CHARSET, 'utf-8', 'windows-1252']
@@ -826,6 +829,7 @@ def has_write_access(directory):
 
 
 def open_file(path='', *args, container=None, container_prefix='', **kwargs):
+    logger = logging.getLogger('essarch')
     if container is None:
         return open(path, *args, **kwargs)
 

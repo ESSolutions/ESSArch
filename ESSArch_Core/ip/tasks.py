@@ -77,7 +77,6 @@ from ESSArch_Core.util import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
-logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True, event_type=10500)
@@ -557,7 +556,7 @@ def CreateReceipt(self, task_id=None, backend=None, template=None, destination=N
     try:
         ip = self.get_information_package()
     except ObjectDoesNotExist:
-        logger.warning('exception ip DoesNotExist in CreateReceipt. task_id: {}, ip: {}'.format(task_id, self.ip))
+        self.logger.warning('exception ip DoesNotExist in CreateReceipt. task_id: {}, ip: {}'.format(task_id, self.ip))
         ip = None
     template, destination, outcome, short_message, message, date = self.parse_params(
         template, destination, outcome, short_message, message, date
@@ -572,9 +571,9 @@ def CreateReceipt(self, task_id=None, backend=None, template=None, destination=N
         try:
             task = ProcessTask.objects.get(celery_id=task_id)
         except ProcessTask.DoesNotExist as e:
-            logger.warning('exception ProcessTask DoesNotExist for failed task_id: {} in CreateReceipt. ip: {}, \
+            self.logger.warning('exception ProcessTask DoesNotExist for failed task_id: {} in CreateReceipt. ip: {}, \
 CreateReceipt_task_id: {}'.format(task_id, self.ip, self.get_processtask()))
-            logger.exception(e)
+            self.logger.exception(e)
             task = None
 
     return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
@@ -607,7 +606,7 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
             if task.status == celery_states.PENDING:
                 task.run_remote_copy(requests_session, remote_host)
             elif task.status != celery_states.SUCCESS:
-                logger.debug('task.status: {}'.format(task.status))
+                self.logger.debug('task.status: {}'.format(task.status))
                 task.retry_remote_copy(requests_session, remote_host)
                 task.status = celery_states.PENDING
 

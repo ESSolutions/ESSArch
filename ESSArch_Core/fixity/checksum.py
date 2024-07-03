@@ -5,8 +5,6 @@ import time
 
 MB = 1024 * 1024
 
-logger = logging.getLogger('essarch.fixity.checksum')
-
 
 def alg_from_str(algname):
     valid = {
@@ -37,6 +35,7 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
         The hexadecimal digest of the checksum
     """
 
+    logger = logging.getLogger('essarch.fixity.checksum')
     hash_val = alg_from_str(algorithm)()
 
     if os.name == 'nt':

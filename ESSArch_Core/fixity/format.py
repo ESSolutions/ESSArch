@@ -17,9 +17,6 @@ from ESSArch_Core.fixity.validation.backends.encryption import (
 )
 
 MB = 1024 * 1024
-
-logger = logging.getLogger('essarch.fixity.format')
-
 DEFAULT_MIMETYPE = 'application/octet-stream'
 
 
@@ -37,6 +34,7 @@ class FormatIdentifier:
 
     @property
     def fido(self):
+        logger = logging.getLogger('essarch.fixity.format')
         if self._fido is None:
             logger.debug('Initiating fido')
             format_files = []
@@ -61,6 +59,7 @@ class FormatIdentifier:
         return self._fido
 
     def _init_mimetypes(self):
+        logger = logging.getLogger('essarch.fixity.format')
         try:
             mimetypes_file = Path.objects.get(
                 entity="mimetypes_definitionfile"
@@ -86,6 +85,7 @@ class FormatIdentifier:
         return mime
 
     def get_mimetype(self, fname):
+        logger = logging.getLogger('essarch.fixity.format')
         logger.debug('Getting mimetype for %s' % fname)
         mime = self._init_mimetypes()
 
@@ -162,6 +162,7 @@ class FormatIdentifier:
             A tuple with the format name, version and registry key
         """
 
+        logger = logging.getLogger('essarch.fixity.format')
         if os.name == 'nt':
             start_time = time.perf_counter()
         else:

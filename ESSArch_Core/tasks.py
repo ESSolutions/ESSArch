@@ -93,7 +93,6 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 redis = get_redis_connection()
-logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True)
@@ -449,7 +448,7 @@ def UpdateIPStatus(self, status, prev=None):
     except InformationPackage.DoesNotExist:
         msg = 'exception in UpdateIPStatus for task_id: {}, step_id: {}, DoesNotExist when get ip: {} - return'.format(
             self.task_id, self.step, self.ip)
-        logger.warning(msg)
+        self.logger.warning(msg)
 
         return msg
     if prev is None:

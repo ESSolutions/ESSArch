@@ -5,8 +5,6 @@ from django.db.models import Case, CharField, F, IntegerField, Value, When
 from django.db.models.functions import Cast, Length, StrIndex, Substr, Trim
 from django.db.utils import OperationalError
 
-logger = logging.getLogger('essarch')
-
 
 def natural_sort(qs, field):
     return qs.annotate(
@@ -37,6 +35,7 @@ def check_db_connection():
     """
     Checks to see if the database connection is healthy.
     """
+    logger = logging.getLogger('essarch')
     try:
         with connection.cursor() as cursor:
             cursor.execute("select 1")

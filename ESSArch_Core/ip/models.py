@@ -123,10 +123,6 @@ from ESSArch_Core.WorkflowEngine.models import ProcessTask
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
-
-
-logger = logging.getLogger('essarch.ip')
-
 IP_LOCK_PREFIX = 'lock_ip_'
 
 
@@ -645,6 +641,7 @@ class InformationPackage(models.Model):
         return new_aip
 
     def get_content_type_importer_name(self):
+        logger = logging.getLogger('essarch.ip')
         ct_profile = self.get_profile('content_type')
         if ct_profile is None:
             msg = 'No content_type profile set for {objid}'.format(objid=self.object_identifier_value)
@@ -1427,6 +1424,7 @@ class InformationPackage(models.Model):
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
                                package_xml=False, aic_xml=False, diff_check=False, edit=False):
+        logger = logging.getLogger('essarch.ip')
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
         else:
@@ -1985,6 +1983,7 @@ class InformationPackage(models.Model):
     def create_migration_workflow(self, temp_path, storage_methods, export_path='', tar=False, extracted=False,
                                   package_xml=False, aic_xml=False, diff_check=True, responsible=None):
 
+        logger = logging.getLogger('essarch.ip')
         container_methods = self.policy.storage_methods.secure_storage().filter(
             remote=False, pk__in=storage_methods)
         # non_container_methods = self.policy.storage_methods.archival_storage().filter(
@@ -2557,6 +2556,7 @@ class InformationPackage(models.Model):
         return create_workflow(workflow, self, name='Migrate Information Package', responsible=responsible)
 
     def write_to_search_index(self, task):
+        logger = logging.getLogger('essarch.ip')
         srcdir = self.object_path
         ct_profile = self.get_profile('content_type')
         indexed_files = []
@@ -2614,6 +2614,7 @@ class InformationPackage(models.Model):
         )
 
     def get_fastest_readable_storage_object(self):
+        logger = logging.getLogger('essarch.ip')
         NO_READABLE_CACHED_STORAGE_ERROR_MSG = (
             'No readable cached storage object for {} found, getting fastest storage object'.format(
                 self.object_identifier_value
@@ -2657,8 +2658,9 @@ class InformationPackage(models.Model):
         return os.path.join(temp_dir, self.aic.object_identifier_value + '.xml')
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.ip'), logging.DEBUG))
     def update_remote_ip(self, host, session):
+        logger = logging.getLogger('essarch.ip')
         from ESSArch_Core.ip.serializers import (
             InformationPackageFromMasterSerializer,
         )
@@ -2673,8 +2675,9 @@ class InformationPackage(models.Model):
             raise
 
     @retry(retry=retry_if_exception_type(StorageMediumFull), reraise=True, stop=stop_after_attempt(2),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.ip'), logging.DEBUG))
     def preserve(self, src: list, storage_target, container: bool, task):
+        logger = logging.getLogger('essarch.ip')
         qs = StorageMedium.objects.filter(
             storage_target__methods__containers=container,
         ).writeable().order_by('last_changed_local')
@@ -2758,6 +2761,7 @@ class InformationPackage(models.Model):
         return str(storage_object.pk)
 
     def access(self, storage_object, task, dst=None):
+        logger = logging.getLogger('essarch.ip')
         logger.debug('Accessing information package {} from storage object {}'.format(
             self.object_identifier_value, str(storage_object.pk),
         ))

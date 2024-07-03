@@ -8,8 +8,6 @@ from django.db.models.functions import Concat
 
 from ESSArch_Core.auth.util import get_group_objs_model, get_user_roles
 
-logger = logging.getLogger('essarch.auth')
-
 
 def _get_permission_objs(user, obj=None):
     perms = Permission.objects.none()
@@ -33,6 +31,7 @@ class GroupRoleBackend:
         return None
 
     def get_all_permissions(self, user_obj, obj=None):
+        logger = logging.getLogger('essarch.auth')
         go_obj = None
 
         if obj is not None:

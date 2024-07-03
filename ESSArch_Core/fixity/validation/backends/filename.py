@@ -10,8 +10,6 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.filename')
-
 DEFAULT_EXPECTED_FILE = r'^[\da-zA-Z_\-]+\.[\da-zA-Z]+$'
 DEFAULT_EXPECTED_DIR = r'^[\da-zA-Z_\-]+$'
 
@@ -27,6 +25,7 @@ class FilenameValidator(BaseValidator):
             filepath: The file to validate
             expected: Regex pattern
         """
+        logger = logging.getLogger('essarch.fixity.validation.filename')
         logger.debug('Validating filename of %s' % filepath)
 
         val_obj = Validation(

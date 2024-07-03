@@ -9,8 +9,6 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.fixed_width')
-
 
 class FixedWidthValidator(BaseValidator):
     """
@@ -46,6 +44,7 @@ class FixedWidthValidator(BaseValidator):
         )
 
     def _validate_str_column(self, field, col, row_number):
+        logger = logging.getLogger('essarch.fixity.validation.fixed_width')
         if col.isdigit():
             msg = self.invalid_datatype_warn.format(col, row_number, field['datatype'])
             logger.warning(msg)
@@ -64,6 +63,7 @@ class FixedWidthValidator(BaseValidator):
             return False
 
     def _validate_fields(self, fields, filepath, line, row_number, filler):
+        logger = logging.getLogger('essarch.fixity.validation.fixed_width')
         for field in fields:
             if field['end'] - field['start'] != field['length']:
                 msg = 'Conflicting field length on row {}: end - start != length'.format(row_number)
@@ -108,6 +108,7 @@ class FixedWidthValidator(BaseValidator):
                     self._create_obj(filepath, False, msg)
 
     def _validate_lines(self, filepath, input_file, fields, filler):
+        logger = logging.getLogger('essarch.fixity.validation.fixed_width')
         row_number = 0
 
         for line in input_file:
@@ -122,6 +123,7 @@ class FixedWidthValidator(BaseValidator):
             self._validate_fields(fields, filepath, line, row_number, filler)
 
     def _validate(self, filepath, fields, encoding, filler):
+        logger = logging.getLogger('essarch.fixity.validation.fixed_width')
         with open(filepath, encoding=encoding) as input_file:
             try:
                 self._validate_lines(filepath, input_file, fields, filler)
@@ -132,6 +134,7 @@ class FixedWidthValidator(BaseValidator):
                 self._create_obj(filepath, False, msg)
 
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.fixed_width')
         logger.debug('Validating filename of %s' % filepath)
 
         if expected is None:

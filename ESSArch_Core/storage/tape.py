@@ -28,7 +28,6 @@ from ESSArch_Core.storage.tape_identification import (
 
 MB = 1024 * 1024
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
-logger = logging.getLogger('essarch.storage.tape')
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
@@ -42,6 +41,7 @@ def mount_tape(robot, slot, drive):
         drive: Which drive to load to
     """
 
+    logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
@@ -82,6 +82,7 @@ def unmount_tape(robot, slot, drive):
         drive: Which drive to load from
     """
 
+    logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
@@ -116,6 +117,7 @@ def rewind_tape(drive):
     Rewinds the tape in the given drive
     """
 
+    logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mt -f %s rewind' % (drive)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Rewinding tape in {drive}: {cmd}'.format(drive=drive, cmd=cmd))
@@ -148,6 +150,7 @@ def is_tape_drive_online(drive):
         True if the drive is online, false otherwise
     """
 
+    logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mt -f %s status' % drive
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Checking if {drive} is online: {cmd}'.format(drive=drive, cmd=cmd))
@@ -170,6 +173,7 @@ def is_tape_drive_online(drive):
 
 
 def wait_to_come_online(drive, timeout=120):
+    logger = logging.getLogger('essarch.storage.tape')
     logger.debug('Waiting for {drive} to come online'.format(drive=drive))
     while timeout >= 0:
         if is_tape_drive_online(drive):
@@ -184,6 +188,7 @@ def wait_to_come_online(drive, timeout=120):
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def tape_empty(drive):
+    logger = logging.getLogger('essarch.storage.tape')
     logger.debug('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
         logger.debug('Opening tape in {drive}'.format(drive=drive))
@@ -228,6 +233,7 @@ def create_tape_label(medium, xmlpath):
 
 
 def verify_tape_label(medium, xmlstring):
+    logger = logging.getLogger('essarch.storage.tape')
     logger.debug('Verifying tape label of {medium} against {xml}'.format(medium=medium, xml=xmlstring))
     try:
         root = etree.fromstring(xmlstring)
@@ -252,6 +258,7 @@ def verify_tape_label(medium, xmlstring):
 
 
 def read_tape(device, path='.', block_size=DEFAULT_TAPE_BLOCK_SIZE, medium_id=''):
+    logger = logging.getLogger('essarch.storage.tape')
     logger.info(
         'Extracting content from {device} ({medium_id}) to {path}, with block size {size}'.format(
             device=device, medium_id=medium_id, path=path, size=block_size
@@ -276,6 +283,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
         TypeError: If |`paths`| > 1 and `arcname` is not None
     """
 
+    logger = logging.getLogger('essarch.storage.tape')
     if isinstance(paths, str):
         paths = [paths]
 
@@ -312,6 +320,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
 
 
 def get_tape_file_number(drive):
+    logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mt -f %s status' % drive
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug('Getting tape file number of {drive}: {cmd}'.format(drive=drive, cmd=cmd))
@@ -336,6 +345,7 @@ def get_tape_file_number(drive):
 
 
 def set_tape_file_number(drive, num=0):
+    logger = logging.getLogger('essarch.storage.tape')
     if num == 0:
         return rewind_tape(drive)
 
@@ -394,6 +404,7 @@ def robot_inventory(robot):
         TapeSlot,
     )
 
+    logger = logging.getLogger('essarch.storage.tape')
     backend_name = settings.ESSARCH_TAPE_IDENTIFICATION_BACKEND
     backend = get_tape_identification_backend(backend_name)
 

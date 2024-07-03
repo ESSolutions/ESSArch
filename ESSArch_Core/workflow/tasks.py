@@ -71,7 +71,6 @@ from ESSArch_Core.util import (
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
 
 User = get_user_model()
-logger = logging.getLogger('essarch')
 
 
 @app.task(bind=True)

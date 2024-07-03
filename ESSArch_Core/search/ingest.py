@@ -20,10 +20,9 @@ from ESSArch_Core.util import (
     timestamp_to_datetime,
 )
 
-logger = logging.getLogger('essarch.search.ingest')
-
 
 def index_document(tag_version, filepath):
+    logger = logging.getLogger('essarch.search.ingest')
     exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
 
     fid = FormatIdentifier()
@@ -99,6 +98,7 @@ def index_path(ip, path, parent=None):
     :rtype: File or Directory
     """
 
+    logger = logging.getLogger('essarch.search.ingest')
     isfile = os.path.isfile(path)
     id = str(uuid.uuid4())
 

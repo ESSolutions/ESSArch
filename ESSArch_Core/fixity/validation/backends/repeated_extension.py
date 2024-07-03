@@ -9,8 +9,6 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.repeated_extension')
-
 REPEATED_PATTERN = r'\.(\w+)\.\1'
 
 
@@ -25,6 +23,7 @@ class RepeatedExtensionValidator(BaseValidator):
     """
 
     def validate(self, filepath):
+        logger = logging.getLogger('essarch.fixity.validation.repeated_extension')
         logger.debug('Validating extension of %s' % filepath)
 
         val_obj = Validation(

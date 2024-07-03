@@ -18,8 +18,6 @@ from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 from ESSArch_Core.util import normalize_path, win_to_posix
 
-logger = logging.getLogger('essarch.fixity.validation.xml')
-
 
 class DiffCheckValidator(BaseValidator):
     """
@@ -120,6 +118,7 @@ class DiffCheckValidator(BaseValidator):
         return os.path.getsize(input_file)
 
     def _validate(self, filepath):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         relpath = normalize_path(os.path.relpath(self._get_filepath(filepath), self.rootdir))
 
         newhash = self._get_checksum(filepath, relpath=relpath)
@@ -171,6 +170,7 @@ class DiffCheckValidator(BaseValidator):
         return self._create_obj(relpath, True, msg)
 
     def _validate_deleted_files(self, objs):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         delete_count = 0
         for deleted_hash, deleted_hash_files in self.deleted.items():
             present_hash_files = self.present.get(deleted_hash, [])
@@ -201,6 +201,7 @@ class DiffCheckValidator(BaseValidator):
         return delete_count
 
     def _validate_present_files(self, objs):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         for _present_hash, present_hash_files in self.present.items():
             for f in present_hash_files:
                 self.added += 1
@@ -209,6 +210,7 @@ class DiffCheckValidator(BaseValidator):
                 objs.append(self._create_obj(f, False, msg))
 
     def validate(self, path, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         xmlfile = self.context
         objs = []
         self._reset_dicts()
@@ -265,6 +267,7 @@ class XMLComparisonValidator(DiffCheckValidator):
         return input_file.size
 
     def validate(self, path, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         xmlfile = self.context
         objs = []
         self._reset_dicts()
@@ -317,6 +320,7 @@ class XMLComparisonValidator(DiffCheckValidator):
 
 class XMLSchemaValidator(BaseValidator):
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         if self.context:
             logger.debug('Validating schema of {xml} against {schema}'.format(xml=filepath, schema=self.context))
         else:
@@ -392,6 +396,7 @@ class XMLSchemaValidator(BaseValidator):
 
 class XMLSyntaxValidator(BaseValidator):
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         logger.debug('Validating syntax of {xml}'.format(xml=filepath))
 
         etree.clear_error_log()
@@ -465,6 +470,7 @@ class XMLSyntaxValidator(BaseValidator):
 
 class XMLSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
 
         rootdir = self.options.get('rootdir')
@@ -538,6 +544,7 @@ class XMLSchematronValidator(BaseValidator):
 
 class XMLISOSchematronValidator(BaseValidator):
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.xml')
         logger.debug('Validating {xml} against {schema}'.format(xml=filepath, schema=self.context))
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()

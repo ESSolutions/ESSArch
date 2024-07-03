@@ -46,7 +46,6 @@ from ESSArch_Core.profiles.serializers import (  # noqa isort:skip
     SubmissionAgreementSerializer,
 )
 
-logger = logging.getLogger('essarch.ip')
 
 host = 'https://essarch-media.org'
 # org_name = 'Default'
@@ -60,6 +59,7 @@ session.auth = (user, passw)
 
 
 def update_profile(profile_obj):
+    logger = logging.getLogger('essarch.ip')
     data = ProfileDetailSerializer(instance=profile_obj).data
     remote_url = urljoin(host, 'api/profiles/')
     response = session.post(remote_url, json=data, timeout=10)
@@ -72,6 +72,7 @@ def update_profile(profile_obj):
 
 
 def update_storage_policy(storage_policy_obj):
+    logger = logging.getLogger('essarch.ip')
     data = StoragePolicySerializer(instance=storage_policy_obj).data
     # Blank remote_server if match host
     for sm_obj in data['storage_methods']:
@@ -93,6 +94,7 @@ def update_storage_policy(storage_policy_obj):
 # @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
 #        wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
 def update_sa(id):
+    logger = logging.getLogger('essarch.ip')
     sa_obj = SubmissionAgreement.objects.get(id=id)
     sa_obj_data = SubmissionAgreementSerializer(instance=sa_obj).data
 

@@ -45,7 +45,6 @@ from ESSArch_Core.util import (
     normalize_path,
 )
 
-logger = logging.getLogger('essarch.essxml.generator')
 leading_underscore_tag_re = re.compile(r'%s *_(.*?(?=\}))%s' % (re.escape('{{'), re.escape('}}')))
 
 
@@ -207,6 +206,7 @@ class XMLElement:
             return self._fid
 
     def createExternalElement(self, info, nsmap=None, files=None, folderToParse='', algorithm=None, external=None):
+        logger = logging.getLogger('essarch.essxml.generator')
         external_elements = []
         if external is None:
             external = self.external
@@ -320,6 +320,7 @@ class XMLElement:
         return path
 
     def get_FILEGROUPID(self, child, child_info):
+        logger = logging.getLogger('essarch.essxml.generator')
         id = None
         attr_label = None
         for attr in child.attr:
@@ -374,6 +375,7 @@ class XMLElement:
         self.el.append(new.el)
 
     def createLXMLElement(self, info, nsmap=None, files=None, folderToParse='', parent=None, algorithm=None):
+        logger = logging.getLogger('essarch.essxml.generator')
         if nsmap is None:
             nsmap = {}
 
@@ -705,6 +707,7 @@ class XMLGenerator:
     def generate(self, filesToCreate, folderToParse=None, extra_paths_to_parse=None,
                  parsed_files=None, relpath=None, algorithm='SHA-256'):
 
+        logger = logging.getLogger('essarch.essxml.generator')
         self.toCreate = []
         for fname, content in filesToCreate.items():
             self.toCreate.append({

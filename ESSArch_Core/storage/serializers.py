@@ -34,8 +34,6 @@ from ESSArch_Core.storage.models import (
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep
 
-logger = logging.getLogger('essarch')
-
 
 class StorageMediumSerializer(serializers.ModelSerializer):
     storage_target = StorageTargetSerializer(allow_null=False, required=True)
@@ -450,6 +448,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
     export_path = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     def create(self, validated_data):
+        logger = logging.getLogger('essarch')
         steps = []
         user = None
         request = self.context.get("request")

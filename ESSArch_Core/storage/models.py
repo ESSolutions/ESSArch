@@ -46,10 +46,7 @@ from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.tape import read_tape, set_tape_file_number
 from ESSArch_Core.util import delete_path
 
-logger = logging.getLogger('essarch.storage.models')
-
 DRIVE_LOCK_PREFIX = 'lock_drive_'
-
 DISK = 200
 TAPE = 300
 CAS = 400
@@ -612,7 +609,8 @@ class StorageMedium(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.models'),
+                                                              logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id, create_tape_drive=False, create_tape_slot=False):
         remote_obj_url = urljoin(host, reverse('storagemedium-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -669,6 +667,7 @@ class StorageMedium(models.Model):
         self.save()
 
     def mark_as_full(self):
+        logger = logging.getLogger('essarch.storage.models')
         logger.debug('Marking storage medium as full: "{}"'.format(str(self.pk)))
         objs = self.storage.annotate(
             content_location_value_int=Cast('content_location_value', models.IntegerField())
@@ -781,7 +780,8 @@ class StorageObject(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.models'),
+                                                              logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id):
         remote_obj_url = urljoin(host, reverse('storageobject-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -849,6 +849,7 @@ class StorageObject(models.Model):
         return backend.open(self, path, *args, **kwargs)
 
     def read(self, dst, task, extract=False):
+        logger = logging.getLogger('essarch.storage.models')
         ip = self.ip
         is_cached_storage_object = self.is_cache_for_ip(ip)
 
@@ -1055,7 +1056,8 @@ class TapeDrive(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.models'),
+                                                              logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
         remote_obj_url = urljoin(host, reverse('tapedrive-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -1104,7 +1106,8 @@ class TapeSlot(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.models'),
+                                                              logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id, create_storage_medium=True):
         remote_obj_url = urljoin(host, reverse('tapeslot-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)
@@ -1144,7 +1147,8 @@ class Robot(models.Model):
     @classmethod
     @transaction.atomic
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.models'),
+                                                              logging.DEBUG))
     def create_from_remote_copy(cls, host, session, object_id):
         remote_obj_url = urljoin(host, reverse('robot-detail', args=(object_id,)))
         r = session.get(remote_obj_url, timeout=60)

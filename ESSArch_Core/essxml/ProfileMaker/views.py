@@ -24,7 +24,6 @@
 
 import copy
 import json
-import logging
 import uuid
 from collections import OrderedDict
 
@@ -45,8 +44,6 @@ from ESSArch_Core.profiles.models import Profile
 
 from .forms import AddExtensionForm, AddTemplateForm
 from .models import extensionPackage, templatePackage
-
-logger = logging.getLogger('code.exceptions')
 
 
 def constructContent(text):
