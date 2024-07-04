@@ -3,7 +3,7 @@ import os
 import shutil
 import tempfile
 from stat import S_IWRITE
-from unittest import mock
+from unittest import mock, skipIf
 
 from celery import states as celery_states
 from django.contrib.auth import get_user_model
@@ -258,6 +258,7 @@ class MaintenanceJobRunTests(TestCase):
         self.assertEqual(self.conversion_job.status, celery_states.FAILURE)
         self.assertTrue(before <= self.conversion_job.end_date <= after)
 
+    @skipIf(os.name == 'nt', "Skip test on win32, do not work after 202406, Access denied when try to reset permissions")
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
     @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
@@ -265,7 +266,7 @@ class MaintenanceJobRunTests(TestCase):
     def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
         before = timezone.now()
         self.create_paths(create_dir=True)
-        # self.remove_write_access_rights()
+        self.remove_write_access_rights()
         get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
 
         try:
