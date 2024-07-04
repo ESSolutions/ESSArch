@@ -186,8 +186,9 @@ class MaintenanceJobRunTests(TestCase):
 
     def add_write_access_rights(self):
         if os.name == 'nt':
-            self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
-            self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
+            # self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
+            # self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
+            pass
         else:
             os.chmod(self.appraisal_path, 0o7777)
             os.chmod(self.conversion_path, 0o7777)
