@@ -258,7 +258,8 @@ class MaintenanceJobRunTests(TestCase):
         self.assertEqual(self.conversion_job.status, celery_states.FAILURE)
         self.assertTrue(before <= self.conversion_job.end_date <= after)
 
-    @skipIf(os.name == 'nt', "Skip test on win32, do not work after 202406, Access denied when try to reset permissions")
+    @skipIf(os.name == 'nt', "Skip test on win32, do not work after 202406, Access denied when \
+try to reset permissions")
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._mark_as_complete')
     @mock.patch('ESSArch_Core.maintenance.models.MaintenanceJob._get_report_directory')
     @mock.patch('ESSArch_Core.maintenance.models.ConversionJob._run')
