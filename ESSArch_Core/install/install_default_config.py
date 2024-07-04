@@ -744,6 +744,8 @@ def installDefaultUsers():
             ['change_archive', 'tags', 'tag'],  # Can change archives
             ['delete_archive', 'tags', 'tag'],  # Can delete archives
             ['change_tag_location', 'tags', 'tag'],  # Can change tag location
+            ['security_level_0', 'tags', 'tag'],  # Can see security level 0
+            ['security_level_exists_0', 'tags', 'tag'],  # Can see security level 0 exists
             ['security_level_1', 'tags', 'tag'],  # Can see security level 1
             ['security_level_exists_1', 'tags', 'tag'],  # Can see security level 1 exists
             ['security_level_2', 'tags', 'tag'],  # Can see security level 2

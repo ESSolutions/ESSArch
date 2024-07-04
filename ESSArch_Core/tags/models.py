@@ -862,6 +862,8 @@ class Tag(models.Model):
             ('change_archive', 'Can change archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
+            ('security_level_0', 'Can see security level 0'),
+            ('security_level_exists_0', 'Can see security level 0 exists'),
             ('security_level_1', 'Can see security level 1'),
             ('security_level_exists_1', 'Can see security level 1 exists'),
             ('security_level_2', 'Can see security level 2'),
