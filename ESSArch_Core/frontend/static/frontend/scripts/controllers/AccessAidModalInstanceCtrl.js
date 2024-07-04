@@ -66,7 +66,7 @@ export default class AccessAidModalInstanceCtrl {
             label: $translate.instant('ACCESS.SECURITY_LEVEL'),
             type: 'number',
             required: false,
-            min: 1,
+            min: 0,
             max: 5,
           },
           type: 'input',

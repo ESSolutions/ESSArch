@@ -312,14 +312,14 @@
       <result-field label="Personnummer" data="vm.record.custom_fields['brukare_personnummer']"></result-field>
     </div>
     <div
-      ng-if="vm.record.security_level && 
+      ng-if="vm.record.security_level !== null && 
                 checkPermission('tags.security_level_' + vm.record.security_level)"
     >
       <result-field label="Brukare" data="vm.record.custom_fields['brukare']"></result-field>
       <result-field label="Personnummer" data="vm.record.custom_fields['brukare_personnummer']"></result-field>
     </div>
     <div
-      ng-if="vm.record.security_level && 
+      ng-if="vm.record.security_level !== null && 
                 !checkPermission('tags.security_level_' + vm.record.security_level) && 
                 checkPermission('tags.security_level_exists_' + vm.record.security_level)"
     >

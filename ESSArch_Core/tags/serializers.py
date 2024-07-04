@@ -1046,7 +1046,7 @@ class NodeWriteSerializer(serializers.Serializer):
     notes = NodeNoteWriteSerializer(many=True, required=False)
     identifiers = NodeIdentifierWriteSerializer(many=True, required=False)
     appraisal_date = serializers.DateTimeField(required=False, allow_null=True)
-    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=0, max_value=5)
 
     @staticmethod
     def create_notes(tag_version: TagVersion, notes_data):
@@ -1279,7 +1279,7 @@ class ComponentWriteSerializer(NodeWriteSerializer):
 
 class ArchiveWriteSerializer(NodeWriteSerializer):
     type = serializers.PrimaryKeyRelatedField(queryset=TagVersionType.objects.filter(archive_type=True))
-    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=1, max_value=5)
+    security_level = serializers.IntegerField(allow_null=True, required=False, min_value=0, max_value=5)
     structures = serializers.PrimaryKeyRelatedField(
         queryset=Structure.objects.filter(is_template=True, published_date__isnull=False),
         many=True,
