@@ -34,9 +34,7 @@ from ESSArch_Core.util import (
 )
 from ESSArch_Core.WorkflowEngine.util import create_workflow
 
-logger = logging.getLogger('essarch.maintenance')
 User = get_user_model()
-
 ARCHIVAL_OBJECT = 'archival_object'
 METADATA = 'metadata'
 TYPE_CHOICES = (
@@ -97,6 +95,7 @@ class MaintenanceJob(models.Model):
         return {'job': self, 'rule': self.template}
 
     def _generate_report(self):
+        logger = logging.getLogger('essarch.maintenance')
         logger.info(f"User '{self.user}' generating report with of type '{self.MAINTENANCE_TYPE}'")
         template = 'maintenance/%s_report.html' % self.MAINTENANCE_TYPE
         dst = self.get_report_pdf_path()
@@ -108,6 +107,7 @@ class MaintenanceJob(models.Model):
         raise NotImplementedError
 
     def _mark_as_complete(self):
+        logger = logging.getLogger('essarch.maintenance')
         try:
             self._generate_report()
         except Exception:
@@ -269,6 +269,7 @@ class AppraisalJob(MaintenanceJob):
 
     @transaction.atomic
     def _run(self):
+        logger = logging.getLogger('essarch.maintenance')
         self.delete_event_type = EventType.objects.get(eventType=50710)
         entries = []
 

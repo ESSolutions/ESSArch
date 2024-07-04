@@ -9,8 +9,6 @@ from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.receipt.backends.base import BaseReceiptBackend
 from ESSArch_Core.profiles.utils import fill_specification_data
 
-logger = logging.getLogger('essarch.core.fixity.receipt.email')
-
 
 class NoEmailRecipientError(ESSArchException):
     pass
@@ -22,6 +20,7 @@ class NoEmailSentError(ESSArchException):
 
 class EmailReceiptBackend(BaseReceiptBackend):
     def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None, **kwargs):
+        logger = logging.getLogger('essarch.core.fixity.receipt.email')
         if task is not None and destination is None:
             destination = task.responsible.email
 

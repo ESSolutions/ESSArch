@@ -49,8 +49,6 @@ from tenacity import (
     wait_fixed,
 )
 
-logger = logging.getLogger('essarch.WorkflowEngine')
-
 
 def create_task(name):
     """
@@ -59,12 +57,14 @@ def create_task(name):
     Args:
         name: The name of the task, including package and module
     """
+    logger = logging.getLogger('essarch.WorkflowEngine')
     [module, task] = name.rsplit('.', 1)
     logger.debug('Importing task {} from module {}'.format(task, module))
     return getattr(importlib.import_module(module), task)
 
 
 def create_sub_task(t, step=None, immutable=True, link_error=None):
+    logger = logging.getLogger('essarch.WorkflowEngine')
     if t.queue:
         logger.debug('Creating sub task in queue: {}'.format(t.queue))
     else:
@@ -219,6 +219,7 @@ class ProcessStep(MPTTModel, Process):
             self.parent.clear_cache()
 
     def run_children(self, tasks, steps, direct=True):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         tasks = tasks.filter(status=celery_states.PENDING,)
 
         if not tasks.exists() and not steps.exists():
@@ -336,6 +337,7 @@ class ProcessStep(MPTTModel, Process):
             otherwise
         """
 
+        logger = logging.getLogger('essarch.WorkflowEngine')
         logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
         ProcessTask.objects.filter(
             processstep__in=self.get_descendants(include_self=True),
@@ -608,8 +610,10 @@ class ProcessTask(Process):
         raise exc.with_traceback(tb)
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.WorkflowEngine'),
+                                                              logging.DEBUG))
     def create_remote_copy(self, session, host, exclude_remote_params=True):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         create_remote_task_url = urljoin(host, reverse('processtask-list'))
         params = copy.deepcopy(self.params)
         params.pop('_options', None)
@@ -641,8 +645,10 @@ class ProcessTask(Process):
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.WorkflowEngine'),
+                                                              logging.DEBUG))
     def update_remote_copy(self, session, host, exclude_remote_params=True):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         update_remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         params = copy.deepcopy(self.params)
         params.pop('_options', None)
@@ -667,8 +673,10 @@ class ProcessTask(Process):
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.WorkflowEngine'),
+                                                              logging.DEBUG))
     def run_remote_copy(self, session, host):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         run_remote_task_url = urljoin(host, reverse('processtask-run', args=(str(self.pk),)))
         r = session.post(run_remote_task_url, timeout=60)
         try:
@@ -680,8 +688,10 @@ class ProcessTask(Process):
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.WorkflowEngine'),
+                                                              logging.DEBUG))
     def retry_remote_copy(self, session, host):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         self.update_remote_copy(session, host)
         retry_remote_task_url = urljoin(host, reverse('processtask-retry', args=(str(self.pk),)))
         r = session.post(retry_remote_task_url, timeout=60)
@@ -694,8 +704,10 @@ class ProcessTask(Process):
         return r
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-           wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+           wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.WorkflowEngine'),
+                                                              logging.DEBUG))
     def get_remote_copy(self, session, host):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         remote_task_url = urljoin(host, reverse('processtask-detail', args=(str(self.pk),)))
         r = session.get(remote_task_url, timeout=60)
         if r.status_code >= 400 and r.status_code != 404:
@@ -721,7 +733,7 @@ class ProcessTask(Process):
         """
         Runs the task
         """
-
+        logger = logging.getLogger('essarch.WorkflowEngine')
         t = create_task(self.name)
         if self.queue:
             t.queue = self.queue
@@ -765,6 +777,7 @@ class ProcessTask(Process):
         return res
 
     def revoke(self):
+        logger = logging.getLogger('essarch.WorkflowEngine')
         logger.debug('Revoking task ({})'.format(self.pk))
         current_app.control.revoke(str(self.celery_id), terminate=True)
         self.status = celery_states.REVOKED
@@ -776,7 +789,7 @@ class ProcessTask(Process):
         """
         Retries the task
         """
-
+        logger = logging.getLogger('essarch.WorkflowEngine')
         logger.debug('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()

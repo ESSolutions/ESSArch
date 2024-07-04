@@ -11,8 +11,6 @@ from ESSArch_Core.exceptions import ValidationError
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.encryption')
-
 
 class FileEncryptionValidator(BaseValidator):
     """
@@ -56,6 +54,7 @@ class FileEncryptionValidator(BaseValidator):
             filepath: The file to validate
             excpected: If the expected outcome is: Encrypted(True) or not(False)
         """
+        logger = logging.getLogger('essarch.fixity.validation.encryption')
         logger.debug('Validating encryption of %s' % filepath)
         result = self.is_file_encrypted(filepath)
 

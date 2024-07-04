@@ -14,11 +14,10 @@ from ESSArch_Core.fixity.serializers import ValidationSerializer
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.storage.copy import copy_file
 
-logger = logging.getLogger('essarch.core.fixity.receipt.xml')
-
 
 class XMLReceiptBackend(BaseReceiptBackend):
     def create(self, template, destination, outcome, short_message, message, date=None, ip=None, task=None, **kwargs):
+        logger = logging.getLogger('essarch.core.fixity.receipt.xml')
         logger.debug('Creating XML receipt: {}'.format(destination))
         spec = json.loads(get_template(template).template.source)
 

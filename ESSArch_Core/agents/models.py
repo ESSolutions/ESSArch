@@ -14,8 +14,6 @@ from ESSArch_Core.auth.models import GroupObjectsBase
 from ESSArch_Core.auth.util import get_group_objs_model
 from ESSArch_Core.managers import OrganizationManager
 
-logger = logging.getLogger('essarch')
-
 
 class AgentRelationType(models.Model):
     name = models.CharField(_('name'), max_length=255, blank=False, unique=True)
@@ -163,6 +161,7 @@ class Agent(models.Model):
         group_objs_model.objects.change_organization(self, organization, force=force)
 
     def get_organization(self):
+        logger = logging.getLogger('essarch')
         group_objs_model = get_group_objs_model(self)
         try:
             go_obj = group_objs_model.objects.get_organization(self)

@@ -38,7 +38,6 @@ from ESSArch_Core.auth.saml.mapping import (
 from ESSArch_Core.auth.util import get_organization_groups
 
 User = get_user_model()
-logger = logging.getLogger('essarch.auth')
 
 if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
     from djangosaml2.signals import pre_user_save as saml_pre_user_save
@@ -62,6 +61,7 @@ async def closing_group_send(channel_layer, channel, message):
 @receiver(post_save, sender=User)
 @receiver(post_save, sender=ProxyUser)
 def user_post_save(sender, instance, created, *args, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     if created or not hasattr(instance, 'user_profile'):
         UserProfile.objects.create(user=instance)
 
@@ -77,6 +77,7 @@ def user_post_save(sender, instance, created, *args, **kwargs):
 
 @receiver(user_logged_in)
 def user_logged_in(sender, user, request, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     if user.user_profile.language == '':
         user.user_profile.language = 'DEFAULT'
         user.user_profile.save(update_fields=['language'])
@@ -90,6 +91,7 @@ def user_logged_in(sender, user, request, **kwargs):
 
 @receiver(user_logged_out)
 def user_logged_out(sender, user, request, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     host = request.META.get('REMOTE_ADDR')
     if host is None:
         logger.info("User {} successfully logged out from unknown host".format(user))
@@ -99,11 +101,13 @@ def user_logged_out(sender, user, request, **kwargs):
 
 @receiver(user_login_failed)
 def user_login_failed(sender, credentials, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     logger.warning("Authentication failure with credentials: %s" % (repr(credentials)))
 
 
 @receiver(pre_delete, sender=Session)
 def log_before_deleting_session(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     uid = instance.get_decoded().get('_auth_user_id')
     if uid:
         user = User.objects.get(id=uid)
@@ -112,6 +116,7 @@ def log_before_deleting_session(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Session)
 def log_before_creating_session(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     uid = instance.get_decoded().get('_auth_user_id')
     if uid:
         user = User.objects.get(id=uid)
@@ -126,6 +131,7 @@ def group_pre_save(sender, instance, *args, **kwargs):
 
 @receiver(post_save, sender=Group)
 def group_post_save(sender, instance, created, *args, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     if created:
         logger.info(f"Created group '{instance.name}'")
     else:
@@ -144,6 +150,7 @@ def group_post_delete(sender, instance, *args, **kwargs):
 @receiver(m2m_changed, sender=ProxyUser.groups.through)
 @receiver(m2m_changed, sender=User.groups.through)
 def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     logger.info(f"Changing group for user '{instance}', action: {action}.")
     member = instance.essauth_member
     if action == 'post_add':
@@ -159,12 +166,14 @@ def group_users_change(sender, instance, action, reverse, pk_set=None, *args, **
 
 @receiver(post_save, sender=GroupMember)
 def group_member_save(sender, instance, created, *args, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     logger.info(f"User '{instance.member}' is now member of group '{instance.group}'.")
     groups_manager_group_member_save(sender, instance, created, *args, **kwargs)
 
 
 @receiver(post_delete, sender=GroupMember)
 def group_member_delete(sender, instance, *args, **kwargs):
+    logger = logging.getLogger('essarch.auth')
     logger.info(f"User '{instance.member}' is no longer member of group '{instance.group}'.")
     groups_manager_group_member_delete(sender, instance, *args, **kwargs)
 

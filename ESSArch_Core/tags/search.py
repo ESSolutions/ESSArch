@@ -55,7 +55,6 @@ from ESSArch_Core.util import (
     remove_prefix,
 )
 
-logger = logging.getLogger('essarch.search')
 EXPORT_FORMATS = ('csv', 'pdf')
 SORTABLE_FIELDS = (
     {'name.keyword': {'unmapped_type': 'keyword'}},
@@ -366,6 +365,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
 
     def get_tag_object(self, qs=None):
         # Perform the lookup filtering.
+        logger = logging.getLogger('essarch.search')
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
 
         assert lookup_url_kwarg in self.kwargs, (
@@ -449,6 +449,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         return super().paginator
 
     def list(self, request):
+        logger = logging.getLogger('essarch.search')
         params = {key: value[0] for (key, value) in dict(request.query_params).items()}
         query = params.pop('q', '')
         export = params.pop('export', None)
@@ -553,6 +554,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         return Response(r, headers={'Count': results.hits.total['value']})
 
     def generate_report(self, hits, format, user):
+        logger = logging.getLogger('essarch.search')
         try:
             tag_versions = [hit.get('_source').get('name') for hit in hits]
         except Exception:

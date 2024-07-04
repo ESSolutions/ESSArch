@@ -8,16 +8,16 @@ from django.dispatch import receiver
 
 from ESSArch_Core.ip.models import InformationPackage, Workarea
 
-logger = logging.getLogger('essarch.core')
-
 
 @receiver(pre_delete, sender=InformationPackage)
 def ip_pre_delete(sender, instance, using, **kwargs):
+    logger = logging.getLogger('essarch.core')
     logger.debug('Deleting information package %s' % instance.pk)
 
 
 @receiver(post_delete, sender=InformationPackage)
 def ip_post_delete(sender, instance, using, **kwargs):
+    logger = logging.getLogger('essarch.core')
     logger.info('Information package %s was deleted' % instance.pk)
     instance.informationpackagegroupobjects_set.all().delete()
 

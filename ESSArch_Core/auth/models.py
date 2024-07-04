@@ -50,7 +50,6 @@ from picklefield.fields import PickledObjectField
 from relativity.mptt import MPTTDescendants
 
 DjangoUser = get_user_model()
-logger = logging.getLogger('essarch.auth')
 
 
 class BaseGenericObjects(models.Model):
@@ -101,6 +100,7 @@ class GroupObjectsManager(models.Manager):
                 return self.model.objects.get(content_object_id=obj.pk)
 
     def change_organization(self, obj, organization, force=False):
+        logger = logging.getLogger('essarch.auth')
         if organization.group_type.codename != 'organization':
             raise ValueError('{} is not an organization'.format(organization))
         if isinstance(obj, list) or isinstance(obj, QuerySet):

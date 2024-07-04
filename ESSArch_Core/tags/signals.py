@@ -6,11 +6,10 @@ from elasticsearch.exceptions import NotFoundError
 
 from ESSArch_Core.tags.models import Tag, TagVersion
 
-logger = logging.getLogger('essarch.core')
-
 
 @receiver(post_save, sender=TagVersion)
 def set_current_version_after_creation(sender, instance, created, **kwargs):
+    logger = logging.getLogger('essarch.core')
     if created and instance.tag.current_version is None:
         logger.debug(f"TagVersion '{instance}' was created.")
         tag = instance.tag
@@ -22,6 +21,7 @@ def set_current_version_after_creation(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender=TagVersion)
 def pre_tag_version_delete(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.core')
     logger.debug(f"Changing current version of TagVersion: '{instance}', before deleting.")
     if instance.tag.current_version == instance:
         try:
@@ -47,10 +47,12 @@ def post_tag_version_delete(sender, instance, **kwargs):
 
 @receiver(post_delete, sender=TagVersion)
 def log_after_deleting_tag_version(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.core')
     logger.debug(f"TagVersion '{instance}' was deleted.")
     instance.tagversiongroupobjects_set.all().delete()
 
 
 @receiver(post_delete, sender=Tag)
 def log_after_deleting_tag(sender, instance, **kwargs):
+    logger = logging.getLogger('essarch.core')
     logger.debug(f"Tag '{instance}' was deleted.")

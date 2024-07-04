@@ -11,8 +11,6 @@ from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 from ESSArch_Core.util import normalize_path
 
-logger = logging.getLogger('essarch.fixity.validation.structure')
-
 
 class StructureValidator(BaseValidator):
     """
@@ -111,6 +109,7 @@ class StructureValidator(BaseValidator):
             raise ValidationError('Missing {files} in {path}'.format(files=','.join(required_files), path=path))
 
     def validate(self, filepath, expected=None):
+        logger = logging.getLogger('essarch.fixity.validation.structure')
         root = self.options.get('tree', [])
         filepath = normalize_path(filepath)
         logger.debug("Validating structure of %s" % filepath)

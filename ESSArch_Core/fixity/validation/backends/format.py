@@ -9,8 +9,6 @@ from ESSArch_Core.fixity.format import FormatIdentifier
 from ESSArch_Core.fixity.models import Validation
 from ESSArch_Core.fixity.validation.backends.base import BaseValidator
 
-logger = logging.getLogger('essarch.fixity.validation.format')
-
 
 class FormatValidator(BaseValidator):
     """
@@ -29,6 +27,7 @@ class FormatValidator(BaseValidator):
             filepath: The file to validate
             expected: The expected format registry key (PUID) e.g. fmt/354
         """
+        logger = logging.getLogger('essarch.fixity.validation.format')
         logger.debug('Validating format of %s' % filepath)
 
         name, version, reg_key = expected

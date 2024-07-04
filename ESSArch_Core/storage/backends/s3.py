@@ -11,7 +11,6 @@ from ESSArch_Core.storage.backends.base import BaseStorageBackend
 from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE
 from ESSArch_Core.storage.models import CAS, StorageObject
 
-logger = logging.getLogger('essarch.storage.backends.s3')
 AWS = settings.AWS
 
 s3 = boto3.resource('s3',
@@ -68,6 +67,7 @@ class S3StorageBackend(BaseStorageBackend):
             return dst
 
     def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+        logger = logging.getLogger('essarch.storage.backends.s3')
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target

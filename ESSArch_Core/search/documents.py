@@ -8,8 +8,6 @@ from elasticsearch_dsl.connections import get_connection as get_es_connection
 
 from ESSArch_Core.search.alias_migration import migrate
 
-logger = logging.getLogger('essarch.search.documents.DocumentBase')
-
 
 class DocumentBase(es.Document):
     @classmethod
@@ -70,6 +68,7 @@ class DocumentBase(es.Document):
         """
         Performs the indexing.
         """
+        logger = logging.getLogger('essarch.search.documents.DocumentBase')
         num = queryset.count()
         logger.debug('Perform bulk index for {} objects with batch_size: {}'.format(num, batch_size))
         conn = get_es_connection()

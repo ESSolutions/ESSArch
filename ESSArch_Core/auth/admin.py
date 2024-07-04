@@ -41,7 +41,6 @@ from ESSArch_Core.auth.models import (
 
 csrf_protect_m = method_decorator(csrf_protect)
 User = get_user_model()
-logger = logging.getLogger('essarch.auth')
 
 admin.site.unregister([
     GroupManagerMember,
@@ -169,12 +168,15 @@ class UserAdmin(DjangoUserAdmin, NestedModelAdmin):
         return request.user.has_module_perms('auth')
 
     def log_addition(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to add user '{object}' with msg: '{message}'.")
 
     def log_change(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to change the user '{object}' with msg: '{message}'.")
 
     def log_deletion(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to delete the user '{object}' with msg: '{message}'.")
 
 
@@ -259,12 +261,15 @@ class GroupAdmin(DjangoGroupAdmin):
         return request.user.has_module_perms('auth')
 
     def log_addition(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to add group '{object}' with msg: '{message}'.")
 
     def log_change(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to change the group '{object}' with msg: '{message}'.")
 
     def log_deletion(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to delete the group '{object}' with msg: '{message}'.")
 
 
@@ -287,12 +292,15 @@ class GroupTypeAdmin(admin.ModelAdmin):
         return request.user.has_module_perms('groups_manager')
 
     def log_addition(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to create new group type '{object}' with msg: '{message}'.")
 
     def log_change(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to change the group type '{object}' with msg: '{message}'.")
 
     def log_deletion(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to delete the group type '{object}' with msg: '{message}'.")
 
 
@@ -322,12 +330,15 @@ class GroupMemberRoleAdmin(admin.ModelAdmin):
     actions = [duplicate]
 
     def log_addition(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to create role '{object}' with msg: '{message}'.")
 
     def log_change(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to change the role '{object}' with msg: '{message}'.")
 
     def log_deletion(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to delete the role '{object}' with msg: '{message}'.")
 
 
@@ -354,12 +365,15 @@ class ProxyPermissionAdmin(admin.ModelAdmin):
         return request.user.has_perm("%s.%s" % ('auth', 'view_permission'))
 
     def log_addition(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to create permission '{object.name}' with msg: '{message}'.")
 
     def log_change(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to change the permission '{object.name}' with msg: '{message}'.")
 
     def log_deletion(self, request, object, message):
+        logger = logging.getLogger('essarch.auth')
         logger.info(f"User '{request.user}' attempts to delete the permission '{object.name}' with msg: '{message}'.")
 
 

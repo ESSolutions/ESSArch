@@ -12,13 +12,12 @@ from ESSArch_Core.storage.copy import DEFAULT_BLOCK_SIZE, copy
 from ESSArch_Core.storage.models import DISK, StorageObject
 from ESSArch_Core.util import normalize_path, open_file
 
-logger = logging.getLogger('essarch.storage.backends.disk')
-
 
 class DiskStorageBackend(BaseStorageBackend):
     type = DISK
 
     def _extract(self, storage_object, dst):
+        logger = logging.getLogger('essarch.storage.backends.disk')
         path = storage_object.get_full_path()
         logger.debug('Extracting {src} to {dst}'.format(src=path, dst=dst))
 
@@ -54,6 +53,7 @@ class DiskStorageBackend(BaseStorageBackend):
         return open(path, mode, *args, **kwargs)
 
     def read(self, storage_object, dst, extract=False, include_xml=True, block_size=DEFAULT_BLOCK_SIZE):
+        logger = logging.getLogger('essarch.storage.backends.disk')
         src = storage_object.get_full_path()
 
         if storage_object.container:
@@ -84,6 +84,7 @@ class DiskStorageBackend(BaseStorageBackend):
             return copy(src, dst, block_size=block_size)
 
     def write(self, src, ip, container, storage_medium, block_size=DEFAULT_BLOCK_SIZE):
+        logger = logging.getLogger('essarch.storage.backends.disk')
         if isinstance(src, str):
             src = [src]
         dst = storage_medium.storage_target.target

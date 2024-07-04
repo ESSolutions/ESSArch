@@ -31,7 +31,6 @@ from ESSArch_Core.managers import OrganizationManager
 from ESSArch_Core.profiles.models import SubmissionAgreement
 
 User = get_user_model()
-logger = logging.getLogger('essarch.tags')
 
 
 class NodeIdentifier(models.Model):
@@ -334,6 +333,7 @@ class Structure(models.Model):
 
     def publish(self):
         from ESSArch_Core.tags.documents import StructureUnitDocument
+        logger = logging.getLogger('essarch.tags')
         if self.is_new_version():
             # TODO: What if multiple users wants to create a new version in parallel?
             # Use permissions to stop it?
@@ -482,6 +482,7 @@ class StructureUnit(MPTTModel):
 
     @transaction.atomic
     def copy_to_structure(self, structure, template_unit=None, old_archive_ts=None):
+        logger = logging.getLogger('essarch.tags')
         old_parent_ref_code = getattr(self.parent, 'reference_code', None)
         parent = None
 
@@ -533,6 +534,7 @@ class StructureUnit(MPTTModel):
         return new_unit
 
     def create_template_instance(self, structure_instance, old_archive_ts=None):
+        logger = logging.getLogger('essarch.tags')
         new_unit = self.copy_to_structure(structure_instance, template_unit=self, old_archive_ts=old_archive_ts)
 
         new_archive_structure = new_unit.structure.tagstructure_set.first().get_root()
@@ -709,6 +711,7 @@ class StructureUnit(MPTTModel):
         )
 
     def get_related_in_other_structure(self, other_structure):
+        logger = logging.getLogger('essarch.tags')
         structure = self.structure
         logger.debug('other_structure: {}, other_structure.is_template: {}, other_structure.template: {}, \
 other_structure.id: {}'.format(other_structure, other_structure.is_template, other_structure.template,
@@ -1314,6 +1317,7 @@ class TagVersion(models.Model):
         # Problem...get IPs related to "Arkivbildare" with not is related IPs to "Arkiv"
 
     def get_organization(self):
+        logger = logging.getLogger('essarch.tags')
         group_objs_model = get_group_objs_model(self)
         try:
             go_obj = group_objs_model.objects.get_organization(self)
@@ -1385,6 +1389,7 @@ class TagStructure(MPTTModel):
     subtree = MPTTSubtree()
 
     def copy_to_new_structure(self, new_structure, new_unit=None):
+        logger = logging.getLogger('essarch.tags')
         new_parent_tag = None
 
         if self.parent is not None:
@@ -1424,6 +1429,7 @@ parent: {}'.format(self.tag_id, new_structure, new_structure.id, new_unit, new_p
 
     @transaction.atomic
     def copy_descendants_to_new_structure(self, new_structure):
+        logger = logging.getLogger('essarch.tags')
         for old_descendant in self.get_descendants(include_self=False):
             logger.debug('old_descendant: {} copy to new_structure: {}'.format(old_descendant, new_structure))
             old_descendant.copy_to_new_structure(new_structure)

@@ -67,9 +67,7 @@ try:
 except ImportError:
     pass
 
-
 User = get_user_model()
-logger = logging.getLogger('essarch.auth')
 
 
 class UserViewSet(viewsets.ReadOnlyModelViewSet):
@@ -212,6 +210,7 @@ class TokenLoginView(KnoxLoginView):
 
 class LogoutView(rest_auth_LogoutView):
     def get(self, request, *args, **kwargs):
+        logger = logging.getLogger('essarch.auth')
         if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
             try:
                 if _get_subject_id(request.saml_session):

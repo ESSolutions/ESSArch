@@ -22,8 +22,6 @@ from ESSArch_Core.util import get_tree_size_and_count
 MB = 1024 * 1024
 DEFAULT_BLOCK_SIZE = 10 * MB
 
-logger = logging.getLogger('essarch.storage.copy')
-
 
 def enough_space_available(dst: str, src: str, raise_exception: bool = False) -> bool:
     """
@@ -52,8 +50,9 @@ def enough_space_available(dst: str, src: str, raise_exception: bool = False) ->
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-       wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+       wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.copy'), logging.DEBUG))
 def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id=None, block_size=DEFAULT_BLOCK_SIZE):
+    logger = logging.getLogger('essarch.storage.copy')
     filename = os.path.basename(src)
 
     with open(src, 'rb') as srcf:
@@ -96,6 +95,7 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
 
 
 def copy_file_locally(src, dst):
+    logger = logging.getLogger('essarch.storage.copy')
     fsize = os.stat(src).st_size
 
     directory = os.path.dirname(dst)
@@ -122,13 +122,14 @@ def copy_file_locally(src, dst):
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
-       wait=wait_fixed(60), before_sleep=before_sleep_log(logger, logging.DEBUG))
+       wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.storage.copy'), logging.DEBUG))
 def _send_completion_request(requests_session, completion_url, data, headers):
     response = requests_session.post(completion_url, data=data, headers=headers, timeout=60)
     response.raise_for_status()
 
 
 def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE):
+    logger = logging.getLogger('essarch.storage.copy')
     fsize = os.stat(src).st_size
     idx = 0
 
@@ -188,6 +189,7 @@ def copy_file(src, dst, requests_session=None, block_size=DEFAULT_BLOCK_SIZE):
         None
     """
 
+    logger = logging.getLogger('essarch.storage.copy')
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
 

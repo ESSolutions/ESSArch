@@ -44,8 +44,6 @@ from ESSArch_Core.util import (
     win_to_posix,
 )
 
-logger = logging.getLogger('essarch')
-
 XSD_NAMESPACE = "http://www.w3.org/2001/XMLSchema"
 XSI_NAMESPACE = "http://www.w3.org/2001/XMLSchema-instance"
 
@@ -520,6 +518,7 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
 
 
 def download_imported_https_schemas(schema, dst):
+    logger = logging.getLogger('essarch')
     from ESSArch_Core.ip.utils import download_schema
     for url in schema.xpath('//*[local-name()="import"]/@schemaLocation'):
         protocol = urlparse(url)
