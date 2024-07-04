@@ -186,10 +186,8 @@ class MaintenanceJobRunTests(TestCase):
 
     def add_write_access_rights(self):
         if os.name == 'nt':
-            # self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
-            # self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
-            os.chmod(self.appraisal_path, 0o7777)
-            os.chmod(self.conversion_path, 0o7777)
+            self.remove_deny_write_permission_acl_on_win_for_file(self.appraisal_path)
+            self.remove_deny_write_permission_acl_on_win_for_file(self.conversion_path)
         else:
             os.chmod(self.appraisal_path, 0o7777)
             os.chmod(self.conversion_path, 0o7777)
@@ -267,7 +265,7 @@ class MaintenanceJobRunTests(TestCase):
     def test_call_run_when_report_dir_is_not_writeable(self, apr_run, con_run, get_report_directory, mark_as_complete):
         before = timezone.now()
         self.create_paths(create_dir=True)
-        self.remove_write_access_rights()
+        # self.remove_write_access_rights()
         get_report_directory.side_effect = [self.appraisal_path, self.conversion_path, self.conversion_path]
 
         try:
