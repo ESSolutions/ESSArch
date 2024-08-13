@@ -77,14 +77,21 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
     def wait_for_media_transit(storage_medium, wait_timeout=10 * 60):
         logger = logging.getLogger('essarch.storage.backends.tape')
         timeout_at = time.monotonic() + wait_timeout
-        while storage_medium.tape_drive.locked:
-            logger.debug('Storage medium {} ({}) is in transit, sleeps for 5 seconds and checking again'.format(
-                storage_medium.medium_id, str(storage_medium.pk)))
-            if time.monotonic() > timeout_at:
-                raise ValueError("Timeout waiting for transit of storage medium {} ({})".format(
+        try:
+            while storage_medium.tape_drive.locked:
+                logger.debug('Storage medium {} ({}) is in transit, sleeps for 5 seconds and checking again'.format(
                     storage_medium.medium_id, str(storage_medium.pk)))
-            time.sleep(5)
-            storage_medium.refresh_from_db()
+                if time.monotonic() > timeout_at:
+                    raise ValueError("Timeout waiting for transit of storage medium {} ({})".format(
+                        storage_medium.medium_id, str(storage_medium.pk)))
+                time.sleep(5)
+                storage_medium.refresh_from_db()
+        except AttributeError as e:
+            if storage_medium.tape_drive is None:
+                logger.debug('Storage medium {} ({}) was in transit but is now unmounted'.format(
+                    storage_medium.medium_id, str(storage_medium.pk)))
+            else:
+                raise e
 
     def prepare_for_io(self, storage_medium, io_lock_key=None, wait_timeout=10 * 60):
         logger = logging.getLogger('essarch.storage.backends.tape')
