@@ -155,7 +155,7 @@ jobs:
       - name: Build
         run: |
           cd docker
-          docker-compose build essarch
+          docker compose build essarch
 
   test-windows:
     runs-on: windows-latest
