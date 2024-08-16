@@ -39,14 +39,14 @@ User = get_user_model()
 
 @retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
        wait=wait_fixed(60))
-def unmount_tape_from_drive(drive):
+def unmount_tape_from_drive(drive_pk):
     """
     Unmounts tape from drive into slot
 
     Args:
-        drive: Which drive to unmount from
+        drive_pk: Which drive to unmount from
     """
-    tape_drive = TapeDrive.objects.get(pk=drive)
+    tape_drive = TapeDrive.objects.get(pk=drive_pk)
 
     # Check if reverse one to one relation exists
     if not hasattr(tape_drive, 'storage_medium'):
@@ -62,12 +62,12 @@ def unmount_tape_from_drive(drive):
     tape_drive.save(update_fields=['locked'])
 
     try:
-        res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id)
+        res = unmount_tape(robot.device, slot.slot_id, tape_drive.drive_id, slot.medium_id)
     except BaseException:
         StorageMedium.objects.filter(pk=tape_drive.storage_medium.pk).update(
             status=100, last_changed_local=timezone.now(),
         )
-        TapeDrive.objects.filter(pk=drive).update(locked=False, status=100)
+        TapeDrive.objects.filter(pk=drive_pk).update(locked=False, status=100)
         TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
 
@@ -84,19 +84,19 @@ def unmount_tape_from_drive(drive):
 
 @retry(retry=retry_if_exception_type(TapeDriveLockedError), reraise=True, stop=stop_after_attempt(5),
        wait=wait_fixed(60))
-def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
+def mount_tape_medium_into_drive(drive_pk, medium_pk, timeout):
     """
     Mounts tape into drive
 
     Args:
-        medium_id: Which medium to mount
-        drive_id: Which drive to load to
+        medium_pk: Which medium to mount
+        drive_pk: Which drive to load to
         timeout: Number of times to try to mount the tape (1 sec sleep between each retry)
     """
 
-    medium = StorageMedium.objects.get(pk=medium_id)
+    medium = StorageMedium.objects.get(pk=medium_pk)
     slot = medium.tape_slot
-    tape_drive = TapeDrive.objects.get(pk=drive_id)
+    tape_drive = TapeDrive.objects.get(pk=drive_pk)
 
     if tape_drive.locked:
         raise TapeDriveLockedError()
@@ -105,30 +105,30 @@ def mount_tape_medium_into_drive(drive_id, medium_id, timeout):
     tape_drive.save(update_fields=['locked'])
 
     try:
-        mount_tape(tape_drive.robot.device, slot.slot_id, tape_drive.drive_id)
+        mount_tape(tape_drive.robot.device, slot.slot_id, tape_drive.drive_id, slot.medium_id)
         wait_to_come_online(tape_drive.device, timeout)
     except BaseException:
-        StorageMedium.objects.filter(pk=medium_id).update(
+        StorageMedium.objects.filter(pk=medium_pk).update(
             status=100, last_changed_local=timezone.now(),
         )
-        TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
+        TapeDrive.objects.filter(pk=drive_pk).update(locked=False, status=100)
         TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
 
-    TapeDrive.objects.filter(pk=drive_id).update(
+    TapeDrive.objects.filter(pk=drive_pk).update(
         num_of_mounts=F('num_of_mounts') + 1,
         last_change=timezone.now(),
     )
     StorageMedium.objects.filter(pk=medium.pk).update(
         num_of_mounts=F('num_of_mounts') + 1,
-        tape_drive_id=drive_id,
+        tape_drive_id=drive_pk,
         last_changed_local=timezone.now(),
     )
 
-    write_medium_label_to_drive(drive_id, medium, slot, tape_drive)
+    write_medium_label_to_drive(drive_pk, medium, slot, tape_drive)
 
 
-def write_medium_label_to_drive(drive_id, medium, slot, tape_drive):
+def write_medium_label_to_drive(drive_pk, medium, slot, tape_drive):
     xmlfile = tempfile.NamedTemporaryFile(delete=False)
     try:
         arcname = '%s_label.xml' % medium.medium_id
@@ -162,12 +162,12 @@ def write_medium_label_to_drive(drive_id, medium, slot, tape_drive):
         StorageMedium.objects.filter(pk=medium.pk).update(
             status=100, last_changed_local=timezone.now(),
         )
-        TapeDrive.objects.filter(pk=drive_id).update(locked=False, status=100)
+        TapeDrive.objects.filter(pk=drive_pk).update(locked=False, status=100)
         TapeSlot.objects.filter(pk=slot.pk).update(status=100)
         raise
     finally:
         xmlfile.close()
-        TapeDrive.objects.filter(pk=drive_id).update(locked=False)
+        TapeDrive.objects.filter(pk=drive_pk).update(locked=False)
 
 
 def validate_file_format(filename, format_name, format_registry_key, format_version):

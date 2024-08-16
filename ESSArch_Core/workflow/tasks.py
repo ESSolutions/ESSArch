@@ -331,8 +331,8 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                             name="ESSArch_Core.tasks.MountTape",
                             queue="robot",
                             params={
-                                'medium_id': medium.pk,
-                                'drive_id': drive.pk,
+                                'medium_pk': medium.pk,
+                                'drive_pk': drive.pk,
                             }
                         ).run().get()
                     except TapeMountedError:
@@ -381,7 +381,7 @@ with request {}'.format(entry.id, entry.storage_medium.medium_id, busy_root_queu
                             name="ESSArch_Core.tasks.UnmountTape",
                             queue="robot",
                             params={
-                                'drive_id': medium.tape_drive.pk,
+                                'drive_pk': medium.tape_drive.pk,
                             }
                         ).run().get()
                     except TapeUnmountedError:
