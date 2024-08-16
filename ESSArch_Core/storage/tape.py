@@ -31,7 +31,7 @@ DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
-def mount_tape(robot, slot, drive):
+def mount_tape(robot, slot, drive, media_id='?'):
     """
     Mounts tape from slot into drive
 
@@ -39,14 +39,15 @@ def mount_tape(robot, slot, drive):
         robot: The device used to mount the tape
         slot: Which slot to load from
         drive: Which drive to load to
+        media_id: The id for the medium, e.g. barcode (only for logging)
     """
 
     logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mtx -f %s load %d %d' % (robot, slot, drive)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
-        'Mounting tape from {slot} to {drive} using {robot}: {cmd}'.format(
-            slot=slot, drive=drive, robot=robot, cmd=cmd
+        'Mounting tape {media_id} from {slot} to {drive} using {robot}: {cmd}'.format(
+            media_id=media_id, slot=slot, drive=drive, robot=robot, cmd=cmd
         )
     )
     out, err = p.communicate()
@@ -54,25 +55,25 @@ def mount_tape(robot, slot, drive):
     if p.returncode:
         if re.match(r'Drive \d+ Full \(Storage Element \d+ loaded\)', err):
             logger.warning(
-                'Tried to mount already mounted tape from {slot} to {drive} using {robot}'.format(
-                    slot=slot, drive=drive, robot=robot
+                'Tried to mount already mounted tape {media_id} from {slot} to {drive} using {robot}'.format(
+                    media_id=media_id, slot=slot, drive=drive, robot=robot
                 )
             )
             raise TapeMountedError(err)
 
         logger.error(
-            'Failed to mount tape from {slot} to {drive} using {robot}, err: {err}, returncode: {rcode}'.format(
-                slot=slot, drive=drive, robot=robot, err=err, rcode=p.returncode
-            )
+            'Failed to mount tape {media_id} from {slot} to {drive} using {robot}, err: {err}, returncode: \
+{rcode}'.format(media_id=media_id, slot=slot, drive=drive, robot=robot, err=err, rcode=p.returncode)
         )
         raise RobotMountException('%s, return code: %s' % (err, p.returncode))
 
-    logger.info('Mounted tape from {slot} to {drive} using {robot}'.format(slot=slot, drive=drive, robot=robot))
+    logger.info('Mounted tape {media_id} from {slot} to {drive} using {robot}'.format(
+        media_id=media_id, slot=slot, drive=drive, robot=robot))
     return out
 
 
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
-def unmount_tape(robot, slot, drive):
+def unmount_tape(robot, slot, drive, media_id='?'):
     """
     Unmounts tape from drive into slot
 
@@ -80,14 +81,15 @@ def unmount_tape(robot, slot, drive):
         robot: The device used to unmount the tape
         slot: Which slot to unload to
         drive: Which drive to load from
+        media_id: The id for the medium, e.g. barcode (only for logging)
     """
 
     logger = logging.getLogger('essarch.storage.tape')
     cmd = 'mtx -f %s unload %d %d' % (robot, slot, drive)
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
     logger.debug(
-        'Unmounting tape from {drive} to {slot} using {robot}: {cmd}'.format(
-            drive=drive, slot=slot, robot=robot, cmd=cmd
+        'Unmounting tape {media_id} from {drive} to {slot} using {robot}: {cmd}'.format(
+            media_id=media_id, drive=drive, slot=slot, robot=robot, cmd=cmd
         )
     )
     out, err = p.communicate()
@@ -95,20 +97,20 @@ def unmount_tape(robot, slot, drive):
     if p.returncode:
         if re.match(r'Data Transfer Element \d+ is Empty', err):
             logger.warning(
-                'Tried to unmount already unmounted tape from {drive} to {slot} using {robot}'.format(
-                    drive=drive, slot=slot, robot=robot
+                'Tried to unmount already unmounted tape {media_id} from {drive} to {slot} using {robot}'.format(
+                    media_id=media_id, drive=drive, slot=slot, robot=robot
                 )
             )
             raise TapeUnmountedError(err)
 
         logger.error(
-            'Failed to unmount tape from {drive} to {slot} using {robot}, err: {err}, returncode: {rcode}'.format(
-                drive=drive, slot=slot, robot=robot, err=err, rcode=p.returncode
-            )
+            'Failed to unmount tape {media_id} from {drive} to {slot} using {robot}, err: {err}, returncode: \
+{rcode}'.format(media_id=media_id, drive=drive, slot=slot, robot=robot, err=err, rcode=p.returncode)
         )
         raise RobotUnmountException('%s, return code: %s' % (err, p.returncode))
 
-    logger.info('Unmounted tape from {drive} to {slot} using {robot}'.format(drive=drive, slot=slot, robot=robot))
+    logger.info('Unmounted tape {media_id} from {drive} to {slot} using {robot}'.format(
+        media_id=media_id, drive=drive, slot=slot, robot=robot))
     return out
 
 

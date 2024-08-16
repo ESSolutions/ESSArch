@@ -611,8 +611,8 @@ def DownloadFile(self, src=None, dst=None):
 
 
 @app.task(bind=True, queue='io_tape', event_type=40200)
-def MountTape(self, medium_id, drive_id=None, timeout=120):
-    if drive_id is None:
+def MountTape(self, medium_pk, drive_pk=None, timeout=120):
+    if drive_pk is None:
         drive = TapeDrive.objects.filter(
             status=20, storage_medium__isnull=True, io_queue_entry__isnull=True, locked=False,
         ).order_by('num_of_mounts').first()
@@ -620,14 +620,14 @@ def MountTape(self, medium_id, drive_id=None, timeout=120):
         if drive is None:
             raise ValueError('No tape drive available')
 
-        drive_id = drive.pk
+        drive_pk = drive.pk
 
-    mount_tape_medium_into_drive(drive_id, medium_id, timeout)
+    mount_tape_medium_into_drive(drive_pk, medium_pk, timeout)
 
 
 @app.task(bind=True, queue='io_tape', event_type=40100)
-def UnmountTape(self, drive_id):
-    return unmount_tape_from_drive(drive_id)
+def UnmountTape(self, drive_pk):
+    return unmount_tape_from_drive(drive_pk)
 
 
 @app.task(bind=True)
