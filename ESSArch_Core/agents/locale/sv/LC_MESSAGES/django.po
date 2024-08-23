@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-06-02 11:06+0200\n"
-"PO-Revision-Date: 2024-08-23 08:28+0000\n"
+"PO-Revision-Date: 2024-08-23 09:07+0000\n"
 "Last-Translator: Henrik Ek <henrik@essolutions.se>\n"
 "Language-Team: Swedish <https://hosted.weblate.org/projects/essarch/agents/"
 "sv/>\n"
@@ -176,7 +176,7 @@ msgstr ""
 
 #: agents/models.py:288
 msgid "history"
-msgstr ""
+msgstr "historik"
 
 #: agents/models.py:306
 msgid "agent note type"
