@@ -2,6 +2,7 @@ import errno
 import logging
 import os
 import pickle
+import shutil
 import tarfile
 import uuid
 from datetime import timedelta
@@ -382,7 +383,8 @@ class StorageTarget(models.Model):
 
         if storage_type == TAPE:
             slot = TapeSlot.objects.filter(status=20, storage_medium__isnull=True,
-                                           medium_id__startswith=self.target).exclude(medium_id__exact='').first()
+                                           medium_id__startswith=self.target
+                                           ).exclude(medium_id__exact='').natural_sort().first()
             if slot is None:
                 raise ValueError("No tape available for allocation")
             medium = StorageMedium.objects.create(medium_id=slot.medium_id, storage_target=self, status=20,
@@ -669,12 +671,13 @@ class StorageMedium(models.Model):
     def mark_as_full(self):
         logger = logging.getLogger('essarch.storage.models')
         logger.debug('Marking storage medium as full: "{}"'.format(str(self.pk)))
+        logger.info('Storage medium is full, start to verify: "{}"'.format(self.medium_id))
         objs = self.storage.annotate(
             content_location_value_int=Cast('content_location_value', models.IntegerField())
         ).order_by('content_location_value_int')
 
         if objs.count() > 3:
-            objs = [objs.first(), objs[objs.count() / 2], objs.last()]
+            objs = [objs.first(), objs[int(objs.count() / 2)], objs.last()]
 
         try:
             for obj in objs:
@@ -684,11 +687,15 @@ class StorageMedium(models.Model):
             logger.exception('Failed to verify storage medium: "{}"'.format(str(self.pk)))
             raise
         else:
+            verifydir = Path.objects.get(entity='verify').value
+            tmppath = os.path.join(verifydir, self.storage_target.target)
+            shutil.rmtree(tmppath)
             self.status = 30
             storage_backend = self.storage_target.get_storage_backend()
             storage_backend.post_mark_as_full(self)
         finally:
             self.save(update_fields=['status'])
+            logger.info('Storage medium is full, content verified success: "{}"'.format(self.medium_id))
 
     class Meta:
         permissions = (
@@ -985,7 +992,7 @@ class StorageObject(models.Model):
             drive.last_change = timezone.now()
             drive.save(update_fields=['last_change'])
 
-            filename = os.path.join(tmppath, self.ip.object_identifier_value + '.tar'),
+            filename = os.path.join(tmppath, self.ip.object_identifier_value + '.tar')
             algorithm = self.ip.get_message_digest_algorithm_display()
             options = {'expected': self.ip.message_digest, 'algorithm': algorithm}
 
@@ -1084,6 +1091,11 @@ class TapeDrive(models.Model):
         return self.device
 
 
+class TapeSlotQueryset(models.QuerySet):
+    def natural_sort(self):
+        return natural_sort(self, 'medium_id')
+
+
 class TapeSlot(models.Model):
     STATUS_CHOICES = (
         (0, 'Inactive'),
@@ -1102,6 +1114,8 @@ class TapeSlot(models.Model):
     )
     robot = models.ForeignKey('Robot', models.PROTECT, related_name='tape_slots')
     status = models.IntegerField(choices=STATUS_CHOICES, default=20)
+
+    objects = TapeSlotQueryset.as_manager()
 
     @classmethod
     @transaction.atomic
