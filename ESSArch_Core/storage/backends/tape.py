@@ -278,14 +278,14 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         """Called after a medium has been successfully marked as full"""
 
         logger = logging.getLogger('essarch.storage.backends.tape')
-        drive = str(storage_medium.drive)
+        drive = storage_medium.tape_drive
 
         logger.debug('Release lock for drive {} and storage medium {} ({})'.format(
-            drive.pk, storage_medium.medium_id, str(storage_medium.pk)))
+            drive.pk, storage_medium.medium_id, storage_medium.pk))
         cache.delete_pattern(drive.get_lock_key())
 
         logger.debug('Queueing unmount of storage medium {} ({})'.format(
-            storage_medium.medium_id, str(storage_medium.pk)))
+            storage_medium.medium_id, storage_medium.pk))
         rq, _ = RobotQueue.objects.get_or_create(
             user=User.objects.get(username='system'),
             storage_medium=storage_medium,
@@ -295,5 +295,5 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the unmount request to complete for storage medium {} ({})'.format(
-                storage_medium.medium_id, str(storage_medium.pk)))
+                storage_medium.medium_id, storage_medium.pk))
             time.sleep(1)
