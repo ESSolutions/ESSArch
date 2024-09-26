@@ -689,6 +689,10 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
 
     ip.delete_temp_files()
 
+    task = self.get_processtask()
+    for ProcessTask_obj in ip.processtask_set.exclude(status='SUCCESS').exclude(id=task.id):
+        ProcessTask_obj.revoke()
+
     try:
         ip.delete_workareas()
         if delete_files:
