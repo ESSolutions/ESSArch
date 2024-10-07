@@ -47,8 +47,8 @@ class ConvertFileTests(SimpleTestCase):
         cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
-    @ mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
-    @ mock.patch('ESSArch_Core.util.Popen')
+    @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=False)
+    @mock.patch('ESSArch_Core.util.Popen')
     def test_zero_returncode_with_no_file_created(self, mock_popen, mock_isfile):
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'error'), 'returncode': 0}
@@ -65,8 +65,8 @@ class ConvertFileTests(SimpleTestCase):
         cmd.extend(['-f', 'pdf', '-eSelectPdfVersion=1', 'test.docx'])
         mock_popen.assert_called_once_with(cmd, stderr=PIPE, stdout=PIPE)
 
-    @ mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
-    @ mock.patch('ESSArch_Core.util.Popen')
+    @mock.patch('ESSArch_Core.util.os.path.isfile', return_value=True)
+    @mock.patch('ESSArch_Core.util.Popen')
     def test_zero_returncode_with_file_created(self, mock_popen, mock_isfile):
         process_mock = mock.Mock()
         attrs = {'communicate.return_value': ('output', 'error'), 'returncode': 0}
@@ -85,7 +85,7 @@ class ConvertFileTests(SimpleTestCase):
 
 class GetValueFromPathTest(TestCase):
 
-    @ staticmethod
+    @staticmethod
     def get_simple_xml():
         return '''
                     <volym andraddat="2014-03-11T14:10:35">
@@ -327,7 +327,7 @@ class ListFilesTest(TestCase):
             self.assertEqual(data_size, 1)
             self.assertEqual(type(data_modified), datetime.datetime)
 
-    @ mock.patch('ESSArch_Core.util.generate_file_response')
+    @mock.patch('ESSArch_Core.util.generate_file_response')
     def test_list_files_path_to_file_in_tar(self, generate_file_response):
         file_path = self.create_archive_file('tar')
         sub_path_file = './0.txt'  # TODO: bug in shutil for tar is adding an extra './'
@@ -353,7 +353,7 @@ class ListFilesTest(TestCase):
         with self.assertRaises(NotFound):
             list_files(new_folder)
 
-    @ mock.patch('ESSArch_Core.util.generate_file_response')
+    @mock.patch('ESSArch_Core.util.generate_file_response')
     def test_list_files_path_to_file_in_zip(self, generate_file_response):
         file_path = self.create_archive_file('zip')
         sub_path_file = '0.txt'
@@ -381,8 +381,8 @@ class GenerateFileResponseTests(SimpleTestCase):
         else:
             raise Exception("Response must be instance of an 'FileResponse'")
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
-    @ mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
     def test_when_utf8_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_file_name):
         content_type = 'text/plain'
 
@@ -403,8 +403,8 @@ class GenerateFileResponseTests(SimpleTestCase):
 
         self.assertEqual(type(resp), FileResponse)
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
-    @ mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
     def test_when_utf8_and_no_filename(self, get_charset, get_filename):
         content_type = 'text/plain'
 
@@ -424,8 +424,8 @@ class GenerateFileResponseTests(SimpleTestCase):
 
         self.assertEqual(type(resp), FileResponse)
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
-    @ mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value="some_file_name.txt")
     def test_win1252_and_file_obj_has_name_then_return_inline_file_response(self, get_charset, get_filename):
         content_type = 'text/plain'
 
@@ -446,8 +446,8 @@ class GenerateFileResponseTests(SimpleTestCase):
 
         self.assertEqual(type(resp), FileResponse)
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
-    @ mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="windows-1252")
+    @mock.patch('ESSArch_Core.util.get_filename_from_file_obj', return_value=None)
     def test_win1252_and_no_filename(self, mock_get_charset, mock_get_filename):
         content_type = 'text/plain'
 
@@ -467,7 +467,7 @@ class GenerateFileResponseTests(SimpleTestCase):
 
         self.assertEqual(type(resp), FileResponse)
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
     def test_when_force_download_and_filename_not_none_then_add_attachment(self, get_charset):
         content_type = 'text/plain'
 
@@ -488,7 +488,7 @@ class GenerateFileResponseTests(SimpleTestCase):
 
         self.assertEqual(type(resp), FileResponse)
 
-    @ mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
+    @mock.patch('ESSArch_Core.util.get_charset', return_value="utf-8")
     def test_when_filename_is_not_ascii(self, get_charset):
         content_type = 'text/plain'
 

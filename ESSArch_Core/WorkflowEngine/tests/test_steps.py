@@ -813,7 +813,7 @@ class test_retrying_steps(TestCase):
 
         try:
             os.mkdir(self.test_dir)
-        except BaseException:
+        except Exception:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -822,7 +822,7 @@ class test_retrying_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except BaseException:
+        except Exception:
             pass
 
     def test_empty_step(self):
@@ -842,7 +842,7 @@ class test_resuming_steps(TestCase):
 
         try:
             os.mkdir(self.test_dir)
-        except BaseException:
+        except Exception:
             pass
 
         settings.CELERY_ALWAYS_EAGER = True
@@ -851,7 +851,7 @@ class test_resuming_steps(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
-        except BaseException:
+        except Exception:
             pass
 
     def test_empty_step(self):

@@ -27,7 +27,7 @@ def _check():
         dj_call_command(
             'check',
         )
-    except BaseException as e:
+    except Exception as e:
         exit(e)
 
 

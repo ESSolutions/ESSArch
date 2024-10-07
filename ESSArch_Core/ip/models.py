@@ -797,7 +797,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'container_format', 'tar'
             )
-        except BaseException:
+        except Exception:
             return 'tar'
 
     def get_checksum_algorithm(self):
@@ -815,7 +815,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_email'
             )
-        except BaseException:
+        except Exception:
             return None
 
     def get_allow_unknown_file_types(self):

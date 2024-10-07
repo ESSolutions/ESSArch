@@ -165,7 +165,7 @@ class XMLElement:
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
-        except BaseException:
+        except Exception:
             self.name = name
 
         self.nsmap = template.get('-nsmap', {})
@@ -200,7 +200,7 @@ class XMLElement:
             child_el = XMLElement(child)
             self.children.append(child_el)
 
-    @ property
+    @property
     def fid(self):
         if self._fid is not None:
             return self._fid
