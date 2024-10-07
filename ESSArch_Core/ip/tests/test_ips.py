@@ -3178,7 +3178,7 @@ class test_submit_ip(TestCase):
     def tearDown(self):
         try:
             shutil.rmtree(self.datadir)
-        except BaseException:
+        except Exception:
             pass
 
     def test_not_responsible(self):

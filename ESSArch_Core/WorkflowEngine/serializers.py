@@ -62,7 +62,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     def get_retried(self, obj):
         try:
             return obj.retried.pk
-        except BaseException:
+        except Exception:
             return None
 
     def get_url(self, obj):

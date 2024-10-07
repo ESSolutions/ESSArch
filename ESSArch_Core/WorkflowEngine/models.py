@@ -450,14 +450,14 @@ class ProcessStep(MPTTModel, Process):
 
             try:
                 progress += task_data['progress']
-            except BaseException:
+            except Exception:
                 pass
 
             try:
                 res = progress / total
                 cache.set(self.cache_progress_key, res)
                 return res
-            except BaseException:
+            except Exception:
                 cache.set(self.cache_progress_key, 0)
                 return 0
 
