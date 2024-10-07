@@ -20,6 +20,7 @@
         "trond-snekvik.simple-rst",
         "marcostazi.VS-code-vagrantfile",
         "njpwerner.autodocstring",
-        "swyddfa.esbonio"
+        "swyddfa.esbonio",
+        "GitLab.gitlab-workflow"
     ]
 }

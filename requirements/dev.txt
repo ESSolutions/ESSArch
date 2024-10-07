@@ -1,8 +1,8 @@
-pywatchman==1.4.1
-watchdog==3.0.0
+pywatchman==2.0.0
+watchdog==5.0.2
 django-sslserver==0.22
-sentry-sdk==1.39.2
-esbonio==0.16.4
+sentry-sdk==2.14.0
+esbonio==0.16.5
 django-extensions==3.2.3
-Werkzeug==3.0.3
-pyOpenSSL==24.1.0
+Werkzeug==3.0.4
+pyOpenSSL==24.2.1
