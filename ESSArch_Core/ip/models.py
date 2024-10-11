@@ -486,7 +486,7 @@ class InformationPackage(models.Model):
     def is_locked(self):
         return self.get_lock_key() in cache
 
-    def get_permissions(self, user: User, checker=None):
+    def get_permissions(self, user=User, checker=None):
         if checker is not None:
             return checker.get_perms(self)
         return user.get_all_permissions(self)
