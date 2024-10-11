@@ -491,7 +491,7 @@ class add(View):
             if templatePackage.objects.filter(pk=name).exists():
                 return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-            from requests.packages.urllib3.exceptions import (
+            from urllib3.exceptions import (
                 InsecurePlatformWarning,
                 InsecureRequestWarning,
             )
@@ -539,7 +539,7 @@ class addExtension(View):
             prefix = form.cleaned_data.get('namespace_prefix')
             schema = form.cleaned_data.get('schema')
 
-            from requests.packages.urllib3.exceptions import (
+            from urllib3.exceptions import (
                 InsecurePlatformWarning,
                 InsecureRequestWarning,
             )
