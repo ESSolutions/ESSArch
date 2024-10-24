@@ -545,8 +545,8 @@ class StorageMediumQueryset(models.QuerySet):
     def non_migratable(self):
         return self.exclude(pk__in=self.migratable())
 
-    def natural_sort(self):
-        return natural_sort(self, 'medium_id')
+    def natural_sort(self, column='medium_id'):
+        return natural_sort(self, column)
 
     def fastest(self):
         container = Case(
@@ -734,8 +734,8 @@ class StorageObjectQueryset(models.QuerySet):
             storage_medium__status__in=[20, 30]
         )
 
-    def natural_sort(self):
-        return natural_sort(self, 'content_location_value')
+    def natural_sort(self, column='content_location_value'):
+        return natural_sort(self, column)
 
     def fastest(self):
         container = Case(
@@ -763,7 +763,8 @@ class StorageObjectQueryset(models.QuerySet):
             remote=remote,
             storage_type=storage_type,
             content_location_value_int=content_location_value_int,
-        ).order_by('remote', 'container_order', 'storage_type', 'storage_medium', 'content_location_value_int')
+        ).order_by('remote', 'container_order', 'storage_type').natural_sort('storage_medium__medium_id'
+                                                                             ).order_by('content_location_value_int')
 
 
 class StorageObject(models.Model):
@@ -1092,8 +1093,8 @@ class TapeDrive(models.Model):
 
 
 class TapeSlotQueryset(models.QuerySet):
-    def natural_sort(self):
-        return natural_sort(self, 'medium_id')
+    def natural_sort(self, column='medium_id'):
+        return natural_sort(self, column)
 
 
 class TapeSlot(models.Model):
