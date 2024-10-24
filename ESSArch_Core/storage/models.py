@@ -763,8 +763,8 @@ class StorageObjectQueryset(models.QuerySet):
             remote=remote,
             storage_type=storage_type,
             content_location_value_int=content_location_value_int,
-        ).order_by('remote', 'container_order', 'storage_type', 'storage_medium', 'content_location_value_int'
-                   ).natural_sort('storage_medium__medium_id')
+        ).order_by('remote', 'container_order', 'storage_type').natural_sort('storage_medium__medium_id'
+                                                                             ).order_by('content_location_value_int')
 
 
 class StorageObject(models.Model):
