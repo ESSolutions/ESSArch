@@ -5,7 +5,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       EXPORT: 'Export',
       EXPORT_AS_JSON: 'Exportera som JSON',
       EXPORT_PROFILE: 'Exportera profil',
-      EXPORT_SUBMISSION_AGREEMENT: 'Exportera leveransöverenskollelse',
+      EXPORT_SUBMISSION_AGREEMENT: 'Exportera leveransöverenskommelse',
     },
   });
 };
