@@ -1109,7 +1109,6 @@ class TapeSlot(models.Model):
     medium_id = models.CharField(
         "The id for the medium, e.g. barcode",
         max_length=255,
-        unique=True,
         blank=True,
         null=True,
     )
@@ -1147,7 +1146,7 @@ class TapeSlot(models.Model):
 
     class Meta:
         ordering = ('slot_id',)
-        unique_together = ('slot_id', 'robot')
+        unique_together = [['slot_id', 'robot'], ['medium_id', 'robot']]
 
     def __str__(self):
         return str(self.slot_id)

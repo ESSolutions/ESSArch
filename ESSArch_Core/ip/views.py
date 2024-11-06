@@ -423,8 +423,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        '=id', 'object_identifier_value', 'label',
-        'aic__object_identifier_value', 'aic__label',
+        '^object_identifier_value', '^label',
     )
     filterset_class = InformationPackageFilter
 

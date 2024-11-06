@@ -157,7 +157,7 @@ const general = ($translateProvider) => {
     GLOBALSEARCH: 'search ...',
     GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'List all authority records associated to the search term',
     GLOBALSEARCHDESC_ARCHIVES: 'List all resources associated to the search term',
-    GLOBALSEARCHDESC_IP: "List all IP's associated to the search term",
+    GLOBALSEARCHDESC_IP: "List all IP's thar starts with search term in fields Label or ID",
     GLOBALSEARCHDESC_MEDIUM_CONTENT: 'List all medium content associated to the search term',
     GLOBALSEARCHDESC_MEDIUM: 'List all storage mediums associated to the search term',
     GLOBALSEARCHDESC_MIGRATION: 'List all migrations associated to the search term',
