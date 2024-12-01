@@ -518,7 +518,7 @@ def preserve_new_generation(new_ip):
                 },
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                    "label": "Diff-check against content-mets",
+                    "label": "Redundancy check against content-mets",
                     "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                 },
                 {

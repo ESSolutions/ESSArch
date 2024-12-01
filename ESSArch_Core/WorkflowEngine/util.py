@@ -105,6 +105,7 @@ def _create_step(parent, flow, ip, responsible, context=None):
                 processstep_pos=e_idx,
                 hidden=flow_entry.get('hidden', False),
                 run_if=flow_entry.get('run_if', ''),
+                log=flow_entry.get('log'),
             )
 
             on_error_tasks = list(

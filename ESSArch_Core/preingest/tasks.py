@@ -62,4 +62,4 @@ def ReceiveIP(self):
     ip.end_date = submit_description_data.get('end_date')
     ip.save()
 
-    self.create_success_event("Received IP")
+    self.create_success_event("Received IP ({})".format(ip.object_identifier_value))

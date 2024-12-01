@@ -8,6 +8,6 @@ comtypes==1.4.7 ; platform_system=='Windows'
 wfastcgi==3.0.0
 mod-wsgi==5.0.0
 mssql-django==1.5
-mysqlclient==2.2.4
+mysqlclient==2.2.6
 psycopg2==2.9.9
 python-logstash-async==3.0.0

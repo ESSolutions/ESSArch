@@ -744,7 +744,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     'agent': request.user.username,
                     'outcome': EventIP.SUCCESS
                 }
-                self.logger.info("Prepared {obj}".format(obj=ip.object_identifier_value), extra=extra)
+                self.logger.info("Prepared IP ({obj})".format(obj=ip.object_identifier_value), extra=extra)
 
                 member = Member.objects.get(django_user=responsible)
                 user_perms = perms.pop('owner', [])
@@ -885,8 +885,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound('No chunks found')
 
         logger = logging.getLogger('essarch')
-        extra = {'event_type': 50700, 'object': str(ip.pk), 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
-        logger.info("Uploaded %s" % filepath, extra=extra)
+        logger.info("Uploaded %s" % filepath)
 
         return Response("Merged chunks")
 
@@ -908,7 +907,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
             label="Update IP size and file count",
             eager=False,
-            information_package=ip
+            information_package=ip,
+            responsible=self.request.user
         ).run()
 
         ip.state = "Uploaded"
@@ -1185,7 +1185,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                     },
                     {
@@ -1215,11 +1215,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.tasks.DeleteFiles",
                 "label": "Delete IP directory",
+                "log": {},
                 "args": [ip.object_path]
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to created",
+                "label": "Set status to created SIP",
+                "log": {
+                    "event_type": "10400",
+                    "outcome": "SUCCESS",
+                    "msg": "Created SIP ({})".format(ip.object_identifier_value),
+                },
                 "args": ["Created"],
             },
         ]
@@ -1284,7 +1290,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                 "if": validate_logical_physical_representation,
-                "label": "Diff-check against package-mets",
+                "label": "Redundancy check against package-mets",
                 "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
             },
             {
@@ -1293,7 +1299,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to submitted",
+                "label": "Set status to submitted SIP",
+                "log": {
+                    "event_type": "10500",
+                    "outcome": "SUCCESS",
+                    "msg": "Submitted SIP ({})".format(ip.object_identifier_value),
+                },
                 "args": ["Submitted"],
             },
             {
@@ -1687,7 +1698,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         },
                         {
                             "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                            "label": "Diff-check against content-mets",
+                            "label": "Redundancy check against content-mets",
                             "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                         },
                         {
@@ -1707,6 +1718,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
                     "label": "Update IP size and file count",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.AddEvent",
+                    "label": "Set status to created AIP",
+                    "params": {
+                        "event_type": "30200",
+                        "outcome": "SUCCESS",
+                        "msg": "Created AIP ({})".format(ip.object_identifier_value),
+                    }
                 },
             ]
             workflow += ip.create_preservation_workflow()
@@ -1747,6 +1767,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
+                    "log": {},
                     "if": ip_ingest_path,
                     "args": [ip_ingest_path]
                 },
@@ -1937,7 +1958,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                     },
                     {
@@ -1986,7 +2007,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to created",
+                "label": "Set status to created DIP",
+                "log": {
+                    "event_type": "30600",
+                    "outcome": "SUCCESS",
+                    "msg": "Created DIP ({})".format(dip.object_identifier_value),
+                },
                 "args": ["Created"],
             },
         ]
@@ -2749,7 +2775,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                             },
                             {
                                 "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                                "label": "Diff-check against package-mets",
+                                "label": "Redundancy check against package-mets",
                                 "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}",
                                          ['{{_INNER_IP_PATH}}/dias-mets.xml']],
                             },
@@ -3509,9 +3535,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 
-        extra = {'event_type': 50700, 'object': str(workarea_obj.ip.pk),
-                 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
-        self.logger.info("Uploaded %s" % filepath, extra=extra)
+        self.logger.info("Uploaded %s" % filepath)
 
         return Response({'detail': gettext('Merged chunks')})
 

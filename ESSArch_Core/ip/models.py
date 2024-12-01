@@ -28,6 +28,7 @@ import logging
 import os
 import shutil
 import tarfile
+import time
 import uuid
 import zipfile
 from copy import deepcopy
@@ -124,6 +125,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 IP_LOCK_PREFIX = 'lock_ip_'
+MB = 1024 * 1024
 
 
 class AgentQuerySet(models.QuerySet):
@@ -1170,7 +1172,7 @@ class InformationPackage(models.Model):
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Write temporary files to remote host",
+                    "name": "Write temporary files to remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
@@ -1217,15 +1219,15 @@ class InformationPackage(models.Model):
         remote_temp_container_to_storage_method = {
             "step": True,
             "parallel": True,
-            "name": "Write temporary container to storage_methods",
+            "name": "Write temporary container to storage methods",
             "children": [
                 {
                     "step": True,
-                    "name": "Write container to {}".format(method.pk),
+                    "name": "Write container to storage method",
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                            "label": "Write to storage method",
+                            "label": "Write to storage method ({})".format(method.name),
                             "args": [str(method.pk)],
                         }
                     ]
@@ -1339,7 +1341,7 @@ class InformationPackage(models.Model):
                                 "children": [
                                     {
                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                        "label": "Write to storage method",
+                                        "label": "Write to storage method ({})".format(method.name),
                                         "args": [str(method.pk)],
                                     } for method in non_container_methods
                                 ]
@@ -1381,7 +1383,7 @@ class InformationPackage(models.Model):
                                                 "children": [
                                                     {
                                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                                        "label": "Write to storage method",
+                                                        "label": "Write to storage method ({})".format(method.name),
                                                         "args": [str(method.pk)],
                                                     } for method in container_methods
                                                 ],
@@ -1595,7 +1597,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and tar,
-                    "label": "Diff-check against package-mets",
+                    "label": "Redundancy check against package-mets",
                     "queue": worker_queue,
                     "args": [
                         temp_container_path,
@@ -1627,7 +1629,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and extracted,
-                    "label": "Diff-check against content-mets",
+                    "label": "Redundancy check against content-mets",
                     "queue": worker_queue,
                     "args": [
                         access_workarea_user_extracted,
@@ -1701,7 +1703,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1739,7 +1741,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_container,
@@ -1779,7 +1781,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             temp_container_path,
@@ -1811,7 +1813,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1912,7 +1914,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1950,7 +1952,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_container,
@@ -2096,7 +2098,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and tar,
-                    "label": "Diff-check against package-mets",
+                    "label": "Redundancy check against package-mets",
                     "queue": worker_queue,
                     "args": [
                         temp_container_path,
@@ -2128,7 +2130,7 @@ class InformationPackage(models.Model):
                 # {
                 #     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                 #     "if": diff_check and extracted,
-                #     "label": "Diff-check against content-mets",
+                #     "label": "Redundancy check against content-mets",
                 #     "queue": worker_queue,
                 #     "args": [
                 #         access_workarea_user_extracted,
@@ -2177,7 +2179,7 @@ class InformationPackage(models.Model):
                             "children": [
                                 {
                                     "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                    "label": "Write to storage method",
+                                    "label": "Write to storage method ({})".format(method.name),
                                     "queue": worker_queue,
                                     "args": [str(method.pk)],
                                 } for method in container_methods
@@ -2239,7 +2241,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted and export_path,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_extracted,
@@ -2277,7 +2279,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar and export_path,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_container,
@@ -2317,7 +2319,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             temp_container_path,
@@ -2349,7 +2351,7 @@ class InformationPackage(models.Model):
                     # {
                     #     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     #     "if": diff_check and extracted,
-                    #     "label": "Diff-check against content-mets",
+                    #     "label": "Redundancy check against content-mets",
                     #     "queue": worker_queue,
                     #     "args": [
                     #         access_workarea_user_extracted,
@@ -2408,7 +2410,7 @@ class InformationPackage(models.Model):
                                 "children": [
                                     {
                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                        "label": "Write to storage method",
+                                        "label": "Write to storage method ({})".format(method.name),
                                         "queue": worker_queue,
                                         "args": [str(method.pk)],
                                     } for method in container_methods
@@ -2487,7 +2489,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted and export_path,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_extracted,
@@ -2525,7 +2527,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar and export_path,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_container,
@@ -2686,6 +2688,7 @@ class InformationPackage(models.Model):
         write_size = 0
         for s in src:
             write_size += get_tree_size_and_count(s)[0]
+        fsize_mb = write_size / MB
 
         if storage_target.remote_server:
             host, user, passw = storage_target.remote_server.split(',')
@@ -2721,6 +2724,7 @@ class InformationPackage(models.Model):
                     task.retry_remote_copy(session, host)
                     task.status = celery_states.PENDING
 
+            time_start = time.time()
             while task.status not in celery_states.READY_STATES:
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
@@ -2736,6 +2740,8 @@ class InformationPackage(models.Model):
                 task.save()
 
                 sleep(5)
+            time_end = time.time()
+            time_elapsed = time_end - time_start
 
             if task.status in celery_states.EXCEPTION_STATES:
                 task.reraise()
@@ -2752,14 +2758,22 @@ class InformationPackage(models.Model):
 
             storage_backend = storage_target.get_storage_backend()
             storage_medium.prepare_for_write(io_lock_key=src)
-
+            time_start = time.time()
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
                 used_capacity=F('used_capacity') + write_size,
                 last_changed_local=timezone.now(),
             )
+            time_end = time.time()
+            time_elapsed = time_end - time_start
 
-        return str(storage_object.pk)
+        try:
+            mb_per_sec = fsize_mb / time_elapsed
+        except ZeroDivisionError:
+            mb_per_sec = fsize_mb
+        medium_id = storage_object.storage_medium.medium_id
+
+        return (str(storage_object.pk), medium_id, write_size, mb_per_sec, time_elapsed)
 
     def access(self, storage_object, task, dst=None):
         logger = logging.getLogger('essarch.ip')
