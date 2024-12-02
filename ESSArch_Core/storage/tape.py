@@ -447,7 +447,7 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     drive.status = 20
                     drive.save(update_fields=["status"])
                 try:
-                    if not drive.storage_medium.tape_slot.status == 20:
+                    if drive.storage_medium.tape_slot and not drive.storage_medium.tape_slot.status == 20:
                         drive.storage_medium.tape_slot.status = 20
                         drive.storage_medium.tape_slot.save(update_fields=["status"])
                 except TapeDrive.storage_medium.RelatedObjectDoesNotExist:

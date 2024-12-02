@@ -1,5 +1,5 @@
 asgiref==3.8.1
-boto3==1.35.71
+boto3==1.35.72
 celery[tblib]==5.4.0
 cffi==1.17.1
 channels==4.2.0

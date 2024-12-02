@@ -1175,15 +1175,18 @@ def installDefaultStoragePolicies():
         defaults={
             'checksum_algorithm': MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['MD5'],
             'policy_name': 'default',
-            'cache_storage': cache_method, 'ingest_path': ingest,
+            'policy_stat': True,
+            # 'cache_storage': cache_method,
+            'cache_storage': None,
+            'ingest_path': ingest,
             'receive_extract_sip': True,
             'cache_minimum_capacity': 0,
             'cache_maximum_age': 0,
         }
     )
 
-    if created_policy or created_cache_method:
-        policy.storage_methods.add(cache_method)
+    # if created_policy or created_cache_method:
+    #     policy.storage_methods.add(cache_method)
 
     return 0
 
