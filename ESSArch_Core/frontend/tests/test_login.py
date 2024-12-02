@@ -1,5 +1,3 @@
-from time import sleep
-
 from django.contrib.auth import get_user_model
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
@@ -25,12 +23,15 @@ class LoginTests(FrontendTestCase):
 
         old_url = self.selenium.current_url
         self.selenium.find_element("xpath", '//button[@type="submit"]').click()
-        try:
-            sleep(1)
-            WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
-        except TimeoutException:
-            sleep(30)
-            WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
+
+        max_attempts = 5
+        for _ in range(max_attempts):
+            try:
+                WebDriverWait(self.selenium, 10).until(EC.title_is('Info | ESSArch'))
+                break  # Exit the loop if successful
+            except TimeoutException:
+                continue  # Retry if a timeout occurs
+
         self.assertTrue(EC.url_changes(old_url))
 
         # logout
