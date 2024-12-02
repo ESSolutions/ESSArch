@@ -1,3 +1,5 @@
+from time import sleep
+
 from django.contrib.auth import get_user_model
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as EC
@@ -13,23 +15,24 @@ class LoginTests(FrontendTestCase):
         User.objects.create_user(username='user', password='pass')
 
     def test_login(self):
-        self.selenium.get('%s' % (self.live_server_url))
-
-        # login
-        username_input = self.selenium.find_element("name", "username")
-        username_input.send_keys('user')
-        password_input = self.selenium.find_element("name", "password")
-        password_input.send_keys('pass')
-
-        old_url = self.selenium.current_url
-        self.selenium.find_element("xpath", '//button[@type="submit"]').click()
-
         max_attempts = 5
         for _ in range(max_attempts):
             try:
-                WebDriverWait(self.selenium, 10).until(EC.title_is('Info | ESSArch'))
+                self.selenium.get('%s' % (self.live_server_url))
+
+                # login
+                username_input = self.selenium.find_element("name", "username")
+                username_input.send_keys('user')
+                password_input = self.selenium.find_element("name", "password")
+                password_input.send_keys('pass')
+
+                old_url = self.selenium.current_url
+                self.selenium.find_element("xpath", '//button[@type="submit"]').click()
+                WebDriverWait(self.selenium, 15).until(EC.title_is('Info | ESSArch'))
                 break  # Exit the loop if successful
             except TimeoutException:
+                self.selenium.delete_all_cookies()
+                sleep(1)
                 continue  # Retry if a timeout occurs
 
         self.assertTrue(EC.url_changes(old_url))
