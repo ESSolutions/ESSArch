@@ -184,7 +184,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
 
     ip.sip_path = os.path.relpath(sip_dst, ip.object_path)
     ip.save()
-    self.create_success_event("Received SIP")
+    self.create_success_event("Received SIP ({})".format(ip.object_identifier_value))
     return sip_dst
 
 
@@ -205,7 +205,7 @@ def ReceiveAIP(self, workarea):
     ip.save(update_fields=['object_path'])
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=30800)
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
               aic_xml=False, object_identifier_value="", dst=None):
     aip = InformationPackage.objects.get(pk=aip)
@@ -252,6 +252,8 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
         storage_object = aip.get_fastest_readable_storage_object()
 
     aip.access(storage_object, self.get_processtask(), dst=dst)
+
+    self.create_success_event("Retrieved information package from storage to workspace")
 
 
 @app.task(bind=True, queue='robot', track=False)

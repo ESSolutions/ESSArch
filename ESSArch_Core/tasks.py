@@ -173,6 +173,12 @@ def InsertXML(self, filename=None, elementToAppendTo=None, spec=None, info=None,
     self.create_success_event(msg)
 
 
+@app.task(bind=True)
+def AddEvent(self, event_type, outcome, msg, retval=None, einfo=None):
+    self.event_type = event_type
+    self.create_event(outcome, msg, retval, einfo)
+
+
 @app.task(bind=True, event_type=50610)
 def AppendEvents(self, filename="", events=None):
     append_events(self.ip, events, filename)
@@ -182,6 +188,7 @@ def AppendEvents(self, filename="", events=None):
         filename = ip.get_events_file_path()
     msg = "Appended events to %s" % filename
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, event_type=50400)
@@ -396,10 +403,9 @@ def CompareXMLFiles(self, first, second, rootdir=None, recursive=True):
         ip=self.ip,
         responsible=ip.responsible,
     )
-    validator.validate(second)
-
-    msg = "%s and %s has the same set of files" % (first, second)
+    msg = validator.validate(second)
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='validation', event_type=50240)
@@ -475,7 +481,8 @@ def UpdateIPStatus(self, status, prev=None):
         level=logging.INFO, user_id=self.responsible, refresh=True)
 
     msg = "Updated status of {} to {}".format(ip.object_identifier_value, status)
-    self.create_success_event(msg)
+    self.create_event_from_task_log_dict(msg)
+    return status
 
 
 @app.task(bind=True, event_type=50500)
@@ -492,8 +499,7 @@ def UpdateIPPath(self, path, prev=None):
     ip.object_path = path
     ip.save()
 
-    msg = "Updated path of {} to {}".format(ip.object_identifier_value, path)
-    self.create_success_event(msg)
+    return path
 
 
 @app.task(bind=True, queue='file_operation')
@@ -519,7 +525,8 @@ def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
     delete_path(path, remote_host=remote_host, remote_credentials=remote_credentials, task=self.get_processtask())
 
     msg = "Deleted %s" % path
-    self.create_success_event(msg)
+    self.create_event_from_task_log_dict(msg)
+    return msg
 
 
 @app.task(bind=True)

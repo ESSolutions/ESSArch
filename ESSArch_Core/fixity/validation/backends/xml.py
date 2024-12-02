@@ -234,7 +234,7 @@ class DiffCheckValidator(BaseValidator):
         Validation.objects.bulk_create(objs, batch_size=100)
 
         if delete_count + self.added + self.changed + self.renamed > 0:
-            msg = ('Diff-check validation of {path} against {xml} failed: '
+            msg = ('Redundancy check of {path} against {xml} failed: '
                    '{cfmd} confirmed, {a} added, {c} changed, {r} renamed, {d} deleted').format(
                 path=path, xml=self.context, cfmd=self.confirmed, a=self.added, c=self.changed, r=self.renamed,
                 d=delete_count)
@@ -315,7 +315,10 @@ class XMLComparisonValidator(DiffCheckValidator):
             logger.warning(msg)
             raise ValidationError(msg)
 
-        logger.info("Successful comparison of {path} against {xml}".format(path=path, xml=self.context))
+        msg = "Successful comparison of {path} against {xml}. {num} files confirmed.".format(
+            path=path, xml=self.context, num=len(objs))
+        logger.info(msg)
+        return msg
 
 
 class XMLSchemaValidator(BaseValidator):

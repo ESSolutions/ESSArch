@@ -191,7 +191,7 @@ class PreserveInformationPackageTests(TestCase):
     @TaskRunner()
     @mock.patch.object(InformationPackage, 'preserve')
     def test_success(self, mock_preserve):
-        mock_preserve.return_value = '123'
+        mock_preserve.return_value = ('123', 'medium_id_4', 5, 6, 7)
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create()
         StorageMethodTargetRelation.objects.create(

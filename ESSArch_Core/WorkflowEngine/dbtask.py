@@ -280,6 +280,17 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
     def create_success_event(self, msg, retval=None):
         return self.create_event(celery_states.SUCCESS, msg, retval, None)
 
+    def create_event_from_task_log_dict(self, msg):
+        t = self.get_processtask()
+        if type(t.log) is dict or t.log is True:
+            self.event_type = t.log.get('event_type', self.event_type)
+            msg = t.log.get('msg', msg)
+            outcome = t.log.get('outcome', 'SUCCESS')
+            self.create_event(outcome, msg, None, None)
+            return True
+        else:
+            return False
+
     def success(self, retval, args, kwargs):
         '''
         We use our own version of on_success so that we can call it at the end

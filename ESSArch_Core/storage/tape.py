@@ -457,10 +457,12 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     slot_id = dt_el[7]
                     medium_id = dt_el[10][:6]
                     backend.identify_tape(medium_id)
-
-                    StorageMedium.objects.filter(
-                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=medium_id
-                    ).update(tape_drive=drive)
+                    slot, created = TapeSlot.objects.update_or_create(
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
+                    )
+                    StorageMedium.objects.filter(medium_id=medium_id).update(
+                        tape_slot=slot, tape_drive=drive, last_changed_local=timezone.now(),
+                    )
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(
                         tape_drive=None, last_changed_local=timezone.now(),
@@ -511,6 +513,12 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
                         logger.debug('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                    elif status == 'Empty' and slot.medium_id is not None:
+                        slot.medium_id = None
+                        slot.save(update_fields=['medium_id'])
+                        StorageMedium.objects.filter(tape_slot=slot).update(
+                            tape_slot=None, last_changed_local=timezone.now(),
+                        )
                     elif slot.status == 100:
                         slot.status = 20
                         slot.save(update_fields=['status'])

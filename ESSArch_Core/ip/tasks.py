@@ -3,6 +3,7 @@ import logging
 import os
 import pathlib
 import tarfile
+from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
@@ -126,9 +127,6 @@ def SubmitSIP(self, delete_source=False, update_path=True):
         delete_path(src_xml)
 
     self.set_progress(100, total=100)
-
-    msg = "Submitted %s" % ip.object_identifier_value
-    self.create_success_event(msg)
 
 
 @app.task(bind=True, event_type=20600)
@@ -325,6 +323,7 @@ def GenerateEventsXML(self):
     ip = self.get_information_package()
     msg = 'Generated {xml}'.format(xml=ip.get_events_file_path())
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True)
@@ -351,6 +350,7 @@ def AddPremisIPObjectElementToEventsFile(self):
     target = generator.find_element('premis')
     generator.insert_from_specification(target, spec, data=info, index=0)
     generator.write(xmlfile)
+    return 'Add premis IP to {}'.format(xmlfile)
 
 
 @app.task(bind=True, event_type=10300)
@@ -368,7 +368,7 @@ def CreatePhysicalModel(self, structure=None, root=""):
 
     self.set_progress(1, total=1)
 
-    msg = "Created physical model for %s" % ip.object_identifier_value
+    msg = "Created physical model"
     self.create_success_event(msg)
 
     return created
@@ -404,7 +404,7 @@ def CreateContainer(self, src, dst):
             new_tar.format = settings.TARFILE_FORMAT
             new_tar.add(src, base_dir)
 
-    msg = "Created {}".format(self.parse_params(dst))
+    msg = "Created {}".format(dst)
     self.create_success_event(msg)
 
     return dst
@@ -541,7 +541,23 @@ def PreserveInformationPackage(self, storage_method_pk):
     else:
         src = [ip.object_path]
 
-    return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+    storage_object_pk, medium_id, write_size, mb_per_sec, time_elapsed = ip.preserve(
+        src, storage_target, storage_method.containers, self.get_processtask())
+
+    time_elapsed_round = round(time_elapsed)
+    time_elapsed_sec = time_elapsed_round if time_elapsed_round > 1 else 1
+    msg = "Information package written to {} ({}), WriteSize: {}, WriteTime: {} ({:.2f} MB/Sec)".format(
+        medium_id, storage_target.name, write_size, timedelta(seconds=round(time_elapsed_sec)), mb_per_sec
+    )
+    if storage_method.type == 200:
+        self.event_type = 40600
+    elif storage_method.type == 300:
+        self.event_type = 40700
+    elif storage_method.type == 400:
+        self.event_type = 40620
+    self.create_success_event(msg)
+
+    return "{}, {} ({}), {:.2f} MB/Sec".format(storage_object_pk, medium_id, storage_target.name, mb_per_sec)
 
 
 @app.task(bind=True)
@@ -579,7 +595,7 @@ CreateReceipt_task_id: {}'.format(task_id, self.ip, self.get_processtask()))
     return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=30300)
 def MarkArchived(self, remote_host=None, remote_credentials=None):
     requests_session = None
     if remote_credentials:
@@ -633,6 +649,9 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
         ip.archived = True
         ip.state = 'Preserved'
         ip.save()
+
+    msg = "Preserved AIP (%s)" % ip.object_identifier_value
+    self.create_success_event(msg)
 
 
 @app.task(bind=True)
