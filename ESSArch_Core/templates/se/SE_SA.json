@@ -1,4 +1,15 @@
 {
+    "SA": {
+        "name": "SE SA Delivery",
+        "published": true,
+        "type": "Submission Agreement",
+        "status": "Template",
+        "label": "Submission Agreement Delivery",
+        "policy": "default",
+        "overall_submission_agreement": "RA 13-2011/5329; 2012-04-12",
+        "archivist_organization": "Förslagsmyndigheten",
+        "profile": "SE_SA_v10.json"
+    },
     "ProfileSIP": {
         "name": "SE SIP",
         "profile_type": "sip",

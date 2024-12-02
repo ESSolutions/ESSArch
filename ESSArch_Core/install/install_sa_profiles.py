@@ -2,7 +2,7 @@
     ESSArch is an open source archiving and digital preservation system
 
     ESSArch
-    Copyright (C) 2005-2021 ES Solutions AB
+    Copyright (C) 2005-2024 ES Solutions AB
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,45 +26,46 @@ import json
 import os
 import sys
 
+import click
 import django
+from django.core.exceptions import ObjectDoesNotExist
 
 django.setup()
 
-from django.conf import settings  # noqa isort:skip
-from django.core.exceptions import ObjectDoesNotExist  # noqa isort:skip
-
 from ESSArch_Core.configuration.models import StoragePolicy  # noqa isort:skip
-from ESSArch_Core.profiles.models import (  # noqa isort:skip
-    SubmissionAgreement,
-    Profile,
-)
+from ESSArch_Core.profiles.models import Profile, SubmissionAgreement  # noqa isort:skip
 
 
-def installSAProfiles(site=None):
+def installSAProfiles(nation, config_file=None, inst_dir=None):
+    click.secho("Installing SA and related profiles ...", fg='green')
 
-    if site == "se" or site == "SE":
-        SAProfiles(settings.BASE_DIR + '/templates/SE_PROFILES_ESS.json')    # SE Standard profiles
-        SAProfiles(settings.BASE_DIR + '/templates/SE_SA_ESS.json')          # SE standard SA
-    elif site == "no" or site == "NO":
-        SAProfiles(settings.BASE_DIR + '/templates/NO_PROFILES_ESS.json')    # NO Standard profiles
-        SAProfiles(settings.BASE_DIR + '/templates/NO_SA_ESS.json')          # NO standard SA
-    elif site == "eark" or site == "EARK":
-        SAProfiles(settings.BASE_DIR + '/templates/EARK_PROFILES_ESS.json')  # EARK Standard profiles
-        SAProfiles(settings.BASE_DIR + '/templates/EARK_SA_ESS.json')        # EARK standard SA
+    if not inst_dir:
+        inst_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '..')
+
+    nation = nation.lower()
+    profile_template_path = os.path.join(inst_dir, 'templates', nation.lower())
+
+    if not config_file:
+        if nation == "se" or nation == "no" or nation == "eu":
+            # Standard SA and profiles as defined by nation
+            config_file = nation.upper() + '_' + 'SA.json'
+        else:
+            click.secho('-> You have not specified any config file', fg='red')
+            return 1
+
+    if os.path.exists(os.path.join(profile_template_path, config_file)):
+        SAProfiles(profile_template_path, config_file)
     else:
-        print('You have not specified any site/nationality (SE/NO/EARK or se/no/eark)')
-        return 0
+        click.secho('-> You have not specified any nation (SE/NO/EU or se/no/eu) nor existing config file', fg='red')
+        return 1
 
 
-def SAProfiles(config_file=None):
+def SAProfiles(profile_template_path, config_file):
 
     sa = []
-    inst_dir = settings.BASE_DIR
 
-    config = json.loads(open(os.path.join(inst_dir, config_file), encoding="utf8").read())
+    config = json.loads(open(os.path.join(profile_template_path, config_file), encoding="utf8").read())
     profile_list = list(config.keys())
-    profile_template_path = config_file.split('/').pop(-2).lower() + '/'
-    profile_nation_path = config_file.split('/').pop(-1).split('_').pop(0).lower() + '/'
 
     # create SA and profiles
     for profile_description in profile_list:
@@ -75,8 +76,7 @@ def SAProfiles(config_file=None):
             # if profile is SA
             if profile_description == 'SA':
 
-                profile_path = os.path.join(profile_template_path, profile_nation_path, profile_config['profile'])
-                profile_file = os.path.join(inst_dir, profile_path)
+                profile_file = os.path.join(profile_template_path, profile_config['profile'])
                 profile_spec = json.loads(open(profile_file, encoding="utf8").read())
 
                 # check if SA already exist
@@ -88,7 +88,7 @@ def SAProfiles(config_file=None):
 
                 # SA already exist - use it
                 if profile_name == sa_exist:
-                    print('Submission Agreement %s already exist - not added' % sa_exist)
+                    click.secho('-> Submission Agreement %s already exist - not added' % sa_exist, fg='red')
                     break
                 else:
                     try:
@@ -105,7 +105,7 @@ def SAProfiles(config_file=None):
                     profile_name = profile_config['name']
                     sa, _ = SubmissionAgreement.objects.update_or_create(name=profile_name, defaults=profile_config)
 
-                    print('Installed Submission Agreement %s' % profile_name)
+                    click.secho('-> Installed Submission Agreement %s' % profile_name)
 
             else:   # if profile not SA:
 
@@ -124,15 +124,18 @@ def SAProfiles(config_file=None):
                     if sa:
                         setattr(sa, profile_type, profile)
                         sa.save()
-                        print('Existing profile %s is now attached to SA %s' % (profile.name, sa_profile_name))
+                        click.secho('-> Existing profile %s is now attached to SA %s' % (profile.name, sa.name))
                     else:
-                        print('Profile %s already exist - not added' % profile_name)
+                        click.secho('-> Profile %s already exist - not added' % profile_name, fg='red')
 
-                # profile does not exist - add it
+                # if profile does not exist - add it
                 if profile_name != sa_profile_name:
+                    if 'profile' not in profile_config.keys():
+                        click.secho('-> You have not specified profile configuration for %s in config file' %
+                                    profile_name, fg='red')
+                        return 1
 
-                    profile_path = os.path.join(profile_template_path, profile_nation_path, profile_config['profile'])
-                    profile_file = os.path.join(inst_dir, profile_path)
+                    profile_file = os.path.join(profile_template_path, profile_config['profile'])
                     profile_spec = json.loads(open(profile_file, encoding="utf8").read())
 
                     del profile_config['profile']
@@ -152,6 +155,11 @@ def SAProfiles(config_file=None):
                     else:
                         profile_config.update({'specification': {}})
 
+                    if 'specification_data' in profile_spec.keys() and len(profile_spec['specification_data']) != 0:
+                        profile_config.update({'specification_data': profile_spec['specification_data']})
+                    else:
+                        profile_config.update({'specification_data': {}})
+
                     profile_type = 'profile_' + profile_config['profile_type']
                     profile, _ = Profile.objects.update_or_create(name=profile_name, defaults=profile_config)
 
@@ -159,16 +167,25 @@ def SAProfiles(config_file=None):
                     if sa:
                         setattr(sa, profile_type, profile)
                         sa.save()
-                        print('Installed new profile %s and attached it to SA %s' % (profile.name, sa.name))
+                        click.secho('-> Installed new profile %s and attached it to SA %s' % (profile.name, sa.name))
                     else:
-                        print('Installed new profile %s' % profile_name)
+                        click.secho('-> Installed new profile %s' % profile_name)
 
     return 0
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        site = sys.argv[1]
-        installSAProfiles(site)
+    if len(sys.argv) == 2:
+        nation = sys.argv[1]
+        installSAProfiles(nation)
+    elif len(sys.argv) == 3:
+        nation = sys.argv[1]
+        config_file = sys.argv[2]
+        installSAProfiles(nation, config_file)
+    elif len(sys.argv) == 4:
+        nation = sys.argv[1]
+        config_file = sys.argv[2]
+        inst_dir = sys.argv[3]
+        installSAProfiles(nation, config_file, inst_dir)
     else:
-        installSAProfiles()
+        click.secho('-> You have not specified any nation (SE/NO/EU or se/no/eu)', fg='red')

@@ -1,10 +1,21 @@
 {
+    "SA": {
+        "name": "EU SA Delivery",
+        "published": true,
+        "type": "Submission Agreement",
+        "status": "Template",
+        "label": "Submission Agreement Delivery",
+        "policy": "default",
+        "overall_submission_agreement": "RA 13-2011/5329; 2012-04-12",
+        "archivist_organization": "Förslagsmyndigheten",
+        "profile": "EU_SA_v10.json"
+    },
     "ProfileCSSIP": {
-        "name": "EARK SIP (CSIP)",
+        "name": "EU SIP (CSIP)",
         "profile_type": "sip",
         "type": "Package description",
         "status": "Template",
-        "label": "SIP (CSIP) profile for EARK submissions",
+        "label": "SIP (CSIP) profile for EU submissions",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -14,14 +25,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_CSIP_SIP_v204.json"
+        "profile": "EU_CSIP_SIP_v204.json"
     },
     "ProfileCSAIP": {
-        "name": "EARK AIP (CSIP)",
+        "name": "EU AIP (CSIP)",
         "profile_type": "aip",
         "type": "Package description",
         "status": "Template",
-        "label": "AIP (CSIP) profile for EARK submissions",
+        "label": "AIP (CSIP) profile for EU submissions",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -31,14 +42,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_CSIP_AIP_v204.json"
+        "profile": "EU_CSIP_AIP_v204.json"
     },
     "ProfileCSDIP": {
-        "name": "EARK DIP (CSIP)",
+        "name": "EU DIP (CSIP)",
         "profile_type": "dip",
         "type": "Package description",
         "status": "Template",
-        "label": "DIP (CSIP) profile for EARK Packages",
+        "label": "DIP (CSIP) profile for EU Packages",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -48,14 +59,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_CSIP_DIP_v204.json"
+        "profile": "EU_CSIP_DIP_v204.json"
     },
     "ProfileSIP": {
-        "name": "EARK SIP",
+        "name": "EU SIP",
         "profile_type": "sip",
         "type": "Package description",
         "status": "Template",
-        "label": "SIP profile for EARK submissions",
+        "label": "SIP profile for EU submissions",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -65,10 +76,10 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_SIP_v204.json"
+        "profile": "EU_SIP_v204.json"
     },
     "ProfileTransferProject": {
-        "name": "EARK Transfer",
+        "name": "EU Transfer",
         "profile_type": "transfer_project",
         "type": "Transfer description",
         "status": "Template",
@@ -82,10 +93,10 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_TP_v10.json"
+        "profile": "EU_TP_v10.json"
     },
     "ProfileSubmitDescription": {
-        "name": "EARK SD",
+        "name": "EU SD",
         "profile_type": "submit_description",
         "type": "Submit description",
         "status": "Template",
@@ -99,14 +110,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_SD_v10.json"
+        "profile": "EU_SD_v10.json"
     },
     "ProfileAIP": {
-        "name": "EARK AIP",
+        "name": "EU AIP",
         "profile_type": "aip",
         "type": "Package description",
         "status": "Template",
-        "label": "AIP profile for EARK Packages",
+        "label": "AIP profile for EU Packages",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -116,14 +127,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_AIP_v204.json"
+        "profile": "EU_AIP_v204.json"
     },
     "ProfileAIPDescription": {
-        "name": "EARK AIPD",
+        "name": "EU AIPD",
         "profile_type": "aip_description",
         "type": "Collection description",
         "status": "Template",
-        "label": "AIP description profile for EARK Packages",
+        "label": "AIP description profile for EU Packages",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -133,14 +144,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_AIPD_v12.json"
+        "profile": "EU_AIPD_v12.json"
     },
     "ProfileAIC": {
-        "name": "EARK AIC",
+        "name": "EU AIC",
         "profile_type": "aic_description",
         "type": "Collection description",
         "status": "Template",
-        "label": "AIC description profile for EARK Packages",
+        "label": "AIC description profile for EU Packages",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -150,14 +161,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_AIC_v12.json"
+        "profile": "EU_AIC_v12.json"
     },
     "ProfileDIP": {
-        "name": "EARK DIP",
+        "name": "EU DIP",
         "profile_type": "dip",
         "type": "Package description",
         "status": "Template",
-        "label": "DIP profile for EARK Packages",
+        "label": "DIP profile for EU Packages",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -167,14 +178,14 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_DIP_v204.json"
+        "profile": "EU_DIP_v204.json"
     },
     "ProfilePreservationMetadata": {
-        "name": "EARK PDI",
+        "name": "EU PDI",
         "profile_type": "preservation_metadata",
         "type": "PDI description",
         "status": "Template",
-        "label": "Preservation description information profile for EARK",
+        "label": "Preservation description information profile for EU",
         "representation_info": "Documentation 1",
         "preservation_descriptive_info": "Documentation 2",
         "supplemental": "Documentation 3",
@@ -184,10 +195,10 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_PDI_v30.json"
+        "profile": "EU_PDI_v30.json"
     },
     "ProfileActionWorkflow": {
-        "name": "EARK AWF",
+        "name": "EU AWF",
         "profile_type": "action_workflow",
         "type": "Action Workflow description",
         "status": "Template",
@@ -201,6 +212,6 @@
         "submission_method": "Electronically",
         "submission_schedule": "Once",
         "submission_data_inventory": "According to submission agreement",
-        "profile": "EARK_AWF_v10.json"
+        "profile": "EU_AWF_v10.json"
     }
 }

@@ -1232,7 +1232,7 @@ class RobotTests(APITestCase):
         for drive_id in range(4):
             TapeDrive.objects.create(drive_id=str(drive_id), device='/dev/st{}'.format(drive_id), robot=robot)
 
-        for slot_id in range(2):
+        for slot_id in range(5):
             TapeSlot.objects.create(slot_id=str(slot_id), medium_id='HPS00{}'.format(slot_id + 1), robot=robot)
 
         storage_target = StorageTarget.objects.create()
@@ -1248,6 +1248,26 @@ class RobotTests(APITestCase):
             status=20, location_status=50,
             block_size=1024, format=103,
         )
+        StorageMedium.objects.create(
+            medium_id='HPS003', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='2'),
+        )
+        StorageMedium.objects.create(
+            medium_id='HPS004', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='3'),
+            tape_drive=TapeDrive.objects.get(drive_id='1')
+        )
+        StorageMedium.objects.create(
+            medium_id='HPS005', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='4'),
+            tape_drive=TapeDrive.objects.get(drive_id='2')
+        )
 
         output = '''
   Storage Changer /dev/sg8:4 Drives, 52 Slots ( 4 Import/Export )
@@ -1256,7 +1276,10 @@ Data Transfer Element 1:Empty
 Data Transfer Element 2:Empty
 Data Transfer Element 3:Empty
       Storage Element 0:Empty
-      Storage Element 1:Full :VolumeTag=HPS002L3'''
+      Storage Element 1:Full :VolumeTag=HPS002L3
+      Storage Element 2:Empty
+      Storage Element 3:Full :VolumeTag=HPS004L3
+      Storage Element 4:Empty'''
 
         with mock.patch('ESSArch_Core.storage.tape.Popen') as m_popen:
             popen_obj = mock.MagicMock()
@@ -1276,3 +1299,12 @@ Data Transfer Element 3:Empty
 
             self.assertIsNone(StorageMedium.objects.get(medium_id='HPS002').tape_drive)
             self.assertEqual(StorageMedium.objects.get(medium_id='HPS002').tape_slot.slot_id, 1)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS003').tape_drive)
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS003').tape_slot)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS004').tape_drive)
+            self.assertEqual(StorageMedium.objects.get(medium_id='HPS004').tape_slot.slot_id, 3)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS005').tape_drive)
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS005').tape_slot)
