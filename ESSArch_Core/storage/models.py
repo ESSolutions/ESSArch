@@ -744,8 +744,10 @@ class StorageObjectQueryset(models.QuerySet):
             output_field=IntegerField(),
         )
         remote = Case(
-            When(storage_medium__storage_target__remote_server__isnull=True, then=Value(1)),
-            When(storage_medium__storage_target__remote_server__isnull=False, then=Value(2)),
+            When((Q(storage_medium__storage_target__remote_server=None) |
+                  Q(storage_medium__storage_target__remote_server='')), then=Value(1)),
+            When(~(Q(storage_medium__storage_target__remote_server=None) |
+                   Q(storage_medium__storage_target__remote_server='')), then=Value(2)),
             output_field=IntegerField(),
         )
         storage_type = Case(
@@ -763,8 +765,8 @@ class StorageObjectQueryset(models.QuerySet):
             remote=remote,
             storage_type=storage_type,
             content_location_value_int=content_location_value_int,
-        ).order_by('remote', 'container_order', 'storage_type').natural_sort('storage_medium__medium_id'
-                                                                             ).order_by('content_location_value_int')
+        ).order_by('remote', 'container_order', 'storage_type',
+                   'storage_medium__medium_id', 'content_location_value_int')
 
 
 class StorageObject(models.Model):

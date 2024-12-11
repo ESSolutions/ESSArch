@@ -80,7 +80,7 @@
     <table class="table" style="margin: 5px">
       <tbody>
         <tr
-          ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''"
+          ng-if="(currentStepTask.status == 'FAILURE' || currentStepTask.status == 'REVOKED') && currentStepTask.exception !== null && currentStepTask.exception !== ''"
         >
           <td>
             <b>{{ ("ERROR.ERROR" | translate) + ":" }}</b>
@@ -90,7 +90,7 @@
       </tbody>
     </table>
     <button
-      ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.traceback !== null && currentStepTask.traceback !== ''"
+      ng-if="(currentStepTask.status == 'FAILURE' || currentStepTask.status == 'REVOKED') && currentStepTask.traceback !== null && currentStepTask.traceback !== ''"
       class="btn btn-default"
       ng-click="tracebackModal(currentStepTask)"
     >

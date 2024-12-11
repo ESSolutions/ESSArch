@@ -1426,7 +1426,7 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
-                               package_xml=False, aic_xml=False, diff_check=False, edit=False):
+                               package_xml=False, aic_xml=False, diff_check=False, edit=False, responsible=None):
         logger = logging.getLogger('essarch.ip')
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
@@ -1511,7 +1511,7 @@ class InformationPackage(models.Model):
                 }
             )
 
-            return create_workflow(workflow, self, name='Access Information Package')
+            return create_workflow(workflow, self, name='Access Information Package', responsible=responsible)
 
         if tar:
             try:
@@ -1981,7 +1981,7 @@ class InformationPackage(models.Model):
             "queue": worker_queue,
             "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, tar]
         })
-        return create_workflow(workflow, self, name='Access Information Package')
+        return create_workflow(workflow, self, name='Access Information Package', responsible=responsible)
 
     def create_migration_workflow(self, temp_path, storage_methods, export_path='', tar=False, extracted=False,
                                   package_xml=False, aic_xml=False, diff_check=True, responsible=None):

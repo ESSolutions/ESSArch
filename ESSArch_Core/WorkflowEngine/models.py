@@ -295,6 +295,8 @@ class ProcessStep(MPTTModel, Process):
             none
         """
 
+        logger = logging.getLogger('essarch.WorkflowEngine')
+        logger.info('Retrying step {} ({})'.format(self.name, self.pk))
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
@@ -338,19 +340,12 @@ class ProcessStep(MPTTModel, Process):
         """
 
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
-        ProcessTask.objects.filter(
+        logger.info('Resuming step {} ({})'.format(self.name, self.pk))
+        for t in ProcessTask.objects.filter(
             processstep__in=self.get_descendants(include_self=True),
             status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
-        ).update(
-            status=celery_states.PENDING,
-            time_started=None,
-            time_done=None,
-            traceback='',
-            exception='',
-            progress=0,
-            result=None,
-        )
+        ):
+            t.reset()
         child_steps = self.get_children()
 
         step_descendants = self.get_descendants(include_self=True)
@@ -720,7 +715,10 @@ class ProcessTask(Process):
         return r
 
     def reset(self):
+        logger = logging.getLogger('essarch.WorkflowEngine')
+        logger.info('Reset task ({})'.format(self.pk))
         self.status = celery_states.PENDING
+        self.celery_id = uuid.uuid4()
         self.time_started = None
         self.time_done = None
         self.traceback = ''
@@ -778,19 +776,17 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Revoking task ({})'.format(self.pk))
+        logger.info('Revoke task ({})'.format(self.pk))
         current_app.control.revoke(str(self.celery_id), terminate=True)
         self.status = celery_states.REVOKED
-        self.celery_id = uuid.uuid4()
         self.save()
-        logger.info('Revoked task ({})'.format(self.pk))
 
     def retry(self):
         """
         Retries the task
         """
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Retrying task ({})'.format(self.pk))
+        logger.info('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()
 

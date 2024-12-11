@@ -1820,6 +1820,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('IP must either have state "Received" or be archived to be accessed')
 
         data = request.data
+        user = None
+        if request and hasattr(request, "user"):
+            user = request.user
 
         options = ['tar', 'extracted', 'edit']
         if ip.package_type == InformationPackage.AIP:
@@ -1878,6 +1881,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             aic_xml=data.get('aic_xml', False),
             diff_check=data.get('diff_check', False),
             edit=data.get('edit', False),
+            responsible=user,
         )
         workflow.run()
         return Response({'detail': gettext('Accessing {ip}...').format(ip=ip), 'step': workflow.pk})

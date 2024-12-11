@@ -133,7 +133,7 @@
           </td>
         </tr>
         <tr
-          ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.exception !== null && currentStepTask.exception !== ''"
+          ng-if="(currentStepTask.status == 'FAILURE' || currentStepTask.status == 'REVOKED') && currentStepTask.exception !== null && currentStepTask.exception !== ''"
         >
           <td>
             <b>{{ ("ERROR.ERROR" | translate) + ":" }}</b>
@@ -143,7 +143,7 @@
       </tbody>
     </table>
     <button
-      ng-if="currentStepTask.status == 'FAILURE' && currentStepTask.traceback !== null && currentStepTask.traceback !== ''"
+      ng-if="(currentStepTask.status == 'FAILURE' || currentStepTask.status == 'REVOKED') && currentStepTask.traceback !== null && currentStepTask.traceback !== ''"
       class="btn btn-default"
       ng-click="tracebackModal(currentStepTask)"
     >
@@ -264,14 +264,14 @@
     <button
       class="btn btn-success"
       ng-click="myTreeControl.scope.taskStepRedo(currentStepTask)"
-      ng-if="checkPermission('WorkflowEngine.can_retry') && (currentStepTask.status === 'FAILURE' || currentStepTask.status === 'REVOKED')"
+      ng-if="checkPermission('WorkflowEngine.can_retry') && (currentStepTask.status == 'FAILURE' || currentStepTask.status == 'REVOKED')"
     >
       {{ "REDO" | translate }}
     </button>
     <button
       class="btn btn-danger"
       ng-click="$ctrl.revokeTask(currentStepTask)"
-      ng-if="checkPermission('WorkflowEngine.can_revoke') && currentStepTask.status === 'STARTED'"
+      ng-if="checkPermission('WorkflowEngine.can_revoke') && (currentStepTask.status == 'STARTED' || currentStepTask.status == 'PENDING')"
     >
       {{ "REVOKE" | translate }}
     </button>

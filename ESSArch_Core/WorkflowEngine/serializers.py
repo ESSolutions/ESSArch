@@ -125,7 +125,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'information_package_str', 'eager',
         )
         read_only_fields = (
-            'id', 'progress', 'time_created', 'time_started', 'time_done', 'retried',
+            'id', 'time_created', 'time_started', 'time_done', 'retried',
         )
         extra_kwargs = {
             'id': {
