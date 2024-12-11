@@ -147,8 +147,8 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[CanRevoke])
     def revoke(self, request, pk=None):
         obj = self.get_object()
-        if obj.status != celery_states.STARTED:
-            raise exceptions.ParseError('Only running tasks can be revoked')
+        if obj.status not in [celery_states.STARTED, celery_states.PENDING]:
+            raise exceptions.ParseError('Only running or pending tasks can be revoked')
 
         obj.revoke()
         return Response({'status': 'revoked task'})

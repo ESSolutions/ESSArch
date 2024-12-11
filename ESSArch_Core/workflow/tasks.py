@@ -253,7 +253,9 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
 
     aip.access(storage_object, self.get_processtask(), dst=dst)
 
-    self.create_success_event("Retrieved information package from storage to workspace")
+    msg = "Retrieved information package from storage {} to workspace".format(storage_object.storage_medium.medium_id)
+    self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='robot', track=False)

@@ -177,7 +177,7 @@ def get_value_from_path(root, path):
     try:
         el = get_elements_without_namespace(root, path)[0]
     except IndexError:
-        logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
+        logger.debug('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
         return None
 
     if "@" in path:

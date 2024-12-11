@@ -1,6 +1,6 @@
 <a
   ng-click="treeControl.scope.taskStepRedo(row.branch)"
-  ng-if="row.branch.flow_type == 'task' && row.branch.status == 'FAILURE'"
+  ng-if="row.branch.flow_type == 'task' && (row.branch.status == 'FAILURE' || row.branch.status == 'REVOKED')"
   style="color: #0a0"
   >{{ "REDO" | translate }}</a
 >
