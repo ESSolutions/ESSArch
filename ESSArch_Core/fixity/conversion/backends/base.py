@@ -6,10 +6,24 @@ from ..exceptions import InvalidInputFormat, InvalidOutputFormat
 class BaseConverter:
     input_formats = []
     output_formats = []
+    file_converter = True  # Does the validator operate on single files or entire directories?
 
-    def __init__(self, ip=None, user=None):
+    def __init__(self, context=None, include=None, exclude=None, options=None,
+                 data=None, required=True, task=None, ip=None, responsible=None,
+                 stylesheet=None):
+        """
+        Initializes for convert of one or more files
+        """
+        self.context = context
+        self.include = include or []
+        self.exclude = exclude or []
+        self.options = options or {}
+        self.data = data or {}
+        self.required = required
+        self.task = task
         self.ip = ip
-        self.user = user
+        self.responsible = responsible
+        self.stylesheet = stylesheet
 
     @classmethod
     def validate_input_format(cls, fmt):
