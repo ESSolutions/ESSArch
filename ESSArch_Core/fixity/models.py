@@ -121,6 +121,9 @@ class ActionTool(ExternalTool):
             os.chdir(rootdir)
             filepath = normalize_path(filepath)
             cmd = eval(self.prepare_cmd(filepath, options))
+            if isinstance(cmd, str):
+                cmd = (cmd,)
+
             try:
                 [module, task] = self.path.rsplit('.', 1)
                 p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)

@@ -4,6 +4,7 @@ from celery.signals import task_received, task_revoked
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
+from ESSArch_Core.db.utils import check_db_connection
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
@@ -31,6 +32,7 @@ def step_post_save(sender, instance, created, **kwargs):
 
 @task_received.connect
 def task_received_handler(request=None, **kwargs):
+    check_db_connection()
     logger = logging.getLogger('essarch')
     try:
         t = ProcessTask.objects.get(celery_id=request.task_id)
@@ -39,7 +41,6 @@ def task_received_handler(request=None, **kwargs):
             t.revoke()
     except ProcessTask.DoesNotExist:
         logger.debug('{} signal task_received without ProcessTask'.format(request.task_id))
-        pass
 
 
 @task_revoked.connect
