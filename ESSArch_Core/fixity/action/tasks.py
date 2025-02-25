@@ -16,10 +16,33 @@ User = get_user_model()
 
 @app.task(bind=True, event_type=50760)
 def Action(self, tool, pattern, rootdir, options, purpose=None):
-    def _convert(path, rootdir, tool, options, t=None, ip=None):
-        tool.run(path, rootdir, options, t, ip)
+    """
+    Action task.
 
-        relpath = PurePath(path).relative_to(rootdir).as_posix()
+    attr:
+        tool: Name of tool. Example 'Convert filformat'
+        pattern: get value from inputform "key": "path". example: '**/*.*'
+        rootdir: get value automatic from ip rootdir. example: /ESSArch/data/preingest/packages/ip1
+        options: get dict with all keys and values from inputform. example: {'key1': 'xx', 'key2': 'yy',
+                                                                             'path': '**/*.*'}
+        purpose: get value from inputform purpose (not included in options)
+    """
+    logger = logging.getLogger('essarch')
+    logger.debug('Action task - tool: {}, pattern: {}, rootdir: {}, options: {}, purpose: {}'.format(
+        repr(tool), repr(pattern), repr(rootdir), repr(options), repr(purpose)))
+    ip = self.get_information_package()
+    tool = ActionTool.objects.get(name=tool)
+
+    msg = '{type} job started, purpose: {purpose}'.format(
+        type=tool.type.capitalize(),
+        purpose=purpose
+    )
+    self.create_success_event(msg)
+
+    def _run(filepath, rootdir, tool, options, t=None, ip=None):
+        tool.run(filepath, rootdir, options, t, ip)
+
+        relpath = PurePath(filepath).relative_to(rootdir).as_posix()
         EventIP.objects.create(
             eventType_id=50750,
             eventOutcome=EventIP.SUCCESS,
@@ -32,18 +55,9 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
         )
 
         if tool.delete_original:
-            os.remove(path)
+            os.remove(filepath)
 
-    ip = self.get_information_package()
-    tool = ActionTool.objects.get(name=tool)
-
-    msg = '{type} job started, purpose: {purpose}'.format(
-        type=tool.type.capitalize(),
-        purpose=purpose
-    )
-    self.create_success_event(msg)
-
-    if tool.file_processing:
+    if tool.file_processing and pattern:
         for path in iglob(rootdir + '/' + pattern, case_sensitive=False, include_hidden=True):
             if not in_directory(path, rootdir):
                 raise ValueError('Invalid file-pattern accessing files outside of package')
@@ -51,15 +65,17 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
             if os.path.isdir(path):
                 for root, _dirs, files in os.walk(path):
                     for f in files:
-                        fpath = os.path.join(root, f)
-                        _convert(fpath, rootdir, tool, options, self.get_processtask(), ip)
+                        filepath = os.path.join(root, f)
+                        _run(filepath, rootdir, tool, options, self.get_processtask(), ip)
             else:
-                _convert(path, rootdir, tool, options, self.get_processtask(), ip)
-    else:
+                filepath = path
+                _run(filepath, rootdir, tool, options, self.get_processtask(), ip)
+    elif pattern:
         filepath = os.path.join(rootdir, pattern)
-        tool.run(filepath, rootdir, options, self.get_processtask(), ip)
-        if tool.delete_original:
-            os.remove(filepath)
+        _run(filepath, rootdir, tool, options, self.get_processtask(), ip)
+    else:
+        filepath = rootdir
+        _run(filepath, rootdir, tool, options, self.get_processtask(), ip)
 
     Notification.objects.create(
         message='{type} job done for "{ip}"'.format(

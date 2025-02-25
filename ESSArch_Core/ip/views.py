@@ -248,17 +248,17 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
         workflow_spec = []
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             action_tool = ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
+            if 'path' in action_data:
+                pattern = action_data['path']
 
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
@@ -926,17 +926,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         workflow_spec = []
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             action_tool = ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
+            if 'path' in action_data:
+                pattern = action_data['path']
 
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
@@ -980,18 +980,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
-            if 'conversions' in converter:
-                conversions = converter['conversions']
+            if 'path' in action_data:
+                pattern = action_data['path']
+            if 'conversions' in action_data:
+                conversions = action_data['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
@@ -1035,19 +1035,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
-            if 'conversions' in converter:
-                conversions = converter['conversions']
+            if 'path' in action_data:
+                pattern = action_data['path']
+            if 'conversions' in action_data:
+                conversions = action_data['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
