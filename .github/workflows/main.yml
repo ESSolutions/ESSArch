@@ -160,7 +160,7 @@ jobs:
   test-windows:
     runs-on: windows-latest
     env:
-      DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+      DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
@@ -207,7 +207,7 @@ jobs:
         run: |
           powershell wget https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases/download/2021-04-29/gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe -OutFile gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe
           powershell 'Start-Process -FilePath "gtk3-runtime-3.24.29-2021-04-29-ts-win64.exe" -Wait -PassThru -ArgumentList /S'
-          powershell wget https://download.microsoft.com/download/1/a/4/1a4a49b8-9fe6-4237-be0d-a6b8f2d559b5/en-US/18.0.1.1/x64/msodbcsql.msi -OutFile msodbcsql.msi
+          powershell wget https://download.microsoft.com/download/1/7/4/17423b83-b75d-42e1-b5b9-eaa266561c5e/Windows/amd64/1033/msodbcsql.msi -OutFile msodbcsql.msi
           powershell "Start-Process msiexec.exe -PassThru -Wait -ArgumentList '/I msodbcsql.msi IACCEPTMSODBCSQLLICENSETERMS=YES ADDLOCAL=ALL /quiet /passive /qn /norestart'"
 
           choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
@@ -253,7 +253,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
 
   test-linux:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -281,7 +281,7 @@ jobs:
             port: 5432
             health_cmd: pg_isready
           - db: mssql
-            database_url: 'mssql://SA:MyPassword42@127.0.0.1:13306/essarch?isolation_level=read committed&driver=ODBC Driver 17 for SQL Server'
+            database_url: 'mssql://SA:MyPassword42@127.0.0.1:13306/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server'
             image: mcr.microsoft.com/mssql/server:2019-latest
             port: 1433
             health_cmd: true
@@ -399,8 +399,9 @@ jobs:
           docker exec elasticsearch elasticsearch-plugin install --batch ingest-attachment
           docker restart elasticsearch
 
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          curl -sSL -O https://packages.microsoft.com/config/ubuntu/$(grep VERSION_ID /etc/os-release | cut -d '"' -f 2)/packages-microsoft-prod.deb
+          dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18 g++ unixodbc-dev default-libmysqlclient-dev libpq-dev
 
