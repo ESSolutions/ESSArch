@@ -160,7 +160,7 @@ jobs:
   test-windows:
     runs-on: windows-latest
     env:
-      DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server'
+      DATABASE_URL_ESSARCH: 'mssql://SA:MyPassword42@localhost:1433/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&TrustServerCertificate=yes'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/cache@v4
@@ -281,7 +281,7 @@ jobs:
             port: 5432
             health_cmd: pg_isready
           - db: mssql
-            database_url: 'mssql://SA:MyPassword42@127.0.0.1:13306/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server'
+            database_url: 'mssql://SA:MyPassword42@127.0.0.1:13306/essarch?CONN_MAX_AGE=100&CONN_HEALTH_CHECKS=True&isolation_level=read committed&driver=ODBC Driver 18 for SQL Server&TrustServerCertificate=yes'
             image: mcr.microsoft.com/mssql/server:2019-latest
             port: 1433
             health_cmd: true
