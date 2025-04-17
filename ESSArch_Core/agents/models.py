@@ -135,12 +135,20 @@ class Agent(models.Model):
 
     @transaction.atomic
     def change_organization(self, organization, change_related_ips=False, change_related_archives=False, force=False):
-        current_organization = self.get_organization().group
+        try:
+            current_organization = self.get_organization().group
+        except self.DoesNotExist:
+            current_organization = None
+        except AgentGroupObjects.DoesNotExist:
+            current_organization = None
 
         if change_related_archives:
             from ESSArch_Core.tags.models import TagVersion
             group_objs_model = get_group_objs_model(TagVersion)
             tv_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+            for tv_obj in self.tags.all():
+                if tv_obj not in tv_obj_list:
+                    tv_obj_list.append(tv_obj)
             for tv_obj in tv_obj_list:
                 tv_obj.change_organization(organization, force=force)
 

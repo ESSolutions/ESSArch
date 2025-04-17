@@ -26,6 +26,7 @@ import copy
 import importlib
 import itertools
 import logging
+import time
 import uuid
 from urllib.parse import urljoin
 
@@ -776,10 +777,17 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.info('Revoke task ({})'.format(self.pk))
+        if self.information_package:
+            logger.info('Revoke task ({}) for ip {}'.format(self.pk, self.information_package))
+        else:
+            logger.info('Revoke task ({})'.format(self.pk))
         current_app.control.revoke(str(self.celery_id), terminate=True)
         self.status = celery_states.REVOKED
         self.save()
+        time.sleep(5)
+        if self.information_package and self.information_package.is_locked():
+            self.information_package.clear_lock()
+            logger.info('When task ({}) revoked, unlocked ip {}'.format(self.pk, self.information_package))
 
     def retry(self):
         """

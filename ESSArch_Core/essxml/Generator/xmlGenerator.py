@@ -710,6 +710,8 @@ class XMLGenerator:
         logger = logging.getLogger('essarch.essxml.generator')
         self.toCreate = []
         for fname, content in filesToCreate.items():
+            if os.path.isfile(fname):
+                os.remove(fname)
             self.toCreate.append({
                 'file': fname,
                 'template': content['spec'],

@@ -126,7 +126,9 @@ def get_redis_info(full=False):
 def get_rabbitmq_info(full=False):
     logger = logging.getLogger('essarch.configuration')
     try:
-        props = current_app.connection(transport_options={'max_retries': 5}).connection.server_properties
+        kombu_connection = current_app.connection(transport_options={'max_retries': 5})
+        props = kombu_connection.connection.server_properties
+        kombu_connection.release()
         if full:
             return props
         return {'version': props['version']}

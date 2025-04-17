@@ -510,7 +510,7 @@ def Validate(self, backend, path=None, context=None, include=None,
 
 
 @app.task(bind=True)
-def PreserveInformationPackage(self, storage_method_pk):
+def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
     ip = self.get_information_package()
     policy = ip.policy
 
@@ -533,13 +533,16 @@ def PreserveInformationPackage(self, storage_method_pk):
 
     if storage_method.containers or storage_target.remote_server:
         src = [
-            ip.get_temp_container_path(),
-            ip.get_temp_container_xml_path(),
+            ip.get_temp_container_path(temp_path),
+            ip.get_temp_container_xml_path(temp_path),
         ]
         if ip.profile_locked('aic_description'):
-            src.append(ip.get_temp_container_aic_xml_path())
+            src.append(ip.get_temp_container_aic_xml_path(temp_path))
     else:
-        src = [ip.object_path]
+        if temp_path:
+            src = [ip.get_temp_object_path(temp_path)]
+        else:
+            src = [ip.object_path]
 
     storage_object_pk, medium_id, write_size, mb_per_sec, time_elapsed = ip.preserve(
         src, storage_target, storage_method.containers, self.get_processtask())
