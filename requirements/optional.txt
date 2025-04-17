@@ -1,8 +1,8 @@
 django-auth-ldap==4.8.0
 django-auto-logout==0.5.1
 django-axes==6.5.2
-pysaml2==7.5.0
-djangosaml2==1.9.4
+pysaml2==7.5.2
+djangosaml2==1.10.1
 unoconv==0.9.0
 comtypes==1.4.10 ; platform_system=='Windows'
 wfastcgi==3.0.0
