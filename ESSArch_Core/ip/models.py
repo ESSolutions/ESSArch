@@ -883,14 +883,18 @@ class InformationPackage(models.Model):
             if os.path.isfile(self.sip_path):
                 sip_mets_data = parse_mets(
                     open_file(
-                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file), 'rb',
                         container=self.sip_path,
                         container_prefix=self.object_identifier_value,
                     )
                 )
             else:
                 try:
-                    sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+                    sip_mets_data = parse_mets(
+                        open_file(
+                            os.path.join(self.object_path, sip_mets_dir, sip_mets_file), 'rb',
+                        )
+                    )
                 except FileNotFoundError:
                     sip_mets_data = {}
                     pass
@@ -1989,8 +1993,8 @@ class InformationPackage(models.Model):
         logger = logging.getLogger('essarch.ip')
         container_methods = self.policy.storage_methods.secure_storage().filter(
             remote=False, pk__in=storage_methods)
-        # non_container_methods = self.policy.storage_methods.archival_storage().filter(
-        #     remote=False, pk__in=storage_methods)
+        non_container_methods = self.policy.storage_methods.archival_storage().filter(
+            remote=False, pk__in=storage_methods)
         # remote_methods = self.policy.storage_methods.filter(
         #     remote=True, pk__in=storage_methods)
 
@@ -2000,7 +2004,7 @@ class InformationPackage(models.Model):
 
         migration_receipt = 'api_ip_migrated' in AVAILABLE_RECEIPT_BACKENDS.keys()
 
-        if tar:
+        if container_methods.exists() or tar:
             try:
                 storage_object = self.storage.readable().secure_storage().fastest()[0]
             except IndexError:
@@ -2036,7 +2040,7 @@ class InformationPackage(models.Model):
         #     except StorageTarget.DoesNotExist:
         #         pass
 
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
+        temp_path = temp_path if temp_path else Path.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path(temp_path)  # dir_path
         temp_container_path = self.get_temp_container_path(temp_path)  # container_path
         temp_mets_path = self.get_temp_container_xml_path(temp_path)  # aip_xml_path
@@ -2092,7 +2096,7 @@ class InformationPackage(models.Model):
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": str(storage_object.pk),
-                        'dst': temp_dir
+                        'dst': temp_path
                     },
                 },
                 {
@@ -2313,7 +2317,7 @@ class InformationPackage(models.Model):
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': temp_dir
+                            'dst': temp_path
                         },
                     },
                     {
@@ -2400,43 +2404,85 @@ class InformationPackage(models.Model):
                     },
                     {
                         "step": True,
+                        "name": "Write to storage methods",
                         "parallel": True,
-                        "name": "Write containers to storage methods",
                         "children": [
                             {
                                 "step": True,
-                                "parallel": True,
-                                "name": "Write local containers",
+                                "name": "Write non-containers",
+                                "if": non_container_methods.exists(),
                                 "children": [
                                     {
-                                        "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                        "label": "Write to storage method ({})".format(method.name),
+                                        "name": "ESSArch_Core.tasks.ExtractTAR",
+                                        "label": "Extract temporary container to temporary path",
                                         "queue": worker_queue,
-                                        "args": [str(method.pk)],
-                                    } for method in container_methods
+                                        "args": [
+                                            temp_container_path,
+                                            temp_path,
+                                        ],
+                                    },
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write non-containers to storage methods",
+                                        "if": non_container_methods.exists(),
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in non_container_methods
+                                        ]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary object",
+                                        "queue": worker_queue,
+                                        "args": [temp_object_path]
+                                    },
                                 ],
                             },
-                            # remote_containers_step,
+                            {
+                                "step": True,
+                                "parallel": True,
+                                "name": "Write containers to storage methods",
+                                "children": [
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write local containers",
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "queue": worker_queue,
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in container_methods
+                                        ],
+                                    },
+                                    # remote_containers_step,
+                                ],
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary container",
+                                "queue": worker_queue,
+                                "args": [temp_container_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIP xml",
+                                "queue": worker_queue,
+                                "args": [temp_mets_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIC xml",
+                                "queue": worker_queue,
+                                "if": temp_aic_mets_path,
+                                "args": [temp_aic_mets_path]
+                            },
                         ],
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary container",
-                        "queue": worker_queue,
-                        "args": [temp_container_path]
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary AIP xml",
-                        "queue": worker_queue,
-                        "args": [temp_mets_path]
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary AIC xml",
-                        "queue": worker_queue,
-                        "if": temp_aic_mets_path,
-                        "args": [temp_aic_mets_path]
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.CreateReceipt",
@@ -2683,7 +2729,7 @@ class InformationPackage(models.Model):
         logger = logging.getLogger('essarch.ip')
         qs = StorageMedium.objects.filter(
             storage_target__methods__containers=container,
-        ).writeable().order_by('last_changed_local')
+        ).writeable().natural_sort()
 
         write_size = 0
         for s in src:

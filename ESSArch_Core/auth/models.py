@@ -126,8 +126,7 @@ class GroupObjectsManager(models.Manager):
                     # message_info = 'GroupObjects for {} {} does not exists for organization: {}'.format(
                     #                                           obj._meta.model_name, obj, organization)
                     # logger.warning(message_info)
-                    if force:
-                        self.model.objects.create(content_object=obj, group=organization)
+                    self.model.objects.create(content_object=obj, group=organization)
                 except MultipleObjectsReturned as e:
                     go_objs = self.get_organization(obj, list=True)
                     group_list = [x.group for x in go_objs]
