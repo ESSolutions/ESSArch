@@ -43,7 +43,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import models, transaction
+from django.db import OperationalError, models, transaction
 from django.db.models import (
     Avg,
     CharField,
@@ -74,6 +74,7 @@ from tenacity import (
     retry_if_exception_type,
     stop_after_attempt,
     wait_fixed,
+    wait_random_exponential,
 )
 
 from ESSArch_Core.auth.models import GroupObjectsBase, Member
@@ -141,6 +142,10 @@ class AgentManager(models.Manager):
     def get_queryset(self):
         return AgentQuerySet(self.model, using=self._db)
 
+    @retry(retry=retry_if_exception_type(OperationalError), reraise=True,
+           wait=wait_random_exponential(multiplier=1, max=60),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.DEBUG))
+    @transaction.atomic
     def from_mets_element(self, el):
         other_role = el.get("ROLE") == 'OTHER'
         other_type = el.get("TYPE") == 'OTHER'
@@ -149,8 +154,11 @@ class AgentManager(models.Manager):
         name = el.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in el.xpath('*[local-name()="note"]')]
 
+        logger = logging.getLogger('essarch')
+        logger.debug('try to add agent: {}, agent_typ: {}, agent_role: {}'.format(name, agent_type, agent_role))
+
         existing_agents_with_notes = self.model.objects.all().with_notes(notes)
-        agent, created = self.model.objects.get_or_create(
+        agent, created = self.model.objects.select_for_update().get_or_create(
             role=agent_role,
             type=agent_type,
             name=name,
@@ -581,7 +589,6 @@ class InformationPackage(models.Model):
 
         return created
 
-    @transaction.atomic
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
 
@@ -602,9 +609,9 @@ class InformationPackage(models.Model):
             self.save()
 
         new_aip = deepcopy(self)
-        new_aip.pk = None
+        new_aip.pk = uuid.uuid4()
         new_aip.active = True
-        new_aip.object_identifier_value = None
+        new_aip.object_identifier_value = new_aip.pk
         new_aip.create_date = timezone.now()
         new_aip.state = state
         new_aip.cached = False
@@ -612,16 +619,13 @@ class InformationPackage(models.Model):
         new_aip.object_path = ''
         new_aip.responsible = responsible
 
-        with transaction.atomic():
-            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(
-                Max('generation')
-            )['generation__max']
-            new_aip.generation = max_generation + 1
-            new_aip.save()
-
+        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(
+            Max('generation')
+        )['generation__max']
+        new_aip.generation = max_generation + 1
         new_aip.object_identifier_value = object_identifier_value or str(new_aip.pk)
         new_aip.package_mets_path = '{}.xml'.format(new_aip.object_identifier_value)
-        new_aip.save(update_fields=['object_identifier_value', 'package_mets_path'])
+        new_aip.save()
 
         for profile_ip in self.profileip_set.all():
             new_profile_ip = deepcopy(profile_ip)

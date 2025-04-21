@@ -34,7 +34,7 @@ const contentTabs = ($rootScope) => {
       preserve: ['Created'],
     },
     'home.workarea': {
-      workarea: ['Ingest Workarea', 'Access Workarea'],
+      workarea: ['Ingest Workspace', 'Ingest Workarea', 'Access Workarea'],
     },
     'home.access.accessIp': {
       access_ip: ['Preserved'],

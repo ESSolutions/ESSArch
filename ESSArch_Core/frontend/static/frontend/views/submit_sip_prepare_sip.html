@@ -8,7 +8,7 @@
     >
       <uib-tab
         index="'submit_sip'"
-        ng-if="(ip !== null && ip.state === 'Created') || ip.state === 'Submitted' || (ips.length > 0 && vm.allIncludedWithState(ips, 'Created'))"
+        ng-if="(ip !== null && ip.state === 'Created') || (ips.length > 0 && vm.allIncludedWithState(ips, 'Created'))"
         heading="{{'SUBMIT_DELIVERY' | translate}}"
       >
         <div ng-if="vm.activeTab === 'submit_sip'">
@@ -18,39 +18,45 @@
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
           >
-            <div ng-if="ip !== null && ips.length == 0" id="edit-veiw">
-              <profile-editor
-                disabled="true"
-                ng-if="ip.state == 'Created' || ip.state == 'Submitted'"
-                ip="ip"
-                types="{transfer_project: {disabled: false}, submit_description: {disabled: false}}"
-              ></profile-editor>
-              <div class="wrap-view">
-                <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
-                <br />
-                <div class="table-container table-x-overflow">
-                  <table st-table="fileListRowCollection" st-safe-src="fileListCollection" class="table table-striped">
-                    <thead>
-                      <tr>
-                        <th class="clickable" st-sort="filename">{{'FILENAME' | translate}}</th>
-                        <th class="clickable" st-sort="created">{{'CREATED' | translate}}</th>
-                        <th class="clickable" st-sort="size">{{'SIZE' | translate}}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr ng-repeat="row in fileListRowCollection">
-                        <td>{{row.filename}}</td>
-                        <td>{{row.created | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-                        <td>{{row.size | filesize}}</td>
-                      </tr>
-                      <tr ng-if="!fileListRowCollection.length && !vm.fileListLoading" class="empty-table-indicator">
-                        <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
-                      </tr>
-                      <tr ng-if="!fileListRowCollection.length && vm.fileListLoading" class="empty-table-indicator">
-                        <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <div ng-if="ip !== null || ips.length > 0">
+              <div ng-if="ip !== null && ips.length == 0" id="edit-veiw">
+                <profile-editor
+                  disabled="true"
+                  ng-if="ip.state == 'Created' || ip.state == 'Submitted'"
+                  ip="ip"
+                  types="{transfer_project: {disabled: false}, submit_description: {disabled: false}}"
+                ></profile-editor>
+                <div class="wrap-view">
+                  <div ng-include src="'static/frontend/views/validator_choices.html'"></div>
+                  <br />
+                  <div class="table-container table-x-overflow">
+                    <table
+                      st-table="fileListRowCollection"
+                      st-safe-src="fileListCollection"
+                      class="table table-striped"
+                    >
+                      <thead>
+                        <tr>
+                          <th class="clickable" st-sort="filename">{{'FILENAME' | translate}}</th>
+                          <th class="clickable" st-sort="created">{{'CREATED' | translate}}</th>
+                          <th class="clickable" st-sort="size">{{'SIZE' | translate}}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr ng-repeat="row in fileListRowCollection">
+                          <td>{{row.filename}}</td>
+                          <td>{{row.created | date:"yyyy-MM-dd HH:mm:ss"}}</td>
+                          <td>{{row.size | filesize}}</td>
+                        </tr>
+                        <tr ng-if="!fileListRowCollection.length && !vm.fileListLoading" class="empty-table-indicator">
+                          <td colspan="3">{{'NO_RESULTS_FOUND' | translate}}</td>
+                        </tr>
+                        <tr ng-if="!fileListRowCollection.length && vm.fileListLoading" class="empty-table-indicator">
+                          <td class="loading-column" colspan="3">{{'LOADING' | translate}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 

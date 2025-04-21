@@ -144,21 +144,22 @@ class DBTask(Task):
                             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
                         except InformationPackage.DoesNotExist as e:
                             self.logger.warning(
-                                'exception in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
-- retry'.format(self.task_id, self.step, self.ip))
+                                'Exception in _run for task: {} ({}), step_id: {}, DoesNotExist when get ip: {} \
+- retry'.format(self.name, self.task_id, self.step, self.ip))
                             raise e
             except RetryError:
-                self.logger.warning('RetryError in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
-- try to _run_task without IP'.format(self.task_id, self.step, self.ip))
+                self.logger.warning('RetryError in _run for task: {} ({}), step_id: {}, \
+DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, self.task_id, self.step, self.ip))
                 return self._run_task(*args, **kwargs)
             self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
             try:
                 if ip.is_locked():
                     self.logger.warning(
-                        'IP: {} is already locked when task_id: {} try to acquire lock'.format(ip, self.task_id))
+                        'IP: {} is already locked when task: {} ({}) try to acquire lock'.format(
+                            ip, self.name, self.task_id))
                 with cache.lock(ip.get_lock_key(), blocking_timeout=300):
-                    self.logger.info('task_id: {} acquired lock for IP {}'.format(self.task_id, str(ip)))
+                    self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(self.name, self.task_id, ip))
                     try:
                         for attempt in Retrying(stop=stop_after_delay(30),
                                                 wait=wait_random_exponential(multiplier=1, max=60)):
@@ -167,12 +168,12 @@ class DBTask(Task):
                                     t = self.get_processtask()
                                 except ProcessTask.DoesNotExist:
                                     self.logger.warning(
-                                        'exception in _run for task_id: {}, step_id: {}, ip: {}, DoesNotExist when \
-get ProcessTask - retry'.format(self.task_id, self.step, self.ip))
+                                        'Exception in _run for task: {} ({}), step_id: {}, ip: {}, DoesNotExist when \
+get ProcessTask - retry'.format(self.name, self.task_id, self.step, self.ip))
                                     raise
                     except RetryError:
-                        self.logger.warning('RetryError in _run for task_id: {}, step_id: {}, ip: {}, DoesNotExist \
-when get ProcessTask'.format(self.task_id, self.step, self.ip))
+                        self.logger.warning('RetryError in _run for task: {} ({}), step_id: {}, ip: {}, DoesNotExist \
+when get ProcessTask'.format(self.name, self.task_id, self.step, self.ip))
                         raise
 
                     if t.run_if and not self.parse_params(t.run_if)[0]:
@@ -183,7 +184,8 @@ when get ProcessTask'.format(self.task_id, self.step, self.ip))
                         r = self._run_task(*args, **kwargs)
                 self.logger.info('{} released lock for IP: {}'.format(self.task_id, str(ip)))
             except LockNotOwnedError:
-                self.logger.warning('task_id: {} LockNotOwnedError for IP: {}'.format(self.task_id, str(ip)))
+                self.logger.warning('Task: {} ({}) LockNotOwnedError for IP: {}'.format(
+                    self.name, self.task_id, str(ip)))
                 r = None
             return r
 
@@ -196,8 +198,8 @@ when get ProcessTask'.format(self.task_id, self.step, self.ip))
                 for ancestor in step.get_ancestors(include_self=True):
                     self.extra_data.update(ancestor.context)
             except ProcessStep.DoesNotExist:
-                self.logger.warning('exception in _run_task for task_id: {}, step_id: {}, DoesNotExist when get \
-step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
+                self.logger.warning('Exception in _run_task for task: {} ({}), step_id: {}, DoesNotExist when get \
+step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
 
         try:
             if self.eager:

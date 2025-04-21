@@ -13,9 +13,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>{{$ctrl.ip.object_identifier_value}}</td>
-          <td>{{$ctrl.ip.label}}</td>
+        <tr ng-repeat="ip in $ctrl.data.ips">
+          <td>{{ip.object_identifier_value}}</td>
+          <td>{{ip.label}}</td>
         </tr>
       </tbody>
     </table>
