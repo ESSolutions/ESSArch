@@ -33,7 +33,8 @@ export default class ModalInstanceCtrl {
     appConfig,
     listViewService,
     $translate,
-    $rootScope
+    $rootScope,
+    $q
   ) {
     const $ctrl = this;
     if (data) {
@@ -44,6 +45,11 @@ export default class ModalInstanceCtrl {
     }
     if (data && data.field) {
       $ctrl.field = data.field;
+    }
+    if ($ctrl.data !== undefined) {
+      if ($ctrl.data.hasOwnProperty('ips') && $ctrl.data.ips == null) {
+        $ctrl.data.ips = [$ctrl.data.ip];
+      }
     }
 
     $rootScope.$on('CLOSE_QUESTIONMARK_MODAL', () => {
@@ -125,11 +131,26 @@ export default class ModalInstanceCtrl {
         });
     };
 
-    $ctrl.createDip = (ip) => {
+    // Create DIP
+    $ctrl.createDip = function () {
       $ctrl.creating = true;
-      listViewService.createDip(ip, $ctrl.data.validators).then(function (response) {
+      const promises = [];
+      $ctrl.data.ips.forEach(function (ip) {
+        promises.push(
+          listViewService
+            .createDip(ip, $ctrl.data.validators)
+            .then(function (response) {
+              $ctrl.creating = false;
+              $uibModalInstance.close();
+            })
+            .catch(function (response) {
+              return response;
+            })
+        );
+      });
+      $q.all(promises).then(function (responses) {
         $ctrl.creating = false;
-        $uibModalInstance.close(response.data);
+        $uibModalInstance.close();
       });
     };
 

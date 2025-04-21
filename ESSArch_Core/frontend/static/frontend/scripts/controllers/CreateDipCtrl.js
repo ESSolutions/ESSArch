@@ -267,6 +267,7 @@ export default class CreateDipCtrl {
     };
 
     vm.createDipModal = (ip) => {
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -276,6 +277,7 @@ export default class CreateDipCtrl {
           data: function () {
             return {
               ip: ip,
+              ips: ips,
               validators: vm.validatorModel,
             };
           },

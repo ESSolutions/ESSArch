@@ -686,6 +686,7 @@ export default angular
     'listViewService',
     '$translate',
     '$rootScope',
+    '$q',
     ModalInstanceCtrl,
   ])
   .controller('NodeAccessAidModalInstanceCtrl', [

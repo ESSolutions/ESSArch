@@ -68,7 +68,6 @@ from ESSArch_Core.auth.models import Member
 # from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
-from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -776,7 +775,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response({"detail": "Prepared IP"}, status=status.HTTP_201_CREATED)
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @permission_required_or_403('ip.prepare_ip')
     @action(detail=True, methods=['post'], url_path='prepare')
@@ -804,7 +802,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
+        for profile_ip in ProfileIP.objects.select_for_update().filter(ip=ip).iterator(chunk_size=1000):
             try:
                 profile_ip.clean()
             except ValidationError as e:
@@ -1079,7 +1077,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response()
 
-    @lock_obj(blocking_timeout=0.1)
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create', permission_classes=[CanCreateSIP])
     def create_ip(self, request, pk=None):
         """
@@ -1229,15 +1227,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 "args": ["Created"],
             },
         ]
-        with transaction.atomic():
-            workflow = create_workflow(workflow_spec, ip)
-            workflow.name = "Create SIP"
-            workflow.information_package = ip
-            workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Create SIP")
         workflow.run()
         return Response({'status': 'creating ip'})
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='submit', permission_classes=[CanSubmitSIP])
     def submit(self, request, pk=None):
@@ -1321,10 +1314,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 }
             },
         ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Submit SIP"
-        workflow.information_package = ip
-        workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Submit SIP")
         workflow.run()
         return Response({'status': 'submitting ip'})
 
@@ -1886,6 +1876,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workflow.run()
         return Response({'detail': gettext('Accessing {ip}...').format(ip=ip), 'step': workflow.pk})
 
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
         dip = InformationPackage.objects.get(pk=pk)
@@ -2021,14 +2012,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             },
         ]
 
-        with transaction.atomic():
-            dip.state = 'Creating'
-            dip.save()
-
-            workflow = create_workflow(workflow_spec, dip)
-            workflow.name = "Create DIP"
-            workflow.information_package = dip
-            workflow.save()
+        dip.state = 'Creating'
+        dip.save()
+        workflow = create_workflow(workflow_spec, dip, name="Create DIP")
         workflow.run()
         return Response({'status': 'creating dip'})
 
@@ -2829,7 +2815,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             )
             return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @method_decorator(feature_enabled_or_404('transfer'))
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
@@ -2961,10 +2946,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     "args": ["Transferred"],
                 },
             ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Transfer IP"
-        workflow.information_package = ip
-        workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Transfer IP")
         workflow.run()
         return Response({'status': 'transferring ip'})
 
