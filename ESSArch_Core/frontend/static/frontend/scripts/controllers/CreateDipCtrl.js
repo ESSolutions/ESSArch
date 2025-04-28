@@ -79,7 +79,7 @@ export default class CreateDipCtrl {
     $scope.menuOptions = function (rowType, row) {
       return [
         ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(row);
+          vm.changeOrganizationModal(rowType, row);
         }),
       ];
     };

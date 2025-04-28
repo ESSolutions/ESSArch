@@ -51,7 +51,7 @@ export default class WorkareaCtrl {
     $scope.menuOptions = function (rowType, row) {
       return [
         ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(row);
+          vm.changeOrganizationModal(rowType, row);
         }),
       ];
     };

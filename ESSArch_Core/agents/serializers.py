@@ -216,12 +216,17 @@ class AgentTypeSerializer(serializers.ModelSerializer):
 
 
 class RelatedAgentSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     names = AgentNameSerializer(many=True)
     type = AgentTypeSerializer()
 
+    def get_name(self, obj):
+        serializer = AgentNameSerializer(instance=obj.get_name())
+        return serializer.data
+
     class Meta:
         model = Agent
-        fields = ('id', 'names', 'type', 'start_date', 'end_date',)
+        fields = ('id', 'name', 'names', 'type', 'start_date', 'end_date',)
 
 
 class AgentRelationTypeMirroredSerializer(serializers.ModelSerializer):
@@ -254,6 +259,7 @@ class AgentRelationWriteSerializer(AgentRelationSerializer):
 
 class AgentSerializer(serializers.ModelSerializer):
     identifiers = AgentIdentifierSerializer(many=True, required=False)
+    name = serializers.SerializerMethodField()
     names = AgentNameSerializer(many=True, required=False)
     notes = AgentNoteSerializer(many=True, required=False)
     places = AgentPlaceSerializer(source='agentplace_set', many=True, required=False)
@@ -262,6 +268,10 @@ class AgentSerializer(serializers.ModelSerializer):
     related_agents = AgentRelationSerializer(source='agent_relations_a', many=True, required=False)
     ref_code = RefCodeSerializer()
     organization = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        serializer = AgentNameSerializer(instance=obj.get_name())
+        return serializer.data
 
     def get_organization(self, obj):
         try:
@@ -276,6 +286,7 @@ class AgentSerializer(serializers.ModelSerializer):
         model = Agent
         fields = (
             'id',
+            'name',
             'names',
             'notes',
             'type',

@@ -240,8 +240,8 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
     class Meta:
         model = ProcessStepSerializer.Meta.model
         fields = ProcessStepSerializer.Meta.fields + (
-            'task_count', 'failed_task_count', 'exception', 'traceback'
+            'celery_id', 'task_count', 'failed_task_count', 'exception', 'traceback'
         )
         read_only_fields = ProcessStepSerializer.Meta.read_only_fields + (
-            'task_count', 'failed_task_count', 'exception', 'traceback'
+            'celery_id', 'task_count', 'failed_task_count', 'exception', 'traceback'
         )

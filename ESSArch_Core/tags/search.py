@@ -932,6 +932,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         tag.set_as_current_version()
         return Response()
 
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='change-organization')
     def change_organization(self, request, pk=None):
         tag = self.get_tag_object(qs=TagVersion.objects.filter(elastic_index='archive'))
@@ -939,7 +940,25 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         organization = serializer.validated_data['organization']
-        tag.change_organization(organization)
+        force = serializer.validated_data['force']
+        change_related_StructureUnits = serializer.validated_data['change_related_StructureUnits']
+        change_related_StructureUnits_force = serializer.validated_data['change_related_StructureUnits_force']
+        change_related_Nodes = serializer.validated_data['change_related_Nodes']
+        change_related_Nodes_force = serializer.validated_data['change_related_Nodes_force']
+        change_related_IPs = serializer.validated_data['change_related_IPs']
+        change_related_IPs_force = serializer.validated_data['change_related_IPs_force']
+        change_related_AIDs = serializer.validated_data['change_related_AIDs']
+        change_related_AIDs_force = serializer.validated_data['change_related_AIDs_force']
+
+        tag.change_organization(organization, force=force,
+                                change_related_StructureUnits=change_related_StructureUnits,
+                                change_related_StructureUnits_force=change_related_StructureUnits_force,
+                                change_related_Nodes=change_related_Nodes,
+                                change_related_Nodes_force=change_related_Nodes_force,
+                                change_related_IPs=change_related_IPs,
+                                change_related_IPs_force=change_related_IPs_force,
+                                change_related_AIDs=change_related_AIDs,
+                                change_related_AIDs_force=change_related_AIDs_force)
 
         return Response()
 

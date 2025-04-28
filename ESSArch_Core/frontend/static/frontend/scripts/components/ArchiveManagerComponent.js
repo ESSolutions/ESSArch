@@ -13,6 +13,7 @@ export default {
     'myService',
     'listViewService',
     '$translate',
+    'ContextMenuBase',
     '$transitions',
     ArchiveManagerCtrl,
   ],

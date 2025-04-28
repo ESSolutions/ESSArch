@@ -9,7 +9,7 @@ export default class DeliveryModalInstanceCtrl {
           $ctrl.delivery = angular.copy(data.delivery);
           $ctrl.delivery.type = angular.copy(data.delivery.type.id);
           if ($ctrl.delivery.producer_organization) {
-            $ctrl.delivery.producer_organization.full_name = AgentName.getAuthorizedName(
+            $ctrl.delivery.producer_organization.full_name = AgentName.parseAgentName(
               angular.copy($ctrl.delivery.producer_organization)
             ).full_name;
           }
@@ -39,7 +39,7 @@ export default class DeliveryModalInstanceCtrl {
         params: {page: 1, page_size: 10, search: search},
       }).then(function (response) {
         response.data.forEach(function (agent) {
-          AgentName.parseAgentNames(agent);
+          AgentName.parseAgentName(agent);
         });
         $ctrl.options.agents = response.data;
         return $ctrl.options.agents;

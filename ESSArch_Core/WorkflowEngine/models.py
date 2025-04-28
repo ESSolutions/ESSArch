@@ -247,6 +247,7 @@ class ProcessStep(MPTTModel, Process):
             y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
                 x, self, link_error=on_error_group) for x in result_list
             ) if not hasattr(y, 'tasks') or len(y.tasks))
+        logger.debug('workflow: {} and link_error: {}'.format(workflow, on_error_group))
 
         if direct:
             logger.info('Celery workflow created')

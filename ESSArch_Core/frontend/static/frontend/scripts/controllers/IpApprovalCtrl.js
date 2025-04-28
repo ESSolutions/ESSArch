@@ -28,7 +28,7 @@ export default class IpApprovalCtrl {
       });
       methods.push(
         ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(row);
+          vm.changeOrganizationModal(rowType, row);
         })
       );
       return methods;
