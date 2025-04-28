@@ -36,7 +36,7 @@
   <div ng-if="vm.getArchiveCreator(vm.record) !== null">
     <label for="creator">{{'ACCESS.ARCHIVE_CREATOR' | translate}}:&nbsp;</label>
     <a id="creator" ui-sref="home.archivalDescriptions.archiveCreators({id: vm.getArchiveCreator(vm.record).id})">
-      {{vm.getArchiveCreator(vm.record).auth_name}}
+      {{vm.getArchiveCreator(vm.record).full_name}}
     </a>
   </div>
   <div ng-if="vm.record.reference_code && vm.record.reference_code !== ''">

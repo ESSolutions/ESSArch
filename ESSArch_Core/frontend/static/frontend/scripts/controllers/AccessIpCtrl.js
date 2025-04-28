@@ -31,7 +31,7 @@ export default class AccessIpCtrl {
       });
       methods.push(
         ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(row);
+          vm.changeOrganizationModal(rowType, row);
         })
       );
 

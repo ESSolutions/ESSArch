@@ -12,6 +12,7 @@ export default class AgentCtrl {
     $rootScope,
     $translate,
     listViewService,
+    ContextMenuBase,
     $transitions
   ) {
     const vm = this;
@@ -57,6 +58,43 @@ export default class AgentCtrl {
       topography: {
         open: true,
       },
+    };
+
+    $scope.menuOptions = function (rowType, row) {
+      const methods = [];
+      methods.push(
+        ContextMenuBase.changeOrganization(function () {
+          vm.changeOrganizationModal(rowType, row);
+        })
+      );
+      return methods;
+    };
+
+    vm.changeOrganizationModal = function (itemType, item) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/modals/change_organization_modal.html',
+        controller: 'OrganizationModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: function () {
+            return {
+              itemType: itemType,
+              item: item,
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function (data) {
+          vm.agentPipe($scope.tableState);
+        })
+        .catch(function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
     };
 
     let watchers = [];
@@ -106,8 +144,7 @@ export default class AgentCtrl {
         vm.initAccordion();
         vm.sortNotes(response.data);
         vm.sortNames(response.data);
-        AgentName.parseAgentNames(response.data);
-        response.data.auth_name = AgentName.getAuthorizedName(response.data);
+        vm.parseAgents([response.data]);
         vm.agent = response.data;
         vm.agentArchivePipe($scope.archiveTableState);
         return response.data;
@@ -232,8 +269,8 @@ export default class AgentCtrl {
 
     vm.parseAgents = function (list) {
       list.forEach(function (agent) {
-        AgentName.parseAgentNames(agent);
-        agent.auth_name = AgentName.getAuthorizedName(agent, {includeDates: false});
+        agent.auth_name = AgentName.parseAgentName(agent, {includeDates: false});
+        AgentName.parseAgentNames(agent, {includeDates: false});
       });
     };
 

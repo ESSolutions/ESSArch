@@ -63,7 +63,7 @@
             ng-class="{'selected': $ctrl.selectedAmongOthers(row.id)}"
             class="table-item selectable"
             ng-click="$ctrl.previewIpModal($ctrl.data.job, row, $event)"
-            context-menu="menuOptions('row', row)"
+            context-menu="menuOptions('ip', row)"
           >
             <td>
               <div ng-include src="'static/frontend/views/columns/column_object_identifier_value.html'"></div>

@@ -97,7 +97,7 @@ export default class ArchiveModalInstanceCtrl {
         params: {page: 1, page_size: 10, search: search},
       }).then(function (response) {
         response.data.forEach(function (agent) {
-          AgentName.parseAgentNames(agent);
+          AgentName.parseAgentName(agent);
         });
         $ctrl.options.agents = response.data;
         return $ctrl.options.agents;

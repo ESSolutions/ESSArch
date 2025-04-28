@@ -153,12 +153,30 @@ class AgentViewSet(viewsets.ModelViewSet):
 
         serializer = ChangeOrganizationSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
-        org = serializer.validated_data['organization']
-        change_related_ips = serializer.validated_data['change_related_ips']
-        change_related_archives = serializer.validated_data['change_related_archives']
+        organization = serializer.validated_data['organization']
+        force = serializer.validated_data['force']
+        change_related_Archives = serializer.validated_data['change_related_Archives']
+        change_related_Archives_force = serializer.validated_data['change_related_Archives_force']
+        change_related_StructureUnits = serializer.validated_data['change_related_StructureUnits']
+        change_related_StructureUnits_force = serializer.validated_data['change_related_StructureUnits_force']
+        change_related_Nodes = serializer.validated_data['change_related_Nodes']
+        change_related_Nodes_force = serializer.validated_data['change_related_Nodes_force']
+        change_related_IPs = serializer.validated_data['change_related_IPs']
+        change_related_IPs_force = serializer.validated_data['change_related_IPs_force']
+        change_related_AIDs = serializer.validated_data['change_related_AIDs']
+        change_related_AIDs_force = serializer.validated_data['change_related_AIDs_force']
 
-        agent.change_organization(org, change_related_ips=change_related_ips,
-                                  change_related_archives=change_related_archives)
+        agent.change_organization(organization, force=force,
+                                  change_related_Archives=change_related_Archives,
+                                  change_related_Archives_force=change_related_Archives_force,
+                                  change_related_StructureUnits=change_related_StructureUnits,
+                                  change_related_StructureUnits_force=change_related_StructureUnits_force,
+                                  change_related_Nodes=change_related_Nodes,
+                                  change_related_Nodes_force=change_related_Nodes_force,
+                                  change_related_IPs=change_related_IPs,
+                                  change_related_IPs_force=change_related_IPs_force,
+                                  change_related_AIDs=change_related_AIDs,
+                                  change_related_AIDs_force=change_related_AIDs_force)
         return Response()
 
 

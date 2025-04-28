@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 import elasticsearch
@@ -612,9 +613,44 @@ class MediumTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'size', 'unit',)
 
 
+class TagVersionAgentAuthoritySerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.get_name().main
+
+    def get_organization(self, obj):
+        try:
+            serializer = GroupSerializer(instance=obj.get_organization().group)
+            return serializer.data
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
+
+    class Meta:
+        model = Agent
+        fields = ('id', 'name', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
+
+
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
+    agent = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     name_with_dates = serializers.SerializerMethodField()
+
+    def get_agent(self, obj):
+        logger = logging.getLogger('essarch.tags')
+        try:
+            agent = obj.agents.get()
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            logger.warning('Multiple agents found for tag version {}'.format(obj))
+            agent = obj.agents.first()
+
+        serializer = TagVersionAgentAuthoritySerializer(instance=agent)
+        return serializer.data
 
     def get_organization(self, obj):
         try:
@@ -631,7 +667,7 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
         fields = ('id', 'elastic_index', 'name', 'name_with_dates', 'type', 'create_date', 'start_date',
-                  'end_date', 'organization')
+                  'end_date', 'organization', 'agent')
 
 
 class TagVersionWriteSerializer(serializers.ModelSerializer):
@@ -656,8 +692,13 @@ class TagVersionRelationSerializer(serializers.ModelSerializer):
 
 
 class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     names = AgentNameSerializer(many=True)
     organization = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        serializer = AgentNameSerializer(instance=obj.get_name())
+        return serializer.data
 
     def get_organization(self, obj):
         try:
@@ -670,7 +711,7 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agent
-        fields = ('id', 'names', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
+        fields = ('id', 'name', 'names', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
 
 
 class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):

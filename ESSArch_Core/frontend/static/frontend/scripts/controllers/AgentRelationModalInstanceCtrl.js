@@ -20,7 +20,7 @@ export default class AgentRelationModalInstanceCtrl {
         params: {page: 1, page_size: 10, search: search, excluded_ids: $ctrl.agent.id ? $ctrl.agent.id : ''},
       }).then(function (response) {
         response.data.forEach(function (agent) {
-          AgentName.parseAgentNames(agent);
+          AgentName.parseAgentName(agent);
         });
         $ctrl.options.agents = response.data;
         return $ctrl.options.agents;

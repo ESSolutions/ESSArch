@@ -1310,7 +1310,7 @@ export default class BaseCtrl {
       );
     };
 
-    vm.changeOrganizationModal = function (ip) {
+    vm.changeOrganizationModal = function (itemType, item) {
       const modalInstance = $uibModal.open({
         animation: true,
         ariaLabelledBy: 'modal-title',
@@ -1322,14 +1322,23 @@ export default class BaseCtrl {
         resolve: {
           data: function () {
             return {
-              ip: ip,
+              itemType: itemType,
+              item: item,
             };
           },
         },
       });
       modalInstance.result
         .then(function (data) {
-          $scope.getListViewData();
+          if (itemType === 'ip') {
+            $scope.getListViewData();
+          } else if (itemType === 'agent') {
+            vm.agentPipe($scope.tableState);
+          } else if (itemType === 'archive') {
+            vm.updateArchives();
+          } else {
+            $state.reload();
+          }
         })
         .catch(function () {
           $log.info('modal-component dismissed at: ' + new Date());

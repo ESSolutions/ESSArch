@@ -80,7 +80,7 @@ export default class ReceptionCtrl {
           ContextMenuBase.changeOrganization(function () {
             $scope.ip = row;
             $rootScope.ip = row;
-            vm.changeOrganizationModal($scope.ip);
+            vm.changeOrganizationModal(rowType, $scope.ip);
           })
         );
       }

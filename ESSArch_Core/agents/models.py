@@ -4,7 +4,6 @@ import uuid
 from countries_plus.models import Country
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models, transaction
-from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
@@ -134,39 +133,65 @@ class Agent(models.Model):
         return rel
 
     @transaction.atomic
-    def change_organization(self, organization, change_related_ips=False, change_related_archives=False, force=False):
-        try:
-            current_organization = self.get_organization().group
-        except self.DoesNotExist:
-            current_organization = None
-        except AgentGroupObjects.DoesNotExist:
-            current_organization = None
-
-        if change_related_archives:
-            from ESSArch_Core.tags.models import TagVersion
-            group_objs_model = get_group_objs_model(TagVersion)
-            tv_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            for tv_obj in self.tags.all():
-                if tv_obj not in tv_obj_list:
-                    tv_obj_list.append(tv_obj)
-            for tv_obj in tv_obj_list:
-                tv_obj.change_organization(organization, force=force)
-
-            from ESSArch_Core.access.models import AccessAid
-            group_objs_model = get_group_objs_model(AccessAid)
-            accessaid_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            for accessaid_obj in accessaid_obj_list:
-                accessaid_obj.change_organization(organization, force=force)
-
-        if change_related_ips:
-            from ESSArch_Core.ip.models import InformationPackage
-            group_objs_model = get_group_objs_model(InformationPackage)
-            ip_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
-            for ip_obj in ip_obj_list:
-                ip_obj.change_organization(organization, force=force)
+    def change_organization(self, organization, force=False,
+                            change_related_Archives=False, change_related_Archives_force=False,
+                            change_related_StructureUnits=False, change_related_StructureUnits_force=False,
+                            change_related_Nodes=False, change_related_Nodes_force=False,
+                            change_related_IPs=False, change_related_IPs_force=False,
+                            change_related_AIDs=False, change_related_AIDs_force=False):
 
         group_objs_model = get_group_objs_model(self)
         group_objs_model.objects.change_organization(self, organization, force=force)
+
+        if change_related_Archives:
+            from ESSArch_Core.tags.models import TagVersionType
+            tv_type_aip = TagVersionType.objects.get(name='AIP')
+            for tva_obj in self.tags.all():
+                tva_obj.change_organization(organization, force=change_related_Archives_force)
+                if change_related_StructureUnits:
+                    for ts_obj in tva_obj.get_structures().all():
+                        for su_obj in ts_obj.structure.units.all():
+                            su_obj.change_organization(organization, force=change_related_StructureUnits_force)
+                            for ts_obj in su_obj.tagstructure_set.all():
+                                tag_obj = ts_obj.tag
+                                if change_related_Nodes:
+                                    for tv_obj in tag_obj.versions.all():
+                                        tv_obj.change_organization(organization, force=change_related_Nodes_force)
+                                if (change_related_IPs and tag_obj.current_version.type == tv_type_aip and
+                                        tag_obj.information_package):
+                                    tag_obj.information_package.change_organization(
+                                        organization, force=change_related_IPs_force)
+                            if change_related_AIDs:
+                                for aid_obj in su_obj.access_aids.all():
+                                    aid_obj.change_organization(organization, force=change_related_AIDs_force)
+
+        # try:
+        #     current_organization = self.get_organization().group
+        # except self.DoesNotExist:
+        #     current_organization = None
+        # except AgentGroupObjects.DoesNotExist:
+        #     current_organization = None
+
+        # # Change_all_Archives_related to current_organization
+        # from ESSArch_Core.tags.models import TagVersion
+        # group_objs_model = get_group_objs_model(TagVersion)
+        # tv_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+        # for tv_obj in tv_obj_list:
+        #     tv_obj.change_organization(organization, force=force)
+
+        # # Change_all_AccessAids_related to current_organization
+        # from ESSArch_Core.access.models import AccessAid
+        # group_objs_model = get_group_objs_model(AccessAid)
+        # accessaid_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+        # for accessaid_obj in accessaid_obj_list:
+        #     accessaid_obj.change_organization(organization, force=force)
+
+        # # Change_all_IPs_related to current_organization
+        # from ESSArch_Core.ip.models import InformationPackage
+        # group_objs_model = get_group_objs_model(InformationPackage)
+        # ip_obj_list = group_objs_model.objects.get_objects_for_group(current_organization)
+        # for ip_obj in ip_obj_list:
+        #     ip_obj.change_organization(organization, force=force)
 
     def get_organization(self):
         logger = logging.getLogger('essarch')
@@ -183,8 +208,24 @@ with folowing groups: {}'.format(self, group_list)
 
         return go_obj
 
+    def get_name(self):
+        name_obj = self.names.filter(type__authority=True, start_date__isnull=False,
+                                     end_date__isnull=True).order_by('-start_date').first()
+        if name_obj is None:
+            name_obj = self.names.filter(type__authority=True, start_date__isnull=True, end_date__isnull=True).first()
+        if name_obj is None:
+            name_obj = self.names.filter(type__authority=True, start_date__isnull=False,
+                                         end_date__isnull=False).order_by('-start_date').first()
+        if name_obj is None:
+            name_obj = self.names.filter(start_date__isnull=False,
+                                         end_date__isnull=True).order_by('-start_date').first()
+        if name_obj is None:
+            name_obj = self.names.first()
+
+        return name_obj
+
     def __str__(self):
-        name = self.names.order_by(F('start_date').asc(nulls_last=True)).last()
+        name = self.get_name()
         if name is None:
             return super().__str__()
 
@@ -457,6 +498,9 @@ class AgentName(models.Model):
     start_date = models.DateField(_('start date'), null=True)
     end_date = models.DateField(_('end date'), null=True)
     certainty = models.BooleanField(_('certainty'), null=True)
+
+    def __str__(self):
+        return self.main
 
 
 class AgentNameType(models.Model):
