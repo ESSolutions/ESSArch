@@ -62,11 +62,13 @@ export default class AgentCtrl {
 
     $scope.menuOptions = function (rowType, row) {
       const methods = [];
-      methods.push(
-        ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(rowType, row);
-        })
-      );
+      if (myService.checkPermission('agents.change_organization')) {
+        methods.push(
+          ContextMenuBase.changeOrganization(function () {
+            vm.changeOrganizationModal(rowType, row);
+          })
+        );
+      }
       return methods;
     };
 

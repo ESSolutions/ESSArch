@@ -2914,6 +2914,7 @@ class InformationPackage(models.Model):
             ('submit_sip', 'Can submit SIP'),
             ('transfer_sip', 'Can transfer SIP'),
             ('change_sa', 'Can change SA connected to IP'),
+            ('change_organization', 'Can change organization for IP'),
             ('lock_sa', 'Can lock SA to IP'),
             ('unlock_profile', 'Can unlock profile connected to IP'),
             ('can_receive_remote_files', 'Can receive remote files'),

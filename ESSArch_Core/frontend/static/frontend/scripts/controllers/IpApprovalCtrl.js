@@ -26,11 +26,13 @@ export default class IpApprovalCtrl {
           vm.ipInformationModal(row);
         },
       });
-      methods.push(
-        ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(rowType, row);
-        })
-      );
+      if ($scope.checkPermission('ip.change_organization')) {
+        methods.push(
+          ContextMenuBase.changeOrganization(function () {
+            vm.changeOrganizationModal(rowType, row);
+          })
+        );
+      }
       return methods;
     };
   }

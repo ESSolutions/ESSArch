@@ -855,6 +855,7 @@ class Tag(models.Model):
             ('search', 'Can search'),
             ('create_archive', 'Can create new archives'),
             ('change_archive', 'Can change archives'),
+            ('change_organization', 'Can change organization for archives'),
             ('delete_archive', 'Can delete archives'),
             ('change_tag_location', 'Can change tag location'),
             ('security_level_0', 'Can see security level 0'),
@@ -1295,12 +1296,14 @@ class TagVersion(models.Model):
         group_objs_model = get_group_objs_model(self)
         group_objs_model.objects.change_organization(self, organization, force=force)
 
-        if change_related_StructureUnits:
+        if change_related_StructureUnits or change_related_Nodes or \
+                change_related_IPs or change_related_AIDs:
             from ESSArch_Core.tags.models import TagVersionType
             tv_type_aip = TagVersionType.objects.get(name='AIP')
             for ts_obj in self.get_structures().all():
                 for su_obj in ts_obj.structure.units.all():
-                    su_obj.change_organization(organization, force=change_related_StructureUnits_force)
+                    if change_related_StructureUnits:
+                        su_obj.change_organization(organization, force=change_related_StructureUnits_force)
                     for ts_obj in su_obj.tagstructure_set.all():
                         tag_obj = ts_obj.tag
                         if change_related_Nodes:

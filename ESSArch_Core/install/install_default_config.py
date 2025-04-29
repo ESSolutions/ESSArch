@@ -563,6 +563,7 @@ def installDefaultUsers():
         permission_list_user = [
             ['add_agent', 'agents', 'agent'],  # Can add agent
             ['change_agent', 'agents', 'agent'],  # Can change agent
+            ['change_organization', 'agents', 'agent'],  # Can change organization for agent
             ['delete_agent', 'agents', 'agent'],  # Can delete agent
             ['view_agent', 'agents', 'agent'],  # Can view agent
             ['add_agentfunction', 'agents', 'agentfunction'],  # Can add agent function
@@ -644,6 +645,8 @@ def installDefaultUsers():
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
+            ['change_informationpackage', 'ip', 'informationpackage'],  # Can change information package
+            ['change_organization', 'ip', 'informationpackage'],  # Can change organization for IP
             ['transfer_sip', 'ip', 'informationpackage'],  # Can transfer SIP
             ['change_sa', 'ip', 'informationpackage'],  # Can change SA connected to IP
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
@@ -745,6 +748,7 @@ def installDefaultUsers():
             ['search', 'tags', 'tag'],  # Can search
             ['create_archive', 'tags', 'tag'],  # Can create new archives
             ['change_archive', 'tags', 'tag'],  # Can change archives
+            ['change_organization', 'tags', 'tag'],  # Can change organization for archives
             ['delete_archive', 'tags', 'tag'],  # Can delete archives
             ['change_tag_location', 'tags', 'tag'],  # Can change tag location
             ['security_level_0', 'tags', 'tag'],  # Can see security level 0

@@ -143,15 +143,19 @@ class Agent(models.Model):
         group_objs_model = get_group_objs_model(self)
         group_objs_model.objects.change_organization(self, organization, force=force)
 
-        if change_related_Archives:
+        if change_related_Archives or change_related_StructureUnits or change_related_Nodes or \
+                change_related_IPs or change_related_AIDs:
             from ESSArch_Core.tags.models import TagVersionType
             tv_type_aip = TagVersionType.objects.get(name='AIP')
             for tva_obj in self.tags.all():
-                tva_obj.change_organization(organization, force=change_related_Archives_force)
-                if change_related_StructureUnits:
+                if change_related_Archives:
+                    tva_obj.change_organization(organization, force=change_related_Archives_force)
+                if change_related_StructureUnits or change_related_Nodes or \
+                        change_related_IPs or change_related_AIDs:
                     for ts_obj in tva_obj.get_structures().all():
                         for su_obj in ts_obj.structure.units.all():
-                            su_obj.change_organization(organization, force=change_related_StructureUnits_force)
+                            if change_related_StructureUnits:
+                                su_obj.change_organization(organization, force=change_related_StructureUnits_force)
                             for ts_obj in su_obj.tagstructure_set.all():
                                 tag_obj = ts_obj.tag
                                 if change_related_Nodes:
@@ -223,6 +227,11 @@ with folowing groups: {}'.format(self, group_list)
             name_obj = self.names.first()
 
         return name_obj
+
+    class Meta:
+        permissions = (
+            ('change_organization', 'Can change organization for agent'),
+        )
 
     def __str__(self):
         name = self.get_name()
