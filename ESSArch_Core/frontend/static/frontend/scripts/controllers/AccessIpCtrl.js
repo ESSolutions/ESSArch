@@ -29,12 +29,13 @@ export default class AccessIpCtrl {
           }
         },
       });
-      methods.push(
-        ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(rowType, row);
-        })
-      );
-
+      if ($scope.checkPermission('ip.change_organization')) {
+        methods.push(
+          ContextMenuBase.changeOrganization(function () {
+            vm.changeOrganizationModal(rowType, row);
+          })
+        );
+      }
       methods.push({
         text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
         click: function ($itemScope, $event, modelValue, text, $li) {

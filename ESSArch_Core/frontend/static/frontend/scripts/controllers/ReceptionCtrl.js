@@ -76,13 +76,15 @@ export default class ReceptionCtrl {
     $scope.menuOptions = function (rowType, row) {
       const methods = [];
       if (row.state === 'Prepared') {
-        methods.push(
-          ContextMenuBase.changeOrganization(function () {
-            $scope.ip = row;
-            $rootScope.ip = row;
-            vm.changeOrganizationModal(rowType, $scope.ip);
-          })
-        );
+        if ($scope.checkPermission('ip.change_organization')) {
+          methods.push(
+            ContextMenuBase.changeOrganization(function () {
+              $scope.ip = row;
+              $rootScope.ip = row;
+              vm.changeOrganizationModal(rowType, $scope.ip);
+            })
+          );
+        }
       }
       return methods;
     };

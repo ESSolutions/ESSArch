@@ -1,6 +1,6 @@
 asgiref==3.8.1
-boto3==1.37.35
-celery[tblib]==5.5.1
+boto3==1.38.4
+celery[tblib]==5.5.2
 cffi==1.17.1
 channels==4.2.2
 channels-redis==4.2.1
@@ -39,7 +39,7 @@ elasticsearch-dsl==7.4.1
 gevent==24.11.1 ; platform_system=='Windows'
 glob2==0.7
 jsonfield==3.1.0
-lxml==5.3.2
+lxml==5.4.0
 msoffcrypto-tool==5.4.2
 natsort==8.4.0
 opf-fido==1.6.1

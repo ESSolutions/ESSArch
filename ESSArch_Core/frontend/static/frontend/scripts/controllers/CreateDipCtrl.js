@@ -77,11 +77,15 @@ export default class CreateDipCtrl {
     };
     //context menu data
     $scope.menuOptions = function (rowType, row) {
-      return [
-        ContextMenuBase.changeOrganization(function () {
-          vm.changeOrganizationModal(rowType, row);
-        }),
-      ];
+      const methods = [];
+      if ($scope.checkPermission('ip.change_organization')) {
+        methods.push(
+          ContextMenuBase.changeOrganization(function () {
+            vm.changeOrganizationModal(rowType, row);
+          })
+        );
+      }
+      return methods;
     };
 
     $scope.requestForm = false;
