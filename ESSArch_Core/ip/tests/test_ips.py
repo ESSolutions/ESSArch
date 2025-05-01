@@ -3101,7 +3101,7 @@ class PrepareIPTestCase(TestCase):
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         ip.refresh_from_db()
-        self.assertEqual(ip.state, 'Prepared')
+        self.assertEqual(ip.state, 'Preparing')
 
 
 class DownloadIPTestCase(TestCase):
