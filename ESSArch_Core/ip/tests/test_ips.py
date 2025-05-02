@@ -2983,7 +2983,7 @@ class CreateIPTestCase(TestCase):
         self.assertTrue(order.information_packages.exists())
 
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_STORE_EAGER_RESULT=True)
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -3001,6 +3001,8 @@ class PrepareIPTestCase(TestCase):
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
         self.client.force_authenticate(user=self.user)
+        settings.CELERY_TASK_ALWAYS_EAGER = True
+        settings.CELERY_TASK_STORE_EAGER_RESULT = True
 
     def get_prepare_permission(self):
         return Permission.objects.get(codename='prepare_ip')
