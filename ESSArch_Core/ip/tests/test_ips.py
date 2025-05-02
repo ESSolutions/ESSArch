@@ -2983,7 +2983,7 @@ class CreateIPTestCase(TestCase):
         self.assertTrue(order.information_packages.exists())
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
