@@ -503,16 +503,18 @@ def UpdateIPPath(self, path, prev=None):
 
 
 @app.task(bind=True, queue='file_operation')
-def UpdateIPSizeAndCount(self):
-    ip = self.ip
-    path = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
-    size, count = get_tree_size_and_count(path)
+def UpdateIPSizeAndCount(self, success_state=None):
+    ip = InformationPackage.objects.get(pk=self.ip)
+    size, count = get_tree_size_and_count(ip.object_path)
 
-    InformationPackage.objects.filter(pk=ip).update(
-        object_size=size, object_num_items=count,
-        last_changed_local=timezone.now(),
-    )
+    ip.object_size = size
+    ip.object_num_items = count
+    ip.last_changed_local = timezone.now()
+    ip.save(update_fields=['object_size', 'object_num_items', 'last_changed_local'])
 
+    if success_state:
+        ip.state = "Uploaded"
+        ip.save(update_fields=['state'])
     msg = "Updated size and count of IP"
     self.create_success_event(msg)
 

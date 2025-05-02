@@ -802,7 +802,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.select_for_update().filter(ip=ip).iterator(chunk_size=1000):
+        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
             try:
                 profile_ip.clean()
             except ValidationError as e:
@@ -810,19 +810,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             profile_ip.lock(request.user)
 
-        ProcessTask.objects.create(
-            name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
-            label="Create Physical Model",
-            information_package=ip,
-            responsible=self.request.user,
-        ).run().get()
-
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
         ip.end_date = submit_description_data.get('end_date')
+        ip.save(update_fields=['start_date', 'end_date'])
 
-        ip.state = "Prepared"
-        ip.save(update_fields=['state', 'start_date', 'end_date'])
+        ProcessTask.objects.create(
+            name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
+            label="Create Physical Model",
+            eager=False,
+            information_package=ip,
+            responsible=self.request.user,
+        ).run()
 
         return Response()
 
@@ -904,13 +903,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
             label="Update IP size and file count",
+            args=["Uploaded"],
             eager=False,
             information_package=ip,
             responsible=self.request.user
         ).run()
 
-        ip.state = "Uploaded"
-        ip.save()
         return Response()
 
     @action(detail=True, methods=['post'], url_path='actiontool')

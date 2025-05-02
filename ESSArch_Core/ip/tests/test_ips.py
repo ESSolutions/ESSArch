@@ -40,7 +40,7 @@ from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.models import ContentType
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import FileResponse
-from django.test import TestCase, override_settings
+from django.test import TestCase
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from groups_manager.models import GroupType
@@ -2674,7 +2674,6 @@ class OrderViewSetTestCase(TestCase):
             self.assertEqual(zip_file.read('order1/bar.pdf'), b'test bar')
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True, CELERY_EAGER_PROPAGATES_EXCEPTIONS=True)
 class IdentifyIP(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -3036,6 +3035,7 @@ class PrepareIPTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res.data['detail'], 'IP requires locked SA to be prepared')
 
+    @TaskRunner()
     def test_missing_profiles(self):
         perm = self.get_prepare_permission()
         self.user.user_permissions.add(perm)

@@ -27,7 +27,6 @@ import shutil
 import tempfile
 
 from celery import states as celery_states
-from django.conf import settings
 from django.test import TestCase, TransactionTestCase
 from django_redis import get_redis_connection
 
@@ -40,8 +39,6 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 class test_status(TestCase):
     def setUp(self):
-        settings.CELERY_ALWAYS_EAGER = True
-
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
@@ -280,8 +277,6 @@ class test_status(TestCase):
 
 class test_progress(TestCase):
     def setUp(self):
-        settings.CELERY_ALWAYS_EAGER = True
-
         self.step = ProcessStep.objects.create()
 
         self.test_dir = tempfile.mkdtemp()
@@ -816,9 +811,6 @@ class test_retrying_steps(TestCase):
         except Exception:
             pass
 
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
-
     def tearDown(self):
         try:
             shutil.rmtree(self.test_dir)
@@ -844,9 +836,6 @@ class test_resuming_steps(TestCase):
             os.mkdir(self.test_dir)
         except Exception:
             pass
-
-        settings.CELERY_ALWAYS_EAGER = True
-        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
 
     def tearDown(self):
         try:

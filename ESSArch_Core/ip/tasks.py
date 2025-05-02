@@ -368,6 +368,9 @@ def CreatePhysicalModel(self, structure=None, root=""):
 
     self.set_progress(1, total=1)
 
+    ip.state = "Prepared"
+    ip.save(update_fields=['state'])
+
     msg = "Created physical model"
     self.create_success_event(msg)
 
