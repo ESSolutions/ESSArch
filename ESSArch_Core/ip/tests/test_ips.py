@@ -29,6 +29,7 @@ import os
 import shutil
 import tarfile
 import tempfile
+import time
 import uuid
 import zipfile
 from datetime import datetime
@@ -44,6 +45,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from groups_manager.models import GroupType
+from kombu.exceptions import OperationalError as kombu_OperationalError
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
@@ -3092,7 +3094,15 @@ class PrepareIPTestCase(TestCase):
             self.sa.profile_dip = dip_profile
             self.sa.save()
 
-            res = self.client.post(url)
+            try:
+                res = self.client.post(url)
+            except kombu_OperationalError:
+                time.sleep(5)
+                try:
+                    res = self.client.post(url)
+                except kombu_OperationalError:
+                    time.sleep(10)
+                    res = self.client.post(url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         with self.subTest('Valid SIP'):

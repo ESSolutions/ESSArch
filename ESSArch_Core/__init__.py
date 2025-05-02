@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from ESSArch_Core.config.celery import app
 import os
 
 from . import _version
@@ -30,6 +29,3 @@ from . import _version
 __version__ = _version.get_versions()['version']
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-__all__ = ['app']
