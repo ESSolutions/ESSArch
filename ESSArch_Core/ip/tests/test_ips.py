@@ -2983,7 +2983,6 @@ class CreateIPTestCase(TestCase):
         self.assertTrue(order.information_packages.exists())
 
 
-@override_settings(CELERY_ALWAYS_EAGER=True)
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -2997,6 +2996,7 @@ class PrepareIPTestCase(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        settings.CELERY_ALWAYS_EAGER = True
 
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
