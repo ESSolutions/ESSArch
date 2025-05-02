@@ -2995,8 +2995,10 @@ class PrepareIPTestCase(TestCase):
         EventType.objects.create(eventType=10300, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def setUp(self):
-        self.client = APIClient()
         settings.CELERY_ALWAYS_EAGER = True
+        settings.CELERY_EAGER_PROPAGATES_EXCEPTIONS = False
+
+        self.client = APIClient()
 
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
