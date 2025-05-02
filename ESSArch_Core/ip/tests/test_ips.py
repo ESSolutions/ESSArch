@@ -29,7 +29,6 @@ import os
 import shutil
 import tarfile
 import tempfile
-import time
 import uuid
 import zipfile
 from datetime import datetime
@@ -45,7 +44,6 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from groups_manager.models import GroupType
-from kombu.exceptions import OperationalError as kombu_OperationalError
 from lxml import etree
 from rest_framework import status
 from rest_framework.response import Response
@@ -2985,7 +2983,6 @@ class CreateIPTestCase(TestCase):
         self.assertTrue(order.information_packages.exists())
 
 
-@override_settings(CELERY_TASK_ALWAYS_EAGER=True, CELERY_TASK_STORE_EAGER_RESULT=True)
 class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -3003,8 +3000,6 @@ class PrepareIPTestCase(TestCase):
         self.user = User.objects.create(username='user')
         self.member = self.user.essauth_member
         self.client.force_authenticate(user=self.user)
-        settings.CELERY_TASK_ALWAYS_EAGER = True
-        settings.CELERY_TASK_STORE_EAGER_RESULT = True
 
     def get_prepare_permission(self):
         return Permission.objects.get(codename='prepare_ip')
@@ -3041,6 +3036,7 @@ class PrepareIPTestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res.data['detail'], 'IP requires locked SA to be prepared')
 
+    @TaskRunner()
     def test_missing_profiles(self):
         perm = self.get_prepare_permission()
         self.user.user_permissions.add(perm)
@@ -3094,15 +3090,7 @@ class PrepareIPTestCase(TestCase):
             self.sa.profile_dip = dip_profile
             self.sa.save()
 
-            try:
-                res = self.client.post(url)
-            except kombu_OperationalError:
-                time.sleep(5)
-                try:
-                    res = self.client.post(url)
-                except kombu_OperationalError:
-                    time.sleep(10)
-                    res = self.client.post(url)
+            res = self.client.post(url)
             self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         with self.subTest('Valid SIP'):
