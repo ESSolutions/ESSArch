@@ -212,7 +212,7 @@ jobs:
 
           choco install sql-server-express -o -ia "'/IACCEPTSQLSERVERLICENSETERMS /Q /ACTION=install /INSTANCEID=MSSQLSERVER /INSTANCENAME=MSSQLSERVER /UPDATEENABLED=FALSE /TCPENABLED=1 /SECURITYMODE=SQL /SAPWD=MyPassword42'" -f -y
           choco install imagemagick
-          choco install redis-64 --version 3.0.503
+          choco install redis-64
 
           python -m pip install --upgrade pip wheel setuptools
           git config user.email test
@@ -303,6 +303,11 @@ jobs:
         image: redis
         ports:
           - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
       ${{ matrix.db }}:
         image: ${{ matrix.image }}
