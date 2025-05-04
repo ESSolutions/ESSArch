@@ -815,7 +815,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                             profile_ip.clean()
                             profile_ip.lock(request.user)
                     except ValidationError as e:
-                        raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
+                        logging.error('Validation error for profile %s: %s', profile_ip.profile.name, str(e))
+                        raise exceptions.ParseError('An error occurred while processing the profile_ip.')
 
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
