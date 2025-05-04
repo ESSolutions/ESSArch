@@ -811,10 +811,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             with attempt:
                 for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                     try:
-                        profile_ip.clean()
+                        if profile_ip:
+                            profile_ip.clean()
+                            profile_ip.lock(request.user)
                     except ValidationError as e:
                         raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
-                    profile_ip.lock(request.user)
 
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
