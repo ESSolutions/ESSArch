@@ -1,4 +1,5 @@
 import errno
+import logging
 import os
 from pathlib import Path
 
@@ -7,10 +8,14 @@ from django.conf import settings
 from lxml import etree
 from requests import RequestException
 from tenacity import (
+    Retrying,
+    before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_after_delay,
     wait_fixed,
+    wait_random_exponential,
 )
 
 from ESSArch_Core.configuration.models import (
@@ -157,7 +162,13 @@ def generate_package_mets(ip, package_path, xml_path):
     )
     generator.generate(files_to_create, folderToParse=package_path, algorithm=algorithm)
 
-    package_xml_el, _ = find_file(Path(package_path).name, xml_path)
+    for attempt in Retrying(retry=retry_if_exception_type(TypeError),
+                            reraise=True,
+                            stop=stop_after_delay(60),
+                            wait=wait_random_exponential(multiplier=1, max=10),
+                            before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+        with attempt:
+            package_xml_el, _ = find_file(Path(package_path).name, xml_path)
 
     ip.message_digest = package_xml_el.checksum
     ip.message_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[package_xml_el.checksum_type.upper()]

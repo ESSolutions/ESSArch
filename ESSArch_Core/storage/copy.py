@@ -8,11 +8,14 @@ from os import walk
 from requests import RequestException
 from requests_toolbelt import MultipartEncoder
 from tenacity import (
+    Retrying,
     before_sleep_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_after_delay,
     wait_fixed,
+    wait_random_exponential,
 )
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
@@ -36,7 +39,13 @@ def enough_space_available(dst: str, src: str, raise_exception: bool = False) ->
     """
 
     src_size, _ = get_tree_size_and_count(src)
-    dst_free_space = shutil.disk_usage(dst).free
+    for attempt in Retrying(retry=retry_if_exception_type(FileNotFoundError),
+                            reraise=True,
+                            stop=stop_after_delay(60),
+                            wait=wait_random_exponential(multiplier=1, max=10),
+                            before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+        with attempt:
+            dst_free_space = shutil.disk_usage(dst).free
 
     try:
         assert src_size <= dst_free_space
