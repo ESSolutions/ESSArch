@@ -16,7 +16,7 @@ from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError, transaction
+from django.db import Error, IntegrityError, transaction
 from django.db.models import (
     BooleanField,
     Case,
@@ -56,8 +56,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 from tenacity import (
-    RetryError,
     Retrying,
+    before_sleep_log,
+    retry_if_exception_type,
     stop_after_delay,
     wait_random_exponential,
 )
@@ -802,13 +803,20 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
-            try:
-                profile_ip.clean()
-            except ValidationError as e:
-                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
-
-            profile_ip.lock(request.user)
+        for attempt in Retrying(retry=retry_if_exception_type(Error),
+                                reraise=True,
+                                stop=stop_after_delay(300),
+                                wait=wait_random_exponential(multiplier=1, max=10),
+                                before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+            with attempt:
+                for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
+                    try:
+                        if profile_ip:
+                            profile_ip.clean()
+                            profile_ip.lock(request.user)
+                    except ValidationError as e:
+                        logging.error('Validation error for profile %s: %s', profile_ip.profile.name, str(e))
+                        raise exceptions.ParseError('An error occurred while processing the profile_ip.')
 
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
@@ -2579,17 +2587,15 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             for perm in user_perms:
                 perm_name = get_permission_name(perm, ip)
                 assign_perm(perm_name, member.django_user, ip)
-            try:
-                for attempt in Retrying(reraise=True,
-                                        stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(
-                                            multiplier=1, max=60)):
-                    with attempt:
-                        with transaction.atomic():
-                            ProfileIP.objects.select_for_update().filter(ip=ip).delete()
-                            sa.lock_to_information_package(ip, request.user)
-            except RetryError:
-                pass
+
+            for attempt in Retrying(reraise=True,
+                                    stop=stop_after_delay(300),
+                                    wait=wait_random_exponential(multiplier=1, max=10),
+                                    before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+                with attempt:
+                    with transaction.atomic():
+                        ProfileIP.objects.select_for_update().filter(ip=ip).delete()
+                        sa.lock_to_information_package(ip, request.user)
 
         else:
             xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
@@ -2657,15 +2663,13 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 ip = existing_sip
                 sa = ip.submission_agreement
 
-            try:
-                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(multiplier=1, max=60)):
-                    with attempt:
-                        with transaction.atomic():
-                            ProfileIP.objects.select_for_update().filter(ip=ip).delete()
-                            sa.lock_to_information_package(ip, request.user)
-            except RetryError:
-                pass
+            for attempt in Retrying(reraise=True,
+                                    stop=stop_after_delay(300),
+                                    wait=wait_random_exponential(multiplier=1, max=10),
+                                    before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+                with attempt:
+                    ProfileIP.objects.select_for_update().filter(ip=ip).delete()
+                    sa.lock_to_information_package(ip, request.user)
 
         aic_xml = True
         if sa.profile_aic_description is None:
