@@ -131,7 +131,7 @@ class ProfileIP(models.Model):
         #         self.profile.specification_data[field['key']] = field['defaultValue']
         #
         # self.profile.save(update_fields=['specification_data'])
-        self.save()
+        self.save(update_fields=['LockedBy'])
 
     def get_related_profile_data(self, original_keys=False):
         data = {}

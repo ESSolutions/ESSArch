@@ -43,7 +43,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import OperationalError, models, transaction
+from django.db import Error, OperationalError, models, transaction
 from django.db.models import (
     Avg,
     CharField,
@@ -73,6 +73,7 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_after_delay,
     wait_fixed,
     wait_random_exponential,
 )
@@ -759,6 +760,9 @@ class InformationPackage(models.Model):
             profile_ip.data = data_obj
             profile_ip.save()
 
+    @retry(retry=retry_if_exception_type(Error), reraise=True, stop=stop_after_delay(300),
+           wait=wait_random_exponential(multiplier=1, max=10),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING))
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
             profile__profile_type=profile_type
@@ -771,9 +775,12 @@ class InformationPackage(models.Model):
         except ProfileIP.DoesNotExist:
             return False
 
+    @retry(retry=retry_if_exception_type(Error), reraise=True, stop=stop_after_delay(300),
+           wait=wait_random_exponential(multiplier=1, max=10),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING))
     def get_profile(self, profile_type):
         try:
-            return ProfileIP.objects.get(ip=self, profile__profile_type=profile_type).profile
+            return self.get_profile_rel(profile_type).profile
         except ProfileIP.DoesNotExist:
             return None
 

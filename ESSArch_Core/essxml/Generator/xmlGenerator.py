@@ -27,6 +27,7 @@ import datetime
 import logging
 import os
 import re
+import time
 import uuid
 from os import walk
 
@@ -833,7 +834,14 @@ class XMLGenerator:
                 files.append(fileinfo)
 
     def write(self, filepath):
-        self.tree.write(filepath, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        with open(filepath, 'wb') as f:
+            self.tree.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        timeout = 30  # seconds
+        start_time = time.time()
+        while not (os.path.exists(filepath) and os.path.getsize(filepath) > 0):
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"File '{filepath}' was not found or empty within {timeout} seconds.")
+            time.sleep(1)
 
     def find_element(self, path):
         return findElementWithoutNamespace(self.tree, path)

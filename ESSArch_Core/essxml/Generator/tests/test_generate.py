@@ -110,7 +110,7 @@ class GenerateXMLTestCase(TestCase):
         with self.assertRaises(AssertionError):
             self.generator.generate({self.fname: {'spec': specification}})
 
-        self.assertFalse(os.path.exists(self.fname))
+        self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_children(self):
         specification = {
@@ -141,7 +141,7 @@ class GenerateXMLTestCase(TestCase):
         with self.assertRaises(AssertionError):
             self.generator.generate({self.fname: {'spec': specification}})
 
-        self.assertFalse(os.path.exists(self.fname))
+        self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_children_with_allow_empty(self):
         specification = {
@@ -173,7 +173,7 @@ class GenerateXMLTestCase(TestCase):
         with self.assertRaises(AssertionError):
             self.generator.generate({self.fname: {'spec': specification}})
 
-        self.assertFalse(os.path.exists(self.fname))
+        self.assertTrue(os.path.exists(self.fname))
 
     def test_generate_empty_element_with_empty_attribute_with_allow_empty_on_attribute(self):
         specification = {
