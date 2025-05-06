@@ -447,7 +447,7 @@ def ParseEvents(self):
 def Transform(self, backend, path=None):
     ip = self.get_information_package()
     user = User.objects.filter(pk=self.responsible).first()
-    backend = get_transformer(backend, ip, user)
+    backend = get_transformer(backend, ip=ip, responsible=user)
     if path is None and ip is not None:
         path = ip.object_path
     backend.transform(path)

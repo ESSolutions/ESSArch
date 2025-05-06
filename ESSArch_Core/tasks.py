@@ -26,6 +26,7 @@ import logging
 import os
 import shutil
 import tarfile
+import time
 from os import walk
 from pathlib import PurePath
 
@@ -336,7 +337,10 @@ def ValidateXMLFile(self, xml_filename=None, schema_filename=None, rootdir=None)
     """
 
     Validation.objects.filter(task=self.get_processtask()).delete()
-    xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
+    _xml_filename, _schema_filename = self.parse_params(xml_filename, schema_filename)
+    if not _xml_filename:
+        time.sleep(5)
+        _xml_filename, _schema_filename = self.parse_params(xml_filename, schema_filename)
     if rootdir is None and self.ip is not None:
         ip = InformationPackage.objects.get(pk=self.ip)
         rootdir = ip.object_path
@@ -344,43 +348,46 @@ def ValidateXMLFile(self, xml_filename=None, schema_filename=None, rootdir=None)
         rootdir, = self.parse_params(rootdir)
 
     validator = XMLSchemaValidator(
-        context=schema_filename,
+        context=_schema_filename,
         options={'rootdir': rootdir},
         ip=self.ip,
         task=self.get_processtask()
     )
-    validator.validate(xml_filename)
+    validator.validate(_xml_filename)
 
-    msg = "Validated %s against schema" % xml_filename
+    msg = "Validated %s against schema" % _xml_filename
     self.create_success_event(msg)
     return "Success"
 
 
 @app.task(bind=True, queue='validation', event_type=50220)
-def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, relpath=None):
+def ValidateLogicalPhysicalRepresentation(self, path, xml_filename, skip_files=None, relpath=None):
     """
     Validates the logical and physical representation of objects.
     """
 
     Validation.objects.filter(task=self.get_processtask()).delete()
-    path, xmlfile, = self.parse_params(path, xmlfile)
+    _path, _xml_filename, = self.parse_params(path, xml_filename)
+    if not _xml_filename:
+        time.sleep(5)
+        _path, _xml_filename = self.parse_params(path, xml_filename)
     if skip_files is None:
         skip_files = []
     else:
         skip_files = self.parse_params(*skip_files)
 
     if relpath is not None:
-        rootdir, = self.parse_params(relpath) or path
+        rootdir, = self.parse_params(relpath) or _path
     else:
-        if os.path.isdir(path):
-            rootdir = path
+        if os.path.isdir(_path):
+            rootdir = _path
         else:
-            rootdir = os.path.dirname(path)
+            rootdir = os.path.dirname(_path)
 
     ip = InformationPackage.objects.get(pk=self.ip)
-    validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
+    validator = DiffCheckValidator(context=_xml_filename, exclude=skip_files, options={'rootdir': rootdir},
                                    task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
-    msg = validator.validate(path)
+    msg = validator.validate(_path)
 
     self.create_success_event(msg)
     return msg
@@ -389,7 +396,10 @@ def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, 
 @app.task(bind=True, queue='validation', event_type=50240)
 def CompareXMLFiles(self, first, second, rootdir=None, recursive=True):
     Validation.objects.filter(task=self.get_processtask()).delete()
-    first, second = self.parse_params(first, second)
+    _first, _second = self.parse_params(first, second)
+    if not _first:
+        time.sleep(5)
+        _first, _second = self.parse_params(first, second)
     ip = InformationPackage.objects.get(pk=self.ip)
     if rootdir is None:
         rootdir = ip.object_path
@@ -397,13 +407,13 @@ def CompareXMLFiles(self, first, second, rootdir=None, recursive=True):
         rootdir, = self.parse_params(rootdir)
 
     validator = XMLComparisonValidator(
-        context=first,
+        context=_first,
         options={'rootdir': rootdir, 'recursive': recursive},
         task=self.get_processtask(),
         ip=self.ip,
         responsible=ip.responsible,
     )
-    msg = validator.validate(second)
+    msg = validator.validate(_second)
     self.create_success_event(msg)
     return msg
 
@@ -462,7 +472,10 @@ def UpdateIPStatus(self, status, prev=None):
         t.params['prev'] = ip.state
         t.save()
     ip.state = status
-    ip.save()
+    ip.save(update_fields=['state'])
+    ip.refresh_from_db()
+    if not ip.state == status:
+        ip.save(update_fields=['state'])
     ip_state_dict = {'Aggregating': gettext('Aggregating'),
                      'Creating': gettext('Creating'),
                      'Created': gettext('Created'),

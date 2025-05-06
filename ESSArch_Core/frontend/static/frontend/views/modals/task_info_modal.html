@@ -103,17 +103,17 @@
               <b>{{ "STATE_TREE.ARGUMENTS" | translate }}:</b>
               <table class="table">
                 <tbody>
-                  {{ $ctrl.getArgsString(currentStepTask.args) }}
-                  <span ng-if="currentStepTask.args.length === 0"> {{'NO_ARGUMENTS' | translate}} </span>
+                  {{ $ctrl.getArgsString(currentStepTask.args_parsed) }}
+                  <span ng-if="currentStepTask.args_parsed.length === 0"> {{'NO_ARGUMENTS' | translate}} </span>
                 </tbody>
               </table>
             </div>
             <div style="max-height: 300px; overflow-y: auto">
               <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
-              <span ng-if="angular.equals(currentStepTask.params, {})"> {{'NO_PARAMETERS' | translate}} </span>
+              <span ng-if="angular.equals(currentStepTask.params_parsed, {})"> {{'NO_PARAMETERS' | translate}} </span>
               <table class="table">
                 <tbody>
-                  <tr ng-repeat="(key, value) in currentStepTask.params track by $index">
+                  <tr ng-repeat="(key, value) in currentStepTask.params_parsed track by $index">
                     <td>{{ key }}</td>
                     <td class="param-value">
                       <pre>{{ value | json }}</pre>

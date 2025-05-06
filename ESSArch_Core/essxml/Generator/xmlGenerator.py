@@ -38,6 +38,7 @@ from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     get_elements_without_namespace,
     in_directory,
@@ -86,7 +87,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, str):
+    if isinstance(content, str) or isinstance(content, int):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -133,6 +134,26 @@ def parseContent(content, info=None):
                 arr.append(make_unicode(val))
 
     return ''.join(arr)
+
+
+def parse_params(params, ip):
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
+    new_params = {}
+    for param in params:
+        new_params[param] = parseContent(params[param], data)
+
+    return new_params
+
+
+def parse_args(args, ip):
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
+    new_args = []
+    for arg in args:
+        new_args.append(parseContent(arg, data))
+
+    return new_args
 
 
 def findElementWithoutNamespace(tree, el_name):
