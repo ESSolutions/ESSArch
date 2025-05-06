@@ -151,7 +151,16 @@ class DBTask(Task):
                 self.logger.warning('RetryError in _run for task: {} ({}), step_id: {}, \
 DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, self.task_id, self.step, self.ip))
                 return self._run_task(*args, **kwargs)
-            self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
+
+            ip.refresh_from_db()
+            updated_data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+            updated_data_dict = updated_data.to_dict()
+            self.extra_data.update(updated_data_dict)
+            # if self.name == 'ESSArch_Core.tasks.ValidateXMLFile':
+            #     self.logger.info('dbtask: {} - ip: {}, updated_data: {}'.format(self.name, ip, repr(updated_data)))
+            #     self.logger.info('dbtask: {} - ip: {}, updated_data_dict: {}'.format(self.name, ip,
+            #                                                                           repr(updated_data_dict)))
+            #     self.logger.info('dbtask: {} - ip: {}, extra_data: {}'.format(self.name, ip, repr(self.extra_data)))
 
             try:
                 if ip.is_locked():

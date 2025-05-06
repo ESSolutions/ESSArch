@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+from ESSArch_Core.profiles.utils import fill_specification_data
 import copy
 import datetime
 import logging
@@ -133,6 +134,24 @@ def parseContent(content, info=None):
                 arr.append(make_unicode(val))
 
     return ''.join(arr)
+
+
+def parse_params(params, ip):
+    data = fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict()
+    new_params = {}
+    for param in params:
+        new_params[param] = parseContent(params[param], data)
+
+    return new_params
+
+
+def parse_args(args, ip):
+    data = fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict()
+    new_args = []
+    for arg in args:
+        new_args.append(parseContent(arg, data))
+
+    return new_args
 
 
 def findElementWithoutNamespace(tree, el_name):

@@ -29,6 +29,7 @@ from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.celery.backends.database import DatabaseBackend
+from ESSArch_Core.essxml.Generator.xmlGenerator import parse_args, parse_params
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
@@ -138,6 +139,8 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
     exception_str = serializers.SerializerMethodField()
+    params_parsed = serializers.SerializerMethodField()
+    args_parsed = serializers.SerializerMethodField()
 
     def get_exception_str(self, obj):
         if obj.exception is None:
@@ -151,13 +154,23 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     def get_result(self, obj):
         return str(obj.result)
 
+    def get_params_parsed(self, obj):
+        params = obj.params
+        for param, reference in obj.result_params.items():
+            params[param] = get_result(obj.processstep, reference)
+
+        return parse_params(params, obj.information_package)
+
+    def get_args_parsed(self, obj):
+        return parse_args(obj.args, obj.information_package)
+
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception_str', 'eager',
+            'celery_id', 'args_parsed', 'params_parsed', 'result', 'traceback', 'exception_str', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception',
+            'celery_id', 'args', 'args_parsed', 'params', 'params_parsed', 'result', 'traceback', 'exception',
         )
         extra_kwargs = ProcessTaskSerializer.Meta.extra_kwargs
 
