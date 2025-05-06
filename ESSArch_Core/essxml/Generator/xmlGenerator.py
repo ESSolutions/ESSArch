@@ -22,7 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from ESSArch_Core.profiles.utils import fill_specification_data
 import copy
 import datetime
 import logging
@@ -39,6 +38,7 @@ from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     get_elements_without_namespace,
     in_directory,
