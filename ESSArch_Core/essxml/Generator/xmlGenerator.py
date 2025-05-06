@@ -87,7 +87,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, str):
+    if isinstance(content, str) or isinstance(content, int):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -137,7 +137,8 @@ def parseContent(content, info=None):
 
 
 def parse_params(params, ip):
-    data = fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict()
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
     new_params = {}
     for param in params:
         new_params[param] = parseContent(params[param], data)
@@ -146,7 +147,8 @@ def parse_params(params, ip):
 
 
 def parse_args(args, ip):
-    data = fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict()
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
     new_args = []
     for arg in args:
         new_args.append(parseContent(arg, data))
