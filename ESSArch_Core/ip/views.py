@@ -828,7 +828,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if ip.package_type == 'SIP':
             ip.state = "Uploading"
-            ip.save()
+            ip.save(update_fields=['state'])
 
         data = request.GET if request.method == 'GET' else request.data
 
@@ -1064,7 +1064,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         try:
             obj = Profile.objects.get(name=dct['name'])
             obj.field = dct
-            obj.save()
+            obj.save(update_fields=['field'])
         except Profile.DoesNotExist:
             obj = Profile.objects.create(field=dct)
 
@@ -1087,7 +1087,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError("The IP (%s) is in the state '%s' but should be 'Uploaded'" % (pk, ip.state))
 
         ip.state = 'Creating'
-        ip.save()
+        ip.save(update_fields=['state'])
 
         generate_premis = ip.profile_locked('preservation_metadata')
 
@@ -1244,7 +1244,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
 
         ip.state = 'Submitting'
-        ip.save()
+        ip.save(update_fields=['state'])
 
         sd_profile = ip.get_profile('submit_description')
 
@@ -1583,6 +1583,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
+            ip.save(update_fields=['state', 'appraisal_date'])
 
             archive = request.data.get('archive', None)
 
@@ -1592,8 +1593,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     profile_ip.lock(request.user)
                 except ValidationError as e:
                     raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
-
-            ip.save()
 
             try:
                 workarea_id = ip.workareas.get(read_only=False).pk
@@ -2004,7 +2003,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ]
 
         dip.state = 'Creating'
-        dip.save()
+        dip.save(update_fields=['state'])
         workflow = create_workflow(workflow_spec, dip, name="Create DIP")
         workflow.run()
         return Response({'status': 'creating dip'})
@@ -2686,7 +2685,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         logger = logging.getLogger('essarch.ingest')
 
         try:
-            ip = InformationPackage.objects.get(
+            ip = InformationPackage.objects.select_for_update().get(
                 object_identifier_value=pk,
                 package_type=InformationPackage.AIP,
                 state='At reception',
@@ -2696,7 +2695,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ip, ip_is_directory = self._prepare(request, pk)
 
         ip.state = 'Receiving'
-        ip.save()
+        ip.save(update_fields=['state'])
 
         # refresh date fields to convert them to datetime instances instead of
         # strings to allow further datetime manipulation

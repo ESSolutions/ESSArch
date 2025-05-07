@@ -394,7 +394,11 @@ def CreateContainer(self, src, dst):
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
         dst = os.path.join(dst, dst_filename)
 
-    enough_space_available(os.path.dirname(dst), src, True)
+    try:
+        enough_space_available(os.path.dirname(dst), src, True)
+    except FileNotFoundError:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        enough_space_available(os.path.dirname(dst), src, True)
 
     if container_format == 'zip':
         self.event_type = 50410
