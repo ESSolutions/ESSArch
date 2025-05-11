@@ -78,7 +78,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     def get_label(self, obj):
         if type(obj).__name__ == 'ProcessTask':
             return obj.label
-        return obj.name
+        return obj.label if obj.label else obj.name
 
     def get_step_position(self, obj):
         return obj.get_pos()
@@ -184,6 +184,7 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
 
 
 class ProcessStepSerializer(serializers.ModelSerializer):
+    label = serializers.SerializerMethodField()
     user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
     flow_type = serializers.SerializerMethodField()
     information_package_str = serializers.SerializerMethodField()
@@ -191,6 +192,9 @@ class ProcessStepSerializer(serializers.ModelSerializer):
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
+
+    def get_label(self, obj):
+        return obj.label if obj.label else obj.name
 
     def get_flow_type(self, obj):
         return 'task' if type(obj).__name__ == 'ProcessTask' else 'step'
@@ -209,8 +213,8 @@ class ProcessStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessStep
         fields = (
-            'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'time_created', 'parent',
+            'url', 'id', 'name', 'label', 'result', 'part_root', 'user', 'parallel',
+            'run_state', 'status', 'progress', 'time_created', 'parent',
             'parent_pos', 'information_package', 'information_package_str',
             'flow_type', 'step_position', 'responsible',
         )

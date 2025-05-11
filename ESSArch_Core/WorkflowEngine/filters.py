@@ -73,6 +73,8 @@ class ProcessStepFilter(filters.FilterSet):
         to_field_name="username",
         queryset=lambda request: users_in_organization(request.user),
     )
+    parent = filters.BooleanFilter(method='filter_parent')
+    run_state = filters.ChoiceFilter(choices=ProcessStep.STATE_CHOICES)
 
     def filter_hidden(self, queryset, name, value):
         if value is False:
@@ -81,8 +83,12 @@ class ProcessStepFilter(filters.FilterSet):
             )
         return queryset.filter(hidden=value)
 
+    def filter_parent(self, queryset, name, value):
+        value = not value
+        return queryset.filter(parent__isnull=value)
+
     class Meta:
         model = ProcessStep
         fields = [
-            'hidden', 'name', 'responsible',
+            'hidden', 'name', 'responsible', 'part_root', 'run_state', 'parent',
         ]

@@ -27,7 +27,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
       promise = Step.query(
         angular.extend(
           {
-            name: 'Migrate Information Package',
+            name: 'Migrate Storage Medium',
             childs: true,
             hidden: false,
             page: paginationParams.pageNumber,

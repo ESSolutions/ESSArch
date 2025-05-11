@@ -289,7 +289,7 @@ class StorageMediumViewSet(viewsets.ModelViewSet):
     """
     API endpoint for storage medium
     """
-    queryset = StorageMedium.objects.all()
+    queryset = StorageMedium.objects.exclude(status=0)
 
     serializer_class = StorageMediumSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter)
@@ -391,7 +391,7 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     """
     API endpoint for storage object
     """
-    queryset = StorageObject.objects.all()
+    queryset = StorageObject.objects.exclude(storage_medium__status=0)
     serializer_class = StorageObjectSerializer
     filter_backends = (DjangoFilterBackend, SearchFilter,)
     filterset_class = StorageObjectFilter
