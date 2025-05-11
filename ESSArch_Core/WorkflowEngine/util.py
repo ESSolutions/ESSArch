@@ -122,7 +122,19 @@ def _create_step(parent, flow, ip, responsible, context=None):
             task.on_error.add(*on_error_tasks)
 
 
-def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None, responsible=None):
+def _add_steps(parent, steps):
+    for e_idx, step in enumerate(steps):
+        step.parent = parent
+        step.parent_pos = e_idx
+        step.save(update_fields=['parent', 'parent_pos'])
+
+
+def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', label='', on_error=None, eager=False,
+                    context=None, responsible=None, part_root=None, run_state=''):
+    if workflow_spec is None:
+        workflow_spec = []
+    if workflow_steps is None:
+        workflow_steps = []
     if on_error is None:
         on_error = []
     if context is None:
@@ -142,14 +154,18 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
                             with ProcessStep.objects.delay_mptt_updates():
                                 root_step = ProcessStep.objects.create(
                                     name=name, eager=eager, information_package=ip, context=context,
-                                    responsible=responsible)
-
+                                    responsible=responsible, label=label, part_root=part_root,
+                                    run_state=run_state)
                                 on_error_tasks = list(_create_on_error_tasks(
                                     root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
                                 ProcessTask.objects.bulk_create(on_error_tasks)
                                 root_step.on_error.add(*on_error_tasks)
 
+                            if workflow_spec:
                                 _create_step(root_step, workflow_spec, ip, responsible)
+
+                            if workflow_steps:
+                                _add_steps(root_step, workflow_steps)
 
                             root_step.refresh_from_db()
                             with ProcessStep.objects.delay_mptt_updates():

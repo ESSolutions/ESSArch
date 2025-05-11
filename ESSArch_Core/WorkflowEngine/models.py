@@ -99,12 +99,19 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
 
 
 class Process(models.Model):
+    _states = list(zip(
+        celery_states.ALL_STATES, celery_states.ALL_STATES
+    ))
+    _states.sort()
+    STATE_CHOICES = _states
+
     class Meta:
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
+    label = models.CharField(max_length=255, blank=True)
     queue = models.CharField(max_length=255, blank=True, null=True, default=None)
     hidden = models.BooleanField(null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
@@ -112,56 +119,18 @@ class Process(models.Model):
     result = PickledObjectField(null=True, default=None, editable=False)
 
     def __str__(self):
-        return self.name
+        return self.label if self.label else self.name
 
 
 class ProcessStep(MPTTModel, Process):
-    Type_CHOICES = (
-        (0, "Receive new object"),
-        (5, "The object is ready to remodel"),
-        (9, "New object stable"),
-        (10, "Object don't exist in AIS"),
-        (11, "Object don't have any projectcode in AIS"),
-        (12, "Object don't have any local policy"),
-        (13, "Object already have an AIP!"),
-        (14, "Object is not active!"),
-        (19, "Object got a policy"),
-        (20, "Object not updated from AIS"),
-        (21, "Object not accepted in AIS"),
-        (24, "Object accepted in AIS"),
-        (25, "SIP validate"),
-        (30, "Create AIP package"),
-        (40, "Create package checksum"),
-        (50, "AIP validate"),
-        (60, "Try to remove IngestObject"),
-        (1000, "Write AIP to longterm storage"),
-        (1500, "Remote AIP"),
-        (2009, "Remove temp AIP object OK"),
-        (3000, "Archived"),
-        (5000, "ControlArea"),
-        (5100, "WorkArea"),
-        (9999, "Deleted"),
-    )
-
-    type = models.IntegerField(null=True, choices=Type_CHOICES)
+    run_state = models.CharField(_('state'), max_length=50, blank=True, choices=Process.STATE_CHOICES, db_index=True)
     user = models.CharField(max_length=45)
-    parent = TreeForeignKey(
-        'self',
-        related_name='child_steps',
-        on_delete=models.CASCADE,
-        null=True
-    )
+    parent = TreeForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
     parent_pos = models.IntegerField(_('Parent step position'), default=0)
+    part_root = models.BooleanField(null=True, default=None, db_index=True)
     information_package = models.ForeignKey(
-        'ip.InformationPackage',
-        on_delete=models.CASCADE,
-        related_name='steps',
-        blank=True,
-        null=True
-    )
-    responsible = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, related_name='steps', null=True
-    )
+        'ip.InformationPackage', on_delete=models.CASCADE, related_name='steps', blank=True, null=True)
+    responsible = models.ForeignKey('auth.User', on_delete=models.SET_NULL, related_name='steps', null=True)
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
     context = models.JSONField(default=dict, null=True)
@@ -219,6 +188,22 @@ class ProcessStep(MPTTModel, Process):
         if self.parent:
             self.parent.clear_cache()
 
+    def get_part_root(self):
+        """
+        Returns the part root node of this model instance's tree.
+        """
+        if (self.is_root_node() or self.part_root) and type(self) is self._tree_manager.tree_model:
+            return self
+
+        try:
+            node = self.get_ancestors().filter(part_root=True).get()
+        except ProcessStep.MultipleObjectsReturned:
+            node = self.parent.get_part_root()
+        except ProcessStep.DoesNotExist:
+            node = self.get_root()
+
+        return node
+
     def run_children(self, tasks, steps, direct=True):
         logger = logging.getLogger('essarch.WorkflowEngine')
         tasks = tasks.filter(status=celery_states.PENDING,)
@@ -264,7 +249,7 @@ class ProcessStep(MPTTModel, Process):
         else:
             return workflow
 
-    def run(self, direct=True):
+    def run(self, direct=True, poller=False):
         """
         Runs the process step by first running the child steps and then the
         tasks.
@@ -272,12 +257,23 @@ class ProcessStep(MPTTModel, Process):
         Args:
             direct: False if the step is called from a parent step,
                     true otherwise
+            poller: True to run step with poller
 
         Returns:
             The executed workflow consisting of potential child steps followed by
             tasks if called directly. The workflow "non-executed" if direct is
             false
         """
+        if poller:
+            for child_step in self.get_children().filter(part_root=True, run_state=''):
+                child_step.run_state = celery_states.PENDING
+                child_step.save(update_fields=['run_state'])
+            if not self.run_state and (self.parent is None or self.root_part is True):
+                self.run_state = celery_states.PENDING
+                self.save(update_fields=['run_state'])
+                return True
+            else:
+                return False
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
@@ -488,6 +484,7 @@ class ProcessStep(MPTTModel, Process):
             child_steps = self.child_steps.all()
             tasks = self.tasks.filter(retried__isnull=True)
             status = celery_states.SUCCESS
+            partially_done = False
 
             if not child_steps.exists() and not tasks.exists():
                 status = celery_states.PENDING
@@ -502,18 +499,29 @@ class ProcessStep(MPTTModel, Process):
                 cache.set(self.cache_status_key, celery_states.REVOKED)
                 return celery_states.REVOKED
 
+            if tasks.filter(status=celery_states.SUCCESS).exists():
+                partially_done = True
+
             if tasks.filter(status=celery_states.PENDING).exists():
-                status = celery_states.PENDING
+                if partially_done:
+                    status = celery_states.STARTED
+                else:
+                    status = celery_states.PENDING
 
             if tasks.filter(status=celery_states.STARTED).exists():
                 status = celery_states.STARTED
 
+            partially_done = False
             for cs in child_steps.only('parent').iterator(chunk_size=1000):
                 if cs.status == celery_states.STARTED:
                     status = cs.status
-                if (cs.status == celery_states.PENDING and
-                        status != celery_states.STARTED):
-                    status = cs.status
+                if cs.status == celery_states.SUCCESS:
+                    partially_done = True
+                if (cs.status == celery_states.PENDING and status != celery_states.STARTED):
+                    if partially_done:
+                        status = celery_states.STARTED
+                    else:
+                        status = cs.status
                 if cs.status == celery_states.FAILURE:
                     cache.set(self.cache_status_key, cs.status)
                     return cs.status
@@ -536,21 +544,9 @@ class OrderedProcessTaskManager(models.Manager):
 
 
 class ProcessTask(Process):
-    _states = list(zip(
-        celery_states.ALL_STATES, celery_states.ALL_STATES
-    ))
-    _states.sort()
-    TASK_STATE_CHOICES = _states
-
     reference = models.CharField(max_length=255, blank=True, null=True, default=None)
-    label = models.CharField(max_length=255, blank=True)
-    status = models.CharField(
-        _('state'), max_length=50, default=celery_states.PENDING,
-        choices=TASK_STATE_CHOICES,
-    )
-    responsible = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
-    )
+    status = models.CharField(_('state'), max_length=50, default=celery_states.PENDING, choices=Process.STATE_CHOICES)
+    responsible = models.ForeignKey('auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True)
     args = PickledObjectField(default=list)
     params = PickledObjectField(default=dict)
     result_params = PickledObjectField(default=dict)
@@ -560,19 +556,12 @@ class ProcessTask(Process):
     traceback = models.TextField(blank=True)
     exception = PickledObjectField(null=True, default=None)
     meta = PickledObjectField(null=True, default=None, editable=False)
-    processstep = models.ForeignKey(
-        'ProcessStep', related_name='tasks', on_delete=models.CASCADE,
-        null=True, blank=True
-    )
+    processstep = models.ForeignKey('ProcessStep', related_name='tasks',
+                                    on_delete=models.CASCADE, null=True, blank=True)
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     progress = models.IntegerField(default=0)
-    retried = models.OneToOneField(
-        'self',
-        on_delete=models.SET_NULL,
-        related_name='retried_task',
-        null=True,
-        blank=True,
-    )
+    retried = models.OneToOneField('self', on_delete=models.SET_NULL,
+                                   related_name='retried_task', null=True, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
     on_error = models.ManyToManyField('self', symmetrical=False)
@@ -594,6 +583,13 @@ class ProcessTask(Process):
 
         parent = self.processstep
         return parent.get_root()
+
+    def get_part_root_step(self):
+        if self.processstep is None:
+            return None
+
+        parent = self.processstep
+        return parent.get_part_root()
 
     def create_traceback(self):
         return tblib.Traceback.from_string(self.traceback).as_traceback()

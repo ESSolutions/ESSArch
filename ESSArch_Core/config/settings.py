@@ -533,6 +533,7 @@ CELERY_TASK_REMOTE_TRACEBACKS = True
 CELERY_TASK_TRACK_STARTED = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
+ESSARCH_MAX_RUNNING_STEPS = 10
 
 CELERY_BEAT_SCHEDULE = {
     'RunWorkflowPollers-every-60-seconds': {
@@ -546,6 +547,10 @@ CELERY_BEAT_SCHEDULE = {
     'PollConversionJobs-every-10-minutes': {
         'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
+    },
+    'PollProcessStepQueue-every-30-seconds': {
+        'task': 'ESSArch_Core.workflow.tasks.PollProcessStepQueue',
+        'schedule': timedelta(seconds=30),
     },
     # 'PollRobotQueue-every-10-seconds': {
     #     'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',

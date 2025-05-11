@@ -618,7 +618,7 @@ class StorageMediumDeactivateTests(TestCase):
         self.storage_medium.save()
 
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.storage_medium.refresh_from_db()
         self.assertEqual(self.storage_medium.status, 0)
@@ -982,16 +982,39 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        mock_task.assert_has_calls([
-            mock.call(
-                name='Migrate Information Package',
-                eager=False,
-                information_package=ip,
+        calls = []
+        for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
+            calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+                                   context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+                                   run_state=mock.ANY))
+            calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
 
-                context=mock.ANY,
-                responsible=mock.ANY,
-            ) for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]
-        ])
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
+
+        mock_task.assert_has_calls(calls)
 
     @mock.patch(
         'ESSArch_Core.storage.serializers.ProcessStep.objects.create',
@@ -1028,16 +1051,39 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        mock_task.assert_has_calls([
-            mock.call(
-                name='Migrate Information Package',
-                eager=False,
-                information_package=ip,
+        calls = []
+        for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
+            calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+                                   context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+                                   run_state=mock.ANY))
+            calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
 
-                context=mock.ANY,
-                responsible=mock.ANY,
-            ) for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]
-        ])
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
+
+        mock_task.assert_has_calls(calls)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
     def test_queue_duplicate_migrations(self, mock_task):
@@ -1068,8 +1114,8 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(ProcessStep.objects.count(), 1)
-        mock_task.assert_called_once()
+        self.assertEqual(ProcessStep.objects.count(), 6)
+        mock_task.assert_called()
 
         with self.subTest('completed task'):
             for t in ProcessStep.objects.get(name='Migrate Information Package', information_package=self.ip
@@ -1082,8 +1128,8 @@ class StorageMigrationTests(StorageMigrationTestsBase):
                 response = self.client.post(self.url, data=data)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            self.assertEqual(ProcessStep.objects.count(), 2)
-            mock_task.assert_called_once()
+            self.assertEqual(ProcessStep.objects.count(), 12)
+            mock_task.assert_called()
 
 
 class StorageMigrationPreviewTests(StorageMigrationTestsBase):

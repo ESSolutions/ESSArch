@@ -152,8 +152,8 @@ class Agent(models.Model):
                     tva_obj.change_organization(organization, force=change_related_Archives_force)
                 if change_related_StructureUnits or change_related_Nodes or \
                         change_related_IPs or change_related_AIDs:
-                    for ts_obj in tva_obj.get_structures().all():
-                        for su_obj in ts_obj.structure.units.all():
+                    for st_obj in tva_obj.get_structures().all():
+                        for su_obj in st_obj.structure.units.all():
                             if change_related_StructureUnits:
                                 su_obj.change_organization(organization, force=change_related_StructureUnits_force)
                             for ts_obj in su_obj.tagstructure_set.all():
