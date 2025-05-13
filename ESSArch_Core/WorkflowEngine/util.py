@@ -130,7 +130,7 @@ def _add_steps(parent, steps):
 
 
 def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', label='', on_error=None, eager=False,
-                    context=None, responsible=None, part_root=None, run_state=''):
+                    context=None, responsible=None, part_root=None, run_state='', top_root_step=None):
     if workflow_spec is None:
         workflow_spec = []
     if workflow_steps is None:
@@ -152,20 +152,29 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
                     try:
                         with transaction.atomic():
                             with ProcessStep.objects.delay_mptt_updates():
-                                root_step = ProcessStep.objects.create(
-                                    name=name, eager=eager, information_package=ip, context=context,
-                                    responsible=responsible, label=label, part_root=part_root,
-                                    run_state=run_state)
+                                if top_root_step:
+                                    root_step = ProcessStep(
+                                        name=name, eager=eager, information_package=ip, context=context,
+                                        responsible=responsible, label=label, part_root=part_root,
+                                        run_state=run_state)
+                                    root_step.parent = top_root_step
+                                    root_step.parent_pos = top_root_step.child_steps.count() + 1
+                                    root_step.save()
+                                else:
+                                    root_step = ProcessStep.objects.create(
+                                        name=name, eager=eager, information_package=ip, context=context,
+                                        responsible=responsible, label=label, part_root=part_root,
+                                        run_state=run_state)
                                 on_error_tasks = list(_create_on_error_tasks(
                                     root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
                                 ProcessTask.objects.bulk_create(on_error_tasks)
                                 root_step.on_error.add(*on_error_tasks)
 
-                            if workflow_spec:
-                                _create_step(root_step, workflow_spec, ip, responsible)
+                                if workflow_spec:
+                                    _create_step(root_step, workflow_spec, ip, responsible)
 
-                            if workflow_steps:
-                                _add_steps(root_step, workflow_steps)
+                                if workflow_steps:
+                                    _add_steps(root_step, workflow_steps)
 
                             root_step.refresh_from_db()
                             with ProcessStep.objects.delay_mptt_updates():

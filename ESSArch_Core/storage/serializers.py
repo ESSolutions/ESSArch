@@ -33,7 +33,6 @@ from ESSArch_Core.storage.models import (
     TapeSlot,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessStep
-from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
@@ -486,6 +485,10 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                     )
 
                 for medium_id in medium_ids.keys():
+                    media_migrate_workflow_step = ProcessStep.objects.create(
+                        name='Migrate Storage Medium', eager=False, information_package=None, context={},
+                        responsible=user, label='Migrate Storage Medium {}'.format(medium_id),
+                        part_root=None, run_state='')
                     ips_migrate_workflow_steps = []
                     for ip_obj in medium_ids[medium_id]:
                         previously_not_completed_steps = []
@@ -513,14 +516,9 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                                 aic_xml=True,
                                 diff_check=True,
                                 responsible=user,
+                                top_root_step=media_migrate_workflow_step,
                             )
                             ips_migrate_workflow_steps.append(ip_migrate_workflow_step)
-                    media_migrate_workflow_step = create_workflow(
-                        workflow_steps=ips_migrate_workflow_steps,
-                        name='Migrate Storage Medium',
-                        label='Migrate Storage Medium {}'.format(medium_id),
-                        responsible=user,
-                    )
                     media_migrate_workflow_step.run(poller=True)
                     steps.append(media_migrate_workflow_step)
 
@@ -546,6 +544,10 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                         if id in ip_objs_migratable_bulk]
                     information_packages = ip_objs_migratable_sorted
 
+                    media_migrate_workflow_step = ProcessStep.objects.create(
+                        name='Migrate Storage Medium', eager=False, information_package=None, context={},
+                        responsible=user, label='Migrate Storage Medium {}'.format(StorageMedium_obj.medium_id),
+                        part_root=None, run_state='')
                     ips_migrate_workflow_steps = []
                     for ip_obj in information_packages:
                         previously_not_completed_steps = []
@@ -573,14 +575,9 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                                 aic_xml=True,
                                 diff_check=True,
                                 responsible=user,
+                                top_root_step=media_migrate_workflow_step,
                             )
                             ips_migrate_workflow_steps.append(ip_migrate_workflow_step)
-                    media_migrate_workflow_step = create_workflow(
-                        workflow_steps=ips_migrate_workflow_steps,
-                        name='Migrate Storage Medium',
-                        label='Migrate Storage Medium {}'.format(StorageMedium_obj.medium_id),
-                        responsible=user,
-                    )
                     media_migrate_workflow_step.run(poller=True)
                     steps.append(media_migrate_workflow_step)
 

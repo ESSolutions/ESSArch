@@ -506,6 +506,9 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                             )
                         )
 
+                    StorageMedium.objects.filter(tape_slot=slot).exclude(medium_id=medium_id).update(
+                        tape_slot=None, last_changed_local=timezone.now(),
+                    )
                     StorageMedium.objects.filter(medium_id=medium_id).update(
                         tape_slot=slot, last_changed_local=timezone.now(),
                     )

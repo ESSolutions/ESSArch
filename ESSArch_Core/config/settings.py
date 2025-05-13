@@ -40,6 +40,9 @@ except ImportError:
 # Workflow Pollers
 ESSARCH_WORKFLOW_POLLERS = {}
 
+# Set to True to run the workflow with poller True
+ESSARCH_WORKFLOW_POLLERS_RUN_POLLER = False
+
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
