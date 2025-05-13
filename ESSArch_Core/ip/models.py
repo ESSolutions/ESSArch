@@ -1999,7 +1999,8 @@ class InformationPackage(models.Model):
         return create_workflow(workflow, self, name='Access Information Package', responsible=responsible)
 
     def create_migration_workflow(self, temp_path, storage_methods, export_path='', tar=False, extracted=False,
-                                  package_xml=False, aic_xml=False, diff_check=True, responsible=None):
+                                  package_xml=False, aic_xml=False, diff_check=True, responsible=None,
+                                  top_root_step=None):
 
         logger = logging.getLogger('essarch.ip')
         container_methods = self.policy.storage_methods.secure_storage().filter(
@@ -2346,7 +2347,8 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path],
                         ],
                     },
                     # {
@@ -2713,6 +2715,7 @@ class InformationPackage(models.Model):
             label='Migrate Information Package',
             responsible=responsible,
             part_root=True,
+            top_root_step=top_root_step,
         )
 
         return ip_migrate_workflow_step

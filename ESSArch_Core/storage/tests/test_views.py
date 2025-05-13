@@ -983,10 +983,20 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         calls = []
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
         for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
-            calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
-                                   context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
-                                   run_state=mock.ANY))
+            # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+            #                        context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+            #                        run_state=mock.ANY))
             calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
                                    responsible=mock.ANY))
@@ -1002,17 +1012,6 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
                                    responsible=mock.ANY))
-
-        calls.append(mock.call(
-            name='Migrate Storage Medium',
-            eager=False,
-            information_package=mock.ANY,
-            context=mock.ANY,
-            responsible=mock.ANY,
-            label=mock.ANY,
-            part_root=mock.ANY,
-            run_state=mock.ANY,
-        ))
 
         mock_task.assert_has_calls(calls)
 
@@ -1052,10 +1051,20 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         calls = []
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
         for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
-            calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
-                                   context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
-                                   run_state=mock.ANY))
+            # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+            #                        context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+            #                        run_state=mock.ANY))
             calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
                                    responsible=mock.ANY))
@@ -1071,17 +1080,6 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
                                    parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
                                    responsible=mock.ANY))
-
-        calls.append(mock.call(
-            name='Migrate Storage Medium',
-            eager=False,
-            information_package=mock.ANY,
-            context=mock.ANY,
-            responsible=mock.ANY,
-            label=mock.ANY,
-            part_root=mock.ANY,
-            run_state=mock.ANY,
-        ))
 
         mock_task.assert_has_calls(calls)
 
@@ -1114,7 +1112,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(ProcessStep.objects.count(), 6)
+        self.assertEqual(ProcessStep.objects.count(), 11)
         mock_task.assert_called()
 
         with self.subTest('completed task'):
@@ -1128,7 +1126,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
                 response = self.client.post(self.url, data=data)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            self.assertEqual(ProcessStep.objects.count(), 12)
+            self.assertEqual(ProcessStep.objects.count(), 21)
             mock_task.assert_called()
 
 

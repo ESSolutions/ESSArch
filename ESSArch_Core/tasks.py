@@ -823,8 +823,9 @@ def RunWorkflowPollers(self):
                                       on_error=spec.get('on_error'), context=context)
 
     self.logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
+    poller = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS_RUN_POLLER', False)
     for workflow in get_workflows():
-        workflow.run()
+        workflow.run(poller=poller)
 
 
 @app.task(bind=True)
