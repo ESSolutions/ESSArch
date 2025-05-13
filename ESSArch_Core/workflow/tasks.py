@@ -465,7 +465,7 @@ def PollProcessStepQueue(self):
                 cache.set(cache_running_key, ProcessStep.objects.filter(run_state='STARTED').count())
                 for part_root_step in root_step.get_children().filter(part_root=True, run_state='PENDING'):
                     if (part_root_step.status == celery_states.PENDING and
-                            cache.get(cache_running_key) <= max_running_steps):
+                            cache.get(cache_running_key) < max_running_steps):
                         logger.info('root_step {} with part_root step {} is PENDING starting'.format(
                             root_step, part_root_step))
                         part_root_step.run()
@@ -485,15 +485,24 @@ running {}'.format(root_step, cache.get(cache_running_key)))
                 root_step.save(update_fields=['run_state'])
 
         cache.set(cache_running_key, ProcessStep.objects.filter(run_state='STARTED').count())
+        for root_step in ProcessStep.objects.filter(parent=None, run_state='STARTED'):
+            if (root_step.get_children().filter(part_root=True, run_state__in=['STARTED', 'PENDING']).exists() and
+                ProcessStep.objects.filter(parent=None, run_state='PENDING').exists() and
+                    cache.get(cache_running_key) < max_running_steps):
+                # Do not start new root_step if there are part_root steps running or pending
+                logger.info('root_step {} (STARTED) has running part_root steps (STARTED or PENDING), do not try \
+to start new root_step'.format(root_step))
+                return
+
         if (ProcessStep.objects.filter(parent=None, run_state='PENDING').exists() and
-                cache.get(cache_running_key) <= max_running_steps):
+                cache.get(cache_running_key) < max_running_steps):
             for root_step in ProcessStep.objects.filter(parent=None, run_state='PENDING'):
                 if root_step.get_children().filter(part_root=True).exists():
                     logger.info('root_step {} (PENDING) has part_root steps'.format(root_step))
                     # Run pending part root steps if max_running_steps is not reached
                     for part_root_step in root_step.get_children().filter(part_root=True, run_state='PENDING'):
                         if (part_root_step.status == celery_states.PENDING and
-                                cache.get(cache_running_key) <= max_running_steps):
+                                cache.get(cache_running_key) < max_running_steps):
                             logger.info('root_step {} with part_root step {} is PENDING starting'.format(
                                 root_step, part_root_step))
                             part_root_step.run()
@@ -510,7 +519,7 @@ running {}'.format(root_step, cache.get(cache_running_key)))
                             root_step))
                         root_step.run_state = 'STARTED'
                         root_step.save(update_fields=['run_state'])
-                elif cache.get(cache_running_key) <= max_running_steps:
+                elif cache.get(cache_running_key) < max_running_steps:
                     # Run pending root steps if max_running_steps is not reached
                     logger.info('root_step {} without part_root_step starting and flag root_step to STARTED'.format(
                         root_step))
