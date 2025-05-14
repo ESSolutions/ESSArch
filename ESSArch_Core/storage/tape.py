@@ -25,6 +25,8 @@ from ESSArch_Core.storage.exceptions import (
 from ESSArch_Core.storage.tape_identification import (
     get_backend as get_tape_identification_backend,
 )
+from ESSArch_Core.storage.util import pretty_mb_per_sec, pretty_size
+from ESSArch_Core.util import pretty_time_to_sec
 
 MB = 1024 * 1024
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
@@ -307,6 +309,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
             time_start = time.time()
             tar.add(path, arcname)
             time_end = time.time()
+
             time_elapsed = time_end - time_start
             fsize_mb = fsize / MB
             try:
@@ -315,8 +318,9 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
                 mb_per_sec = fsize_mb
 
             logger.info(
-                'Added {} ({} MB) to {} ({}) at {} MB/Sec ({} sec)'.format(
-                    path, fsize_mb, device, medium_id, mb_per_sec, time_elapsed
+                'Added {} ({}) to {} ({}) at {} MB/Sec ({} sec)'.format(
+                    path, pretty_size(fsize), device, medium_id, pretty_mb_per_sec(
+                        mb_per_sec), pretty_time_to_sec(time_elapsed)
                 )
             )
 

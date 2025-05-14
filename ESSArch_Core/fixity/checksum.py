@@ -3,6 +3,9 @@ import logging
 import os
 import time
 
+from ESSArch_Core.storage.util import pretty_mb_per_sec
+from ESSArch_Core.util import pretty_time_to_sec
+
 MB = 1024 * 1024
 
 
@@ -61,7 +64,6 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
     time_elapsed = end_time - start_time
     size = os.path.getsize(filename)
     size_mb = size / MB
-
     try:
         mb_per_sec = size_mb / time_elapsed
     except ZeroDivisionError:
@@ -70,7 +72,7 @@ def calculate_checksum(filename, algorithm='SHA-256', block_size=65536):
     digest = hash_val.hexdigest()
     logger.info(
         "Calculated checksum for %s with %s at %s MB/Sec (%s sec): %s" % (
-            filename, algorithm, mb_per_sec, time_elapsed, digest
+            filename, algorithm, pretty_mb_per_sec(mb_per_sec), pretty_time_to_sec(time_elapsed), digest
         )
     )
 
