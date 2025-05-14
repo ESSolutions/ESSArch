@@ -3,7 +3,6 @@ import logging
 import os
 import pathlib
 import tarfile
-from datetime import timedelta
 from time import sleep
 from urllib.parse import urljoin
 
@@ -73,6 +72,9 @@ from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
     normalize_path,
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -554,10 +556,9 @@ def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
     storage_object_pk, medium_id, write_size, mb_per_sec, time_elapsed = ip.preserve(
         src, storage_target, storage_method.containers, self.get_processtask())
 
-    time_elapsed_round = round(time_elapsed)
-    time_elapsed_sec = time_elapsed_round if time_elapsed_round > 1 else 1
-    msg = "Information package written to {} ({}), WriteSize: {}, WriteTime: {} ({:.2f} MB/Sec)".format(
-        medium_id, storage_target.name, write_size, timedelta(seconds=round(time_elapsed_sec)), mb_per_sec
+    msg = "Information package written to {} ({}), WriteSize: {}, {} MB/Sec ({} sec)".format(
+        medium_id, storage_target.name, pretty_size(write_size), pretty_mb_per_sec(
+            mb_per_sec), pretty_time_to_sec(time_elapsed)
     )
     if storage_method.type == 200:
         self.event_type = 40600
@@ -567,7 +568,8 @@ def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
         self.event_type = 40620
     self.create_success_event(msg)
 
-    return "{}, {} ({}), {:.2f} MB/Sec".format(storage_object_pk, medium_id, storage_target.name, mb_per_sec)
+    return "{}, {} ({}), {} MB/Sec".format(storage_object_pk, medium_id, storage_target.name,
+                                           pretty_mb_per_sec(mb_per_sec))
 
 
 @app.task(bind=True)

@@ -27,6 +27,7 @@ from ESSArch_Core.storage.tape import (
     set_tape_file_number,
     write_to_tape,
 )
+from ESSArch_Core.storage.util import move
 
 User = get_user_model()
 
@@ -181,13 +182,13 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
             if include_xml:
                 try:
-                    shutil.move(src_xml, dst)
+                    move(src_xml, dst)
                 except FileNotFoundError as e:
                     logger.warning(
                         'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
                 if aic_xml:
                     try:
-                        shutil.move(src_aic_xml, dst)
+                        move(src_aic_xml, dst)
                     except FileNotFoundError as e:
                         logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
@@ -212,9 +213,9 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     safe_extract(t, dst)
                     new = os.path.join(dst, root)
             else:
-                new = shutil.move(src_tar, dst)
+                new = move(src_tar, dst)
         else:
-            new = shutil.move(src, dst)
+            new = move(src, dst)
 
         try:
             shutil.rmtree(tmp_path)

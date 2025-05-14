@@ -129,10 +129,10 @@ class CopyFileTestCase(SimpleTestCase):
 
         dst = os.path.join(self.datadir, 'bar.txt')
 
-        mock_size = mock.patch('ESSArch_Core.storage.copy.get_tree_size_and_count', return_value=(10, 1))
+        mock_size = mock.patch('ESSArch_Core.storage.util.get_tree_size_and_count', return_value=(10, 1))
 
         ntuple_free = namedtuple('usage', 'free')
-        mock_free = mock.patch('ESSArch_Core.storage.copy.shutil.disk_usage', return_value=ntuple_free(free=5))
+        mock_free = mock.patch('ESSArch_Core.storage.util.shutil.disk_usage', return_value=ntuple_free(free=5))
 
         with mock_size, mock_free:
             with self.assertRaises(NoSpaceLeftError):
@@ -192,10 +192,10 @@ class CopyDirTests(SimpleTestCase):
             f.write('test')
         dst = tempfile.mkdtemp(dir=self.root)
 
-        mock_size = mock.patch('ESSArch_Core.storage.copy.get_tree_size_and_count', return_value=(10, 1))
+        mock_size = mock.patch('ESSArch_Core.storage.util.get_tree_size_and_count', return_value=(10, 1))
 
         ntuple_free = namedtuple('usage', 'free')
-        mock_free = mock.patch('ESSArch_Core.storage.copy.shutil.disk_usage', return_value=ntuple_free(free=5))
+        mock_free = mock.patch('ESSArch_Core.storage.util.shutil.disk_usage', return_value=ntuple_free(free=5))
 
         with mock_size, mock_free:
             with self.assertRaises(NoSpaceLeftError):
