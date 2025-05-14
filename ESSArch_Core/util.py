@@ -327,7 +327,7 @@ def get_tree_size_and_count(path='.'):
     path = Path(path)
 
     if path.is_file():
-        return path.stat().st_size(), 1
+        return path.stat().st_size, 1
 
     total_size = 0
     count = 0
