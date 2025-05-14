@@ -16,12 +16,12 @@ from tenacity import (
 )
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.storage.util import (
-    enough_space_available,
+from ESSArch_Core.storage.util import enough_space_available
+from ESSArch_Core.util import (
     pretty_mb_per_sec,
     pretty_size,
+    pretty_time_to_sec,
 )
-from ESSArch_Core.util import pretty_time_to_sec
 
 MB = 1024 * 1024
 DEFAULT_BLOCK_SIZE = 10 * MB

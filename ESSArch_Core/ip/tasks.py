@@ -62,7 +62,6 @@ from ESSArch_Core.storage.exceptions import (
     NoWriteableStorage,
 )
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
-from ESSArch_Core.storage.util import pretty_mb_per_sec, pretty_size
 from ESSArch_Core.tags.models import (
     Tag,
     TagStructure,
@@ -73,6 +72,8 @@ from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
     normalize_path,
+    pretty_mb_per_sec,
+    pretty_size,
     pretty_time_to_sec,
     zip_directory,
 )

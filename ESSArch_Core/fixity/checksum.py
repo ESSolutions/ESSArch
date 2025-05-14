@@ -3,8 +3,7 @@ import logging
 import os
 import time
 
-from ESSArch_Core.storage.util import pretty_mb_per_sec
-from ESSArch_Core.util import pretty_time_to_sec
+from ESSArch_Core.util import pretty_mb_per_sec, pretty_time_to_sec
 
 MB = 1024 * 1024
 

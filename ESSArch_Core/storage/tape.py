@@ -25,8 +25,11 @@ from ESSArch_Core.storage.exceptions import (
 from ESSArch_Core.storage.tape_identification import (
     get_backend as get_tape_identification_backend,
 )
-from ESSArch_Core.storage.util import pretty_mb_per_sec, pretty_size
-from ESSArch_Core.util import pretty_time_to_sec
+from ESSArch_Core.util import (
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
+)
 
 MB = 1024 * 1024
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512

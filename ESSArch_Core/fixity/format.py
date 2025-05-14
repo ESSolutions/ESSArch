@@ -15,8 +15,6 @@ from ESSArch_Core.exceptions import (
 from ESSArch_Core.fixity.validation.backends.encryption import (
     FileEncryptionValidator,
 )
-from ESSArch_Core.storage.util import pretty_mb_per_sec
-from ESSArch_Core.util import pretty_time_to_sec
 
 MB = 1024 * 1024
 DEFAULT_MIMETYPE = 'application/octet-stream'
@@ -188,6 +186,7 @@ class FormatIdentifier:
             mb_per_sec = size_mb
 
         file_format = (self.format_name, self.format_version, self.format_registry_key)
+        from ESSArch_Core.util import pretty_mb_per_sec, pretty_time_to_sec
         logger.info(
             "Identified the format of %s at %s MB/Sec (%s sec): %s" % (
                 filename, pretty_mb_per_sec(mb_per_sec), pretty_time_to_sec(time_elapsed), file_format

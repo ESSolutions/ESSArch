@@ -3,60 +3,17 @@ import logging
 import os
 import shutil
 import time
-from decimal import Decimal
 from pathlib import Path
 
 from ESSArch_Core.storage.exceptions import NoSpaceLeftError
-from ESSArch_Core.util import get_tree_size_and_count, pretty_time_to_sec
+from ESSArch_Core.util import (
+    get_tree_size_and_count,
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
+)
 
 MB = 1024 * 1024
-
-
-def pretty_size(bytes, unit=''):
-    """
-    Get human-readable file sizes.
-    """
-
-    units = [
-        (1 << 50, 'PB'),
-        (1 << 40, 'TB'),
-        (1 << 30, 'GB'),
-        (1 << 20, 'MB'),
-        (1 << 10, 'KB'),
-        (1, ('byte', 'bytes')),
-    ]
-
-    if unit and unit not in ('MB', 'GB', 'TB', 'PB'):
-        raise ValueError('Invalid unit: {}'.format(unit))
-    for factor, suffix in units:
-        if unit:
-            if suffix == unit:
-                break
-        elif bytes >= factor:
-            break
-    amount = int(bytes / factor)
-
-    if isinstance(suffix, tuple):
-        singular, multiple = suffix
-        if amount == 1:
-            suffix = singular
-        else:
-            suffix = multiple
-
-    return '{} {}'.format(amount, suffix)
-
-
-def pretty_mb_per_sec(mb_per_sec):
-    """
-    Converts MB/s to a human-readable string
-
-    :param mb_per_sec: Speed in MB/s
-    :return: Human-readable string
-    """
-    if mb_per_sec > 1:
-        return round(mb_per_sec, 2)
-    else:
-        return format(Decimal(mb_per_sec), ".2g")
 
 
 def enough_space_available(dst: str, src: str, raise_exception: bool = False, src_size: int = 0) -> bool:
