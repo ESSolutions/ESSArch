@@ -87,7 +87,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, str) or isinstance(content, int):
+    if isinstance(content, str) or isinstance(content, int) or isinstance(content, uuid.UUID):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -97,6 +97,14 @@ def parseContent(content, info=None):
             except KeyError:
                 return None
         return dct
+
+    list_with_uuids = True
+    if isinstance(content, list):
+        for c in content:
+            if not isinstance(c, uuid.UUID):
+                list_with_uuids = False
+        if list_with_uuids:
+            return content
 
     arr = []
     for c in content:

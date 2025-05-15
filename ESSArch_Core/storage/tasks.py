@@ -5,18 +5,71 @@ import zipfile
 from urllib.parse import urljoin
 
 import requests
+from celery import states as celery_states
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
 from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.config.celery import app
+from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.ip.utils import generate_aic_mets, generate_package_mets
 from ESSArch_Core.storage.copy import copy_file
 from ESSArch_Core.storage.models import StorageMethod, StorageTarget
 from ESSArch_Core.util import zip_directory
+from ESSArch_Core.WorkflowEngine.models import ProcessStep
 
 User = get_user_model()
+
+
+@app.task(bind=True)
+def CreateMediumMigrationWorkflow(self, media_migrate_workflow_step_id, ip_ids,
+                                  storage_method_ids, temp_path, export_path):
+    """
+    Create Medium Migration Workflow
+
+    Args:
+        media_migrate_workflow_step_id: ID of the media workflow step to be used
+        ip_ids: list of information package ids
+        storage_method_ids: list of storage method ids
+        temp_path: temporary path for migration
+        export_path: export path for migration
+
+    Returns:
+        None
+    """
+    logger = logging.getLogger('essarch.storage.tasks.CreateMediumMigrationWorkflow')
+    storage_methods = StorageMethod.objects.filter(pk__in=storage_method_ids)
+    media_migrate_workflow_step = ProcessStep.objects.get(pk=media_migrate_workflow_step_id)
+    for ip_id in ip_ids:
+        ip_obj = InformationPackage.objects.get(pk=ip_id)
+        previously_not_completed_steps = []
+        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
+                                                          information_package=ip_obj):
+            if previously_step.status in [
+                celery_states.PENDING,
+                celery_states.STARTED,
+            ]:
+                previously_not_completed_steps.append(previously_step)
+        if previously_not_completed_steps:
+            logger.warning('Previously not completed migration jobs already exists: {}'.format(
+                previously_not_completed_steps))
+        else:
+            storage_methods_dst = storage_methods.filter(
+                pk__in=ip_obj.get_migratable_storage_methods())
+            ip_obj.create_migration_workflow(
+                temp_path=temp_path,
+                storage_methods=storage_methods_dst,
+                export_path=export_path,
+                tar=True,
+                extracted=False,
+                package_xml=True,
+                aic_xml=True,
+                diff_check=True,
+                responsible=User.objects.get(pk=self.responsible),
+                top_root_step=media_migrate_workflow_step,
+            )
+    media_migrate_workflow_step.run(poller=True)
 
 
 @app.task(bind=True)
