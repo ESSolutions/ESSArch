@@ -442,7 +442,7 @@ def UnmountIdleDrives(self):
 def PollProcessStepQueue(self):
     logger = logging.getLogger('essarch.workflow.tasks.PollProcessStepQueue')
     lock_key = 'poll_process_step_queue'
-    if cache.search(lock_key):
+    if cache.keys(lock_key):
         logger.debug('Polling process step queue already running')
         return
 
@@ -485,19 +485,16 @@ running {}'.format(root_step, cache.get(cache_running_key)))
                 root_step.save(update_fields=['run_state'])
 
         cache.set(cache_running_key, ProcessStep.objects.filter(run_state='STARTED').count())
-        for root_step in ProcessStep.objects.filter(parent=None, run_state='STARTED'):
-            if (root_step.get_children().filter(part_root=True, run_state__in=['STARTED', 'PENDING']).exists() and
-                ProcessStep.objects.filter(parent=None, run_state='PENDING').exists() and
-                    cache.get(cache_running_key) < max_running_steps):
-                # Do not start new root_step if there are part_root steps running or pending
-                logger.info('root_step {} (STARTED) has running part_root steps (STARTED or PENDING), do not try \
-to start new root_step'.format(root_step))
-                return
-
         if (ProcessStep.objects.filter(parent=None, run_state='PENDING').exists() and
                 cache.get(cache_running_key) < max_running_steps):
             for root_step in ProcessStep.objects.filter(parent=None, run_state='PENDING'):
                 if root_step.get_children().filter(part_root=True).exists():
+                    if (getattr(settings, 'ESSARCH_RUN_SINGLE_ROOT_STEP_IF_RUNNING_PART_ROOT_STEP', True) and
+                            ProcessStep.objects.filter(parent=None, run_state='STARTED',
+                                                       child_steps__run_state__in=['STARTED', 'PENDING']).exists()):
+                        logger.info('root_step with running part_root steps (STARTED or PENDING) already exists, do \
+not try to start new')
+                        continue
                     logger.info('root_step {} (PENDING) has part_root steps'.format(root_step))
                     # Run pending part root steps if max_running_steps is not reached
                     for part_root_step in root_step.get_children().filter(part_root=True, run_state='PENDING'):

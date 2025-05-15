@@ -1,7 +1,6 @@
 import logging
 import os
 
-from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
@@ -32,7 +31,7 @@ from ESSArch_Core.storage.models import (
     TapeDrive,
     TapeSlot,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessStep
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
@@ -489,37 +488,22 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                         name='Migrate Storage Medium', eager=False, information_package=None, context={},
                         responsible=user, label='Migrate Storage Medium {}'.format(medium_id),
                         part_root=None, run_state='')
-                    ips_migrate_workflow_steps = []
-                    for ip_obj in medium_ids[medium_id]:
-                        previously_not_completed_steps = []
-                        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
-                                                                          information_package=ip_obj):
-                            if previously_step.status in [
-                                celery_states.PENDING,
-                                celery_states.STARTED,
-                            ]:
-                                previously_not_completed_steps.append(previously_step)
-                        if previously_not_completed_steps:
-                            ip_migrate_workflow_step = previously_not_completed_steps[0]
-                            logger.warning('Previously not completed migration jobs already exists: {}'.format(
-                                previously_not_completed_steps))
-                        else:
-                            storage_methods_dst = storage_methods.filter(
-                                pk__in=ip_obj.get_migratable_storage_methods())
-                            ip_migrate_workflow_step = ip_obj.create_migration_workflow(
-                                temp_path=validated_data['temp_path'],
-                                storage_methods=storage_methods_dst,
-                                export_path=export_path,
-                                tar=True,
-                                extracted=False,
-                                package_xml=True,
-                                aic_xml=True,
-                                diff_check=True,
-                                responsible=user,
-                                top_root_step=media_migrate_workflow_step,
-                            )
-                            ips_migrate_workflow_steps.append(ip_migrate_workflow_step)
-                    media_migrate_workflow_step.run(poller=True)
+
+                    t = ProcessTask.objects.create(
+                        name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
+                        params={
+                            'media_migrate_workflow_step_id': media_migrate_workflow_step.pk,
+                            'ip_ids': [ip.pk for ip in medium_ids[medium_id]],
+                            'storage_method_ids': [s.pk for s in storage_methods],
+                            'temp_path': validated_data['temp_path'],
+                            'export_path': export_path,
+                        },
+                        eager=False,
+                        responsible=user,
+                    )
+                    t.run()
+                    logger.info('Created task {} for medium {} with {} IPs'.format(
+                        t.id, medium_id, len(medium_ids[medium_id])))
                     steps.append(media_migrate_workflow_step)
 
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])
@@ -548,37 +532,22 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                         name='Migrate Storage Medium', eager=False, information_package=None, context={},
                         responsible=user, label='Migrate Storage Medium {}'.format(StorageMedium_obj.medium_id),
                         part_root=None, run_state='')
-                    ips_migrate_workflow_steps = []
-                    for ip_obj in information_packages:
-                        previously_not_completed_steps = []
-                        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
-                                                                          information_package=ip_obj):
-                            if previously_step.status in [
-                                celery_states.PENDING,
-                                celery_states.STARTED,
-                            ]:
-                                previously_not_completed_steps.append(previously_step)
-                        if previously_not_completed_steps:
-                            ip_migrate_workflow_step = previously_not_completed_steps[0]
-                            logger.warning('Previously not completed migration jobs already exists: {}'.format(
-                                previously_not_completed_steps))
-                        else:
-                            storage_methods_dst = storage_methods.filter(
-                                pk__in=ip_obj.get_migratable_storage_methods())
-                            ip_migrate_workflow_step = ip_obj.create_migration_workflow(
-                                temp_path=validated_data['temp_path'],
-                                storage_methods=storage_methods_dst,
-                                export_path=export_path,
-                                tar=True,
-                                extracted=False,
-                                package_xml=True,
-                                aic_xml=True,
-                                diff_check=True,
-                                responsible=user,
-                                top_root_step=media_migrate_workflow_step,
-                            )
-                            ips_migrate_workflow_steps.append(ip_migrate_workflow_step)
-                    media_migrate_workflow_step.run(poller=True)
+
+                    t = ProcessTask.objects.create(
+                        name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
+                        params={
+                            'media_migrate_workflow_step_id': media_migrate_workflow_step.pk,
+                            'ip_ids': [ip.pk for ip in information_packages],
+                            'storage_method_ids': [s.pk for s in storage_methods],
+                            'temp_path': validated_data['temp_path'],
+                            'export_path': export_path,
+                        },
+                        eager=False,
+                        responsible=user,
+                    )
+                    t.run()
+                    logger.info('Created task {} for medium {} with {} IPs'.format(
+                        t.id, StorageMedium_obj.medium_id, len(information_packages)))
                     steps.append(media_migrate_workflow_step)
 
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])

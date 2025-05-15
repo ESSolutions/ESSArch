@@ -7,6 +7,7 @@ from django.db import transaction
 from tenacity import (
     RetryError,
     Retrying,
+    before_sleep_log,
     stop_after_delay,
     wait_random_exponential,
 )
@@ -147,7 +148,8 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
     with cache.lock('create_workflow_lock', timeout=300):
         try:
             for attempt in Retrying(stop=stop_after_delay(30),
-                                    wait=wait_random_exponential(multiplier=1, max=60)):
+                                    wait=wait_random_exponential(multiplier=1, max=60),
+                                    before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
                 with attempt:
                     try:
                         with transaction.atomic():
