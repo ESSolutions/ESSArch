@@ -588,6 +588,7 @@ class StorageMediumDeactivateTests(TestCase):
             content_location_type=DISK,
         )
 
+    @TaskRunner()
     def test_non_migrated_medium(self):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -869,6 +870,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_method_rel_states(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -916,6 +918,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             mock_task.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_ip_with_no_storage(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
         new = add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
@@ -934,6 +937,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         mock_task.assert_not_called()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_bad_ip(self, mock_task):
         ip = InformationPackage.objects.create(submission_agreement=self.sa)
 
@@ -952,6 +956,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         side_effect=ProcessStep.objects.create
     )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessStep.run')
+    @TaskRunner()
     def test_migration_task_order_for_information_packages(self, mock_task_run, mock_task):
         old = add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -1020,6 +1025,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         side_effect=ProcessStep.objects.create
     )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessStep.run')
+    @TaskRunner()
     def test_migration_task_order_for_storage_mediums(self, mock_task_run, mock_task):
         old = add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -1084,6 +1090,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         mock_task.assert_has_calls(calls)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_queue_duplicate_migrations(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
