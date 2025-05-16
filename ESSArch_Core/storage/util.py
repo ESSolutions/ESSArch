@@ -73,7 +73,7 @@ def move_file(src, dst):
     time_end = time.time()
 
     time_elapsed = time_end - time_start
-    fsize_mb = fsize / 1 << 20
+    fsize_mb = fsize / MB
     try:
         mb_per_sec = fsize_mb / time_elapsed
     except ZeroDivisionError:
@@ -109,7 +109,7 @@ def move_dir(src, dst):
     time_end = time.time()
 
     time_elapsed = time_end - time_start
-    dirsize_mb = dirsize / 1 << 20
+    dirsize_mb = dirsize / MB
     try:
         mb_per_sec = dirsize_mb / time_elapsed
     except ZeroDivisionError:

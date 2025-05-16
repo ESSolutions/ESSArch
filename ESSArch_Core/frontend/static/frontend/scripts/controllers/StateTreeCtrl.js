@@ -154,7 +154,17 @@ export default class StateTreeCtrl {
     };
     $scope.currentStepTask = {id: ''};
     $scope.myTreeControl.scope.updatePageNumber = function (branch, page) {
-      if (page > branch.page_number && branch.next) {
+      if (page == 1 && branch.first) {
+        branch.page_number = parseInt(branch.first.page);
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function (result) {
+          branch = result;
+        });
+      } else if (page == branch.pages && branch.last && page > 0) {
+        branch.page_number = parseInt(branch.last.page);
+        StateTree.getChildrenForStep(branch, branch.page_number).then(function (result) {
+          branch = result;
+        });
+      } else if (page > branch.page_number && branch.next) {
         branch.page_number = parseInt(branch.next.page);
         StateTree.getChildrenForStep(branch, branch.page_number).then(function (result) {
           branch = result;

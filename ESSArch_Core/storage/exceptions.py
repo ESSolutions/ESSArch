@@ -41,6 +41,10 @@ class StorageMediumFull(ESSArchException):
     pass
 
 
+class StorageMediumError(ESSArchException):
+    pass
+
+
 class TapeDriveLockedError(ESSArchException):
     """The tape drive is locked"""
     pass
@@ -58,4 +62,9 @@ class TapeMountedError(ESSArchException):
 
 class TapeUnmountedError(ESSArchException):
     """The tape is already unmounted"""
+    pass
+
+
+class TapeError(ESSArchException):
+    """The tape or drive is failed"""
     pass

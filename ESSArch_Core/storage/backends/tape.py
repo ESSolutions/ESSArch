@@ -14,7 +14,7 @@ from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.exceptions import StorageMediumFull
+from ESSArch_Core.storage.exceptions import StorageMediumFull, TapeError
 from ESSArch_Core.storage.models import (
     TAPE,
     RobotQueue,
@@ -125,6 +125,11 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(
                 storage_medium.medium_id, str(storage_medium.pk)))
+            if storage_medium.tape_drive.status == 100:
+                raise TapeError(
+                    'Storage medium {} "{}" in drive {} "{}" is failed'.format(
+                        storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
+                        storage_medium.tape_drive.drive_id))
             time.sleep(5)
 
         storage_medium.refresh_from_db()
@@ -132,7 +137,12 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             self.wait_for_media_transit(storage_medium)
 
         storage_medium.refresh_from_db()
-        if storage_medium.tape_drive is not None:
+        if storage_medium.tape_drive.status == 100:
+            raise TapeError(
+                'Storage medium {} "{}" in drive {} "{}" is failed'.format(
+                    storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
+                    storage_medium.tape_drive.drive_id))
+        elif storage_medium.tape_drive is not None:
             if io_lock_key is not None:
                 logger.debug('Storage medium {} ({}) is now mounted'.format(
                     storage_medium.medium_id, str(storage_medium.pk)))
