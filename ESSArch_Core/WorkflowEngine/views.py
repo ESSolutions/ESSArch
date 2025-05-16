@@ -26,7 +26,7 @@ import itertools
 
 from celery import states as celery_states
 from django.db import transaction
-from django.db.models import Q
+# from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
@@ -35,7 +35,7 @@ from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from ESSArch_Core.auth.permissions import ActionPermissions
-from ESSArch_Core.ip.models import InformationPackage
+# from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.WorkflowEngine.filters import (
     ProcessStepFilter,
     ProcessTaskFilter,
@@ -88,10 +88,11 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
     filterset_class = ProcessStepFilter
 
     def get_queryset(self):
-        user = self.request.user
-        ips = InformationPackage.objects.visible_to_user(user)
-        queryset = ProcessStep.objects.filter(
-            Q(information_package__in=ips) | Q(information_package__isnull=True))
+        # user = self.request.user
+        queryset = ProcessStep.objects.select_related('responsible').all()
+        # ips = InformationPackage.objects.visible_to_user(user)
+        # queryset = ProcessStep.objects.filter(
+        #     Q(information_package__in=ips) | Q(information_package__isnull=True))
         return queryset
 
     def get_serializer_class(self):
@@ -127,11 +128,12 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     filterset_class = ProcessTaskFilter
 
     def get_queryset(self):
-        user = self.request.user
-        ips = InformationPackage.objects.visible_to_user(user)
-        queryset = ProcessTask.objects.select_related('responsible').filter(
-            Q(information_package__in=ips) | Q(information_package__isnull=True)
-        )
+        # user = self.request.user
+        queryset = ProcessTask.objects.select_related('responsible').all()
+        # ips = InformationPackage.objects.visible_to_user(user)
+        # queryset = ProcessTask.objects.select_related('responsible').filter(
+        #     Q(information_package__in=ips) | Q(information_package__isnull=True)
+        # )
         return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):

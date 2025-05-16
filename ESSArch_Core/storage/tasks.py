@@ -41,6 +41,7 @@ def CreateMediumMigrationWorkflow(self, media_migrate_workflow_step_id, ip_ids,
     logger = logging.getLogger('essarch.storage.tasks.CreateMediumMigrationWorkflow')
     storage_methods = StorageMethod.objects.filter(pk__in=storage_method_ids)
     media_migrate_workflow_step = ProcessStep.objects.get(pk=media_migrate_workflow_step_id)
+    logger.info('Start to add {} IPs workflows to step {}'.format(len(ip_ids), media_migrate_workflow_step.label))
     for ip_id in ip_ids:
         ip_obj = InformationPackage.objects.get(pk=ip_id)
         previously_not_completed_steps = []
@@ -50,10 +51,11 @@ def CreateMediumMigrationWorkflow(self, media_migrate_workflow_step_id, ip_ids,
                 celery_states.PENDING,
                 celery_states.STARTED,
             ]:
-                previously_not_completed_steps.append(previously_step)
+                previously_not_completed_steps.append(previously_step.id)
         if previously_not_completed_steps:
-            logger.warning('Previously not completed migration jobs already exists: {}'.format(
-                previously_not_completed_steps))
+            logger.warning('Skip to add workflow for IP {} to step {}. Previously not completed migration step \
+already exists: {}'.format(ip_obj.object_identifier_value, media_migrate_workflow_step.label,
+                           previously_not_completed_steps))
         else:
             storage_methods_dst = storage_methods.filter(
                 pk__in=ip_obj.get_migratable_storage_methods())
@@ -69,6 +71,10 @@ def CreateMediumMigrationWorkflow(self, media_migrate_workflow_step_id, ip_ids,
                 responsible=User.objects.get(pk=self.responsible),
                 top_root_step=media_migrate_workflow_step,
             )
+            logger.info('Added workflow for IP {} to step {}'.format(ip_obj.object_identifier_value,
+                                                                     media_migrate_workflow_step.label))
+    logger.info('Success to add {} IPs workflows to step {}, flag to run with poller'.format(
+        len(ip_ids), media_migrate_workflow_step.label))
     media_migrate_workflow_step.run(poller=True)
 
 

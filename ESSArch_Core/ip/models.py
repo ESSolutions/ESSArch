@@ -99,7 +99,10 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.storage.exceptions import StorageMediumFull
+from ESSArch_Core.storage.exceptions import (
+    StorageMediumError,
+    StorageMediumFull,
+)
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     STORAGE_TARGET_STATUS_MIGRATE,
@@ -2916,10 +2919,14 @@ class InformationPackage(models.Model):
             if new_size > storage_target.max_capacity > 0:
                 storage_medium.mark_as_full()
                 raise StorageMediumFull(
-                    'Maximum capacity limit reached for storage medium "{}"'.format(str(storage_medium.pk)))
+                    'Maximum capacity limit reached for storage medium {} "{}"'.format(
+                        storage_medium.medium_id, str(storage_medium.pk)))
 
             storage_backend = storage_target.get_storage_backend()
             storage_medium.prepare_for_write(io_lock_key=src)
+            if storage_medium.status == 100:
+                raise StorageMediumError(
+                    'Storage medium {} "{}" is failed'.format(storage_medium.medium_id, str(storage_medium.pk)))
             time_start = time.time()
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
