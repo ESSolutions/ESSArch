@@ -53,69 +53,71 @@ export default class StorageMigrationCtrl {
     };
 
     vm.callServer = function (tableState) {
-      $scope.ipLoading = true;
-      if (vm.displayedIps.length == 0) {
-        $scope.initLoad = true;
-      }
-      if (!angular.isUndefined(tableState)) {
-        $scope.tableState = tableState;
-        var search = '';
-        if (tableState.search.predicateObject) {
-          var search = tableState.search.predicateObject['$'];
+      if (vm.selectedMediums.length && vm.ipsVisible) {
+        $scope.ipLoading = true;
+        if (vm.displayedIps.length == 0) {
+          $scope.initLoad = true;
         }
-        let ordering = tableState.sort.predicate;
-        if (tableState.sort.reverse) {
-          ordering = '-' + ordering;
-        }
+        if (!angular.isUndefined(tableState)) {
+          $scope.tableState = tableState;
+          var search = '';
+          if (tableState.search.predicateObject) {
+            var search = tableState.search.predicateObject['$'];
+          }
+          let ordering = tableState.sort.predicate;
+          if (tableState.sort.reverse) {
+            ordering = '-' + ordering;
+          }
 
-        const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
-        $http({
-          method: 'GET',
-          url: appConfig.djangoUrl + 'information-packages/',
-          params: angular.extend(
-            {
-              search,
-              ordering,
-              view_type: 'flat',
-              page: paginationParams.pageNumber,
-              page_size: paginationParams.number,
-              pager: paginationParams.pager,
-              medium: vm.selectedMediums.length ? vm.selectedMediums.map((x) => x.id) : null,
-              policy: vm.mediumFilterModel.policy,
-              migratable: true,
-            },
-            vm.columnFilters
-          ),
-        })
-          .then(function (response) {
-            vm.displayedIps = response.data;
-            tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
-            $scope.ipLoading = false;
-            $scope.initLoad = false;
-            ipExists();
-            SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
+          const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
+          $http({
+            method: 'GET',
+            url: appConfig.djangoUrl + 'information-packages/',
+            params: angular.extend(
+              {
+                search,
+                ordering,
+                view_type: 'flat',
+                page: paginationParams.pageNumber,
+                page_size: paginationParams.number,
+                pager: paginationParams.pager,
+                medium: vm.selectedMediums.length ? vm.selectedMediums.map((x) => x.id) : null,
+                policy: vm.mediumFilterModel.policy,
+                migratable: true,
+              },
+              vm.columnFilters
+            ),
           })
-          .catch(function (response) {
-            if (response.status == 404) {
-              const filters = angular.extend(
-                {
-                  state: ipSortString,
-                },
-                vm.columnFilters
-              );
+            .then(function (response) {
+              vm.displayedIps = response.data;
+              tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
+              $scope.ipLoading = false;
+              $scope.initLoad = false;
+              ipExists();
+              SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
+            })
+            .catch(function (response) {
+              if (response.status == 404) {
+                const filters = angular.extend(
+                  {
+                    state: ipSortString,
+                  },
+                  vm.columnFilters
+                );
 
-              if (vm.workarea) {
-                filters.workarea = vm.workarea;
+                if (vm.workarea) {
+                  filters.workarea = vm.workarea;
+                }
+
+                listViewService.checkPages('ip', paginationParams.number, filters).then(function (response) {
+                  tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
+                  tableState.pagination.start =
+                    response.numberOfPages * paginationParams.number - paginationParams.number;
+                  vm.callServer(tableState);
+                });
               }
-
-              listViewService.checkPages('ip', paginationParams.number, filters).then(function (response) {
-                tableState.pagination.numberOfPages = response.numberOfPages; //set the number of pages so the pagination can update
-                tableState.pagination.start =
-                  response.numberOfPages * paginationParams.number - paginationParams.number;
-                vm.callServer(tableState);
-              });
-            }
-          });
+            });
+        }
       }
     };
 

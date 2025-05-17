@@ -2,8 +2,8 @@ import importlib
 import logging
 
 from celery import states as celery_states
-# from django.core.cache import cache
-from django.db import transaction
+from django.core.cache import cache
+# from django.db import transaction
 from tenacity import (
     RetryError,
     Retrying,
@@ -145,14 +145,14 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
 
     logger = logging.getLogger('essarch.workflow')
 
-    # with cache.lock('create_workflow_lock', timeout=300):
-    try:
-        for attempt in Retrying(stop=stop_after_delay(30),
-                                wait=wait_random_exponential(multiplier=1, max=60),
-                                before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
-            with attempt:
-                try:
-                    with transaction.atomic():
+    with cache.lock('create_workflow_lock', timeout=300):
+        try:
+            for attempt in Retrying(stop=stop_after_delay(30),
+                                    wait=wait_random_exponential(multiplier=1, max=60),
+                                    before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+                with attempt:
+                    try:
+                        # with transaction.atomic():
                         # with ProcessStep.objects.delay_mptt_updates():
                         if top_root_step:
                             root_step = ProcessStep(
@@ -190,10 +190,10 @@ def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', l
                             empty_steps = root_step.get_descendants(
                                 include_self=True
                             ).filter(tasks=None, child_steps__isnull=True).exists()
-                except RuntimeError as e:
-                    logger.warning('Exception in create_workflow for ip: {}, error: {} - retry'.format(ip, e))
-                    raise
-    except RetryError:
-        logger.warning('RetryError in create_workflow for ip: {}'.format(ip))
-        raise
+                    except RuntimeError as e:
+                        logger.warning('Exception in create_workflow for ip: {}, error: {} - retry'.format(ip, e))
+                        raise
+        except RetryError:
+            logger.warning('RetryError in create_workflow for ip: {}'.format(ip))
+            raise
     return root_step

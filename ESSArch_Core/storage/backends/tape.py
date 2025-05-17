@@ -125,7 +125,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(
                 storage_medium.medium_id, str(storage_medium.pk)))
-            if storage_medium.tape_drive.status == 100:
+            if storage_medium.tape_drive is not None and storage_medium.tape_drive.status == 100:
                 raise TapeError(
                     'Storage medium {} "{}" in drive {} "{}" is failed'.format(
                         storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
@@ -137,13 +137,13 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
             self.wait_for_media_transit(storage_medium)
 
         storage_medium.refresh_from_db()
-        if storage_medium.tape_drive.status == 100:
-            raise TapeError(
-                'Storage medium {} "{}" in drive {} "{}" is failed'.format(
-                    storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
-                    storage_medium.tape_drive.drive_id))
-        elif storage_medium.tape_drive is not None:
-            if io_lock_key is not None:
+        if storage_medium.tape_drive is not None:
+            if storage_medium.tape_drive.status == 100:
+                raise TapeError(
+                    'Storage medium {} "{}" in drive {} "{}" is failed'.format(
+                        storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
+                        storage_medium.tape_drive.drive_id))
+            elif io_lock_key is not None:
                 logger.debug('Storage medium {} ({}) is now mounted'.format(
                     storage_medium.medium_id, str(storage_medium.pk)))
                 self.lock_or_wait_for_drive(storage_medium, io_lock_key)
