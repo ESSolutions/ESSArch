@@ -25,7 +25,7 @@ export default (
   let getStoragePolicies = (search: string) => {
     return $http
       .get(appConfig.djangoUrl + 'storage-policies/', {
-        params: {page: 1, page_size: 10, search},
+        params: {policy_stat: true, page: 1, page_size: 10, search},
       })
       .then((response) => {
         policies = response.data;

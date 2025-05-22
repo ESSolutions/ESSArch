@@ -75,20 +75,24 @@ class StorageMediumFilter(filters.FilterSet):
     def filter_deactivatable(self, queryset, name, value):
         include_inactive_ips = self.request.query_params.get('include_inactive_ips', False)
         include_inactive_ips = include_inactive_ips in (True, 'True', 'true', '1')
-        return queryset.deactivatable(include_inactive_ips=include_inactive_ips)
+        policy = self.data.get('policy', '')
+        return queryset.deactivatable(include_inactive_ips=include_inactive_ips, policy=policy)
 
     def filter_migratable(self, queryset, name, value):
         exportable = strtobool(self.data.get('exportable', False))
         export_path = 'dummy' if exportable else ''
         missing_storage = strtobool(self.data.get('missing_storage', False))
+        policy = self.data.get('policy', '')
+        include_inactive_ips = strtobool(self.data.get('include_inactive_ips', False))
         if value:
-            return queryset.migratable(export_path=export_path, missing_storage=missing_storage)
+            return queryset.migratable(export_path=export_path, missing_storage=missing_storage,
+                                       policy=policy, include_inactive_ips=include_inactive_ips)
         else:
             return queryset.non_migratable()
 
     def filter_exportable(self, queryset, name, value):
-        missing_storage = strtobool(self.data.get('missing_storage', False))
-        return queryset.migratable(export_path='dummy', missing_storage=missing_storage) if value else queryset
+        # this filter is only used together with migratable or exportable
+        return queryset
 
     def filter_missing_storage(self, queryset, *args):
         # this filter is only used together with migratable or exportable
