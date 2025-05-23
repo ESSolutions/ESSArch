@@ -481,7 +481,12 @@ class StorageMediumQueryset(models.QuerySet):
         return migration_targets
 
     def deactivatable(self, include_inactive_ips=False, policy=''):
-        migration_targets = self._get_migration_targets(policy)
+        if policy:
+            migration_targets = self._get_migration_targets(policy)
+        else:
+            migration_targets = self.filter(
+                storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE).values_list(
+                    'storage_target__pk', flat=True)
         search = Q()
         if migration_targets:
             search = Q(storage_target__in=migration_targets)
@@ -506,8 +511,12 @@ class StorageMediumQueryset(models.QuerySet):
                     ).values('storage_method')[:1]
                 )
             )
-
-        migration_targets = self._get_migration_targets(policy)
+        if policy:
+            migration_targets = self._get_migration_targets(policy)
+        else:
+            migration_targets = self.filter(
+                storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_MIGRATE).values_list(
+                    'storage_target__pk', flat=True)
         search = Q()
         if missing_storage:
             if storage_methods:
@@ -530,6 +539,12 @@ class StorageMediumQueryset(models.QuerySet):
                 for target in storage_methods.values_list('targets__pk', flat=True):
                     enabled_targets.append(target)
                 search = Q(storage_target__pk__in=enabled_targets)
+            else:
+                enabled_targets = self.filter(
+                    storage_target__storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED).values_list(
+                        'storage_target__pk', flat=True)
+                search = Q(storage_target__pk__in=enabled_targets)
+                migration_targets = enabled_targets
         else:
             if migration_targets:
                 search = Q(storage_target__in=migration_targets)

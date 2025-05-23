@@ -259,6 +259,7 @@ class StorageMediumDeactivatableTests(TestCase):
 
         # Add IP to new method
         new_storage_method = StorageMethod.objects.create(name="new_method")
+        self.policy.storage_methods.add(new_storage_method)
         storage_target_in_new_method = StorageTarget.objects.create(name="target_in_new_method")
         StorageMethodTargetRelation.objects.create(
             storage_method=new_storage_method,
@@ -274,6 +275,24 @@ class StorageMediumDeactivatableTests(TestCase):
             content_location_type=DISK,
         )
 
+        # Add new inactive IP to old medium
+        inactive_ip = InformationPackage.objects.create(
+            archived=True,
+            submission_agreement=self.sa, active=False
+        )
+        StorageObject.objects.create(
+            ip=inactive_ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+        # All objects migrated and old medium is deactivatable
+        response = self.client.get(self.url, data={'deactivatable': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+
+        # Include inactive IPs, all objects are not migrated,
+        # and old medium is not deactivatable
         response = self.client.get(self.url, data={'deactivatable': True, 'include_inactive_ips': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -418,15 +437,41 @@ class StorageMediumMigratableTests(TestCase):
         new = add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
         self.policy.storage_methods.add(old.storage_method, new.storage_method)
 
-        for rstatus in (STORAGE_TARGET_STATUS_MIGRATE, STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY):
-            old.status = rstatus
-            old.save()
+        old.status = STORAGE_TARGET_STATUS_MIGRATE
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
-            with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-                response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
-                self.assertEqual(len(response.data), 1)
-                self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+        old.status = STORAGE_TARGET_STATUS_ENABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'missing_storage': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+
+        old.status = STORAGE_TARGET_STATUS_MIGRATE
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'policy': str(self.policy.pk)})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+
+        old.status = STORAGE_TARGET_STATUS_ENABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'missing_storage': True, 'policy': str(self.policy.pk)})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
         old.status = STORAGE_TARGET_STATUS_DISABLED
         old.save()
@@ -488,7 +533,7 @@ class StorageMediumMigratableTests(TestCase):
             submission_agreement=self.sa,
         )
 
-        # default
+        # default - storage method (copy 1)
         default_rel = add_storage_method_rel(DISK, 'default', STORAGE_TARGET_STATUS_MIGRATE)
         default_medium = add_storage_medium(default_rel.storage_target, 20, 'default')
 
@@ -499,7 +544,7 @@ class StorageMediumMigratableTests(TestCase):
             status=STORAGE_TARGET_STATUS_ENABLED
         )
 
-        # long term
+        # long_term - storage method (copy 2)
         long_term_rel = add_storage_method_rel(DISK, 'default_long_term', STORAGE_TARGET_STATUS_ENABLED)
         long_term_medium = add_storage_medium(long_term_rel.storage_target, 20, 'long_term')
 
@@ -509,32 +554,41 @@ class StorageMediumMigratableTests(TestCase):
             long_term_rel.storage_method,
         )
 
-        add_storage_obj(ip1, default_medium, DISK, '')
-        add_storage_obj(ip1, long_term_medium, DISK, '')
+        add_storage_obj(ip1, default_medium, DISK, '')      # copy 1 (need migration to new_target)
+        add_storage_obj(ip1, long_term_medium, DISK, '')    # copy 2 (missing copy 1 in new_target)
 
-        add_storage_obj(ip2, long_term_medium, DISK, '')
+        add_storage_obj(ip2, long_term_medium, DISK, '')    # copy 2 (missing copy 1 in new_target)
+
+        response = self.client.get(self.url, data={'migratable': True, 'missing_storage': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertCountEqual(
+            [response.data[0]['id']],
+            [str(default_medium.pk)],
+        )
 
         response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 1)
         self.assertCountEqual(
-            [response.data[0]['id'], response.data[1]['id']],
-            [str(default_medium.pk), str(long_term_medium.pk)],
+            [response.data[0]['id']],
+            [str(long_term_medium.pk)],
         )
 
-        ip_list_url = reverse('informationpackage-list')
+        ip_list_url = reverse('storage-migrations-preview')
         response = self.client.get(ip_list_url, data={
-            'medium': str(default_medium.pk),
+            'storage_mediums': [str(default_medium.pk)],
             'migratable': True,
-            'view_type': 'flat',
+            'policy': str(self.policy.pk),
         })
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(ip1.pk))
 
         response = self.client.get(ip_list_url, data={
-            'medium': str(long_term_medium.pk),
+            'storage_mediums': [str(long_term_medium.pk)],
+            'policy': str(self.policy.pk),
             'migratable': True,
-            'view_type': 'flat',
+            'missing_storage': True,
         })
         self.assertEqual(len(response.data), 2)
         self.assertCountEqual(

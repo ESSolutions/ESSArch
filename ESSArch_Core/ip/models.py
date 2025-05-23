@@ -282,7 +282,14 @@ class InformationPackageQuerySet(OrganizationQuerySet):
     def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
                    include_inactive_ips=False):
         # TODO: Exclude those that already has a task that has not succeeded (?)
-        storage_methods = storage_methods if storage_methods is not None else StorageMethod.objects.all()
+        if policy and not storage_methods:
+            from ESSArch_Core.configuration.models import StoragePolicy
+            storage_policy_obj = StoragePolicy.objects.get(pk=policy)
+            storage_methods = storage_policy_obj.storage_methods.filter(
+                enabled=True, storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED
+            )
+        elif not policy and not storage_methods:
+            storage_methods = StorageMethod.objects.all()
 
         method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
             has_storage_obj=Exists(
