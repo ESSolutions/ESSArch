@@ -431,20 +431,16 @@ class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
 
 
 class StorageMigrationCreateSerializer(serializers.Serializer):
-    information_packages = InformationPackagePolicyField(
-        write_only=True, many=True, required=False,
-    )
+    information_packages = InformationPackagePolicyField(write_only=True, many=True, required=False)
     storage_mediums = serializers.PrimaryKeyRelatedField(
         write_only=True, many=True, required=False, queryset=StorageMedium.objects.all()
     )
-    policy = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=StoragePolicy.objects.all(),
-    )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
+    policy = serializers.PrimaryKeyRelatedField(write_only=True, queryset=StoragePolicy.objects.all())
+    storage_methods = StorageMethodPolicyField(write_only=True, many=True, required=False)
     temp_path = serializers.CharField(write_only=True)
     export_path = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    include_inactive_ips = serializers.BooleanField(write_only=True, required=False, default=False)
+    missing_storage = serializers.BooleanField(write_only=True, required=False, default=False)
 
     def create(self, validated_data):
         logger = logging.getLogger('essarch')
@@ -453,6 +449,14 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
+        storage_methods = validated_data.get('storage_methods', [])
+        export_path = validated_data.get('export_path', '')
+        include_inactive_ips = validated_data.get('include_inactive_ips', '')
+        missing_storage = validated_data.get('missing_storage', '')
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
         with transaction.atomic():
             if validated_data.get('information_packages', False):
                 medium_ids = {}
@@ -475,13 +479,6 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                 if len(validated_data['information_packages']) != num_of_ip_with_storage:
                     raise serializers.ValidationError(
                         'Missing storage for some IP in: {}'.format(validated_data['information_packages']))
-
-                storage_methods = validated_data.get('storage_methods', [])
-                export_path = validated_data.get('export_path', '')
-                if isinstance(storage_methods, list):
-                    storage_methods = StorageMethod.objects.filter(
-                        pk__in=[s.pk for s in storage_methods]
-                    )
 
                 for medium_id in medium_ids.keys():
                     media_migrate_workflow_step = ProcessStep.objects.create(
@@ -509,20 +506,15 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])
 
             elif validated_data.get('storage_mediums', False):
-                storage_methods = validated_data.get('storage_methods', [])
-                export_path = validated_data.get('export_path', '')
-                if isinstance(storage_methods, list):
-                    storage_methods = StorageMethod.objects.filter(
-                        pk__in=[s.pk for s in storage_methods]
-                    )
-
                 for StorageMedium_obj in StorageMedium.objects.filter(
                         pk__in=[s.pk for s in validated_data['storage_mediums']]):
                     ip_ids_sorted_for_medium = list(StorageMedium_obj.storage.all().natural_sort().values_list(
                         'ip', flat=True))
                     ip_objs_migratable_bulk = InformationPackage.objects.migratable(
-                        storage_methods=storage_methods, export_path=export_path).filter(
-                        pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)).in_bulk()
+                        export_path=export_path, missing_storage=missing_storage, storage_methods=storage_methods,
+                        include_inactive_ips=include_inactive_ips).filter(
+                            pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)
+                    ).in_bulk()
                     ip_objs_migratable_sorted = [
                         ip_objs_migratable_bulk[id] for id in ip_ids_sorted_for_medium
                         if id in ip_objs_migratable_bulk]
@@ -563,24 +555,23 @@ class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
 
 
 class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
-    information_packages = InformationPackagePolicyField(
-        write_only=True, many=True, required=False,
-    )
+    information_packages = InformationPackagePolicyField(write_only=True, many=True, required=False)
     storage_mediums = serializers.PrimaryKeyRelatedField(
         write_only=False, many=True, required=False, queryset=StorageMedium.objects.all()
     )
-    policy = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=StoragePolicy.objects.all(),
-    )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
+    policy = serializers.PrimaryKeyRelatedField(write_only=True, queryset=StoragePolicy.objects.all())
+    storage_methods = StorageMethodPolicyField(write_only=True, many=True, required=False)
     export_path = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    include_inactive_ips = serializers.BooleanField(write_only=True, required=False, default=False)
+    missing_storage = serializers.BooleanField(write_only=True, required=False, default=False)
 
     def create(self, validated_data):
         information_packages = validated_data['information_packages']
+        policy = validated_data['policy']
         storage_methods = validated_data['storage_methods']
         export_path = validated_data.get('export_path', '')
+        include_inactive_ips = validated_data.get('include_inactive_ips', '')
+        missing_storage = validated_data.get('missing_storage', '')
         if isinstance(storage_methods, list):
             storage_methods = StorageMethod.objects.filter(
                 pk__in=[s.pk for s in storage_methods]
@@ -593,8 +584,10 @@ class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
                 ip_ids_sorted_for_medium = list(StorageMedium_obj.storage.all().natural_sort().values_list(
                     'ip', flat=True))
                 ip_objs_migratable_bulk = InformationPackage.objects.migratable(
-                    storage_methods=storage_methods, export_path=export_path).filter(
-                    pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)).in_bulk()
+                    export_path=export_path, missing_storage=missing_storage, storage_methods=storage_methods,
+                    policy=policy, include_inactive_ips=include_inactive_ips).filter(
+                        pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)
+                ).in_bulk()
                 ip_objs_migratable_sorted = [
                     ip_objs_migratable_bulk[id] for id in ip_ids_sorted_for_medium if id in ip_objs_migratable_bulk]
                 information_packages.extend(ip_objs_migratable_sorted)

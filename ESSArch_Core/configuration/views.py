@@ -244,8 +244,9 @@ class StoragePolicyViewSet(viewsets.ModelViewSet):
     """
     queryset = StoragePolicy.objects.all()
     serializer_class = StoragePolicySerializer
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
     search_fields = ('policy_id', 'policy_name')
+    filterset_fields = ('policy_id', 'policy_name', 'policy_stat')
 
 
 class SiteView(APIView):

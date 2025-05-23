@@ -642,11 +642,12 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
     def get_agent(self, obj):
         logger = logging.getLogger('essarch.tags')
         try:
-            agent = obj.agents.get()
+            agent = obj.agents.get(tag_links__type__creator=True)
         except ObjectDoesNotExist:
             return None
         except MultipleObjectsReturned:
-            logger.warning('Multiple agents found for tag version {}'.format(obj))
+            agent_list = [x for x in obj.agents.all()]
+            logger.warning('Multiple agents found for tag version {}, agents: {}'.format(obj, agent_list))
             agent = obj.agents.first()
 
         serializer = TagVersionAgentAuthoritySerializer(instance=agent)

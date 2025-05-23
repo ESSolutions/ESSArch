@@ -224,7 +224,7 @@ class InformationPackageMigratableTests(TestCase):
     def setUpTestData(cls):
         cls.storage_method = StorageMethod.objects.create()
         cls.storage_target = StorageTarget.objects.create()
-        StorageMethodTargetRelation.objects.create(
+        cls.storage_method_target_rel = StorageMethodTargetRelation.objects.create(
             storage_method=cls.storage_method,
             storage_target=cls.storage_target,
             status=STORAGE_TARGET_STATUS_ENABLED
@@ -251,6 +251,9 @@ class InformationPackageMigratableTests(TestCase):
         self.assertFalse(ip_exists)
 
     def test_get_migratable_new_storage_method(self):
+        self.storage_method_target_rel.status = STORAGE_TARGET_STATUS_MIGRATE
+        self.storage_method_target_rel.save()
+
         new_storage_method = StorageMethod.objects.create()
         new_storage_target = StorageTarget.objects.create(name='new')
         StorageMethodTargetRelation.objects.create(

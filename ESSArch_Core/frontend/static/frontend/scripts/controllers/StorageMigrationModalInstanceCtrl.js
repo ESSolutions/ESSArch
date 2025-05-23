@@ -214,6 +214,8 @@ export default class StorageMigrationModalInstanceCtrl {
             data: function () {
               if ($ctrl.data.ips) {
                 return {
+                  include_inactive_ips: $ctrl.data.include_inactive_ips,
+                  missing_storage: $ctrl.data.missing_storage,
                   policy: $ctrl.data.policy,
                   storage_methods: $ctrl.migration.storage_methods,
                   information_packages: $ctrl.data.ips.map((x) => x.id),
@@ -221,6 +223,8 @@ export default class StorageMigrationModalInstanceCtrl {
                 };
               } else if ($ctrl.data.mediums) {
                 return {
+                  include_inactive_ips: $ctrl.data.include_inactive_ips,
+                  missing_storage: $ctrl.data.missing_storage,
                   policy: $ctrl.data.policy,
                   storage_methods: $ctrl.migration.storage_methods,
                   storage_mediums: $ctrl.data.mediums.map((x) => x.id),

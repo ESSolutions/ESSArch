@@ -143,11 +143,17 @@ export default class StorageMigrationCtrl {
             if (ips.length > 0) {
               return {
                 ips: ips,
+                include_inactive_ips: false,
+                exportable: vm.mediumFilterModel.exportable,
+                missing_storage: vm.mediumFilterModel.missing_storage,
                 policy: vm.mediumFilterModel.policy,
               };
             } else {
               return {
                 mediums: mediums,
+                include_inactive_ips: false,
+                exportable: vm.mediumFilterModel.exportable,
+                missing_storage: vm.mediumFilterModel.missing_storage,
                 policy: vm.mediumFilterModel.policy,
               };
             }

@@ -279,29 +279,17 @@ class InformationPackageQuerySet(OrganizationQuerySet):
             ),
         )
 
-    def migratable(self, storage_methods=None, export_path=''):
+    def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
+                   include_inactive_ips=False):
         # TODO: Exclude those that already has a task that has not succeeded (?)
-        storage_methods = storage_methods if storage_methods is not None else StorageMethod.objects.all()
-
-        def filter_objects(status):
-            return StorageObject.objects.filter(
-                storage_medium__storage_target__storage_method_target_relations__status=status,
-                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
-                ip=OuterRef(OuterRef('pk'))
+        if policy and not storage_methods:
+            from ESSArch_Core.configuration.models import StoragePolicy
+            storage_policy_obj = StoragePolicy.objects.get(pk=policy)
+            storage_methods = storage_policy_obj.storage_methods.filter(
+                enabled=True, storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED
             )
-
-        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.annotate(
-            has_migrate_target_with_obj=Exists(filter_objects(STORAGE_TARGET_STATUS_MIGRATE)),
-            has_enabled_target_without_obj=~Exists(filter_objects(STORAGE_TARGET_STATUS_ENABLED)),
-            has_enabled_target_with_obj=F('has_enabled_target_without_obj'),
-        ).filter(
-            has_migrate_target_with_obj=True,
-            has_enabled_target_without_obj=True,
-            has_enabled_target_with_obj=False,
-            storage_method__in=storage_methods,
-            storage_method__enabled=True,
-            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
-        )
+        elif not policy and not storage_methods:
+            storage_methods = StorageMethod.objects.all()
 
         method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
             has_storage_obj=Exists(
@@ -318,6 +306,32 @@ class InformationPackageQuerySet(OrganizationQuerySet):
             storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
+        def filter_objects(status):
+            return StorageObject.objects.filter(
+                storage_medium__storage_target__storage_method_target_relations__status=status,
+                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
+                ip=OuterRef(OuterRef('pk'))
+            )
+
+        sm_status = [STORAGE_TARGET_STATUS_MIGRATE]
+        if missing_storage:
+            sm_status.append(STORAGE_TARGET_STATUS_ENABLED)
+
+        method_target_rel_with_migrate_target_with_ip = StorageMethodTargetRelation.objects.annotate(
+            has_storage_obj=Exists(
+                StorageObject.objects.filter(
+                    storage_medium__storage_target=OuterRef('storage_target'),
+                    ip=OuterRef(OuterRef('pk'))
+                )
+            ),
+        ).filter(
+            has_storage_obj=True,
+            status__in=sm_status,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
+        )
+
         method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.none()
         if export_path:
             method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.annotate(
@@ -329,7 +343,7 @@ class InformationPackageQuerySet(OrganizationQuerySet):
 
         return self.filter(
             Q(
-                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_target_rel_with_migrate_target_with_ip)) &
                 Q(Exists(method_target_rel_with_enabled_target_without_ip)) |
                 Q(Exists(method_target_rel_with_old_migrate_and_export))
             ),
@@ -344,8 +358,11 @@ class InformationPackageManager(OrganizationManager):
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
-    def migratable(self, storage_methods=None, export_path=''):
-        return self.get_queryset().migratable(storage_methods=storage_methods, export_path=export_path)
+    def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
+                   include_inactive_ips=False):
+        return self.get_queryset().migratable(export_path=export_path, missing_storage=missing_storage,
+                                              storage_methods=storage_methods, policy='',
+                                              include_inactive_ips=include_inactive_ips)
 
 
 class InformationPackage(models.Model):
