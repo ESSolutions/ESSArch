@@ -413,8 +413,10 @@ def UnmountIdleDrives(self):
             robot=robot, req_type=10, status__in=[0, 2],
         ).exists()
 
+        num_of_available_drives = TapeDrive.objects.filter(robot=robot, status=20,
+                                                           storage_medium__isnull=True, locked=False).count()
         drive_filter = Q(robot=robot, status=20, storage_medium__isnull=False, locked=False)
-        if robot_queue_mount_entry_exists:
+        if robot_queue_mount_entry_exists and num_of_available_drives == 0:
             drive_filter &= Q(last_change__lte=timezone.now() - timedelta(seconds=60))
         else:
             drive_filter &= Q(last_change__lte=timezone.now() - F('idle_time'))

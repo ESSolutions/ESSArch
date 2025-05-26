@@ -23,6 +23,7 @@
 """
 
 import logging
+from contextlib import nullcontext
 
 from billiard.einfo import ExceptionInfo
 from celery import Task, exceptions, states as celery_states
@@ -127,6 +128,10 @@ class DBTask(Task):
         return self.headers.get('step_pos')
 
     @property
+    def parallel(self):
+        return self.headers.get('parallel', False)
+
+    @property
     def task_id(self):
         return self.request.id
 
@@ -162,13 +167,26 @@ DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, se
             #                                                                           repr(updated_data_dict)))
             #     self.logger.info('dbtask: {} - ip: {}, extra_data: {}'.format(self.name, ip, repr(self.extra_data)))
 
+            if self.parallel:
+                cm = nullcontext()
+            else:
+                cm = cache.lock(ip.get_lock_key(), timeout=300)
             try:
                 if ip.is_locked():
-                    self.logger.warning(
-                        'IP: {} is already locked when task: {} ({}) try to acquire lock'.format(
-                            ip, self.name, self.task_id))
-                with cache.lock(ip.get_lock_key(), blocking_timeout=300):
-                    self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(self.name, self.task_id, ip))
+                    if not self.parallel:
+                        self.logger.warning(
+                            'IP: {} is already locked when task: {} ({}) try to acquire lock'.format(
+                                ip, self.name, self.task_id))
+                    else:
+                        self.logger.warning(
+                            'IP: {} is already locked when task: {} ({}) try to run task in parallel'.format(
+                                ip, self.name, self.task_id))
+                with cm:
+                    if not self.parallel:
+                        self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(self.name, self.task_id, ip))
+                    else:
+                        self.logger.info('Task: {} ({}) is running in parallel for IP: {}'.format(
+                            self.name, self.task_id, ip))
                     try:
                         for attempt in Retrying(stop=stop_after_delay(30),
                                                 wait=wait_random_exponential(multiplier=1, max=60)):
@@ -191,7 +209,8 @@ when get ProcessTask'.format(self.name, self.task_id, self.step, self.ip))
                         t.save()
                     else:
                         r = self._run_task(*args, **kwargs)
-                self.logger.info('{} released lock for IP: {}'.format(self.task_id, str(ip)))
+                if not self.parallel:
+                    self.logger.info('{} released lock for IP: {}'.format(self.task_id, str(ip)))
             except LockNotOwnedError:
                 self.logger.warning('Task: {} ({}) LockNotOwnedError for IP: {}'.format(
                     self.name, self.task_id, str(ip)))

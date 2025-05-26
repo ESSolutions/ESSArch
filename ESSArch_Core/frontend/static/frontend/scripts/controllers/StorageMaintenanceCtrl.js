@@ -146,6 +146,18 @@ export default class StorageMaintenanceCtrl {
       });
     };
 
+    vm.deselectAllMediums = () => {
+      vm.selectedMediums = [];
+    };
+
+    vm.selectAllMediums = () => {
+      vm.displayedMediums.forEach((x) => {
+        if (!vm.mediumSelected(x)) {
+          vm.selectMedium(x);
+        }
+      });
+    };
+
     vm.deactivateMediumModal = function (mediums) {
       const modalInstance = $uibModal.open({
         animation: true,
