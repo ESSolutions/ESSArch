@@ -98,14 +98,7 @@ def parseContent(content, info=None):
                 return None
         return dct
 
-    list_with_uuids = True
-    if isinstance(content, list):
-        for c in content:
-            if not isinstance(c, uuid.UUID):
-                list_with_uuids = False
-        if list_with_uuids:
-            return content
-
+    nothing_to_parse = False
     arr = []
     for c in content:
         if 'text' in c:
@@ -140,6 +133,11 @@ def parseContent(content, info=None):
 
             if val is not None:
                 arr.append(make_unicode(val))
+        else:
+            nothing_to_parse = True
+
+    if nothing_to_parse:
+        return parse_content_django(content, info=info)
 
     return ''.join(arr)
 

@@ -78,6 +78,7 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
         'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'allow_failure': t.allow_failure,
         'result_params': t.result_params,
+        'parallel': t.processstep.parallel if t.processstep else False,
     }
     headers_hack = {'headers': headers}
 
@@ -741,6 +742,7 @@ class ProcessTask(Process):
             ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
             'allow_failure': self.allow_failure,
+            'parallel': self.processstep.parallel if self.processstep else False,
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
@@ -752,7 +754,7 @@ class ProcessTask(Process):
         if self.eager:
             headers['result_params'] = self.result_params
             headers_hack = {'headers': headers}
-            logger.debug('Running task eagerly ({})'.format(self.pk))
+            logger.debug('Running task eagerly {}({})'.format(self.celery_id, self.pk))
             res = t.apply(
                 args=self.args, kwargs=self.params,
                 task_id=str(self.celery_id),
@@ -760,7 +762,7 @@ class ProcessTask(Process):
             )
         else:
             headers_hack = {'headers': headers}
-            logger.debug('Running task non-eagerly ({})'.format(self.pk))
+            logger.debug('Running task non-eagerly {}({})'.format(self.celery_id, self.pk))
             res = t.apply_async(
                 args=self.args,
                 kwargs=self.params,

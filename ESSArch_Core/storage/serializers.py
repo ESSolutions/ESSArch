@@ -507,7 +507,7 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
 
             elif validated_data.get('storage_mediums', False):
                 for StorageMedium_obj in StorageMedium.objects.filter(
-                        pk__in=[s.pk for s in validated_data['storage_mediums']]):
+                        pk__in=[s.pk for s in validated_data['storage_mediums']]).natural_sort():
                     ip_ids_sorted_for_medium = list(StorageMedium_obj.storage.all().natural_sort().values_list(
                         'ip', flat=True))
                     ip_objs_migratable_bulk = InformationPackage.objects.migratable(
