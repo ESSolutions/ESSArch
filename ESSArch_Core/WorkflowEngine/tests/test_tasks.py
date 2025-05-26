@@ -46,7 +46,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_headers = {
             'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': None,
-            'allow_failure': False
+            'allow_failure': False, 'parallel': False
         }
         apply_async.assert_called_once_with(
             args=[5, 10], kwargs={}, headers={'headers': expected_headers}, link_error=None,
@@ -64,7 +64,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_headers = {
             'responsible': None, 'ip': None, 'step': None, 'step_pos': 0, 'hidden': None,
-            'allow_failure': False
+            'allow_failure': False, 'parallel': False
         }
         apply_async.assert_called_once_with(
             args=[], kwargs={'foo': 'bar'}, headers={'headers': expected_headers},
@@ -84,7 +84,7 @@ class RunTasksNonEagerlyTests(TestCase):
 
         expected_headers = {
             'responsible': None, 'ip': None, 'step': str(step.pk), 'step_pos': 2, 'hidden': None,
-            'allow_failure': False
+            'allow_failure': False, 'parallel': False
         }
         apply_async.assert_called_once_with(
             args=[], kwargs={}, headers={'headers': expected_headers},
