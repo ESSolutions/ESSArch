@@ -28,13 +28,13 @@ from urllib.parse import urljoin
 import click
 import django
 import requests
-from django.conf import settings
-from django.urls import reverse
 from requests import RequestException
 
 django.setup()
 
 
+from django.conf import settings  # noqa isort:skip
+from django.urls import reverse  # noqa isort:skip
 from ESSArch_Core.configuration.serializers import StoragePolicySerializer  # noqa isort:skip
 from ESSArch_Core.profiles.models import SubmissionAgreement  # noqa isort:skip
 from ESSArch_Core.profiles.serializers import (  # noqa isort:skip
