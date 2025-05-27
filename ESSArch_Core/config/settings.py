@@ -62,9 +62,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'proxy_pagination.ProxyPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
         'ESSArch_Core.auth.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        'knox.auth.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'ESSArch_Core.auth.permissions.ActionPermissions',

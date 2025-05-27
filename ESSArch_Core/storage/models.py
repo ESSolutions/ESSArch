@@ -549,7 +549,7 @@ class StorageMediumQueryset(models.QuerySet):
             if migration_targets:
                 search = Q(storage_target__in=migration_targets)
 
-        return self.exclude(status=0).filter(
+        return self.exclude(status=0).exclude(storage_target__type__gte=300, tape_slot__isnull=True).filter(
             Q(
                 Q(self._missing_storage_object_in_other_method_in_policy(storage_methods=storage_methods,
                                                                          missing_storage=missing_storage,
