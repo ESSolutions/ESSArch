@@ -35,7 +35,7 @@ def clear(indexes):
 
 @click.command()
 @click.option('-i', '--index', 'indexes', type=str, multiple=True, help='Specify which index to update. \
-                    (agent, archive, component, directory, document, information_package, structure_unit)')
+(agent, archive, component, directory, document, information_package, structure_unit)')
 @click.option('-b', '--batch-size', 'batch_size', type=int, help='Number of items to index at once.')
 @click.option('-r', '--remove-stale', 'remove_stale', is_flag=True, default=False, help='Remove objects from the \
 index that are no longer in the database.')

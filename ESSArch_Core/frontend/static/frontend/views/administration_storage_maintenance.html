@@ -93,9 +93,9 @@
               <td style="white-space: nowrap">{{row.medium_id}}</td>
               <td>{{row.storage_target.name}}</td>
               <td style="white-space: nowrap">{{row.create_date | date:"yyyy-MM-dd HH:mm:ss"}}</td>
-              <td>{{row.status.toUpperCase() | translate}}</td>
+              <td>{{row.status_display.toUpperCase() | translate}}</td>
               <td style="white-space: nowrap">{{row.location}}</td>
-              <td>{{row.location_status.toUpperCase() | translate}}</td>
+              <td>{{row.location_status_display.toUpperCase() | translate}}</td>
               <td>{{row.used_capacity | filesize}}</td>
               <td class="clickable">{{row.storage_target.max_capacity | filesize}}</td>
             </tr>

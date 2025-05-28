@@ -171,6 +171,22 @@ list(
 
 
 @cli.group()
+def remote():
+    """Manage remote
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: remote.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.remote.update_sa',
+        )
+    )
+)
+
+
+@cli.group()
 def search():
     """Manage search indices
     """
@@ -231,6 +247,22 @@ list(
     map(
         lambda cmd: mimetypes.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.mimetypes.generate',
+        )
+    )
+)
+
+
+@cli.group()
+def workflow():
+    """Manage workflow
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: workflow.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.workflow.remove_step',
         )
     )
 )
