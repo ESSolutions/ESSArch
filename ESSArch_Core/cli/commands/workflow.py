@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import click
-import pytz
-from django.conf import settings
+from django.utils import timezone
 
 from ESSArch_Core.config.decorators import initialize
 
@@ -34,12 +33,7 @@ def remove_step(step_id=None, name=None, status='SUCCESS', run_state='SUCCESS', 
         exit(1)
 
     if days_before is not None:
-        time_created_end_val = datetime.now() - timedelta(days=int(days_before))
-        if hasattr(settings, 'TIME_ZONE'):
-            tz = pytz.timezone(settings.TIME_ZONE)
-            if time_created_end_val is not None and time_created_end_val.tzinfo is None:
-                time_created_end_val = time_created_end_val.replace(tzinfo=pytz.UTC).astimezone(tz)
-        time_created_end = time_created_end_val
+        time_created_end = timezone.now() - timedelta(days=int(days_before))
 
     filter = {}
     if step_id is not None:
