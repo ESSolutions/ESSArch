@@ -31,15 +31,18 @@ from django.conf import settings
 from django.urls import reverse
 from requests import RequestException
 
-from ESSArch_Core.config import initialize
+from ESSArch_Core.config.decorators import initialize
 
-initialize()
-from ESSArch_Core.configuration.serializers import StoragePolicySerializer  # noqa isort:skip
-from ESSArch_Core.profiles.models import SubmissionAgreement  # noqa isort:skip
-from ESSArch_Core.profiles.serializers import (  # noqa isort:skip
-    ProfileDetailSerializer,
-    SubmissionAgreementSerializer,
-)
+
+@initialize
+def import_globally():
+    global StoragePolicySerializer, SubmissionAgreement, ProfileDetailSerializer, SubmissionAgreementSerializer
+    from ESSArch_Core.configuration.serializers import StoragePolicySerializer
+    from ESSArch_Core.profiles.models import SubmissionAgreement
+    from ESSArch_Core.profiles.serializers import (
+        ProfileDetailSerializer,
+        SubmissionAgreementSerializer,
+    )
 
 
 @click.command()
@@ -50,7 +53,8 @@ from ESSArch_Core.profiles.serializers import (  # noqa isort:skip
 @click.option('--token', default='', help='Token for authentication')
 @click.option('--verify', default=True, type=bool, help='SSL certificate verification')
 def update_sa(sa_id, host, user, passw, token, verify):
-    """Update Submission Agreement and related profiles/policies on remote server."""
+    """Update Submission Agreement and profiles/policies on remote server."""
+    import_globally()
     if sa_id is None:
         print("You must specify either a sa_id.")
         exit(1)

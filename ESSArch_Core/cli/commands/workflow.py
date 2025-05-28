@@ -4,10 +4,13 @@ import click
 import pytz
 from django.conf import settings
 
-from ESSArch_Core.config import initialize
+from ESSArch_Core.config.decorators import initialize
 
-initialize()
-from ESSArch_Core.WorkflowEngine.models import ProcessStep  # noqa isort:skip
+
+@initialize
+def import_globally():
+    global ProcessStep
+    from ESSArch_Core.WorkflowEngine.models import ProcessStep
 
 
 @click.command()
@@ -24,6 +27,8 @@ from ESSArch_Core.WorkflowEngine.models import ProcessStep  # noqa isort:skip
               help="Preview the steps that would be removed without actually removing them.")
 def remove_step(step_id=None, name=None, status='SUCCESS', run_state='SUCCESS', time_created_start=None,
                 time_created_end=None, days_before=None, preview=False):
+    """Remove process step"""
+    import_globally()
     if step_id is None and name is None:
         print("You must specify either a step_id or a name to remove a step.")
         exit(1)
