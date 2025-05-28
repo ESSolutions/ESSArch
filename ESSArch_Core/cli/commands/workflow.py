@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 
 import click
-import django
 import pytz
 from django.conf import settings
 
-django.setup()
+from ESSArch_Core.config import initialize
+
+initialize()
 from ESSArch_Core.WorkflowEngine.models import ProcessStep  # noqa isort:skip
 
 
@@ -56,7 +57,3 @@ def remove_step(step_id=None, name=None, status='SUCCESS', run_state='SUCCESS', 
             print(f"Step {step.label} ({step.id}) has been removed.")
         else:
             print(f"Step {step.label} ({step.id}) does not match the specified status '{status}'.")
-
-
-if __name__ == "__main__":
-    remove_step()
