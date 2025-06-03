@@ -126,7 +126,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'information_package_str', 'eager',
         )
         read_only_fields = (
-            'id', 'time_created', 'time_started', 'time_done', 'retried',
+            'time_created', 'time_started', 'time_done', 'retried',
         )
         extra_kwargs = {
             'id': {
@@ -136,11 +136,24 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
         }
 
 
+class PickledObjectSerializerField(serializers.Field):
+    def to_representation(self, obj):
+        # Convert the object to something JSON-serializable
+        try:
+            return obj  # assuming it's a dict/list/str/etc.
+        except Exception:
+            return str(obj)  # fallback for debugging
+
+    def to_internal_value(self, data):
+        return data  # just pass raw data; model field handles pickling
+
+
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
     exception_str = serializers.SerializerMethodField()
     params_parsed = serializers.SerializerMethodField()
     args_parsed = serializers.SerializerMethodField()
+    exception = PickledObjectSerializerField()
 
     def get_exception_str(self, obj):
         if obj.exception is None:
@@ -167,7 +180,7 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'celery_id', 'args_parsed', 'params_parsed', 'result', 'traceback', 'exception_str', 'eager',
+            'celery_id', 'args_parsed', 'params_parsed', 'result', 'traceback', 'exception', 'exception_str', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
             'celery_id', 'args', 'args_parsed', 'params', 'params_parsed', 'result', 'traceback', 'exception',
