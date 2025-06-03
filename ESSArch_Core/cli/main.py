@@ -263,6 +263,7 @@ list(
     map(
         lambda cmd: workflow.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.workflow.remove_step',
+            'ESSArch_Core.cli.commands.workflow.revoke_task',
         )
     )
 )

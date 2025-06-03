@@ -8,6 +8,9 @@ from tenacity import (
     RetryError,
     Retrying,
     before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
     stop_after_delay,
     wait_random_exponential,
 )
@@ -15,9 +18,18 @@ from tenacity import (
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
+@retry(retry=retry_if_exception_type(ValueError), reraise=True,
+       stop=stop_after_attempt(5),
+       wait=wait_random_exponential(multiplier=1, max=10),
+       before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.DEBUG))
 def get_result(step, reference):
     tasks = ProcessTask.objects.values_list('reference', 'result').filter(processstep=step, reference__isnull=False)
-    results = dict((x, y) for x, y in tasks)
+    results = {}
+    for x, y in tasks:
+        if not y:
+            raise ValueError(f'Step {step} with reference: {x} does not have any result')
+        else:
+            results[x] = y
 
     if isinstance(reference, list):
         return [results[ref] for ref in reference]

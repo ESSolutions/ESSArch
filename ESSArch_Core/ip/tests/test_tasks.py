@@ -135,7 +135,6 @@ class CreateReceiptTests(TestCase):
         )
         ProcessTask.objects.create(
             name='ESSArch_Core.ip.tasks.CreateReceipt',
-            reference='email',
             information_package=self.ip,
             responsible=self.user,
             processstep=step,
