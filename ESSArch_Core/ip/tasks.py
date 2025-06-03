@@ -656,11 +656,11 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
 
         if task.status in celery_states.EXCEPTION_STATES:
             task.reraise()
-    else:
-        ip = self.get_information_package()
-        ip.archived = True
-        ip.state = 'Preserved'
-        ip.save()
+
+    ip = self.get_information_package()
+    ip.archived = True
+    ip.state = 'Preserved'
+    ip.save()
 
     msg = "Preserved AIP (%s)" % ip.object_identifier_value
     self.create_success_event(msg)
