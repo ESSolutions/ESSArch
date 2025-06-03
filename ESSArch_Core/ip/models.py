@@ -26,6 +26,7 @@ import errno
 import io
 import logging
 import os
+import re
 import shutil
 import tarfile
 import time
@@ -1211,7 +1212,7 @@ class InformationPackage(models.Model):
                     "children": [
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
-                            "label": "Transfer temporary container to {}".format(remote_server.split(',')[0]),
+                            "label": "Transfer temporary container",
                             "args": [
                                 "{{TEMP_CONTAINER_PATH}}",
                                 urljoin(
@@ -1223,7 +1224,7 @@ class InformationPackage(models.Model):
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
-                            "label": "Transfer temporary AIP xml to {}".format(remote_server.split(',')[0]),
+                            "label": "Transfer temporary AIP xml",
                             "args": [
                                 "{{TEMP_METS_PATH}}",
                                 urljoin(
@@ -1236,7 +1237,7 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
-                            "label": "Transfer temporary AIC xml to {}".format(remote_server.split(',')[0]),
+                            "label": "Transfer temporary AIC xml",
                             "args": [
                                 "{{TEMP_AIC_METS_PATH}}",
                                 urljoin(
@@ -1254,35 +1255,36 @@ class InformationPackage(models.Model):
         remote_temp_container_to_storage_method = {
             "step": True,
             "parallel": True,
-            "name": "Write temporary container to storage methods",
+            "name": "Write temporary container to storage on remote hosts",
             "children": [
                 {
                     "step": True,
-                    "name": "Write container to storage method",
+                    "parallel": True,
+                    "name": "Write container to storage on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
                             "label": "Write to storage method ({})".format(method.name),
                             "args": [str(method.pk)],
-                        }
+                        } for method in remote_methods
                     ]
-                } for method in remote_methods
+                } for remote_server in remote_servers
             ]
         }
 
         remote_temp_container_delete = {
             "step": True,
             "parallel": True,
-            "name": "Delete temporary files from remote hosts",
+            "name": "Delete temporary files on remote hosts",
             "children": [
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Delete temporary files from remote host",
+                    "name": "Delete temporary files on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
-                            "label": "Delete temporary container from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary container",
                             "args": ["{{TEMP_CONTAINER_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1291,7 +1293,7 @@ class InformationPackage(models.Model):
                         },
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
-                            "label": "Delete temporary AIP xml from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary AIP xml",
                             "args": ["{{TEMP_METS_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1301,7 +1303,7 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
-                            "label": "Delete temporary AIC xml from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary AIC xml",
                             "args": ["{{TEMP_AIC_METS_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1321,11 +1323,11 @@ class InformationPackage(models.Model):
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Mark as archived on remote host",
+                    "name": "Mark as archived on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.MarkArchived",
-                            "label": "Mark as archived on {}".format(remote_server.split(',')[0]),
+                            "label": "Mark as archived",
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
                                 "remote_credentials": encrypt_remote_credentials(remote_server),
@@ -2927,8 +2929,7 @@ class InformationPackage(models.Model):
 
             if task.status in celery_states.EXCEPTION_STATES:
                 task.reraise()
-
-            storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
+            storage_object = StorageObject.create_from_remote_copy(host, session, task.result.split(',')[0])
         else:
             storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
 
@@ -2944,6 +2945,14 @@ class InformationPackage(models.Model):
             if storage_medium.status == 100:
                 raise StorageMediumError(
                     'Storage medium {} "{}" is failed'.format(storage_medium.medium_id, str(storage_medium.pk)))
+            if storage_backend.type == 300 and storage_medium.tape_drive is not None:
+                if storage_medium.tape_drive.status == 100:
+                    raise StorageMediumError(
+                        'Storage medium {} "{}" is failed'.format(storage_medium.medium_id, str(storage_medium.pk)))
+            elif storage_backend.type == 300 and storage_medium.tape_drive is None:
+                raise StorageMediumError(
+                    'Storage medium {} "{}" is not online in drive'.format(storage_medium.medium_id,
+                                                                           str(storage_medium.pk)))
             time_start = time.time()
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
@@ -2953,10 +2962,13 @@ class InformationPackage(models.Model):
             time_end = time.time()
             time_elapsed = time_end - time_start
 
-        try:
-            mb_per_sec = fsize_mb / time_elapsed
-        except ZeroDivisionError:
-            mb_per_sec = fsize_mb
+        if storage_target.remote_server:
+            mb_per_sec = float(re.findall("([0-9]+[.]+[0-9]+)", task.result.split(',')[2])[0])
+        else:
+            try:
+                mb_per_sec = fsize_mb / time_elapsed
+            except ZeroDivisionError:
+                mb_per_sec = fsize_mb
         medium_id = storage_object.storage_medium.medium_id
 
         return (str(storage_object.pk), medium_id, write_size, mb_per_sec, time_elapsed)

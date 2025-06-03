@@ -514,10 +514,10 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                         )
 
                     StorageMedium.objects.filter(tape_slot=slot).exclude(medium_id=medium_id).update(
-                        tape_slot=None, last_changed_local=timezone.now(),
+                        tape_slot=None, tape_drive=None, last_changed_local=timezone.now(),
                     )
                     StorageMedium.objects.filter(medium_id=medium_id).update(
-                        tape_slot=slot, last_changed_local=timezone.now(),
+                        tape_slot=slot, tape_drive=None, last_changed_local=timezone.now(),
                     )
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
@@ -527,7 +527,7 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                         slot.medium_id = None
                         slot.save(update_fields=['medium_id'])
                         StorageMedium.objects.filter(tape_slot=slot).update(
-                            tape_slot=None, last_changed_local=timezone.now(),
+                            tape_slot=None, tape_drive=None, last_changed_local=timezone.now(),
                         )
                     elif slot.status == 100:
                         slot.status = 20
