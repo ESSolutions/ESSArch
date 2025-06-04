@@ -12,7 +12,7 @@ class SettingsCommandTest(SimpleTestCase):
         path = 'local_test_settings.py'
 
         with runner.isolated_filesystem():
-            result = runner.invoke(generate, ['-p', path])
+            result = runner.invoke(generate, ['-p', path, '-q'])
 
             self.assertTrue(os.path.isfile(path))
             self.assertEqual(result.exit_code, 0)
@@ -25,7 +25,7 @@ class SettingsCommandTest(SimpleTestCase):
             with open(path, 'w') as f:
                 f.write('foo')
 
-            result = runner.invoke(generate, ['-p', path, '--overwrite'])
+            result = runner.invoke(generate, ['-p', path, '--overwrite', '-q'])
 
             self.assertTrue(os.path.isfile(path))
             self.assertEqual(result.exit_code, 0)
@@ -39,7 +39,7 @@ class SettingsCommandTest(SimpleTestCase):
             with open(path, 'w') as f:
                 f.write('foo')
 
-            result = runner.invoke(generate, ['-p', path, '--no-overwrite'])
+            result = runner.invoke(generate, ['-p', path, '--no-overwrite', '-q'])
 
             self.assertTrue(os.path.isfile(path))
             self.assertEqual(result.exit_code, 0)
