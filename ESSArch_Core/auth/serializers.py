@@ -154,7 +154,10 @@ class UserLoggedInSerializer(UserSerializer):
         return groups.values_list('id', flat=True)
 
     def get_current_organization_id(self, user):
-        return [user.user_profile.current_organization.id]
+        id = None
+        if user.user_profile.current_organization is not None:
+            id = user.user_profile.current_organization.id
+        return [id]
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('user_profile', {})
