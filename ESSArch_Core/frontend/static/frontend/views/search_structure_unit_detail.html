@@ -170,6 +170,7 @@
                 <th class="cursor-pointer" st-sort="type">{{ "TYPE" | translate }}</th>
                 <th>{{ "DESCRIPTION" | translate }}</th>
                 <th>{{ "ACCESS.SECURITY_LEVEL" | translate}}</th>
+                <th class="shrink">{{ "ACCESS.LINK" | translate}}</th>
                 <th class="white-space-nowrap shrink" permission permission-only="'access.change_accessaid'">
                   {{'REMOVE' | translate}}
                 </th>
@@ -186,6 +187,15 @@
                 <td>{{x.type.name}}</td>
                 <td>{{x.description}}</td>
                 <td>{{x.security_level}}</td>
+                <td>
+                  <a
+                    ng-if="x.link"
+                    ng-click="$event.stopPropagation();"
+                    href="{{x.link}}"
+                    class="btn btn-default fas fa-eye btn-sm"
+                    target="_blank"
+                  ></a>
+                </td>
                 <td
                   ng-if="vm.structure.type.editable_instance_relations"
                   class="text-center shrink"
