@@ -240,6 +240,8 @@ jobs:
       - name: Test
         run: |
           start redis-server
+          dir
+          essarch settings generate --overwrite -q -p config/local_essarch_settings.py
           coverage run manage.py test --verbosity=2 --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
