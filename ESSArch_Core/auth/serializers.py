@@ -125,6 +125,7 @@ class UserLoggedInSerializer(UserSerializer):
     organizations_ids = serializers.SerializerMethodField()
 
     current_organization = GroupSerializer(source='user_profile.current_organization')
+    current_organization_id = serializers.SerializerMethodField()
     ip_list_columns = serializers.ListField(source='user_profile.ip_list_columns')
     ip_list_view_type = serializers.ChoiceField(
         choices=UserProfile.IP_LIST_VIEW_CHOICES, default=UserProfile.AIC, source='user_profile.ip_list_view_type'
@@ -151,6 +152,15 @@ class UserLoggedInSerializer(UserSerializer):
     def get_organizations_ids(self, user):
         groups = get_organization_groups(user)
         return groups.values_list('id', flat=True)
+
+    def get_current_organization_id(self, user):
+        if user.is_superuser:
+            groups = get_organization_groups(user)
+            return groups.values_list('id', flat=True)
+        id = None
+        if user.user_profile.current_organization is not None:
+            id = user.user_profile.current_organization.id
+        return [id]
 
     def update(self, instance, validated_data):
         profile_data = validated_data.pop('user_profile', {})
@@ -193,12 +203,12 @@ class UserLoggedInSerializer(UserSerializer):
         fields = (
             'url', 'id', 'username', 'first_name', 'last_name', 'email',
             'organizations', 'is_staff', 'is_active', 'is_superuser', 'last_login',
-            'date_joined', 'permissions', 'user_permissions',
+            'date_joined', 'current_organization_id', 'permissions', 'user_permissions',
             'ip_list_columns', 'ip_list_view_type', 'file_browser_view_type', 'current_organization',
             'notifications_enabled', 'language', 'organizations_ids',
         )
         read_only_fields = (
-            'id', 'username', 'last_login', 'date_joined', 'organizations',
+            'id', 'username', 'last_login', 'date_joined', 'current_organization_id', 'organizations',
             'is_staff', 'is_active', 'is_superuser', 'organizations_ids',
         )
 
