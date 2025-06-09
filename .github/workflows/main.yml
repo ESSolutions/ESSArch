@@ -177,8 +177,8 @@ jobs:
 
       - name: Set PYTHONPATH
         run: |
-          echo "PYTHONPATH=D:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
-          echo "ESSARCH_DIR=D:\a\ESSArch\ESSArch" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "PYTHONPATH=C:\a\ESSArch\ESSArch\config" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
+          echo "ESSARCH_DIR=C:\a\ESSArch\ESSArch" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf-8 -Append
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -240,8 +240,6 @@ jobs:
       - name: Test
         run: |
           start redis-server
-          dir
-          essarch settings generate --overwrite -q -p config/local_essarch_settings.py
           coverage run manage.py test --verbosity=2 --exclude-tag=requires-elasticsearch
       - name: Report code coverage
         run: |
