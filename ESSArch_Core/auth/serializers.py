@@ -154,6 +154,9 @@ class UserLoggedInSerializer(UserSerializer):
         return groups.values_list('id', flat=True)
 
     def get_current_organization_id(self, user):
+        if user.is_superuser:
+            groups = get_organization_groups(user)
+            return groups.values_list('id', flat=True)
         id = None
         if user.user_profile.current_organization is not None:
             id = user.user_profile.current_organization.id
