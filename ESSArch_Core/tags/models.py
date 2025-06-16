@@ -1038,7 +1038,7 @@ class TagVersionManager(OrganizationManager):
     def get_queryset(self):
         return TagVersionQuerySet(self.model, using=self._db)
 
-    def for_user(self, user, perms):
+    def for_user(self, user, perms=None):
         return super().for_user(user, perms).for_user(user, perms)
 
 

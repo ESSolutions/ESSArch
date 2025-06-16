@@ -1182,6 +1182,10 @@ class ComponentWriteSerializer(NodeWriteSerializer):
             tag.current_version = tag_version
             tag.save()
 
+            group = self.context['request'].user.user_profile.current_organization
+            # group.add_object(tag)
+            group.add_object(tag_version)
+
             for agent_link in AgentTagLink.objects.filter(tag=tag_version):
                 AgentTagLink.objects.create(tag=tag_version, agent=agent_link.agent, type=agent_link.type)
 
@@ -1358,9 +1362,9 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
                 for instance_unit in structure_instance.units.all():
                     StructureUnitDocument.from_obj(instance_unit).save()
 
-            org = self.context['request'].user.user_profile.current_organization
-            org.add_object(tag)
-            org.add_object(tag_version)
+            group = self.context['request'].user.user_profile.current_organization
+            # group.add_object(tag)
+            group.add_object(tag_version)
 
             tag_link_type, _ = AgentTagLinkRelationType.objects.get_or_create(
                 creator=True, defaults={'name': 'creator'}

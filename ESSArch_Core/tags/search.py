@@ -983,7 +983,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
         elif index in ['component', 'document']:
             if not request.user.has_perm('tags.add_tag'):
                 raise exceptions.PermissionDenied('You do not have permission to create nodes')
-            serializer = ComponentWriteSerializer(data=request.data)
+            serializer = ComponentWriteSerializer(data=request.data, context={'request': request})
         else:
             raise exceptions.ParseError('Invalid index')
 
@@ -1068,7 +1068,7 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                 if not request.user.has_perm('tags.change_tag'):
                     raise exceptions.PermissionDenied('You do not have permission to change nodes')
 
-            serializer = ComponentWriteSerializer(tag, data=request.data, partial=True)
+            serializer = ComponentWriteSerializer(tag, data=request.data, context={'request': request}, partial=True)
         else:
             raise exceptions.ParseError('Invalid index')
 
@@ -1099,7 +1099,9 @@ class ComponentSearchViewSet(ViewSet, PaginatedViewMixin):
                     descendant, data=request.data, context={'request': request}, partial=True
                 )
             elif descendant.elastic_index in ['component', 'document']:
-                serializer = ComponentWriteSerializer(descendant, data=request.data, partial=True)
+                serializer = ComponentWriteSerializer(
+                    descendant, data=request.data, context={'request': request}, partial=True
+                )
             else:
                 raise exceptions.ParseError('Invalid index')
 

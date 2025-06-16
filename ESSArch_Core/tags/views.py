@@ -332,7 +332,7 @@ class StructureViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
                     tag__structures__structure_unit=OuterRef('pk'),
                 ),
             )
-        )
+        ).natural_sort()
         root_nodes = cache_tree_children(qs)
         dicts = []
         context = self.get_serializer_context()
