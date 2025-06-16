@@ -2776,9 +2776,12 @@ class InformationPackage(models.Model):
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
         try:
-            group = self.get_organization().group
+            group = self.get_organization()
         except ObjectDoesNotExist:
             group = None
+        else:
+            group = group.group
+
         for root, dirs, files in walk(srcdir):
             for d in dirs:
                 src = os.path.join(root, d)
