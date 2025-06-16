@@ -60,7 +60,7 @@ class InformationPackageFilter(filters.FilterSet):
         field_name='submission_agreement__policy',
         distinct=False
     )
-    label = filters.CharFilter(field_name='label', lookup_expr='istartswith')
+    label = filters.CharFilter(field_name='label', lookup_expr='iregex')
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:

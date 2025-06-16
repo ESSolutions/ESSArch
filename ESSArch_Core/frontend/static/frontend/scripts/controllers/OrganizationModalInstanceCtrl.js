@@ -68,6 +68,7 @@ export default class OrganizationModalInstanceCtrl {
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_Archives',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_ARCHIVES'),
           },
@@ -79,23 +80,24 @@ export default class OrganizationModalInstanceCtrl {
             label: $translate.instant('CHANGE_RELATED_ARCHIVES_FORCE'),
           },
         });
-        $ctrl.fields.push({
-          type: 'checkbox',
-          key: 'change_related_StructureUnits',
-          templateOptions: {
-            label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS'),
-          },
-        });
-        $ctrl.fields.push({
-          type: 'checkbox',
-          key: 'change_related_StructureUnits_force',
-          templateOptions: {
-            label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS_FORCE'),
-          },
-        });
+        // $ctrl.fields.push({
+        //   type: 'checkbox',
+        //   key: 'change_related_StructureUnits',
+        //   templateOptions: {
+        //     label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS'),
+        //   },
+        // });
+        // $ctrl.fields.push({
+        //   type: 'checkbox',
+        //   key: 'change_related_StructureUnits_force',
+        //   templateOptions: {
+        //     label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS_FORCE'),
+        //   },
+        // });
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_Nodes',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_NODES'),
           },
@@ -110,6 +112,7 @@ export default class OrganizationModalInstanceCtrl {
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_IPs',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_IPS'),
           },
@@ -124,6 +127,7 @@ export default class OrganizationModalInstanceCtrl {
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_AIDs',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_AIDS'),
           },
@@ -143,23 +147,24 @@ export default class OrganizationModalInstanceCtrl {
             label: $translate.instant('FORCE'),
           },
         });
-        $ctrl.fields.push({
-          type: 'checkbox',
-          key: 'change_related_StructureUnits',
-          templateOptions: {
-            label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS'),
-          },
-        });
-        $ctrl.fields.push({
-          type: 'checkbox',
-          key: 'change_related_StructureUnits_force',
-          templateOptions: {
-            label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS_FORCE'),
-          },
-        });
+        // $ctrl.fields.push({
+        //   type: 'checkbox',
+        //   key: 'change_related_StructureUnits',
+        //   templateOptions: {
+        //     label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS'),
+        //   },
+        // });
+        // $ctrl.fields.push({
+        //   type: 'checkbox',
+        //   key: 'change_related_StructureUnits_force',
+        //   templateOptions: {
+        //     label: $translate.instant('CHANGE_RELATED_STRUCTUREUNITS_FORCE'),
+        //   },
+        // });
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_Nodes',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_NODES'),
           },
@@ -174,6 +179,7 @@ export default class OrganizationModalInstanceCtrl {
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_IPs',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_IPS'),
           },
@@ -188,6 +194,7 @@ export default class OrganizationModalInstanceCtrl {
         $ctrl.fields.push({
           type: 'checkbox',
           key: 'change_related_AIDs',
+          defaultValue: true,
           templateOptions: {
             label: $translate.instant('CHANGE_RELATED_AIDS'),
           },

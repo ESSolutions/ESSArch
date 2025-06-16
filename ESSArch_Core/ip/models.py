@@ -44,6 +44,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import Error, OperationalError, models, transaction
 from django.db.models import (
     Avg,
@@ -2774,10 +2775,14 @@ class InformationPackage(models.Model):
                 ct_importer = get_importer(ct_importer_name)(task)
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
+        try:
+            group = self.get_organization().group
+        except ObjectDoesNotExist:
+            group = None
         for root, dirs, files in walk(srcdir):
             for d in dirs:
                 src = os.path.join(root, d)
-                index_path(self, src)
+                index_path(self, src, group=group)
 
             for f in files:
                 src = os.path.join(root, f)
@@ -2786,7 +2791,7 @@ class InformationPackage(models.Model):
                     indexed_files.remove(src)
                 except ValueError:
                     # file has not been indexed, index it
-                    index_path(self, src)
+                    index_path(self, src, group=group)
 
         InformationPackageDocument.from_obj(self).save()
 

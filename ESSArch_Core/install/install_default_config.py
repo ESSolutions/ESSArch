@@ -195,6 +195,9 @@ def installDefaultEventTypes():
         'Deleted IP': {'eventType': '50740', 'category': ip_cat},
         'Conversion': {'eventType': '50750', 'category': ip_cat},
         'Action tool': {'eventType': '50760', 'category': ip_cat},
+        'Index delivery': {'eventType': '50770', 'category': ip_cat},
+        'Subsume delivery': {'eventType': '50771', 'category': ip_cat},
+        'AccessAid delivery': {'eventType': '50772', 'category': ip_cat},
     }
 
     for key, val in dct.items():

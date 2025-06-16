@@ -84,7 +84,7 @@ def index_directory(tag_version, dirpath):
     return doc, tag_version
 
 
-def index_path(ip, path, parent=None):
+def index_path(ip, path, parent=None, group=None):
     """
     Indexes the file or directory at path to elasticsearch
 
@@ -121,3 +121,6 @@ def index_path(ip, path, parent=None):
         tag_version.type = TagVersionType.objects.get_or_create(name='directory', archive_type=False)[0]
         doc, tag_version = index_directory(tag_version, path)
         tag_version.save()
+
+    if group:
+        group.add_object(tag_version)
