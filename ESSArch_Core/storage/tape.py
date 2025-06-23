@@ -467,9 +467,16 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     slot, created = TapeSlot.objects.update_or_create(
                         robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
                     )
-                    StorageMedium.objects.filter(medium_id=medium_id).update(
+                    num_updated = StorageMedium.objects.filter(medium_id=medium_id).update(
                         tape_slot=slot, tape_drive=drive, last_changed_local=timezone.now(),
                     )
+                    if num_updated == 0:
+                        logger.warning(
+                            'No StorageMedium found with medium_id={medium} to update tape_slot={slot} and \
+tape_drive={drive}'.format(medium=medium_id, slot=slot_id, drive=drive_id)
+                        )
+                        drive.status = 100
+                        drive.save(update_fields=["status"])
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(
                         tape_drive=None, last_changed_local=timezone.now(),
