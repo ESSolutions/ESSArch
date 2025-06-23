@@ -125,6 +125,7 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(
                 storage_medium.medium_id, str(storage_medium.pk)))
+            storage_medium.refresh_from_db()
             if storage_medium.tape_drive is not None and storage_medium.tape_drive.status == 100:
                 raise TapeError(
                     'Storage medium {} "{}" in drive {} "{}" is failed'.format(
