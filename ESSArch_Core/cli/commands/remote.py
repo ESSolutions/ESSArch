@@ -47,23 +47,24 @@ def import_globally():
 
 @click.command()
 @click.option("--sa_id", type=str, help="The submission agrement ID to update.")
+@click.option("--sa_name", type=str, help="The submission agrement Name to update.")
 @click.option('--host', default='https://remote-essarch.xxx', help='Remote server host URL')
 @click.option('--user', default='', help='Username for authentication')
 @click.option('--passw', default='', help='Password for authentication')
 @click.option('--token', default='', help='Token for authentication')
 @click.option('--verify', default=True, type=bool, help='SSL certificate verification')
-def update_sa(sa_id, host, user, passw, token, verify):
+def update_sa(sa_id, sa_name, host, user, passw, token, verify):
     """Update Submission Agreement and profiles/policies on remote server."""
     import_globally()
-    if sa_id is None:
-        print("You must specify either a sa_id.")
+    if sa_id is None and sa_name is None:
+        print("You must specify either a sa_id or a sa_name.")
         exit(1)
     if host is None:
         print("You must specify a host.")
         exit(1)
 
     remote_instance = Remote(host=host, user=user, passw=passw, token=token, verify=verify)
-    remote_instance.update_sa(sa_id)
+    remote_instance.update_sa(id=sa_id, name=sa_name)
     remote_instance.logout()
 
 
@@ -141,9 +142,12 @@ class Remote:
                     storage_policy_obj, response.text))
             raise
 
-    def update_sa(self, id):
+    def update_sa(self, id=None, name=None):
         logger = logging.getLogger('essarch.ip')
-        sa_obj = SubmissionAgreement.objects.get(id=id)
+        if id:
+            sa_obj = SubmissionAgreement.objects.get(id=id)
+        else:
+            sa_obj = SubmissionAgreement.objects.get(name=name)
         sa_obj_data = SubmissionAgreementSerializer(instance=sa_obj).data
 
         if sa_obj.profile_transfer_project:

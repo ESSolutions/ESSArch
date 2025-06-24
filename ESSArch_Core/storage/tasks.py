@@ -167,15 +167,19 @@ def StorageMigration(self, storage_method, temp_path):
 
     if storage_target.remote_server:
         # we are on master, copy files to remote
-
-        host, user, passw = storage_target.remote_server.split(',')
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        server_list = storage_target.remote_server.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            session.auth = (user, passw)
         dst = urljoin(host, reverse('informationpackage-add-file-from-master'))
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
 
         for s in src:
-            copy_file(s, dst, requests_session=requests_session)
+            copy_file(s, dst, requests_session=session)
 
     obj_id = ip.preserve(src, storage_target, dst_container, self.get_processtask())
 

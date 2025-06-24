@@ -876,7 +876,7 @@ class StorageObject(models.Model):
         backend = self.get_storage_backend()
         return backend.open(self, path, *args, **kwargs)
 
-    def read(self, dst, task, extract=False):
+    def read(self, dst, task, extract=False, local=True):
         logger = logging.getLogger('essarch.storage.models')
         ip = self.ip
         is_cached_storage_object = self.is_cache_for_ip(ip)
@@ -885,10 +885,15 @@ class StorageObject(models.Model):
         storage_target = storage_medium.storage_target
 
         if storage_target.remote_server:
-            host, user, passw = storage_target.remote_server.split(',')
             session = requests.Session()
             session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
+            server_list = storage_target.remote_server.split(',')
+            if len(server_list) == 2:
+                host, token = server_list
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                host, user, passw = server_list
+                session.auth = (user, passw)
 
             # if the remote server already has completed
             # then we only want to get the result from it,
@@ -938,15 +943,20 @@ class StorageObject(models.Model):
             storage_backend = self.get_storage_backend()
             storage_medium.prepare_for_read(io_lock_key=self)
 
-            if storage_target.master_server:
+            if storage_target.master_server and local is False:
                 # we are on a remote host that has been requested
                 # by master to write to its temp directory
                 temp_dir = Path.objects.get(entity='temp').value
 
-                host, user, passw = storage_target.master_server.split(',')
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
-                session.auth = (user, passw)
+                server_list = storage_target.master_server.split(',')
+                if len(server_list) == 2:
+                    host, token = server_list
+                    session.headers['Authorization'] = 'Token %s' % token
+                else:
+                    host, user, passw = server_list
+                    session.auth = (user, passw)
                 session.params = {'dst': dst}
 
                 temp_object_path = ip.get_temp_object_path()
@@ -1243,17 +1253,21 @@ class IOQueue(models.Model):
     @property
     def remote_io(self):
         master_server = self.storage_method_target.storage_target.master_server
-        return len(master_server.split(',')) == 3
+        return len(master_server.split(',')) > 1
 
     @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
     def sync_with_master(self, data):
         master_server = self.storage_method_target.storage_target.master_server
-        host, user, passw = master_server.split(',')
-        dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
-
         session = requests.Session()
         session.verify = settings.REQUESTS_VERIFY
-        session.auth = (user, passw)
+        server_list = master_server.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            session.auth = (user, passw)
+        dst = urljoin(host, 'api/io-queue/%s/' % self.pk)
 
         try:
             data['storage_object']['storage_medium'].pop('tape_slot')

@@ -208,7 +208,7 @@ def ReceiveAIP(self, workarea):
 
 @app.task(bind=True, event_type=30800)
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
-              aic_xml=False, object_identifier_value="", dst=None):
+              aic_xml=False, object_identifier_value="", dst=None, local=True):
     aip = InformationPackage.objects.get(pk=aip)
 
     # if it is a received IP, i.e. from ingest and not from storage,
@@ -252,9 +252,13 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
     else:
         storage_object = aip.get_fastest_readable_storage_object()
 
-    aip.access(storage_object, self.get_processtask(), dst=dst)
+    aip.access(storage_object, self.get_processtask(), dst=dst, local=local)
 
-    msg = "Retrieved information package from storage {} to workspace".format(storage_object.storage_medium.medium_id)
+    if storage_object.storage_medium.storage_target.remote_server:
+        msg = self.get_processtask().result
+    else:
+        msg = "Retrieved information package from storage {} to workspace".format(
+            storage_object.storage_medium.medium_id)
     self.create_success_event(msg)
     return msg
 
