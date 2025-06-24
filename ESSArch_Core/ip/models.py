@@ -1624,7 +1624,7 @@ class InformationPackage(models.Model):
             workflow = [
                 {
                     "name": "ESSArch_Core.workflow.tasks.AccessAIP",
-                    "label": "Access AIP",
+                    "label": "Access AIP from remote host ({})".format(storage_target.remote_server.split(',')[0]),
                     "queue": worker_queue,
                     "args": [str(self.pk)],
                     "params": {
@@ -1813,7 +1813,8 @@ class InformationPackage(models.Model):
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': temp_dir
+                            'dst': temp_dir,
+                            'local': True if not storage_target.remote_server else False,
                         },
                     },
                     {
@@ -2884,10 +2885,15 @@ class InformationPackage(models.Model):
         fsize_mb = write_size / MB
 
         if storage_target.remote_server:
-            host, user, passw = storage_target.remote_server.split(',')
             session = requests.Session()
             session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
+            server_list = storage_target.remote_server.split(',')
+            if len(server_list) == 2:
+                host, token = server_list
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                host, user, passw = server_list
+                session.auth = (user, passw)
 
             self.update_remote_ip(host, session)
 
@@ -2982,13 +2988,13 @@ class InformationPackage(models.Model):
 
         return (str(storage_object.pk), medium_id, write_size, mb_per_sec, time_elapsed)
 
-    def access(self, storage_object, task, dst=None):
+    def access(self, storage_object, task, dst=None, local=True):
         logger = logging.getLogger('essarch.ip')
         logger.debug('Accessing information package {} from storage object {}'.format(
             self.object_identifier_value, str(storage_object.pk),
         ))
 
-        storage_object.read(dst, task)
+        storage_object.read(dst, task, local=local)
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:
