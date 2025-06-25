@@ -48,6 +48,7 @@ from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepSerializer,
     ProcessTaskDetailSerializer,
     ProcessTaskSerializer,
+    ProcessTaskWriteSerializer,
 )
 
 
@@ -135,8 +136,10 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
-        if self.action in ['create', 'list']:
-            return ProcessTaskSerializer
+        if self.action in ['list']:
+            return self.serializer_class
+        elif self.action in ['create', 'update', 'partial_update']:
+            return ProcessTaskWriteSerializer
 
         return ProcessTaskDetailSerializer
 

@@ -136,6 +136,10 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
         }
 
 
+class ProcessTaskWriteSerializer(ProcessTaskSerializer):
+    params = serializers.JSONField(required=False)
+
+
 class PickledObjectSerializerField(serializers.Field):
     def to_representation(self, obj):
         # Convert the object to something JSON-serializable

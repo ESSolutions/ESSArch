@@ -1629,7 +1629,8 @@ class InformationPackage(models.Model):
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": str(storage_object.pk),
-                        'dst': temp_dir
+                        'dst': temp_dir,
+                        'local': False,
                     },
                 },
                 {
@@ -1814,7 +1815,6 @@ class InformationPackage(models.Model):
                         "params": {
                             "storage_object": str(storage_object.pk),
                             'dst': temp_dir,
-                            'local': True if not storage_target.remote_server else False,
                         },
                     },
                     {
@@ -2132,7 +2132,8 @@ class InformationPackage(models.Model):
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": str(storage_object.pk),
-                        'dst': temp_path
+                        'dst': temp_path,
+                        'local': False,
                     },
                 },
                 {

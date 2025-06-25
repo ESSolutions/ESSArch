@@ -247,8 +247,12 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
 
         return str(workarea_obj.pk)
 
+    msg_warning = ""
     if storage_object is not None:
         storage_object = StorageObject.objects.get(pk=storage_object)
+        if not storage_object.readable():
+            msg_warning = f" (Warning! Storage {storage_object.storage_medium.medium_id} is not readable)"
+            storage_object = aip.get_fastest_readable_storage_object()
     else:
         storage_object = aip.get_fastest_readable_storage_object()
 
@@ -257,8 +261,8 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
     if storage_object.storage_medium.storage_target.remote_server:
         msg = self.get_processtask().result
     else:
-        msg = "Retrieved information package from storage {} to workspace".format(
-            storage_object.storage_medium.medium_id)
+        msg = "Retrieved information package from storage {} to workspace{}".format(
+            storage_object.storage_medium.medium_id, msg_warning)
     self.create_success_event(msg)
     return msg
 
