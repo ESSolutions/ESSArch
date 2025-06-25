@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import importlib.metadata
 import logging
 import platform
 import socket
@@ -29,7 +30,6 @@ import sys
 from sqlite3 import sqlite_version
 
 import distro
-import pkg_resources
 from celery import current_app
 from django.conf import settings
 from django.db import connection
@@ -183,8 +183,8 @@ class SysInfoView(APIView):
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
         context['workers'] = get_workers(context['rabbitmq'])
-        context['python_packages'] = sorted(["%s==%s" % (i.key, i.version)
-                                             for i in pkg_resources.working_set])
+        context['python_packages'] = sorted([f"{i.metadata['Name'].lower()}=={i.version}"
+                                             for i in importlib.metadata.distributions()])
 
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:

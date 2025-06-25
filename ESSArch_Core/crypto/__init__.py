@@ -17,8 +17,13 @@ def decrypt(token):
 
 
 def encrypt_remote_credentials(remote_server_string):
-    user, passw = remote_server_string.split(',')[1:]
-    return encrypt(','.join([user, passw]).encode('utf-8')).decode('utf-8')
+    server_list = remote_server_string.split(',')
+    if len(server_list) == 2:
+        token = server_list[1]
+        return encrypt(token.encode('utf-8')).decode('utf-8')
+    else:
+        user, passw = server_list[1:]
+        return encrypt(','.join([user, passw]).encode('utf-8')).decode('utf-8')
 
 
 def decrypt_remote_credentials(encrypted_credentials):
