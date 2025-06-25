@@ -100,12 +100,17 @@ def SubmitSIP(self, delete_source=False, update_path=True):
     session = None
 
     if remote:
-        dst, remote_user, remote_pass = remote.split(',')
-        dst = urljoin(dst, 'api/ip-reception/upload/')
-
         session = requests.Session()
         session.verify = settings.REQUESTS_VERIFY
-        session.auth = (remote_user, remote_pass)
+        server_list = remote.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            token = None
+            session.auth = (user, passw)
+        dst = urljoin(host, 'api/ip-reception/upload/')
     else:
         dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
 
@@ -140,13 +145,18 @@ def TransferIP(self):
     remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
     session = None
     if remote:
-        dst, remote_user, remote_pass = remote.split(',')
-
         session = requests.Session()
         session.verify = settings.REQUESTS_VERIFY
-        session.auth = (remote_user, remote_pass)
-
-    if not remote:
+        server_list = remote.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            token = None
+            session.auth = (user, passw)
+        dst = host
+    else:
         dst = Path.objects.get(entity="ingest_transfer").value
 
     block_size = 8 * 1000000  # 8MB
@@ -609,19 +619,25 @@ CreateReceipt_task_id: {}'.format(task_id, self.ip, self.get_processtask()))
 
 @app.task(bind=True, event_type=30300)
 def MarkArchived(self, remote_host=None, remote_credentials=None):
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            token = None
+            session.auth = (user, passw)
 
         task = self.get_processtask()
-        r = task.get_remote_copy(requests_session, remote_host)
+        r = task.get_remote_copy(session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(requests_session, remote_host)
-            task.run_remote_copy(requests_session, remote_host)
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -632,17 +648,20 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(requests_session, remote_host)
+                task.run_remote_copy(session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 self.logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(requests_session, remote_host)
+                task.retry_remote_copy(session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            requests_session = requests.Session()
-            requests_session.verify = settings.REQUESTS_VERIFY
-            requests_session.auth = (user, passw)
-            r = task.get_remote_copy(requests_session, remote_host)
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            if token:
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']
@@ -656,14 +675,13 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
 
         if task.status in celery_states.EXCEPTION_STATES:
             task.reraise()
-
-    ip = self.get_information_package()
-    ip.archived = True
-    ip.state = 'Preserved'
-    ip.save()
-
-    msg = "Preserved AIP (%s)" % ip.object_identifier_value
-    self.create_success_event(msg)
+    else:
+        ip = self.get_information_package()
+        ip.archived = True
+        ip.state = 'Preserved'
+        ip.save()
+        msg = "Preserved AIP (%s)" % ip.object_identifier_value
+        self.create_success_event(msg)
 
 
 @app.task(bind=True)

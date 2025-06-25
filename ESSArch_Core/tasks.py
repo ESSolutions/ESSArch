@@ -549,14 +549,19 @@ def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
 def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     src, dst = self.parse_params(src, dst)
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            session.auth = (user, passw)
 
-    copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
+    copy_dir(src, dst, requests_session=session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
     self.create_success_event(msg)
@@ -588,14 +593,19 @@ def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_S
     """
 
     src, dst = self.parse_params(src, dst)
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            session.auth = (user, passw)
 
-    copy_file(src, dst, requests_session=requests_session, block_size=block_size)
+    copy_file(src, dst, requests_session=session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
     self.create_success_event(msg)
