@@ -373,18 +373,24 @@ def get_premis_ip_object_element_spec():
 
 def delete_path(path, remote_host=None, remote_credentials=None, task=None):
     logger = logging.getLogger('essarch')
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            token = None
+            session.auth = (user, passw)
 
-        r = task.get_remote_copy(requests_session, remote_host)
+        r = task.get_remote_copy(session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(requests_session, remote_host)
-            task.run_remote_copy(requests_session, remote_host)
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -395,17 +401,20 @@ def delete_path(path, remote_host=None, remote_credentials=None, task=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(requests_session, remote_host)
+                task.run_remote_copy(session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(requests_session, remote_host)
+                task.retry_remote_copy(session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            requests_session = requests.Session()
-            requests_session.verify = settings.REQUESTS_VERIFY
-            requests_session.auth = (user, passw)
-            r = task.get_remote_copy(requests_session, remote_host)
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            if token:
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']

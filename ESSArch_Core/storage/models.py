@@ -893,6 +893,7 @@ class StorageObject(models.Model):
                 session.headers['Authorization'] = 'Token %s' % token
             else:
                 host, user, passw = server_list
+                token = None
                 session.auth = (user, passw)
 
             # if the remote server already has completed
@@ -924,7 +925,10 @@ class StorageObject(models.Model):
             while task.status not in celery_states.READY_STATES:
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
-                session.auth = (user, passw)
+                if token:
+                    session.headers['Authorization'] = 'Token %s' % token
+                else:
+                    session.auth = (user, passw)
                 r = task.get_remote_copy(session, host)
 
                 remote_data = r.json()
