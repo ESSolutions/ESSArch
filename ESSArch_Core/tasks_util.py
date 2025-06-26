@@ -135,6 +135,9 @@ def write_medium_label_to_drive(drive_pk, medium, slot, tape_drive):
 
         if medium.format not in [100, 101]:
             if tape_empty(tape_drive.device):
+                if medium.storage.exists():
+                    raise ValueError(f'No data found on tape in drive: {tape_drive.device}, but \
+medium: {medium.medium_id} has storage objects')
                 create_tape_label(medium, xmlfile.name)
                 rewind_tape(tape_drive.device)
                 write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)

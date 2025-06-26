@@ -142,7 +142,7 @@ def rewind_tape(drive):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    logger.debug('Rewinded tape in {drive}'.format(drive=drive))
+    logger.info('Rewinded tape in {drive}'.format(drive=drive))
     return out
 
 
@@ -181,7 +181,7 @@ def is_tape_drive_online(drive):
 
 def wait_to_come_online(drive, timeout=120):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Waiting for {drive} to come online'.format(drive=drive))
+    logger.info('Waiting for {drive} to come online'.format(drive=drive))
     while timeout >= 0:
         if is_tape_drive_online(drive):
             return
@@ -196,26 +196,33 @@ def wait_to_come_online(drive, timeout=120):
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def tape_empty(drive):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Checking if tape in {drive} is empty'.format(drive=drive))
+    logger.info('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
         logger.debug('Opening tape in {drive}'.format(drive=drive))
         tar = tarfile.open(drive, 'r|')
-    except OSError as e:
-        if e.errno == errno.EIO:
-            logger.debug('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
-            rewind_tape(drive)
-            return True
-        logger.exception('Unknown error while opening tape in {drive}'.format(drive=drive))
-        raise
+    except OSError:
+        logger.warning('I/O error while opening tape in {drive}, retry'.format(drive=drive))
+        rewind_tape(drive)
+        time.sleep(5)
+        try:
+            logger.debug('Retry to open tape in {drive}'.format(drive=drive))
+            tar = tarfile.open(drive, 'r|')
+        except OSError as e:
+            if e.errno == errno.EIO:
+                logger.info('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
+                rewind_tape(drive)
+                return True
+            logger.exception('Unknown error while opening tape in {drive}'.format(drive=drive))
+            raise
     except tarfile.ReadError as e:
         if str(e) == 'empty file':
-            logger.debug('Empty file in tape in {drive}, tape is empty'.format(drive=drive))
+            logger.info('Empty file in tape in {drive}, tape is empty'.format(drive=drive))
             rewind_tape(drive)
             return True
         logger.exception('Unknown tarfile error while opening tape in {drive}'.format(drive=drive))
         raise
     else:
-        logger.debug('Tape in {drive} is not empty'.format(drive=drive))
+        logger.info('Tape in {drive} is not empty'.format(drive=drive))
         tar.close()
         rewind_tape(drive)
         return False
@@ -241,7 +248,7 @@ def create_tape_label(medium, xmlpath):
 
 def verify_tape_label(medium, xmlstring):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Verifying tape label of {medium} against {xml}'.format(medium=medium, xml=xmlstring))
+    logger.info('Verifying tape label of {medium} against {xml}'.format(medium=medium, xml=xmlstring))
     try:
         root = etree.fromstring(xmlstring)
     except etree.XMLSyntaxError:
@@ -349,7 +356,7 @@ def get_tape_file_number(drive):
             file_line = item
             break
     file_number = int(file_line.split(',')[0].split('=')[1])
-    logger.debug('Got {num} as file number of {drive}'.format(num=file_number, drive=drive))
+    logger.info('Got {num} as file number of {drive}'.format(num=file_number, drive=drive))
     return file_number
 
 
@@ -375,7 +382,7 @@ def set_tape_file_number(drive, num=0):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    logger.debug('File number of {drive} set to {num}'.format(num=num, drive=drive))
+    logger.info('File number of {drive} set to {num}'.format(num=num, drive=drive))
     return out
 
 
@@ -419,7 +426,7 @@ def robot_inventory(robot):
 
     cmd = 'mtx -f %s status' % robot
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
+    logger.info('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 
     if p.returncode:
@@ -448,9 +455,9 @@ def robot_inventory(robot):
                 )
                 )
                 if not drive.status == 20:
-                    logger.debug('Drive {row} (drive_id={drive}, robot={robot}) update status for drive \
+                    logger.info('Drive {row} (drive_id={drive}, robot={robot}) update status for drive \
 from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_status=drive.status)
-                                 )
+                                )
                     drive.status = 20
                     drive.save(update_fields=["status"])
                 try:
@@ -508,13 +515,13 @@ tape_drive={drive}'.format(medium=medium_id, slot=slot_id, drive=drive_id)
                         robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
                     )
                     if created:
-                        logger.debug(
+                        logger.info(
                             'Created tape slot with slot_id={slot}, medium_id={medium}'.format(
                                 slot=slot_id, medium=medium_id
                             )
                         )
                     else:
-                        logger.debug(
+                        logger.info(
                             'Updated tape slot with slot_id={slot}, medium_id={medium}'.format(
                                 slot=slot_id, medium=medium_id
                             )
@@ -529,7 +536,7 @@ tape_drive={drive}'.format(medium=medium_id, slot=slot_id, drive=drive_id)
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
-                        logger.debug('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                        logger.info('Created tape slot with slot_id={slot}'.format(slot=slot_id))
                     elif status == 'Empty' and slot.medium_id is not None:
                         slot.medium_id = None
                         slot.save(update_fields=['medium_id'])
