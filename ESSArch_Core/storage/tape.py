@@ -203,7 +203,6 @@ def tape_empty(drive):
     except OSError:
         logger.warning('I/O error while opening tape in {drive}, retry'.format(drive=drive))
         rewind_tape(drive)
-        time.sleep(5)
         try:
             logger.debug('Retry to open tape in {drive}'.format(drive=drive))
             tar = tarfile.open(drive, 'r|')
