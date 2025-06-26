@@ -198,6 +198,7 @@ def tape_empty(drive):
     logger = logging.getLogger('essarch.storage.tape')
     logger.info('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
+        rewind_tape(drive)
         logger.debug('Opening tape in {drive}'.format(drive=drive))
         tar = tarfile.open(drive, 'r|')
     except OSError:

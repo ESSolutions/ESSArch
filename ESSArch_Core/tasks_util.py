@@ -139,6 +139,7 @@ def write_medium_label_to_drive(drive_pk, medium, slot, tape_drive):
                 rewind_tape(tape_drive.device)
                 write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
             else:
+                rewind_tape(tape_drive.device)
                 tar = tarfile.open(tape_drive.device, 'r|')
                 first_member = tar.getmembers()[0]
                 tar.close()
