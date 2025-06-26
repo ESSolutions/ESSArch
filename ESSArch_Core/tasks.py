@@ -29,6 +29,7 @@ import tarfile
 import time
 from os import walk
 from pathlib import PurePath
+from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
@@ -36,6 +37,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 from django_redis import get_redis_connection
@@ -579,7 +581,7 @@ def MoveDir(self, src, dst):
 @app.task(bind=True)
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+def CopyFile(self, src, dst=None, remote_host=None, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given file to the given destination
 
@@ -604,6 +606,8 @@ def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_S
         else:
             user, passw = credential_list
             session.auth = (user, passw)
+        if dst is None and remote_host:
+            dst = urljoin(remote_host, reverse('informationpackage-add-file-from-master'))
 
     copy_file(src, dst, requests_session=session, block_size=block_size)
 
