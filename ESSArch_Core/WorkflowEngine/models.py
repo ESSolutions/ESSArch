@@ -619,7 +619,7 @@ class ProcessTask(Process):
             'id': str(self.pk),
             'name': self.name,
             'args': self.args,
-            'params': self.params,
+            'params': params,
             'eager': self.eager,
             'information_package': ip_id,
         }

@@ -1214,39 +1214,30 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Transfer temporary container",
-                            "args": [
-                                "{{TEMP_CONTAINER_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_CONTAINER_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "label": "Transfer temporary AIP xml",
-                            "args": [
-                                "{{TEMP_METS_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
                             "label": "Transfer temporary AIC xml",
-                            "args": [
-                                "{{TEMP_AIC_METS_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "args": ["{{TEMP_AIC_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                     ]
                 } for remote_server in remote_servers
