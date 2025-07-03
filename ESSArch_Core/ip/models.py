@@ -1632,7 +1632,8 @@ class InformationPackage(models.Model):
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                     ],
                 },
                 {
@@ -1776,7 +1777,8 @@ class InformationPackage(models.Model):
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -1816,7 +1818,8 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -1987,7 +1990,8 @@ class InformationPackage(models.Model):
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -2135,7 +2139,8 @@ class InformationPackage(models.Model):
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                     ],
                 },
                 # {
@@ -2323,7 +2328,8 @@ class InformationPackage(models.Model):
                         "args": [
                             export_path_dst_container,
                             export_path_dst_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -2585,7 +2591,8 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
