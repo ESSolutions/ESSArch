@@ -5,6 +5,8 @@ import shutil
 import time
 from pathlib import Path
 
+from django.conf import settings
+
 from ESSArch_Core.storage.exceptions import NoSpaceLeftError
 from ESSArch_Core.util import (
     get_tree_size_and_count,
@@ -31,7 +33,7 @@ def enough_space_available(dst: str, src: str, raise_exception: bool = False, sr
     dst_free_space = shutil.disk_usage(dst).free
 
     try:
-        assert src_size <= dst_free_space
+        assert src_size <= dst_free_space - getattr(settings, 'ESSARCH_MINIMUM_FREE_DISK_SPACE', 0)
     except AssertionError:
         if raise_exception:
             raise NoSpaceLeftError(f'Not enough space available for {src} at {dst}')
