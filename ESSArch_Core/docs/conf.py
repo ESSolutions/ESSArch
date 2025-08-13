@@ -82,9 +82,9 @@ suppress_warnings = [
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.12', None),
-    'sphinx': ('http://www.sphinx-doc.org/en/master/', None),
-    'django': ('https://docs.djangoproject.com/en/dev/', 'https://docs.djangoproject.com/en/dev/_objects/'),
-    'celery': ('https://celery.readthedocs.io/en/latest/', None),
+    'sphinx': ('https://www.sphinx-doc.org/en/master/', None),
+    'django': ('https://docs.djangoproject.com/en/dev/', None),
+    'celery': ('https://docs.celeryq.dev/en/latest/', None),
 }
 
 # Github link
