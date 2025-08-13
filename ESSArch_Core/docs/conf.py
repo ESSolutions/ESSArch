@@ -78,6 +78,7 @@ autosectionlabel_prefix_document = True
 
 suppress_warnings = [
     'autosectionlabel.*',
+    'intersphinx.inventory',
 ]
 
 intersphinx_mapping = {
