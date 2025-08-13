@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='processtask',
             index=models.Index(fields=['retried', 'processstep', 'information_package'],
-                               name='ProcessTask_retried_2_idx'),
+                               name='ProcessTask_retried_a85a5e_idx'),
         ),
         migrations.RemoveField(
             model_name='processtask',
