@@ -3,6 +3,6 @@ watchdog==6.0.0
 django-sslserver==0.22
 sentry-sdk==2.14.0
 esbonio==0.16.5
-django-extensions==3.2.3
-Werkzeug==3.0.4
+django-extensions==4.1
+Werkzeug==3.1.3
 pyOpenSSL==25.1.0
