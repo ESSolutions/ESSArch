@@ -382,9 +382,9 @@ class ProcessStep(MPTTModel, Process):
         try:
             earliest_task = self.get_descendants(
                 include_self=True
-            ).exclude(tasks=None).earliest(
+            ).exclude(tasks=None).filter(tasks__time_started__isnull=False).earliest(
                 'tasks__time_started'
-            ).tasks.earliest('time_started')
+            ).tasks.filter(time_started__isnull=False).earliest('time_started')
 
             return earliest_task.time_started
         except ProcessTask.DoesNotExist:
