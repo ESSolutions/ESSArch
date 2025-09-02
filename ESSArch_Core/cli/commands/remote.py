@@ -22,13 +22,16 @@
     Email - essarch@essolutions.se
 """
 
+import datetime
 import logging
 from urllib.parse import urljoin
 
 import click
 import requests
 from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
+from django.utils import timezone
 from requests import RequestException
 
 from ESSArch_Core.config.decorators import initialize
@@ -65,6 +68,79 @@ def update_sa(sa_id, sa_name, host, user, passw, token, verify):
 
     remote_instance = Remote(host=host, user=user, passw=passw, token=token, verify=verify)
     remote_instance.update_sa(id=sa_id, name=sa_name)
+    remote_instance.logout()
+
+
+@initialize
+def import_globally_storageMedium():
+    global StoragePolicy, StoragePolicySerializer, SubmissionAgreement, ProfileDetailSerializer
+    from ESSArch_Core.configuration.models import StoragePolicy
+    from ESSArch_Core.configuration.serializers import StoragePolicySerializer
+    from ESSArch_Core.profiles.models import SubmissionAgreement
+    from ESSArch_Core.profiles.serializers import (  # SubmissionAgreementSerializer,
+        ProfileDetailSerializer,
+    )
+
+
+@click.command()
+@click.option("--policy_id", type=str, help="The storage policy ID to update.")
+# @click.option("--ip_id", type=str, help="The ip_id (object_identifier_value) to update.")
+@click.option("--medium_id", type=str, help="The medium_id to update.")
+@click.option("--days", type=int, help="Days back in time (DAYS: 1)")
+@click.option("--start_datetime", type=str, help="start_datetime (TIMESTAMP: '2009-01-01 00:00:00')")
+@click.option("--stop_datetime", type=str, help="stop_datetime (TIMESTAMP: '2009-01-01 00:00:00')")
+@click.option("--preview", is_flag=True, help="Preview the medium_id to update.")
+@click.option("--force", is_flag=True, help="Force the medium_id to update.")
+@click.option('--host', default='https://remote-essarch.xxx', help='Remote server host URL')
+@click.option('--user', default='', help='Username for authentication')
+@click.option('--passw', default='', help='Password for authentication')
+@click.option('--token', default='', help='Token for authentication')
+@click.option('--verify', default=True, type=bool, help='SSL certificate verification')
+def update_storageMedium(days, start_datetime, stop_datetime, policy_id, medium_id, preview, force,
+                         host, user, passw, token, verify):
+    """Update storageMedium on remote server."""
+    import_globally_storageMedium()
+    if policy_id is None:
+        print("You must specify a policy_id.")
+        exit(1)
+    # if medium_id is None:
+    #     print("You must specify a medium_id.")
+    #     exit(1)
+    if host is None:
+        print("You must specify a host.")
+        exit(1)
+    optionflag = 1
+
+    if days:
+        optionflag = 0
+        start_datetime = timezone.now() - datetime.timedelta(days=days)
+    elif start_datetime:
+        optionflag = 0
+        try:
+            naive_dt = datetime.datetime.strptime(start_datetime, "%Y-%m-%d %H:%M:%S")
+            start_datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+        except ValueError:
+            print("Invalid start_datetime")
+    else:
+        start_datetime = timezone.now()
+
+    if optionflag:
+        print("incorrect options, you must specify either --days or --start_datetime")
+        exit(1)
+
+    if stop_datetime:
+        try:
+            naive_dt = datetime.datetime.strptime(stop_datetime, "%Y-%m-%d %H:%M:%S")
+            stop_datetime = timezone.make_aware(naive_dt, timezone.get_current_timezone())
+        except ValueError:
+            print("Invalid stop_datetime")
+    else:
+        stop_datetime = timezone.now()
+
+    remote_instance = Remote(host=host, user=user, passw=passw, token=token, verify=verify)
+    remote_instance.update_storageMedium(startDateTime=start_datetime, stopDateTime=stop_datetime,
+                                         PolicyID=policy_id, storageMediumID=medium_id, preview=preview,
+                                         ForceFlag=force)
     remote_instance.logout()
 
 
@@ -196,3 +272,37 @@ class Remote:
                 "Problem to add/update Submission Agreement: {} to remote server. Response: {}".format(
                     sa_obj, response.text))
             raise
+
+    def update_storageMedium(self, startDateTime, stopDateTime, PolicyID='', storageMediumID='',
+                             preview=False, ForceFlag=False):
+        """Update storageMedium on remote server."""
+        m_filter = Q(create_date__range=(startDateTime, stopDateTime))
+        if storageMediumID:
+            m_filter &= Q(medium_id__startswith=storageMediumID)
+        p_filter = Q()
+        if PolicyID:
+            p_filter = Q(policy_id=PolicyID)
+        for policy_obj in StoragePolicy.objects.filter(p_filter):
+            for storagemethod_obj in policy_obj.storage_methods.all():
+                for storagetarget_obj in storagemethod_obj.targets.all():
+                    for storageMedium_obj in storagetarget_obj.storagemedium_set.filter(
+                            m_filter).order_by('medium_id'):
+                        if not storageMedium_obj.check_db_sync() or ForceFlag:
+                            print('Add or update medium_id: %s in storage policy: %s (%s)' % (
+                                storageMedium_obj.medium_id, policy_obj.policy_id, policy_obj.policy_name))
+                            # remote_ip = urljoin(host, 'api/storage-mediums/')
+                            # data = StorageMediumSerializer_essarch(
+                            #     instance=storageMedium_obj).data
+                            # response = session.post(
+                            #     remote_ip, json=data, timeout=120)
+                            # try:
+                            #     response.raise_for_status()
+                            # except requests.RequestException as e:
+                            #     logger.error(json.dumps(data, indent=4))
+                            #     logger.error('Error: ' + response.content +
+                            #                  ' Data: ' + repr(data))
+                            #     raise e
+                            # else:
+                            #     storageMedium_obj.ExtDBdatetime = storageMedium_obj.LocalDBdatetime
+                            #     storageMedium_obj.save(
+                            #         update_fields=['ExtDBdatetime'])
