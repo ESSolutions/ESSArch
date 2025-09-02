@@ -181,6 +181,7 @@ list(
     map(
         lambda cmd: remote.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.remote.update_sa',
+            'ESSArch_Core.cli.commands.remote.update_storageMedium',
         )
     )
 )
@@ -215,6 +216,22 @@ list(
     map(
         lambda cmd: settings.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.settings.generate',
+        )
+    )
+)
+
+
+@cli.group()
+def storage():
+    """Manage storage
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: storage.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.storage.remove_storage',
         )
     )
 )
