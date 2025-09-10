@@ -247,7 +247,7 @@ step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
             if self.allow_failure:
                 ProcessTask.objects.filter(celery_id=self.task_id).update(
                     status=celery_states.FAILURE,
-                    exception=einfo.exception,
+                    exception=self.backend.prepare_exception(e),
                     traceback=einfo.traceback,
                 )
                 self.logger.error('Task with flag "allow failure" failed with exception {}'.format(einfo.exception))

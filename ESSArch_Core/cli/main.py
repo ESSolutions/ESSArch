@@ -182,6 +182,7 @@ list(
         lambda cmd: remote.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.remote.update_sa',
             'ESSArch_Core.cli.commands.remote.update_storageMedium',
+            'ESSArch_Core.cli.commands.remote.update_ip',
         )
     )
 )
