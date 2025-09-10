@@ -83,8 +83,8 @@ class EventIPSerializer(serializers.ModelSerializer):
     information_package = serializers.CharField(required=False, source='linkingObjectIdentifierValue')
     eventType = serializers.PrimaryKeyRelatedField(queryset=EventType.objects.all())
     eventDetail = serializers.SlugRelatedField(slug_field='eventDetail', source='eventType', read_only=True)
-    delivery = serializers.PrimaryKeyRelatedField(required=False, queryset=Delivery.objects.all())
-    transfer = TransferSerializer(required=False)
+    delivery = serializers.PrimaryKeyRelatedField(required=False, allow_null=True, queryset=Delivery.objects.all())
+    transfer = TransferSerializer(required=False, allow_null=True)
 
     class Meta:
         model = EventIP
@@ -557,13 +557,21 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         pk_field=serializers.UUIDField(format='hex_verbose')
     )
     sa_policy_id = serializers.CharField(required=False, allow_null=True)
-    responsible = serializers.PrimaryKeyRelatedField(
-        required=False, default=None, allow_null=True, queryset=User.objects.all(),
-    )
+    responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username')
     organization = serializers.SerializerMethodField()
     org_name = serializers.CharField(required=False, allow_null=True)
     content_mets_path = serializers.CharField(required=False)
     package_mets_path = serializers.CharField(required=False)
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        event_objs = EventIP.objects.filter(
+            linkingObjectIdentifierValue=instance.id)
+        data = []
+        for event_obj in event_objs:
+            data.append(EventIP_without_validators_Serializer(event_obj).data)
+        rep['events'] = data
+        return rep
 
     def get_organization(self, obj):
         try:
