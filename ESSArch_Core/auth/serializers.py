@@ -50,6 +50,11 @@ class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
         fields = ('id', 'name', 'group_type',)
+        extra_kwargs = {
+            'id': {
+                'read_only': False,
+            },
+        }
 
 
 class GroupDetailSerializer(GroupSerializer):

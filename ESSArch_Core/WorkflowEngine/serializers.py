@@ -25,6 +25,7 @@
 import uuid
 
 from celery import states as celery_states
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
@@ -33,6 +34,8 @@ from ESSArch_Core.essxml.Generator.xmlGenerator import parse_args, parse_params
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
+
+User = get_user_model()
 
 
 class ProcessStepChildrenSerializer(serializers.Serializer):
@@ -87,9 +90,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
-    responsible = serializers.SlugRelatedField(
-        slug_field='username', read_only=True
-    )
+    responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username', required=False)
     information_package_str = serializers.SerializerMethodField()
 
     def get_params(self, obj):

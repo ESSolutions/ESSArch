@@ -558,7 +558,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     )
     sa_policy_id = serializers.CharField(required=False, allow_null=True)
     responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username')
-    organization = serializers.SerializerMethodField()
+    organization = GroupSerializer(required=False, allow_null=True)
     org_name = serializers.CharField(required=False, allow_null=True)
     content_mets_path = serializers.CharField(required=False)
     package_mets_path = serializers.CharField(required=False)
@@ -571,13 +571,11 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
         for event_obj in event_objs:
             data.append(EventIP_without_validators_Serializer(event_obj).data)
         rep['events'] = data
-        return rep
-
-    def get_organization(self, obj):
         try:
-            return GroupSerializer(obj.get_organization().group).data
+            rep['organization'] = GroupSerializer(instance.get_organization().group).data
         except AttributeError:
-            return None
+            rep['organization'] = None
+        return rep
 
     def create_storage_method(self, data):
         storage_method_target_set_data = data.pop('storage_method_target_relations')
@@ -624,10 +622,11 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             data['submission_agreement'] = sa_obj
 
         org_name = data.pop('org_name')
+        organization = data.pop('organization')
         if org_name:
             org = Group.objects.get(name=org_name)
-        elif 'organization' in self.context['request'].data and self.context['request'].data['organization']:
-            org = Group.objects.get(id=self.context['request'].data['organization']['id'])
+        elif organization:
+            org = Group.objects.get(name=organization['name'])
         else:
             org = Group.objects.get(name='Default')
 

@@ -154,7 +154,7 @@ def import_globally_ip():
 
 @click.command()
 @click.option("--policy_id", type=str, help="The storage policy ID to update.")
-# @click.option("--ip_id", type=str, help="The ip_id (object_identifier_value) to update.")
+@click.option("--ip_id", type=str, help="The ip_id (object_identifier_value) to update.")
 @click.option("--medium_id", type=str, help="The medium_id to update.")
 @click.option("--days", type=int, help="Days back in time (DAYS: 1)")
 @click.option("--start_datetime", type=str, help="start_datetime (TIMESTAMP: '2009-01-01 00:00:00')")
@@ -166,7 +166,7 @@ def import_globally_ip():
 @click.option('--passw', default='', help='Password for authentication')
 @click.option('--token', default='', help='Token for authentication')
 @click.option('--verify', default=True, type=bool, help='SSL certificate verification')
-def update_ip(days, start_datetime, stop_datetime, policy_id, medium_id, preview, force,
+def update_ip(days, start_datetime, stop_datetime, policy_id, medium_id, ip_id, preview, force,
               host, user, passw, token, verify):
     """Update storageMedium on remote server."""
     import_globally_ip()
@@ -209,8 +209,8 @@ def update_ip(days, start_datetime, stop_datetime, policy_id, medium_id, preview
 
     remote_instance = Remote(host=host, user=user, passw=passw, token=token, verify=verify)
     remote_instance.update_ip(startDateTime=start_datetime, stopDateTime=stop_datetime,
-                              PolicyID=policy_id, storageMediumID=medium_id, preview=preview,
-                              ForceFlag=force)
+                              PolicyID=policy_id, storageMediumID=medium_id, ObjectIdentifierValue=ip_id,
+                              preview=preview, ForceFlag=force)
     remote_instance.logout()
 
 
@@ -477,3 +477,36 @@ chunk: %s post_time: %s. Response: %s' % (storage_obj.storage_medium.medium_id, 
                                 print('Success to add %s IPs/second for StorageMedium: %s policy: %s (%s)' % (
                                     ip_per_sec, storageMedium_obj.medium_id,
                                     policy_obj.policy_id, policy_obj.policy_name))
+            elif ObjectIdentifierValue:
+                for sa_obj in policy_obj.submission_agreements.all():
+                    ip_filter = Q(last_changed_local__range=(startDateTime, stopDateTime))
+                    ip_filter &= Q(object_identifier_value__startswith=ObjectIdentifierValue)
+                    for ip_obj in sa_obj.information_packages.filter(ip_filter):
+                        if not ip_obj.check_db_sync() or ForceFlag:
+                            data = InformationPackageFromMasterSerializer(instance=ip_obj).data
+                            # Add ArchiveObject
+                            if preview:
+                                print('Preview: Add IP: %s policy: %s (%s)' % (ip_obj.object_identifier_value,
+                                                                               policy_obj.policy_id,
+                                                                               policy_obj.policy_name))
+                                print(json.dumps(data, indent=4))
+                                continue
+                            print('Add IP: %s policy: %s (%s)' % (ip_obj.object_identifier_value,
+                                                                  policy_obj.policy_id,
+                                                                  policy_obj.policy_name))
+                            remote_ip = urljoin(
+                                self.host, 'api/information-packages/add-from-master/')
+                            response = self.session.post(
+                                remote_ip, json=data, timeout=120)
+                            try:
+                                response.raise_for_status()
+                            except RequestException:
+                                print('Problem to add IP: %s policy: %s (%s). Response: %s' % (
+                                    ip_obj.object_identifier_value, policy_obj.policy_id,
+                                    policy_obj.policy_name, response.text))
+                                print(json.dumps(data, indent=4))
+                                raise
+                            else:
+                                ip_obj.last_changed_external = ip_obj.last_changed_local
+                                ip_obj.save(
+                                    update_fields=['last_changed_external'])
