@@ -618,9 +618,11 @@ class ProcessTask(Process):
         data = {
             'id': str(self.pk),
             'name': self.name,
+            'label': self.label,
             'args': self.args,
             'params': params,
             'eager': self.eager,
+            'responsible': self.responsible.username if self.responsible else None,
             'information_package': ip_id,
         }
         r = session.post(create_remote_task_url, json=data, timeout=60)
@@ -652,9 +654,11 @@ class ProcessTask(Process):
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
         data = {
             'name': self.name,
+            'label': self.label,
             'args': self.args,
             'params': self.params,
             'eager': self.eager,
+            'responsible': self.responsible.username if self.responsible else None,
             'information_package': ip_id,
         }
         r = session.patch(update_remote_task_url, json=data, timeout=60)
