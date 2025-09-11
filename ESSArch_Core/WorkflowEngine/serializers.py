@@ -90,7 +90,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
-    responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username')
+    responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username', required=False)
     information_package_str = serializers.SerializerMethodField()
 
     def get_params(self, obj):
