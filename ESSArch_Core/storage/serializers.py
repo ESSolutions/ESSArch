@@ -109,11 +109,29 @@ class StorageObjectListSerializer(serializers.ListSerializer):
 
 
 class StorageObjectSerializer(serializers.ModelSerializer):
+    content_location_value_display = serializers.SerializerMethodField()
+    ip = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=True,
+        required=False,
+        queryset=InformationPackage.objects.all()
+    )
     medium_id = serializers.CharField(source='storage_medium.medium_id')
     target_name = serializers.CharField(source='storage_medium.storage_target.name')
     target_target = serializers.CharField(source='storage_medium.storage_target.target')
+    storage_medium = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=True,
+        required=False,
+        queryset=StorageMedium.objects.all()
+    )
     ip_object_identifier_value = serializers.CharField(source='ip.object_identifier_value', read_only=True)
     ip_object_size = serializers.CharField(source='ip.object_size', read_only=True)
+
+    def get_content_location_value_display(self, obj):
+        if obj.content_location_type == DISK:
+            return os.path.join(obj.storage_medium.storage_target.target, obj.content_location_value)
+        return obj.content_location_value
 
     def create(self, validated_data):
         obj, _ = StorageObject.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
@@ -124,9 +142,9 @@ class StorageObjectSerializer(serializers.ModelSerializer):
         model = StorageObject
         list_serializer_class = StorageObjectListSerializer
         fields = (
-            'id', 'content_location_type', 'content_location_value', 'last_changed_local',
-            'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
-            'container', 'ip_object_identifier_value', 'ip_object_size',
+            'id', 'content_location_type', 'content_location_value', 'content_location_value_display',
+            'last_changed_local', 'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target',
+            'storage_medium', 'container', 'ip_object_identifier_value', 'ip_object_size',
         )
         extra_kwargs = {
             'id': {
@@ -134,13 +152,6 @@ class StorageObjectSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        if obj.content_location_type == DISK:
-            ret['content_location_value'] = os.path.join(
-                obj.storage_medium.storage_target.target, '%s.tar' % obj.ip.object_identifier_value)
-        return ret
 
 
 class StorageObjectNestedSerializer(StorageObjectSerializer):
