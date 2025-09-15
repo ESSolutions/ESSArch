@@ -29,8 +29,8 @@ from ESSArch_Core.config.decorators import initialize
 
 @initialize
 def import_globally():
-    global StorageObject
-    from ESSArch_Core.storage.models import StorageObject
+    global StorageMedium, StorageObject
+    from ESSArch_Core.storage.models import StorageMedium, StorageObject
 
 
 @click.command()
@@ -63,3 +63,31 @@ def remove_storage(id=None, ip_id=None, medium_id=None, preview=False):
             continue
         storage_obj.delete()
         print(f"Storage object {storage_obj.id} for information package {storage_obj} has been removed.")
+
+
+@click.command()
+@click.option("--id", type=str, help="Select storage medium for ID (PK) to update.")
+@click.option("--medium_id", type=str, help="Select storage medium for medium_id to update.")
+@click.option("--location", type=str, help="Update location for storage medium.")
+@click.option("--location_status", type=str, help="Update location_status for storage medium.")
+@click.option("--status", type=str, help="Update status for storage medium(0=Inactive, 20=Write, 30=Full, 100=FAIL).")
+@click.option("--preview", is_flag=True, help="Preview the storage medium that would be updated.")
+def update_storageMedium(id=None, medium_id=None, location=None, location_status=None, status=None, preview=False):
+    """Update storageMedium."""
+    import_globally()
+    if id is not None:
+        storageMedium_obj = StorageMedium.objects.get(id=id)
+    elif medium_id is not None:
+        storageMedium_obj = StorageMedium.objects.get(medium_id=medium_id)
+
+    if location is not None:
+        storageMedium_obj.location = location
+    if location_status is not None:
+        storageMedium_obj.location_status = location_status
+    if status is not None:
+        storageMedium_obj.status = int(status)
+    if preview:
+        print(f"Preview: Storage medium {storageMedium_obj.medium_id} would be updated.")
+        return
+    storageMedium_obj.save()
+    print(f"Storage medium {storageMedium_obj.medium_id} has been updated.")

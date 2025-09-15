@@ -404,7 +404,7 @@ class InformationPackage(models.Model):
     )
     object_identifier_value = models.CharField(_('object_identifier_value'), max_length=255, unique=True)
     label = models.CharField(_('label'), max_length=255, blank=True, db_index=True)
-    content = models.CharField(max_length=255)
+    content = models.CharField(max_length=255, blank=True)
     create_date = models.DateTimeField(_('create date'), default=timezone.now, db_index=True)
     state = models.CharField(_('state'), max_length=255, db_index=True)
 
@@ -412,8 +412,8 @@ class InformationPackage(models.Model):
     object_size = models.BigIntegerField(_('object size'), default=0)
     object_num_items = models.IntegerField(default=0)
 
-    start_date = models.DateTimeField(_('start date'), null=True, db_index=True)
-    end_date = models.DateTimeField(_('end date'), null=True, db_index=True)
+    start_date = models.DateTimeField(_('start date'), null=True, blank=True, db_index=True)
+    end_date = models.DateTimeField(_('end date'), null=True, blank=True, db_index=True)
 
     appraisal_date = models.DateTimeField(null=True)
 
