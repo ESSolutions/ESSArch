@@ -1,5 +1,4 @@
 import logging
-import os
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -130,7 +129,7 @@ class StorageObjectSerializer(serializers.ModelSerializer):
 
     def get_content_location_value_display(self, obj):
         if obj.content_location_type == DISK:
-            return os.path.join(obj.storage_medium.storage_target.target, obj.content_location_value)
+            return obj.get_full_path()
         return obj.content_location_value
 
     def create(self, validated_data):

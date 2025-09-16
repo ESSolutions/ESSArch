@@ -825,6 +825,7 @@ class StorageObject(models.Model):
         data.pop('target_target', None)
         data.pop('ip_object_identifier_value', None)
         data.pop('ip_object_size', None)
+        data.pop('content_location_value_display', None)
         data['last_changed_local'] = timezone.now
         obj, _ = StorageObject.objects.update_or_create(
             pk=data.pop('id'),
