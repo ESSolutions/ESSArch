@@ -443,7 +443,6 @@ const general = ($translateProvider) => {
     TAPESLOTSTATUS: 'Tape slot status',
     TARGET_NAME: 'Target name',
     TARGET: 'Target',
-    TARGETNAME: 'Target name',
     TARGETVALUE: 'Target value',
     TASKS: 'Tasks',
     TEMPPATH: 'Temporary path',
