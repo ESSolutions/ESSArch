@@ -13,6 +13,7 @@ import uuid
 import zipfile
 
 from celery import states as celery_states
+from dateutil import parser
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -274,7 +275,8 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip, name='Action tool')
+        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip, name='Action tool',
+                                   responsible=self.request.user)
         workflow.run()
         return Response()
 
@@ -909,8 +911,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool')
     def actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading" or "Received"')
+        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Aggregating']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading", "Received" or "Aggregating"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -949,7 +951,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=ip, name='Action tool')
+        workflow = create_workflow(workflow_spec, eager=False, ip=ip, name='Action tool',
+                                   responsible=self.request.user)
         workflow.run()
 
         return Response()
@@ -2428,6 +2431,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ip['state'] = 'At reception'
             ip['status'] = 100
             ip['step_state'] = celery_states.SUCCESS
+            ip['package_type'] = None
             ips.append(ip)
 
         return ips
@@ -2449,6 +2453,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'state': 'At reception',
                 'status': 100,
                 'step_state': celery_states.SUCCESS,
+                'package_type': None,
             }
 
             ips.append(ip)
@@ -2486,22 +2491,36 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ),
             **conditions
         )
-        serializer = InformationPackageSerializer(
-            data=from_db, many=True, context={'request': request, 'view': self}
-        )
-        serializer.is_valid()
 
         # Remove IPs from new_ips if they already are in the database
         db_ip_ids = from_db.filter(
             object_identifier_value__in=[i['id'] for i in new_ips]
         ).values_list('object_identifier_value', flat=True)
-        new_ips = [ip for ip in new_ips if ip['id'] not in db_ip_ids]
+        new_ips = [ip for ip in new_ips if ip['object_identifier_value'] not in db_ip_ids]
 
-        new_ips.extend(serializer.data)
+        new_ips.extend(from_db.values())
+
+        ordering = request.GET.get('ordering')
+        if ordering:
+            reverse = ordering.startswith('-')
+            key = ordering.lstrip('-')
+
+            def sort_key(item):
+                value = item.get(key)
+                # Try to parse datetime, fallback to string
+                try:
+                    return parser.parse(value) if isinstance(value, str) and 'T' in value else value
+                except Exception:
+                    return value
+            new_ips.sort(key=sort_key, reverse=reverse)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(new_ips, request)
-            return self.paginator.get_paginated_response(paginated)
+            serializer = InformationPackageSerializer(
+                data=paginated, many=True, context={'request': request, 'view': self}
+            )
+            serializer.is_valid()
+            return self.paginator.get_paginated_response(serializer.data)
 
         return Response(new_ips)
 

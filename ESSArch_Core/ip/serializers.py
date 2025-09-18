@@ -3,7 +3,7 @@ import os
 import re
 
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils import timezone
 from rest_framework import exceptions, serializers
 
@@ -129,12 +129,11 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     agents = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
-    package_type_display = serializers.CharField(source='get_package_type_display')
-    profiles = ProfileIPSerializer(source='profileip_set', many=True)
+    package_type_display = serializers.CharField(source='get_package_type_display', required=False)
+    profiles = ProfileIPSerializer(source='profileip_set', many=True, required=False, allow_null=True)
     workarea = serializers.SerializerMethodField()
     aic = serializers.PrimaryKeyRelatedField(
-        queryset=InformationPackage.objects.filter(package_type=InformationPackage.AIC)
-    )
+        queryset=InformationPackage.objects.filter(package_type=InformationPackage.AIC), required=False)
     first_generation = serializers.SerializerMethodField()
     last_generation = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
@@ -145,18 +144,24 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     submission_agreement_name = serializers.SerializerMethodField()
     submission_agreement_data = serializers.SerializerMethodField()
     submission_agreement_data_versions = serializers.ListField(
-        child=serializers.PrimaryKeyRelatedField(read_only=True)
+        child=serializers.PrimaryKeyRelatedField(read_only=True), required=False
     )
     step_state = serializers.CharField(read_only=True)
     status = serializers.IntegerField(read_only=True)
 
     def get_message_digest_algorithm_display(self, obj):
+        if not hasattr(obj, 'get_message_digest_algorithm_display'):
+            return None
         return obj.get_message_digest_algorithm_display()
 
     def get_content_mets_digest_algorithm_display(self, obj):
+        if not hasattr(obj, 'get_content_mets_digest_algorithm_display'):
+            return None
         return obj.get_content_mets_digest_algorithm_display()
 
     def get_package_mets_digest_algorithm_display(self, obj):
+        if not hasattr(obj, 'get_package_mets_digest_algorithm_display'):
+            return None
         return obj.get_package_mets_digest_algorithm_display()
 
     def get_organization(self, obj):
@@ -164,8 +169,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             return GroupSerializer(obj.get_organization().group).data
         except AttributeError:
             return None
+        except ObjectDoesNotExist:
+            return None
 
     def get_agents(self, obj):
+        if not hasattr(obj, 'agents'):
+            return None
         try:
             agent_objs = obj.prefetched_agents
         except AttributeError:
@@ -174,6 +183,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         return {'{role}_{type}'.format(role=a['role'], type=a['type']): a for a in agents}
 
     def get_permissions(self, obj):
+        if not hasattr(obj, 'get_permissions'):
+            return None
         user = getattr(self.context.get('request'), 'user', None)
         if user is None:
             return None
@@ -189,8 +200,9 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         for ptype in profile_types:
             data['profile_%s' % ptype] = None
 
-        for p in profiles:
-            data['profile_%s' % p['profile_type']] = p
+        if profiles is not None:
+            for p in profiles:
+                data['profile_%s' % p['profile_type']] = p
 
         data.pop('profiles', None)
 
@@ -199,16 +211,20 @@ class InformationPackageSerializer(serializers.ModelSerializer):
     def get_first_generation(self, obj):
         if hasattr(obj, 'first_generation'):
             return obj.first_generation
-
+        if not hasattr(obj, 'is_first_generation'):
+            return None
         return obj.is_first_generation()
 
     def get_last_generation(self, obj):
         if hasattr(obj, 'last_generation'):
             return obj.last_generation
-
+        if not hasattr(obj, 'is_last_generation'):
+            return None
         return obj.is_last_generation()
 
     def get_workarea(self, obj):
+        if not hasattr(obj, 'workareas'):
+            return None
         try:
             workareas = obj.prefetched_workareas
         except AttributeError:
@@ -224,18 +240,24 @@ class InformationPackageSerializer(serializers.ModelSerializer):
         return WorkareaSerializer(workareas, many=True, context=self.context).data
 
     def get_new_version_in_progress(self, obj):
+        if not hasattr(obj, 'new_version_in_progress'):
+            return None
         new = obj.new_version_in_progress()
         if new is None:
             return None
         return WorkareaSerializer(new, context=self.context).data
 
     def get_submission_agreement_name(self, obj):
+        if not hasattr(obj, 'submission_agreement'):
+            return ''
         if obj.submission_agreement is not None:
             return obj.submission_agreement.name
         else:
             return ''
 
     def get_submission_agreement_data(self, obj):
+        if not hasattr(obj, 'submission_agreement_data'):
+            return {'data': {}}
         if obj.submission_agreement_data is not None:
             serializer = SubmissionAgreementIPDataSerializer(obj.submission_agreement_data)
             data = serializer.data
