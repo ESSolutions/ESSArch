@@ -2425,6 +2425,12 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
 
+            sa_id = ip.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+            if sa_id is not None:
+                try:
+                    ip['submission_agreement'] = SubmissionAgreement.objects.get(pk=sa_id)
+                except SubmissionAgreement.DoesNotExist:
+                    ip['submission_agreement'] = None
             ip['container'] = container
             ip['xml'] = xmlfile
             ip['type'] = 'contained'
