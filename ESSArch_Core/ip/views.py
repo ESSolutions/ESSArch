@@ -13,7 +13,6 @@ import uuid
 import zipfile
 
 from celery import states as celery_states
-from dateutil import parser
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -136,6 +135,7 @@ from ESSArch_Core.util import (
     in_directory,
     list_files,
     merge_file_chunks,
+    natural_key,
     normalize_path,
     parse_content_range_header,
     remove_prefix,
@@ -2510,15 +2510,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if ordering:
             reverse = ordering.startswith('-')
             key = ordering.lstrip('-')
-
-            def sort_key(item):
-                value = item.get(key)
-                # Try to parse datetime, fallback to string
-                try:
-                    return parser.parse(value) if isinstance(value, str) and 'T' in value else value
-                except Exception:
-                    return value
-            new_ips.sort(key=sort_key, reverse=reverse)
+            new_ips.sort(key=lambda item: natural_key(item.get(key)), reverse=reverse)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(new_ips, request)

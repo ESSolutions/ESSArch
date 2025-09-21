@@ -1002,3 +1002,38 @@ def pretty_mb_per_sec(mb_per_sec):
         return round(mb_per_sec, 2)
     else:
         return format(Decimal(mb_per_sec), ".2g")
+
+
+def natural_key(value):
+    """
+    Safely return a tuple for sorting that handles:
+    - strings (natural sort)
+    - datetime (sorted chronologically)
+    - int, float
+    - None (comes last)
+    Ensures consistent types in all comparisons.
+    """
+
+    if value is None:
+        return (1, [float('inf')])  # Sort None values to end
+
+    # Try parsing datetime strings (e.g. "2021-01-01")
+    if isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value)
+            return (0, [parsed])
+        except ValueError:
+            pass  # Not a datetime string, treat as text
+
+        # Natural sort for strings with numbers
+        parts = re.split(r'(\d+)', value)
+        return (0, [int(p) if p.isdigit() else p.lower() for p in parts])
+
+    if isinstance(value, datetime):
+        return (0, [value])
+
+    if isinstance(value, (int, float)):
+        return (0, [value])
+
+    # Fallback: coerce to string
+    return (0, [str(value).lower()])
