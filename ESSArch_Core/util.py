@@ -331,7 +331,7 @@ def get_tree_size_and_count(path='.'):
 
     total_size = 0
     count = 0
-    for f in path.glob('**/*'):
+    for f in path.rglob('*'):
         if f.is_file():
             total_size += f.stat().st_size
             count += 1
