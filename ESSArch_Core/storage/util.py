@@ -98,7 +98,7 @@ def move_dir(src, dst):
     logger.info('Moving %s to %s' % (src, dst))
 
     root_directory = Path(src)
-    dirsize = sum(f.stat().st_size for f in root_directory.glob('**/*') if f.is_file())
+    dirsize = sum(f.stat().st_size for f in root_directory.rglob('*') if f.is_file())
 
     try:
         enough_space_available(dst, src, True, dirsize)
