@@ -74,6 +74,7 @@ from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.filters import (
     AgentFilter,
+    DictSearchFilter,
     EventIPFilter,
     InformationPackageFilter,
     WorkareaEntryFilter,
@@ -647,7 +648,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True)
     def workflow(self, request, pk=None):
-        ip = self.get_object()
+        try:
+            ip = self.get_object()
+        except Http404:
+            return Response([])
 
         steps = ip.steps.filter(parent__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
@@ -911,8 +915,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool')
     def actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Aggregating']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading", "Received" or "Aggregating"')
+        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Receiving', 'Aggregating']:
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading", "Received", "Receiving" or "Aggregating"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -960,12 +965,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
-                            'Access Workarea']:
-            # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception",\
-                                        "Received", "Preserved" or "Access Workarea"')
-            # 'IP must be in state "Access Workarea"')
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Receiving', 'Aggregating',
+                            'Preserved', 'Access Workarea']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", \
+"Received", "Receiving", "Aggregating", "Preserved" or "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -1016,13 +1019,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_path='actiontool_save')
     def save_actiontool_copy(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
-                            'Access Workarea']:
-            # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
-"Preserved" or "Access Workarea"')
-            # 'IP must be in state "Access Workarea"')
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Receiving', 'Aggregating',
+                            'Preserved', 'Access Workarea']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", \
+"Received", "Receiving", "Aggregating", "Preserved" or "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -2380,10 +2380,12 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
+    filter_backends = [SearchFilter, DictSearchFilter]
     search_fields = (
-        'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
+        '^object_identifier_value', '^label',
+    )
+    dict_search_fields = (
+        '^object_identifier_value', '^label',
     )
 
     permission_classes = ()
@@ -2478,13 +2480,38 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         extracted = self.get_extracted_packages(reception)
         ips = contained + extracted
 
+        # Apply global "search" DictSearchFilter
+        for backend in self.filter_backends:
+            if isinstance(backend(), DictSearchFilter):
+                ips = backend().filter_queryset(request, ips, self)
+
         # Remove all keys not in filterset_fields
         conditions = {key: value for (key, value) in request.query_params.items() if key in filterset_fields}
+        if 'responsible' in conditions:
+            conditions['responsible'] = self.request.user
 
-        # Filter ips based on conditions
-        new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
+        def match_value(field_value, condition_value):
+            if isinstance(field_value, str) and isinstance(condition_value, str):
+                return condition_value in field_value  # substring match
+            elif isinstance(field_value, (list, set, tuple)):
+                return condition_value in field_value  # containment
+            else:
+                return field_value == condition_value  # fallback to equality
 
-        from_db = InformationPackage.objects.visible_to_user(request.user).filter(
+        def match_conditions(ip, conditions):
+            for key, cond_value in conditions.items():
+                field_value = ip.get(key)
+                if field_value is None:
+                    return True
+                if not match_value(field_value, cond_value):
+                    return False
+            return True
+
+        # Filter ips (dicts) based on conditions
+        new_ips = list(filter(lambda ip: match_conditions(ip, conditions), ips))
+
+        # Filter DB queryset based on conditions
+        from_db = InformationPackage.objects.visible_to_user(self.request.user).filter(
             Q(
                 Q(
                     package_type=InformationPackage.AIP,
@@ -2497,6 +2524,11 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ),
             **conditions
         )
+
+        # Apply global "search" SearchFilter to DB queryset
+        for backend in self.filter_backends:
+            if isinstance(backend(), SearchFilter):
+                from_db = backend().filter_queryset(request, from_db, self)
 
         # Remove IPs from new_ips if they already are in the database
         db_ip_ids = from_db.filter(
