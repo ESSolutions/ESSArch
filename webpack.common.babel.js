@@ -178,6 +178,9 @@ module.exports = (env, argv) => {
         'process.env': {LATER_COV: false},
         COMMITHASH: JSON.stringify(gitRevisionPlugin.commithash()),
       }),
+      new webpack.ProvidePlugin({
+        Buffer: ['buffer', 'Buffer'], // automatically import Buffer where used
+      }),      
     ],
   };
 };
