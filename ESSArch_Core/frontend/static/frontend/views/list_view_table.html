@@ -59,7 +59,7 @@
       fields="fields"
       update="getListViewData()"
     ></advanced-filters>
-    <div ng-if="!('home.ingest.reception' | isState)" class="global-search">
+    <div ng-if="!(isState)" class="global-search">
       <input
         id="search-input"
         st-search=""
@@ -72,7 +72,7 @@
       />
     </div>
     <button
-      ng-if="!('home.ingest.reception' | isState)"
+      ng-if="!(isState)"
       type="button"
       ng-click="getListViewData()"
       class="btn btn-primary btn-small"
