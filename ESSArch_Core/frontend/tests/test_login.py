@@ -2,6 +2,7 @@ from time import sleep
 
 from django.contrib.auth import get_user_model
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -20,10 +21,15 @@ class LoginTests(FrontendTestCase):
             try:
                 self.selenium.get('%s' % (self.live_server_url))
 
+                # Wait for the username field to appear
+                WebDriverWait(self.selenium, 15).until(
+                    EC.presence_of_element_located((By.NAME, "username"))
+                )
+
                 # login
-                username_input = self.selenium.find_element("name", "username")
+                username_input = self.selenium.find_element(By.NAME, "username")
                 username_input.send_keys('user')
-                password_input = self.selenium.find_element("name", "password")
+                password_input = self.selenium.find_element(By.NAME, "password")
                 password_input.send_keys('pass')
 
                 old_url = self.selenium.current_url
