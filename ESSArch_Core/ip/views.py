@@ -55,12 +55,6 @@ from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
-from tenacity import (
-    RetryError,
-    Retrying,
-    stop_after_delay,
-    wait_random_exponential,
-)
 
 from ESSArch_Core.api.filters import string_to_bool
 from ESSArch_Core.auth.decorators import permission_required_or_403
@@ -68,7 +62,6 @@ from ESSArch_Core.auth.models import Member
 # from ESSArch_Core.auth.permission_checker import ObjectPermissionChecker
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
-from ESSArch_Core.cache.decorators import lock_obj
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
 from ESSArch_Core.configuration.models import Path
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -81,6 +74,7 @@ from ESSArch_Core.fixity.validation import AVAILABLE_VALIDATORS
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.ip.filters import (
     AgentFilter,
+    DictSearchFilter,
     EventIPFilter,
     InformationPackageFilter,
     WorkareaEntryFilter,
@@ -142,6 +136,7 @@ from ESSArch_Core.util import (
     in_directory,
     list_files,
     merge_file_chunks,
+    natural_key,
     normalize_path,
     parse_content_range_header,
     remove_prefix,
@@ -248,17 +243,17 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
 
         workflow_spec = []
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             action_tool = ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
+            if 'path' in action_data:
+                pattern = action_data['path']
 
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
@@ -281,7 +276,8 @@ class WorkareaEntryViewSet(mixins.DestroyModelMixin, viewsets.ReadOnlyModelViewS
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip, name='Action tool')
+        workflow = create_workflow(workflow_spec, eager=False, ip=workarea.ip, name='Action tool',
+                                   responsible=self.request.user)
         workflow.run()
         return Response()
 
@@ -423,8 +419,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         'id', 'object_identifier_value', 'start_date', 'end_date',
     )
     search_fields = (
-        '=id', 'object_identifier_value', 'label',
-        'aic__object_identifier_value', 'aic__label',
+        '^object_identifier_value', '^label',
     )
     filterset_class = InformationPackageFilter
 
@@ -653,7 +648,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True)
     def workflow(self, request, pk=None):
-        ip = self.get_object()
+        try:
+            ip = self.get_object()
+        except Http404:
+            return Response([])
 
         steps = ip.steps.filter(parent__information_package__isnull=True)
         tasks = ip.processtask_set.filter(processstep__information_package__isnull=True)
@@ -745,7 +743,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     'agent': request.user.username,
                     'outcome': EventIP.SUCCESS
                 }
-                self.logger.info("Prepared {obj}".format(obj=ip.object_identifier_value), extra=extra)
+                self.logger.info("Prepared IP ({obj})".format(obj=ip.object_identifier_value), extra=extra)
 
                 member = Member.objects.get(django_user=responsible)
                 user_perms = perms.pop('owner', [])
@@ -777,7 +775,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return Response({"detail": "Prepared IP"}, status=status.HTTP_201_CREATED)
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @permission_required_or_403('ip.prepare_ip')
     @action(detail=True, methods=['post'], url_path='prepare')
@@ -805,27 +802,27 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if not ProfileIP.objects.filter(ip=ip, profile=sa.profile_transfer_project).exists():
             raise exceptions.ParseError('Information package missing Transfer Project profile')
 
-        for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
+        for profile_ip in ProfileIP.objects.select_for_update().filter(ip=ip).iterator(chunk_size=1000):
             try:
-                profile_ip.clean()
+                if profile_ip:
+                    profile_ip.clean()
+                    profile_ip.lock(request.user)
             except ValidationError as e:
-                raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
-
-            profile_ip.lock(request.user)
-
-        ProcessTask.objects.create(
-            name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
-            label="Create Physical Model",
-            information_package=ip,
-            responsible=self.request.user,
-        ).run().get()
+                logging.error('Validation error for profile %s: %s', profile_ip.profile.name, str(e))
+                raise exceptions.ParseError('An error occurred while processing the profile_ip.')
 
         submit_description_data = ip.get_profile_data('submit_description')
         ip.start_date = submit_description_data.get('start_date')
         ip.end_date = submit_description_data.get('end_date')
+        ip.save(update_fields=['start_date', 'end_date'])
 
-        ip.state = "Prepared"
-        ip.save(update_fields=['state', 'start_date', 'end_date'])
+        ProcessTask.objects.create(
+            name="ESSArch_Core.ip.tasks.CreatePhysicalModel",
+            label="Create Physical Model",
+            eager=False,
+            information_package=ip,
+            responsible=self.request.user,
+        ).run()
 
         return Response()
 
@@ -837,7 +834,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         if ip.package_type == 'SIP':
             ip.state = "Uploading"
-            ip.save()
+            ip.save(update_fields=['state'])
 
         data = request.GET if request.method == 'GET' else request.data
 
@@ -886,8 +883,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound('No chunks found')
 
         logger = logging.getLogger('essarch')
-        extra = {'event_type': 50700, 'object': str(ip.pk), 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
-        logger.info("Uploaded %s" % filepath, extra=extra)
+        logger.info("Uploaded %s" % filepath)
 
         return Response("Merged chunks")
 
@@ -908,36 +904,37 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         ProcessTask.objects.create(
             name="ESSArch_Core.tasks.UpdateIPSizeAndCount",
             label="Update IP size and file count",
+            args=["Uploaded"],
             eager=False,
-            information_package=ip
+            information_package=ip,
+            responsible=self.request.user
         ).run()
 
-        ip.state = "Uploaded"
-        ip.save()
         return Response()
 
     @action(detail=True, methods=['post'], url_path='actiontool')
     def actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploading', 'Received']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploading" or "Received"')
+        if ip.state not in ['Prepared', 'Uploading', 'Received', 'Receiving', 'Aggregating']:
+            raise exceptions.ParseError(
+                'IP must be in state "Prepared", "Uploading", "Received", "Receiving" or "Aggregating"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         workflow_spec = []
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             action_tool = ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
+            if 'path' in action_data:
+                pattern = action_data['path']
 
             if action_tool.environment == "task":
                 tool_cmd = json.loads(action_tool.cmd)
@@ -959,7 +956,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     ]
                 })
 
-        workflow = create_workflow(workflow_spec, eager=False, ip=ip, name='Action tool')
+        workflow = create_workflow(workflow_spec, eager=False, ip=ip, name='Action tool',
+                                   responsible=self.request.user)
         workflow.run()
 
         return Response()
@@ -967,12 +965,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], url_path='actiontool_save_as')
     def save_actiontool(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
-                            'Access Workarea']:
-            # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception",\
-                                        "Received", "Preserved" or "Access Workarea"')
-            # 'IP must be in state "Access Workarea"')
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Receiving', 'Aggregating',
+                            'Preserved', 'Access Workarea']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", \
+"Received", "Receiving", "Aggregating", "Preserved" or "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -981,18 +977,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
-            if 'conversions' in converter:
-                conversions = converter['conversions']
+            if 'path' in action_data:
+                pattern = action_data['path']
+            if 'conversions' in action_data:
+                conversions = action_data['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
@@ -1023,32 +1019,29 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['put'], url_path='actiontool_save')
     def save_actiontool_copy(self, request, pk=None):
         ip = self.get_object()
-        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Preserved',
-                            'Access Workarea']:
-            # if ip.state not in ['Access Workarea']:
-            raise exceptions.ParseError(
-                'IP must be in state "Prepared", "Uploaded", "Created", "At reception", "Received", \
-"Preserved" or "Access Workarea"')
-            # 'IP must be in state "Access Workarea"')
+        if ip.state not in ['Prepared', 'Uploaded', 'Created', 'At reception', 'Received', 'Receiving', 'Aggregating',
+                            'Preserved', 'Access Workarea']:
+            raise exceptions.ParseError('IP must be in state "Prepared", "Uploaded", "Created", "At reception", \
+"Received", "Receiving", "Aggregating", "Preserved" or "Access Workarea"')
 
         serializer = ActionToolSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         workflow_spec = [{"step": True, "name": "Action tool", "children": []}]
 
-        for converter in serializer.validated_data['actions']:
-            tool_name = converter['name']
+        for action_data in serializer.validated_data['actions']:
+            tool_name = action_data['name']
 
             # ensure that tool exists
             ActionTool.objects.get(name=tool_name)
 
-            options = converter['options']
+            options = action_data['options']
             pattern = None
 
-            if 'path' in converter:
-                pattern = converter['path']
-            if 'conversions' in converter:
-                conversions = converter['conversions']
+            if 'path' in action_data:
+                pattern = action_data['path']
+            if 'conversions' in action_data:
+                conversions = action_data['conversions']
 
             workflow_spec[0]['children'].append({
                 "name":
@@ -1074,13 +1067,13 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         try:
             obj = Profile.objects.get(name=dct['name'])
             obj.field = dct
-            obj.save()
+            obj.save(update_fields=['field'])
         except Profile.DoesNotExist:
             obj = Profile.objects.create(field=dct)
 
         return Response()
 
-    @lock_obj(blocking_timeout=0.1)
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create', permission_classes=[CanCreateSIP])
     def create_ip(self, request, pk=None):
         """
@@ -1097,7 +1090,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError("The IP (%s) is in the state '%s' but should be 'Uploaded'" % (pk, ip.state))
 
         ip.state = 'Creating'
-        ip.save()
+        ip.save(update_fields=['state'])
 
         generate_premis = ip.profile_locked('preservation_metadata')
 
@@ -1186,7 +1179,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                     },
                     {
@@ -1216,23 +1209,24 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.tasks.DeleteFiles",
                 "label": "Delete IP directory",
+                "log": {},
                 "args": [ip.object_path]
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to created",
+                "label": "Set status to created SIP",
+                "log": {
+                    "event_type": "10400",
+                    "outcome": "SUCCESS",
+                    "msg": "Created SIP ({})".format(ip.object_identifier_value),
+                },
                 "args": ["Created"],
             },
         ]
-        with transaction.atomic():
-            workflow = create_workflow(workflow_spec, ip)
-            workflow.name = "Create SIP"
-            workflow.information_package = ip
-            workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Create SIP")
         workflow.run()
         return Response({'status': 'creating ip'})
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path='submit', permission_classes=[CanSubmitSIP])
     def submit(self, request, pk=None):
@@ -1253,7 +1247,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             )
 
         ip.state = 'Submitting'
-        ip.save()
+        ip.save(update_fields=['state'])
 
         sd_profile = ip.get_profile('submit_description')
 
@@ -1285,7 +1279,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             {
                 "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                 "if": validate_logical_physical_representation,
-                "label": "Diff-check against package-mets",
+                "label": "Redundancy check against package-mets",
                 "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}"],
             },
             {
@@ -1294,7 +1288,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to submitted",
+                "label": "Set status to submitted SIP",
+                "log": {
+                    "event_type": "10500",
+                    "outcome": "SUCCESS",
+                    "msg": "Submitted SIP ({})".format(ip.object_identifier_value),
+                },
                 "args": ["Submitted"],
             },
             {
@@ -1311,10 +1310,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 }
             },
         ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Submit SIP"
-        workflow.information_package = ip
-        workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Submit SIP")
         workflow.run()
         return Response({'status': 'submitting ip'})
 
@@ -1590,19 +1586,16 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
+            ip.save(update_fields=['state', 'appraisal_date'])
 
             archive = request.data.get('archive', None)
 
-            for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
+            for profile_ip in ProfileIP.objects.select_for_update().filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
+                    profile_ip.lock(request.user)
                 except ValidationError as e:
                     raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
-
-                profile_ip.LockedBy = request.user
-                profile_ip.save()
-
-            ip.save()
 
             try:
                 workarea_id = ip.workareas.get(read_only=False).pk
@@ -1688,7 +1681,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                         },
                         {
                             "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                            "label": "Diff-check against content-mets",
+                            "label": "Redundancy check against content-mets",
                             "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                         },
                         {
@@ -1708,6 +1701,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
                     "label": "Update IP size and file count",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.AddEvent",
+                    "label": "Set status to created AIP",
+                    "params": {
+                        "event_type": "30200",
+                        "outcome": "SUCCESS",
+                        "msg": "Created AIP ({})".format(ip.object_identifier_value),
+                    }
                 },
             ]
             workflow += ip.create_preservation_workflow()
@@ -1748,6 +1750,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 {
                     "name": "ESSArch_Core.tasks.DeleteFiles",
                     "label": "Delete from ingest",
+                    "log": {},
                     "if": ip_ingest_path,
                     "args": [ip_ingest_path]
                 },
@@ -1800,6 +1803,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('IP must either have state "Received" or be archived to be accessed')
 
         data = request.data
+        user = None
+        if request and hasattr(request, "user"):
+            user = request.user
 
         options = ['tar', 'extracted', 'edit']
         if ip.package_type == InformationPackage.AIP:
@@ -1858,10 +1864,12 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             aic_xml=data.get('aic_xml', False),
             diff_check=data.get('diff_check', False),
             edit=data.get('edit', False),
+            responsible=user,
         )
         workflow.run()
         return Response({'detail': gettext('Accessing {ip}...').format(ip=ip), 'step': workflow.pk})
 
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path='create-dip')
     def create_dip(self, request, pk=None):
         dip = InformationPackage.objects.get(pk=pk)
@@ -1938,7 +1946,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": validate_logical_physical_representation,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "args": ["{{_OBJPATH}}", "{{_CONTENT_METS_PATH}}"],
                     },
                     {
@@ -1987,19 +1995,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             },
             {
                 "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                "label": "Set status to created",
+                "label": "Set status to created DIP",
+                "log": {
+                    "event_type": "30600",
+                    "outcome": "SUCCESS",
+                    "msg": "Created DIP ({})".format(dip.object_identifier_value),
+                },
                 "args": ["Created"],
             },
         ]
 
-        with transaction.atomic():
-            dip.state = 'Creating'
-            dip.save()
-
-            workflow = create_workflow(workflow_spec, dip)
-            workflow.name = "Create DIP"
-            workflow.information_package = dip
-            workflow.save()
+        dip.state = 'Creating'
+        dip.save(update_fields=['state'])
+        workflow = create_workflow(workflow_spec, dip, name="Create DIP")
         workflow.run()
         return Response({'status': 'creating dip'})
 
@@ -2372,10 +2380,12 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 
 class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
+    filter_backends = [SearchFilter, DictSearchFilter]
     search_fields = (
-        'object_identifier_value', 'label', 'responsible__first_name',
-        'responsible__last_name', 'responsible__username', 'state',
-        'submission_agreement__name', 'start_date', 'end_date',
+        '^object_identifier_value', '^label',
+    )
+    dict_search_fields = (
+        '^object_identifier_value', '^label',
     )
 
     permission_classes = ()
@@ -2417,12 +2427,19 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
             ip = parse_submit_description(xmlfile, srcdir=os.path.split(container)[0])
 
+            sa_id = ip.get('altrecordids', {}).get('SUBMISSIONAGREEMENT', [None])[0]
+            if sa_id is not None:
+                try:
+                    ip['submission_agreement'] = SubmissionAgreement.objects.get(pk=sa_id)
+                except SubmissionAgreement.DoesNotExist:
+                    ip['submission_agreement'] = None
             ip['container'] = container
             ip['xml'] = xmlfile
             ip['type'] = 'contained'
             ip['state'] = 'At reception'
             ip['status'] = 100
             ip['step_state'] = celery_states.SUCCESS
+            ip['package_type'] = None
             ips.append(ip)
 
         return ips
@@ -2444,6 +2461,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 'state': 'At reception',
                 'status': 100,
                 'step_state': celery_states.SUCCESS,
+                'package_type': None,
             }
 
             ips.append(ip)
@@ -2462,13 +2480,38 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         extracted = self.get_extracted_packages(reception)
         ips = contained + extracted
 
+        # Apply global "search" DictSearchFilter
+        for backend in self.filter_backends:
+            if isinstance(backend(), DictSearchFilter):
+                ips = backend().filter_queryset(request, ips, self)
+
         # Remove all keys not in filterset_fields
         conditions = {key: value for (key, value) in request.query_params.items() if key in filterset_fields}
+        if 'responsible' in conditions:
+            conditions['responsible'] = self.request.user
 
-        # Filter ips based on conditions
-        new_ips = list(filter(lambda ip: all((v in str(ip.get(k)) for (k, v) in conditions.items())), ips))
+        def match_value(field_value, condition_value):
+            if isinstance(field_value, str) and isinstance(condition_value, str):
+                return condition_value in field_value  # substring match
+            elif isinstance(field_value, (list, set, tuple)):
+                return condition_value in field_value  # containment
+            else:
+                return field_value == condition_value  # fallback to equality
 
-        from_db = InformationPackage.objects.visible_to_user(request.user).filter(
+        def match_conditions(ip, conditions):
+            for key, cond_value in conditions.items():
+                field_value = ip.get(key)
+                if field_value is None:
+                    return True
+                if not match_value(field_value, cond_value):
+                    return False
+            return True
+
+        # Filter ips (dicts) based on conditions
+        new_ips = list(filter(lambda ip: match_conditions(ip, conditions), ips))
+
+        # Filter DB queryset based on conditions
+        from_db = InformationPackage.objects.visible_to_user(self.request.user).filter(
             Q(
                 Q(
                     package_type=InformationPackage.AIP,
@@ -2481,22 +2524,33 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             ),
             **conditions
         )
-        serializer = InformationPackageSerializer(
-            data=from_db, many=True, context={'request': request, 'view': self}
-        )
-        serializer.is_valid()
+
+        # Apply global "search" SearchFilter to DB queryset
+        for backend in self.filter_backends:
+            if isinstance(backend(), SearchFilter):
+                from_db = backend().filter_queryset(request, from_db, self)
 
         # Remove IPs from new_ips if they already are in the database
         db_ip_ids = from_db.filter(
             object_identifier_value__in=[i['id'] for i in new_ips]
         ).values_list('object_identifier_value', flat=True)
-        new_ips = [ip for ip in new_ips if ip['id'] not in db_ip_ids]
+        new_ips = [ip for ip in new_ips if ip['object_identifier_value'] not in db_ip_ids]
 
-        new_ips.extend(serializer.data)
+        new_ips.extend(from_db.values())
+
+        ordering = request.GET.get('ordering')
+        if ordering:
+            reverse = ordering.startswith('-')
+            key = ordering.lstrip('-')
+            new_ips.sort(key=lambda item: natural_key(item.get(key)), reverse=reverse)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(new_ips, request)
-            return self.paginator.get_paginated_response(paginated)
+            serializer = InformationPackageSerializer(
+                data=paginated, many=True, context={'request': request, 'view': self}
+            )
+            serializer.is_valid()
+            return self.paginator.get_paginated_response(serializer.data)
 
         return Response(new_ips)
 
@@ -2517,7 +2571,6 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         return Response(parse_submit_description(fullpath, srcdir=path))
 
-    @transaction.atomic
     def _prepare(self, request, pk):
         logger = logging.getLogger('essarch.ingest')
         perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
@@ -2548,7 +2601,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             if sa is None:
                 raise exceptions.ParseError(
                     detail='Missing parameter submission_agreement')
-            sa = SubmissionAgreement.objects.get(pk=sa)
+            sa = SubmissionAgreement.objects.select_for_update().get(pk=sa)
             parsed = {'label': pk}
             container = os.path.join(reception, pk)
             ip = InformationPackage.objects.create(
@@ -2567,17 +2620,9 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             for perm in user_perms:
                 perm_name = get_permission_name(perm, ip)
                 assign_perm(perm_name, member.django_user, ip)
-            try:
-                for attempt in Retrying(reraise=True,
-                                        stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(
-                                            multiplier=1, max=60)):
-                    with attempt:
-                        ProfileIP.objects.filter(ip=ip).delete()
-                        sa.lock_to_information_package(ip, request.user)
-            except RetryError:
-                pass
 
+            ProfileIP.objects.select_for_update().filter(ip=ip).delete()
+            sa.lock_to_information_package(ip, request.user)
         else:
             xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
             ip_is_directory = False
@@ -2619,7 +2664,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     raise exceptions.ParseError(detail='Missing parameter submission_agreement')
 
                 try:
-                    sa = SubmissionAgreement.objects.get(pk=sa)
+                    sa = SubmissionAgreement.objects.select_for_update().get(pk=sa)
                 except (ValueError, ValidationError, SubmissionAgreement.DoesNotExist) as e:
                     raise exceptions.ParseError(e)
 
@@ -2644,14 +2689,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 ip = existing_sip
                 sa = ip.submission_agreement
 
-            try:
-                for attempt in Retrying(reraise=True, stop=stop_after_delay(30),
-                                        wait=wait_random_exponential(multiplier=1, max=60)):
-                    with attempt:
-                        ProfileIP.objects.filter(ip=ip).delete()
-                        sa.lock_to_information_package(ip, request.user)
-            except RetryError:
-                pass
+            ProfileIP.objects.select_for_update().filter(ip=ip).delete()
+            sa.lock_to_information_package(ip, request.user)
 
         aic_xml = True
         if sa.profile_aic_description is None:
@@ -2687,6 +2726,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         return (ip, ip_is_directory)
 
+    @transaction.atomic
     @permission_required_or_403(['ip.receive'])
     @method_decorator(feature_enabled_or_404('receive'))
     @action(detail=True, methods=['post'], url_path='receive')
@@ -2694,7 +2734,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         logger = logging.getLogger('essarch.ingest')
 
         try:
-            ip = InformationPackage.objects.get(
+            ip = InformationPackage.objects.select_for_update().get(
                 object_identifier_value=pk,
                 package_type=InformationPackage.AIP,
                 state='At reception',
@@ -2703,104 +2743,102 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except InformationPackage.DoesNotExist:
             ip, ip_is_directory = self._prepare(request, pk)
 
-        with transaction.atomic():
-            ip.state = 'Receiving'
-            ip.save()
+        ip.state = 'Receiving'
+        ip.save(update_fields=['state'])
 
-            # refresh date fields to convert them to datetime instances instead of
-            # strings to allow further datetime manipulation
-            ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
+        # refresh date fields to convert them to datetime instances instead of
+        # strings to allow further datetime manipulation
+        ip.refresh_from_db(fields=['entry_date', 'start_date', 'end_date'])
 
-            cts = ip.get_content_type_file()
-            has_cts = cts is not None and os.path.exists(cts)
+        cts = ip.get_content_type_file()
+        has_cts = cts is not None and os.path.exists(cts)
 
-            aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
-            aip_object_structure = ip.get_profile_rel('aip').profile.structure
+        aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+        aip_object_structure = ip.get_profile_rel('aip').profile.structure
 
-            if ip_is_directory:
-                workflow_spec = [
-                    {
-                        "name": "ESSArch_Core.workflow.tasks.ReceiveDir",
-                        "label": "Receive IP to workspace",
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
-                        "label": "Update IP size and file count",
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                        "label": "Set status to received",
-                        "args": ["Received"],
-                    },
-                ]
-            else:
-                workflow_spec = [
-                    {
-                        "step":
-                        True,
-                        "name":
-                        "Validation",
-                        "children": [
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "label": "Validate package-mets",
-                                "params": {
-                                    "xml_filename": "{{_PACKAGE_METS_PATH}}",
-                                }
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                                "label": "Diff-check against package-mets",
-                                "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}",
-                                         ['{{_INNER_IP_PATH}}/dias-mets.xml']],
-                            },
-                            {
-                                "name": "ESSArch_Core.tasks.ValidateXMLFile",
-                                "label": "Validate cts",
-                                "if": has_cts,
-                                "run_if": "{{_CTS_PATH | path_exists}}",
-                                "params": {
-                                    "xml_filename": "{{_CTS_PATH}}",
-                                    "schema_filename": "{{_CTS_SCHEMA_PATH}}",
-                                }
-                            },
-                        ]
-                    },
-                    {
-                        "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
-                        "label": "Create Physical Model",
-                        'params': {
-                            'structure': aip_object_structure,
-                            'root': aip_object_path
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
-                        "label": "Receive SIP",
-                        "params": {
-                            'purpose': request.data.get('purpose'),
-                        }
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
-                        "label": "Update IP size and file count",
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.UpdateIPStatus",
-                        "label": "Set status to received",
-                        "args": ["Received"],
-                    },
-                ]
+        if ip_is_directory:
+            workflow_spec = [
+                {
+                    "name": "ESSArch_Core.workflow.tasks.ReceiveDir",
+                    "label": "Receive IP to workspace",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                    "label": "Update IP size and file count",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to received",
+                    "args": ["Received"],
+                },
+            ]
+        else:
+            workflow_spec = [
+                {
+                    "step":
+                    True,
+                    "name":
+                    "Validation",
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "label": "Validate package-mets",
+                            "params": {
+                                "xml_filename": "{{_PACKAGE_METS_PATH}}",
+                            }
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
+                            "label": "Redundancy check against package-mets",
+                            "args": ["{{_OBJPATH}}", "{{_PACKAGE_METS_PATH}}",
+                                     ['{{_INNER_IP_PATH}}/dias-mets.xml']],
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.ValidateXMLFile",
+                            "label": "Validate cts",
+                            "if": has_cts,
+                            "run_if": "{{_CTS_PATH | path_exists}}",
+                            "params": {
+                                "xml_filename": "{{_CTS_PATH}}",
+                                "schema_filename": "{{_CTS_SCHEMA_PATH}}",
+                            }
+                        },
+                    ]
+                },
+                {
+                    "name": "ESSArch_Core.ip.tasks.CreatePhysicalModel",
+                    "label": "Create Physical Model",
+                    'params': {
+                        'structure': aip_object_structure,
+                        'root': aip_object_path
+                    }
+                },
+                {
+                    "name": "ESSArch_Core.workflow.tasks.ReceiveSIP",
+                    "label": "Receive SIP",
+                    "params": {
+                        'purpose': request.data.get('purpose'),
+                    }
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPSizeAndCount",
+                    "label": "Update IP size and file count",
+                },
+                {
+                    "name": "ESSArch_Core.tasks.UpdateIPStatus",
+                    "label": "Set status to received",
+                    "args": ["Received"],
+                },
+            ]
 
-            workflow = create_workflow(workflow_spec, ip, name="Receive from reception")
-            workflow.run()
-            logger.info(
-                'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
-                extra={'user': request.user.pk},
-            )
-            return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
+        workflow = create_workflow(workflow_spec, ip, name="Receive from reception")
+        workflow.run()
+        logger.info(
+            'Started receiving {objid} from reception'.format(objid=ip.object_identifier_value),
+            extra={'user': request.user.pk},
+        )
+        return Response({'detail': gettext('Receiving {ip}').format(ip=ip)})
 
-    @lock_obj(blocking_timeout=0.1)
     @transaction.atomic
     @method_decorator(feature_enabled_or_404('transfer'))
     @action(detail=True, methods=['post'], url_path='transfer', permission_classes=[CanTransferSIP])
@@ -2932,10 +2970,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                     "args": ["Transferred"],
                 },
             ]
-        workflow = create_workflow(workflow_spec, ip)
-        workflow.name = "Transfer IP"
-        workflow.information_package = ip
-        workflow.save()
+        workflow = create_workflow(workflow_spec, ip, name="Transfer IP")
         workflow.run()
         return Response({'status': 'transferring ip'})
 
@@ -3510,9 +3545,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except NoFileChunksFound:
             raise exceptions.NotFound('No chunks found')
 
-        extra = {'event_type': 50700, 'object': str(workarea_obj.ip.pk),
-                 'agent': request.user.username, 'outcome': EventIP.SUCCESS}
-        self.logger.info("Uploaded %s" % filepath, extra=extra)
+        self.logger.info("Uploaded %s" % filepath)
 
         return Response({'detail': gettext('Merged chunks')})
 

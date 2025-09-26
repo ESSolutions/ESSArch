@@ -36,7 +36,7 @@ def initialize():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ESSArch_Core.config.settings')
     try:
         django.setup()
-    except BaseException as e:
+    except Exception as e:
         exit(e)
     from ESSArch_Core.config.celery import app  # noqa
 

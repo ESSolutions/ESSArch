@@ -1,7 +1,5 @@
 import logging
-import os
 
-from celery import states as celery_states
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import OuterRef, Subquery
@@ -32,7 +30,7 @@ from ESSArch_Core.storage.models import (
     TapeDrive,
     TapeSlot,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessStep
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
 class StorageMediumSerializer(serializers.ModelSerializer):
@@ -110,11 +108,29 @@ class StorageObjectListSerializer(serializers.ListSerializer):
 
 
 class StorageObjectSerializer(serializers.ModelSerializer):
+    content_location_value_display = serializers.SerializerMethodField()
+    ip = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=True,
+        required=False,
+        queryset=InformationPackage.objects.all()
+    )
     medium_id = serializers.CharField(source='storage_medium.medium_id')
     target_name = serializers.CharField(source='storage_medium.storage_target.name')
     target_target = serializers.CharField(source='storage_medium.storage_target.target')
+    storage_medium = serializers.PrimaryKeyRelatedField(
+        pk_field=serializers.UUIDField(format='hex_verbose'),
+        allow_null=True,
+        required=False,
+        queryset=StorageMedium.objects.all()
+    )
     ip_object_identifier_value = serializers.CharField(source='ip.object_identifier_value', read_only=True)
     ip_object_size = serializers.CharField(source='ip.object_size', read_only=True)
+
+    def get_content_location_value_display(self, obj):
+        if obj.content_location_type == DISK:
+            return obj.get_full_path()
+        return obj.content_location_value
 
     def create(self, validated_data):
         obj, _ = StorageObject.objects.update_or_create(id=validated_data['id'], defaults=validated_data)
@@ -125,9 +141,9 @@ class StorageObjectSerializer(serializers.ModelSerializer):
         model = StorageObject
         list_serializer_class = StorageObjectListSerializer
         fields = (
-            'id', 'content_location_type', 'content_location_value', 'last_changed_local',
-            'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target', 'storage_medium',
-            'container', 'ip_object_identifier_value', 'ip_object_size',
+            'id', 'content_location_type', 'content_location_value', 'content_location_value_display',
+            'last_changed_local', 'last_changed_external', 'ip', 'medium_id', 'target_name', 'target_target',
+            'storage_medium', 'container', 'ip_object_identifier_value', 'ip_object_size',
         )
         extra_kwargs = {
             'id': {
@@ -135,13 +151,6 @@ class StorageObjectSerializer(serializers.ModelSerializer):
                 'validators': [],
             },
         }
-
-    def to_representation(self, obj):
-        ret = super().to_representation(obj)
-        if obj.content_location_type == DISK:
-            ret['content_location_value'] = os.path.join(
-                obj.storage_medium.storage_target.target, '%s.tar' % obj.ip.object_identifier_value)
-        return ret
 
 
 class StorageObjectNestedSerializer(StorageObjectSerializer):
@@ -432,20 +441,16 @@ class StorageMethodPolicyField(serializers.PrimaryKeyRelatedField):
 
 
 class StorageMigrationCreateSerializer(serializers.Serializer):
-    information_packages = InformationPackagePolicyField(
-        write_only=True, many=True, required=False,
-    )
+    information_packages = InformationPackagePolicyField(write_only=True, many=True, required=False)
     storage_mediums = serializers.PrimaryKeyRelatedField(
         write_only=True, many=True, required=False, queryset=StorageMedium.objects.all()
     )
-    policy = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=StoragePolicy.objects.all(),
-    )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
+    policy = serializers.PrimaryKeyRelatedField(write_only=True, queryset=StoragePolicy.objects.all())
+    storage_methods = StorageMethodPolicyField(write_only=True, many=True, required=False)
     temp_path = serializers.CharField(write_only=True)
     export_path = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    include_inactive_ips = serializers.BooleanField(write_only=True, required=False, default=False)
+    missing_storage = serializers.BooleanField(write_only=True, required=False, default=False)
 
     def create(self, validated_data):
         logger = logging.getLogger('essarch')
@@ -454,9 +459,18 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
         request = self.context.get("request")
         if request and hasattr(request, "user"):
             user = request.user
+        storage_methods = validated_data.get('storage_methods', [])
+        export_path = validated_data.get('export_path', '')
+        include_inactive_ips = validated_data.get('include_inactive_ips', '')
+        missing_storage = validated_data.get('missing_storage', '')
+        if isinstance(storage_methods, list):
+            storage_methods = StorageMethod.objects.filter(
+                pk__in=[s.pk for s in storage_methods]
+            )
         with transaction.atomic():
             if validated_data.get('information_packages', False):
-                information_packages = []
+                medium_ids = {}
+                num_of_ip_with_storage = 0
                 for storage_obj in StorageObject.objects.filter(
                     pk__in=InformationPackage.objects.filter(
                         pk__in=[ip.pk for ip in validated_data['information_packages']]
@@ -468,99 +482,75 @@ class StorageMigrationCreateSerializer(serializers.Serializer):
                         )
                     ).values('fastest')
                 ).select_related('ip').readable().fastest():
-                    information_packages.append(storage_obj.ip)
-                if len(validated_data['information_packages']) != len(information_packages):
+                    if storage_obj.storage_medium.medium_id not in medium_ids.keys():
+                        medium_ids[storage_obj.storage_medium.medium_id] = []
+                    medium_ids[storage_obj.storage_medium.medium_id].append(storage_obj.ip)
+                    num_of_ip_with_storage += 1
+                if len(validated_data['information_packages']) != num_of_ip_with_storage:
                     raise serializers.ValidationError(
                         'Missing storage for some IP in: {}'.format(validated_data['information_packages']))
 
-                storage_methods = validated_data.get('storage_methods', [])
-                export_path = validated_data.get('export_path', '')
-                if isinstance(storage_methods, list):
-                    storage_methods = StorageMethod.objects.filter(
-                        pk__in=[s.pk for s in storage_methods]
-                    )
+                for medium_id in medium_ids.keys():
+                    media_migrate_workflow_step = ProcessStep.objects.create(
+                        name='Migrate Storage Medium', eager=False, information_package=None, context={},
+                        responsible=user, label='Migrate Storage Medium {}'.format(medium_id),
+                        part_root=None, run_state='')
 
-                for ip_obj in information_packages:
-                    previously_not_completed_steps = []
-                    for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
-                                                                      information_package=ip_obj):
-                        if previously_step.status in [
-                            celery_states.PENDING,
-                            celery_states.STARTED,
-                        ]:
-                            previously_not_completed_steps.append(previously_step)
-                    if previously_not_completed_steps:
-                        workflow_step = previously_not_completed_steps[0]
-                        logger.warning('Previously not completed migration jobs already exists: {}'.format(
-                            previously_not_completed_steps))
-                    else:
-                        storage_methods_dst = storage_methods.filter(pk__in=ip_obj.get_migratable_storage_methods())
-                        workflow_step = ip_obj.create_migration_workflow(
-                            temp_path=validated_data['temp_path'],
-                            storage_methods=storage_methods_dst,
-                            export_path=export_path,
-                            tar=True,
-                            extracted=False,
-                            package_xml=True,
-                            aic_xml=True,
-                            diff_check=True,
-                            responsible=user,
-                        )
-                        workflow_step.run()
-                    steps.append(workflow_step)
+                    t = ProcessTask.objects.create(
+                        name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
+                        params={
+                            'media_migrate_workflow_step_id': media_migrate_workflow_step.pk,
+                            'ip_ids': [ip.pk for ip in medium_ids[medium_id]],
+                            'storage_method_ids': [s.pk for s in storage_methods],
+                            'temp_path': validated_data['temp_path'],
+                            'export_path': export_path,
+                        },
+                        eager=False,
+                        responsible=user,
+                    )
+                    t.run()
+                    logger.info('Created task {} for medium {} with {} IPs'.format(
+                        t.id, medium_id, len(medium_ids[medium_id])))
+                    steps.append(media_migrate_workflow_step)
 
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])
 
             elif validated_data.get('storage_mediums', False):
-                storage_methods = validated_data.get('storage_methods', [])
-                export_path = validated_data.get('export_path', '')
-                if isinstance(storage_methods, list):
-                    storage_methods = StorageMethod.objects.filter(
-                        pk__in=[s.pk for s in storage_methods]
-                    )
-
-                information_packages = []
                 for StorageMedium_obj in StorageMedium.objects.filter(
-                        pk__in=[s.pk for s in validated_data['storage_mediums']]):
+                        pk__in=[s.pk for s in validated_data['storage_mediums']]).natural_sort():
                     ip_ids_sorted_for_medium = list(StorageMedium_obj.storage.all().natural_sort().values_list(
                         'ip', flat=True))
                     ip_objs_migratable_bulk = InformationPackage.objects.migratable(
-                        storage_methods=storage_methods, export_path=export_path).filter(
-                        pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)).in_bulk()
+                        export_path=export_path, missing_storage=missing_storage, storage_methods=storage_methods,
+                        include_inactive_ips=include_inactive_ips).filter(
+                            pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)
+                    ).in_bulk()
                     ip_objs_migratable_sorted = [
                         ip_objs_migratable_bulk[id] for id in ip_ids_sorted_for_medium
                         if id in ip_objs_migratable_bulk]
-                    information_packages.extend(ip_objs_migratable_sorted)
+                    information_packages = ip_objs_migratable_sorted
 
-                    for ip_obj in information_packages:
-                        previously_not_completed_steps = []
-                        for previously_step in ProcessStep.objects.filter(name='Migrate Information Package',
-                                                                          information_package=ip_obj):
-                            if previously_step.status in [
-                                celery_states.PENDING,
-                                celery_states.STARTED,
-                            ]:
-                                previously_not_completed_steps.append(previously_step)
-                        if previously_not_completed_steps:
-                            workflow_step = previously_not_completed_steps[0]
-                            logger.warning('Previously not completed migration jobs already exists: {}'.format(
-                                previously_not_completed_steps))
-                        else:
-                            storage_methods_dst = storage_methods.filter(
-                                pk__in=ip_obj.get_migratable_storage_methods())
-                            workflow = ip_obj.create_migration_workflow(
-                                temp_path=validated_data['temp_path'],
-                                storage_methods=storage_methods_dst,
-                                export_path=export_path,
-                                tar=True,
-                                extracted=False,
-                                package_xml=True,
-                                aic_xml=True,
-                                diff_check=True,
-                                responsible=user,
-                            )
-                            workflow.run()
-                        steps.append(workflow)
+                    media_migrate_workflow_step = ProcessStep.objects.create(
+                        name='Migrate Storage Medium', eager=False, information_package=None, context={},
+                        responsible=user, label='Migrate Storage Medium {}'.format(StorageMedium_obj.medium_id),
+                        part_root=None, run_state='')
+
+                    t = ProcessTask.objects.create(
+                        name='ESSArch_Core.storage.tasks.CreateMediumMigrationWorkflow',
+                        params={
+                            'media_migrate_workflow_step_id': media_migrate_workflow_step.pk,
+                            'ip_ids': [ip.pk for ip in information_packages],
+                            'storage_method_ids': [s.pk for s in storage_methods],
+                            'temp_path': validated_data['temp_path'],
+                            'export_path': export_path,
+                        },
+                        eager=False,
+                        responsible=user,
+                    )
+                    t.run()
+                    logger.info('Created task {} for medium {} with {} IPs'.format(
+                        t.id, StorageMedium_obj.medium_id, len(information_packages)))
+                    steps.append(media_migrate_workflow_step)
 
                 return ProcessStep.objects.filter(pk__in=[s.pk for s in steps])
 
@@ -575,24 +565,23 @@ class StorageMigrationPreviewSerializer(serializers.ModelSerializer):
 
 
 class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
-    information_packages = InformationPackagePolicyField(
-        write_only=True, many=True, required=False,
-    )
+    information_packages = InformationPackagePolicyField(write_only=True, many=True, required=False)
     storage_mediums = serializers.PrimaryKeyRelatedField(
         write_only=False, many=True, required=False, queryset=StorageMedium.objects.all()
     )
-    policy = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=StoragePolicy.objects.all(),
-    )
-    storage_methods = StorageMethodPolicyField(
-        write_only=True, many=True, required=False,
-    )
+    policy = serializers.PrimaryKeyRelatedField(write_only=True, queryset=StoragePolicy.objects.all())
+    storage_methods = StorageMethodPolicyField(write_only=True, many=True, required=False)
     export_path = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    include_inactive_ips = serializers.BooleanField(write_only=True, required=False, default=False)
+    missing_storage = serializers.BooleanField(write_only=True, required=False, default=False)
 
     def create(self, validated_data):
         information_packages = validated_data['information_packages']
+        policy = validated_data['policy']
         storage_methods = validated_data['storage_methods']
         export_path = validated_data.get('export_path', '')
+        include_inactive_ips = validated_data.get('include_inactive_ips', '')
+        missing_storage = validated_data.get('missing_storage', '')
         if isinstance(storage_methods, list):
             storage_methods = StorageMethod.objects.filter(
                 pk__in=[s.pk for s in storage_methods]
@@ -605,8 +594,10 @@ class StorageMigrationPreviewWriteSerializer(serializers.Serializer):
                 ip_ids_sorted_for_medium = list(StorageMedium_obj.storage.all().natural_sort().values_list(
                     'ip', flat=True))
                 ip_objs_migratable_bulk = InformationPackage.objects.migratable(
-                    storage_methods=storage_methods, export_path=export_path).filter(
-                    pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)).in_bulk()
+                    export_path=export_path, missing_storage=missing_storage, storage_methods=storage_methods,
+                    policy=policy, include_inactive_ips=include_inactive_ips).filter(
+                        pk__in=StorageMedium_obj.storage.all().natural_sort().values_list('ip', flat=True)
+                ).in_bulk()
                 ip_objs_migratable_sorted = [
                     ip_objs_migratable_bulk[id] for id in ip_ids_sorted_for_medium if id in ip_objs_migratable_bulk]
                 information_packages.extend(ip_objs_migratable_sorted)

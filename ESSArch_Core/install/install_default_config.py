@@ -140,8 +140,8 @@ def installDefaultEventTypes():
         'Created AIP': {'eventType': '30200', 'category': ip_cat},
         'Preserved AIP': {'eventType': '30300', 'category': ip_cat},
         'Cached AIP': {'eventType': '30310', 'category': ip_cat},
-        'Removed the source to the SIP': {'eventType': '30400', 'category': ip_cat},
-        'Removed the source to the AIP': {'eventType': '30410', 'category': ip_cat},
+        'Clean up SIP preparation files': {'eventType': '30400', 'category': ip_cat},
+        'Clean up AIP preparation files': {'eventType': '30410', 'category': ip_cat},
         'Ingest order completed': {'eventType': '30500', 'category': ip_cat},
         'Ingest order accepted': {'eventType': '30510', 'category': ip_cat},
         'Ingest order requested': {'eventType': '30520', 'category': ip_cat},
@@ -149,9 +149,10 @@ def installDefaultEventTypes():
         'DIP order requested': {'eventType': '30610', 'category': ip_cat},
         'DIP order accepted': {'eventType': '30620', 'category': ip_cat},
         'DIP order completed': {'eventType': '30630', 'category': ip_cat},
-        'Moved to workarea': {'eventType': '30700', 'category': ip_cat},
-        'Moved from workarea': {'eventType': '30710', 'category': ip_cat},
-        'Moved to gate from workarea': {'eventType': '30720', 'category': ip_cat},
+        'Moved to workspace': {'eventType': '30700', 'category': ip_cat},
+        'Moved from workspace': {'eventType': '30710', 'category': ip_cat},
+        'Moved to gate from workspace': {'eventType': '30720', 'category': ip_cat},
+        'Retrieved from storage': {'eventType': '30800', 'category': ip_cat},
 
         'Unmounted the tape from drive in robot': {'eventType': '40100', 'category': ip_cat},
         'Mounted the tape in drive in robot': {'eventType': '40200', 'category': ip_cat},
@@ -166,6 +167,8 @@ def installDefaultEventTypes():
         'Storage medium robot': {'eventType': '40540', 'category': ip_cat},
         'Data written to disk storage method': {'eventType': '40600', 'category': ip_cat},
         'Data read from disk storage method': {'eventType': '40610', 'category': ip_cat},
+        'Data written to CAS storage method': {'eventType': '40620', 'category': ip_cat},
+        'Data read from CAS storage method': {'eventType': '40630', 'category': ip_cat},
         'Data written to tape storage method': {'eventType': '40700', 'category': ip_cat},
         'Data read from tape storage method': {'eventType': '40710', 'category': ip_cat},
 
@@ -173,7 +176,7 @@ def installDefaultEventTypes():
         'Identified format': {'eventType': '50100', 'category': ip_cat},
         'Validated file format': {'eventType': '50200', 'category': ip_cat},
         'Validated XML file': {'eventType': '50210', 'category': ip_cat},
-        'Validated logical representation against physical representation': {'eventType': '50220', 'category': ip_cat},
+        'Redundancy check': {'eventType': '50220', 'category': ip_cat},
         'Validated checksum': {'eventType': '50230', 'category': ip_cat},
         'Compared XML files': {'eventType': '50240', 'category': ip_cat},
         'Virus control done': {'eventType': '50300', 'category': ip_cat},
@@ -192,6 +195,9 @@ def installDefaultEventTypes():
         'Deleted IP': {'eventType': '50740', 'category': ip_cat},
         'Conversion': {'eventType': '50750', 'category': ip_cat},
         'Action tool': {'eventType': '50760', 'category': ip_cat},
+        'Index delivery': {'eventType': '50770', 'category': ip_cat},
+        'Subsume delivery': {'eventType': '50771', 'category': ip_cat},
+        'AccessAid delivery': {'eventType': '50772', 'category': ip_cat},
     }
 
     for key, val in dct.items():
@@ -560,6 +566,7 @@ def installDefaultUsers():
         permission_list_user = [
             ['add_agent', 'agents', 'agent'],  # Can add agent
             ['change_agent', 'agents', 'agent'],  # Can change agent
+            ['change_organization', 'agents', 'agent'],  # Can change organization for agent
             ['delete_agent', 'agents', 'agent'],  # Can delete agent
             ['view_agent', 'agents', 'agent'],  # Can view agent
             ['add_agentfunction', 'agents', 'agentfunction'],  # Can add agent function
@@ -641,6 +648,8 @@ def installDefaultUsers():
             ['add_informationpackage', 'ip', 'informationpackage'],  # Can add information package
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
+            ['change_informationpackage', 'ip', 'informationpackage'],  # Can change information package
+            ['change_organization', 'ip', 'informationpackage'],  # Can change organization for IP
             ['transfer_sip', 'ip', 'informationpackage'],  # Can transfer SIP
             ['change_sa', 'ip', 'informationpackage'],  # Can change SA connected to IP
             ['lock_sa', 'ip', 'informationpackage'],  # Can lock SA to IP
@@ -742,6 +751,7 @@ def installDefaultUsers():
             ['search', 'tags', 'tag'],  # Can search
             ['create_archive', 'tags', 'tag'],  # Can create new archives
             ['change_archive', 'tags', 'tag'],  # Can change archives
+            ['change_organization', 'tags', 'tag'],  # Can change organization for archives
             ['delete_archive', 'tags', 'tag'],  # Can delete archives
             ['change_tag_location', 'tags', 'tag'],  # Can change tag location
             ['security_level_0', 'tags', 'tag'],  # Can see security level 0
@@ -1172,15 +1182,18 @@ def installDefaultStoragePolicies():
         defaults={
             'checksum_algorithm': MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT['MD5'],
             'policy_name': 'default',
-            'cache_storage': cache_method, 'ingest_path': ingest,
+            'policy_stat': True,
+            # 'cache_storage': cache_method,
+            'cache_storage': None,
+            'ingest_path': ingest,
             'receive_extract_sip': True,
             'cache_minimum_capacity': 0,
             'cache_maximum_age': 0,
         }
     )
 
-    if created_policy or created_cache_method:
-        policy.storage_methods.add(cache_method)
+    # if created_policy or created_cache_method:
+    #     policy.storage_methods.add(cache_method)
 
     return 0
 

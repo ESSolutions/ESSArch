@@ -213,7 +213,7 @@
               >
                 <td>{{row.ip_object_identifier_value}}</td>
                 <td>{{row.ip_object_size | filesize}}</td>
-                <td>{{row.content_location_value}}</td>
+                <td>{{row.content_location_value_display}}</td>
                 <td>{{row.last_changed_local | date:"yyyy-MM-dd HH:mm:ss"}}</td>
               </tr>
               <tr ng-if="!vm.storageObjects.length && !objectLoading" class="empty-table-indicator">

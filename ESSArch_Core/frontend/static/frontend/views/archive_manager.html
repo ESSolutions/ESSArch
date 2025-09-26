@@ -75,6 +75,7 @@
           <thead>
             <tr>
               <th st-sort="name">{{'NAME' | translate}}</th>
+              <th>{{'ARCHIVECREATORS' | translate}}</th>
               <th st-sort="start_date">{{'START_DATE' | translate}}</th>
               <th st-sort="end_date">{{'END_DATE' | translate}}</th>
               <th>{{'SEARCH' | translate}}</th>
@@ -91,7 +92,21 @@
               ng-class="{'selected': $stateParams && $stateParams.id === x.current_version.id}"
               ng-click="vm.archiveClick(x)"
             >
-              <td>{{x.current_version.name}}</td>
+              <td
+                uib-tooltip="Org: {{x.current_version.organization.name}}"
+                tooltip-placement="auto top "
+                tooltip-append-to-body="true"
+                context-menu="menuOptions('archive', x)"
+              >
+                {{x.current_version.name}}
+              </td>
+              <td
+                uib-tooltip="Org: {{x.current_version.agent.organization.name}}"
+                tooltip-placement="auto top"
+                tooltip-append-to-body="true"
+              >
+                {{x.current_version.agent.name}}
+              </td>
               <td>{{x.current_version.start_date | date:"yyyy-MM-dd"}}</td>
               <td>{{x.current_version.end_date | date:"yyyy-MM-dd"}}</td>
               <td class="text-center shrink">

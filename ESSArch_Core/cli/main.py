@@ -27,7 +27,7 @@ def _check():
         dj_call_command(
             'check',
         )
-    except BaseException as e:
+    except Exception as e:
         exit(e)
 
 
@@ -171,6 +171,25 @@ list(
 
 
 @cli.group()
+def remote():
+    """Manage remote
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: remote.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.remote.update_sa',
+            'ESSArch_Core.cli.commands.remote.update_storageMedium',
+            'ESSArch_Core.cli.commands.remote.update_storage',
+            'ESSArch_Core.cli.commands.remote.update_ip',
+        )
+    )
+)
+
+
+@cli.group()
 def search():
     """Manage search indices
     """
@@ -205,6 +224,23 @@ list(
 
 
 @cli.group()
+def storage():
+    """Manage storage
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: storage.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.storage.remove_storage',
+            'ESSArch_Core.cli.commands.storage.update_storageMedium',
+        )
+    )
+)
+
+
+@cli.group()
 def system():
     """System Information
     """
@@ -231,6 +267,23 @@ list(
     map(
         lambda cmd: mimetypes.add_command(locate(cmd)), (
             'ESSArch_Core.cli.commands.mimetypes.generate',
+        )
+    )
+)
+
+
+@cli.group()
+def workflow():
+    """Manage workflow
+    """
+    pass
+
+
+list(
+    map(
+        lambda cmd: workflow.add_command(locate(cmd)), (
+            'ESSArch_Core.cli.commands.workflow.remove_step',
+            'ESSArch_Core.cli.commands.workflow.revoke_task',
         )
     )
 )

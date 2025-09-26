@@ -184,6 +184,15 @@ def login_services(req):
     if getattr(settings, 'ENABLE_SSO_LOGIN', False) or getattr(settings, 'ENABLE_ADFS_LOGIN', False):
         services.append('sso')
 
+    if getattr(settings, 'ENABLE_SSO_WIA_LOGIN', False):
+        services.append('sso_wia')
+
+    if getattr(settings, 'ENABLE_LDAP_LOGIN', False):
+        services.append('ldap')
+
+    if getattr(settings, 'ENABLE_FORM_LOGIN', True):
+        services.append('form')
+
     return Response(services)
 
 

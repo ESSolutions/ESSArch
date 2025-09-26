@@ -10,6 +10,7 @@ export default class ArchiveManagerCtrl {
     myService,
     listViewService,
     $translate,
+    ContextMenuBase,
     $transitions
   ) {
     const vm = this;
@@ -25,6 +26,45 @@ export default class ArchiveManagerCtrl {
       if ($stateParams.id) {
         vm.initialSearch = $stateParams.id;
       }
+    };
+
+    $scope.menuOptions = function (rowType, row) {
+      const methods = [];
+      if (myService.checkPermission('tags.change_organization')) {
+        methods.push(
+          ContextMenuBase.changeOrganization(function () {
+            vm.changeOrganizationModal(rowType, row);
+          })
+        );
+      }
+      return methods;
+    };
+
+    vm.changeOrganizationModal = function (itemType, item) {
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/modals/change_organization_modal.html',
+        controller: 'OrganizationModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        size: 'md',
+        resolve: {
+          data: function () {
+            return {
+              itemType: itemType,
+              item: item,
+            };
+          },
+        },
+      });
+      modalInstance.result
+        .then(function (data) {
+          vm.updateArchives();
+        })
+        .catch(function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        });
     };
 
     let watchers = [];

@@ -23,12 +23,14 @@
 """
 
 import logging
+from contextlib import nullcontext
 
 from billiard.einfo import ExceptionInfo
 from celery import Task, exceptions, states as celery_states
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.utils import translation
+from redis.exceptions import LockNotOwnedError
 from tenacity import (
     RetryError,
     Retrying,
@@ -126,6 +128,10 @@ class DBTask(Task):
         return self.headers.get('step_pos')
 
     @property
+    def parallel(self):
+        return self.headers.get('parallel', False)
+
+    @property
     def task_id(self):
         return self.request.id
 
@@ -143,28 +149,72 @@ class DBTask(Task):
                             ip = InformationPackage.objects.select_related('submission_agreement').get(pk=self.ip)
                         except InformationPackage.DoesNotExist as e:
                             self.logger.warning(
-                                'exception in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
-- retry'.format(self.task_id, self.step, self.ip))
+                                'Exception in _run for task: {} ({}), step_id: {}, DoesNotExist when get ip: {} \
+- retry'.format(self.name, self.task_id, self.step, self.ip))
                             raise e
             except RetryError:
-                self.logger.warning('RetryError in _run for task_id: {}, step_id: {}, DoesNotExist when get ip: {} \
-- try to _run_task without IP'.format(self.task_id, self.step, self.ip))
+                self.logger.warning('RetryError in _run for task: {} ({}), step_id: {}, \
+DoesNotExist when get ip: {} - try to _run_task without IP'.format(self.name, self.task_id, self.step, self.ip))
                 return self._run_task(*args, **kwargs)
-            self.extra_data.update(fill_specification_data(ip=ip, sa=ip.submission_agreement).to_dict())
 
-            self.logger.debug('{} acquiring lock for IP {}'.format(self.task_id, str(ip.pk)))
-            # with cache_lock(ip.get_lock_key()):
-            with cache.lock(ip.get_lock_key(), blocking_timeout=300):
-                self.logger.info('{} acquired lock for IP {}'.format(self.task_id, str(ip.pk)))
+            ip.refresh_from_db()
+            updated_data = fill_specification_data(ip=ip, sa=ip.submission_agreement)
+            updated_data_dict = updated_data.to_dict()
+            self.extra_data.update(updated_data_dict)
+            # if self.name == 'ESSArch_Core.tasks.ValidateXMLFile':
+            #     self.logger.info('dbtask: {} - ip: {}, updated_data: {}'.format(self.name, ip, repr(updated_data)))
+            #     self.logger.info('dbtask: {} - ip: {}, updated_data_dict: {}'.format(self.name, ip,
+            #                                                                           repr(updated_data_dict)))
+            #     self.logger.info('dbtask: {} - ip: {}, extra_data: {}'.format(self.name, ip, repr(self.extra_data)))
 
-                t = self.get_processtask()
-                if t.run_if and not self.parse_params(t.run_if)[0]:
-                    r = None
-                    t.hidden = True
-                    t.save()
-                else:
-                    r = self._run_task(*args, **kwargs)
-            self.logger.info('{} released lock for IP {}'.format(self.task_id, str(ip.pk)))
+            if self.parallel:
+                cm = nullcontext()
+            else:
+                cm = cache.lock(ip.get_lock_key(), timeout=300)
+            try:
+                if ip.is_locked():
+                    if not self.parallel:
+                        self.logger.warning(
+                            'IP: {} is already locked when task: {} ({}) try to acquire lock'.format(
+                                ip, self.name, self.task_id))
+                    else:
+                        self.logger.warning(
+                            'IP: {} is already locked when task: {} ({}) try to run task in parallel'.format(
+                                ip, self.name, self.task_id))
+                with cm:
+                    if not self.parallel:
+                        self.logger.info('Task: {} ({}) acquired lock for IP {}'.format(self.name, self.task_id, ip))
+                    else:
+                        self.logger.info('Task: {} ({}) is running in parallel for IP: {}'.format(
+                            self.name, self.task_id, ip))
+                    try:
+                        for attempt in Retrying(stop=stop_after_delay(30),
+                                                wait=wait_random_exponential(multiplier=1, max=60)):
+                            with attempt:
+                                try:
+                                    t = self.get_processtask()
+                                except ProcessTask.DoesNotExist:
+                                    self.logger.warning(
+                                        'Exception in _run for task: {} ({}), step_id: {}, ip: {}, DoesNotExist when \
+get ProcessTask - retry'.format(self.name, self.task_id, self.step, self.ip))
+                                    raise
+                    except RetryError:
+                        self.logger.warning('RetryError in _run for task: {} ({}), step_id: {}, ip: {}, DoesNotExist \
+when get ProcessTask'.format(self.name, self.task_id, self.step, self.ip))
+                        raise
+
+                    if t.run_if and not self.parse_params(t.run_if)[0]:
+                        r = None
+                        t.hidden = True
+                        t.save()
+                    else:
+                        r = self._run_task(*args, **kwargs)
+                if not self.parallel:
+                    self.logger.info('{} released lock for IP: {}'.format(self.task_id, str(ip)))
+            except LockNotOwnedError:
+                self.logger.warning('Task: {} ({}) LockNotOwnedError for IP: {}'.format(
+                    self.name, self.task_id, str(ip)))
+                r = None
             return r
 
         return self._run_task(*args, **kwargs)
@@ -176,8 +226,8 @@ class DBTask(Task):
                 for ancestor in step.get_ancestors(include_self=True):
                     self.extra_data.update(ancestor.context)
             except ProcessStep.DoesNotExist:
-                self.logger.warning('exception in _run_task for task_id: {}, step_id: {}, DoesNotExist when get \
-step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
+                self.logger.warning('Exception in _run_task for task: {} ({}), step_id: {}, DoesNotExist when get \
+step, (self.ip: {})'.format(self.name, self.task_id, self.step, self.ip))
 
         try:
             if self.eager:
@@ -197,7 +247,7 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
             if self.allow_failure:
                 ProcessTask.objects.filter(celery_id=self.task_id).update(
                     status=celery_states.FAILURE,
-                    exception=einfo.exception,
+                    exception=self.backend.prepare_exception(e),
                     traceback=einfo.traceback,
                 )
                 self.logger.error('Task with flag "allow failure" failed with exception {}'.format(einfo.exception))
@@ -279,6 +329,17 @@ step, (self.ip: {})'.format(self.task_id, self.step, self.ip))
 
     def create_success_event(self, msg, retval=None):
         return self.create_event(celery_states.SUCCESS, msg, retval, None)
+
+    def create_event_from_task_log_dict(self, msg):
+        t = self.get_processtask()
+        if type(t.log) is dict or t.log is True:
+            self.event_type = t.log.get('event_type', self.event_type)
+            msg = t.log.get('msg', msg)
+            outcome = t.log.get('outcome', 'SUCCESS')
+            self.create_event(outcome, msg, None, None)
+            return True
+        else:
+            return False
 
     def success(self, retval, args, kwargs):
         '''

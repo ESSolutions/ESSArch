@@ -25,6 +25,11 @@ from ESSArch_Core.storage.exceptions import (
 from ESSArch_Core.storage.tape_identification import (
     get_backend as get_tape_identification_backend,
 )
+from ESSArch_Core.util import (
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
+)
 
 MB = 1024 * 1024
 DEFAULT_TAPE_BLOCK_SIZE = 20 * 512
@@ -137,7 +142,7 @@ def rewind_tape(drive):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    logger.debug('Rewinded tape in {drive}'.format(drive=drive))
+    logger.info('Rewinded tape in {drive}'.format(drive=drive))
     return out
 
 
@@ -176,7 +181,7 @@ def is_tape_drive_online(drive):
 
 def wait_to_come_online(drive, timeout=120):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Waiting for {drive} to come online'.format(drive=drive))
+    logger.info('Waiting for {drive} to come online'.format(drive=drive))
     while timeout >= 0:
         if is_tape_drive_online(drive):
             return
@@ -191,26 +196,33 @@ def wait_to_come_online(drive, timeout=120):
 @retry(reraise=True, stop=stop_after_attempt(5), wait=wait_fixed(60))
 def tape_empty(drive):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Checking if tape in {drive} is empty'.format(drive=drive))
+    logger.info('Checking if tape in {drive} is empty'.format(drive=drive))
     try:
+        rewind_tape(drive)
         logger.debug('Opening tape in {drive}'.format(drive=drive))
         tar = tarfile.open(drive, 'r|')
-    except OSError as e:
-        if e.errno == errno.EIO:
-            logger.debug('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
-            rewind_tape(drive)
-            return True
-        logger.exception('Unknown error while opening tape in {drive}'.format(drive=drive))
-        raise
+    except OSError:
+        logger.warning('I/O error while opening tape in {drive}, retry'.format(drive=drive))
+        rewind_tape(drive)
+        try:
+            logger.debug('Retry to open tape in {drive}'.format(drive=drive))
+            tar = tarfile.open(drive, 'r|')
+        except OSError as e:
+            if e.errno == errno.EIO:
+                logger.info('I/O error while opening tape in {drive}, it is empty'.format(drive=drive))
+                rewind_tape(drive)
+                return True
+            logger.exception('Unknown error while opening tape in {drive}'.format(drive=drive))
+            raise
     except tarfile.ReadError as e:
         if str(e) == 'empty file':
-            logger.debug('Empty file in tape in {drive}, tape is empty'.format(drive=drive))
+            logger.info('Empty file in tape in {drive}, tape is empty'.format(drive=drive))
             rewind_tape(drive)
             return True
         logger.exception('Unknown tarfile error while opening tape in {drive}'.format(drive=drive))
         raise
     else:
-        logger.debug('Tape in {drive} is not empty'.format(drive=drive))
+        logger.info('Tape in {drive} is not empty'.format(drive=drive))
         tar.close()
         rewind_tape(drive)
         return False
@@ -236,7 +248,7 @@ def create_tape_label(medium, xmlpath):
 
 def verify_tape_label(medium, xmlstring):
     logger = logging.getLogger('essarch.storage.tape')
-    logger.debug('Verifying tape label of {medium} against {xml}'.format(medium=medium, xml=xmlstring))
+    logger.info('Verifying tape label of {medium} against {xml}'.format(medium=medium, xml=xmlstring))
     try:
         root = etree.fromstring(xmlstring)
     except etree.XMLSyntaxError:
@@ -307,6 +319,7 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
             time_start = time.time()
             tar.add(path, arcname)
             time_end = time.time()
+
             time_elapsed = time_end - time_start
             fsize_mb = fsize / MB
             try:
@@ -315,8 +328,9 @@ def write_to_tape(device, paths, block_size=DEFAULT_TAPE_BLOCK_SIZE, arcname=Non
                 mb_per_sec = fsize_mb
 
             logger.info(
-                'Added {} ({} MB) to {} ({}) at {} MB/Sec ({} sec)'.format(
-                    path, fsize_mb, device, medium_id, mb_per_sec, time_elapsed
+                'Added {} ({}) to {} ({}) at {} MB/Sec ({} sec)'.format(
+                    path, pretty_size(fsize), device, medium_id, pretty_mb_per_sec(
+                        mb_per_sec), pretty_time_to_sec(time_elapsed)
                 )
             )
 
@@ -342,7 +356,7 @@ def get_tape_file_number(drive):
             file_line = item
             break
     file_number = int(file_line.split(',')[0].split('=')[1])
-    logger.debug('Got {num} as file number of {drive}'.format(num=file_number, drive=drive))
+    logger.info('Got {num} as file number of {drive}'.format(num=file_number, drive=drive))
     return file_number
 
 
@@ -368,7 +382,7 @@ def set_tape_file_number(drive, num=0):
     elif p.returncode == 2:
         raise MTFailedOperationException(err)
 
-    logger.debug('File number of {drive} set to {num}'.format(num=num, drive=drive))
+    logger.info('File number of {drive} set to {num}'.format(num=num, drive=drive))
     return out
 
 
@@ -412,7 +426,7 @@ def robot_inventory(robot):
 
     cmd = 'mtx -f %s status' % robot
     p = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE, universal_newlines=True)
-    logger.debug('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
+    logger.info('Inventoring {robot}: {cmd}'.format(robot=robot, cmd=cmd))
     out, err = p.communicate()
 
     if p.returncode:
@@ -441,13 +455,13 @@ def robot_inventory(robot):
                 )
                 )
                 if not drive.status == 20:
-                    logger.debug('Drive {row} (drive_id={drive}, robot={robot}) update status for drive \
+                    logger.info('Drive {row} (drive_id={drive}, robot={robot}) update status for drive \
 from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_status=drive.status)
-                                 )
+                                )
                     drive.status = 20
                     drive.save(update_fields=["status"])
                 try:
-                    if not drive.storage_medium.tape_slot.status == 20:
+                    if drive.storage_medium.tape_slot and not drive.storage_medium.tape_slot.status == 20:
                         drive.storage_medium.tape_slot.status = 20
                         drive.storage_medium.tape_slot.save(update_fields=["status"])
                 except TapeDrive.storage_medium.RelatedObjectDoesNotExist:
@@ -457,10 +471,19 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                     slot_id = dt_el[7]
                     medium_id = dt_el[10][:6]
                     backend.identify_tape(medium_id)
-
-                    StorageMedium.objects.filter(
-                        tape_slot__robot=robot, tape_slot__slot_id=slot_id, medium_id=medium_id
-                    ).update(tape_drive=drive)
+                    slot, created = TapeSlot.objects.update_or_create(
+                        robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
+                    )
+                    num_updated = StorageMedium.objects.filter(medium_id=medium_id).update(
+                        tape_slot=slot, tape_drive=drive, last_changed_local=timezone.now(),
+                    )
+                    if num_updated == 0:
+                        logger.warning(
+                            'No StorageMedium found with medium_id={medium} to update tape_slot={slot} and \
+tape_drive={drive}'.format(medium=medium_id, slot=slot_id, drive=drive_id)
+                        )
+                        drive.status = 100
+                        drive.save(update_fields=["status"])
                 else:
                     StorageMedium.objects.filter(tape_drive=drive).update(
                         tape_drive=None, last_changed_local=timezone.now(),
@@ -492,25 +515,34 @@ from {drive_status} to 20'.format(row=row, drive=drive_id, robot=robot, drive_st
                         robot=robot, slot_id=slot_id, defaults={'medium_id': medium_id, 'status': 20}
                     )
                     if created:
-                        logger.debug(
+                        logger.info(
                             'Created tape slot with slot_id={slot}, medium_id={medium}'.format(
                                 slot=slot_id, medium=medium_id
                             )
                         )
                     else:
-                        logger.debug(
+                        logger.info(
                             'Updated tape slot with slot_id={slot}, medium_id={medium}'.format(
                                 slot=slot_id, medium=medium_id
                             )
                         )
 
+                    StorageMedium.objects.filter(tape_slot=slot).exclude(medium_id=medium_id).update(
+                        tape_slot=None, tape_drive=None, last_changed_local=timezone.now(),
+                    )
                     StorageMedium.objects.filter(medium_id=medium_id).update(
-                        tape_slot=slot, last_changed_local=timezone.now(),
+                        tape_slot=slot, tape_drive=None, last_changed_local=timezone.now(),
                     )
                 else:
                     slot, created = TapeSlot.objects.get_or_create(robot=robot, slot_id=slot_id)
                     if created:
-                        logger.debug('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                        logger.info('Created tape slot with slot_id={slot}'.format(slot=slot_id))
+                    elif status == 'Empty' and slot.medium_id is not None:
+                        slot.medium_id = None
+                        slot.save(update_fields=['medium_id'])
+                        StorageMedium.objects.filter(tape_slot=slot).update(
+                            tape_slot=None, tape_drive=None, last_changed_local=timezone.now(),
+                        )
                     elif slot.status == 100:
                         slot.status = 20
                         slot.save(update_fields=['status'])

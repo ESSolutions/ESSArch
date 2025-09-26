@@ -1,5 +1,6 @@
 import os
 import shutil
+import sys
 import tempfile
 from unittest import mock
 
@@ -404,7 +405,10 @@ class XMLSchematronValidatorTests(TestCase):
             task="dummy_ip_id",
         )
 
-        expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
+        if sys.platform == "win32":
+            expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
+        else:
+            expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load"
 
         with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_schematron(xml_file_path)
@@ -421,7 +425,11 @@ class XMLSchematronValidatorTests(TestCase):
             task="dummy_ip_id",
         )
 
-        expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
+        if sys.platform == "win32":
+            expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \
+\"{xml_file_path}\""
+        else:
+            expected_err_msg = f"Error reading file '{xml_file_path}': failed to load \"{xml_file_path}\""
 
         with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_schematron(xml_file_path)
@@ -599,7 +607,10 @@ class XMLISOSchematronValidatorTests(TestCase):
             task="dummy_ip_id",
         )
 
-        expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
+        if sys.platform == "win32":
+            expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load external entity"
+        else:
+            expected_error_message = f"Error reading file .*{schematron_file_name}'.* failed to load"
 
         with self.assertRaisesRegex(OSError, expected_error_message):
             validator._validate_isoschematron(xml_file_path)
@@ -616,7 +627,11 @@ class XMLISOSchematronValidatorTests(TestCase):
             task="dummy_ip_id",
         )
 
-        expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \"{xml_file_path}\""
+        if sys.platform == "win32":
+            expected_err_msg = f"Error reading file '{xml_file_path}': failed to load external entity \
+\"{xml_file_path}\""
+        else:
+            expected_err_msg = f"Error reading file '{xml_file_path}': failed to load \"{xml_file_path}\""
 
         with self.assertRaisesRegex(OSError, expected_err_msg):
             validator._validate_isoschematron(xml_file_path)

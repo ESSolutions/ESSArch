@@ -13,6 +13,7 @@ class FrontendTestCase(StaticLiveServerTestCase):
 
         options = Options()
         options.headless = True
+        options.add_argument("--headless")
         try:
             cls.selenium = WebDriver(options=options)
         except TimeoutException as e:

@@ -1,24 +1,26 @@
 {
-  "recommendations": [
-    "bigonesystems.django",
-    "Pachwenko.django-test-runner",
-    "janisdd.vscode-edit-csv",
-    "dsznajder.es7-react-js-snippets",
-    "mrorz.language-gettext",
-    "GitHub.vscode-pull-request-github",
-    "eamodio.gitlens",
-    "esbenp.prettier-vscode",
-    "ms-python.vscode-pylance",
-    "ms-python.python",
-    "ms-python.flake8",
-    "ms-python.autopep8",
-    "ms-python.isort",
-    "ms-vscode-remote.remote-wsl",
-    "ms-vscode.powershell",
-    "ms-azuretools.vscode-docker",
-    "lextudio.restructuredtext",
-    "trond-snekvik.simple-rst",
-    "marcostazi.VS-code-vagrantfile",
-    "njpwerner.autodocstring"
-  ]
+    "recommendations": [
+        "bigonesystems.django",
+        "Pachwenko.django-test-runner",
+        "janisdd.vscode-edit-csv",
+        "dsznajder.es7-react-js-snippets",
+        "mrorz.language-gettext",
+        "GitHub.vscode-pull-request-github",
+        "eamodio.gitlens",
+        "esbenp.prettier-vscode",
+        "ms-python.vscode-pylance",
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.autopep8",
+        "ms-python.isort",
+        "ms-vscode-remote.remote-wsl",
+        "ms-vscode.powershell",
+        "ms-azuretools.vscode-docker",
+        "lextudio.restructuredtext",
+        "trond-snekvik.simple-rst",
+        "marcostazi.VS-code-vagrantfile",
+        "njpwerner.autodocstring",
+        "swyddfa.esbonio",
+        "GitLab.gitlab-workflow"
+    ]
 }

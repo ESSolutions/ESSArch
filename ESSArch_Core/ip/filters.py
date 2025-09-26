@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from django_filters import rest_framework as filters
 from rest_framework import exceptions
+from rest_framework.filters import BaseFilterBackend
 
 from ESSArch_Core.api.filters import ListFilter, MultipleCharFilter
 from ESSArch_Core.auth.util import users_in_organization
@@ -60,6 +61,7 @@ class InformationPackageFilter(filters.FilterSet):
         field_name='submission_agreement__policy',
         distinct=False
     )
+    label = filters.CharFilter(field_name='label', lookup_expr='iregex')
 
     def exclude_package_type_name(self, queryset, name, value):
         for package_type_id, package_type_name in InformationPackage.PACKAGE_TYPE_CHOICES:
@@ -125,3 +127,35 @@ class WorkareaFilter(InformationPackageFilter):
     class Meta:
         model = InformationPackage
         fields = InformationPackageFilter.Meta.fields + ['type']
+
+
+class DictSearchFilter(BaseFilterBackend):
+    def filter_queryset(self, request, queryset, view):
+        search_fields = getattr(view, 'dict_search_fields', [])
+        search_term = request.query_params.get('search', '').lower().strip()
+
+        if not search_term or not search_fields:
+            return queryset
+
+        def matches(item):
+            lookup_prefixes = {
+                '^': 'istartswith',
+                '@': 'search',
+            }
+            for field in search_fields:
+                lookup = lookup_prefixes.get(field[0])
+                if lookup:
+                    field = field[1:]
+                else:
+                    lookup = lookup_prefixes.get('@')
+
+                value = item.get(field, '')
+                if lookup == 'search':
+                    if isinstance(value, (str, int, float)) and search_term in str(value).lower():
+                        return True
+                elif lookup == 'istartswith':
+                    if isinstance(value, str) and str(value).lower().startswith(search_term):
+                        return True
+            return False
+
+        return [item for item in queryset if matches(item)]

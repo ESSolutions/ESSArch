@@ -76,13 +76,15 @@ export default class ReceptionCtrl {
     $scope.menuOptions = function (rowType, row) {
       const methods = [];
       if (row.state === 'Prepared') {
-        methods.push(
-          ContextMenuBase.changeOrganization(function () {
-            $scope.ip = row;
-            $rootScope.ip = row;
-            vm.changeOrganizationModal($scope.ip);
-          })
-        );
+        if ($scope.checkPermission('ip.change_organization')) {
+          methods.push(
+            ContextMenuBase.changeOrganization(function () {
+              $scope.ip = row;
+              $rootScope.ip = row;
+              vm.changeOrganizationModal(rowType, $scope.ip);
+            })
+          );
+        }
       }
       return methods;
     };
@@ -246,11 +248,13 @@ export default class ReceptionCtrl {
       });
       modalInstance.result.then(
         function (data) {
-          $scope.getListViewData();
-          if ($scope.ips.length > 0) {
-            $scope.ips.shift();
-          }
-          $scope.ip.state = 'Received';
+          $scope.ip = null;
+          $rootScope.ip = null;
+          $scope.ips = [];
+          $scope.initRequestData();
+          $timeout(function () {
+            $scope.getListViewData();
+          });
         },
         function () {
           $scope.getListViewData();

@@ -26,8 +26,10 @@ import errno
 import io
 import logging
 import os
+import re
 import shutil
 import tarfile
+import time
 import uuid
 import zipfile
 from copy import deepcopy
@@ -42,7 +44,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
-from django.db import models, transaction
+from django.core.exceptions import ObjectDoesNotExist
+from django.db import Error, OperationalError, models, transaction
 from django.db.models import (
     Avg,
     CharField,
@@ -72,7 +75,9 @@ from tenacity import (
     retry,
     retry_if_exception_type,
     stop_after_attempt,
+    stop_after_delay,
     wait_fixed,
+    wait_random_exponential,
 )
 
 from ESSArch_Core.auth.models import GroupObjectsBase, Member
@@ -96,7 +101,10 @@ from ESSArch_Core.profiles.models import (
 from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.search.importers import get_backend as get_importer
 from ESSArch_Core.search.ingest import index_path
-from ESSArch_Core.storage.exceptions import StorageMediumFull
+from ESSArch_Core.storage.exceptions import (
+    StorageMediumError,
+    StorageMediumFull,
+)
 from ESSArch_Core.storage.models import (
     STORAGE_TARGET_STATUS_ENABLED,
     STORAGE_TARGET_STATUS_MIGRATE,
@@ -124,6 +132,7 @@ from ESSArch_Core.WorkflowEngine.util import create_workflow
 
 User = get_user_model()
 IP_LOCK_PREFIX = 'lock_ip_'
+MB = 1024 * 1024
 
 
 class AgentQuerySet(models.QuerySet):
@@ -139,6 +148,10 @@ class AgentManager(models.Manager):
     def get_queryset(self):
         return AgentQuerySet(self.model, using=self._db)
 
+    @retry(retry=retry_if_exception_type(OperationalError), reraise=True,
+           wait=wait_random_exponential(multiplier=1, max=60),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.DEBUG))
+    @transaction.atomic
     def from_mets_element(self, el):
         other_role = el.get("ROLE") == 'OTHER'
         other_type = el.get("TYPE") == 'OTHER'
@@ -147,8 +160,11 @@ class AgentManager(models.Manager):
         name = el.xpath('*[local-name()="name"]')[0].text
         notes = [n.text for n in el.xpath('*[local-name()="note"]')]
 
+        logger = logging.getLogger('essarch')
+        logger.debug('try to add agent: {}, agent_typ: {}, agent_role: {}'.format(name, agent_type, agent_role))
+
         existing_agents_with_notes = self.model.objects.all().with_notes(notes)
-        agent, created = self.model.objects.get_or_create(
+        agent, created = self.model.objects.select_for_update().get_or_create(
             role=agent_role,
             type=agent_type,
             name=name,
@@ -265,29 +281,17 @@ class InformationPackageQuerySet(OrganizationQuerySet):
             ),
         )
 
-    def migratable(self, storage_methods=None, export_path=''):
+    def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
+                   include_inactive_ips=False):
         # TODO: Exclude those that already has a task that has not succeeded (?)
-        storage_methods = storage_methods if storage_methods is not None else StorageMethod.objects.all()
-
-        def filter_objects(status):
-            return StorageObject.objects.filter(
-                storage_medium__storage_target__storage_method_target_relations__status=status,
-                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
-                ip=OuterRef(OuterRef('pk'))
+        if policy and not storage_methods:
+            from ESSArch_Core.configuration.models import StoragePolicy
+            storage_policy_obj = StoragePolicy.objects.get(pk=policy)
+            storage_methods = storage_policy_obj.storage_methods.filter(
+                enabled=True, storage_method_target_relations__status=STORAGE_TARGET_STATUS_ENABLED
             )
-
-        method_target_rel_with_old_migrate_and_new_enabled = StorageMethodTargetRelation.objects.annotate(
-            has_migrate_target_with_obj=Exists(filter_objects(STORAGE_TARGET_STATUS_MIGRATE)),
-            has_enabled_target_without_obj=~Exists(filter_objects(STORAGE_TARGET_STATUS_ENABLED)),
-            has_enabled_target_with_obj=F('has_enabled_target_without_obj'),
-        ).filter(
-            has_migrate_target_with_obj=True,
-            has_enabled_target_without_obj=True,
-            has_enabled_target_with_obj=False,
-            storage_method__in=storage_methods,
-            storage_method__enabled=True,
-            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
-        )
+        elif not policy and not storage_methods:
+            storage_methods = StorageMethod.objects.all()
 
         method_target_rel_with_enabled_target_without_ip = StorageMethodTargetRelation.objects.annotate(
             has_storage_obj=Exists(
@@ -304,6 +308,32 @@ class InformationPackageQuerySet(OrganizationQuerySet):
             storage_method__storage_policies=OuterRef('submission_agreement__policy'),
         )
 
+        def filter_objects(status):
+            return StorageObject.objects.filter(
+                storage_medium__storage_target__storage_method_target_relations__status=status,
+                storage_medium__storage_target__storage_method_target_relations=OuterRef('pk'),
+                ip=OuterRef(OuterRef('pk'))
+            )
+
+        sm_status = [STORAGE_TARGET_STATUS_MIGRATE]
+        if missing_storage:
+            sm_status.append(STORAGE_TARGET_STATUS_ENABLED)
+
+        method_target_rel_with_migrate_target_with_ip = StorageMethodTargetRelation.objects.annotate(
+            has_storage_obj=Exists(
+                StorageObject.objects.filter(
+                    storage_medium__storage_target=OuterRef('storage_target'),
+                    ip=OuterRef(OuterRef('pk'))
+                )
+            ),
+        ).filter(
+            has_storage_obj=True,
+            status__in=sm_status,
+            storage_method__in=storage_methods,
+            storage_method__enabled=True,
+            storage_method__storage_policies=OuterRef('submission_agreement__policy'),
+        )
+
         method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.none()
         if export_path:
             method_target_rel_with_old_migrate_and_export = StorageMethodTargetRelation.objects.annotate(
@@ -315,7 +345,7 @@ class InformationPackageQuerySet(OrganizationQuerySet):
 
         return self.filter(
             Q(
-                Q(Exists(method_target_rel_with_old_migrate_and_new_enabled)) |
+                Q(Exists(method_target_rel_with_migrate_target_with_ip)) &
                 Q(Exists(method_target_rel_with_enabled_target_without_ip)) |
                 Q(Exists(method_target_rel_with_old_migrate_and_export))
             ),
@@ -330,8 +360,11 @@ class InformationPackageManager(OrganizationManager):
     def visible_to_user(self, user):
         return self.for_user(user, 'view_informationpackage')
 
-    def migratable(self, storage_methods=None, export_path=''):
-        return self.get_queryset().migratable(storage_methods=storage_methods, export_path=export_path)
+    def migratable(self, export_path='', missing_storage=False, storage_methods=None, policy='',
+                   include_inactive_ips=False):
+        return self.get_queryset().migratable(export_path=export_path, missing_storage=missing_storage,
+                                              storage_methods=storage_methods, policy='',
+                                              include_inactive_ips=include_inactive_ips)
 
 
 class InformationPackage(models.Model):
@@ -371,7 +404,7 @@ class InformationPackage(models.Model):
     )
     object_identifier_value = models.CharField(_('object_identifier_value'), max_length=255, unique=True)
     label = models.CharField(_('label'), max_length=255, blank=True, db_index=True)
-    content = models.CharField(max_length=255)
+    content = models.CharField(max_length=255, blank=True)
     create_date = models.DateTimeField(_('create date'), default=timezone.now, db_index=True)
     state = models.CharField(_('state'), max_length=255, db_index=True)
 
@@ -379,8 +412,8 @@ class InformationPackage(models.Model):
     object_size = models.BigIntegerField(_('object size'), default=0)
     object_num_items = models.IntegerField(default=0)
 
-    start_date = models.DateTimeField(_('start date'), null=True, db_index=True)
-    end_date = models.DateTimeField(_('end date'), null=True, db_index=True)
+    start_date = models.DateTimeField(_('start date'), null=True, blank=True, db_index=True)
+    end_date = models.DateTimeField(_('end date'), null=True, blank=True, db_index=True)
 
     appraisal_date = models.DateTimeField(null=True)
 
@@ -486,7 +519,7 @@ class InformationPackage(models.Model):
     def is_locked(self):
         return self.get_lock_key() in cache
 
-    def get_permissions(self, user: User, checker=None):
+    def get_permissions(self, user=User, checker=None):
         if checker is not None:
             return checker.get_perms(self)
         return user.get_all_permissions(self)
@@ -579,7 +612,6 @@ class InformationPackage(models.Model):
 
         return created
 
-    @transaction.atomic
     def create_new_generation(self, state, responsible, object_identifier_value):
         perms = deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
 
@@ -600,9 +632,9 @@ class InformationPackage(models.Model):
             self.save()
 
         new_aip = deepcopy(self)
-        new_aip.pk = None
+        new_aip.pk = uuid.uuid4()
         new_aip.active = True
-        new_aip.object_identifier_value = None
+        new_aip.object_identifier_value = new_aip.pk
         new_aip.create_date = timezone.now()
         new_aip.state = state
         new_aip.cached = False
@@ -610,16 +642,13 @@ class InformationPackage(models.Model):
         new_aip.object_path = ''
         new_aip.responsible = responsible
 
-        with transaction.atomic():
-            max_generation = InformationPackage.objects.select_for_update().filter(aic=self.aic).aggregate(
-                Max('generation')
-            )['generation__max']
-            new_aip.generation = max_generation + 1
-            new_aip.save()
-
+        max_generation = InformationPackage.objects.filter(aic=self.aic).aggregate(
+            Max('generation')
+        )['generation__max']
+        new_aip.generation = max_generation + 1
         new_aip.object_identifier_value = object_identifier_value or str(new_aip.pk)
         new_aip.package_mets_path = '{}.xml'.format(new_aip.object_identifier_value)
-        new_aip.save(update_fields=['object_identifier_value', 'package_mets_path'])
+        new_aip.save()
 
         for profile_ip in self.profileip_set.all():
             new_profile_ip = deepcopy(profile_ip)
@@ -753,6 +782,9 @@ class InformationPackage(models.Model):
             profile_ip.data = data_obj
             profile_ip.save()
 
+    @retry(retry=retry_if_exception_type(Error), reraise=True, stop=stop_after_delay(300),
+           wait=wait_random_exponential(multiplier=1, max=10),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING))
     def get_profile_rel(self, profile_type):
         return self.profileip_set.get(
             profile__profile_type=profile_type
@@ -765,9 +797,12 @@ class InformationPackage(models.Model):
         except ProfileIP.DoesNotExist:
             return False
 
+    @retry(retry=retry_if_exception_type(Error), reraise=True, stop=stop_after_delay(300),
+           wait=wait_random_exponential(multiplier=1, max=10),
+           before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING))
     def get_profile(self, profile_type):
         try:
-            return ProfileIP.objects.get(ip=self, profile__profile_type=profile_type).profile
+            return self.get_profile_rel(profile_type).profile
         except ProfileIP.DoesNotExist:
             return None
 
@@ -797,7 +832,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'container_format', 'tar'
             )
-        except BaseException:
+        except Exception:
             return 'tar'
 
     def get_checksum_algorithm(self):
@@ -815,7 +850,7 @@ class InformationPackage(models.Model):
             return self.get_profile_data('transfer_project').get(
                 'preservation_organization_receiver_email'
             )
-        except BaseException:
+        except Exception:
             return None
 
     def get_allow_unknown_file_types(self):
@@ -881,14 +916,18 @@ class InformationPackage(models.Model):
             if os.path.isfile(self.sip_path):
                 sip_mets_data = parse_mets(
                     open_file(
-                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file),
+                        os.path.join(self.object_path, sip_mets_dir, sip_mets_file), 'rb',
                         container=self.sip_path,
                         container_prefix=self.object_identifier_value,
                     )
                 )
             else:
                 try:
-                    sip_mets_data = parse_mets(open_file(os.path.join(self.object_path, sip_mets_dir, sip_mets_file)))
+                    sip_mets_data = parse_mets(
+                        open_file(
+                            os.path.join(self.object_path, sip_mets_dir, sip_mets_file), 'rb',
+                        )
+                    )
                 except FileNotFoundError:
                     sip_mets_data = {}
                     pass
@@ -1170,44 +1209,35 @@ class InformationPackage(models.Model):
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Write temporary files to remote host",
+                    "name": "Write temporary files to remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
-                            "label": "Transfer temporary container to {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_CONTAINER_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "label": "Transfer temporary container",
+                            "args": ["{{TEMP_CONTAINER_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
-                            "label": "Transfer temporary AIP xml to {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_METS_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "label": "Transfer temporary AIP xml",
+                            "args": ["{{TEMP_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                         {
                             "name": "ESSArch_Core.tasks.CopyFile",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
-                            "label": "Transfer temporary AIC xml to {}".format(remote_server.split(',')[0]),
-                            "args": [
-                                "{{TEMP_AIC_METS_PATH}}",
-                                urljoin(
-                                    remote_server.split(',')[0],
-                                    reverse('informationpackage-add-file-from-master')
-                                ),
-                                encrypt_remote_credentials(remote_server),
-                            ],
+                            "label": "Transfer temporary AIC xml",
+                            "args": ["{{TEMP_AIC_METS_PATH}}"],
+                            "params": {
+                                "remote_host": remote_server.split(',')[0],
+                                "remote_credentials": encrypt_remote_credentials(remote_server),
+                            },
                         },
                     ]
                 } for remote_server in remote_servers
@@ -1217,35 +1247,36 @@ class InformationPackage(models.Model):
         remote_temp_container_to_storage_method = {
             "step": True,
             "parallel": True,
-            "name": "Write temporary container to storage_methods",
+            "name": "Write temporary container to storage on remote hosts",
             "children": [
                 {
                     "step": True,
-                    "name": "Write container to {}".format(method.pk),
+                    "parallel": True,
+                    "name": "Write container to storage on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                            "label": "Write to storage method",
+                            "label": "Write to storage method ({})".format(method.name),
                             "args": [str(method.pk)],
-                        }
+                        } for method in remote_methods
                     ]
-                } for method in remote_methods
+                } for remote_server in remote_servers
             ]
         }
 
         remote_temp_container_delete = {
             "step": True,
             "parallel": True,
-            "name": "Delete temporary files from remote hosts",
+            "name": "Delete temporary files on remote hosts",
             "children": [
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Delete temporary files from remote host",
+                    "name": "Delete temporary files on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
-                            "label": "Delete temporary container from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary container",
                             "args": ["{{TEMP_CONTAINER_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1254,7 +1285,7 @@ class InformationPackage(models.Model):
                         },
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
-                            "label": "Delete temporary AIP xml from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary AIP xml",
                             "args": ["{{TEMP_METS_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1264,7 +1295,7 @@ class InformationPackage(models.Model):
                         {
                             "name": "ESSArch_Core.tasks.DeleteFiles",
                             "run_if": "{{TEMP_AIC_METS_PATH}}",
-                            "label": "Delete temporary AIC xml from {}".format(remote_server.split(',')[0]),
+                            "label": "Delete temporary AIC xml",
                             "args": ["{{TEMP_AIC_METS_PATH}}"],
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
@@ -1284,11 +1315,11 @@ class InformationPackage(models.Model):
                 {
                     "step": True,
                     "parallel": True,
-                    "name": "Mark as archived on remote host",
+                    "name": "Mark as archived on remote host ({})".format(remote_server.split(',')[0]),
                     "children": [
                         {
                             "name": "ESSArch_Core.ip.tasks.MarkArchived",
-                            "label": "Mark as archived on {}".format(remote_server.split(',')[0]),
+                            "label": "Mark as archived",
                             "params": {
                                 "remote_host": remote_server.split(',')[0],
                                 "remote_credentials": encrypt_remote_credentials(remote_server),
@@ -1339,7 +1370,7 @@ class InformationPackage(models.Model):
                                 "children": [
                                     {
                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                        "label": "Write to storage method",
+                                        "label": "Write to storage method ({})".format(method.name),
                                         "args": [str(method.pk)],
                                     } for method in non_container_methods
                                 ]
@@ -1381,7 +1412,7 @@ class InformationPackage(models.Model):
                                                 "children": [
                                                     {
                                                         "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                                        "label": "Write to storage method",
+                                                        "label": "Write to storage method ({})".format(method.name),
                                                         "args": [str(method.pk)],
                                                     } for method in container_methods
                                                 ],
@@ -1424,7 +1455,7 @@ class InformationPackage(models.Model):
         return workflow
 
     def create_access_workflow(self, user, tar=False, extracted=False, new=False, object_identifier_value=None,
-                               package_xml=False, aic_xml=False, diff_check=False, edit=False):
+                               package_xml=False, aic_xml=False, diff_check=False, edit=False, responsible=None):
         logger = logging.getLogger('essarch.ip')
         if new:
             dst_object_identifier_value = object_identifier_value or str(uuid.uuid4())
@@ -1509,7 +1540,7 @@ class InformationPackage(models.Model):
                 }
             )
 
-            return create_workflow(workflow, self, name='Access Information Package')
+            return create_workflow(workflow, self, name='Access Information Package', responsible=responsible)
 
         if tar:
             try:
@@ -1584,23 +1615,25 @@ class InformationPackage(models.Model):
             workflow = [
                 {
                     "name": "ESSArch_Core.workflow.tasks.AccessAIP",
-                    "label": "Access AIP",
+                    "label": "Access AIP from remote host ({})".format(storage_target.remote_server.split(',')[0]),
                     "queue": worker_queue,
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": str(storage_object.pk),
-                        'dst': temp_dir
+                        'dst': temp_dir,
+                        'local': False,
                     },
                 },
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and tar,
-                    "label": "Diff-check against package-mets",
+                    "label": "Redundancy check against package-mets",
                     "queue": worker_queue,
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                     ],
                 },
                 {
@@ -1627,7 +1660,7 @@ class InformationPackage(models.Model):
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and extracted,
-                    "label": "Diff-check against content-mets",
+                    "label": "Redundancy check against content-mets",
                     "queue": worker_queue,
                     "args": [
                         access_workarea_user_extracted,
@@ -1701,7 +1734,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1739,12 +1772,13 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -1773,18 +1807,19 @@ class InformationPackage(models.Model):
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': temp_dir
+                            'dst': temp_dir,
                         },
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -1811,7 +1846,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1912,7 +1947,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_extracted,
@@ -1950,12 +1985,13 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -1979,16 +2015,17 @@ class InformationPackage(models.Model):
             "queue": worker_queue,
             "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, tar]
         })
-        return create_workflow(workflow, self, name='Access Information Package')
+        return create_workflow(workflow, self, name='Access Information Package', responsible=responsible)
 
     def create_migration_workflow(self, temp_path, storage_methods, export_path='', tar=False, extracted=False,
-                                  package_xml=False, aic_xml=False, diff_check=True, responsible=None):
+                                  package_xml=False, aic_xml=False, diff_check=True, responsible=None,
+                                  top_root_step=None):
 
         logger = logging.getLogger('essarch.ip')
         container_methods = self.policy.storage_methods.secure_storage().filter(
             remote=False, pk__in=storage_methods)
-        # non_container_methods = self.policy.storage_methods.archival_storage().filter(
-        #     remote=False, pk__in=storage_methods)
+        non_container_methods = self.policy.storage_methods.archival_storage().filter(
+            remote=False, pk__in=storage_methods)
         # remote_methods = self.policy.storage_methods.filter(
         #     remote=True, pk__in=storage_methods)
 
@@ -1998,7 +2035,7 @@ class InformationPackage(models.Model):
 
         migration_receipt = 'api_ip_migrated' in AVAILABLE_RECEIPT_BACKENDS.keys()
 
-        if tar:
+        if container_methods.exists() or tar:
             try:
                 storage_object = self.storage.readable().secure_storage().fastest()[0]
             except IndexError:
@@ -2034,7 +2071,7 @@ class InformationPackage(models.Model):
         #     except StorageTarget.DoesNotExist:
         #         pass
 
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
+        temp_path = temp_path if temp_path else Path.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path(temp_path)  # dir_path
         temp_container_path = self.get_temp_container_path(temp_path)  # container_path
         temp_mets_path = self.get_temp_container_xml_path(temp_path)  # aip_xml_path
@@ -2090,18 +2127,20 @@ class InformationPackage(models.Model):
                     "args": [str(self.pk)],
                     "params": {
                         "storage_object": str(storage_object.pk),
-                        'dst': temp_dir
+                        'dst': temp_path,
+                        'local': False,
                     },
                 },
                 {
                     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     "if": diff_check and tar,
-                    "label": "Diff-check against package-mets",
+                    "label": "Redundancy check against package-mets",
                     "queue": worker_queue,
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                     ],
                 },
                 # {
@@ -2128,7 +2167,7 @@ class InformationPackage(models.Model):
                 # {
                 #     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                 #     "if": diff_check and extracted,
-                #     "label": "Diff-check against content-mets",
+                #     "label": "Redundancy check against content-mets",
                 #     "queue": worker_queue,
                 #     "args": [
                 #         access_workarea_user_extracted,
@@ -2177,7 +2216,7 @@ class InformationPackage(models.Model):
                             "children": [
                                 {
                                     "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                    "label": "Write to storage method",
+                                    "label": "Write to storage method ({})".format(method.name),
                                     "queue": worker_queue,
                                     "args": [str(method.pk)],
                                 } for method in container_methods
@@ -2187,23 +2226,30 @@ class InformationPackage(models.Model):
                     ],
                 },
                 {
-                    "name": "ESSArch_Core.tasks.DeleteFiles",
-                    "label": "Delete temporary container",
-                    "queue": worker_queue,
-                    "args": [temp_container_path]
-                },
-                {
-                    "name": "ESSArch_Core.tasks.DeleteFiles",
-                    "label": "Delete temporary AIP xml",
-                    "queue": worker_queue,
-                    "args": [temp_mets_path]
-                },
-                {
-                    "name": "ESSArch_Core.tasks.DeleteFiles",
-                    "label": "Delete temporary AIC xml",
-                    "queue": worker_queue,
-                    "if": temp_aic_mets_path,
-                    "args": [temp_aic_mets_path]
+                    "step": True,
+                    "name": "Delete temporary files",
+                    "parallel": True,
+                    "children": [
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary container",
+                            "queue": worker_queue,
+                            "args": [temp_container_path]
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary AIP xml",
+                            "queue": worker_queue,
+                            "args": [temp_mets_path]
+                        },
+                        {
+                            "name": "ESSArch_Core.tasks.DeleteFiles",
+                            "label": "Delete temporary AIC xml",
+                            "queue": worker_queue,
+                            "if": temp_aic_mets_path,
+                            "args": [temp_aic_mets_path]
+                        },
+                    ],
                 },
                 {
                     "name": "ESSArch_Core.ip.tasks.CreateReceipt",
@@ -2239,7 +2285,7 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and extracted and export_path,
-                        "label": "Diff-check against content-mets",
+                        "label": "Redundancy check against content-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_extracted,
@@ -2277,12 +2323,13 @@ class InformationPackage(models.Model):
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar and export_path,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             export_path_dst_container,
                             export_path_dst_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
@@ -2311,18 +2358,19 @@ class InformationPackage(models.Model):
                         "args": [str(self.pk)],
                         "params": {
                             "storage_object": str(storage_object.pk),
-                            'dst': temp_dir
+                            'dst': temp_path
                         },
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                         "if": diff_check and tar,
-                        "label": "Diff-check against package-mets",
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path],
                         ],
                     },
                     # {
@@ -2349,7 +2397,7 @@ class InformationPackage(models.Model):
                     # {
                     #     "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
                     #     "if": diff_check and extracted,
-                    #     "label": "Diff-check against content-mets",
+                    #     "label": "Redundancy check against content-mets",
                     #     "queue": worker_queue,
                     #     "args": [
                     #         access_workarea_user_extracted,
@@ -2398,43 +2446,92 @@ class InformationPackage(models.Model):
                     },
                     {
                         "step": True,
+                        "name": "Write to storage methods",
                         "parallel": True,
-                        "name": "Write containers to storage methods",
                         "children": [
                             {
                                 "step": True,
-                                "parallel": True,
-                                "name": "Write local containers",
+                                "name": "Write non-containers",
+                                "if": non_container_methods.exists(),
                                 "children": [
                                     {
-                                        "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
-                                        "label": "Write to storage method",
+                                        "name": "ESSArch_Core.tasks.ExtractTAR",
+                                        "label": "Extract temporary container to temporary path",
                                         "queue": worker_queue,
-                                        "args": [str(method.pk)],
-                                    } for method in container_methods
+                                        "args": [
+                                            temp_container_path,
+                                            temp_path,
+                                        ],
+                                    },
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write non-containers to storage methods",
+                                        "if": non_container_methods.exists(),
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in non_container_methods
+                                        ]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary object",
+                                        "queue": worker_queue,
+                                        "args": [temp_object_path]
+                                    },
                                 ],
                             },
-                            # remote_containers_step,
+                            {
+                                "step": True,
+                                "parallel": True,
+                                "name": "Write containers to storage methods",
+                                "children": [
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write local containers",
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "queue": worker_queue,
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in container_methods
+                                        ],
+                                    },
+                                    # remote_containers_step,
+                                ],
+                            },
                         ],
                     },
                     {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary container",
-                        "queue": worker_queue,
-                        "args": [temp_container_path]
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary AIP xml",
-                        "queue": worker_queue,
-                        "args": [temp_mets_path]
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary AIC xml",
-                        "queue": worker_queue,
-                        "if": temp_aic_mets_path,
-                        "args": [temp_aic_mets_path]
+                        "step": True,
+                        "name": "Delete temporary files",
+                        "parallel": True,
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary container",
+                                "queue": worker_queue,
+                                "args": [temp_container_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIP xml",
+                                "queue": worker_queue,
+                                "args": [temp_mets_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIC xml",
+                                "queue": worker_queue,
+                                "if": temp_aic_mets_path,
+                                "args": [temp_aic_mets_path]
+                            },
+                        ],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.CreateReceipt",
@@ -2449,51 +2546,15 @@ class InformationPackage(models.Model):
                             "outcome": "success",
                             "short_message": "Migrated {{OBJID}}",
                             "message": "Migrated {{OBJID}}",
-                            "storage_methods": [str(method.pk) for method in container_methods],
+                            "storage_methods": ([str(method.pk) for method in container_methods] +
+                                                [str(method.pk) for method in non_container_methods]),
                         },
                     },
                 ]
             else:
                 # reading from non long-term storage
-                # if cache_target is not None:
-                #     cache_dst = os.path.join(cache_target, self.object_identifier_value)
-                # else:
-                #     cache_dst = None
 
                 workflow = [
-                    # {
-                    #     "name": "ESSArch_Core.workflow.tasks.AccessAIP",
-                    #     "label": "Copy AIP to cache",
-                    #     "queue": worker_queue,
-                    #     "if": storage_method.cached and cache_dst is not None,
-                    #     "allow_failure": True,
-                    #     "args": [str(self.pk)],
-                    #     "params": {
-                    #         "storage_object": str(storage_object.pk),
-                    #         "dst": cache_dst,
-                    #     },
-                    # },
-                    {
-                        "name": "ESSArch_Core.workflow.tasks.AccessAIP",
-                        "label": "Access AIP",
-                        "queue": worker_queue,
-                        "if": extracted and export_path,
-                        "args": [str(self.pk)],
-                        "params": {
-                            "storage_object": str(storage_object.pk),
-                            'dst': export_path_dst_extracted
-                        },
-                    },
-                    {
-                        "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": diff_check and extracted and export_path,
-                        "label": "Diff-check against content-mets",
-                        "queue": worker_queue,
-                        "args": [
-                            export_path_dst_extracted,
-                            export_path_dst_extracted_content_xml
-                        ],
-                    },
                     {
                         "name": "ESSArch_Core.workflow.tasks.AccessAIP",
                         "label": "Access AIP",
@@ -2509,52 +2570,178 @@ class InformationPackage(models.Model):
                         "name": "ESSArch_Core.ip.tasks.CreateContainer",
                         "label": "Create temporary container",
                         "queue": worker_queue,
-                        "if": tar and export_path,
-                        "args": [temp_object_path, export_path_dst_container],
+                        "if": tar,
+                        "args": [temp_object_path, temp_container_path],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GeneratePackageMets",
                         "label": "Create container mets",
                         "queue": worker_queue,
-                        "if": tar and package_xml and export_path,
+                        "if": tar and package_xml,
                         "args": [
-                            export_path_dst_container,
-                            export_path_dst_package_xml,
+                            temp_container_path,
+                            temp_mets_path,
                         ]
                     },
                     {
                         "name": "ESSArch_Core.tasks.ValidateLogicalPhysicalRepresentation",
-                        "if": diff_check and tar and export_path,
-                        "label": "Diff-check against package-mets",
+                        "if": diff_check and tar,
+                        "label": "Redundancy check against package-mets",
                         "queue": worker_queue,
                         "args": [
-                            export_path_dst_container,
-                            export_path_dst_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path)],
+                            temp_container_path,
+                            temp_mets_path,
+                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                             self.content_mets_path]
                         ],
                     },
                     {
                         "name": "ESSArch_Core.ip.tasks.GenerateAICMets",
                         "label": "Create container aic mets",
                         "queue": worker_queue,
-                        "if": aic_xml and export_path,
-                        "args": [export_path_dst_aic_xml]
+                        "if": aic_xml,
+                        "args": [temp_aic_mets_path]
                     },
                     {
-                        "name": "ESSArch_Core.tasks.DeleteFiles",
-                        "label": "Delete temporary object",
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary container to export",
                         "queue": worker_queue,
-                        "args": [temp_object_path]
+                        "if": tar and export_path,
+                        "args": [
+                            temp_container_path,
+                            export_path_dst_container,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary AIP xml to export",
+                        "queue": worker_queue,
+                        "if": package_xml and export_path,
+                        "args": [
+                            temp_mets_path,
+                            export_path_dst_package_xml,
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.tasks.CopyFile",
+                        "label": "Copy temporary AIC xml to export",
+                        "queue": worker_queue,
+                        "if": aic_xml and export_path,
+                        "args": [
+                            temp_aic_mets_path,
+                            export_path_dst_aic_xml,
+                        ],
+                    },
+                    {
+                        "step": True,
+                        "name": "Write to storage methods",
+                        "parallel": True,
+                        "children": [
+                            {
+                                "step": True,
+                                "name": "Write non-containers",
+                                "if": non_container_methods.exists(),
+                                "children": [
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write non-containers to storage methods",
+                                        "if": non_container_methods.exists(),
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in non_container_methods
+                                        ]
+                                    },
+                                    {
+                                        "name": "ESSArch_Core.tasks.DeleteFiles",
+                                        "label": "Delete temporary object",
+                                        "queue": worker_queue,
+                                        "args": [temp_object_path]
+                                    },
+                                ],
+                            },
+                            {
+                                "step": True,
+                                "parallel": True,
+                                "name": "Write containers to storage methods",
+                                "children": [
+                                    {
+                                        "step": True,
+                                        "parallel": True,
+                                        "name": "Write local containers",
+                                        "children": [
+                                            {
+                                                "name": "ESSArch_Core.ip.tasks.PreserveInformationPackage",
+                                                "label": "Write to storage method ({})".format(method.name),
+                                                "queue": worker_queue,
+                                                "args": [str(method.pk), temp_path],
+                                            } for method in container_methods
+                                        ],
+                                    },
+                                    # remote_containers_step,
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        "step": True,
+                        "name": "Delete temporary files",
+                        "parallel": True,
+                        "children": [
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary container",
+                                "queue": worker_queue,
+                                "args": [temp_container_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIP xml",
+                                "queue": worker_queue,
+                                "args": [temp_mets_path]
+                            },
+                            {
+                                "name": "ESSArch_Core.tasks.DeleteFiles",
+                                "label": "Delete temporary AIC xml",
+                                "queue": worker_queue,
+                                "if": temp_aic_mets_path,
+                                "args": [temp_aic_mets_path]
+                            },
+                        ],
+                    },
+                    {
+                        "name": "ESSArch_Core.ip.tasks.CreateReceipt",
+                        "label": "Acknowledge API IP Migrated",
+                        "queue": worker_queue,
+                        "if": migration_receipt,
+                        "params": {
+                            "task_id": None,
+                            "backend": "api_ip_migrated",
+                            "template": None,
+                            "destination": None,
+                            "outcome": "success",
+                            "short_message": "Migrated {{OBJID}}",
+                            "message": "Migrated {{OBJID}}",
+                            "storage_methods": ([str(method.pk) for method in container_methods] +
+                                                [str(method.pk) for method in non_container_methods]),
+                        },
                     },
                 ]
 
-        # workflow.append({
-        #     "name": "ESSArch_Core.ip.tasks.CreateWorkarea",
-        #     "label": "Create workarea",
-        #     "queue": worker_queue,
-        #     "args": [str(new_aip.pk), str(user.pk), Workarea.ACCESS, tar]
-        # })
-        return create_workflow(workflow, self, name='Migrate Information Package', responsible=responsible)
+        # create workflow step
+        ip_migrate_workflow_step = create_workflow(
+            workflow, self,
+            name='Migrate Information Package',
+            label='Migrate Information Package',
+            responsible=responsible,
+            part_root=True,
+            top_root_step=top_root_step,
+        )
+
+        return ip_migrate_workflow_step
 
     def write_to_search_index(self, task):
         logger = logging.getLogger('essarch.ip')
@@ -2588,10 +2775,18 @@ class InformationPackage(models.Model):
                 ct_importer = get_importer(ct_importer_name)(task)
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
+        group = None
+        try:
+            group = self.get_organization()
+        except ObjectDoesNotExist:
+            group = None
+        if group is not None:
+            group = group.group
+
         for root, dirs, files in walk(srcdir):
             for d in dirs:
                 src = os.path.join(root, d)
-                index_path(self, src)
+                index_path(self, src, group=group)
 
             for f in files:
                 src = os.path.join(root, f)
@@ -2600,7 +2795,7 @@ class InformationPackage(models.Model):
                     indexed_files.remove(src)
                 except ValueError:
                     # file has not been indexed, index it
-                    index_path(self, src)
+                    index_path(self, src, group=group)
 
         InformationPackageDocument.from_obj(self).save()
 
@@ -2681,17 +2876,24 @@ class InformationPackage(models.Model):
         logger = logging.getLogger('essarch.ip')
         qs = StorageMedium.objects.filter(
             storage_target__methods__containers=container,
-        ).writeable().order_by('last_changed_local')
+        ).writeable().natural_sort()
 
         write_size = 0
         for s in src:
             write_size += get_tree_size_and_count(s)[0]
+        fsize_mb = write_size / MB
 
         if storage_target.remote_server:
-            host, user, passw = storage_target.remote_server.split(',')
             session = requests.Session()
             session.verify = settings.REQUESTS_VERIFY
-            session.auth = (user, passw)
+            server_list = storage_target.remote_server.split(',')
+            if len(server_list) == 2:
+                host, token = server_list
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                host, user, passw = server_list
+                token = None
+                session.auth = (user, passw)
 
             self.update_remote_ip(host, session)
 
@@ -2721,10 +2923,14 @@ class InformationPackage(models.Model):
                     task.retry_remote_copy(session, host)
                     task.status = celery_states.PENDING
 
+            time_start = time.time()
             while task.status not in celery_states.READY_STATES:
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
-                session.auth = (user, passw)
+                if token:
+                    session.headers['Authorization'] = 'Token %s' % token
+                else:
+                    session.auth = (user, passw)
                 r = task.get_remote_copy(session, host)
 
                 remote_data = r.json()
@@ -2736,11 +2942,12 @@ class InformationPackage(models.Model):
                 task.save()
 
                 sleep(5)
+            time_end = time.time()
+            time_elapsed = time_end - time_start
 
             if task.status in celery_states.EXCEPTION_STATES:
                 task.reraise()
-
-            storage_object = StorageObject.create_from_remote_copy(host, session, task.result)
+            storage_object = StorageObject.create_from_remote_copy(host, session, task.result.split(',')[0])
         else:
             storage_medium, created = storage_target.get_or_create_storage_medium(qs=qs)
 
@@ -2748,26 +2955,49 @@ class InformationPackage(models.Model):
             if new_size > storage_target.max_capacity > 0:
                 storage_medium.mark_as_full()
                 raise StorageMediumFull(
-                    'Maximum capacity limit reached for storage medium "{}"'.format(str(storage_medium.pk)))
+                    'Maximum capacity limit reached for storage medium {} "{}"'.format(
+                        storage_medium.medium_id, str(storage_medium.pk)))
 
             storage_backend = storage_target.get_storage_backend()
             storage_medium.prepare_for_write(io_lock_key=src)
-
+            if storage_medium.status == 100:
+                raise StorageMediumError(
+                    'Storage medium {} "{}" is failed'.format(storage_medium.medium_id, str(storage_medium.pk)))
+            if storage_backend.type == 300 and storage_medium.tape_drive is not None:
+                if storage_medium.tape_drive.status == 100:
+                    raise StorageMediumError(
+                        'Storage medium {} "{}" is failed'.format(storage_medium.medium_id, str(storage_medium.pk)))
+            elif storage_backend.type == 300 and storage_medium.tape_drive is None:
+                raise StorageMediumError(
+                    'Storage medium {} "{}" is not online in drive'.format(storage_medium.medium_id,
+                                                                           str(storage_medium.pk)))
+            time_start = time.time()
             storage_object = storage_backend.write(src, self, container, storage_medium)
             StorageMedium.objects.filter(pk=storage_medium.pk).update(
                 used_capacity=F('used_capacity') + write_size,
                 last_changed_local=timezone.now(),
             )
+            time_end = time.time()
+            time_elapsed = time_end - time_start
 
-        return str(storage_object.pk)
+        if storage_target.remote_server:
+            mb_per_sec = float(re.findall("([0-9]+[.]+[0-9]+)", task.result.split(',')[2])[0])
+        else:
+            try:
+                mb_per_sec = fsize_mb / time_elapsed
+            except ZeroDivisionError:
+                mb_per_sec = fsize_mb
+        medium_id = storage_object.storage_medium.medium_id
 
-    def access(self, storage_object, task, dst=None):
+        return (str(storage_object.pk), medium_id, write_size, mb_per_sec, time_elapsed)
+
+    def access(self, storage_object, task, dst=None, local=True):
         logger = logging.getLogger('essarch.ip')
         logger.debug('Accessing information package {} from storage object {}'.format(
             self.object_identifier_value, str(storage_object.pk),
         ))
 
-        storage_object.read(dst, task)
+        storage_object.read(dst, task, local=local)
 
     def open_file(self, path='', *args, **kwargs):
         if self.archived:
@@ -2850,6 +3080,7 @@ class InformationPackage(models.Model):
             ('submit_sip', 'Can submit SIP'),
             ('transfer_sip', 'Can transfer SIP'),
             ('change_sa', 'Can change SA connected to IP'),
+            ('change_organization', 'Can change organization for IP'),
             ('lock_sa', 'Can lock SA to IP'),
             ('unlock_profile', 'Can unlock profile connected to IP'),
             ('can_receive_remote_files', 'Can receive remote files'),

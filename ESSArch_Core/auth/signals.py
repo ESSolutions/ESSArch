@@ -11,6 +11,7 @@ from django.contrib.auth.signals import (
     user_login_failed,
 )
 from django.contrib.sessions.models import Session
+from django.db import Error
 from django.db.models.signals import (
     m2m_changed,
     post_delete,
@@ -22,6 +23,13 @@ from django.dispatch import receiver
 from groups_manager.models import (
     group_member_delete as groups_manager_group_member_delete,
     group_member_save as groups_manager_group_member_save,
+)
+from tenacity import (
+    Retrying,
+    before_sleep_log,
+    retry_if_exception_type,
+    stop_after_delay,
+    wait_random_exponential,
 )
 
 from ESSArch_Core.auth.models import (
@@ -185,6 +193,13 @@ def notification_post_save(sender, instance, created, **kwargs):
 
     channel_layer = channels.layers.get_channel_layer()
     grp = 'notifications_{}'.format(instance.user.pk)
+    for attempt in Retrying(retry=retry_if_exception_type(Error),
+                            reraise=True,
+                            stop=stop_after_delay(300),
+                            wait=wait_random_exponential(multiplier=1, max=10),
+                            before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+        with attempt:
+            unseen_count = Notification.objects.filter(user=instance.user, seen=False).count()
     async_to_sync(closing_group_send)(
         channel_layer,
         grp,
@@ -193,7 +208,7 @@ def notification_post_save(sender, instance, created, **kwargs):
             'id': instance.id,
             'message': instance.message,
             'level': instance.get_level_display(),
-            'unseen_count': Notification.objects.filter(user=instance.user, seen=False).count(),
+            'unseen_count': unseen_count,
             'refresh': instance.refresh,
         })
 

@@ -726,16 +726,6 @@ export default class SearchDetailCtrl {
               vm.newVersionNodeModal(node);
             },
           };
-          const changeOrganization = {
-            label: $translate.instant('ORGANIZATION.CHANGE_ORGANIZATION'),
-            _disabled: function () {
-              console.log(node.original);
-              return node.original._index !== 'archive' && node.original.type !== 'agent';
-            },
-            action: function () {
-              vm.changeOrganizationModal(node.original);
-            },
-          };
           const exportNode = {
             label: $translate.instant('EXPORT'),
             _disabled: function () {
@@ -750,7 +740,7 @@ export default class SearchDetailCtrl {
           const isLeaf = node.original.is_leaf_node;
           const actions =
             node.original.type === 'agent'
-              ? {changeOrganization: changeOrganization}
+              ? {}
               : {
                   update: update,
                   add: !isUnit || isUnitLeaf ? add : undefined,
@@ -765,7 +755,6 @@ export default class SearchDetailCtrl {
                   addAccessAid: addAccessAid,
                   removeFromStructure: removeFromStructure,
                   newVersion: newVersion,
-                  changeOrganization: changeOrganization,
                 };
           callback(actions);
           return actions;
@@ -1075,17 +1064,16 @@ export default class SearchDetailCtrl {
 
     vm.parseAgents = function (node) {
       node.agents.forEach(function (agent) {
-        agent.name = AgentName.getAuthorizedName(agent.agent).full_name;
-        agent.agent.auth_name = agent.name;
+        AgentName.parseAgentName(agent.agent);
       });
     };
 
     vm.getArchiveCreator = function (node) {
       let creator = null;
       node.agents.forEach(function (agent) {
-        agent.agent.name = AgentName.getAuthorizedName(agent.agent).full_name;
         if (agent.type.creator) {
-          creator = agent.agent;
+          creator = angular.copy(agent.agent);
+          creator.name = creator.full_name;
           creator.type = 'agent';
         }
       });
@@ -1427,30 +1415,6 @@ export default class SearchDetailCtrl {
         function (data, $ctrl) {
           vm.recordTreeInstance.jstree(true).delete_node(treeNode.id);
           vm.recordTreeInstance.jstree(true).select_node(treeNode.parent);
-        },
-        function () {
-          $log.info('modal-component dismissed at: ' + new Date());
-        }
-      );
-    };
-    vm.changeOrganizationModal = function (node) {
-      const modalInstance = $uibModal.open({
-        animation: true,
-        ariaLabelledBy: 'modal-title',
-        ariaDescribedBy: 'modal-body',
-        templateUrl: 'static/frontend/views/modals/change_node_organization.html',
-        controller: 'NodeOrganizationModalInstanceCtrl',
-        controllerAs: '$ctrl',
-        size: 'lg',
-        resolve: {
-          data: {
-            node: node,
-          },
-        },
-      });
-      modalInstance.result.then(
-        function (data, $ctrl) {
-          $state.reload();
         },
         function () {
           $log.info('modal-component dismissed at: ' + new Date());

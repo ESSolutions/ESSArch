@@ -38,7 +38,9 @@ import uuid
 import zipfile
 from copy import deepcopy
 from datetime import datetime
+from decimal import Decimal
 from os import scandir, walk
+from pathlib import Path
 from subprocess import PIPE, Popen
 from time import sleep
 from urllib.parse import quote
@@ -177,7 +179,7 @@ def get_value_from_path(root, path):
     try:
         el = get_elements_without_namespace(root, path)[0]
     except IndexError:
-        logger.warning('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
+        logger.debug('{path} not found in {root}'.format(path=path, root=root.getroottree().getpath(root)))
         return None
 
     if "@" in path:
@@ -322,21 +324,17 @@ def get_immediate_subdirectories(path):
 def get_tree_size_and_count(path='.'):
     """Return total size and count of files in given path and subdirs."""
 
-    if os.path.isfile(path):
-        return os.path.getsize(path), 1
+    path = Path(path)
+
+    if path.is_file():
+        return path.stat().st_size, 1
 
     total_size = 0
     count = 0
-
-    for dirpath, _dirnames, filenames in walk(path):
-        for f in filenames:
-            try:
-                fp = os.path.join(dirpath, f)
-                total_size += os.path.getsize(fp)
-                count += 1
-            except OSError as e:
-                if e.errno != errno.ENOENT:
-                    raise
+    for f in path.rglob('*'):
+        if f.is_file():
+            total_size += f.stat().st_size
+            count += 1
 
     return total_size, count
 
@@ -375,18 +373,24 @@ def get_premis_ip_object_element_spec():
 
 def delete_path(path, remote_host=None, remote_credentials=None, task=None):
     logger = logging.getLogger('essarch')
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            token = None
+            session.auth = (user, passw)
 
-        r = task.get_remote_copy(requests_session, remote_host)
+        r = task.get_remote_copy(session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(requests_session, remote_host)
-            task.run_remote_copy(requests_session, remote_host)
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -397,17 +401,20 @@ def delete_path(path, remote_host=None, remote_credentials=None, task=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(requests_session, remote_host)
+                task.run_remote_copy(session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(requests_session, remote_host)
+                task.retry_remote_copy(session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            requests_session = requests.Session()
-            requests_session.verify = settings.REQUESTS_VERIFY
-            requests_session.auth = (user, passw)
-            r = task.get_remote_copy(requests_session, remote_host)
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            if token:
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']
@@ -935,3 +942,98 @@ def dict_deep_merge(a: dict, b: dict):
         else:
             result[bk] = deepcopy(bv)
     return result
+
+
+def pretty_time_to_sec(time_in_sec):
+    """
+    Converts time in seconds to a human-readable string
+
+    :param time_in_sec: Time in seconds
+    :return: Human-readable string
+    """
+    if time_in_sec > 1:
+        return round(time_in_sec, 2)
+    else:
+        return format(Decimal(time_in_sec), ".2g")
+
+
+def pretty_size(bytes, unit=''):
+    """
+    Get human-readable file sizes.
+    """
+
+    units = [
+        (1 << 50, 'PB'),
+        (1 << 40, 'TB'),
+        (1 << 30, 'GB'),
+        (1 << 20, 'MB'),
+        (1 << 10, 'KB'),
+        (1, ('byte', 'bytes')),
+    ]
+
+    if unit and unit not in ('MB', 'GB', 'TB', 'PB'):
+        raise ValueError('Invalid unit: {}'.format(unit))
+    for factor, suffix in units:
+        if unit:
+            if suffix == unit:
+                break
+        elif bytes >= factor:
+            break
+    amount = int(bytes / factor)
+
+    if isinstance(suffix, tuple):
+        singular, multiple = suffix
+        if amount == 1:
+            suffix = singular
+        else:
+            suffix = multiple
+
+    return '{} {}'.format(amount, suffix)
+
+
+def pretty_mb_per_sec(mb_per_sec):
+    """
+    Converts MB/s to a human-readable string
+
+    :param mb_per_sec: Speed in MB/s
+    :return: Human-readable string
+    """
+    if mb_per_sec > 1:
+        return round(mb_per_sec, 2)
+    else:
+        return format(Decimal(mb_per_sec), ".2g")
+
+
+def natural_key(value):
+    """
+    Safely return a tuple for sorting that handles:
+    - strings (natural sort)
+    - datetime (sorted chronologically)
+    - int, float
+    - None (comes last)
+    Ensures consistent types in all comparisons.
+    """
+
+    if value is None:
+        return (1, [float('inf')])  # Sort None values to end
+
+    # Try parsing datetime strings (e.g. "2021-01-01")
+    if isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value)
+            return (0, [parsed])
+        except ValueError:
+            pass  # Not a datetime string, treat as text
+
+        # Natural sort for strings with numbers
+        parts = re.split(r'(\d+)', value)
+        return (0, [int(p) if p.isdigit() else p.lower() for p in parts])
+
+    if isinstance(value, datetime):
+        return (0, [value])
+
+    if isinstance(value, (int, float)):
+        return (0, [value])
+
+    # Fallback: coerce to string
+    return (0, [str(value).lower()])

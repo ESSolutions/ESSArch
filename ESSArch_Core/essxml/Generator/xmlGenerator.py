@@ -27,6 +27,7 @@ import datetime
 import logging
 import os
 import re
+import time
 import uuid
 from os import walk
 
@@ -37,6 +38,7 @@ from natsort import natsorted
 
 from ESSArch_Core.essxml.util import parse_file
 from ESSArch_Core.fixity.format import FormatIdentifier
+from ESSArch_Core.profiles.utils import fill_specification_data
 from ESSArch_Core.util import (
     get_elements_without_namespace,
     in_directory,
@@ -85,7 +87,7 @@ def parseContent(content, info=None):
     if info is None:
         info = {}
 
-    if isinstance(content, str):
+    if isinstance(content, str) or isinstance(content, int) or isinstance(content, uuid.UUID):
         return parse_content_django(content, info=info)
 
     def get_nested_val(dct, key):
@@ -96,6 +98,7 @@ def parseContent(content, info=None):
                 return None
         return dct
 
+    nothing_to_parse = False
     arr = []
     for c in content:
         if 'text' in c:
@@ -130,8 +133,33 @@ def parseContent(content, info=None):
 
             if val is not None:
                 arr.append(make_unicode(val))
+        else:
+            nothing_to_parse = True
+
+    if nothing_to_parse:
+        return parse_content_django(content, info=info)
 
     return ''.join(arr)
+
+
+def parse_params(params, ip):
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
+    new_params = {}
+    for param in params:
+        new_params[param] = parseContent(params[param], data)
+
+    return new_params
+
+
+def parse_args(args, ip):
+    sa = ip.submission_agreement if ip else None
+    data = fill_specification_data(ip=ip, sa=sa).to_dict()
+    new_args = []
+    for arg in args:
+        new_args.append(parseContent(arg, data))
+
+    return new_args
 
 
 def findElementWithoutNamespace(tree, el_name):
@@ -165,7 +193,7 @@ class XMLElement:
         name = template.get('-name')
         try:
             self.name = name.split("#")[0]
-        except BaseException:
+        except Exception:
             self.name = name
 
         self.nsmap = template.get('-nsmap', {})
@@ -200,7 +228,7 @@ class XMLElement:
             child_el = XMLElement(child)
             self.children.append(child_el)
 
-    @ property
+    @property
     def fid(self):
         if self._fid is not None:
             return self._fid
@@ -710,6 +738,8 @@ class XMLGenerator:
         logger = logging.getLogger('essarch.essxml.generator')
         self.toCreate = []
         for fname, content in filesToCreate.items():
+            if os.path.isfile(fname):
+                os.remove(fname)
             self.toCreate.append({
                 'file': fname,
                 'template': content['spec'],
@@ -831,7 +861,14 @@ class XMLGenerator:
                 files.append(fileinfo)
 
     def write(self, filepath):
-        self.tree.write(filepath, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        with open(filepath, 'wb') as f:
+            self.tree.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+        timeout = 30  # seconds
+        start_time = time.time()
+        while not (os.path.exists(filepath) and os.path.getsize(filepath) > 0):
+            if time.time() - start_time > timeout:
+                raise TimeoutError(f"File '{filepath}' was not found or empty within {timeout} seconds.")
+            time.sleep(1)
 
     def find_element(self, path):
         return findElementWithoutNamespace(self.tree, path)

@@ -135,7 +135,6 @@ class CreateReceiptTests(TestCase):
         )
         ProcessTask.objects.create(
             name='ESSArch_Core.ip.tasks.CreateReceipt',
-            reference='email',
             information_package=self.ip,
             responsible=self.user,
             processstep=step,
@@ -191,7 +190,7 @@ class PreserveInformationPackageTests(TestCase):
     @TaskRunner()
     @mock.patch.object(InformationPackage, 'preserve')
     def test_success(self, mock_preserve):
-        mock_preserve.return_value = '123'
+        mock_preserve.return_value = ('123', 'medium_id_4', 5, 6, 7)
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create()
         StorageMethodTargetRelation.objects.create(

@@ -210,7 +210,7 @@ class TapeTests(SimpleTestCase):
 
         mock_tarfile.open.assert_called_once()
         mocked_tar.close.assert_called_once()
-        mock_rewind_tape.assert_called_once_with("some_drive")
+        mock_rewind_tape.assert_called_with("some_drive")
 
     @mock.patch('ESSArch_Core.storage.tape.tarfile')
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
@@ -221,20 +221,22 @@ class TapeTests(SimpleTestCase):
 
         self.assertTrue(tape_empty("some_drive"))
 
-        mock_tarfile.open.assert_called_once()
-        mock_rewind_tape.assert_called_once_with("some_drive")
+        mock_tarfile.open.assert_called()
+        mock_rewind_tape.assert_called_with("some_drive")
 
     @mock.patch('ESSArch_Core.storage.tape.tape_empty.retry.stop')
     @mock.patch('ESSArch_Core.storage.tape.tape_empty.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.tarfile')
-    def test_tape_empty_when_OSError_then_raise_exception(self, mock_tarfile, mock_sleep, mock_stop):
+    @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
+    def test_tape_empty_when_OSError_then_raise_exception(self, mock_rewind_tape, mock_tarfile, mock_sleep, mock_stop):
         exception = OSError()
         mock_tarfile.open.side_effect = exception
 
         with self.assertRaises(OSError):
             tape_empty("some_drive")
 
-        mock_tarfile.open.assert_called_once()
+        mock_tarfile.open.assert_called()
+        mock_rewind_tape.assert_called_with("some_drive")
 
     @mock.patch('ESSArch_Core.storage.tape.tarfile.open')
     @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
@@ -245,12 +247,14 @@ class TapeTests(SimpleTestCase):
         self.assertTrue(tape_empty("some_drive"))
 
         mock_tarfile_open.assert_called_once()
-        mock_rewind_tape.assert_called_once_with("some_drive")
+        mock_rewind_tape.assert_called_with("some_drive")
 
     @mock.patch('ESSArch_Core.storage.tape.tape_empty.retry.stop')
     @mock.patch('ESSArch_Core.storage.tape.tape_empty.retry.sleep')
     @mock.patch('ESSArch_Core.storage.tape.tarfile.open')
-    def test_tape_empty_when_tarfile_ReadError_and_unknown_message_then_raise_exception(self, mock_tarfile_open,
+    @mock.patch('ESSArch_Core.storage.tape.rewind_tape')
+    def test_tape_empty_when_tarfile_ReadError_and_unknown_message_then_raise_exception(self, mock_rewind_tape,
+                                                                                        mock_tarfile_open,
                                                                                         mock_sleep, mock_stop):
         exception = tarfile.ReadError()
         exception.message = 'some other message'
@@ -260,6 +264,7 @@ class TapeTests(SimpleTestCase):
             tape_empty("some_drive")
 
         mock_tarfile_open.assert_called_once()
+        mock_rewind_tape.assert_called_once_with("some_drive")
 
     @mock.patch('ESSArch_Core.storage.tape.Popen')
     def test_get_tape_file_number_returncode_is_1_raise_exception(self, mock_popen):

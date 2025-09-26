@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 import elasticsearch
@@ -612,9 +613,45 @@ class MediumTypeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'size', 'unit',)
 
 
+class TagVersionAgentAuthoritySerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.get_name().main
+
+    def get_organization(self, obj):
+        try:
+            serializer = GroupSerializer(instance=obj.get_organization().group)
+            return serializer.data
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            return None
+
+    class Meta:
+        model = Agent
+        fields = ('id', 'name', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
+
+
 class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
+    agent = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     name_with_dates = serializers.SerializerMethodField()
+
+    def get_agent(self, obj):
+        logger = logging.getLogger('essarch.tags')
+        try:
+            agent = obj.agents.get(tag_links__type__creator=True)
+        except ObjectDoesNotExist:
+            return None
+        except MultipleObjectsReturned:
+            agent_list = [x for x in obj.agents.all()]
+            logger.warning('Multiple agents found for tag version {}, agents: {}'.format(obj, agent_list))
+            agent = obj.agents.first()
+
+        serializer = TagVersionAgentAuthoritySerializer(instance=agent)
+        return serializer.data
 
     def get_organization(self, obj):
         try:
@@ -631,7 +668,7 @@ class TagVersionSerializerWithoutSource(serializers.ModelSerializer):
     class Meta:
         model = TagVersion
         fields = ('id', 'elastic_index', 'name', 'name_with_dates', 'type', 'create_date', 'start_date',
-                  'end_date', 'organization')
+                  'end_date', 'organization', 'agent')
 
 
 class TagVersionWriteSerializer(serializers.ModelSerializer):
@@ -656,8 +693,13 @@ class TagVersionRelationSerializer(serializers.ModelSerializer):
 
 
 class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     names = AgentNameSerializer(many=True)
     organization = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        serializer = AgentNameSerializer(instance=obj.get_name())
+        return serializer.data
 
     def get_organization(self, obj):
         try:
@@ -670,7 +712,7 @@ class TagVersionAgentTagLinkAgentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Agent
-        fields = ('id', 'names', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
+        fields = ('id', 'name', 'names', 'create_date', 'revise_date', 'start_date', 'end_date', 'organization',)
 
 
 class TagVersionAgentTagLinkSerializer(serializers.ModelSerializer):
@@ -1140,6 +1182,10 @@ class ComponentWriteSerializer(NodeWriteSerializer):
             tag.current_version = tag_version
             tag.save()
 
+            group = self.context['request'].user.user_profile.current_organization
+            # group.add_object(tag)
+            group.add_object(tag_version)
+
             for agent_link in AgentTagLink.objects.filter(tag=tag_version):
                 AgentTagLink.objects.create(tag=tag_version, agent=agent_link.agent, type=agent_link.type)
 
@@ -1316,9 +1362,9 @@ class ArchiveWriteSerializer(NodeWriteSerializer):
                 for instance_unit in structure_instance.units.all():
                     StructureUnitDocument.from_obj(instance_unit).save()
 
-            org = self.context['request'].user.user_profile.current_organization
-            org.add_object(tag)
-            org.add_object(tag_version)
+            group = self.context['request'].user.user_profile.current_organization
+            # group.add_object(tag)
+            group.add_object(tag_version)
 
             tag_link_type, _ = AgentTagLinkRelationType.objects.get_or_create(
                 creator=True, defaults={'name': 'creator'}

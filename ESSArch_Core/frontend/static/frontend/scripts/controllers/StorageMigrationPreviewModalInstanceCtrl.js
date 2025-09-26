@@ -39,6 +39,8 @@ export default class StorageMigrationPreviewModalInstanceCtrl {
             page: paginationParams.pageNumber,
             page_size: paginationParams.number,
             pager: paginationParams.pager,
+            include_inactive_ips: data.include_inactive_ips,
+            missing_storage: data.missing_storage,
             policy: data.policy,
             information_packages: data.information_packages,
             storage_mediums: data.storage_mediums,

@@ -40,6 +40,9 @@ except ImportError:
 # Workflow Pollers
 ESSARCH_WORKFLOW_POLLERS = {}
 
+# Set to True to run the workflow with poller True
+ESSARCH_WORKFLOW_POLLERS_RUN_POLLER = False
+
 # Set test runner
 TEST_RUNNER = "ESSArch_Core.testing.runner.ESSArchTestRunner"
 
@@ -59,9 +62,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'proxy_pagination.ProxyPagination',
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
         'ESSArch_Core.auth.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        'knox.auth.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'ESSArch_Core.auth.permissions.ActionPermissions',
@@ -503,12 +506,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')
 
 # Celery settings
-try:
-    from local_essarch_settings import RABBITMQ_URL
-except ImportError:
-    RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str(
-        'RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
-CELERY_BROKER_URL = RABBITMQ_URL
 CELERY_IMPORTS = (
     "ESSArch_Core.fixity.action.tasks",
     "ESSArch_Core.ip.tasks",
@@ -520,15 +517,27 @@ CELERY_IMPORTS = (
     "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
 )
+try:
+    from local_essarch_settings import RABBITMQ_URL
+except ImportError:
+    RABBITMQ_URL = env.str('ESSARCH_RABBITMQ_URL', env.str(
+        'RABBITMQ_URL_ESSARCH', 'amqp://guest:guest@localhost:5672'))
+CELERY_BROKER_URL = RABBITMQ_URL
+CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True, "confirm_timeout": 5.0}
+# CELERY_BROKER_POOL_LIMIT = 0
+# CELERY_BROKER_HEARTBEAT = 0
+# CELERY_BROKER_CHANNEL_ERROR_RETRY = True
+CELERY_BROKER_CONNECTION_TIMEOUT = 30
 CELERY_RESULT_BACKEND = 'processtask'
-CELERY_BROKER_HEARTBEAT = 0
-CELERY_BROKER_TRANSPORT_OPTIONS = {'confirm_publish': True}
-CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = False
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_ACKS_ON_FAILURE_OR_TIMEOUT = True
 CELERY_TASK_REJECT_ON_WORKER_LOST = True
 CELERY_TASK_REMOTE_TRACEBACKS = True
 CELERY_TASK_TRACK_STARTED = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_WORKER_CANCEL_LONG_RUNNING_TASKS_ON_CONNECTION_LOSS = True
+ESSARCH_MAX_RUNNING_STEPS = 10
+ESSARCH_RUN_SINGLE_ROOT_STEP_IF_RUNNING_PART_ROOT_STEP = True
 
 CELERY_BEAT_SCHEDULE = {
     'RunWorkflowPollers-every-60-seconds': {
@@ -542,6 +551,10 @@ CELERY_BEAT_SCHEDULE = {
     'PollConversionJobs-every-10-minutes': {
         'task': 'ESSArch_Core.maintenance.tasks.PollConversionJobs',
         'schedule': timedelta(minutes=10),
+    },
+    'PollProcessStepQueue-every-30-seconds': {
+        'task': 'ESSArch_Core.workflow.tasks.PollProcessStepQueue',
+        'schedule': timedelta(seconds=30),
     },
     # 'PollRobotQueue-every-10-seconds': {
     #     'task': 'ESSArch_Core.workflow.tasks.PollRobotQueue',

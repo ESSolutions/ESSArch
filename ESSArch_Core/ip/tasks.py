@@ -72,6 +72,9 @@ from ESSArch_Core.util import (
     delete_path,
     get_premis_ip_object_element_spec,
     normalize_path,
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.models import ProcessTask
@@ -97,12 +100,17 @@ def SubmitSIP(self, delete_source=False, update_path=True):
     session = None
 
     if remote:
-        dst, remote_user, remote_pass = remote.split(',')
-        dst = urljoin(dst, 'api/ip-reception/upload/')
-
         session = requests.Session()
         session.verify = settings.REQUESTS_VERIFY
-        session.auth = (remote_user, remote_pass)
+        server_list = remote.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            token = None
+            session.auth = (user, passw)
+        dst = urljoin(host, 'api/ip-reception/upload/')
     else:
         dst = os.path.join(reception, ip.object_identifier_value + ".%s" % container_format)
 
@@ -127,9 +135,6 @@ def SubmitSIP(self, delete_source=False, update_path=True):
 
     self.set_progress(100, total=100)
 
-    msg = "Submitted %s" % ip.object_identifier_value
-    self.create_success_event(msg)
-
 
 @app.task(bind=True, event_type=20600)
 def TransferIP(self):
@@ -140,13 +145,18 @@ def TransferIP(self):
     remote = ip.get_profile_data('transfer_project').get('transfer_destination_url')
     session = None
     if remote:
-        dst, remote_user, remote_pass = remote.split(',')
-
         session = requests.Session()
         session.verify = settings.REQUESTS_VERIFY
-        session.auth = (remote_user, remote_pass)
-
-    if not remote:
+        server_list = remote.split(',')
+        if len(server_list) == 2:
+            host, token = server_list
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            host, user, passw = server_list
+            token = None
+            session.auth = (user, passw)
+        dst = host
+    else:
         dst = Path.objects.get(entity="ingest_transfer").value
 
     block_size = 8 * 1000000  # 8MB
@@ -325,6 +335,7 @@ def GenerateEventsXML(self):
     ip = self.get_information_package()
     msg = 'Generated {xml}'.format(xml=ip.get_events_file_path())
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True)
@@ -351,6 +362,7 @@ def AddPremisIPObjectElementToEventsFile(self):
     target = generator.find_element('premis')
     generator.insert_from_specification(target, spec, data=info, index=0)
     generator.write(xmlfile)
+    return 'Add premis IP to {}'.format(xmlfile)
 
 
 @app.task(bind=True, event_type=10300)
@@ -368,7 +380,10 @@ def CreatePhysicalModel(self, structure=None, root=""):
 
     self.set_progress(1, total=1)
 
-    msg = "Created physical model for %s" % ip.object_identifier_value
+    ip.state = "Prepared"
+    ip.save(update_fields=['state'])
+
+    msg = "Created physical model"
     self.create_success_event(msg)
 
     return created
@@ -391,7 +406,11 @@ def CreateContainer(self, src, dst):
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
         dst = os.path.join(dst, dst_filename)
 
-    enough_space_available(os.path.dirname(dst), src, True)
+    try:
+        enough_space_available(os.path.dirname(dst), src, True)
+    except FileNotFoundError:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        enough_space_available(os.path.dirname(dst), src, True)
 
     if container_format == 'zip':
         self.event_type = 50410
@@ -404,7 +423,7 @@ def CreateContainer(self, src, dst):
             new_tar.format = settings.TARFILE_FORMAT
             new_tar.add(src, base_dir)
 
-    msg = "Created {}".format(self.parse_params(dst))
+    msg = "Created {}".format(dst)
     self.create_success_event(msg)
 
     return dst
@@ -444,7 +463,7 @@ def ParseEvents(self):
 def Transform(self, backend, path=None):
     ip = self.get_information_package()
     user = User.objects.filter(pk=self.responsible).first()
-    backend = get_transformer(backend, ip, user)
+    backend = get_transformer(backend, ip=ip, responsible=user)
     if path is None and ip is not None:
         path = ip.object_path
     backend.transform(path)
@@ -510,7 +529,7 @@ def Validate(self, backend, path=None, context=None, include=None,
 
 
 @app.task(bind=True)
-def PreserveInformationPackage(self, storage_method_pk):
+def PreserveInformationPackage(self, storage_method_pk, temp_path=None):
     ip = self.get_information_package()
     policy = ip.policy
 
@@ -533,15 +552,34 @@ def PreserveInformationPackage(self, storage_method_pk):
 
     if storage_method.containers or storage_target.remote_server:
         src = [
-            ip.get_temp_container_path(),
-            ip.get_temp_container_xml_path(),
+            ip.get_temp_container_path(temp_path),
+            ip.get_temp_container_xml_path(temp_path),
         ]
         if ip.profile_locked('aic_description'):
-            src.append(ip.get_temp_container_aic_xml_path())
+            src.append(ip.get_temp_container_aic_xml_path(temp_path))
     else:
-        src = [ip.object_path]
+        if temp_path:
+            src = [ip.get_temp_object_path(temp_path)]
+        else:
+            src = [ip.object_path]
 
-    return ip.preserve(src, storage_target, storage_method.containers, self.get_processtask())
+    storage_object_pk, medium_id, write_size, mb_per_sec, time_elapsed = ip.preserve(
+        src, storage_target, storage_method.containers, self.get_processtask())
+
+    msg = "Information package written to {} ({}), WriteSize: {}, {} MB/Sec ({} sec)".format(
+        medium_id, storage_target.name, pretty_size(write_size), pretty_mb_per_sec(
+            mb_per_sec), pretty_time_to_sec(time_elapsed)
+    )
+    if storage_method.type == 200:
+        self.event_type = 40600
+    elif storage_method.type == 300:
+        self.event_type = 40700
+    elif storage_method.type == 400:
+        self.event_type = 40620
+    self.create_success_event(msg)
+
+    return "{}, {} ({}), {} MB/Sec".format(storage_object_pk, medium_id, storage_target.name,
+                                           pretty_mb_per_sec(mb_per_sec))
 
 
 @app.task(bind=True)
@@ -579,21 +617,27 @@ CreateReceipt_task_id: {}'.format(task_id, self.ip, self.get_processtask()))
     return backend.create(template, destination, outcome, short_message, message, date, ip=ip, task=task, **kwargs)
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=30300)
 def MarkArchived(self, remote_host=None, remote_credentials=None):
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            token = None
+            session.auth = (user, passw)
 
         task = self.get_processtask()
-        r = task.get_remote_copy(requests_session, remote_host)
+        r = task.get_remote_copy(session, remote_host)
         if r.status_code == 404:
             # the task does not exist
-            task.create_remote_copy(requests_session, remote_host)
-            task.run_remote_copy(requests_session, remote_host)
+            task.create_remote_copy(session, remote_host)
+            task.run_remote_copy(session, remote_host)
         else:
             remote_data = r.json()
             task.status = remote_data['status']
@@ -604,17 +648,20 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
             task.save()
 
             if task.status == celery_states.PENDING:
-                task.run_remote_copy(requests_session, remote_host)
+                task.run_remote_copy(session, remote_host)
             elif task.status != celery_states.SUCCESS:
                 self.logger.debug('task.status: {}'.format(task.status))
-                task.retry_remote_copy(requests_session, remote_host)
+                task.retry_remote_copy(session, remote_host)
                 task.status = celery_states.PENDING
 
         while task.status not in celery_states.READY_STATES:
-            requests_session = requests.Session()
-            requests_session.verify = settings.REQUESTS_VERIFY
-            requests_session.auth = (user, passw)
-            r = task.get_remote_copy(requests_session, remote_host)
+            session = requests.Session()
+            session.verify = settings.REQUESTS_VERIFY
+            if token:
+                session.headers['Authorization'] = 'Token %s' % token
+            else:
+                session.auth = (user, passw)
+            r = task.get_remote_copy(session, remote_host)
 
             remote_data = r.json()
             task.status = remote_data['status']
@@ -633,6 +680,8 @@ def MarkArchived(self, remote_host=None, remote_credentials=None):
         ip.archived = True
         ip.state = 'Preserved'
         ip.save()
+        msg = "Preserved AIP (%s)" % ip.object_identifier_value
+        self.create_success_event(msg)
 
 
 @app.task(bind=True)
@@ -688,6 +737,10 @@ def DeleteInformationPackage(self, from_db=False, delete_files=True):
     ip.save()
 
     ip.delete_temp_files()
+
+    task = self.get_processtask()
+    for ProcessTask_obj in ip.processtask_set.exclude(status='SUCCESS').exclude(id=task.id):
+        ProcessTask_obj.revoke()
 
     try:
         ip.delete_workareas()

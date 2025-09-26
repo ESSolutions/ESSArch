@@ -274,8 +274,7 @@ export default class SearchCtrl {
         params: {page: 1, page_size: 10, search: search},
       }).then(function (response) {
         response.data.forEach(function (agent) {
-          AgentName.parseAgentNames(agent);
-          agent.auth_name = AgentName.getAuthorizedName(agent);
+          agent.auth_name = AgentName.parseAgentName(agent);
         });
         vm.options.agents = response.data;
         return vm.options.agents;

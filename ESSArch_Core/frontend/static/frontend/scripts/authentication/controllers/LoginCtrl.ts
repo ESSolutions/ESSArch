@@ -43,6 +43,10 @@ const loginCtrl = [
       $scope.auth_services = response.data;
     });
 
+    $scope.saml2login = function () {
+      window.location.replace('/saml2/login/');
+    };
+
     $scope.login = function (formData) {
       $scope.error = null;
       Validate.form_validation(formData, $scope.errors);

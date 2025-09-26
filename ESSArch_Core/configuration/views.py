@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 
+import importlib.metadata
 import logging
 import platform
 import socket
@@ -29,7 +30,6 @@ import sys
 from sqlite3 import sqlite_version
 
 import distro
-import pkg_resources
 from celery import current_app
 from django.conf import settings
 from django.db import connection
@@ -126,7 +126,9 @@ def get_redis_info(full=False):
 def get_rabbitmq_info(full=False):
     logger = logging.getLogger('essarch.configuration')
     try:
-        props = current_app.connection(transport_options={'max_retries': 5}).connection.server_properties
+        kombu_connection = current_app.connection(transport_options={'max_retries': 5})
+        props = kombu_connection.connection.server_properties
+        kombu_connection.release()
         if full:
             return props
         return {'version': props['version']}
@@ -181,8 +183,8 @@ class SysInfoView(APIView):
         context['redis'] = get_redis_info(full)
         context['rabbitmq'] = get_rabbitmq_info(full)
         context['workers'] = get_workers(context['rabbitmq'])
-        context['python_packages'] = sorted(["%s==%s" % (i.key, i.version)
-                                             for i in pkg_resources.working_set])
+        context['python_packages'] = sorted([f"{i.metadata['Name'].lower()}=={i.version}"
+                                             for i in importlib.metadata.distributions()])
 
         context['settings_flags'] = []
         for name, expected in SETTINGS_FLAGS:
@@ -242,8 +244,9 @@ class StoragePolicyViewSet(viewsets.ModelViewSet):
     """
     queryset = StoragePolicy.objects.all()
     serializer_class = StoragePolicySerializer
-    filter_backends = (SearchFilter,)
+    filter_backends = (DjangoFilterBackend, SearchFilter,)
     search_fields = ('policy_id', 'policy_name')
+    filterset_fields = ('policy_id', 'policy_name', 'policy_stat')
 
 
 class SiteView(APIView):

@@ -59,7 +59,7 @@
       fields="fields"
       update="getListViewData()"
     ></advanced-filters>
-    <div ng-if="!('home.ingest.reception' | isState)" class="global-search">
+    <div ng-if="!(isState)" class="global-search">
       <input
         id="search-input"
         st-search=""
@@ -72,7 +72,7 @@
       />
     </div>
     <button
-      ng-if="!('home.ingest.reception' | isState)"
+      ng-if="!(isState)"
       type="button"
       ng-click="getListViewData()"
       class="btn btn-primary btn-small"
@@ -151,9 +151,9 @@
           ng-class="{'selected': ip.object_identifier_value == row.object_identifier_value || selectedAmongOthers(row.id)}"
           class="table-item selectable"
           ng-click="row.package_type !== 1 ? ipTableClick(row, $event) : expandAic(row)"
-          context-menu="menuOptions('row', row)"
+          context-menu="menuOptions('ip', row)"
         >
-          <td ng-if="'home.ingest.reception' | isState" context-menu="menuOptions('row', row)"></td>
+          <td ng-if="'home.ingest.reception' | isState" context-menu="menuOptions('ip', row)"></td>
           <td
             ng-if="!('home.ingest.reception' | isState)"
             class="clickable"
@@ -177,9 +177,9 @@
           ng-class="{'selected': ip.object_identifier_value == subrow.object_identifier_value || selectedAmongOthers(subrow.id)}"
           style="background-color: rgba(50, 120, 255, 0.1)"
           ng-click="ipTableClick(subrow, $event)"
-          context-menu="menuOptions('subrow', subrow)"
+          context-menu="menuOptions('ip', subrow)"
         >
-          <td context-menu="menuOptions('subrow', subrow)"></td>
+          <td context-menu="menuOptions('ip', subrow)"></td>
           <td
             ng-repeat="col in listViewColumns"
             ng-if="!((('home.access.createDip' | isState) && col.label == 'filebrowser'))"

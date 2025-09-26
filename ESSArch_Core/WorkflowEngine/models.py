@@ -26,6 +26,7 @@ import copy
 import importlib
 import itertools
 import logging
+import time
 import uuid
 from urllib.parse import urljoin
 
@@ -77,6 +78,7 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
         'step_pos': t.processstep_pos, 'hidden': t.hidden,
         'allow_failure': t.allow_failure,
         'result_params': t.result_params,
+        'parallel': t.processstep.parallel if t.processstep else False,
     }
     headers_hack = {'headers': headers}
 
@@ -98,12 +100,19 @@ def create_sub_task(t, step=None, immutable=True, link_error=None):
 
 
 class Process(models.Model):
+    _states = list(zip(
+        celery_states.ALL_STATES, celery_states.ALL_STATES
+    ))
+    _states.sort()
+    STATE_CHOICES = _states
+
     class Meta:
         abstract = True
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     celery_id = models.UUIDField(default=uuid.uuid4, unique=True)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, db_index=True)
+    label = models.CharField(max_length=255, blank=True)
     queue = models.CharField(max_length=255, blank=True, null=True, default=None)
     hidden = models.BooleanField(null=True, default=None, db_index=True)
     eager = models.BooleanField(default=True)
@@ -111,56 +120,18 @@ class Process(models.Model):
     result = PickledObjectField(null=True, default=None, editable=False)
 
     def __str__(self):
-        return self.name
+        return self.label if self.label else self.name
 
 
 class ProcessStep(MPTTModel, Process):
-    Type_CHOICES = (
-        (0, "Receive new object"),
-        (5, "The object is ready to remodel"),
-        (9, "New object stable"),
-        (10, "Object don't exist in AIS"),
-        (11, "Object don't have any projectcode in AIS"),
-        (12, "Object don't have any local policy"),
-        (13, "Object already have an AIP!"),
-        (14, "Object is not active!"),
-        (19, "Object got a policy"),
-        (20, "Object not updated from AIS"),
-        (21, "Object not accepted in AIS"),
-        (24, "Object accepted in AIS"),
-        (25, "SIP validate"),
-        (30, "Create AIP package"),
-        (40, "Create package checksum"),
-        (50, "AIP validate"),
-        (60, "Try to remove IngestObject"),
-        (1000, "Write AIP to longterm storage"),
-        (1500, "Remote AIP"),
-        (2009, "Remove temp AIP object OK"),
-        (3000, "Archived"),
-        (5000, "ControlArea"),
-        (5100, "WorkArea"),
-        (9999, "Deleted"),
-    )
-
-    type = models.IntegerField(null=True, choices=Type_CHOICES)
+    run_state = models.CharField(_('state'), max_length=50, blank=True, choices=Process.STATE_CHOICES, db_index=True)
     user = models.CharField(max_length=45)
-    parent = TreeForeignKey(
-        'self',
-        related_name='child_steps',
-        on_delete=models.CASCADE,
-        null=True
-    )
+    parent = TreeForeignKey('self', related_name='child_steps', on_delete=models.CASCADE, null=True)
     parent_pos = models.IntegerField(_('Parent step position'), default=0)
+    part_root = models.BooleanField(null=True, default=None, db_index=True)
     information_package = models.ForeignKey(
-        'ip.InformationPackage',
-        on_delete=models.CASCADE,
-        related_name='steps',
-        blank=True,
-        null=True
-    )
-    responsible = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, related_name='steps', null=True
-    )
+        'ip.InformationPackage', on_delete=models.CASCADE, related_name='steps', blank=True, null=True)
+    responsible = models.ForeignKey('auth.User', on_delete=models.SET_NULL, related_name='steps', null=True)
     parallel = models.BooleanField(default=False)
     on_error = models.ManyToManyField('ProcessTask', related_name='steps_on_errors')
     context = models.JSONField(default=dict, null=True)
@@ -218,6 +189,22 @@ class ProcessStep(MPTTModel, Process):
         if self.parent:
             self.parent.clear_cache()
 
+    def get_part_root(self):
+        """
+        Returns the part root node of this model instance's tree.
+        """
+        if (self.is_root_node() or self.part_root) and type(self) is self._tree_manager.tree_model:
+            return self
+
+        try:
+            node = self.get_ancestors().filter(part_root=True).get()
+        except ProcessStep.MultipleObjectsReturned:
+            node = self.parent.get_part_root()
+        except ProcessStep.DoesNotExist:
+            node = self.get_root()
+
+        return node
+
     def run_children(self, tasks, steps, direct=True):
         logger = logging.getLogger('essarch.WorkflowEngine')
         tasks = tasks.filter(status=celery_states.PENDING,)
@@ -246,6 +233,7 @@ class ProcessStep(MPTTModel, Process):
             y for y in (x.resume(direct=False) if isinstance(x, ProcessStep) else create_sub_task(
                 x, self, link_error=on_error_group) for x in result_list
             ) if not hasattr(y, 'tasks') or len(y.tasks))
+        logger.debug('workflow: {} and link_error: {}'.format(workflow, on_error_group))
 
         if direct:
             logger.info('Celery workflow created')
@@ -262,7 +250,7 @@ class ProcessStep(MPTTModel, Process):
         else:
             return workflow
 
-    def run(self, direct=True):
+    def run(self, direct=True, poller=False):
         """
         Runs the process step by first running the child steps and then the
         tasks.
@@ -270,12 +258,23 @@ class ProcessStep(MPTTModel, Process):
         Args:
             direct: False if the step is called from a parent step,
                     true otherwise
+            poller: True to run step with poller
 
         Returns:
             The executed workflow consisting of potential child steps followed by
             tasks if called directly. The workflow "non-executed" if direct is
             false
         """
+        if poller:
+            for child_step in self.get_children().filter(part_root=True, run_state=''):
+                child_step.run_state = celery_states.PENDING
+                child_step.save(update_fields=['run_state'])
+            if not self.run_state and (self.parent is None or self.root_part is True):
+                self.run_state = celery_states.PENDING
+                self.save(update_fields=['run_state'])
+                return True
+            else:
+                return False
 
         child_steps = self.child_steps.all()
         tasks = self.tasks(manager='by_step_pos').all()
@@ -295,6 +294,8 @@ class ProcessStep(MPTTModel, Process):
             none
         """
 
+        logger = logging.getLogger('essarch.WorkflowEngine')
+        logger.info('Retrying step {} ({})'.format(self.name, self.pk))
         child_steps = self.child_steps.all()
 
         tasks = self.tasks(manager='by_step_pos').filter(
@@ -338,19 +339,12 @@ class ProcessStep(MPTTModel, Process):
         """
 
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Resuming step {} ({})'.format(self.name, self.pk))
-        ProcessTask.objects.filter(
+        logger.info('Resuming step {} ({})'.format(self.name, self.pk))
+        for t in ProcessTask.objects.filter(
             processstep__in=self.get_descendants(include_self=True),
             status__in=[celery_states.PENDING, celery_states.FAILURE, celery_states.REVOKED],
-        ).update(
-            status=celery_states.PENDING,
-            time_started=None,
-            time_done=None,
-            traceback='',
-            exception='',
-            progress=0,
-            result=None,
-        )
+        ):
+            t.reset()
         child_steps = self.get_children()
 
         step_descendants = self.get_descendants(include_self=True)
@@ -388,9 +382,9 @@ class ProcessStep(MPTTModel, Process):
         try:
             earliest_task = self.get_descendants(
                 include_self=True
-            ).exclude(tasks=None).earliest(
+            ).exclude(tasks=None).filter(tasks__time_started__isnull=False).earliest(
                 'tasks__time_started'
-            ).tasks.earliest('time_started')
+            ).tasks.filter(time_started__isnull=False).earliest('time_started')
 
             return earliest_task.time_started
         except ProcessTask.DoesNotExist:
@@ -450,14 +444,14 @@ class ProcessStep(MPTTModel, Process):
 
             try:
                 progress += task_data['progress']
-            except BaseException:
+            except Exception:
                 pass
 
             try:
                 res = progress / total
                 cache.set(self.cache_progress_key, res)
                 return res
-            except BaseException:
+            except Exception:
                 cache.set(self.cache_progress_key, 0)
                 return 0
 
@@ -491,6 +485,7 @@ class ProcessStep(MPTTModel, Process):
             child_steps = self.child_steps.all()
             tasks = self.tasks.filter(retried__isnull=True)
             status = celery_states.SUCCESS
+            partially_done = False
 
             if not child_steps.exists() and not tasks.exists():
                 status = celery_states.PENDING
@@ -505,18 +500,29 @@ class ProcessStep(MPTTModel, Process):
                 cache.set(self.cache_status_key, celery_states.REVOKED)
                 return celery_states.REVOKED
 
+            if tasks.filter(status=celery_states.SUCCESS).exists():
+                partially_done = True
+
             if tasks.filter(status=celery_states.PENDING).exists():
-                status = celery_states.PENDING
+                if partially_done:
+                    status = celery_states.STARTED
+                else:
+                    status = celery_states.PENDING
 
             if tasks.filter(status=celery_states.STARTED).exists():
                 status = celery_states.STARTED
 
+            partially_done = False
             for cs in child_steps.only('parent').iterator(chunk_size=1000):
                 if cs.status == celery_states.STARTED:
                     status = cs.status
-                if (cs.status == celery_states.PENDING and
-                        status != celery_states.STARTED):
-                    status = cs.status
+                if cs.status == celery_states.SUCCESS:
+                    partially_done = True
+                if (cs.status == celery_states.PENDING and status != celery_states.STARTED):
+                    if partially_done:
+                        status = celery_states.STARTED
+                    else:
+                        status = cs.status
                 if cs.status == celery_states.FAILURE:
                     cache.set(self.cache_status_key, cs.status)
                     return cs.status
@@ -539,21 +545,9 @@ class OrderedProcessTaskManager(models.Manager):
 
 
 class ProcessTask(Process):
-    _states = list(zip(
-        celery_states.ALL_STATES, celery_states.ALL_STATES
-    ))
-    _states.sort()
-    TASK_STATE_CHOICES = _states
-
     reference = models.CharField(max_length=255, blank=True, null=True, default=None)
-    label = models.CharField(max_length=255, blank=True)
-    status = models.CharField(
-        _('state'), max_length=50, default=celery_states.PENDING,
-        choices=TASK_STATE_CHOICES,
-    )
-    responsible = models.ForeignKey(
-        'auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True
-    )
+    status = models.CharField(_('state'), max_length=50, default=celery_states.PENDING, choices=Process.STATE_CHOICES)
+    responsible = models.ForeignKey('auth.User', on_delete=models.SET_NULL, related_name='tasks', null=True)
     args = PickledObjectField(default=list)
     params = PickledObjectField(default=dict)
     result_params = PickledObjectField(default=dict)
@@ -563,19 +557,12 @@ class ProcessTask(Process):
     traceback = models.TextField(blank=True)
     exception = PickledObjectField(null=True, default=None)
     meta = PickledObjectField(null=True, default=None, editable=False)
-    processstep = models.ForeignKey(
-        'ProcessStep', related_name='tasks', on_delete=models.CASCADE,
-        null=True, blank=True
-    )
+    processstep = models.ForeignKey('ProcessStep', related_name='tasks',
+                                    on_delete=models.CASCADE, null=True, blank=True)
     processstep_pos = models.IntegerField(_('ProcessStep position'), default=0)
     progress = models.IntegerField(default=0)
-    retried = models.OneToOneField(
-        'self',
-        on_delete=models.SET_NULL,
-        related_name='retried_task',
-        null=True,
-        blank=True,
-    )
+    retried = models.OneToOneField('self', on_delete=models.SET_NULL,
+                                   related_name='retried_task', null=True, blank=True)
     information_package = models.ForeignKey('ip.InformationPackage', on_delete=models.CASCADE, null=True)
     log = PickledObjectField(null=True, default=None)
     on_error = models.ManyToManyField('self', symmetrical=False)
@@ -597,6 +584,13 @@ class ProcessTask(Process):
 
         parent = self.processstep
         return parent.get_root()
+
+    def get_part_root_step(self):
+        if self.processstep is None:
+            return None
+
+        parent = self.processstep
+        return parent.get_part_root()
 
     def create_traceback(self):
         return tblib.Traceback.from_string(self.traceback).as_traceback()
@@ -624,9 +618,11 @@ class ProcessTask(Process):
         data = {
             'id': str(self.pk),
             'name': self.name,
+            'label': self.label,
             'args': self.args,
-            'params': self.params,
+            'params': params,
             'eager': self.eager,
+            'responsible': self.responsible.username if self.responsible else None,
             'information_package': ip_id,
         }
         r = session.post(create_remote_task_url, json=data, timeout=60)
@@ -658,9 +654,11 @@ class ProcessTask(Process):
         ip_id = str(self.information_package.pk) if self.information_package.pk is not None else None
         data = {
             'name': self.name,
+            'label': self.label,
             'args': self.args,
             'params': self.params,
             'eager': self.eager,
+            'responsible': self.responsible.username if self.responsible else None,
             'information_package': ip_id,
         }
         r = session.patch(update_remote_task_url, json=data, timeout=60)
@@ -720,7 +718,10 @@ class ProcessTask(Process):
         return r
 
     def reset(self):
+        logger = logging.getLogger('essarch.WorkflowEngine')
+        logger.info('Reset task ({})'.format(self.pk))
         self.status = celery_states.PENDING
+        self.celery_id = uuid.uuid4()
         self.time_started = None
         self.time_done = None
         self.traceback = ''
@@ -745,6 +746,7 @@ class ProcessTask(Process):
             ip_id, 'step': step_id,
             'step_pos': self.processstep_pos, 'hidden': self.hidden,
             'allow_failure': self.allow_failure,
+            'parallel': self.processstep.parallel if self.processstep else False,
         }
 
         on_error_tasks = self.on_error(manager='by_step_pos').all()
@@ -756,7 +758,7 @@ class ProcessTask(Process):
         if self.eager:
             headers['result_params'] = self.result_params
             headers_hack = {'headers': headers}
-            logger.debug('Running task eagerly ({})'.format(self.pk))
+            logger.debug('Running task eagerly {}({})'.format(self.celery_id, self.pk))
             res = t.apply(
                 args=self.args, kwargs=self.params,
                 task_id=str(self.celery_id),
@@ -764,7 +766,7 @@ class ProcessTask(Process):
             )
         else:
             headers_hack = {'headers': headers}
-            logger.debug('Running task non-eagerly ({})'.format(self.pk))
+            logger.debug('Running task non-eagerly {}({})'.format(self.celery_id, self.pk))
             res = t.apply_async(
                 args=self.args,
                 kwargs=self.params,
@@ -778,19 +780,24 @@ class ProcessTask(Process):
 
     def revoke(self):
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Revoking task ({})'.format(self.pk))
+        if self.information_package:
+            logger.info('Revoke task ({}) for ip {}'.format(self.pk, self.information_package))
+        else:
+            logger.info('Revoke task ({})'.format(self.pk))
         current_app.control.revoke(str(self.celery_id), terminate=True)
         self.status = celery_states.REVOKED
-        self.celery_id = uuid.uuid4()
         self.save()
-        logger.info('Revoked task ({})'.format(self.pk))
+        time.sleep(5)
+        if self.information_package and self.information_package.is_locked():
+            self.information_package.clear_lock()
+            logger.info('When task ({}) revoked, unlocked ip {}'.format(self.pk, self.information_package))
 
     def retry(self):
         """
         Retries the task
         """
         logger = logging.getLogger('essarch.WorkflowEngine')
-        logger.debug('Retrying task ({})'.format(self.pk))
+        logger.info('Retrying task ({})'.format(self.pk))
         self.reset()
         return self.run()
 

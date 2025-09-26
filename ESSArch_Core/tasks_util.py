@@ -134,11 +134,12 @@ def write_medium_label_to_drive(drive_pk, medium, slot, tape_drive):
         arcname = '%s_label.xml' % medium.medium_id
 
         if medium.format not in [100, 101]:
-            if tape_empty(tape_drive.device):
+            if not medium.storage.exists() and tape_empty(tape_drive.device):
                 create_tape_label(medium, xmlfile.name)
                 rewind_tape(tape_drive.device)
                 write_to_tape(tape_drive.device, xmlfile.name, arcname=arcname)
             else:
+                rewind_tape(tape_drive.device)
                 tar = tarfile.open(tape_drive.device, 'r|')
                 first_member = tar.getmembers()[0]
                 tar.close()

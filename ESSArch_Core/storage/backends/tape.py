@@ -14,7 +14,7 @@ from django.db.models.functions import Cast
 from django.utils import timezone
 
 from ESSArch_Core.storage.backends.base import BaseStorageBackend
-from ESSArch_Core.storage.exceptions import StorageMediumFull
+from ESSArch_Core.storage.exceptions import StorageMediumFull, TapeError
 from ESSArch_Core.storage.models import (
     TAPE,
     RobotQueue,
@@ -27,6 +27,7 @@ from ESSArch_Core.storage.tape import (
     set_tape_file_number,
     write_to_tape,
 )
+from ESSArch_Core.storage.util import move
 
 User = get_user_model()
 
@@ -124,6 +125,12 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
         while RobotQueue.objects.filter(id=rq.id).exists():
             logger.debug('Wait for the mount request to complete for storage medium {} ({})'.format(
                 storage_medium.medium_id, str(storage_medium.pk)))
+            storage_medium.refresh_from_db()
+            if storage_medium.tape_drive is not None and storage_medium.tape_drive.status == 100:
+                raise TapeError(
+                    'Storage medium {} "{}" in drive {} "{}" is failed'.format(
+                        storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
+                        storage_medium.tape_drive.drive_id))
             time.sleep(5)
 
         storage_medium.refresh_from_db()
@@ -132,7 +139,12 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
         storage_medium.refresh_from_db()
         if storage_medium.tape_drive is not None:
-            if io_lock_key is not None:
+            if storage_medium.tape_drive.status == 100:
+                raise TapeError(
+                    'Storage medium {} "{}" in drive {} "{}" is failed'.format(
+                        storage_medium.medium_id, str(storage_medium.pk), storage_medium.tape_drive.device,
+                        storage_medium.tape_drive.drive_id))
+            elif io_lock_key is not None:
                 logger.debug('Storage medium {} ({}) is now mounted'.format(
                     storage_medium.medium_id, str(storage_medium.pk)))
                 self.lock_or_wait_for_drive(storage_medium, io_lock_key)
@@ -181,13 +193,13 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
 
             if include_xml:
                 try:
-                    shutil.move(src_xml, dst)
+                    move(src_xml, dst)
                 except FileNotFoundError as e:
                     logger.warning(
                         'AIP description xml file {} does not exists for IP: {}. Error: {}'.format(src_xml, ip, e))
                 if aic_xml:
                     try:
-                        shutil.move(src_aic_xml, dst)
+                        move(src_aic_xml, dst)
                     except FileNotFoundError as e:
                         logger.warning('AIC xml file does not exists for IP: {}. Error: {}'.format(ip, e))
             if extract:
@@ -212,9 +224,9 @@ request {}".format(storage_medium.medium_id, str(storage_medium.pk), pickle.load
                     safe_extract(t, dst)
                     new = os.path.join(dst, root)
             else:
-                new = shutil.move(src_tar, dst)
+                new = move(src_tar, dst)
         else:
-            new = shutil.move(src, dst)
+            new = move(src, dst)
 
         try:
             shutil.rmtree(tmp_path)

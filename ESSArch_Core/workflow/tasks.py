@@ -31,6 +31,7 @@ import tempfile
 import zipfile
 from datetime import timedelta
 
+from celery import states as celery_states
 from celery.result import allow_join_result
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -68,7 +69,7 @@ from ESSArch_Core.util import (
     run_shell_command,
     timestamp_to_datetime,
 )
-from ESSArch_Core.WorkflowEngine.models import ProcessTask
+from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 User = get_user_model()
 
@@ -184,7 +185,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
 
     ip.sip_path = os.path.relpath(sip_dst, ip.object_path)
     ip.save()
-    self.create_success_event("Received SIP")
+    self.create_success_event("Received SIP ({})".format(ip.object_identifier_value))
     return sip_dst
 
 
@@ -205,9 +206,9 @@ def ReceiveAIP(self, workarea):
     ip.save(update_fields=['object_path'])
 
 
-@app.task(bind=True)
+@app.task(bind=True, event_type=30800)
 def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=False, package_xml=False,
-              aic_xml=False, object_identifier_value="", dst=None):
+              aic_xml=False, object_identifier_value="", dst=None, local=True):
     aip = InformationPackage.objects.get(pk=aip)
 
     # if it is a received IP, i.e. from ingest and not from storage,
@@ -246,12 +247,24 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
 
         return str(workarea_obj.pk)
 
+    msg_warning = ""
     if storage_object is not None:
         storage_object = StorageObject.objects.get(pk=storage_object)
+        if not storage_object.readable():
+            msg_warning = f" (Warning! Storage {storage_object.storage_medium.medium_id} is not readable)"
+            storage_object = aip.get_fastest_readable_storage_object()
     else:
         storage_object = aip.get_fastest_readable_storage_object()
 
-    aip.access(storage_object, self.get_processtask(), dst=dst)
+    aip.access(storage_object, self.get_processtask(), dst=dst, local=local)
+
+    if storage_object.storage_medium.storage_target.remote_server:
+        msg = self.get_processtask().result
+    else:
+        msg = "Retrieved information package from storage {} to workspace{}".format(
+            storage_object.storage_medium.medium_id, msg_warning)
+    self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='robot', track=False)
@@ -408,8 +421,10 @@ def UnmountIdleDrives(self):
             robot=robot, req_type=10, status__in=[0, 2],
         ).exists()
 
+        num_of_available_drives = TapeDrive.objects.filter(robot=robot, status=20,
+                                                           storage_medium__isnull=True, locked=False).count()
         drive_filter = Q(robot=robot, status=20, storage_medium__isnull=False, locked=False)
-        if robot_queue_mount_entry_exists:
+        if robot_queue_mount_entry_exists and num_of_available_drives == 0:
             drive_filter &= Q(last_change__lte=timezone.now() - timedelta(seconds=60))
         else:
             drive_filter &= Q(last_change__lte=timezone.now() - F('idle_time'))
@@ -431,3 +446,95 @@ def UnmountIdleDrives(self):
                         req_type=20, status=0,
                         user=User.objects.get(username='system'),
                     )
+
+
+@app.task(bind=True, track=False)
+def PollProcessStepQueue(self):
+    logger = logging.getLogger('essarch.workflow.tasks.PollProcessStepQueue')
+    lock_key = 'poll_process_step_queue'
+    if cache.keys(lock_key):
+        logger.debug('Polling process step queue already running')
+        return
+
+    with cache.lock(lock_key, timeout=3600):
+        logger.debug('Polling process step queue')
+        cache_running_key = 'running_process_steps'
+        max_running_steps = getattr(settings, 'ESSARCH_MAX_RUNNING_STEPS', 10)
+        for root_step in ProcessStep.objects.filter(parent=None, run_state='STARTED'):
+            if (root_step.get_children().filter(part_root=True).exists() and
+                    root_step.status not in [celery_states.FAILURE, celery_states.REVOKED]):
+                logger.info('root_step {} (STARTED) has part_root steps'.format(root_step))
+                # Set run_state to SUCCESS if step.status is SUCCESS
+                for part_root_step in root_step.get_children().filter(part_root=True, run_state='STARTED'):
+                    if part_root_step.status == celery_states.SUCCESS:
+                        logger.info('root_step {} with part_root step {} is SUCCESS'.format(root_step, part_root_step))
+                        part_root_step.run_state = 'SUCCESS'
+                        part_root_step.save(update_fields=['run_state'])
+
+                # Run pending part root steps if max_running_steps is not reached
+                cache.set(cache_running_key, ProcessStep.objects.filter(run_state='STARTED').count())
+                for part_root_step in root_step.get_children().filter(part_root=True, run_state='PENDING'):
+                    if (part_root_step.status == celery_states.PENDING and
+                            cache.get(cache_running_key) < max_running_steps):
+                        logger.info('root_step {} with part_root step {} is PENDING starting'.format(
+                            root_step, part_root_step))
+                        part_root_step.run()
+                        part_root_step.run_state = 'STARTED'
+                        part_root_step.save(update_fields=['run_state'])
+                        cache.incr(cache_running_key)
+                    else:
+                        logger.info('root_step {} with part_root do not start more PENDING steps, already \
+running {}'.format(root_step, cache.get(cache_running_key)))
+                        break
+
+            # Set run_state to SUCCESS if no children are running and status is SUCCESS
+            if (not root_step.get_children().filter(part_root=True).exclude(run_state='SUCCESS').exists() and
+                    root_step.status == celery_states.SUCCESS):
+                logger.info('root_step {} is SUCCESS'.format(root_step))
+                root_step.run_state = 'SUCCESS'
+                root_step.save(update_fields=['run_state'])
+
+        cache.set(cache_running_key, ProcessStep.objects.filter(run_state='STARTED').count())
+        if (ProcessStep.objects.filter(parent=None, run_state='PENDING').exists() and
+                cache.get(cache_running_key) < max_running_steps):
+            for root_step in ProcessStep.objects.filter(parent=None, run_state='PENDING'):
+                if root_step.get_children().filter(part_root=True).exists():
+                    if (getattr(settings, 'ESSARCH_RUN_SINGLE_ROOT_STEP_IF_RUNNING_PART_ROOT_STEP', True) and
+                            ProcessStep.objects.filter(parent=None, run_state='STARTED',
+                                                       child_steps__run_state__in=['STARTED', 'PENDING']).exists()):
+                        logger.info('root_step with running part_root steps (STARTED or PENDING) already exists, do \
+not try to start new')
+                        continue
+                    logger.info('root_step {} (PENDING) has part_root steps'.format(root_step))
+                    # Run pending part root steps if max_running_steps is not reached
+                    for part_root_step in root_step.get_children().filter(part_root=True, run_state='PENDING'):
+                        if (part_root_step.status == celery_states.PENDING and
+                                cache.get(cache_running_key) < max_running_steps):
+                            logger.info('root_step {} with part_root step {} is PENDING starting'.format(
+                                root_step, part_root_step))
+                            part_root_step.run()
+                            part_root_step.run_state = 'STARTED'
+                            part_root_step.save(update_fields=['run_state'])
+                            cache.incr(cache_running_key)
+                        else:
+                            logger.info('root_step {} with part_root do not start more PENDING steps, already \
+running {}'.format(root_step, cache.get(cache_running_key)))
+                            break
+                    if (root_step.get_children().filter(part_root=True, run_state='STARTED').exists() and
+                            root_step.run_state == 'PENDING'):
+                        logger.info('root_step {} with STARTED part_root_step, flag root_step to STARTED'.format(
+                            root_step))
+                        root_step.run_state = 'STARTED'
+                        root_step.save(update_fields=['run_state'])
+                elif cache.get(cache_running_key) < max_running_steps:
+                    # Run pending root steps if max_running_steps is not reached
+                    logger.info('root_step {} without part_root_step starting and flag root_step to STARTED'.format(
+                        root_step))
+                    root_step.run()
+                    root_step.run_state = 'STARTED'
+                    root_step.save(update_fields=['run_state'])
+                    cache.incr(cache_running_key)
+                else:
+                    logger.info('Do not start more PENDING steps, already running {}'.format(
+                        cache.get(cache_running_key)))
+                    break

@@ -727,6 +727,7 @@ export default class ConversionCtrl {
               vm.resetNewAndCollectedObjects();
 
               if (vm.objectsFromAPI.length > 0) {
+                const purpose = vm.flowOptions.purpose;
                 vm.flowOptions = {};
                 datapreset = angular.extend(vm.flowOptions, {
                   actions: vm.objectsFromAPI.map((x) => {
@@ -742,10 +743,12 @@ export default class ConversionCtrl {
                       options: x.args[2],
                     };
                   }),
+                  purpose: purpose,
                 });
               }
 
               if (vm.newObjects.length > 0) {
+                const purpose = vm.flowOptions.purpose;
                 vm.flowOptions = {};
                 datanewactions = angular.extend(vm.flowOptions, {
                   actions: vm.newObjects.map((x) => {
@@ -755,6 +758,7 @@ export default class ConversionCtrl {
                       path: x.path,
                     };
                   }),
+                  purpose: purpose,
                 });
               }
 

@@ -25,13 +25,17 @@
 import uuid
 
 from celery import states as celery_states
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from ESSArch_Core.auth.fields import CurrentUsernameDefault
 from ESSArch_Core.celery.backends.database import DatabaseBackend
+from ESSArch_Core.essxml.Generator.xmlGenerator import parse_args, parse_params
 from ESSArch_Core.exceptions import Conflict
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 from ESSArch_Core.WorkflowEngine.util import get_result
+
+User = get_user_model()
 
 
 class ProcessStepChildrenSerializer(serializers.Serializer):
@@ -62,7 +66,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     def get_retried(self, obj):
         try:
             return obj.retried.pk
-        except BaseException:
+        except Exception:
             return None
 
     def get_url(self, obj):
@@ -77,7 +81,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
     def get_label(self, obj):
         if type(obj).__name__ == 'ProcessTask':
             return obj.label
-        return obj.name
+        return obj.label if obj.label else obj.name
 
     def get_step_position(self, obj):
         return obj.get_pos()
@@ -86,9 +90,7 @@ class ProcessStepChildrenSerializer(serializers.Serializer):
 class ProcessTaskSerializer(serializers.ModelSerializer):
     args = serializers.JSONField(required=False)
     params = serializers.SerializerMethodField()
-    responsible = serializers.SlugRelatedField(
-        slug_field='username', read_only=True
-    )
+    responsible = serializers.SlugRelatedField(queryset=User.objects.all(), slug_field='username', required=False)
     information_package_str = serializers.SerializerMethodField()
 
     def get_params(self, obj):
@@ -125,7 +127,7 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
             'information_package_str', 'eager',
         )
         read_only_fields = (
-            'id', 'progress', 'time_created', 'time_started', 'time_done', 'retried',
+            'time_created', 'time_started', 'time_done', 'retried',
         )
         extra_kwargs = {
             'id': {
@@ -135,9 +137,28 @@ class ProcessTaskSerializer(serializers.ModelSerializer):
         }
 
 
+class ProcessTaskWriteSerializer(ProcessTaskSerializer):
+    params = serializers.JSONField(required=False)
+
+
+class PickledObjectSerializerField(serializers.Field):
+    def to_representation(self, obj):
+        # Convert the object to something JSON-serializable
+        try:
+            return obj  # assuming it's a dict/list/str/etc.
+        except Exception:
+            return str(obj)  # fallback for debugging
+
+    def to_internal_value(self, data):
+        return data  # just pass raw data; model field handles pickling
+
+
 class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     result = serializers.SerializerMethodField()
     exception_str = serializers.SerializerMethodField()
+    params_parsed = serializers.SerializerMethodField()
+    args_parsed = serializers.SerializerMethodField()
+    exception = PickledObjectSerializerField()
 
     def get_exception_str(self, obj):
         if obj.exception is None:
@@ -151,13 +172,23 @@ class ProcessTaskDetailSerializer(ProcessTaskSerializer):
     def get_result(self, obj):
         return str(obj.result)
 
+    def get_params_parsed(self, obj):
+        params = obj.params
+        for param, reference in obj.result_params.items():
+            params[param] = get_result(obj.processstep, reference)
+
+        return parse_params(params, obj.information_package)
+
+    def get_args_parsed(self, obj):
+        return parse_args(obj.args, obj.information_package)
+
     class Meta:
         model = ProcessTaskSerializer.Meta.model
         fields = ProcessTaskSerializer.Meta.fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception_str', 'eager',
+            'celery_id', 'args_parsed', 'params_parsed', 'result', 'traceback', 'exception', 'exception_str', 'eager',
         )
         read_only_fields = ProcessTaskSerializer.Meta.read_only_fields + (
-            'celery_id', 'args', 'params', 'result', 'traceback', 'exception',
+            'celery_id', 'args', 'args_parsed', 'params', 'params_parsed', 'result', 'traceback', 'exception',
         )
         extra_kwargs = ProcessTaskSerializer.Meta.extra_kwargs
 
@@ -171,6 +202,7 @@ class ProcessTaskSetSerializer(ProcessTaskSerializer):
 
 
 class ProcessStepSerializer(serializers.ModelSerializer):
+    label = serializers.SerializerMethodField()
     user = serializers.CharField(read_only=True, default=CurrentUsernameDefault())
     flow_type = serializers.SerializerMethodField()
     information_package_str = serializers.SerializerMethodField()
@@ -178,6 +210,9 @@ class ProcessStepSerializer(serializers.ModelSerializer):
     responsible = serializers.SlugRelatedField(
         slug_field='username', read_only=True
     )
+
+    def get_label(self, obj):
+        return obj.label if obj.label else obj.name
 
     def get_flow_type(self, obj):
         return 'task' if type(obj).__name__ == 'ProcessTask' else 'step'
@@ -196,8 +231,8 @@ class ProcessStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProcessStep
         fields = (
-            'url', 'id', 'name', 'result', 'type', 'user', 'parallel',
-            'status', 'progress', 'time_created', 'parent',
+            'url', 'id', 'name', 'label', 'result', 'part_root', 'user', 'parallel',
+            'run_state', 'status', 'progress', 'time_created', 'parent',
             'parent_pos', 'information_package', 'information_package_str',
             'flow_type', 'step_position', 'responsible',
         )
@@ -240,8 +275,8 @@ class ProcessStepDetailSerializer(ProcessStepSerializer):
     class Meta:
         model = ProcessStepSerializer.Meta.model
         fields = ProcessStepSerializer.Meta.fields + (
-            'task_count', 'failed_task_count', 'exception', 'traceback'
+            'celery_id', 'task_count', 'failed_task_count', 'exception', 'traceback'
         )
         read_only_fields = ProcessStepSerializer.Meta.read_only_fields + (
-            'task_count', 'failed_task_count', 'exception', 'traceback'
+            'celery_id', 'task_count', 'failed_task_count', 'exception', 'traceback'
         )

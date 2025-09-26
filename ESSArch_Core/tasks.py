@@ -26,8 +26,10 @@ import logging
 import os
 import shutil
 import tarfile
+import time
 from os import walk
 from pathlib import PurePath
+from urllib.parse import urljoin
 
 import requests
 from django.conf import settings
@@ -35,6 +37,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.db import transaction
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext
 from django_redis import get_redis_connection
@@ -173,6 +176,12 @@ def InsertXML(self, filename=None, elementToAppendTo=None, spec=None, info=None,
     self.create_success_event(msg)
 
 
+@app.task(bind=True)
+def AddEvent(self, event_type, outcome, msg, retval=None, einfo=None):
+    self.event_type = event_type
+    self.create_event(outcome, msg, retval, einfo)
+
+
 @app.task(bind=True, event_type=50610)
 def AppendEvents(self, filename="", events=None):
     append_events(self.ip, events, filename)
@@ -182,6 +191,7 @@ def AppendEvents(self, filename="", events=None):
         filename = ip.get_events_file_path()
     msg = "Appended events to %s" % filename
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, event_type=50400)
@@ -329,7 +339,10 @@ def ValidateXMLFile(self, xml_filename=None, schema_filename=None, rootdir=None)
     """
 
     Validation.objects.filter(task=self.get_processtask()).delete()
-    xml_filename, schema_filename = self.parse_params(xml_filename, schema_filename)
+    _xml_filename, _schema_filename = self.parse_params(xml_filename, schema_filename)
+    if not _xml_filename:
+        time.sleep(5)
+        _xml_filename, _schema_filename = self.parse_params(xml_filename, schema_filename)
     if rootdir is None and self.ip is not None:
         ip = InformationPackage.objects.get(pk=self.ip)
         rootdir = ip.object_path
@@ -337,43 +350,46 @@ def ValidateXMLFile(self, xml_filename=None, schema_filename=None, rootdir=None)
         rootdir, = self.parse_params(rootdir)
 
     validator = XMLSchemaValidator(
-        context=schema_filename,
+        context=_schema_filename,
         options={'rootdir': rootdir},
         ip=self.ip,
         task=self.get_processtask()
     )
-    validator.validate(xml_filename)
+    validator.validate(_xml_filename)
 
-    msg = "Validated %s against schema" % xml_filename
+    msg = "Validated %s against schema" % _xml_filename
     self.create_success_event(msg)
     return "Success"
 
 
 @app.task(bind=True, queue='validation', event_type=50220)
-def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, relpath=None):
+def ValidateLogicalPhysicalRepresentation(self, path, xml_filename, skip_files=None, relpath=None):
     """
     Validates the logical and physical representation of objects.
     """
 
     Validation.objects.filter(task=self.get_processtask()).delete()
-    path, xmlfile, = self.parse_params(path, xmlfile)
+    _path, _xml_filename, = self.parse_params(path, xml_filename)
+    if not _xml_filename:
+        time.sleep(5)
+        _path, _xml_filename = self.parse_params(path, xml_filename)
     if skip_files is None:
         skip_files = []
     else:
         skip_files = self.parse_params(*skip_files)
 
     if relpath is not None:
-        rootdir, = self.parse_params(relpath) or path
+        rootdir, = self.parse_params(relpath) or _path
     else:
-        if os.path.isdir(path):
-            rootdir = path
+        if os.path.isdir(_path):
+            rootdir = _path
         else:
-            rootdir = os.path.dirname(path)
+            rootdir = os.path.dirname(_path)
 
     ip = InformationPackage.objects.get(pk=self.ip)
-    validator = DiffCheckValidator(context=xmlfile, exclude=skip_files, options={'rootdir': rootdir},
+    validator = DiffCheckValidator(context=_xml_filename, exclude=skip_files, options={'rootdir': rootdir},
                                    task=self.get_processtask(), ip=self.ip, responsible=ip.responsible)
-    msg = validator.validate(path)
+    msg = validator.validate(_path)
 
     self.create_success_event(msg)
     return msg
@@ -382,7 +398,10 @@ def ValidateLogicalPhysicalRepresentation(self, path, xmlfile, skip_files=None, 
 @app.task(bind=True, queue='validation', event_type=50240)
 def CompareXMLFiles(self, first, second, rootdir=None, recursive=True):
     Validation.objects.filter(task=self.get_processtask()).delete()
-    first, second = self.parse_params(first, second)
+    _first, _second = self.parse_params(first, second)
+    if not _first:
+        time.sleep(5)
+        _first, _second = self.parse_params(first, second)
     ip = InformationPackage.objects.get(pk=self.ip)
     if rootdir is None:
         rootdir = ip.object_path
@@ -390,16 +409,15 @@ def CompareXMLFiles(self, first, second, rootdir=None, recursive=True):
         rootdir, = self.parse_params(rootdir)
 
     validator = XMLComparisonValidator(
-        context=first,
+        context=_first,
         options={'rootdir': rootdir, 'recursive': recursive},
         task=self.get_processtask(),
         ip=self.ip,
         responsible=ip.responsible,
     )
-    validator.validate(second)
-
-    msg = "%s and %s has the same set of files" % (first, second)
+    msg = validator.validate(_second)
     self.create_success_event(msg)
+    return msg
 
 
 @app.task(bind=True, queue='validation', event_type=50240)
@@ -456,7 +474,10 @@ def UpdateIPStatus(self, status, prev=None):
         t.params['prev'] = ip.state
         t.save()
     ip.state = status
-    ip.save()
+    ip.save(update_fields=['state'])
+    ip.refresh_from_db()
+    if not ip.state == status:
+        ip.save(update_fields=['state'])
     ip_state_dict = {'Aggregating': gettext('Aggregating'),
                      'Creating': gettext('Creating'),
                      'Created': gettext('Created'),
@@ -475,7 +496,8 @@ def UpdateIPStatus(self, status, prev=None):
         level=logging.INFO, user_id=self.responsible, refresh=True)
 
     msg = "Updated status of {} to {}".format(ip.object_identifier_value, status)
-    self.create_success_event(msg)
+    self.create_event_from_task_log_dict(msg)
+    return status
 
 
 @app.task(bind=True, event_type=50500)
@@ -492,21 +514,22 @@ def UpdateIPPath(self, path, prev=None):
     ip.object_path = path
     ip.save()
 
-    msg = "Updated path of {} to {}".format(ip.object_identifier_value, path)
-    self.create_success_event(msg)
+    return path
 
 
 @app.task(bind=True, queue='file_operation')
-def UpdateIPSizeAndCount(self):
-    ip = self.ip
-    path = InformationPackage.objects.values_list('object_path', flat=True).get(pk=ip)
-    size, count = get_tree_size_and_count(path)
+def UpdateIPSizeAndCount(self, success_state=None):
+    ip = InformationPackage.objects.get(pk=self.ip)
+    size, count = get_tree_size_and_count(ip.object_path)
 
-    InformationPackage.objects.filter(pk=ip).update(
-        object_size=size, object_num_items=count,
-        last_changed_local=timezone.now(),
-    )
+    ip.object_size = size
+    ip.object_num_items = count
+    ip.last_changed_local = timezone.now()
+    ip.save(update_fields=['object_size', 'object_num_items', 'last_changed_local'])
 
+    if success_state:
+        ip.state = "Uploaded"
+        ip.save(update_fields=['state'])
     msg = "Updated size and count of IP"
     self.create_success_event(msg)
 
@@ -519,7 +542,8 @@ def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
     delete_path(path, remote_host=remote_host, remote_credentials=remote_credentials, task=self.get_processtask())
 
     msg = "Deleted %s" % path
-    self.create_success_event(msg)
+    self.create_event_from_task_log_dict(msg)
+    return msg
 
 
 @app.task(bind=True)
@@ -527,14 +551,19 @@ def DeleteFiles(self, path, remote_host=None, remote_credentials=None):
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
 def CopyDir(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     src, dst = self.parse_params(src, dst)
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            session.auth = (user, passw)
 
-    copy_dir(src, dst, requests_session=requests_session, block_size=block_size)
+    copy_dir(src, dst, requests_session=session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
     self.create_success_event(msg)
@@ -552,7 +581,7 @@ def MoveDir(self, src, dst):
 @app.task(bind=True)
 @retry(reraise=True, retry=retry_if_exception_type(NoSpaceLeftError),
        wait=wait_exponential(max=60), stop=stop_after_delay(600))
-def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
+def CopyFile(self, src, dst=None, remote_host=None, remote_credentials=None, block_size=DEFAULT_BLOCK_SIZE):
     """
     Copies the given file to the given destination
 
@@ -566,14 +595,21 @@ def CopyFile(self, src, dst, remote_credentials=None, block_size=DEFAULT_BLOCK_S
     """
 
     src, dst = self.parse_params(src, dst)
-    requests_session = None
+    session = None
     if remote_credentials:
-        user, passw = decrypt_remote_credentials(remote_credentials)
-        requests_session = requests.Session()
-        requests_session.verify = settings.REQUESTS_VERIFY
-        requests_session.auth = (user, passw)
+        session = requests.Session()
+        session.verify = settings.REQUESTS_VERIFY
+        credential_list = decrypt_remote_credentials(remote_credentials)
+        if len(credential_list) == 1:
+            token = credential_list[0]
+            session.headers['Authorization'] = 'Token %s' % token
+        else:
+            user, passw = credential_list
+            session.auth = (user, passw)
+        if dst is None and remote_host:
+            dst = urljoin(remote_host, reverse('informationpackage-add-file-from-master'))
 
-    copy_file(src, dst, requests_session=requests_session, block_size=block_size)
+    copy_file(src, dst, requests_session=session, block_size=block_size)
 
     msg = "Copied %s to %s" % (src, dst)
     self.create_success_event(msg)
@@ -801,8 +837,9 @@ def RunWorkflowPollers(self):
                                       on_error=spec.get('on_error'), context=context)
 
     self.logger = logging.getLogger('essarch.core.tasks.RunWorkflowPollers')
+    poller = getattr(settings, 'ESSARCH_WORKFLOW_POLLERS_RUN_POLLER', False)
     for workflow in get_workflows():
-        workflow.run()
+        workflow.run(poller=poller)
 
 
 @app.task(bind=True)

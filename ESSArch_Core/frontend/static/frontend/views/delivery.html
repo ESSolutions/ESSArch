@@ -96,9 +96,7 @@
               <td>{{x.name}}</td>
               <td>{{x.type.name}}</td>
               <td>{{x.description}}</td>
-              <td>
-                {{x.producer_organization ? AgentName.getAuthorizedName(x.producer_organization).full_name : ''}}
-              </td>
+              <td>{{x.producer_organization ? AgentName.parseAgentName(x.producer_organization).full_name : ''}}</td>
               <td>{{x.submission_agreement.name}}</td>
               <td class="text-center shrink" permission permission-only="'tags.change_delivery'">
                 <button

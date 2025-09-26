@@ -64,7 +64,6 @@ import NodeAccessAidModalInstanceCtrl from '../controllers/NodeAccessAidModalIns
 import NodeDeliveryModalInstanceCtrl from '../controllers/NodeDeliveryModalInstanceCtrl';
 import NodeAppraisalJobModalInstanceCtrl from '../controllers/NodeAppraisalJobModalInstanceCtrl';
 import NodeIdentifierModalInstanceCtrl from '../controllers/NodeIdentifierModalInstanceCtrl';
-import NodeOrganizationModalInstanceCtrl from '../controllers/NodeOrganizationModalInstanceCtrl';
 import NodeTransferModalInstanceCtrl from '../controllers/NodeTransferModalInstanceCtrl';
 import OrderModalInstanceCtrl from '../controllers/OrderModalInstanceCtrl';
 import OrdersCtrl from '../controllers/OrdersCtrl';
@@ -686,6 +685,7 @@ export default angular
     'listViewService',
     '$translate',
     '$rootScope',
+    '$q',
     ModalInstanceCtrl,
   ])
   .controller('NodeAccessAidModalInstanceCtrl', [
@@ -770,16 +770,6 @@ export default angular
     'EditMode',
     '$rootScope',
     NodeNoteModalInstanceCtrl,
-  ])
-  .controller('NodeOrganizationModalInstanceCtrl', [
-    '$translate',
-    '$uibModalInstance',
-    'appConfig',
-    '$http',
-    'data',
-    'Notifications',
-    'Organization',
-    NodeOrganizationModalInstanceCtrl,
   ])
   .controller('NodeTransferModalInstanceCtrl', [
     '$scope',

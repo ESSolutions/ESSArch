@@ -2,12 +2,12 @@
   <div class="content-wrapper">
     <div class="list-view" ng-include src="'static/frontend/views/list_view_table.html'"></div>
     <uib-tabset
-      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0) && !(ips.length > 0 && vm.specificTabs.includes('create_dip'))"
+      ng-if="(ip !== null || ips.length > 0) && !(vm.specificTabs.length == 0 && ips.length > 0)"
       active="vm.activeTab"
       class="tabs tabs-style-bar"
     >
       <uib-tab
-        ng-if="ip.state === 'Created' || vm.specificTabs.includes('preserve')"
+        ng-if="(ip.state === 'Created' && ips.length === 0) || (vm.specificTabs.includes('preserve') && ips.length === 0)"
         index="'preserve'"
         heading="{{'DISSEMINATION' | translate}}"
       >
@@ -45,10 +45,11 @@
               </div>
             </form>
           </div>
+          <!-- It does not work to preserve DIP as we have blocked preservation of DIP in the backend --- ng-if="vm.request.type == 'download_dip' || vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'" -->
           <div
             tabindex="-1"
             ng-keydown="vm.contentViewsKeydownListener($event)"
-            ng-if="vm.request.type == 'download_dip' || vm.request.type == 'edit_as_new' || vm.request.type == 'view' || vm.request.type == 'diff_check' || vm.request.type == 'preserve'"
+            ng-if="vm.request.type == 'download_dip'"
             class="select-sub-edit-eventlog-wrapper"
           >
             <div class="eventlog-view">
@@ -104,7 +105,7 @@
         </div>
       </uib-tab>
       <uib-tab
-        ng-if="ip !== null && ips.length == 0 && ip.state === 'Prepared'"
+        ng-if="(ip !== null && ip.state === 'Prepared') || (ips.length > 0 && vm.allIncludedWithState(ips, 'Prepared'))"
         index="'create_dip'"
         heading="{{'CREATEDIP' | translate}}"
       >
@@ -115,7 +116,7 @@
           id="select-wrap"
           class="select-sub-edit-eventlog-wrapper"
         >
-          <div ng-if="select" id="select-view" class="select-view">
+          <div ng-if="select && ip.state === 'Prepared'" id="select-view" class="select-view">
             <div ng-include src="'static/frontend/views/dip_filebrowser.html'"></div>
           </div>
           <div class="px-base">
@@ -172,7 +173,7 @@
     </uib-tabset>
     <div
       class="no-tabs-available"
-      ng-if="(ip !== null || ips.length > 0) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs' || (ips.length > 0 && vm.specificTabs.includes('create_dip')))"
+      ng-if="(ip !== null) && ((vm.specificTabs.length == 0 && ips.length > 0 ) || vm.activeTab === 'no_tabs' || (ips.length > 0 && vm.specificTabs.includes('create_dip')))"
     >
       <h4>{{'NO_ACTIONS_FOR_SELECTED_IPS' | translate}}</h4>
     </div>

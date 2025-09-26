@@ -16,37 +16,15 @@ from tenacity import (
 )
 
 from ESSArch_Core.fixity.checksum import calculate_checksum
-from ESSArch_Core.storage.exceptions import NoSpaceLeftError
-from ESSArch_Core.util import get_tree_size_and_count
+from ESSArch_Core.storage.util import enough_space_available
+from ESSArch_Core.util import (
+    pretty_mb_per_sec,
+    pretty_size,
+    pretty_time_to_sec,
+)
 
 MB = 1024 * 1024
 DEFAULT_BLOCK_SIZE = 10 * MB
-
-
-def enough_space_available(dst: str, src: str, raise_exception: bool = False) -> bool:
-    """
-    Tells if there is enough space available at
-    path dst for src to be copied there
-
-    :param src: Path to be copied
-    :param dst: Destination
-    :param raise_exception: Raises exception if set to true and enough space
-        is not available
-    :return: True if src can be copied to dst, else False
-    """
-
-    src_size, _ = get_tree_size_and_count(src)
-    dst_free_space = shutil.disk_usage(dst).free
-
-    try:
-        assert src_size <= dst_free_space
-    except AssertionError:
-        if raise_exception:
-            raise NoSpaceLeftError(f'Not enough space available for {src} at {dst}')
-
-        return False
-
-    return True
 
 
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
@@ -87,7 +65,8 @@ def copy_chunk_remotely(src, dst, offset, file_size, requests_session, upload_id
 
     logger.info(
         'Copied chunk bytes %s - %s / %s from %s to %s at %s MB/Sec (%s sec)' % (
-            start, end, file_size, src, dst, mb_per_sec, response_time
+            start, end, file_size, src, dst, pretty_mb_per_sec(
+                mb_per_sec), pretty_time_to_sec(response_time)
         )
     )
 
@@ -106,17 +85,15 @@ def copy_file_locally(src, dst):
     time_end = time.time()
 
     time_elapsed = time_end - time_start
-
     fsize_mb = fsize / MB
-
     try:
         mb_per_sec = fsize_mb / time_elapsed
     except ZeroDivisionError:
         mb_per_sec = fsize_mb
 
     logger.info(
-        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
-            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        'Copied {} ({}) to {} at {} MB/Sec ({} sec)'.format(
+            src, pretty_size(fsize), dst, pretty_mb_per_sec(mb_per_sec), pretty_time_to_sec(time_elapsed)
         )
     )
 
@@ -158,20 +135,18 @@ def copy_file_remotely(src, dst, requests_session, block_size=DEFAULT_BLOCK_SIZE
     headers = {'Content-Type': m.content_type}
 
     _send_completion_request(requests_session, completion_url, m, headers)
-
     time_end = time.time()
+
     time_elapsed = time_end - time_start
-
     fsize_mb = fsize / MB
-
     try:
         mb_per_sec = fsize_mb / time_elapsed
     except ZeroDivisionError:
         mb_per_sec = fsize_mb
 
     logger.info(
-        'Copied {} ({} MB) to {} at {} MB/Sec ({} sec)'.format(
-            src, fsize_mb, dst, mb_per_sec, time_elapsed
+        'Copied {} ({}) to {} at {} MB/Sec ({} sec)'.format(
+            src, pretty_size(fsize), dst, pretty_mb_per_sec(mb_per_sec), pretty_time_to_sec(time_elapsed)
         )
     )
 

@@ -30,7 +30,7 @@ from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import exceptions, viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import GenericAPIView
+from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework_extensions.mixins import NestedViewSetMixin
 
@@ -48,6 +48,7 @@ from ESSArch_Core.WorkflowEngine.serializers import (
     ProcessStepSerializer,
     ProcessTaskDetailSerializer,
     ProcessTaskSerializer,
+    ProcessTaskWriteSerializer,
 )
 
 
@@ -104,8 +105,10 @@ class ProcessStepViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='child-steps')
     def child_steps(self, request, pk=None):
-        step = self.get_object()
-        child_steps = step.child_steps.all()
+        queryset = self.get_queryset()
+        step = get_object_or_404(queryset, **{self.lookup_field: self.kwargs[self.lookup_field]})
+        self.check_object_permissions(self.request, step)
+        child_steps = self.filter_queryset(step.child_steps.all())
         page = self.paginate_queryset(child_steps)
         if page is not None:
             serializers = ProcessStepSerializer(page, many=True, context={'request': request})
@@ -133,8 +136,10 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         return self.filter_queryset_by_parents_lookups(queryset)
 
     def get_serializer_class(self):
-        if self.action in ['create', 'list']:
-            return ProcessTaskSerializer
+        if self.action in ['list']:
+            return self.serializer_class
+        elif self.action in ['create', 'update', 'partial_update']:
+            return ProcessTaskWriteSerializer
 
         return ProcessTaskDetailSerializer
 
@@ -147,8 +152,8 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
     @action(detail=True, methods=['post'], permission_classes=[CanRevoke])
     def revoke(self, request, pk=None):
         obj = self.get_object()
-        if obj.status != celery_states.STARTED:
-            raise exceptions.ParseError('Only running tasks can be revoked')
+        if obj.status not in [celery_states.STARTED, celery_states.PENDING]:
+            raise exceptions.ParseError('Only running or pending tasks can be revoked')
 
         obj.revoke()
         return Response({'status': 'revoked task'})
@@ -159,7 +164,7 @@ class ProcessTaskViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         if obj.status not in celery_states.EXCEPTION_STATES:
             raise exceptions.ParseError('Only failed tasks can be retried')
 
-        root = obj.get_root_step()
+        root = obj.get_part_root_step()
         if root is not None:
             root.resume()
         else:

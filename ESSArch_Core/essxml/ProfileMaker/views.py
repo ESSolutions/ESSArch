@@ -240,7 +240,7 @@ def removeChild(request, name, uuid):
         if child['uuid'] == uuid:
             try:
                 name = child['name'].split('#')[0]
-            except BaseException:
+            except Exception:
                 name = child['name']
 
             deleted_name = name
@@ -254,7 +254,7 @@ def removeChild(request, name, uuid):
             try:
                 name, copy_idx = child['name'].split('#')
                 copy_idx = int(copy_idx)
-            except BaseException:
+            except Exception:
                 name = child['name']
 
             if deleted_name == name:
@@ -364,7 +364,7 @@ def addChild(request, name, newElementName, elementUuid):
     for idx, child in enumerate(existingElements[elementUuid]['children']):
         try:
             name = child['name'].split('#')[0]
-        except BaseException:
+        except Exception:
             name = child['name']
 
         if name == newElementName:
@@ -491,7 +491,7 @@ class add(View):
             if templatePackage.objects.filter(pk=name).exists():
                 return HttpResponse('ERROR: templatePackage with name "' + name + '" already exists!')
 
-            from requests.packages.urllib3.exceptions import (
+            from urllib3.exceptions import (
                 InsecurePlatformWarning,
                 InsecureRequestWarning,
             )
@@ -539,7 +539,7 @@ class addExtension(View):
             prefix = form.cleaned_data.get('namespace_prefix')
             schema = form.cleaned_data.get('schema')
 
-            from requests.packages.urllib3.exceptions import (
+            from urllib3.exceptions import (
                 InsecurePlatformWarning,
                 InsecureRequestWarning,
             )

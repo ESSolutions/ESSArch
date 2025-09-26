@@ -19,12 +19,12 @@ class DBHandler(Handler):
     def emit(self, record):
         try:
             EventIP = self.get_model(self.model_name)
-        except BaseException:
+        except Exception:
             from ESSArch_Core.ip.models import EventIP
 
         try:
             EventType = self.get_model(self.event_type_model_name)
-        except BaseException:
+        except Exception:
             from ESSArch_Core.configuration.models import EventType
 
         if getattr(record, 'event_type', None) is None:
@@ -38,7 +38,11 @@ class DBHandler(Handler):
             enabled = cache.get(cache_name)
 
             if enabled is None:
-                enabled = EventType.objects.values_list('enabled', flat=True).get(pk=record.event_type)
+                try:
+                    enabled = EventType.objects.values_list('enabled', flat=True).get(pk=record.event_type)
+                except EventType.DoesNotExist as e:
+                    message_info = 'No "EventType" found for: {}'.format(record.event_type)
+                    raise ValueError(message_info) from e
                 cache.set(cache_name, enabled, 3600)
 
         if enabled or forced:

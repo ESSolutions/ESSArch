@@ -15,6 +15,7 @@ export default {
     '$rootScope',
     '$translate',
     'listViewService',
+    'ContextMenuBase',
     '$transitions',
     AgentCtrl,
   ],

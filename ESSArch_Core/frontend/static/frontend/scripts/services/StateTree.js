@@ -27,7 +27,7 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
       promise = Step.query(
         angular.extend(
           {
-            name: 'Migrate Information Package',
+            name: 'Migrate Storage Medium',
             childs: true,
             hidden: false,
             page: paginationParams.pageNumber,
@@ -157,11 +157,15 @@ export default (IP, Step, $filter, linkHeaderParser, Workarea, $state) => {
       const linkHeader = resource.$httpHeaders('Link');
       if (linkHeader !== null) {
         const link = linkHeaderParser.parse(linkHeader);
+        link.first ? (step.first = link.first) : (step.first = null);
         link.next ? (step.next = link.next) : (step.next = null);
         link.prev ? (step.prev = link.prev) : (step.prev = null);
+        link.last ? (step.last = link.last) : (step.last = null);
       } else {
+        step.first = null;
         step.next = null;
         step.prev = null;
+        step.last = null;
       }
 
       step.page_number = page_number || 1;

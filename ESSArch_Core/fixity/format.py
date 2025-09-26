@@ -180,16 +180,16 @@ class FormatIdentifier:
         time_elapsed = end_time - start_time
         size = os.path.getsize(filename)
         size_mb = size / MB
-
         try:
             mb_per_sec = size_mb / time_elapsed
         except ZeroDivisionError:
             mb_per_sec = size_mb
 
         file_format = (self.format_name, self.format_version, self.format_registry_key)
+        from ESSArch_Core.util import pretty_mb_per_sec, pretty_time_to_sec
         logger.info(
             "Identified the format of %s at %s MB/Sec (%s sec): %s" % (
-                filename, mb_per_sec, time_elapsed, file_format
+                filename, pretty_mb_per_sec(mb_per_sec), pretty_time_to_sec(time_elapsed), file_format
             )
         )
 

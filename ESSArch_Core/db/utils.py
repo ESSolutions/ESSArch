@@ -1,9 +1,18 @@
 import logging
 
+from django.conf import settings
 from django.db import connection
 from django.db.models import Case, CharField, F, IntegerField, Value, When
 from django.db.models.functions import Cast, Length, StrIndex, Substr, Trim
 from django.db.utils import OperationalError
+from tenacity import (
+    RetryError,
+    Retrying,
+    stop_after_delay,
+    wait_random_exponential,
+)
+
+DB_CONNECTION_RETRY_TIME = getattr(settings, 'DB_CONNEECTION_RETRY_TIME', 3600)
 
 
 def natural_sort(qs, field):
@@ -37,16 +46,24 @@ def check_db_connection():
     """
     logger = logging.getLogger('essarch')
     try:
-        with connection.cursor() as cursor:
-            cursor.execute("select 1")
-            one = cursor.fetchone()[0]
-            if one != 1:
-                raise Exception('The database did not pass the health check')
-    except OperationalError:
-        connection.close()
-        logger.warning('check_db_connection - OperationalError, try to establish new connection')
-        with connection.cursor() as cursor:
-            cursor.execute("select 1")
-            one = cursor.fetchone()[0]
-            if one != 1:
-                raise Exception('The database did not pass the health check')
+        for attempt in Retrying(stop=stop_after_delay(DB_CONNECTION_RETRY_TIME),
+                                wait=wait_random_exponential(multiplier=1, max=60)):
+            with attempt:
+                try:
+                    with connection.cursor() as cursor:
+                        cursor.execute("select 1")
+                        one = cursor.fetchone()[0]
+                        if one != 1:
+                            raise Exception('The database did not pass the health check')
+                except OperationalError as e:
+                    connection.close()
+                    logger.warning(
+                        'check_db_connection - OperationalError, try to establish new connection, error: {}'.format(e))
+                    with connection.cursor() as cursor:
+                        cursor.execute("select 1")
+                        one = cursor.fetchone()[0]
+                        if one != 1:
+                            raise Exception('The database did not pass the health check')
+    except RetryError:
+        logger.warning('RetryError in check_db_connection')
+        raise

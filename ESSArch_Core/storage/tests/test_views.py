@@ -259,6 +259,7 @@ class StorageMediumDeactivatableTests(TestCase):
 
         # Add IP to new method
         new_storage_method = StorageMethod.objects.create(name="new_method")
+        self.policy.storage_methods.add(new_storage_method)
         storage_target_in_new_method = StorageTarget.objects.create(name="target_in_new_method")
         StorageMethodTargetRelation.objects.create(
             storage_method=new_storage_method,
@@ -274,6 +275,24 @@ class StorageMediumDeactivatableTests(TestCase):
             content_location_type=DISK,
         )
 
+        # Add new inactive IP to old medium
+        inactive_ip = InformationPackage.objects.create(
+            archived=True,
+            submission_agreement=self.sa, active=False
+        )
+        StorageObject.objects.create(
+            ip=inactive_ip, storage_medium=self.storage_medium,
+            content_location_type=DISK,
+        )
+
+        # All objects migrated and old medium is deactivatable
+        response = self.client.get(self.url, data={'deactivatable': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['id'], str(self.storage_medium.pk))
+
+        # Include inactive IPs, all objects are not migrated,
+        # and old medium is not deactivatable
         response = self.client.get(self.url, data={'deactivatable': True, 'include_inactive_ips': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, [])
@@ -418,15 +437,41 @@ class StorageMediumMigratableTests(TestCase):
         new = add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
         self.policy.storage_methods.add(old.storage_method, new.storage_method)
 
-        for rstatus in (STORAGE_TARGET_STATUS_MIGRATE, STORAGE_TARGET_STATUS_ENABLED, STORAGE_TARGET_STATUS_READ_ONLY):
-            old.status = rstatus
-            old.save()
+        old.status = STORAGE_TARGET_STATUS_MIGRATE
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
-            with self.subTest('old method-target rel status = %s' % old.get_status_display()):
-                response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
-                self.assertEqual(len(response.data), 1)
-                self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+        old.status = STORAGE_TARGET_STATUS_ENABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'missing_storage': True})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+
+        old.status = STORAGE_TARGET_STATUS_MIGRATE
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'policy': str(self.policy.pk)})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
+
+        old.status = STORAGE_TARGET_STATUS_ENABLED
+        old.save()
+        with self.subTest('old method-target rel status = %s' % old.get_status_display()):
+            response = self.client.get(
+                self.url, data={'migratable': True, 'missing_storage': True, 'policy': str(self.policy.pk)})
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertEqual(len(response.data), 1)
+            self.assertEqual(response.data[0]['id'], str(old_medium.pk))
 
         old.status = STORAGE_TARGET_STATUS_DISABLED
         old.save()
@@ -488,7 +533,7 @@ class StorageMediumMigratableTests(TestCase):
             submission_agreement=self.sa,
         )
 
-        # default
+        # default - storage method (copy 1)
         default_rel = add_storage_method_rel(DISK, 'default', STORAGE_TARGET_STATUS_MIGRATE)
         default_medium = add_storage_medium(default_rel.storage_target, 20, 'default')
 
@@ -499,7 +544,7 @@ class StorageMediumMigratableTests(TestCase):
             status=STORAGE_TARGET_STATUS_ENABLED
         )
 
-        # long term
+        # long_term - storage method (copy 2)
         long_term_rel = add_storage_method_rel(DISK, 'default_long_term', STORAGE_TARGET_STATUS_ENABLED)
         long_term_medium = add_storage_medium(long_term_rel.storage_target, 20, 'long_term')
 
@@ -509,32 +554,41 @@ class StorageMediumMigratableTests(TestCase):
             long_term_rel.storage_method,
         )
 
-        add_storage_obj(ip1, default_medium, DISK, '')
-        add_storage_obj(ip1, long_term_medium, DISK, '')
+        add_storage_obj(ip1, default_medium, DISK, '')      # copy 1 (need migration to new_target)
+        add_storage_obj(ip1, long_term_medium, DISK, '')    # copy 2 (missing copy 1 in new_target)
 
-        add_storage_obj(ip2, long_term_medium, DISK, '')
+        add_storage_obj(ip2, long_term_medium, DISK, '')    # copy 2 (missing copy 1 in new_target)
+
+        response = self.client.get(self.url, data={'migratable': True, 'missing_storage': False})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertCountEqual(
+            [response.data[0]['id']],
+            [str(default_medium.pk)],
+        )
 
         response = self.client.get(self.url, data={'migratable': True, 'missing_storage': True})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 1)
         self.assertCountEqual(
-            [response.data[0]['id'], response.data[1]['id']],
-            [str(default_medium.pk), str(long_term_medium.pk)],
+            [response.data[0]['id']],
+            [str(long_term_medium.pk)],
         )
 
-        ip_list_url = reverse('informationpackage-list')
+        ip_list_url = reverse('storage-migrations-preview')
         response = self.client.get(ip_list_url, data={
-            'medium': str(default_medium.pk),
+            'storage_mediums': [str(default_medium.pk)],
             'migratable': True,
-            'view_type': 'flat',
+            'policy': str(self.policy.pk),
         })
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['id'], str(ip1.pk))
 
         response = self.client.get(ip_list_url, data={
-            'medium': str(long_term_medium.pk),
+            'storage_mediums': [str(long_term_medium.pk)],
+            'policy': str(self.policy.pk),
             'migratable': True,
-            'view_type': 'flat',
+            'missing_storage': True,
         })
         self.assertEqual(len(response.data), 2)
         self.assertCountEqual(
@@ -588,6 +642,7 @@ class StorageMediumDeactivateTests(TestCase):
             content_location_type=DISK,
         )
 
+    @TaskRunner()
     def test_non_migrated_medium(self):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -618,7 +673,7 @@ class StorageMediumDeactivateTests(TestCase):
         self.storage_medium.save()
 
         response = self.client.post(self.url)
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
         self.storage_medium.refresh_from_db()
         self.assertEqual(self.storage_medium.status, 0)
@@ -869,6 +924,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_method_rel_states(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -916,6 +972,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
             mock_task.assert_called_once()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_ip_with_no_storage(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_ENABLED)
         new = add_storage_method_rel(DISK, 'new', STORAGE_TARGET_STATUS_ENABLED)
@@ -934,6 +991,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         mock_task.assert_not_called()
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_bad_ip(self, mock_task):
         ip = InformationPackage.objects.create(submission_agreement=self.sa)
 
@@ -952,6 +1010,7 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         side_effect=ProcessStep.objects.create
     )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessStep.run')
+    @TaskRunner()
     def test_migration_task_order_for_information_packages(self, mock_task_run, mock_task):
         old = add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -982,22 +1041,45 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        mock_task.assert_has_calls([
-            mock.call(
-                name='Migrate Information Package',
-                eager=False,
-                information_package=ip,
+        calls = []
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
+        for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
+            # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+            #                        context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+            #                        run_state=mock.ANY))
+            calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
 
-                context=mock.ANY,
-                responsible=mock.ANY,
-            ) for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]
-        ])
+        mock_task.assert_has_calls(calls)
 
     @mock.patch(
         'ESSArch_Core.storage.serializers.ProcessStep.objects.create',
         side_effect=ProcessStep.objects.create
     )
     @mock.patch('ESSArch_Core.storage.serializers.ProcessStep.run')
+    @TaskRunner()
     def test_migration_task_order_for_storage_mediums(self, mock_task_run, mock_task):
         old = add_storage_method_rel(TAPE, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -1028,18 +1110,41 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        mock_task.assert_has_calls([
-            mock.call(
-                name='Migrate Information Package',
-                eager=False,
-                information_package=ip,
+        calls = []
+        calls.append(mock.call(
+            name='Migrate Storage Medium',
+            eager=False,
+            information_package=mock.ANY,
+            context=mock.ANY,
+            responsible=mock.ANY,
+            label=mock.ANY,
+            part_root=mock.ANY,
+            run_state=mock.ANY,
+        ))
+        for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]:
+            # calls.append(mock.call(name='Migrate Information Package', eager=False, information_package=ip,
+            #                        context=mock.ANY, responsible=mock.ANY, label=mock.ANY, part_root=mock.ANY,
+            #                        run_state=mock.ANY))
+            calls.append(mock.call(name='Write to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write non-containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Write containers to storage methods', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
+            calls.append(mock.call(name='Delete temporary files', parallel=mock.ANY, parent=mock.ANY,
+                                   parent_pos=mock.ANY, eager=False, information_package=ip, context=mock.ANY,
+                                   responsible=mock.ANY))
 
-                context=mock.ANY,
-                responsible=mock.ANY,
-            ) for ip in [ips[0], ips[5], ips[3], ips[1], ips[2], ips[4]]
-        ])
+        mock_task.assert_has_calls(calls)
 
     @mock.patch('ESSArch_Core.ip.views.ProcessStep.run')
+    @TaskRunner()
     def test_queue_duplicate_migrations(self, mock_task):
         old = add_storage_method_rel(DISK, 'old', STORAGE_TARGET_STATUS_MIGRATE)
         old_medium = add_storage_medium(old.storage_target, 20)
@@ -1068,8 +1173,8 @@ class StorageMigrationTests(StorageMigrationTestsBase):
         response = self.client.post(self.url, data=data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        self.assertEqual(ProcessStep.objects.count(), 1)
-        mock_task.assert_called_once()
+        self.assertEqual(ProcessStep.objects.count(), 11)
+        mock_task.assert_called()
 
         with self.subTest('completed task'):
             for t in ProcessStep.objects.get(name='Migrate Information Package', information_package=self.ip
@@ -1082,8 +1187,8 @@ class StorageMigrationTests(StorageMigrationTestsBase):
                 response = self.client.post(self.url, data=data)
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-            self.assertEqual(ProcessStep.objects.count(), 2)
-            mock_task.assert_called_once()
+            self.assertEqual(ProcessStep.objects.count(), 21)
+            mock_task.assert_called()
 
 
 class StorageMigrationPreviewTests(StorageMigrationTestsBase):
@@ -1232,7 +1337,7 @@ class RobotTests(APITestCase):
         for drive_id in range(4):
             TapeDrive.objects.create(drive_id=str(drive_id), device='/dev/st{}'.format(drive_id), robot=robot)
 
-        for slot_id in range(2):
+        for slot_id in range(5):
             TapeSlot.objects.create(slot_id=str(slot_id), medium_id='HPS00{}'.format(slot_id + 1), robot=robot)
 
         storage_target = StorageTarget.objects.create()
@@ -1248,6 +1353,26 @@ class RobotTests(APITestCase):
             status=20, location_status=50,
             block_size=1024, format=103,
         )
+        StorageMedium.objects.create(
+            medium_id='HPS003', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='2'),
+        )
+        StorageMedium.objects.create(
+            medium_id='HPS004', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='3'),
+            tape_drive=TapeDrive.objects.get(drive_id='1')
+        )
+        StorageMedium.objects.create(
+            medium_id='HPS005', storage_target=storage_target,
+            status=20, location_status=50,
+            block_size=1024, format=103,
+            tape_slot=TapeSlot.objects.get(slot_id='4'),
+            tape_drive=TapeDrive.objects.get(drive_id='2')
+        )
 
         output = '''
   Storage Changer /dev/sg8:4 Drives, 52 Slots ( 4 Import/Export )
@@ -1256,7 +1381,10 @@ Data Transfer Element 1:Empty
 Data Transfer Element 2:Empty
 Data Transfer Element 3:Empty
       Storage Element 0:Empty
-      Storage Element 1:Full :VolumeTag=HPS002L3'''
+      Storage Element 1:Full :VolumeTag=HPS002L3
+      Storage Element 2:Empty
+      Storage Element 3:Full :VolumeTag=HPS004L3
+      Storage Element 4:Empty'''
 
         with mock.patch('ESSArch_Core.storage.tape.Popen') as m_popen:
             popen_obj = mock.MagicMock()
@@ -1276,3 +1404,12 @@ Data Transfer Element 3:Empty
 
             self.assertIsNone(StorageMedium.objects.get(medium_id='HPS002').tape_drive)
             self.assertEqual(StorageMedium.objects.get(medium_id='HPS002').tape_slot.slot_id, 1)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS003').tape_drive)
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS003').tape_slot)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS004').tape_drive)
+            self.assertEqual(StorageMedium.objects.get(medium_id='HPS004').tape_slot.slot_id, 3)
+
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS005').tape_drive)
+            self.assertIsNone(StorageMedium.objects.get(medium_id='HPS005').tape_slot)

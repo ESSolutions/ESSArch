@@ -92,7 +92,14 @@
                 ng-class="{'selected': vm.agent.id === x.id}"
                 ng-click="vm.agentClick(x)"
               >
-                <td>{{x.auth_name.full_name}}</td>
+                <td
+                  uib-tooltip="Org: {{x.organization.name}}"
+                  tooltip-placement="auto top"
+                  tooltip-append-to-body="true"
+                  context-menu="menuOptions('agent', x)"
+                >
+                  {{x.auth_name.full_name}}
+                </td>
                 <td>
                   {{x.type.main_type.name + (x.type.sub_type && x.sub_type !== '' ? (' (' + x.type.sub_type + ')') :
                   '')}}
@@ -139,7 +146,7 @@
       </div>
       <div ng-if="vm.agent !== null">
         <hr />
-        <h4 class="pb-base">{{AgentName.getAuthorizedName(vm.agent).full_name}}</h4>
+        <h4 class="pb-base">{{AgentName.parseAgentName(vm.agent).full_name}}</h4>
         <uib-tabset active="vm.activePill" ng-init="vm.activePill = 1" type="pills">
           <uib-tab heading="{{'ACCESS.BASIC_DATA' | translate}}" index="1">
             <uib-accordion close-others="false" class="p-base">
@@ -296,7 +303,7 @@
                         </td>
                         <td permission permission-only="'agents.change_agent'" class="text-center shrink">
                           <button
-                            ng-hide="x.type.authority"
+                            ng-hide="x.main==vm.agent.name.main"
                             class="btn btn-default btn-sm fas fa-trash-alt"
                             ng-click="vm.removeNameModal(x)"
                             uib-tooltip="{{'REMOVE' | translate}}"
@@ -445,7 +452,7 @@
                         ui-sref-opts="{reload: true}"
                         class="selectable"
                       >
-                        <td>{{AgentName.getAuthorizedName(x.agent, {printDates: true}).full_name}}</td>
+                        <td>{{AgentName.parseAgentName(x.agent, {printDates: true}).full_name}}</td>
                         <td>{{x.type.name}}</td>
                         <td class="oneline-ellipsis">{{x.description}}</td>
                         <td>{{x.start_date | date:"yyyy-MM-dd"}}</td>

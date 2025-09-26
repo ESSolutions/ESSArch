@@ -1,15 +1,35 @@
 import importlib
+import logging
 
 from celery import states as celery_states
-from django.db import transaction
-from tenacity import retry, stop_after_delay, wait_random_exponential
+from django.core.cache import cache
+# from django.db import transaction
+from tenacity import (
+    RetryError,
+    Retrying,
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_random_exponential,
+)
 
 from ESSArch_Core.WorkflowEngine.models import ProcessStep, ProcessTask
 
 
+@retry(retry=retry_if_exception_type(ValueError), reraise=True,
+       stop=stop_after_attempt(5),
+       wait=wait_random_exponential(multiplier=1, max=10),
+       before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.DEBUG))
 def get_result(step, reference):
     tasks = ProcessTask.objects.values_list('reference', 'result').filter(processstep=step, reference__isnull=False)
-    results = dict((x, y) for x, y in tasks)
+    results = {}
+    for x, y in tasks:
+        if not y:
+            raise ValueError(f'Step {step} with reference: {x} does not have any result')
+        else:
+            results[x] = y
 
     if isinstance(reference, list):
         return [results[ref] for ref in reference]
@@ -105,6 +125,7 @@ def _create_step(parent, flow, ip, responsible, context=None):
                 processstep_pos=e_idx,
                 hidden=flow_entry.get('hidden', False),
                 run_if=flow_entry.get('run_if', ''),
+                log=flow_entry.get('log'),
             )
 
             on_error_tasks = list(
@@ -114,9 +135,19 @@ def _create_step(parent, flow, ip, responsible, context=None):
             task.on_error.add(*on_error_tasks)
 
 
-@retry(reraise=True, stop=stop_after_delay(30),
-       wait=wait_random_exponential(multiplier=1, max=60))
-def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False, context=None, responsible=None):
+def _add_steps(parent, steps):
+    for e_idx, step in enumerate(steps):
+        step.parent = parent
+        step.parent_pos = e_idx
+        step.save(update_fields=['parent', 'parent_pos'])
+
+
+def create_workflow(workflow_spec=None, ip=None, workflow_steps=None, name='', label='', on_error=None, eager=False,
+                    context=None, responsible=None, part_root=None, run_state='', top_root_step=None):
+    if workflow_spec is None:
+        workflow_spec = []
+    if workflow_steps is None:
+        workflow_steps = []
     if on_error is None:
         on_error = []
     if context is None:
@@ -124,27 +155,57 @@ def create_workflow(workflow_spec, ip=None, name='', on_error=None, eager=False,
     if responsible is None:
         responsible = getattr(ip, 'responsible', None)
 
-    with transaction.atomic():
-        with ProcessStep.objects.delay_mptt_updates():
-            root_step = ProcessStep.objects.create(
-                name=name, eager=eager, information_package=ip, context=context, responsible=responsible)
+    logger = logging.getLogger('essarch.workflow')
 
-            on_error_tasks = list(_create_on_error_tasks(
-                root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
-            ProcessTask.objects.bulk_create(on_error_tasks)
-            root_step.on_error.add(*on_error_tasks)
+    with cache.lock('create_workflow_lock', timeout=300):
+        try:
+            for attempt in Retrying(stop=stop_after_delay(30),
+                                    wait=wait_random_exponential(multiplier=1, max=60),
+                                    before_sleep=before_sleep_log(logging.getLogger('essarch'), logging.WARNING)):
+                with attempt:
+                    try:
+                        # with transaction.atomic():
+                        # with ProcessStep.objects.delay_mptt_updates():
+                        if top_root_step:
+                            root_step = ProcessStep(
+                                name=name, eager=eager, information_package=ip, context=context,
+                                responsible=responsible, label=label, part_root=part_root,
+                                run_state=run_state)
+                            root_step.parent = top_root_step
+                            root_step.parent_pos = top_root_step.child_steps.count() + 1
+                            root_step.save()
+                        else:
+                            root_step = ProcessStep.objects.create(
+                                name=name, eager=eager, information_package=ip, context=context,
+                                responsible=responsible, label=label, part_root=part_root,
+                                run_state=run_state)
+                        on_error_tasks = list(_create_on_error_tasks(
+                            root_step, on_error, ip=ip, responsible=responsible, status=celery_states.SUCCESS))
+                        ProcessTask.objects.bulk_create(on_error_tasks)
+                        root_step.on_error.add(*on_error_tasks)
 
-            _create_step(root_step, workflow_spec, ip, responsible)
+                        if workflow_spec:
+                            _create_step(root_step, workflow_spec, ip, responsible)
 
-            # remove steps without any tasks in any of its descendants
-            empty_steps = root_step.get_descendants(include_self=True).filter(tasks=None).exists()
-            while empty_steps:
-                root_step.get_descendants(include_self=True).filter(
-                    child_steps__isnull=True,
-                    tasks=None,
-                ).delete()
-                empty_steps = root_step.get_descendants(
-                    include_self=True
-                ).filter(tasks=None, child_steps__isnull=True).exists()
+                        if workflow_steps:
+                            _add_steps(root_step, workflow_steps)
 
-            return root_step
+                        # root_step.refresh_from_db()
+                        # with ProcessStep.objects.delay_mptt_updates():
+                        # remove steps without any tasks in any of its descendants
+                        empty_steps = root_step.get_descendants(include_self=True).filter(tasks=None).exists()
+                        while empty_steps:
+                            root_step.get_descendants(include_self=True).filter(
+                                child_steps__isnull=True,
+                                tasks=None,
+                            ).delete()
+                            empty_steps = root_step.get_descendants(
+                                include_self=True
+                            ).filter(tasks=None, child_steps__isnull=True).exists()
+                    except RuntimeError as e:
+                        logger.warning('Exception in create_workflow for ip: {}, error: {} - retry'.format(ip, e))
+                        raise
+        except RetryError:
+            logger.warning('RetryError in create_workflow for ip: {}'.format(ip))
+            raise
+    return root_step
