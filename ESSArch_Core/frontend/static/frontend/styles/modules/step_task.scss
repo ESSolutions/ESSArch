@@ -24,13 +24,13 @@
     overflow-x: hidden;
     text-overflow: ellipsis;
     @include small-screen {
-      word-break: break-word;
+      word-break: normal;
     }
   }
 }
 
 .param-value {
-  word-break: break-word;
+  word-break: normal;
   pre {
     overflow-x: scroll;
     white-space: pre-wrap;
