@@ -151,22 +151,24 @@ class GetSchemasTest(SimpleTestCase):
         self.addCleanup(shutil.rmtree, self.datadir)
 
     def get_simple_valid_xml(self):
-        tmp_file = tempfile.TemporaryFile(dir=self.datadir)
+        tmp_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         tmp_file.write(b'<?xml version="1.0" encoding="ISO-8859-1"?>')
         tmp_file.write(b'<xml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
                        b'xmlns="http://www.example.com/example/v4.2" '
                        b'xsi:schemaLocation="http://www.example.com/example/v4.2 '
                        b'http://www.example.com/example/v4.2/example.xsd"></xml>')
         tmp_file.seek(0)
+        file_path = tmp_file.name
 
-        return tmp_file
+        return file_path
 
     def get_bad_xml_file(self):
-        tmp_file = tempfile.TemporaryFile(dir=self.datadir)
+        tmp_file = tempfile.NamedTemporaryFile(dir=self.datadir, delete=False)
         tmp_file.write(b'Hello bad XML syntax!')
         tmp_file.seek(0)
+        file_path = tmp_file.name
 
-        return tmp_file
+        return file_path
 
     def test_get_schemas_from_doc(self):
         filename = self.get_simple_valid_xml()
@@ -182,7 +184,7 @@ class GetSchemasTest(SimpleTestCase):
         self.assertIs(type(schema), etree._Element)
 
     def test_get_schema_with_no_argument_should_throw_exception(self):
-        with self.assertRaisesRegex(AttributeError, "'NoneType' object has no attribute 'getroot'"):
+        with self.assertRaisesRegex(ValueError, "Must provide either doc or filename"):
             getSchemas()
 
     def test_get_schema_from_none_existing_file_should_raise_exception(self):

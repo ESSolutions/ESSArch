@@ -28,7 +28,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_json_widget.widgets import JSONEditorWidget
 
-from .models import Profile, SubmissionAgreement
+from .models import Profile, ProfileIP, ProfileIPData, SubmissionAgreement
 from .utils import lowercase_profile_types_no_action_workflow
 
 
@@ -131,3 +131,39 @@ class ProfileAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Profile, ProfileAdmin)
+
+
+class ProfileIPDataInline(admin.StackedInline):
+    model = ProfileIPData
+    extra = 0
+    can_delete = False
+    can_add = False
+    show_change_link = True
+    fields = ['data']
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+class ProfileIPAdmin(admin.ModelAdmin):
+    list_display = ('profile', 'ip')
+    search_fields = ('ip__object_identifier_value', 'ip__label', 'ip__id')
+    readonly_fields = ('id', 'profile', 'ip')
+    list_filter = ('profile', 'ip')
+    inlines = [ProfileIPDataInline]
+    fields = ['profile', 'ip']
+
+    def get_model_perms(self, request):
+        return {}
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+admin.site.register(ProfileIP, ProfileIPAdmin)

@@ -34,6 +34,7 @@ import re
 import shutil
 import sys
 import tarfile
+import urllib.request
 import uuid
 import zipfile
 from copy import deepcopy
@@ -189,36 +190,93 @@ def get_value_from_path(root, path):
     return el.text
 
 
-def getSchemas(doc=None, filename=None):
+def getSchemas(doc=None, filename=None, base_url=None, visited=None):
     """
         Creates a schema based on the schemas specified in the provided XML
         file's schemaLocation attribute
     """
+    logger = logging.getLogger('essarch')
+    if visited is None:
+        visited = set()
 
     if filename:
-        doc = etree.ElementTree(file=filename)
+        if base_url is None:
+            base_url = os.path.dirname(os.path.abspath(filename))
+        doc = etree.parse(filename)
 
-    res = []
-    root = doc.getroot()
-    xsi_NS = "%s" % root.nsmap['xsi']
+    if doc is None:
+        raise ValueError("Must provide either doc or filename")
+
+    root_doc = doc.getroot()
+    xsi_NS = root_doc.nsmap.get('xsi')
+    if xsi_NS is None:
+        raise ValueError("No xsi namespace found in document")
 
     xsd_NS = "{%s}" % XSD_NAMESPACE
     NSMAP = {'xsd': XSD_NAMESPACE}
+    schema_root = etree.Element(xsd_NS + "schema", nsmap=NSMAP)
+    schema_root.attrib["elementFormDefault"] = "qualified"
 
-    root = etree.Element(xsd_NS + "schema", nsmap=NSMAP)
-    root.attrib["elementFormDefault"] = "qualified"
+    def process_schema_location(ns, loc, current_base_url):
+        # Resolve schemaLocation against current base URL
+        if current_base_url and not (loc.startswith('http://') or loc.startswith('https://') or os.path.isabs(loc)):
+            resolved_loc = os.path.abspath(os.path.join(current_base_url, loc))
+        else:
+            resolved_loc = loc
 
+        if resolved_loc in visited:
+            logger.debug(f"Skipping already visited schema: {resolved_loc}")
+            return
+
+        logger.debug(f"Processing schema: namespace={ns}, location={loc} (resolved: {resolved_loc})")
+        visited.add(resolved_loc)
+
+        etree.SubElement(schema_root, xsd_NS + "import", attrib={
+            "namespace": ns,
+            "schemaLocation": loc
+        })
+
+        # Attempt to load and parse the schema to find nested imports/includes
+        try:
+            if resolved_loc.startswith('http://') or resolved_loc.startswith('https://'):
+                with urllib.request.urlopen(resolved_loc) as response:
+                    imported_doc = etree.parse(response)
+                new_base_url = resolved_loc.rsplit('/', 1)[0]
+            else:
+                imported_doc = etree.parse(resolved_loc)
+                new_base_url = os.path.dirname(resolved_loc)
+        except Exception as e:
+            logger.warning(f"Warning: Could not load schema at {resolved_loc}: {e}")
+            return
+
+        imported_root = imported_doc.getroot()
+
+        # Find nested imports and includes
+        nested_imports = imported_root.findall(f".//{xsd_NS}import")
+        nested_includes = imported_root.findall(f".//{xsd_NS}include")
+
+        for elem in nested_imports:
+            nested_ns = elem.get("namespace")
+            nested_loc = elem.get("schemaLocation")
+            if nested_loc:
+                process_schema_location(nested_ns, nested_loc, new_base_url)
+
+        for elem in nested_includes:
+            # <xsd:include> usually does NOT have a namespace attribute
+            nested_loc = elem.get("schemaLocation")
+            if nested_loc:
+                # includes are from the same namespace as the including schema
+                process_schema_location(ns, nested_loc, new_base_url)
+
+    # Get all xsi:schemaLocation attributes in the original doc
     schema_locations = set(doc.xpath("//*/@xsi:schemaLocation", namespaces={'xsi': xsi_NS}))
+
     for schema_location in schema_locations:
         ns_locs = schema_location.split()
         for ns, loc in zip(ns_locs[::2], ns_locs[1::2]):
-            res.append([ns, loc])
-            etree.SubElement(root, xsd_NS + "import", attrib={
-                "namespace": ns,
-                "schemaLocation": loc
-            })
+            process_schema_location(ns, loc, base_url)
 
-    return root
+    return schema_root
 
 
 def move_schema_locations_to_root(tree=None, filename=None):
