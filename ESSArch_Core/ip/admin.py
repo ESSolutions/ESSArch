@@ -26,6 +26,8 @@ import os
 from os import walk
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
 from .models import ConsignMethod, InformationPackage, OrderType
@@ -72,29 +74,41 @@ class IPAdmin(admin.ModelAdmin):
     Information Package
     """
     list_display = ('label', 'object_identifier_value', 'id', 'package_type', 'state')
-    readonly_fields = ['id', 'is_locked']
+    readonly_fields = ['id', 'is_locked', 'related_profiles']
     search_fields = ['label', 'object_identifier_value', 'id']
     list_filter = ['state', ('state', admin.EmptyFieldListFilter),
                    'package_type']
     fieldsets = (
-                (None, {
-                    'classes': ('wide'),
-                    'fields': (
-                        'id',
-                        'label',
-                        'object_identifier_value',
-                        'content',
-                        'responsible',
-                        'state',
-                        'object_path',
-                        'start_date',
-                        'end_date',
-                        'package_type',
-                        'submission_agreement',
-                        'is_locked',
-                    )}),
+        (None, {
+            'classes': ('wide'),
+            'fields': ('id',
+                       'label',
+                       'object_identifier_value',
+                       'content',
+                       'responsible',
+                       'state',
+                       'object_path',
+                       'start_date',
+                       'end_date',
+                       'package_type',
+                       'submission_agreement',
+                       'is_locked',
+                       ),
+        }),
+        ('Profiles', {
+            'classes': ('collapse',),
+            'fields': ('related_profiles',),
+        }),
     )
     actions = ["clear_lock"]
+
+    def related_profiles(self, obj):
+        profileip_objs = obj.profileip_set.all()
+        links = format_html_join(
+            '', '<a href="{}">{}</a><br>',
+            ((reverse('admin:profiles_profileip_change', args=[b.pk]), b.profile) for b in profileip_objs)
+        )
+        return format_html('{}', links)
 
     @admin.action(permissions=["change"], description=_("Clear lock for selected ip"))
     def clear_lock(self, request, queryset):

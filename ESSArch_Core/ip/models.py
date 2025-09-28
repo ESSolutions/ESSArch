@@ -68,7 +68,7 @@ from guardian.models import GroupObjectPermissionBase, UserObjectPermissionBase
 from guardian.shortcuts import assign_perm
 from lxml import etree
 from requests import RequestException
-from rest_framework.exceptions import APIException, NotFound, ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 from tenacity import (
     before_sleep_log,
@@ -683,7 +683,6 @@ class InformationPackage(models.Model):
         except KeyError:
             msg = 'No content type importer specified in {profile}'.format(profile=ct_profile.name)
             logger.exception(msg)
-            raise APIException(msg)
 
     def get_content_type_file(self):
         try:
@@ -1196,7 +1195,8 @@ class InformationPackage(models.Model):
 
         profile_type = self.get_package_type_display().lower()
         index_files = self.get_profile_data(profile_type).get('index_files', True)
-        if index_files is True or index_files == 'True':
+        index_cts = self.get_profile_data(profile_type).get('index_cts', True)
+        if index_files is True or index_files == 'True' or index_cts is True or index_cts == 'True':
             write_to_search_index = True
         else:
             write_to_search_index = False
@@ -2749,7 +2749,9 @@ class InformationPackage(models.Model):
         ct_profile = self.get_profile('content_type')
         indexed_files = []
 
-        if ct_profile is not None:
+        profile_type = self.get_package_type_display().lower()
+        index_cts = self.get_profile_data(profile_type).get('index_cts', True)
+        if ct_profile is not None and (index_cts is True or index_cts == 'True'):
             cts = self.get_content_type_file()
             if cts is not None:
                 if os.path.isfile(cts):
@@ -2775,27 +2777,29 @@ class InformationPackage(models.Model):
                 ct_importer = get_importer(ct_importer_name)(task)
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
-        group = None
-        try:
-            group = self.get_organization()
-        except ObjectDoesNotExist:
+        index_files = self.get_profile_data(profile_type).get('index_files', True)
+        if index_files is True or index_files == 'True':
             group = None
-        if group is not None:
-            group = group.group
+            try:
+                group = self.get_organization()
+            except ObjectDoesNotExist:
+                group = None
+            if group is not None:
+                group = group.group
 
-        for root, dirs, files in walk(srcdir):
-            for d in dirs:
-                src = os.path.join(root, d)
-                index_path(self, src, group=group)
-
-            for f in files:
-                src = os.path.join(root, f)
-                try:
-                    # check if file has already been indexed
-                    indexed_files.remove(src)
-                except ValueError:
-                    # file has not been indexed, index it
+            for root, dirs, files in walk(srcdir):
+                for d in dirs:
+                    src = os.path.join(root, d)
                     index_path(self, src, group=group)
+
+                for f in files:
+                    src = os.path.join(root, f)
+                    try:
+                        # check if file has already been indexed
+                        indexed_files.remove(src)
+                    except ValueError:
+                        # file has not been indexed, index it
+                        index_path(self, src, group=group)
 
         InformationPackageDocument.from_obj(self).save()
 

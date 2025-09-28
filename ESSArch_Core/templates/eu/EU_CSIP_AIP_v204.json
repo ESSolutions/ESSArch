@@ -300,7 +300,24 @@
 				]
 			},
 			"ngModelElAttrs": {
-				"uib-popover": "Xxx",
+				"uib-popover": "Index files",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
+			"key": "index_cts",
+			"type": "select",
+			"defaultValue": true,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Indexera cts",
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Index cts",
 				"popover-placement": "bottom",
 				"popover-trigger": "'mouseenter'"
 			}
