@@ -406,7 +406,8 @@ class XMLSyntaxValidator(BaseValidator):
         started = timezone.now()
 
         try:
-            etree.parse(filepath)
+            parser = etree.XMLParser(resolve_entities=False)
+            etree.parse(filepath, parser=parser)
         except etree.XMLSyntaxError as e:
             msg = 'Syntax validation of {xml} failed'.format(xml=filepath)
             logger.exception(
@@ -540,9 +541,10 @@ class XMLSchematronValidator(BaseValidator):
         )
 
     def _validate_schematron(self, filepath):
-        sct_doc = etree.parse(self.context)
+        parser = etree.XMLParser(resolve_entities=False)
+        sct_doc = etree.parse(self.context, parser=parser)
         schematron = etree.Schematron(sct_doc)
-        schematron.assertValid(etree.parse(filepath))
+        schematron.assertValid(etree.parse(filepath, parser=parser))
 
 
 class XMLISOSchematronValidator(BaseValidator):
@@ -613,6 +615,7 @@ class XMLISOSchematronValidator(BaseValidator):
         )
 
     def _validate_isoschematron(self, filepath):
-        sct_doc = etree.parse(self.context)
+        parser = etree.XMLParser(resolve_entities=False)
+        sct_doc = etree.parse(self.context, parser=parser)
         schematron = isoschematron.Schematron(sct_doc)
-        schematron.assertValid(etree.parse(filepath))
+        schematron.assertValid(etree.parse(filepath, parser=parser))

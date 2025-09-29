@@ -30,6 +30,7 @@ export default class ModalInstanceCtrl {
     $http,
     Notifications,
     IP,
+    IPReception,
     appConfig,
     listViewService,
     $translate,
@@ -191,6 +192,17 @@ export default class ModalInstanceCtrl {
               $ctrl.removing = false;
             });
         }
+      } else if (data.reception) {
+        IPReception.delete({
+          id: ipObject.id,
+        })
+          .$promise.then(function () {
+            $ctrl.removing = false;
+            $uibModalInstance.close();
+          })
+          .catch(function (response) {
+            $ctrl.removing = false;
+          });
       } else {
         IP.delete({
           id: ipObject.id,

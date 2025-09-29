@@ -202,7 +202,8 @@ def getSchemas(doc=None, filename=None, base_url=None, visited=None):
     if filename:
         if base_url is None:
             base_url = os.path.dirname(os.path.abspath(filename))
-        doc = etree.parse(filename)
+        parser = etree.XMLParser(resolve_entities=False)
+        doc = etree.parse(filename, parser=parser)
 
     if doc is None:
         raise ValueError("Must provide either doc or filename")
@@ -285,7 +286,8 @@ def move_schema_locations_to_root(tree=None, filename=None):
     """
 
     if filename:
-        tree = etree.parse(filename)
+        parser = etree.XMLParser(resolve_entities=False)
+        tree = etree.parse(filename, parser=parser)
 
     root = tree.getroot()
     xsi_ns = "{%s}" % root.nsmap['xsi']
@@ -317,7 +319,8 @@ def move_schema_locations_to_root(tree=None, filename=None):
 
 
 def assign_stylesheet(xml, xslt):
-    xml_doc = etree.parse(xml).getroot()
+    parser = etree.XMLParser(resolve_entities=False)
+    xml_doc = etree.parse(xml, parser=parser).getroot()
     xslt_doc = etree.parse(xslt)
     transform = etree.XSLT(xslt_doc)
     new_doc = transform(xml_doc)

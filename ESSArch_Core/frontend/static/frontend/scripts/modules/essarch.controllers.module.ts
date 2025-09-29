@@ -681,6 +681,7 @@ export default angular
     '$http',
     'Notifications',
     'IP',
+    'IPReception',
     'appConfig',
     'listViewService',
     '$translate',
