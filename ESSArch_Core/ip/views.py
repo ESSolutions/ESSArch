@@ -2402,7 +2402,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 yield xmlfile
 
     def get_container_for_xml(self, xmlfile):
-        doc = etree.parse(xmlfile)
+        parser = etree.XMLParser(resolve_entities=False)
+        doc = etree.parse(xmlfile, parser=parser)
         root = doc.getroot()
         return get_objectpath(root)
 
@@ -2536,13 +2537,14 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         ).values_list('object_identifier_value', flat=True)
         new_ips = [ip for ip in new_ips if ip['object_identifier_value'] not in db_ip_ids]
 
-        new_ips.extend(from_db.values())
+        new_ips.extend(from_db)
 
         ordering = request.GET.get('ordering')
         if ordering:
             reverse = ordering.startswith('-')
             key = ordering.lstrip('-')
-            new_ips.sort(key=lambda item: natural_key(item.get(key)), reverse=reverse)
+            new_ips.sort(key=lambda item: natural_key(item.get(key) if isinstance(
+                item, dict) else getattr(item, key)), reverse=reverse)
 
         if self.paginator is not None:
             paginated = self.paginator.paginate_queryset(new_ips, request)
@@ -2553,6 +2555,25 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             return self.paginator.get_paginated_response(serializer.data)
 
         return Response(new_ips)
+
+    def destroy(self, request, pk=None):
+        if not request.user.has_perm('ip.delete_reception'):
+            raise exceptions.PermissionDenied('You do not have permission to delete this IP')
+
+        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        path = os.path.join(reception, pk)
+        if os.path.isdir(path):
+            shutil.rmtree(path)
+        else:
+            no_ext = os.path.splitext(path)[0]
+            for fl in [no_ext + '.' + ext for ext in ['xml', 'tar', 'zip']]:
+                try:
+                    os.remove(fl)
+                except OSError as e:
+                    if e.errno != errno.ENOENT:
+                        raise
+
+        return Response({"detail": "Deleting information package", "path": path}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk=None):
         path = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
@@ -3090,7 +3111,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         for xmlfile in glob.glob(os.path.join(self.uip, "*.xml")):
             if os.path.isfile(xmlfile):
-                doc = etree.parse(xmlfile)
+                parser = etree.XMLParser(resolve_entities=False)
+                doc = etree.parse(xmlfile, parser=parser)
                 root = doc.getroot()
 
                 el = root.xpath('.//*[local-name()="%s"]' % "FLocat")[0]

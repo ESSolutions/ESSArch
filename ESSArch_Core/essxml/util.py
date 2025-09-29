@@ -162,7 +162,8 @@ def parse_reference_code(code):
 
 def parse_mets(xmlfile):
     data = {}
-    doc = etree.parse(xmlfile)
+    parser = etree.XMLParser(resolve_entities=False)
+    doc = etree.parse(xmlfile, parser=parser)
     root = doc.getroot()
 
     if root.xpath('local-name()').lower() != 'mets':
@@ -199,7 +200,8 @@ def parse_mets(xmlfile):
 
 def parse_submit_description(xmlfile, srcdir=''):
     ip = {}
-    doc = etree.parse(xmlfile)
+    parser = etree.XMLParser(resolve_entities=False)
+    doc = etree.parse(xmlfile, parser=parser)
     root = doc.getroot()
 
     if root.xpath('local-name()').lower() != 'mets':

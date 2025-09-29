@@ -1269,6 +1269,7 @@ export default class BaseCtrl {
             return {
               ip: ipObject,
               workarea: $state.includes('**.workarea.**'),
+              reception: ipObject.package_type === null,
             };
           },
         },
@@ -1457,6 +1458,11 @@ export default class BaseCtrl {
       // AICs cannot be deleted
       if (row.package_type_display == 'AIC' || row.package_type === undefined) {
         return false;
+      }
+
+      // IP in "At reception" and user have permission to delete IP in reception
+      if (row.state == 'At reception' && $scope.checkPermission('ip.delete_reception')) {
+        return true;
       }
 
       // Does the current user have permission to delete this IP?

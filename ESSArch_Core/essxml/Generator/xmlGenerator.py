@@ -685,7 +685,7 @@ def parse_files(fid, path, external, algorithm, rootdir):
 
 class XMLGenerator:
     def __init__(self, filepath=None, allow_unknown_file_types=False, allow_encrypted_files=False):
-        self.parser = etree.XMLParser(remove_blank_text=True)
+        self.parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
         self.fid = FormatIdentifier(
             allow_unknown_file_types=allow_unknown_file_types,
             allow_encrypted_files=allow_encrypted_files,
@@ -917,6 +917,6 @@ class XMLGenerator:
         return self.insert(target, el, index=index, before=before, after=after)
 
     def insert_from_xml_file(self, target, xml, index=None, before=None, after=None):
-        parser = etree.XMLParser(remove_blank_text=True)
+        parser = etree.XMLParser(remove_blank_text=True, resolve_entities=False)
         el = etree.parse(xml, parser).getroot()
         return self.insert(target, el, index=index, before=before, after=after)

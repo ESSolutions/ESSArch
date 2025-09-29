@@ -3105,6 +3105,7 @@ class InformationPackage(models.Model):
             ('delete_first_generation', 'Can delete first generation of IP'),
             ('delete_last_generation', 'Can delete last generation of IP'),
             ('delete_archived', 'Can delete archived IP'),
+            ('delete_reception', 'Can delete reception IP'),
             ('see_all_in_workspaces', 'Can see all IPs workspaces'),
             ('see_other_user_ip_files', 'Can see files in other users IPs'),
         )
@@ -3212,7 +3213,8 @@ class EventIPManager(models.Manager):
         return event
 
     def from_premis_file(self, xmlfile, save=True):
-        root = etree.parse(xmlfile).getroot()
+        parser = etree.XMLParser(resolve_entities=False)
+        root = etree.parse(xmlfile, parser=parser).getroot()
         events = []
 
         for el in root.xpath("./*[local-name()='event']"):
