@@ -28,7 +28,7 @@ import shutil
 import tarfile
 import time
 from os import walk
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from urllib.parse import urljoin
 
 import requests
@@ -506,12 +506,13 @@ def UpdateIPPath(self, path, prev=None):
     path, = self.parse_params(path)
     if path is None:
         path = ''
+    path = Path(path)
     ip = InformationPackage.objects.get(pk=self.ip)
     if prev is None:
         t = self.get_processtask()
         t.params['prev'] = ip.object_path
         t.save()
-    ip.object_path = path
+    ip.object_path = path.as_posix()
     ip.save()
 
     return path

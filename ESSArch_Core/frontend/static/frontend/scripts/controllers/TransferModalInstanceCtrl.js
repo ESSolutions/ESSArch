@@ -164,7 +164,7 @@ export default class TransferModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'transfers/' + $ctrl.transfer.id)
+        .delete(appConfig.djangoUrl + 'transfers/' + $ctrl.transfer.id + '/')
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();

@@ -1195,8 +1195,8 @@ class InformationPackage(models.Model):
 
         profile_type = self.get_package_type_display().lower()
         index_files = self.get_profile_data(profile_type).get('index_files', True)
-        index_cts = self.get_profile_data(profile_type).get('index_cts', True)
-        if index_files is True or index_files == 'True' or index_cts is True or index_cts == 'True':
+        index_cits = self.get_profile_data(profile_type).get('index_cits', True)
+        if index_files is True or index_files == 'True' or index_cits is True or index_cits == 'True':
             write_to_search_index = True
         else:
             write_to_search_index = False
@@ -2750,8 +2750,8 @@ class InformationPackage(models.Model):
         indexed_files = []
 
         profile_type = self.get_package_type_display().lower()
-        index_cts = self.get_profile_data(profile_type).get('index_cts', True)
-        if ct_profile is not None and (index_cts is True or index_cts == 'True'):
+        index_cits = self.get_profile_data(profile_type).get('index_cits', True)
+        if ct_profile is not None and (index_cits is True or index_cits == 'True'):
             cts = self.get_content_type_file()
             if cts is not None:
                 if os.path.isfile(cts):

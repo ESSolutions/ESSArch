@@ -200,7 +200,7 @@ export default class DeliveryModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'deliveries/' + $ctrl.delivery.id)
+        .delete(appConfig.djangoUrl + 'deliveries/' + $ctrl.delivery.id + '/')
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();

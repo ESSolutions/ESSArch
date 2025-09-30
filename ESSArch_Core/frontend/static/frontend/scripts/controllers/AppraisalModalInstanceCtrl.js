@@ -110,7 +110,7 @@ export default class AppraisalModalInstanceCtrl {
       $ctrl.removingTemplate = true;
       const appraisal = data.appraisal;
       $http({
-        url: appConfig.djangoUrl + 'appraisal-templates/' + appraisal.id,
+        url: appConfig.djangoUrl + 'appraisal-templates/' + appraisal.id + '/',
         method: 'DELETE',
       })
         .then(function (response) {

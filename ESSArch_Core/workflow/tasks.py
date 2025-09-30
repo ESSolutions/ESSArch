@@ -30,6 +30,7 @@ import tarfile
 import tempfile
 import zipfile
 from datetime import timedelta
+from pathlib import Path
 
 from celery import states as celery_states
 from celery.result import allow_join_result
@@ -46,7 +47,7 @@ from ESSArch_Core.auth.models import Notification
 from ESSArch_Core.config.celery import app
 from ESSArch_Core.configuration.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
-    Path,
+    Path as cmPath,
 )
 from ESSArch_Core.fixity.checksum import calculate_checksum
 from ESSArch_Core.ip.models import InformationPackage, Workarea
@@ -79,7 +80,7 @@ User = get_user_model()
 def ReceiveDir(self):
     def _get_workarea_path():
         ip = InformationPackage.objects.get(pk=self.ip)
-        workarea = Path.objects.get(entity='ingest_workarea').value
+        workarea = cmPath.objects.get(entity='ingest_workarea').value
         username = User.objects.get(pk=self.responsible).username
         workarea_user = os.path.join(workarea, username)
         return os.path.join(workarea_user, ip.object_identifier_value)
@@ -89,7 +90,7 @@ def ReceiveDir(self):
     workarea_path = _get_workarea_path()
 
     shutil.copytree(objpath, workarea_path)
-    ip.object_path = workarea_path
+    ip.object_path = Path(workarea_path).as_posix()
     ip.save()
     Workarea.objects.create(ip=ip, user_id=self.responsible, type=Workarea.INGEST, read_only=False)
 
@@ -113,7 +114,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
         ip.package_mets_digest_algorithm = MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT[algorithm.upper()]
         ip.package_mets_digest = calculate_checksum(xml, algorithm=algorithm)
 
-    ip.object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+    ip.object_path = Path(os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)).as_posix()
     ip.save()
 
     sip_dst_path, sip_dst_name = find_destination('sip', ip.get_structure(), ip.object_path)
@@ -128,7 +129,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
         # remove any existing directory from previous attempts
         delete_path(sip_dst)
 
-        temp = Path.objects.get(entity='temp').value
+        temp = cmPath.objects.get(entity='temp').value
         with tempfile.TemporaryDirectory(dir=temp) as tmpdir:
             logger.debug('Extracting {} to {}'.format(container, tmpdir))
             if container_type == '.tar':
@@ -202,7 +203,7 @@ def ReceiveAIP(self, workarea):
 
     shutil.copytree(ip.object_path, dst)
 
-    ip.object_path = dst
+    ip.object_path = Path(dst).as_posix()
     ip.save(update_fields=['object_path'])
 
 
@@ -227,7 +228,7 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
         else:
             new_aip = aip
 
-        workarea = Path.objects.get(entity='ingest_workarea').value
+        workarea = cmPath.objects.get(entity='ingest_workarea').value
         workarea_user = os.path.join(workarea, responsible.username)
         dst_dir = os.path.join(workarea_user, new_aip.object_identifier_value, )
 
@@ -242,7 +243,7 @@ def AccessAIP(self, aip, storage_object=None, tar=True, extracted=False, new=Fal
         )
 
         if new:
-            new_aip.object_path = dst_dir
+            new_aip.object_path = Path(dst_dir).as_posix()
             new_aip.save(update_fields=['object_path'])
 
         return str(workarea_obj.pk)

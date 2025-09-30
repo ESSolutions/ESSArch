@@ -83,7 +83,7 @@ export default class ConversionModalInstanceCtrl {
       $ctrl.removingTemplate = true;
       const conversion = data.conversion;
       $http({
-        url: appConfig.djangoUrl + 'conversion-templates/' + conversion.id,
+        url: appConfig.djangoUrl + 'conversion-templates/' + conversion.id + '/',
         method: 'DELETE',
       })
         .then(function (response) {

@@ -330,7 +330,7 @@ export default class ConversionJobModalInstanceCtrl {
     $ctrl.remove = function () {
       $ctrl.removingJob = true;
       $http({
-        url: appConfig.djangoUrl + 'conversion-jobs/' + data.job.id,
+        url: appConfig.djangoUrl + 'conversion-jobs/' + data.job.id + '/',
         method: 'DELETE',
       })
         .then(() => {

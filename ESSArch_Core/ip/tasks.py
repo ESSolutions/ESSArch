@@ -1,8 +1,8 @@
 import copy
 import logging
 import os
-import pathlib
 import tarfile
+from pathlib import Path
 from time import sleep
 from urllib.parse import urljoin
 
@@ -27,7 +27,7 @@ from tenacity import (
 
 from ESSArch_Core.auth.models import Member, Notification
 from ESSArch_Core.config.celery import app
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Path as cmPath
 from ESSArch_Core.crypto import decrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import (
     XMLGenerator,
@@ -86,7 +86,7 @@ User = get_user_model()
 def SubmitSIP(self, delete_source=False, update_path=True):
     ip = InformationPackage.objects.get(pk=self.ip)
 
-    reception = Path.objects.get(entity="ingest_reception").value
+    reception = cmPath.objects.get(entity="ingest_reception").value
     container_format = ip.get_container_format()
     src = ip.object_path
 
@@ -125,7 +125,7 @@ def SubmitSIP(self, delete_source=False, update_path=True):
     copy_file(src_xml, dst_xml, requests_session=session, block_size=block_size)
 
     if update_path and not remote:
-        ip.object_path = dst
+        ip.object_path = Path(dst).as_posix()
         ip.package_mets_path = dst_xml
         ip.save()
 
@@ -157,7 +157,7 @@ def TransferIP(self):
             session.auth = (user, passw)
         dst = host
     else:
-        dst = Path.objects.get(entity="ingest_transfer").value
+        dst = cmPath.objects.get(entity="ingest_transfer").value
 
     block_size = 8 * 1000000  # 8MB
     copy_file(src, dst, requests_session=session, block_size=block_size)
@@ -190,7 +190,7 @@ def TransferIP(self):
 @app.task(bind=True)
 def PrepareAIP(self, sip_path):
     sip_path, = self.parse_params(sip_path)
-    sip_path = pathlib.Path(sip_path)
+    sip_path = Path(sip_path)
     user = User.objects.get(pk=self.responsible)
     perms = copy.deepcopy(getattr(settings, 'IP_CREATION_PERMS_MAP', {}))
     organization = user.user_profile.current_organization
@@ -198,7 +198,7 @@ def PrepareAIP(self, sip_path):
     object_identifier_value = sip_path.stem
     existing_sip = InformationPackage.objects.filter(
         Q(
-            Q(object_path=sip_path) |
+            Q(object_path=sip_path.as_posix()) |
             Q(object_identifier_value=object_identifier_value),
         ),
         package_type=InformationPackage.SIP
@@ -718,7 +718,7 @@ def InsertArchivalDescription(self, data):
 def PostPreservationCleanup(self):
     ip = self.get_information_package()
 
-    paths = Path.objects.filter(entity__in=[
+    paths = cmPath.objects.filter(entity__in=[
         'preingest_reception', 'preingest', 'ingest_reception',
     ]).values_list('value', flat=True)
 

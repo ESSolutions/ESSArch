@@ -470,7 +470,7 @@ export default class AgentModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'agents/' + $ctrl.agent.id)
+        .delete(appConfig.djangoUrl + 'agents/' + $ctrl.agent.id + '/')
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();
