@@ -150,7 +150,7 @@ export default class EventModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'events/' + $ctrl.event.id)
+        .delete(appConfig.djangoUrl + 'events/' + $ctrl.event.id + '/')
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();

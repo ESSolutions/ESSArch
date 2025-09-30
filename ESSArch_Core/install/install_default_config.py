@@ -22,6 +22,7 @@
     Email - essarch@essolutions.se
 """
 import os
+from pathlib import Path
 
 import click
 import django
@@ -44,7 +45,7 @@ from ESSArch_Core.configuration.models import (  # noqa isort:skip
     EventType,
     Feature,
     Parameter,
-    Path,
+    Path as cmPath,
     Site,
     StoragePolicy,
     MESSAGE_DIGEST_ALGORITHM_CHOICES_DICT,
@@ -1107,27 +1108,27 @@ def installDefaultPaths():
     click.echo("Installing paths...")
 
     dct = {
-        'mimetypes_definitionfile': os.path.join(settings.CONFIG_DIR, 'mime.types'),
-        'preingest': os.path.join(settings.DATA_DIR, 'preingest/packages'),
-        'preingest_reception': os.path.join(settings.DATA_DIR, 'preingest/reception'),
-        'ingest': os.path.join(settings.DATA_DIR, 'ingest/packages'),
-        'ingest_reception': os.path.join(settings.DATA_DIR, 'ingest/reception'),
-        'ingest_transfer': os.path.join(settings.DATA_DIR, 'ingest/transfer'),
-        'ingest_unidentified': os.path.join(settings.DATA_DIR, 'ingest/uip'),
-        'access_workarea': os.path.join(settings.DATA_DIR, 'workspace'),
-        'ingest_workarea': os.path.join(settings.DATA_DIR, 'workspace'),
-        'disseminations': os.path.join(settings.DATA_DIR, 'disseminations'),
-        'orders': os.path.join(settings.DATA_DIR, 'orders'),
-        'verify': os.path.join(settings.DATA_DIR, 'verify'),
-        'temp': os.path.join(settings.DATA_DIR, 'temp'),
-        'appraisal_reports': os.path.join(settings.DATA_DIR, 'reports/appraisal'),
-        'conversion_reports': os.path.join(settings.DATA_DIR, 'reports/conversion'),
-        'receipts': os.path.join(settings.DATA_DIR, 'receipts'),
+        'mimetypes_definitionfile': (Path(settings.CONFIG_DIR) / 'mime.types').as_posix(),
+        'preingest': (Path(settings.DATA_DIR) / 'preingest/packages').as_posix(),
+        'preingest_reception': (Path(settings.DATA_DIR) / 'preingest/reception').as_posix(),
+        'ingest': (Path(settings.DATA_DIR) / 'ingest/packages').as_posix(),
+        'ingest_reception': (Path(settings.DATA_DIR) / 'ingest/reception').as_posix(),
+        'ingest_transfer': (Path(settings.DATA_DIR) / 'ingest/transfer').as_posix(),
+        'ingest_unidentified': (Path(settings.DATA_DIR) / 'ingest/uip').as_posix(),
+        'access_workarea': (Path(settings.DATA_DIR) / 'workspace').as_posix(),
+        'ingest_workarea': (Path(settings.DATA_DIR) / 'workspace').as_posix(),
+        'disseminations': (Path(settings.DATA_DIR) / 'disseminations').as_posix(),
+        'orders': (Path(settings.DATA_DIR) / 'orders').as_posix(),
+        'verify': (Path(settings.DATA_DIR) / 'verify').as_posix(),
+        'temp': (Path(settings.DATA_DIR) / 'temp').as_posix(),
+        'appraisal_reports': (Path(settings.DATA_DIR) / 'reports/appraisal').as_posix(),
+        'conversion_reports': (Path(settings.DATA_DIR) / 'reports/conversion').as_posix(),
+        'receipts': (Path(settings.DATA_DIR) / 'receipts').as_posix(),
     }
 
     for key in dct:
         print('-> %s: %s' % (key, dct[key]))
-        Path.objects.get_or_create(entity=key, defaults={'value': dct[key]})
+        cmPath.objects.get_or_create(entity=key, defaults={'value': dct[key]})
 
     return 0
 
@@ -1175,7 +1176,7 @@ def installDefaultStoragePolicies():
             storage_target=cache_target,
         )
 
-    ingest = Path.objects.get(entity='ingest')
+    ingest = cmPath.objects.get(entity='ingest')
 
     policy, created_policy = StoragePolicy.objects.get_or_create(
         policy_id='1',

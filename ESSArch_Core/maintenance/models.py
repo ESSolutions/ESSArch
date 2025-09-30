@@ -5,7 +5,7 @@ import shutil
 import uuid
 from operator import itemgetter
 from os import walk
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from typing import List, Optional, cast
 
 from celery import states as celery_states
@@ -19,7 +19,7 @@ from glob2 import iglob
 from weasyprint import HTML
 
 from ESSArch_Core.auth.models import Notification
-from ESSArch_Core.configuration.models import EventType, Path
+from ESSArch_Core.configuration.models import EventType, Path as cmPath
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.fixity.models import ActionTool
 from ESSArch_Core.ip.models import EventIP, InformationPackage
@@ -83,9 +83,9 @@ class MaintenanceJob(models.Model):
         entity = '%s_reports' % self.MAINTENANCE_TYPE
 
         try:
-            return Path.objects.get(entity=entity).value
-        except Path.DoesNotExist:
-            raise Path.DoesNotExist('Path %s is not configured' % entity)
+            return cmPath.objects.get(entity=entity).value
+        except cmPath.DoesNotExist:
+            raise cmPath.DoesNotExist('Path %s is not configured' % entity)
 
     def get_report_pdf_path(self):
         path = self._get_report_directory()
@@ -289,7 +289,7 @@ class AppraisalJob(MaintenanceJob):
         logger.info('Running appraisal job {} on {} information packages'.format(self.pk, ips.count()))
 
         delete_packages = getattr(settings, 'DELETE_PACKAGES_ON_APPRAISAL', False)
-        tmpdir = Path.objects.get(entity='temp').value
+        tmpdir = cmPath.objects.get(entity='temp').value
 
         for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
@@ -340,7 +340,7 @@ class AppraisalJob(MaintenanceJob):
                 new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
                 new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
                 storage_obj.read(new_ip_tmpdir, None, extract=True)
-                new_ip.object_path = new_ip_tmpdir
+                new_ip.object_path = Path(new_ip_tmpdir).as_posix()
                 new_ip.save()
 
                 # delete files specified in rule
@@ -391,7 +391,7 @@ class AppraisalJob(MaintenanceJob):
             new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
             new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
             storage_obj.read(new_ip_tmpdir, None, extract=True)
-            new_ip.object_path = new_ip_tmpdir
+            new_ip.object_path = Path(new_ip_tmpdir).as_posix()
             new_ip.save()
 
             self.delete_document_tags(ip, new_ip, new_ip_tmpdir)
@@ -619,7 +619,7 @@ class ConversionJob(MaintenanceJob):
         self.delete_event_type = EventType.objects.get(eventType=50750)
 
         ips = self.information_packages
-        tmpdir = Path.objects.get(entity='temp').value
+        tmpdir = cmPath.objects.get(entity='temp').value
 
         for ip in ips.iterator(chunk_size=1000):
             storage_obj: Optional[StorageObject] = ip.storage.readable().fastest().first()
@@ -629,7 +629,7 @@ class ConversionJob(MaintenanceJob):
             new_ip = ip.create_new_generation(ip.state, ip.responsible, None)
             new_ip_tmpdir = os.path.join(tmpdir, new_ip.object_identifier_value)
             storage_obj.read(new_ip_tmpdir, None, extract=True)
-            new_ip.object_path = new_ip_tmpdir
+            new_ip.object_path = Path(new_ip_tmpdir).as_posix()
             new_ip.save()
 
             # convert files specified in rule

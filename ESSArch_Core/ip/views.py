@@ -11,6 +11,7 @@ import shutil
 import tarfile
 import uuid
 import zipfile
+from pathlib import Path
 
 from celery import states as celery_states
 from django.conf import settings
@@ -63,7 +64,7 @@ from ESSArch_Core.auth.models import Member
 from ESSArch_Core.auth.permissions import ActionPermissions
 from ESSArch_Core.auth.serializers import ChangeOrganizationSerializer
 from ESSArch_Core.configuration.decorators import feature_enabled_or_404
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Path as cmPath
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
 from ESSArch_Core.essxml.util import get_objectpath, parse_submit_description
 from ESSArch_Core.exceptions import Conflict, NoFileChunksFound
@@ -710,9 +711,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             raise exceptions.ParseError('You must be part of an organization to prepare an IP')
 
         if data['package_type'] == InformationPackage.SIP:
-            prepare_path = Path.objects.get(entity="preingest").value
+            prepare_path = cmPath.objects.get(entity="preingest").value
         else:
-            prepare_path = Path.objects.get(entity="disseminations").value
+            prepare_path = cmPath.objects.get(entity="disseminations").value
 
         if object_identifier_value:
             ip_exists = InformationPackage.objects.filter(object_identifier_value=object_identifier_value).exists()
@@ -757,7 +758,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
                 obj_path = normalize_path(os.path.join(prepare_path, ip.object_identifier_value))
                 os.mkdir(obj_path)
-                ip.object_path = obj_path
+                ip.object_path = Path(obj_path).as_posix()
                 ip.save()
                 extra = {
                     'event_type': 10200,
@@ -843,7 +844,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         chunk_nr = data.get('flowChunkNumber')
         chunk_path = "%s_%s" % (path, chunk_nr)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload')
         full_chunk_path = os.path.join(temp_path, str(ip.pk), chunk_path)
 
         if request.method == 'GET':
@@ -871,7 +872,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if ip.package_type == 'SIP' and ip.state != 'Uploading':
             raise exceptions.ParseError('IP must be in state "Uploading"')
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(ip.pk), request.data['path'])
         filepath = os.path.join(ip.object_path, request.data['path'])
 
@@ -896,7 +897,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         # delete temp files
         try:
-            temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
+            temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload', str(ip.pk))
             shutil.rmtree(temp_path)
         except FileNotFoundError:
             pass
@@ -1107,7 +1108,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         has_cts = cts is not None and os.path.exists(cts)
         has_representations = find_destination("representations", ip.get_structure(), ip.object_path)[1] is not None
 
-        dst_dir = Path.objects.cached('entity', 'preingest', 'value')
+        dst_dir = cmPath.objects.cached('entity', 'preingest', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
         dst = os.path.join(dst_dir, dst_filename)
 
@@ -1407,7 +1408,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master')
     def add_file_from_master(self, request, pk=None):
-        temp_dir = Path.objects.get(entity='temp').value
+        temp_dir = cmPath.objects.get(entity='temp').value
         dst = request.data.get('dst') or temp_dir
 
         if not request.user.has_perm('ip.can_receive_remote_files'):
@@ -1435,7 +1436,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='add-file-from-master_complete')
     def add_file_from_master_complete(self, request, pk=None):
-        temp_dir = Path.objects.get(entity='temp').value
+        temp_dir = cmPath.objects.get(entity='temp').value
         dst = request.data.get('dst') or temp_dir
 
         if not request.user.has_perm('ip.can_receive_remote_files'):
@@ -1579,7 +1580,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             if ip.state == "Preserving":
                 raise exceptions.ParseError('IP already being preserved')
 
-            reception_dir = Path.objects.get(entity='ingest_reception').value
+            reception_dir = cmPath.objects.get(entity='ingest_reception').value
             ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
             ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
             ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
@@ -1772,7 +1773,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workarea = ip.workareas.get()
         data = request.data
         new_object_identifier_value = data.get('object_identifier_value') or str(uuid.uuid4())
-        access_workarea = Path.objects.get(entity='access_workarea').value
+        access_workarea = cmPath.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, request.user.username, new_object_identifier_value)
         access_workarea_user_extracted = os.path.join(access_workarea_user, new_object_identifier_value)
         new_aip = ip.create_new_generation('Access Workarea', request.user, new_object_identifier_value)
@@ -1844,8 +1845,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         workarea_type = Workarea.INGEST if ip.state == 'Received' else Workarea.ACCESS
 
         ip_workarea = ip.workareas.filter(user=request.user)
-        ingest_path = Path.objects.get(entity='ingest_workarea')
-        access_path = Path.objects.get(entity='access_workarea')
+        ingest_path = cmPath.objects.get(entity='ingest_workarea')
+        access_path = cmPath.objects.get(entity='access_workarea')
 
         ip_already_in_workarea = ip_workarea.exists() and (
             ip_workarea.filter(type=workarea_type).exists() or ingest_path == access_path
@@ -1892,7 +1893,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             dip.object_identifier_value + '.' + dip.get_container_format().lower(),
         )
 
-        order_path = Path.objects.get(entity='orders').value
+        order_path = cmPath.objects.get(entity='orders').value
 
         workflow_spec = [
             {
@@ -2276,7 +2277,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def validate(self, request, pk=None):
         ip = self.get_object()
 
-        prepare = Path.objects.get(entity="ingest_workarea").value
+        prepare = cmPath.objects.get(entity="ingest_workarea").value
         xmlfile = os.path.join(prepare, "%s.xml" % pk)
 
         step = ProcessStep.objects.create(
@@ -2392,8 +2393,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     def __init__(self, *args, **kwargs):
         self.logger = logging.getLogger('essarch.reception')
-        self.reception = Path.objects.get(entity="ingest_reception").value
-        self.uip = Path.objects.get(entity="ingest_unidentified").value
+        self.reception = cmPath.objects.get(entity="ingest_reception").value
+        self.uip = cmPath.objects.get(entity="ingest_unidentified").value
         super().__init__(*args, **kwargs)
 
     def find_xml_files(self, path):
@@ -2475,7 +2476,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             "create_date", "object_size", "start_date", "end_date"
         ]
 
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        reception = cmPath.objects.values_list('value', flat=True).get(entity='ingest_reception')
 
         contained = self.get_contained_packages(reception)
         extracted = self.get_extracted_packages(reception)
@@ -2560,7 +2561,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not request.user.has_perm('ip.delete_reception'):
             raise exceptions.PermissionDenied('You do not have permission to delete this IP')
 
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        reception = cmPath.objects.values_list('value', flat=True).get(entity='ingest_reception')
         path = os.path.join(reception, pk)
         if os.path.isdir(path):
             shutil.rmtree(path)
@@ -2576,7 +2577,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         return Response({"detail": "Deleting information package", "path": path}, status=status.HTTP_202_ACCEPTED)
 
     def retrieve(self, request, pk=None):
-        path = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        path = cmPath.objects.values_list('value', flat=True).get(entity='ingest_reception')
         fullpath = os.path.join(path, "%s.xml" % pk)
 
         if not os.path.exists(fullpath):
@@ -2608,8 +2609,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             logger.warning('Tried to receive IP with id %s which already exists' % pk, extra={'user': request.user.pk})
             raise Conflict('IP with id {} already exists'.format(pk))
 
-        reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
-        uip = Path.objects.get(entity="ingest_unidentified").value
+        reception = cmPath.objects.values_list('value', flat=True).get(entity='ingest_reception')
+        uip = cmPath.objects.get(entity="ingest_unidentified").value
         # This does not do anything particular right now
         # other than setting a nut null value for package_mets_path. Plausible use when an UIP is a proper SIP but SA
         # is not registred in the preservation system
@@ -2632,7 +2633,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 responsible=request.user,
                 submission_agreement=sa,
                 submission_agreement_locked=True,
-                object_path=container,
+                object_path=Path(container).as_posix(),
                 label=parsed.get('label'),
                 package_mets_path=xmlfile,
             )
@@ -2692,7 +2693,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 ip = InformationPackage.objects.create(
                     object_identifier_value=pk,
                     submission_agreement=sa,
-                    object_path=container,
+                    object_path=Path(container).as_posix(),
                     package_mets_path=xmlfile,
                 )
                 parse_submit_description_from_ip(ip)
@@ -2740,8 +2741,8 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 end_date=ip.end_date,
             )
         ip.state = 'At reception'
-        ip.object_path = normalize_path(container)
-        ip.package_mets_path = normalize_path(xmlfile)
+        ip.object_path = Path(normalize_path(container)).as_posix()
+        ip.package_mets_path = Path(normalize_path(xmlfile)).as_posix()
         ip.responsible = request.user
         ip.save()
 
@@ -2890,7 +2891,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 },
             ]
         else:
-            reception = Path.objects.values_list('value', flat=True).get(entity='ingest_reception')
+            reception = cmPath.objects.values_list('value', flat=True).get(entity='ingest_reception')
             xmlfile = normalize_path(os.path.join(reception, '%s.xml' % pk))
 
             if not os.path.isfile(xmlfile):
@@ -2941,7 +2942,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
                 object_identifier_value=pk,
                 submission_agreement=sa,
                 responsible=request.user,
-                object_path=container,
+                object_path=Path(container).as_posix(),
                 package_mets_path=normalize_path(xmlfile),
             )
             parse_submit_description_from_ip(ip)
@@ -2997,7 +2998,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
     @action(detail=True, methods=['get'])
     def files(self, request, pk=None):
-        reception = Path.objects.get(entity='ingest_reception').value
+        reception = cmPath.objects.get(entity='ingest_reception').value
         path = request.query_params.get('path', '').rstrip('/ ')
         download = request.query_params.get('download', False)
         if download is not False:
@@ -3044,7 +3045,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
-        path = Path.objects.get(entity='ingest_reception').value
+        path = cmPath.objects.get(entity='ingest_reception').value
 
         f = request.FILES['file']
         content_range = request.META.get('HTTP_CONTENT_RANGE', 'bytes 0-0/0')
@@ -3071,7 +3072,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if not request.user.has_perm('ip.can_receive_remote_files'):
             raise exceptions.PermissionDenied
 
-        path = Path.objects.get(entity='ingest_reception').value
+        path = cmPath.objects.get(entity='ingest_reception').value
 
         md5 = request.data['md5']
         filepath = request.data['path']
@@ -3129,7 +3130,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
             'state': 'At reception',
             'status': 100,
             'step_state': celery_states.SUCCESS,
-            'object_path': directory.path,
+            'object_path': Path(directory.path).as_posix(),
         }
         return ip
 
@@ -3147,7 +3148,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         fname = request.data.get('filename')
         spec_data = request.data.get('specification_data', {})
 
-        uip = Path.objects.get(entity="ingest_unidentified").value
+        uip = cmPath.objects.get(entity="ingest_unidentified").value
         container_file = os.path.join(uip, fname)
 
         if not os.path.isfile(container_file):
@@ -3394,7 +3395,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         self.validate_workarea(workarea)
         user = self.get_user(request)
         if request.query_params.get('id') in EMPTY_VALUES:
-            root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+            root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
         else:
             workarea_obj = self.get_object(request)
             root = workarea_obj.path
@@ -3513,7 +3514,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         path = os.path.join(dst, relative_path)
         chunk_path = "%s_%s" % (path, chunk_nr)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload')
         full_chunk_path = os.path.join(temp_path, str(workarea_obj.pk), chunk_path)
 
         if request.method == 'GET':
@@ -3557,7 +3558,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if workarea_obj.read_only:
             raise exceptions.MethodNotAllowed(request.method)
 
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload')
+        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload')
         chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
@@ -3585,7 +3586,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             self.logger.warning('{}'.format(e))
             user = request.user
 
-        root = os.path.join(Path.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
 
         try:
             dip = self.request.data['dip']

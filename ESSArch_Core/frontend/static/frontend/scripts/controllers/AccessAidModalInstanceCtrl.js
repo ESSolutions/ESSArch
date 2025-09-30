@@ -136,7 +136,7 @@ export default class AccessAidModalInstanceCtrl {
       $ctrl.removing = true;
       $rootScope.skipErrorNotification = true;
       $http
-        .delete(appConfig.djangoUrl + 'access-aids/' + $ctrl.accessAid.id)
+        .delete(appConfig.djangoUrl + 'access-aids/' + $ctrl.accessAid.id + '/')
         .then(function (response) {
           $ctrl.removing = false;
           EditMode.disable();

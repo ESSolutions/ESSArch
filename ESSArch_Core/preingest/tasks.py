@@ -24,6 +24,7 @@
 
 import os
 import shutil
+from pathlib import Path
 
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -31,7 +32,7 @@ from django.db import transaction
 # noinspection PyUnresolvedReferences
 from ESSArch_Core import tasks  # noqa
 from ESSArch_Core.config.celery import app
-from ESSArch_Core.configuration.models import Path
+from ESSArch_Core.configuration.models import Path as cmPath
 from ESSArch_Core.ip.models import Agent, InformationPackage
 
 User = get_user_model()
@@ -42,7 +43,7 @@ User = get_user_model()
 def ReceiveIP(self):
     ip = InformationPackage.objects.get(pk=self.ip)
     sa = ip.submission_agreement
-    preingest_path = Path.objects.get(entity="preingest").value
+    preingest_path = cmPath.objects.get(entity="preingest").value
     dst_dir = os.path.join(preingest_path, ip.object_identifier_value)
     shutil.copytree(ip.object_path, dst_dir)
 
@@ -57,7 +58,7 @@ def ReceiveIP(self):
     submit_description_data = ip.get_profile_data('submit_description')
     ip.label = ip.object_identifier_value
     ip.entry_date = ip.create_date
-    ip.object_path = dst_dir
+    ip.object_path = Path(dst_dir).as_posix()
     ip.start_date = submit_description_data.get('start_date')
     ip.end_date = submit_description_data.get('end_date')
     ip.save()

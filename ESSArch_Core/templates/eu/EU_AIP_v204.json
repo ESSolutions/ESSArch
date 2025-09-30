@@ -306,18 +306,18 @@
 			}
 		},
 		{
-			"key": "index_cts",
+			"key": "index_cits",
 			"type": "select",
 			"defaultValue": true,
 			"hidden": false,
 			"templateOptions": {
 				"required": false,
 				"disabled": false,
-				"label": "Index cts",
+				"label": "Index CITS",
 				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
 			},
 			"ngModelElAttrs": {
-				"uib-popover": "Index cts",
+				"uib-popover": "Index CITS",
 				"popover-placement": "bottom",
 				"popover-trigger": "'mouseenter'"
 			}
