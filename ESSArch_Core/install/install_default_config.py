@@ -21,7 +21,6 @@
     Web - http://www.essolutions.se
     Email - essarch@essolutions.se
 """
-import os
 from pathlib import Path
 
 import click
@@ -1151,7 +1150,7 @@ def installDefaultStoragePolicies():
             defaults={
                 'status': True,
                 'type': DISK,
-                'target': os.path.join(settings.DATA_DIR, 'store/cache'),
+                'target': (Path(settings.DATA_DIR) / 'store/cache').as_posix(),
             }
         )
 
@@ -1233,7 +1232,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': os.path.join(settings.DATA_DIR, 'store/disk1'),
+            'target': (Path(settings.DATA_DIR) / 'store/disk1').as_posix(),
         }
     )
 
@@ -1256,7 +1255,7 @@ def installDefaultStorageTargets():
         defaults={
             'status': True,
             'type': DISK,
-            'target': os.path.join(settings.DATA_DIR, 'store/longterm_disk1'),
+            'target': (Path(settings.DATA_DIR) / 'store/longterm_disk1').as_posix(),
         }
     )
 
