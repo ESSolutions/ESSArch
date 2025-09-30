@@ -201,7 +201,7 @@ class StoragePolicy(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
-    index = models.BooleanField(default=True)
+    index = models.BooleanField(default=False)
 
     cache_minimum_capacity = models.IntegerField(
         'Minimum size (bytes) available on cache before deleting content', default=0,
@@ -212,7 +212,7 @@ class StoragePolicy(models.Model):
 
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
     policy_name = models.CharField('Policy Name', max_length=255)
-    policy_stat = models.BooleanField('Policy Status', default=False)
+    policy_stat = models.BooleanField('Policy Status', default=True)
     ais_project_name = models.CharField('AIS Policy Name', max_length=255, blank=True)
     ais_project_id = models.CharField('AIS Policy ID', max_length=255, blank=True)
     mode = models.IntegerField(choices=MODE_CHOICES, default=0)
@@ -235,7 +235,7 @@ class StoragePolicy(models.Model):
     ingest_path = models.ForeignKey(Path, on_delete=models.PROTECT,
                                     related_name='ingest_policy', blank=True, null=True)
     ingest_delete = models.BooleanField('Delete SIP after success to create AIP', default=True)
-    receive_extract_sip = models.BooleanField('Extract SIP on receive', default=False)
+    receive_extract_sip = models.BooleanField('Extract SIP on receive', default=True)
 
     class Meta:
         ordering = ['policy_name']
