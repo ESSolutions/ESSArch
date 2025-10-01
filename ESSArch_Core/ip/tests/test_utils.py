@@ -177,9 +177,10 @@ class DownloadSchemaTests(TestCase):
 
         os.makedirs(self.textdir)
 
-    @mock.patch('ESSArch_Core.ip.utils.open')
+    @mock.patch('ESSArch_Core.ip.utils.os.fsync')
+    @mock.patch('ESSArch_Core.ip.utils.open', new_callable=mock.mock_open)
     @mock.patch('ESSArch_Core.ip.utils.requests.get')
-    def test_download_schema_should_save_to_file(self, get_requests, mock_open):
+    def test_download_schema_should_save_to_file(self, get_requests, mock_open, mock_fsync):
         logger = mock.Mock()
         schema = "https://dummy.url.to.xsd"
         get_requests.return_value.raise_for_status.return_value = mock.ANY
@@ -187,6 +188,11 @@ class DownloadSchemaTests(TestCase):
 
         get_requests.assert_called_once_with(schema, stream=True, verify=True)
         mock_open.assert_called_once_with(os.path.join(self.textdir, "dummy.url.to.xsd"), 'wb')
+
+        handle = mock_open()
+        handle.flush.assert_called_once()
+        mock_fsync.assert_called_once_with(handle.fileno())
+
         self.assertEqual(logger.info.call_count, 2)
 
     @mock.patch('ESSArch_Core.ip.utils.os.remove')

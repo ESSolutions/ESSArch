@@ -241,10 +241,14 @@ class IOQueueViewSet(viewsets.ModelViewSet):
         if start == 0:
             with open(filename, 'wb') as dstf:
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
         else:
             with open(filename, 'ab') as dstf:
                 dstf.seek(start)
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
 
         upload_id = request.data.get('upload_id', uuid.uuid4().hex)
         return Response({'upload_id': upload_id})

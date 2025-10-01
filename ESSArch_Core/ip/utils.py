@@ -346,6 +346,8 @@ def download_schema(dirname, logger, schema, verify=None):
         with open(dst, 'wb') as f:
             for chunk in r:
                 f.write(chunk)
+            f.flush()              # Flush Python buffer
+            os.fsync(f.fileno())   # Flush OS buffer to disk
     except Exception:
         logger.exception('Download of schema failed: {}'.format(schema))
         try:

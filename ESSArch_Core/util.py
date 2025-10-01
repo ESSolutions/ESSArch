@@ -525,6 +525,8 @@ def find_and_replace_in_file(fname, old, new):
     # Write the file out again
     with open(fname, 'w') as f:
         f.write(filedata)
+        f.flush()              # Flush Python buffer
+        os.fsync(f.fileno())   # Flush OS buffer to disk
 
 
 def run_shell_command(command, cwd):
@@ -825,6 +827,8 @@ def merge_file_chunks(chunks_path, filepath):
             with open(chunk, 'rb') as cf:
                 f.write(cf.read())
             os.remove(chunk)
+        f.flush()              # Flush Python buffer
+        os.fsync(f.fileno())   # Flush OS buffer to disk
 
 
 def turn_off_auto_now(ModelClass, field_name):
