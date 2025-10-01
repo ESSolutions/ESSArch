@@ -863,6 +863,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             with open(full_chunk_path, 'wb+') as chunkf:
                 for c in chunk.chunks():
                     chunkf.write(c)
+                chunkf.flush()              # Flush Python buffer
+                os.fsync(chunkf.fileno())   # Flush OS buffer to disk
 
             return Response("Uploaded chunk", status=status.HTTP_201_CREATED)
 
@@ -1426,10 +1428,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         if start == 0:
             with open(filename, 'wb') as dstf:
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
         else:
             with open(filename, 'ab') as dstf:
                 dstf.seek(start)
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
 
         upload_id = request.data.get('upload_id', uuid.uuid4().hex)
         return Response({'upload_id': upload_id})
@@ -1526,7 +1532,9 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         with open(xmlfile, "w") as f:
             f.write(str(content))
-            return Response("Content written to %s" % xmlfile)
+            f.flush()              # Flush Python buffer
+            os.fsync(f.fileno())   # Flush OS buffer to disk
+        return Response("Content written to %s" % xmlfile)
 
     @transaction.atomic
     @action(detail=True, methods=['post'])
@@ -3059,10 +3067,14 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         if start == 0:
             with open(filename, 'wb') as dstf:
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
         else:
             with open(filename, 'ab') as dstf:
                 dstf.seek(start)
                 dstf.write(f.read())
+                dstf.flush()              # Flush Python buffer
+                os.fsync(dstf.fileno())   # Flush OS buffer to disk
 
         upload_id = request.data.get('upload_id', uuid.uuid4().hex)
         return Response({'upload_id': upload_id})
@@ -3533,6 +3545,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             with open(full_chunk_path, 'wb+') as chunkf:
                 for c in chunk.chunks():
                     chunkf.write(c)
+                chunkf.flush()              # Flush Python buffer
+                os.fsync(chunkf.fileno())   # Flush OS buffer to disk
 
             return Response("Uploaded chunk", status=status.HTTP_201_CREATED)
 

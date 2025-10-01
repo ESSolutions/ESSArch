@@ -863,6 +863,8 @@ class XMLGenerator:
     def write(self, filepath):
         with open(filepath, 'wb') as f:
             self.tree.write(f, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+            f.flush()              # Flush Python buffer
+            os.fsync(f.fileno())   # Flush OS buffer to disk
         timeout = 30  # seconds
         start_time = time.time()
         while not (os.path.exists(filepath) and os.path.getsize(filepath) > 0):

@@ -645,6 +645,8 @@ def DownloadFile(self, src=None, dst=None):
         with open(dst, 'wb') as f:
             for chunk in r:
                 f.write(chunk)
+            f.flush()              # Flush Python buffer
+            os.fsync(f.fileno())   # Flush OS buffer to disk
 
 
 @app.task(bind=True, queue='io_tape', event_type=40200)
