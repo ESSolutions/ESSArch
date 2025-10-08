@@ -35,6 +35,7 @@ import zipfile
 from copy import deepcopy
 from datetime import datetime
 from os import walk
+from pathlib import Path
 from time import sleep
 from urllib.parse import urljoin
 
@@ -84,7 +85,7 @@ from ESSArch_Core.auth.models import GroupObjectsBase, Member
 from ESSArch_Core.auth.util import get_group_objs_model
 from ESSArch_Core.configuration.models import (
     MESSAGE_DIGEST_ALGORITHM_CHOICES,
-    Path,
+    Path as cmPath,
 )
 from ESSArch_Core.crypto import encrypt_remote_credentials
 from ESSArch_Core.essxml.Generator.xmlGenerator import parseContent
@@ -1468,7 +1469,7 @@ class InformationPackage(models.Model):
             aic_xml = False
 
         if not self.archived:
-            ingest_workarea = Path.objects.get(entity='ingest_workarea').value
+            ingest_workarea = cmPath.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
             ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
             ingest_workarea_user_extracted = os.path.join(ingest_workarea_user, dst_object_identifier_value)
@@ -1573,7 +1574,7 @@ class InformationPackage(models.Model):
             except StorageTarget.DoesNotExist:
                 pass
 
-        temp_dir = Path.objects.get(entity='temp').value
+        temp_dir = cmPath.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path()
         temp_container_path = self.get_temp_container_path()
         temp_mets_path = self.get_temp_container_xml_path()
@@ -1583,7 +1584,7 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
         storage_method = storage_target.methods.first()
 
-        access_workarea = Path.objects.get(entity='access_workarea').value
+        access_workarea = cmPath.objects.get(entity='access_workarea').value
         access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         access_workarea_user_extracted = os.path.join(access_workarea_user, dst_object_identifier_value)
         access_workarea_user_container = os.path.join(access_workarea_user, '{}.{}'.format(
@@ -2071,7 +2072,7 @@ class InformationPackage(models.Model):
         #     except StorageTarget.DoesNotExist:
         #         pass
 
-        temp_path = temp_path if temp_path else Path.objects.get(entity='temp').value
+        temp_path = temp_path if temp_path else cmPath.objects.get(entity='temp').value
         temp_object_path = self.get_temp_object_path(temp_path)  # dir_path
         temp_container_path = self.get_temp_container_path(temp_path)  # container_path
         temp_mets_path = self.get_temp_container_xml_path(temp_path)  # aip_xml_path
@@ -2094,7 +2095,7 @@ class InformationPackage(models.Model):
         else:
             export_path_dst_aic_xml = None
 
-        # access_workarea = Path.objects.get(entity='access_workarea').value
+        # access_workarea = cmPath.objects.get(entity='access_workarea').value
         # access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
         # access_workarea_user = os.path.join(access_workarea, 'superuser', dst_object_identifier_value)
         # access_workarea_user_extracted = os.path.join(access_workarea_user, dst_object_identifier_value)
@@ -2838,24 +2839,24 @@ class InformationPackage(models.Model):
         return cached_storage
 
     def get_temp_object_path(self, temp_path=None):
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
-        return os.path.join(temp_dir, self.object_identifier_value)
+        temp_dir = temp_path if temp_path else cmPath.objects.get(entity='temp').value
+        return (Path(temp_dir) / self.object_identifier_value).as_posix()
 
     def get_temp_container_path(self, temp_path=None):
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
+        temp_dir = temp_path if temp_path else cmPath.objects.get(entity='temp').value
         container_format = self.get_container_format()
-        return os.path.join(temp_dir, self.object_identifier_value + '.{}'.format(container_format))
+        return (Path(temp_dir) / f'{self.object_identifier_value}.{container_format}').as_posix()
 
     def get_temp_container_xml_path(self, temp_path=None):
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
+        temp_dir = temp_path if temp_path else cmPath.objects.get(entity='temp').value
         if not self.package_mets_path:
             return ''
         else:
-            return os.path.join(temp_dir, self.package_mets_path.split('/')[-1])
+            return (Path(temp_dir) / self.package_mets_path.split('/')[-1]).as_posix()
 
     def get_temp_container_aic_xml_path(self, temp_path=None):
-        temp_dir = temp_path if temp_path else Path.objects.get(entity='temp').value
-        return os.path.join(temp_dir, self.aic.object_identifier_value + '.xml')
+        temp_dir = temp_path if temp_path else cmPath.objects.get(entity='temp').value
+        return (Path(temp_dir) / f'{self.aic.object_identifier_value}.xml').as_posix()
 
     @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
            wait=wait_fixed(60), before_sleep=before_sleep_log(logging.getLogger('essarch.ip'), logging.DEBUG))
@@ -3031,9 +3032,9 @@ class InformationPackage(models.Model):
 
     def delete_temp_files(self):
         paths = [
-            os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
-            os.path.join(Path.objects.get(entity='temp').value, str(self.pk)),
-            os.path.join(Path.objects.get(entity='temp').value, str(self.object_identifier_value)),
+            os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload', str(self.pk)),
+            os.path.join(cmPath.objects.get(entity='temp').value, str(self.pk)),
+            os.path.join(cmPath.objects.get(entity='temp').value, str(self.object_identifier_value)),
         ]
 
         for path in paths:
@@ -3306,18 +3307,18 @@ class Workarea(models.Model):
 
     @property
     def path(self):
-        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
 
     @property
     def package_xml_path(self):
-        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
                             self.ip.package_mets_path.split('/')[-1])
 
     @property
     def aic_xml_path(self):
-        area_dir = Path.objects.get(entity=self.get_type_display() + '_workarea').value
+        area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
         return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
                             self.ip.aic.object_identifier_value) + '.xml'
 
@@ -3325,7 +3326,7 @@ class Workarea(models.Model):
         return self.path
 
     def delete_temp_files(self):
-        temp_path = os.path.join(Path.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload', str(self.pk))
         delete_path(temp_path)
 
     def delete_files(self):
@@ -3386,7 +3387,7 @@ class Order(models.Model):
 
     @property
     def path(self):
-        root = Path.objects.get(entity='orders').value
+        root = cmPath.objects.get(entity='orders').value
         return os.path.join(root, str(self.pk))
 
     class Meta:

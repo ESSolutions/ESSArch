@@ -515,7 +515,7 @@ def UpdateIPPath(self, path, prev=None):
     ip.object_path = path.as_posix()
     ip.save()
 
-    return path
+    return path.as_posix()
 
 
 @app.task(bind=True, queue='file_operation')
