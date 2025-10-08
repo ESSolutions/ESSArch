@@ -3,6 +3,7 @@ import shutil
 import tarfile
 import tempfile
 import uuid
+from pathlib import Path
 from unittest import mock
 
 from django.conf import settings
@@ -275,7 +276,7 @@ class StorageObjectGetRootTests(TestCase):
             container=False,
         )
 
-        expected_root_path = os.path.join("my_storage_target", self.ip.object_identifier_value)
+        expected_root_path = (Path("my_storage_target") / self.ip.object_identifier_value).as_posix()
         self.assertEqual(storage_object.get_root(), expected_root_path)
 
     def test_when_content_location_value_is_empty_string_and_its_a_container(self):
@@ -287,7 +288,7 @@ class StorageObjectGetRootTests(TestCase):
             container=True,
         )
 
-        expected_root_path = os.path.join("my_storage_target", self.ip.object_identifier_value) + ".tar"
+        expected_root_path = (Path("my_storage_target") / f'{self.ip.object_identifier_value}.tar').as_posix()
         self.assertEqual(storage_object.get_root(), expected_root_path)
 
     def test_when_content_location_value_is_not_empty_string(self):
@@ -299,7 +300,7 @@ class StorageObjectGetRootTests(TestCase):
             container=False,
         )
 
-        expected_root_path = os.path.join("my_storage_target", "the_content_location_value")
+        expected_root_path = (Path("my_storage_target") / "the_content_location_value").as_posix()
         self.assertEqual(storage_object.get_root(), expected_root_path)
 
 
