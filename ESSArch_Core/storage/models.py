@@ -6,6 +6,7 @@ import shutil
 import tarfile
 import uuid
 from datetime import timedelta
+from pathlib import Path
 from time import sleep
 from urllib.parse import urljoin
 
@@ -39,7 +40,11 @@ from tenacity import (
     wait_fixed,
 )
 
-from ESSArch_Core.configuration.models import Parameter, Path, StoragePolicy
+from ESSArch_Core.configuration.models import (
+    Parameter,
+    Path as cmPath,
+    StoragePolicy,
+)
 from ESSArch_Core.db.utils import natural_sort
 from ESSArch_Core.fixity.validation.backends.checksum import ChecksumValidator
 from ESSArch_Core.storage.backends import get_backend
@@ -705,7 +710,7 @@ class StorageMedium(models.Model):
             logger.exception('Failed to verify storage medium: "{}"'.format(str(self.pk)))
             raise
         else:
-            verifydir = Path.objects.get(entity='verify').value
+            verifydir = cmPath.objects.get(entity='verify').value
             tmppath = os.path.join(verifydir, self.storage_target.target)
             shutil.rmtree(tmppath)
             self.status = 30
@@ -836,11 +841,11 @@ class StorageObject(models.Model):
     def get_root(self):
         target = self.storage_medium.storage_target.target
         if self.content_location_value == '':
-            target = os.path.join(target, self.ip.object_identifier_value)
+            target = (Path(target) / self.ip.object_identifier_value).as_posix()
             if self.container:
                 target += '.tar'
         else:
-            target = os.path.join(target, self.content_location_value)
+            target = (Path(target) / self.content_location_value).as_posix()
         return target
 
     def get_full_path(self):
@@ -951,7 +956,7 @@ class StorageObject(models.Model):
             if storage_target.master_server and local is False:
                 # we are on a remote host that has been requested
                 # by master to write to its temp directory
-                temp_dir = Path.objects.get(entity='temp').value
+                temp_dir = cmPath.objects.get(entity='temp').value
 
                 session = requests.Session()
                 session.verify = settings.REQUESTS_VERIFY
@@ -1008,7 +1013,7 @@ class StorageObject(models.Model):
 
     def verify(self):
         if self.content_location_type == TAPE:
-            verifydir = Path.objects.get(entity='verify').value
+            verifydir = cmPath.objects.get(entity='verify').value
             tmppath = os.path.join(verifydir, self.storage_medium.storage_target.target)
 
             if not os.path.exists(tmppath):
