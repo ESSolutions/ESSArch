@@ -1,3 +1,4 @@
+from pathlib import Path
 import copy
 import logging
 import os
@@ -332,7 +333,7 @@ class XMLSchemaValidator(BaseValidator):
         rootdir = self.options.get('rootdir')
         etree.clear_error_log()
         started = timezone.now()
-        relpath = os.path.relpath(filepath, rootdir)
+        relpath = Path(os.path.relpath(filepath, rootdir)).as_posix()
         try:
             validate_against_schema(filepath, self.context, rootdir)
         except etree.DocumentInvalid as e:

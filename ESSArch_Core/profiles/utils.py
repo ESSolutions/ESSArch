@@ -1,10 +1,9 @@
-import os
 from collections.abc import Mapping
-from pathlib import PurePath
+from pathlib import Path
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from ESSArch_Core.configuration.models import Parameter, Path
+from ESSArch_Core.configuration.models import Parameter, Path as cmPath
 from ESSArch_Core.util import find_destination
 
 profile_types = [
@@ -174,7 +173,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         try:
             structure = ip.get_structure()
             content_dir, content_name = find_destination('content', structure)
-            data['_CONTENTPATH'] = PurePath(ip.object_path).joinpath(content_dir, content_name).as_posix()
+            data['_CONTENTPATH'] = (Path(ip.object_path) / content_dir / content_name).as_posix()
         except (ProfileIP.DoesNotExist, TypeError):
             data['_CONTENTPATH'] = ip.object_path
 
@@ -189,13 +188,13 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         if '_CTS_SCHEMA_PATH' not in ignore:
             data['_CTS_SCHEMA_PATH'] = (ip.get_content_type_schema_file,)
 
-        data['_CONTENT_METS_PATH'] = os.path.join(ip.object_path, ip.content_mets_path)
+        data['_CONTENT_METS_PATH'] = (Path(ip.object_path) / ip.content_mets_path).as_posix()
         data['_CONTENT_METS_CREATE_DATE'] = ip.content_mets_create_date
         data['_CONTENT_METS_SIZE'] = ip.content_mets_size
         data['_CONTENT_METS_DIGEST_ALGORITHM'] = ip.get_content_mets_digest_algorithm_display()
         data['_CONTENT_METS_DIGEST'] = ip.content_mets_digest
 
-        data['_PACKAGE_METS_PATH'] = os.path.join(os.path.dirname(ip.object_path), ip.package_mets_path)
+        data['_PACKAGE_METS_PATH'] = (Path(ip.object_path).parent / ip.package_mets_path).as_posix()
         data['_PACKAGE_METS_CREATE_DATE'] = ip.package_mets_create_date
         data['_PACKAGE_METS_SIZE'] = ip.package_mets_size
         data['_PACKAGE_METS_DIGEST_ALGORITHM'] = ip.get_package_mets_digest_algorithm_display()
@@ -206,8 +205,8 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
         data['_TEMP_AIC_METS_PATH'] = (ip.get_temp_container_aic_xml_path,) if ip.aic else None
 
         if ip.get_package_type_display() in ['SIP', 'DIP', 'AIP']:
-            data['_PREMIS_PATH'] = os.path.join(ip.object_path, ip.get_premis_file_path()
-                                                ) if ip.get_premis_file_path() else None
+            data['_PREMIS_PATH'] = (Path(ip.object_path) / ip.get_premis_file_path()
+                                    ).as_posix() if ip.get_premis_file_path() else None
             data['allow_unknown_file_types'] = (ip.get_allow_unknown_file_types,)
 
         data['_IP_CONTAINER_FORMAT'] = (ip.get_container_format,)
@@ -244,7 +243,7 @@ def fill_specification_data(data=None, sa=None, ip=None, ignore=None):
     for p in Parameter.objects.iterator(chunk_size=1000):
         data['_PARAMETER_%s' % p.entity.upper()] = p.value
 
-    for p in Path.objects.iterator(chunk_size=1000):
+    for p in cmPath.objects.iterator(chunk_size=1000):
         data['_PATH_%s' % p.entity.upper()] = p.value
 
     return data
