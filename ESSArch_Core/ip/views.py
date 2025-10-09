@@ -1112,7 +1112,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         dst_dir = cmPath.objects.cached('entity', 'preingest', 'value')
         dst_filename = ip.object_identifier_value + '.' + ip.get_container_format().lower()
-        dst = os.path.join(dst_dir, dst_filename)
+        dst = (Path(dst_dir) / dst_filename).as_posix()
 
         workflow_spec = [
             {
@@ -1896,10 +1896,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         generate_premis = dip.profile_locked('preservation_metadata')
         has_representations = find_destination("representations", dip.get_structure(), dip.object_path)[1] is not None
 
-        dst = os.path.join(
-            os.path.dirname(dip.object_path),
-            dip.object_identifier_value + '.' + dip.get_container_format().lower(),
-        )
+        dst_filename = dip.object_identifier_value + '.' + dip.get_container_format().lower()
+        dst = (Path(dip.object_path).parent / dst_filename).as_posix()
 
         order_path = cmPath.objects.get(entity='orders').value
 
