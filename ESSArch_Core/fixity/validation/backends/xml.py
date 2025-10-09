@@ -1,8 +1,8 @@
-from pathlib import Path
 import copy
 import logging
 import os
 from os import walk
+from pathlib import Path
 
 import click
 from django.utils import timezone
