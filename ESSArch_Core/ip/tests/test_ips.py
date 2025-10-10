@@ -611,7 +611,7 @@ class WorkareaFilesViewTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
-        path = os.path.normpath('does/exist')
+        path = Path('does/exist').as_posix()
         fullpath = (Path(self.wip.path) / path).as_posix()
 
         exists = os.path.exists
@@ -2063,7 +2063,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         return path
 
     def get_xml_path(self, objid):
-        return os.path.join(self.reception, '{}.xml'.format(objid))
+        return (Path(self.reception) / f'{objid}.xml').as_posix()
 
     def create_ip_xml(self, objid, package, sa):
         path = self.get_xml_path(objid)
