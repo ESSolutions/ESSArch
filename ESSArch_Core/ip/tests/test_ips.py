@@ -32,6 +32,7 @@ import tempfile
 import uuid
 import zipfile
 from datetime import datetime
+from pathlib import Path
 from unittest import mock
 
 import requests
@@ -54,7 +55,7 @@ from ESSArch_Core.configuration.models import (
     EventType,
     Feature,
     Parameter,
-    Path,
+    Path as cmPath,
     StoragePolicy,
 )
 from ESSArch_Core.essxml.Generator.xmlGenerator import XMLGenerator
@@ -113,9 +114,9 @@ class AccessTestCase(APITestCase):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity='temp', value=tempfile.mkdtemp(dir=self.datadir))
 
         storage_method = StorageMethod.objects.create()
         storage_target = StorageTarget.objects.create(
@@ -134,7 +135,7 @@ class AccessTestCase(APITestCase):
         )
 
         policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(entity='ingest', value='ingest'),
+            ingest_path=cmPath.objects.create(entity='ingest', value='ingest'),
         )
         policy.storage_methods.add(storage_method)
         sa = SubmissionAgreement.objects.create(
@@ -242,9 +243,9 @@ class AccessTestCase(APITestCase):
 class WorkareaViewSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
-        Path.objects.create(entity="temp", value="")
+        cmPath.objects.create(entity="access_workarea", value="")
+        cmPath.objects.create(entity="ingest_workarea", value="")
+        cmPath.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -391,9 +392,9 @@ class WorkareaViewSetTestCase(TestCase):
 class AIPInMultipleUsersWorkareaTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
-        Path.objects.create(entity="temp", value="")
+        cmPath.objects.create(entity="access_workarea", value="")
+        cmPath.objects.create(entity="ingest_workarea", value="")
+        cmPath.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -514,9 +515,9 @@ class AIPInMultipleUsersWorkareaTestCase(TestCase):
 class SameAIPInMultipleUsersWorkareaTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity="access_workarea", value="")
-        Path.objects.create(entity="ingest_workarea", value="")
-        Path.objects.create(entity="temp", value="")
+        cmPath.objects.create(entity="access_workarea", value="")
+        cmPath.objects.create(entity="ingest_workarea", value="")
+        cmPath.objects.create(entity="temp", value="")
 
         cls.url = reverse('workarea-list')
         cls.org_group_type = GroupType.objects.create(label='organization')
@@ -575,8 +576,8 @@ class WorkareaFilesViewTestCase(TestCase):
         datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, datadir)
 
-        self.access = Path.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir)).value
-        self.ingest = Path.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+        self.access = cmPath.objects.create(entity="access_workarea", value=tempfile.mkdtemp(dir=datadir)).value
+        self.ingest = cmPath.objects.create(entity="ingest_workarea", value=tempfile.mkdtemp(dir=datadir)).value
 
         self.user = User.objects.create(username="admin", password='admin')
         self.member = self.user.essauth_member
@@ -610,8 +611,8 @@ class WorkareaFilesViewTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.list_files', return_value=Response())
     def test_existing_path(self, mock_list_files):
-        path = os.path.normpath('does/exist')
-        fullpath = os.path.normpath(os.path.join(self.wip.path, path))
+        path = Path('does/exist').as_posix()
+        fullpath = (Path(self.wip.path) / path).as_posix()
 
         exists = os.path.exists
         with mock.patch('ESSArch_Core.ip.views.os.path.exists', side_effect=lambda x: x == fullpath or exists(x)):
@@ -637,8 +638,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src.txt'
         dst = 'dst.txt'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,
@@ -665,8 +666,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,
@@ -691,8 +692,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,
@@ -720,10 +721,10 @@ class WorkareaFilesViewTestCase(TestCase):
 class InformationPackageViewSetTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
-        Path.objects.create(entity='ingest_workarea', value='')
-        Path.objects.create(entity='access_workarea', value='')
-        Path.objects.create(entity='disseminations', value='')
-        Path.objects.create(entity="temp", value="temp")
+        cmPath.objects.create(entity='ingest_workarea', value='')
+        cmPath.objects.create(entity='access_workarea', value='')
+        cmPath.objects.create(entity='disseminations', value='')
+        cmPath.objects.create(entity="temp", value="temp")
 
         cls.org_group_type = GroupType.objects.create(label='organization')
 
@@ -1522,7 +1523,7 @@ class InformationPackageViewSetTestCase(TestCase):
 
     @mock.patch('ESSArch_Core.ip.views.ProcessTask.run')
     def test_delete_ip(self, mock_task):
-        ingest = Path.objects.create(entity='ingest', value='ingest')
+        ingest = cmPath.objects.create(entity='ingest', value='ingest')
         policy = StoragePolicy.objects.create(ingest_path=ingest)
 
         sa = SubmissionAgreement.objects.create(policy=policy)
@@ -1600,7 +1601,7 @@ class InformationPackageViewSetTestCase(TestCase):
     @mock.patch('ESSArch_Core.ip.serializers.fill_specification_data', return_value={'foo': 'bar'})
     def test_get_ip_with_submission_agreement(self, mock_data):
         policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(),
+            ingest_path=cmPath.objects.create(),
         )
         sa = SubmissionAgreement.objects.create(
             policy=policy,
@@ -1739,13 +1740,13 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
         Parameter.objects.create(entity='medium_location', value='Media')
 
-        Path.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity='preingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity='preingest', value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
-        Path.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
-        ingest = Path.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
-        receipts = Path.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity='disseminations', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity='preingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity='preingest', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity='ingest_reception', value=tempfile.mkdtemp(dir=self.datadir))
+        cmPath.objects.create(entity="temp", value=tempfile.mkdtemp(dir=self.datadir))
+        ingest = cmPath.objects.create(entity='ingest', value=tempfile.mkdtemp(dir=self.datadir))
+        receipts = cmPath.objects.create(entity='receipts', value=tempfile.mkdtemp(dir=self.datadir))
 
         os.makedirs(os.path.join(receipts.value, 'xml'))
 
@@ -1789,7 +1790,7 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
         )
         self.sa.save()
 
-        mimetypes_file = Path.objects.create(
+        mimetypes_file = cmPath.objects.create(
             entity="mimetypes_definitionfile",
             value=os.path.join(self.datadir, "mime.types"),
         ).value
@@ -1874,7 +1875,7 @@ class InformationPackageViewSetPreserveTestCase(ESSArchSearchBaseTestCase):
             os.path.isfile(os.path.join(storage_target.target, ip.object_identifier_value, 'this_is_mets.xml'))
         )
 
-        tempdir = Path.objects.get(entity="temp").value
+        tempdir = cmPath.objects.get(entity="temp").value
         self.assertEqual(os.listdir(tempdir), [])
 
     @TaskRunner()
@@ -1999,10 +2000,10 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         ingest_unidentified = tempfile.mkdtemp(dir=self.datadir)
         ingest = tempfile.mkdtemp(dir=self.datadir)
 
-        Path.objects.create(entity="temp", value=temp)
-        Path.objects.create(entity='ingest_reception', value=self.reception)
-        Path.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
-        ingest = Path.objects.create(entity='ingest', value=ingest)
+        cmPath.objects.create(entity="temp", value=temp)
+        cmPath.objects.create(entity='ingest_reception', value=self.reception)
+        cmPath.objects.create(entity='ingest_unidentified', value=ingest_unidentified)
+        ingest = cmPath.objects.create(entity='ingest', value=ingest)
 
         policy = StoragePolicy.objects.create(ingest_path=ingest, receive_extract_sip=True)
         self.sa = SubmissionAgreement.objects.create(
@@ -2052,7 +2053,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         )
 
     def get_package_path(self, objid):
-        return os.path.join(self.reception, '{}.tar'.format(objid))
+        return (Path(self.reception) / f'{objid}.tar').as_posix()
 
     def create_ip_package(self, objid):
         path = self.get_package_path(objid)
@@ -2062,7 +2063,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         return path
 
     def get_xml_path(self, objid):
-        return os.path.join(self.reception, '{}.xml'.format(objid))
+        return (Path(self.reception) / f'{objid}.xml').as_posix()
 
     def create_ip_xml(self, objid, package, sa):
         path = self.get_xml_path(objid)
@@ -2322,7 +2323,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
 
         transfer_dst = tempfile.mkdtemp(dir=self.datadir)
-        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
+        cmPath.objects.create(entity='ingest_transfer', value=transfer_dst)
 
         objid = 'foo'
         ip_package = self.create_ip_package(objid)
@@ -2349,7 +2350,7 @@ class InformationPackageReceptionViewSetTestCase(APITestCase):
         Parameter.objects.create(entity='linking_object_identifier_type', value='ESS')
 
         transfer_dst = tempfile.mkdtemp(dir=self.datadir)
-        Path.objects.create(entity='ingest_transfer', value=transfer_dst)
+        cmPath.objects.create(entity='ingest_transfer', value=transfer_dst)
 
         objid = 'foo'
         ip_package = self.create_ip_package(objid)
@@ -2401,12 +2402,12 @@ class InformationPackageChangeSubmissionAgreementTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(),
+            ingest_path=cmPath.objects.create(),
         )
         cls.sa1 = SubmissionAgreement.objects.create(policy=cls.policy)
         cls.sa2 = SubmissionAgreement.objects.create(policy=cls.policy)
 
-        Path.objects.create(entity='temp', value='')
+        cmPath.objects.create(entity='temp', value='')
 
     def setUp(self):
         self.user = User.objects.create(username="admin", password='admin')
@@ -2559,7 +2560,7 @@ class OrderViewSetTestCase(TestCase):
 
         orders_dir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, orders_dir)
-        self.orders_path = Path.objects.create(entity="orders", value=orders_dir)
+        self.orders_path = cmPath.objects.create(entity="orders", value=orders_dir)
 
     def test_list_empty(self):
         url = reverse('order-list')
@@ -2683,15 +2684,15 @@ class IdentifyIP(TestCase):
         self.datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.datadir)
 
-        mimetypes_file = Path.objects.create(
+        mimetypes_file = cmPath.objects.create(
             entity="mimetypes_definitionfile",
             value=os.path.join(self.datadir, "mime.types"),
         ).value
         with open(mimetypes_file, 'w') as f:
             f.write('application/x-tar tar')
 
-        self.path = Path.objects.create(entity="ingest_unidentified", value=self.datadir).value
-        Path.objects.create(entity="ingest_reception", value="ingest_reception")
+        self.path = cmPath.objects.create(entity="ingest_unidentified", value=self.datadir).value
+        cmPath.objects.create(entity="ingest_reception", value="ingest_reception")
 
         self.user = User.objects.create(username="admin")
 
@@ -2780,8 +2781,8 @@ class CreateIPTestCase(TestCase):
     def setUpTestData(cls):
         cls.root = os.path.dirname(os.path.realpath(__file__))
         cls.datadir = os.path.join(cls.root, 'datadir')
-        Path.objects.create(entity='preingest', value=cls.datadir)
-        Path.objects.create(entity='disseminations', value=cls.datadir)
+        cmPath.objects.create(entity='preingest', value=cls.datadir)
+        cmPath.objects.create(entity='disseminations', value=cls.datadir)
 
         EventType.objects.create(eventType=10100, category=EventType.CATEGORY_INFORMATION_PACKAGE)
         EventType.objects.create(eventType=10200, category=EventType.CATEGORY_INFORMATION_PACKAGE)
@@ -2986,11 +2987,11 @@ class PrepareIPTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(),
+            ingest_path=cmPath.objects.create(),
         )
         cls.sa = SubmissionAgreement.objects.create(policy=policy)
 
-        Path.objects.create(entity='temp')
+        cmPath.objects.create(entity='temp')
         EventType.objects.create(eventType=10300, category=EventType.CATEGORY_INFORMATION_PACKAGE)
 
     def setUp(self):
@@ -3152,8 +3153,8 @@ class test_submit_ip(TestCase):
         cls.root = os.path.dirname(os.path.realpath(__file__))
         cls.datadir = os.path.join(cls.root, 'datadir')
 
-        Path.objects.create(entity='preingest', value=cls.datadir)
-        Path.objects.create(entity='preingest_reception', value=cls.datadir)
+        cmPath.objects.create(entity='preingest', value=cls.datadir)
+        cmPath.objects.create(entity='preingest_reception', value=cls.datadir)
 
     def setUp(self):
         self.user = User.objects.create(username="admin")
@@ -3162,7 +3163,7 @@ class test_submit_ip(TestCase):
         self.client.force_authenticate(user=self.user)
 
         policy = StoragePolicy.objects.create(
-            ingest_path=Path.objects.create(),
+            ingest_path=cmPath.objects.create(),
         )
 
         self.sa = SubmissionAgreement.objects.create(policy=policy)
@@ -3288,7 +3289,7 @@ class test_set_uploaded(APITestCase):
         datadir = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, datadir)
 
-        temp_dir = Path.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir)).value
+        temp_dir = cmPath.objects.create(entity='temp', value=tempfile.mkdtemp(dir=datadir)).value
         os.makedirs(os.path.join(temp_dir, 'file_upload'))
 
         self.user = User.objects.create(username="admin")
@@ -3332,7 +3333,7 @@ class UploadTestCase(TestCase):
         self.src = os.path.join(self.datadir, 'src')
         self.dst = os.path.join(self.datadir, 'dst')
         self.temp = os.path.join(self.datadir, 'temp')
-        Path.objects.create(entity='temp', value=self.temp)
+        cmPath.objects.create(entity='temp', value=self.temp)
 
         self.ip = InformationPackage.objects.create(object_path=self.dst, state='Prepared')
         self.baseurl = reverse('informationpackage-detail', args=(self.ip.pk,))
@@ -3922,7 +3923,7 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
 
         policy = StoragePolicy.objects.create(
             cache_storage=StorageMethod.objects.create(),
-            ingest_path=Path.objects.create(),
+            ingest_path=cmPath.objects.create(),
         )
         sa = SubmissionAgreement.objects.create(policy=policy,)
         self.ip = InformationPackage.objects.create(

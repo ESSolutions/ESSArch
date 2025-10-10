@@ -123,7 +123,7 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
 
     if sip_dst_name:
         sip_dst_name, = self.parse_params(sip_dst_name)
-    sip_dst = os.path.join(sip_dst_path, sip_dst_name)
+    sip_dst = (Path(sip_dst_path) / sip_dst_name).as_posix()
 
     if ip.policy.receive_extract_sip:
         # remove any existing directory from previous attempts
@@ -165,7 +165,8 @@ def ReceiveSIP(self, purpose=None, delete_sip=False):
             else:
                 raise ValueError('Invalid container type: {}'.format(container))
 
-            sip_dst = os.path.join(sip_dst, '')
+            if not sip_dst.endswith("/"):
+                sip_dst += "/"
             os.makedirs(sip_dst)
 
             tmpsrc = tmpdir

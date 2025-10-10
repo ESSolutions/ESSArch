@@ -168,18 +168,18 @@ def TransferIP(self):
     src = ip.get_events_file_path()
     if os.path.isfile(src):
         if not remote:
-            xml_dst = os.path.join(os.path.dirname(dst), "%s_ipevents.xml" % objid)
+            xml_dst = (Path(os.path.dirname(dst)) / f'{objid}_ipevents.xml').as_posix()
         else:
             xml_dst = dst
         copy_file(src, xml_dst, requests_session=session, block_size=block_size)
 
     self.set_progress(75, total=100)
 
-    src = os.path.join(srcdir, "%s.xml" % objid)
+    src = (Path(srcdir) / f'{objid}.xml').as_posix()
     if remote:
         xml_dst = dst
     else:
-        xml_dst = os.path.join(dst, "%s.xml" % objid)
+        xml_dst = (Path(dst) / f'{objid}.xml').as_posix()
 
     copy_file(src, xml_dst, requests_session=session, block_size=block_size)
     self.set_progress(100, total=100)
@@ -356,7 +356,7 @@ def AddPremisIPObjectElementToEventsFile(self):
     }
     spec = get_premis_ip_object_element_spec()
     info = fill_specification_data(info, ip=ip)
-    xmlfile = os.path.join(ip.object_path, ip.get_events_file_path())
+    xmlfile = (Path(ip.object_path) / ip.get_events_file_path()).as_posix()
 
     generator = XMLGenerator(filepath=xmlfile)
     target = generator.find_element('premis')

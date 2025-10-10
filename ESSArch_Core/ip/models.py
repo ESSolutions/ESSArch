@@ -583,7 +583,7 @@ class InformationPackage(models.Model):
         for content in structure:
             if content.get('type') == 'folder':
                 name = content.get('name')
-                dirname = os.path.join(root, name)
+                dirname = (Path(root) / name).as_posix()
                 dirname = parseContent(dirname, data)
                 if not content.get('create', True):
                     continue
@@ -694,7 +694,7 @@ class InformationPackage(models.Model):
         if ctsdir is None:
             return None
 
-        full_path = os.path.join(ctsdir, ctsfile)
+        full_path = (Path(ctsdir) / ctsfile).as_posix()
         return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
 
     def get_content_type_schema_file(self):
@@ -708,7 +708,7 @@ class InformationPackage(models.Model):
         if ctsdir is None:
             return None
 
-        full_path = os.path.join(ctsdir, ctsfile)
+        full_path = (Path(ctsdir) / ctsfile).as_posix()
         return parseContent(full_path, fill_specification_data(ip=self, ignore=['_CTS_PATH', '_CTS_SCHEMA_PATH']))
 
     def get_doc(self):
@@ -875,7 +875,7 @@ class InformationPackage(models.Model):
     def get_content_mets_file_path(self):
         mets_dir, mets_name = find_destination("mets_file", self.get_structure())
         if mets_dir is not None:
-            path = os.path.join(mets_dir, mets_name)
+            path = (Path(mets_dir) / mets_name).as_posix()
             path = parseContent(path, fill_specification_data(ip=self))
         else:
             path = 'mets.xml'
@@ -889,7 +889,7 @@ class InformationPackage(models.Model):
             return None
 
         if premis_dir is not None:
-            path = os.path.join(premis_dir, premis_name)
+            path = (Path(premis_dir) / premis_name).as_posix()
         else:
             path = 'metadata/premis.xml'
 
@@ -904,7 +904,7 @@ class InformationPackage(models.Model):
 
         events_dir, events_file = find_destination('events_file', structure)
         if events_dir is not None:
-            full_path = os.path.join(events_dir, events_file)
+            full_path = (Path(events_dir) / events_file).as_posix()
             return normalize_path(parseContent(full_path, fill_specification_data(ip=self)))
 
         return 'ipevents.xml'
@@ -1471,8 +1471,8 @@ class InformationPackage(models.Model):
         if not self.archived:
             ingest_workarea = cmPath.objects.get(entity='ingest_workarea').value
             container = os.path.isfile(self.object_path)
-            ingest_workarea_user = os.path.join(ingest_workarea, user.username, dst_object_identifier_value)
-            ingest_workarea_user_extracted = os.path.join(ingest_workarea_user, dst_object_identifier_value)
+            ingest_workarea_user = (Path(ingest_workarea) / user.username / dst_object_identifier_value).as_posix()
+            ingest_workarea_user_extracted = (Path(ingest_workarea_user) / dst_object_identifier_value).as_posix()
 
             workflow = [
                 {
@@ -1585,24 +1585,22 @@ class InformationPackage(models.Model):
         storage_method = storage_target.methods.first()
 
         access_workarea = cmPath.objects.get(entity='access_workarea').value
-        access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
-        access_workarea_user_extracted = os.path.join(access_workarea_user, dst_object_identifier_value)
-        access_workarea_user_container = os.path.join(access_workarea_user, '{}.{}'.format(
-            self.object_identifier_value, self.get_container_format().lower()))
-        access_workarea_user_package_xml = os.path.join(access_workarea_user, self.package_mets_path.split('/')[-1])
-        access_workarea_user_extracted_content_xml = os.path.join(
-            access_workarea_user_extracted, self.content_mets_path) if self.content_mets_path else None
-        if aic_xml:
-            access_workarea_user_aic_xml = os.path.join(access_workarea_user,
-                                                        self.aic.object_identifier_value) + '.xml'
-        else:
-            access_workarea_user_aic_xml = None
+        access_workarea_user = (Path(access_workarea) / user.username / dst_object_identifier_value).as_posix()
+        access_workarea_user_extracted = (Path(access_workarea_user) / dst_object_identifier_value).as_posix()
+        access_workarea_user_container = (Path(access_workarea_user) / '{}.{}'.format(
+            self.object_identifier_value, self.get_container_format().lower())).as_posix()
+        access_workarea_user_package_xml = (Path(access_workarea_user) / self.package_mets_path.split('/')[-1]
+                                            ).as_posix()
+        access_workarea_user_extracted_content_xml = (Path(access_workarea_user_extracted) / self.content_mets_path
+                                                      ).as_posix() if self.content_mets_path else None
+        access_workarea_user_aic_xml = (Path(access_workarea_user) / f'{self.aic.object_identifier_value}.xml'
+                                        ).as_posix() if aic_xml else None
 
         if new:
             new_aip = self.create_new_generation('Access Workarea', user, dst_object_identifier_value)
             new_aip.object_path = access_workarea_user_extracted
             new_aip.save()
-            access_workarea_user_extracted_src = os.path.join(access_workarea_user, self.object_identifier_value)
+            access_workarea_user_extracted_src = (Path(access_workarea_user) / self.object_identifier_value).as_posix()
         else:
             access_workarea_user_extracted_src = None
             new_aip = self
@@ -1633,8 +1631,8 @@ class InformationPackage(models.Model):
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
-                             self.content_mets_path]
+                        [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
+                         self.content_mets_path]
                     ],
                 },
                 {
@@ -1778,7 +1776,7 @@ class InformationPackage(models.Model):
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path]
                         ],
                     },
@@ -1819,7 +1817,7 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path]
                         ],
                     },
@@ -1917,7 +1915,7 @@ class InformationPackage(models.Model):
             else:
                 # reading from non long-term storage
                 if cache_target is not None:
-                    cache_dst = os.path.join(cache_target, self.object_identifier_value)
+                    cache_dst = (Path(cache_target) / self.object_identifier_value).as_posix()
                 else:
                     cache_dst = None
 
@@ -1991,7 +1989,7 @@ class InformationPackage(models.Model):
                         "args": [
                             access_workarea_user_container,
                             access_workarea_user_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path]
                         ],
                     },
@@ -2082,18 +2080,16 @@ class InformationPackage(models.Model):
         storage_target = storage_medium.storage_target
         # storage_method = storage_target.methods.first()
 
-        export_path_dst = os.path.join(export_path, dst_object_identifier_value)
-        export_path_dst_extracted = os.path.join(export_path_dst, dst_object_identifier_value)
-        export_path_dst_container = os.path.join(export_path_dst, '{}.{}'.format(
-            self.object_identifier_value, self.get_container_format().lower()))
-        export_path_dst_package_xml = os.path.join(export_path_dst, self.package_mets_path.split('/')[-1])
-        export_path_dst_extracted_content_xml = os.path.join(
-            export_path_dst_extracted, self.content_mets_path) if self.content_mets_path else None
-        if aic_xml:
-            export_path_dst_aic_xml = os.path.join(export_path_dst,
-                                                   self.aic.object_identifier_value) + '.xml'
-        else:
-            export_path_dst_aic_xml = None
+        export_path_dst = (Path(export_path) / dst_object_identifier_value).as_posix()
+        export_path_dst_extracted = (Path(export_path_dst) / dst_object_identifier_value).as_posix()
+        export_path_dst_container = (Path(export_path_dst) / '{}.{}'.format(
+            self.object_identifier_value, self.get_container_format().lower())).as_posix()
+        export_path_dst_package_xml = (Path(export_path_dst) / self.package_mets_path.split('/')[-1]
+                                       ).as_posix()
+        export_path_dst_extracted_content_xml = (Path(export_path_dst_extracted) / self.content_mets_path
+                                                 ).as_posix() if self.content_mets_path else None
+        export_path_dst_aic_xml = (Path(export_path_dst) / f'{self.aic.object_identifier_value}.xml'
+                                   ).as_posix() if aic_xml else None
 
         # access_workarea = cmPath.objects.get(entity='access_workarea').value
         # access_workarea_user = os.path.join(access_workarea, user.username, dst_object_identifier_value)
@@ -2140,8 +2136,8 @@ class InformationPackage(models.Model):
                     "args": [
                         temp_container_path,
                         temp_mets_path,
-                        [os.path.join(dst_object_identifier_value, self.content_mets_path),
-                             self.content_mets_path]
+                        [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
+                         self.content_mets_path]
                     ],
                 },
                 # {
@@ -2329,7 +2325,7 @@ class InformationPackage(models.Model):
                         "args": [
                             export_path_dst_container,
                             export_path_dst_package_xml,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path]
                         ],
                     },
@@ -2370,7 +2366,7 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path],
                         ],
                     },
@@ -2592,7 +2588,7 @@ class InformationPackage(models.Model):
                         "args": [
                             temp_container_path,
                             temp_mets_path,
-                            [os.path.join(dst_object_identifier_value, self.content_mets_path),
+                            [(Path(dst_object_identifier_value) / self.content_mets_path).as_posix(),
                              self.content_mets_path]
                         ],
                     },
@@ -3308,25 +3304,25 @@ class Workarea(models.Model):
     @property
     def path(self):
         area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
-        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value)
+        return (Path(area_dir) / self.user.username / self.ip.object_identifier_value).as_posix()
 
     @property
     def package_xml_path(self):
         area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
-        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
-                            self.ip.package_mets_path.split('/')[-1])
+        return (Path(area_dir) / self.user.username / self.ip.object_identifier_value /
+                self.ip.package_mets_path.split('/')[-1]).as_posix()
 
     @property
     def aic_xml_path(self):
         area_dir = cmPath.objects.get(entity=self.get_type_display() + '_workarea').value
-        return os.path.join(area_dir, self.user.username, self.ip.object_identifier_value,
-                            self.ip.aic.object_identifier_value) + '.xml'
+        return (Path(area_dir) / self.user.username / self.ip.object_identifier_value /
+                f'{self.ip.aic.object_identifier_value}.xml').as_posix()
 
     def get_path(self):
         return self.path
 
     def delete_temp_files(self):
-        temp_path = os.path.join(cmPath.objects.get(entity='temp').value, 'file_upload', str(self.pk))
+        temp_path = (Path(cmPath.objects.get(entity='temp').value) / 'file_upload' / str(self.pk)).as_posix()
         delete_path(temp_path)
 
     def delete_files(self):
@@ -3388,7 +3384,7 @@ class Order(models.Model):
     @property
     def path(self):
         root = cmPath.objects.get(entity='orders').value
-        return os.path.join(root, str(self.pk))
+        return (Path(root) / str(self.pk)).as_posix()
 
     class Meta:
         ordering = ["label"]

@@ -1590,8 +1590,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             reception_dir = cmPath.objects.get(entity='ingest_reception').value
             ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
-            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
+            ip_reception_path = (Path(reception_dir) / ip.object_identifier_value).as_posix()
+            ip_ingest_path = (Path(ingest_dir) / ip.object_identifier_value).as_posix() if ingest_dir else None
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -2781,7 +2781,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         cts = ip.get_content_type_file()
         has_cts = cts is not None and os.path.exists(cts)
 
-        aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+        aip_object_path = (Path(ip.policy.ingest_path.value) / ip.object_identifier_value).as_posix()
         aip_object_structure = ip.get_profile_rel('aip').profile.structure
 
         if ip_is_directory:
@@ -3383,8 +3383,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Workarea of type "%s" does not exist' % area_type)
 
     def validate_path(self, path, root, existence=True):
-        path = os.path.normpath(path)
-        root = os.path.normpath(root)
+        path = Path(path).as_posix()
+        root = Path(root).as_posix()
         relpath = os.path.relpath(path, root)
 
         if not in_directory(path, root):
@@ -3405,7 +3405,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         self.validate_workarea(workarea)
         user = self.get_user(request)
         if request.query_params.get('id') in EMPTY_VALUES:
-            root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
+            root = (Path(cmPath.objects.get(entity=workarea + '_workarea').value) / user.username).as_posix()
         else:
             workarea_obj = self.get_object(request)
             root = workarea_obj.path
@@ -3418,7 +3418,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         expand_container = request.query_params.get('expand_container', False)
         if expand_container is not False:
             expand_container = string_to_bool(expand_container)
-        fullpath = os.path.join(root, path)
+        fullpath = (Path(root) / path).as_posix()
 
         try:
             self.validate_path(fullpath, root)
@@ -3450,7 +3450,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workarea_obj = self.get_object(request)
         root = workarea_obj.path
 
-        path = os.path.join(root, request.data.get('path', ''))
+        path = (Path(root) / request.data.get('path', '')).as_posix()
         self.validate_path(path, root, existence=False)
 
         if workarea_obj.read_only:
@@ -3481,7 +3481,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         root = workarea_obj.path
         path = request.data.get('path', '')
-        fullpath = os.path.normpath(os.path.join(root, path))
+        fullpath = (Path(root) / path).as_posix()
         self.validate_path(fullpath, root)
         try:
             shutil.rmtree(fullpath)
@@ -3598,7 +3598,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             self.logger.warning('{}'.format(e))
             user = request.user
 
-        root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = (Path(cmPath.objects.get(entity=workarea + '_workarea').value) / user.username).as_posix()
 
         try:
             dip = self.request.data['dip']
@@ -3626,8 +3626,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing dst parameter')
 
-        src = os.path.join(root, src)
-        dst = os.path.join(ip.object_path, dst)
+        src = (Path(root) / src).as_posix()
+        dst = (Path(ip.object_path) / dst).as_posix()
 
         try:
             self.validate_path(src, root)

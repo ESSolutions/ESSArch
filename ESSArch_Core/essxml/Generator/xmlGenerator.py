@@ -137,6 +137,8 @@ def parseContent(content, info=None):
             nothing_to_parse = True
 
     if nothing_to_parse:
+        if isinstance(content, list):
+            content = repr(content)
         return parse_content_django(content, info=info)
 
     return ''.join(arr)

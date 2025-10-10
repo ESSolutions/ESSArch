@@ -9,5 +9,5 @@ wfastcgi==3.0.0
 mod-wsgi==5.0.0
 mssql-django==1.6
 mysqlclient==2.2.7
-psycopg2==2.9.9
+psycopg2==2.9.11
 python-logstash-async==3.0.0

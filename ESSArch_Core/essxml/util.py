@@ -24,10 +24,10 @@
 
 import logging
 import os
-import pathlib
 import re
 import tempfile
 import uuid
+from pathlib import Path
 from urllib.parse import unquote, urlparse
 
 from lxml import etree
@@ -229,7 +229,7 @@ def parse_submit_description(xmlfile, srcdir=''):
     objpath = get_objectpath(root)
 
     if objpath:
-        ip['object_path'] = os.path.join(srcdir, objpath)
+        ip['object_path'] = (Path(srcdir) / objpath).as_posix()
         ip['object_size'] = os.stat(ip['object_path']).st_size
 
     ip['information_class'] = get_value_from_path(root, '@INFORMATIONCLASS')
@@ -527,7 +527,7 @@ def download_imported_https_schemas(schema, dst):
         if protocol == 'http':
             continue
         new_path = download_schema(dst, logger, url)
-        new_path = pathlib.Path(new_path)
+        new_path = Path(new_path)
         el = url.getparent()
         el.attrib['schemaLocation'] = new_path.as_uri()
 
