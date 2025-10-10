@@ -638,8 +638,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src.txt'
         dst = 'dst.txt'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,
@@ -666,8 +666,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,
@@ -692,8 +692,8 @@ class WorkareaFilesViewTestCase(TestCase):
         src = 'src'
         dst = 'dst'
 
-        full_src = os.path.join(self.access, self.user.username, src)
-        full_dst = os.path.join(dstdir, dst)
+        full_src = (Path(self.access) / self.user.username / src).as_posix()
+        full_dst = (Path(dstdir) / dst).as_posix()
 
         ip = InformationPackage.objects.create(
             object_path=dstdir,

@@ -3405,7 +3405,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         self.validate_workarea(workarea)
         user = self.get_user(request)
         if request.query_params.get('id') in EMPTY_VALUES:
-            root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
+            root = (Path(cmPath.objects.get(entity=workarea + '_workarea').value) / user.username).as_posix()
         else:
             workarea_obj = self.get_object(request)
             root = workarea_obj.path
@@ -3418,7 +3418,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         expand_container = request.query_params.get('expand_container', False)
         if expand_container is not False:
             expand_container = string_to_bool(expand_container)
-        fullpath = os.path.join(root, path)
+        fullpath = (Path(root) / path).as_posix()
 
         try:
             self.validate_path(fullpath, root)
