@@ -3383,8 +3383,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             raise exceptions.ParseError('Workarea of type "%s" does not exist' % area_type)
 
     def validate_path(self, path, root, existence=True):
-        path = os.path.normpath(path)
-        root = os.path.normpath(root)
+        path = Path(path).as_posix()
+        root = Path(root).as_posix()
         relpath = os.path.relpath(path, root)
 
         if not in_directory(path, root):
