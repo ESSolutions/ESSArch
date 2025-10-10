@@ -3450,7 +3450,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workarea_obj = self.get_object(request)
         root = workarea_obj.path
 
-        path = os.path.join(root, request.data.get('path', ''))
+        path = (Path(root) / request.data.get('path', '')).as_posix()
         self.validate_path(path, root, existence=False)
 
         if workarea_obj.read_only:
@@ -3481,7 +3481,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
 
         root = workarea_obj.path
         path = request.data.get('path', '')
-        fullpath = os.path.normpath(os.path.join(root, path))
+        fullpath = (Path(root) / path).as_posix()
         self.validate_path(fullpath, root)
         try:
             shutil.rmtree(fullpath)
@@ -3598,7 +3598,7 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
             self.logger.warning('{}'.format(e))
             user = request.user
 
-        root = os.path.join(cmPath.objects.get(entity=workarea + '_workarea').value, user.username)
+        root = (Path(cmPath.objects.get(entity=workarea + '_workarea').value) / user.username).as_posix()
 
         try:
             dip = self.request.data['dip']
@@ -3626,8 +3626,8 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         except KeyError:
             raise exceptions.ParseError('Missing dst parameter')
 
-        src = os.path.join(root, src)
-        dst = os.path.join(ip.object_path, dst)
+        src = (Path(root) / src).as_posix()
+        dst = (Path(ip.object_path) / dst).as_posix()
 
         try:
             self.validate_path(src, root)
