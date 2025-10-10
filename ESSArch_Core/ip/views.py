@@ -1590,8 +1590,8 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
             reception_dir = cmPath.objects.get(entity='ingest_reception').value
             ingest_dir = getattr(ip.policy.ingest_path, 'value', None)
-            ip_reception_path = os.path.join(reception_dir, ip.object_identifier_value)
-            ip_ingest_path = os.path.join(ingest_dir, ip.object_identifier_value) if ingest_dir else None
+            ip_reception_path = (Path(reception_dir) / ip.object_identifier_value).as_posix()
+            ip_ingest_path = (Path(ingest_dir) / ip.object_identifier_value).as_posix() if ingest_dir else None
 
             ip.state = "Preserving"
             ip.appraisal_date = request.data.get('appraisal_date', None)
@@ -2781,7 +2781,7 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         cts = ip.get_content_type_file()
         has_cts = cts is not None and os.path.exists(cts)
 
-        aip_object_path = os.path.join(ip.policy.ingest_path.value, ip.object_identifier_value)
+        aip_object_path = (Path(ip.policy.ingest_path.value) / ip.object_identifier_value).as_posix()
         aip_object_structure = ip.get_profile_rel('aip').profile.structure
 
         if ip_is_directory:

@@ -356,7 +356,7 @@ def AddPremisIPObjectElementToEventsFile(self):
     }
     spec = get_premis_ip_object_element_spec()
     info = fill_specification_data(info, ip=ip)
-    xmlfile = os.path.join(ip.object_path, ip.get_events_file_path())
+    xmlfile = (Path(ip.object_path) / ip.get_events_file_path()).as_posix()
 
     generator = XMLGenerator(filepath=xmlfile)
     target = generator.find_element('premis')
