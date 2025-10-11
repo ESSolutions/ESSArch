@@ -1782,19 +1782,19 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         data = request.data
         new_object_identifier_value = data.get('object_identifier_value') or str(uuid.uuid4())
         access_workarea = cmPath.objects.get(entity='access_workarea').value
-        access_workarea_user = os.path.join(access_workarea, request.user.username, new_object_identifier_value)
-        access_workarea_user_extracted = os.path.join(access_workarea_user, new_object_identifier_value)
+        access_workarea_user = (Path(access_workarea) / request.user.username / new_object_identifier_value).as_posix()
+        access_workarea_user_extracted = (Path(access_workarea_user) / new_object_identifier_value).as_posix()
         new_aip = ip.create_new_generation('Access Workarea', request.user, new_object_identifier_value)
         new_aip.object_path = access_workarea_user_extracted
         new_aip.save()
 
         os.makedirs(access_workarea_user, exist_ok=True)
         for f in os.listdir(workarea.path):
-            src_path = os.path.join(workarea.path, f)
+            src_path = (Path(workarea.path) / f).as_posix()
             if os.path.isdir(src_path) and f == ip.object_identifier_value:
-                dst_path = os.path.join(access_workarea_user, new_aip.object_identifier_value)
+                dst_path = (Path(access_workarea_user) / new_aip.object_identifier_value).as_posix()
             else:
-                dst_path = os.path.join(access_workarea_user, f)
+                dst_path = (Path(access_workarea_user) / f).as_posix()
             shutil.move(src_path, dst_path)
 
         os.removedirs(workarea.path)
