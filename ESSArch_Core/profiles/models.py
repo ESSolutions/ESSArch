@@ -164,7 +164,7 @@ class ProfileIPData(models.Model):
     extra_paths_to_parse = PickledObjectField(default=list)
 
     def clean(self):
-        data = getattr(self, 'data', {})
+        data = self.data or {}
         data = fill_specification_data(data.copy(), ip=self.relation.ip, sa=self.relation.ip.submission_agreement)
         validate_template(self.relation.profile.template, data)
 
@@ -457,6 +457,7 @@ class Profile(models.Model):
         copy.specification_data = specification_data
         copy.structure = structure
         copy.clean()
+        copy.data.clean()
         copy.save()
 
         return copy

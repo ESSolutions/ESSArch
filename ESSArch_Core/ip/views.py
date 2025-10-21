@@ -807,6 +807,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             try:
                 if profile_ip:
                     profile_ip.clean()
+                    profile_ip.data.clean()
                     profile_ip.lock(request.user)
             except ValidationError as e:
                 logging.error('Validation error for profile %s: %s', profile_ip.profile.name, str(e))
@@ -1602,6 +1603,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             for profile_ip in ProfileIP.objects.select_for_update().filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
+                    profile_ip.data.clean()
                     profile_ip.lock(request.user)
                 except ValidationError as e:
                     raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
