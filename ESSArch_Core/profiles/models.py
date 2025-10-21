@@ -113,11 +113,6 @@ class ProfileIP(models.Model):
     )
     Unlockable = models.BooleanField(default=False)
 
-    def clean(self):
-        data = getattr(self.data, 'data', {})
-        data = fill_specification_data(data.copy(), ip=self.ip, sa=self.ip.submission_agreement)
-        validate_template(self.profile.template, data)
-
     def lock(self, user):
         self.LockedBy = user
 
@@ -167,6 +162,11 @@ class ProfileIPData(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     parsed_files = PickledObjectField(default=list)
     extra_paths_to_parse = PickledObjectField(default=list)
+
+    def clean(self):
+        data = getattr(self, 'data', {})
+        data = fill_specification_data(data.copy(), ip=self.relation.ip, sa=self.relation.ip.submission_agreement)
+        validate_template(self.relation.profile.template, data)
 
     class Meta:
         ordering = ['version']
