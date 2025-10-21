@@ -668,6 +668,8 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
+                    if profile_ip.data:
+                        profile_ip.data.clean()
                 except ValidationError as e:
                     raise exceptions.ParseError('%s: %s' % (profile_ip.profile.name, str(e)))
 
