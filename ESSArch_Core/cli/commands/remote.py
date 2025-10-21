@@ -31,6 +31,7 @@ from urllib.parse import urljoin
 
 import click
 import requests
+import urllib3
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
@@ -292,6 +293,9 @@ class Remote:
         self.token = token
         self.session = requests.Session()
         self.session.verify = verify if verify is not None else settings.REQUESTS_VERIFY
+        if self.session.verify is False:
+            # Disable only the InsecureRequestWarning
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         if self.user and self.passw:
             token = self.session.post(
                 urljoin(self.host, reverse('knox_login')),

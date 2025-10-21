@@ -75,10 +75,15 @@ def remove_storage(id=None, ip_id=None, medium_id=None, preview=False):
 def update_storageMedium(id=None, medium_id=None, location=None, location_status=None, status=None, preview=False):
     """Update storageMedium."""
     import_globally()
+    storageMedium_obj = None
     if id is not None:
         storageMedium_obj = StorageMedium.objects.get(id=id)
     elif medium_id is not None:
         storageMedium_obj = StorageMedium.objects.get(medium_id=medium_id)
+
+    if storageMedium_obj is None:
+        print("No storage medium to update.")
+        exit(1)
 
     if location is not None:
         storageMedium_obj.location = location
