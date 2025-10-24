@@ -22,6 +22,8 @@
     Email - essarch@essolutions.se
 """
 
+from collections.abc import Mapping
+
 import requests
 from lxml import etree
 from rest_framework import serializers
@@ -64,6 +66,10 @@ class ProfileSASerializer(serializers.ModelSerializer):
 
 class ProfileIPDataSerializer(serializers.ModelSerializer):
     data = serializers.JSONField(required=False)
+    relation = serializers.PrimaryKeyRelatedField(
+        required=False, allow_null=True, queryset=ProfileIP.objects.all(),
+        pk_field=serializers.UUIDField(format='hex_verbose')
+    )
 
     def validate(self, data):
         relation = data['relation']
@@ -87,6 +93,9 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
             'id', 'relation', 'data', 'version', 'user', 'created',
         )
         extra_kwargs = {
+            'id': {
+                'read_only': False,
+            },
             'user': {
                 'read_only': True,
                 'default': serializers.CurrentUserDefault(),
@@ -125,28 +134,74 @@ class ProfileIPSerializer(serializers.ModelSerializer):
         read_only_fields = ('LockedBy', 'data_versions',)
 
 
-class ProfileIPSerializerWithData(ProfileIPSerializer):
-    data = serializers.SerializerMethodField()
+class ProfileTypeField(serializers.Field):
+    def to_representation(self, obj):
+        return getattr(obj.profile, "profile_type", None)
 
-    def get_data(self, obj):
-        if obj.data is not None:
-            serializer = ProfileIPDataSerializer(obj.data, context={'request': self.context['request']})
+    def to_internal_value(self, data):
+        return {"profile_type": data}  # just pass it along
+
+
+class ProfileIPDataField(serializers.Field):
+    def to_representation(self, obj):
+        """
+        `obj` here is instance.data (ProfileIPData instance or dict)
+        Use `self.parent.instance` to access the full ProfileIP instance.
+        """
+        parent_instance = getattr(self.parent, 'instance', None)
+
+        # Step 1: serialize or wrap the data attribute
+        if isinstance(obj, Mapping):  # dict-like
+            data = {'data': obj}
+        elif obj is not None:
+            serializer = ProfileIPDataSerializer(obj, context=self.context)
             data = serializer.data
         else:
             data = {'data': {}}
 
-        data['data'].update(obj.get_related_profile_data(original_keys=True))
-        extra_data = fill_specification_data(ip=obj.ip, sa=obj.ip.submission_agreement)
+        # Step 2: merge computed/related data from the parent ProfileIP
+        if parent_instance is not None:
+            related_data = parent_instance.get_related_profile_data(original_keys=True)
+            data['data'].update(related_data)
 
-        for field in obj.profile.template:
-            if field['key'] in extra_data:
-                data['data'][field['key']] = extra_data[field['key']]
+            extra_data = fill_specification_data(
+                ip=parent_instance.ip,
+                sa=parent_instance.ip.submission_agreement
+            )
+
+            for field in parent_instance.profile.template:
+                key = field['key']
+                if key in extra_data:
+                    data['data'][key] = extra_data[key]
 
         return data
 
+    def to_internal_value(self, data):
+        """Handle incoming 'data' dict from client."""
+        if not isinstance(data, dict):
+            raise serializers.ValidationError("Expected a dictionary of data.")
+        return data
+
+
+class ProfileIPSerializerWithData(ProfileIPSerializer):
+    data = ProfileIPDataField()
+    profile = serializers.UUIDField(format='hex_verbose', required=True)
+    ip = serializers.UUIDField(format='hex_verbose', required=True)
+    profile_type = ProfileTypeField(source='*')
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # Force UUID instead of string representation
+        rep['profile'] = str(instance.profile.id if hasattr(instance.profile, 'id') else instance.profile)
+        rep['ip'] = str(instance.ip.id if hasattr(instance.ip, 'id') else instance.ip)
+        return rep
+
     class Meta(ProfileIPSerializer.Meta):
         fields = ProfileIPSerializer.Meta.fields + ('data',)
-        read_only_fields = ProfileIPSerializer.Meta.read_only_fields + ('data',)
+        extra_kwargs = {
+            'id': {'read_only': False},
+        }
+        validators = []
 
 
 class ProfileIPWriteSerializer(ProfileIPSerializer):

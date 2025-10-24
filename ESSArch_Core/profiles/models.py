@@ -315,7 +315,7 @@ class SubmissionAgreement(models.Model):
                 return None
         return None
 
-    def lock_to_information_package(self, ip, user):
+    def lock_to_information_package(self, ip, user, profileips_data=None):
         from ESSArch_Core.ip.models import Agent
 
         ip.submission_agreement_locked = True
@@ -331,7 +331,7 @@ class SubmissionAgreement(models.Model):
             )
             ip.agents.add(ao_agent)
         ip.save()
-        ip.create_profile_rels(lowercase_profile_types, user)
+        ip.create_profile_rels(lowercase_profile_types, user, profileips_data=profileips_data)
 
     def copy(self, new_data, new_name):
         """

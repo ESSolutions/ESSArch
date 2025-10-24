@@ -747,38 +747,63 @@ class InformationPackage(models.Model):
 
         return None
 
-    def create_profile_rels(self, profile_types, user):
+    def create_profile_rels(self, profile_types, user, profileips_data=None):
         sa = self.submission_agreement
         extra_data = fill_specification_data(ip=self, sa=sa)
         for p_type in profile_types:
-            if ProfileIP.objects.filter(ip=self, profile__profile_type=p_type).exists():
+            if ProfileIP.objects.filter(ip=self, profile__profile_type=p_type).exists() and not profileips_data:
                 continue
             profile = getattr(sa, 'profile_%s' % p_type, None)
 
             if profile is None:
                 continue
 
-            profile_ip = ProfileIP.objects.create(ip=self, profile=profile)
-            data = {}
+            pi_data = {}
+            for profileip_data in (profileips_data or []):
+                if profileip_data.get('profile_type') == p_type:
+                    pi_data = profileip_data
+                    pi_data['data'].pop('relation', None)
+                    pi_data['data'].pop('user', None)
+                    break
 
-            for field in profile_ip.profile.template:
-                try:
-                    if field['defaultValue'] in extra_data:
-                        data[field['key']] = extra_data[field['defaultValue']]
-                        continue
+            id = pi_data.get('id', uuid.uuid4())
+            profile_ip, _ = ProfileIP.objects.update_or_create(id=id, defaults={
+                'ip': self,
+                'profile': profile
+            })
 
-                    data[field['key']] = field['defaultValue']
-                except KeyError:
-                    pass
-
-            for field in sa.template:
-                if field['key'] not in data:
+            if not pi_data:
+                data = {}
+                for field in profile_ip.profile.template:
                     try:
+                        if field['defaultValue'] in extra_data:
+                            data[field['key']] = extra_data[field['defaultValue']]
+                            continue
+
                         data[field['key']] = field['defaultValue']
                     except KeyError:
                         pass
 
-            data_obj = ProfileIPData.objects.create(relation=profile_ip, data=data, version=0, user=user)
+                for field in sa.template:
+                    if field['key'] not in data:
+                        try:
+                            data[field['key']] = field['defaultValue']
+                        except KeyError:
+                            pass
+
+                data_obj = ProfileIPData.objects.create(
+                    relation=profile_ip,
+                    data=data,
+                    version=0,
+                    user=user
+                )
+            else:
+                data_obj, _ = ProfileIPData.objects.update_or_create(
+                    id=pi_data['data']['id'],
+                    relation=profile_ip,
+                    user=user,
+                    defaults=pi_data['data'],
+                )
             profile_ip.data = data_obj
             profile_ip.save()
 

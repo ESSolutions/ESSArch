@@ -572,7 +572,7 @@ policy: %s (%s)' % (ip_per_sec, storageMedium_obj.medium_id, policy_obj.policy_i
                                 print('Problem to add IP: %s policy: %s (%s). Response: %s' % (
                                     ip_obj.object_identifier_value, policy_obj.policy_id,
                                     policy_obj.policy_name, response.text))
-                                print(json.dumps(data, indent=4))
+                                print(json.dumps(data, indent=4, default=str))
                                 raise
                             else:
                                 ip_obj.last_changed_external = ip_obj.last_changed_local

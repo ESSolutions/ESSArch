@@ -19,14 +19,14 @@ def import_globally():
 @click.option("--name", type=str, help="The name of the step to remove.")
 @click.option("--status", type=str, default='SUCCESS', show_default=True,
               help="The status of the step to match for removal. (SUCCESS, STARTED, PENDING, FAILURE)")
-@click.option("--run_state", type=str, default='SUCCESS', show_default=True,
+@click.option("--run_state", type=str, default=None, show_default=True,
               help="The run state of the step to match for removal. (SUCCESS, STARTED, PENDING, FAILURE)")
 @click.option("--time_created_start", type=str, help="The start time for filtering steps by creation time.")
 @click.option("--time_created_end", type=str, help="The end time for filtering steps by creation time.")
 @click.option("--days_before", type=str, help="Remove steps older than this many days.")
 @click.option("--preview", is_flag=True,
               help="Preview the steps that would be removed without actually removing them.")
-def remove_step(step_id=None, name=None, status='SUCCESS', run_state='SUCCESS', time_created_start=None,
+def remove_step(step_id=None, name=None, status='SUCCESS', run_state=None, time_created_start=None,
                 time_created_end=None, days_before=None, preview=False):
     """Remove process step"""
     import_globally()
