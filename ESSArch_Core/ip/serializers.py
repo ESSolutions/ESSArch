@@ -31,6 +31,7 @@ from ESSArch_Core.profiles.models import (
 )
 from ESSArch_Core.profiles.serializers import (
     ProfileIPSerializer,
+    ProfileIPSerializerWithData,
     SubmissionAgreementIPDataSerializer,
 )
 from ESSArch_Core.profiles.utils import fill_specification_data, profile_types
@@ -584,6 +585,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
     org_name = serializers.CharField(required=False, allow_null=True)
     content_mets_path = serializers.CharField(required=False)
     package_mets_path = serializers.CharField(required=False)
+    profileip_set = ProfileIPSerializerWithData(many=True, required=False, allow_null=True)
 
     def to_representation(self, instance):
         rep = super().to_representation(instance)
@@ -660,11 +662,17 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
                 user = User.objects.get(username="system")
             data['responsible'] = user
 
+        if 'profileip_set' in data.keys():
+            profileips_data = data.pop('profileip_set')
+        else:
+            profileips_data = []
+
         data['last_changed_local'] = timezone.now
         ip, _ = InformationPackage.objects.update_or_create(id=data['id'], defaults=data)
         org.add_object(ip)
         if data['submission_agreement']:
-            data['submission_agreement'].lock_to_information_package(ip, data['responsible'])
+            data['submission_agreement'].lock_to_information_package(ip, data['responsible'],
+                                                                     profileips_data=profileips_data)
             for profile_ip in ProfileIP.objects.filter(ip=ip).iterator(chunk_size=1000):
                 try:
                     profile_ip.clean()
@@ -692,7 +700,7 @@ class InformationPackageFromMasterSerializer(serializers.ModelSerializer):
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm', 'content_mets_digest',
             'package_mets_create_date', 'package_mets_size', 'package_mets_digest_algorithm', 'package_mets_digest',
             'start_date', 'end_date', 'appraisal_date', 'linking_agent_identifier_value', 'events', 'sa_policy_id',
-            'submission_agreement', 'org_name', 'organization'
+            'submission_agreement', 'org_name', 'organization', 'profileip_set',
         )
         extra_kwargs = {
             'id': {

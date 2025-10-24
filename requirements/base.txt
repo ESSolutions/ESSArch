@@ -1,5 +1,5 @@
 asgiref==3.9.1
-boto3==1.40.56
+boto3==1.40.58
 celery[tblib]==5.5.3
 cffi==2.0.0
 channels==4.3.1
@@ -46,7 +46,7 @@ opf-fido==1.6.1
 pyfakefs==5.10.0
 python-dateutil==2.8.2
 pywin32==311 ; platform_system=='Windows'
-redis==6.4.0
+redis==7.0.0
 regex==2025.10.23
 requests==2.32.4
 requests-toolbelt==1.0.0
