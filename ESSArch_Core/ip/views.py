@@ -2047,6 +2047,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
     def files(self, request, pk=None):
+        logger = logging.getLogger('essarch.ip.files')
         ip = self.get_object()
         download = request.query_params.get('download', False)
         if download is not False:
@@ -2076,14 +2077,18 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
                 s = s.query(q)
                 hits = s.execute()
-
+                hit = None
                 try:
                     hit = hits[0]
                 except IndexError:
-                    if len(path.split('.tar/')) == 2:
-                        tar_path, tar_subpath = path.split('.tar/')
-                        tar_path += '.tar'
+                    logger.debug(f'Path not found in ES: {path} for IP: {ip}')
+                    # if hit.meta.index.startswith('document'):
 
+                if len(path.split('.tar/')) == 2:
+                    tar_path, tar_subpath = path.split('.tar/')
+                    tar_path += '.tar'
+
+                    try:
                         with tarfile.open(fileobj=ip.open_file(tar_path, 'rb')) as tar:
                             try:
                                 f = io.BytesIO(tar.extractfile(tar_subpath).read())
@@ -2094,12 +2099,17 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                                     content_type=content_type,
                                     force_download=download, name=tar_subpath)
                             except KeyError:
+                                logger.warning(f'File not found in tar: {path} for IP: {ip}')
                                 raise exceptions.NotFound
+                    except FileNotFoundError:
+                        logger.warning(f'Tar file not found: {tar_path} for IP: {ip}')
+                        raise exceptions.NotFound
 
-                    if len(path.split('.zip/')) == 2:
-                        zip_path, zip_subpath = path.split('.zip/')
-                        zip_path += '.zip'
+                if len(path.split('.zip/')) == 2:
+                    zip_path, zip_subpath = path.split('.zip/')
+                    zip_path += '.zip'
 
+                    try:
                         with zipfile.ZipFile(ip.open_file(zip_path, 'rb')) as zipf:
                             try:
                                 f = io.BytesIO(zipf.read(zip_subpath))
@@ -2110,21 +2120,27 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                                     content_type=content_type,
                                     force_download=download, name=zip_subpath)
                             except KeyError:
+                                logger.warning(f'File not found in zip: {path} for IP: {ip}')
                                 raise exceptions.NotFound
-                    raise exceptions.NotFound
+                    except FileNotFoundError:
+                        logger.warning(f'Zip file not found: {zip_path} for IP: {ip}')
+                        raise exceptions.NotFound
 
-                if hit.meta.index.startswith('document'):
-                    if expand_container and (path.endswith('.tar') or path.endswith('.zip')):
-                        entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
-                        return Response(entries)
+                if expand_container and (path.endswith('.tar') or path.endswith('.zip')):
+                    entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
+                    return Response(entries)
 
-                    fid = FormatIdentifier(allow_unknown_file_types=True)
-                    content_type = fid.get_mimetype(path)
+                fid = FormatIdentifier(allow_unknown_file_types=True)
+                content_type = fid.get_mimetype(path)
+                try:
                     return generate_file_response(
                         ip.open_file(path, 'rb'),
                         content_type=content_type,
                         force_download=download, name=path
                     )
+                except FileNotFoundError:
+                    logger.warning(f'File not found: {path} for IP: {ip}')
+                    raise exceptions.NotFound
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])

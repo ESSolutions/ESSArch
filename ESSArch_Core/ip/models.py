@@ -3026,10 +3026,12 @@ class InformationPackage(models.Model):
         storage_object.read(dst, task, local=local)
 
     def open_file(self, path='', *args, **kwargs):
+        logger = logging.getLogger('essarch.ip')
         if self.archived:
             storage_obj = self.storage.readable().fastest().first()
             if storage_obj is None:
                 raise ValueError("No readable storage configured for IP")
+            logger.debug(f'Opening file {path} from storage object {storage_obj}')
             return storage_obj.open(path, *args, **kwargs)
         if os.path.isfile(self.object_path) and path:
             if path == self.object_path:
