@@ -15,7 +15,7 @@ from ESSArch_Core.auth.models import GroupMemberRole
 from ESSArch_Core.configuration.models import Feature
 from ESSArch_Core.ip.models import InformationPackage
 from ESSArch_Core.maintenance.models import AppraisalJob
-from ESSArch_Core.tags.models import Delivery, TagVersion
+from ESSArch_Core.tags.models import Delivery, TagVersion, TagVersionType
 from ESSArch_Core.util import generate_file_response
 
 User = get_user_model()
@@ -39,8 +39,12 @@ def get_data(user):
     }
 
     if Feature.objects.filter(name='archival descriptions', enabled=True).exists():
-        data['tags'] = list(TagVersion.objects.for_user(user, []).values(
-            'type__name').annotate(total=Count('type')).order_by('type'))
+        type_map = {t['id']: t['name'] for t in TagVersionType.objects.all().values('id', 'name')}
+        data['tags'] = [
+            {'type__name': type_map.get(item['type'], 'Unknown'), 'total': item['total']}
+            for item in TagVersion.objects.for_user(user, []).values(
+                'type').annotate(total=Count('type')).order_by('type')
+        ]
 
     return data
 
