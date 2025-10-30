@@ -2081,8 +2081,7 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                 try:
                     hit = hits[0]
                 except IndexError:
-                    logger.debug(f'Path not found in ES: {path} for IP: {ip}')
-                    # if hit.meta.index.startswith('document'):
+                    logger.debug(f'Path: {path} not found in index for IP: {ip}')
 
                 if len(path.split('.tar/')) == 2:
                     tar_path, tar_subpath = path.split('.tar/')
@@ -2104,6 +2103,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     except FileNotFoundError:
                         logger.warning(f'Tar file not found: {tar_path} for IP: {ip}')
                         raise exceptions.NotFound
+                    except NotImplementedError:
+                        logger.warning(f'File storage not implemented for tar file: {tar_path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except ValueError as e:
+                        if str(e) == "No readable storage configured for IP":
+                            logger.warning(f'No readable storage for tar file: {tar_path} for IP: {ip}')
+                            raise exceptions.NotFound
+                        else:
+                            raise
 
                 if len(path.split('.zip/')) == 2:
                     zip_path, zip_subpath = path.split('.zip/')
@@ -2125,22 +2133,54 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     except FileNotFoundError:
                         logger.warning(f'Zip file not found: {zip_path} for IP: {ip}')
                         raise exceptions.NotFound
+                    except NotImplementedError:
+                        logger.warning(f'File storage not implemented for zip file: {zip_path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except ValueError as e:
+                        if str(e) == "No readable storage configured for IP":
+                            logger.warning(f'No readable storage for zip file: {zip_path} for IP: {ip}')
+                            raise exceptions.NotFound
+                        else:
+                            raise
 
                 if expand_container and (path.endswith('.tar') or path.endswith('.zip')):
-                    entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
-                    return Response(entries)
+                    try:
+                        entries = ip.list_files(fileobj=ip.open_file(path, 'rb'), expand_container=expand_container)
+                        return Response(entries)
+                    except FileNotFoundError:
+                        logger.warning(f'Container file not found: {path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except NotImplementedError:
+                        logger.warning(f'File storage not implemented for container file: {path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except ValueError as e:
+                        if str(e) == "No readable storage configured for IP":
+                            logger.warning(f'No readable storage for container file: {path} for IP: {ip}')
+                            raise exceptions.NotFound
+                        else:
+                            raise
 
-                fid = FormatIdentifier(allow_unknown_file_types=True)
-                content_type = fid.get_mimetype(path)
-                try:
-                    return generate_file_response(
-                        ip.open_file(path, 'rb'),
-                        content_type=content_type,
-                        force_download=download, name=path
-                    )
-                except FileNotFoundError:
-                    logger.warning(f'File not found: {path} for IP: {ip}')
-                    raise exceptions.NotFound
+                if hit is None or (hit and hit.meta.index.startswith('document')):
+                    fid = FormatIdentifier(allow_unknown_file_types=True)
+                    content_type = fid.get_mimetype(path)
+                    try:
+                        return generate_file_response(
+                            ip.open_file(path, 'rb'),
+                            content_type=content_type,
+                            force_download=download, name=path
+                        )
+                    except FileNotFoundError:
+                        logger.warning(f'File not found: {path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except NotImplementedError:
+                        logger.warning(f'File storage not implemented for file: {path} for IP: {ip}')
+                        raise exceptions.NotFound
+                    except ValueError as e:
+                        if str(e) == "No readable storage configured for IP":
+                            logger.warning(f'No readable storage for file: {path} for IP: {ip}')
+                            raise exceptions.NotFound
+                        else:
+                            raise
 
             # a directory with the path exists, get the content of it
             s = Search(index=['directory', 'document'])
