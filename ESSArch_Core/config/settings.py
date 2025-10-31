@@ -352,6 +352,7 @@ LOGGING = {
             'formatter': 'verbose',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(LOGGING_DIR, 'essarch.log'),
+            'encoding': 'utf-8',
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
@@ -360,6 +361,7 @@ LOGGING = {
         #     'formatter': 'verbose',
         #     'class': 'logging.handlers.RotatingFileHandler',
         #     'filename': os.path.join(LOGGING_DIR, 'essarch_db.log'),
+        #     'encoding': 'utf-8',
         #     'maxBytes': 1024 * 1024 * 100,  # 100MB
         #     'backupCount': 5,
         # },
@@ -368,6 +370,7 @@ LOGGING = {
             'class': 'logging.handlers.RotatingFileHandler',
             'formatter': 'verbose',
             'filename': os.path.join(LOGGING_DIR, 'auth.log'),
+            'encoding': 'utf-8',
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
@@ -376,6 +379,7 @@ LOGGING = {
             'formatter': 'verbose',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': os.path.join(LOGGING_DIR, 'daphneessarch.log'),
+            'encoding': 'utf-8',
             'maxBytes': 1024 * 1024 * 100,  # 100MB
             'backupCount': 5,
         },
@@ -384,6 +388,7 @@ LOGGING = {
         #    'class' : 'logging.handlers.RotatingFileHandler',
         #    'formatter': 'verbose',
         #    'filename': os.path.join(LOGGING_DIR, 'auth_saml2.log'),
+        #    'encoding': 'utf-8',
         #    'maxBytes': 1024*1024*100, # 100MB
         #    'backupCount': 5,
         # },
@@ -392,6 +397,7 @@ LOGGING = {
         #    'class' : 'logging.handlers.RotatingFileHandler',
         #    'formatter': 'verbose',
         #    'filename': os.path.join(LOGGING_DIR, 'auth_ldap.log'),
+        #    'encoding': 'utf-8',
         #    'maxBytes': 1024*1024*100, # 100MB
         #    'backupCount': 5,
         # },
@@ -408,7 +414,7 @@ LOGGING = {
         },
         # 'django.db.backends': {
         #     'handlers': ['file_essarch_db'],
-        #     'level': 'INFO',
+        #     'level': 'DEBUG',
         # },
         'essarch': {
             'handlers': ['core', 'file_essarch'],
