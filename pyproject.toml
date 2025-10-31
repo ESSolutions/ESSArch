@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61", "wheel", "versioneer[toml]>=0.29"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "essarch"
+description = "ESSArch (ES Solutions Archive)"
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.8"
+license = "GPL-3.0-only"
+authors = [
+  { name = "ES Solutions AB" },
+  { name = "Henrik Ek", email = "henrik@essolutions.se" }
+]
+keywords = ["archive", "django", "essolutions", "system"]
+classifiers = [
+  "Natural Language :: English",
+  "Natural Language :: Swedish",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Programming Language :: Python",
+  "Framework :: Django",
+  "Topic :: System :: Archiving",
+]
+dynamic = ["version", "dependencies", "optional-dependencies"]
+
+[project.urls]
+Homepage = "https://www.essolutions.se"
+Documentation = "https://docs.essarch.org/"
+Source = "https://github.com/ESSolutions/ESSArch"
+CI = "https://travis-ci.org/ESSolutions/ESSArch"
+
+[project.scripts]
+essarch = "ESSArch_Core.cli.main:cli"
+
+[project.entry-points."celery.result_backends"]
+processtask = "ESSArch_Core.celery.backends.database:DatabaseBackend"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+include = ["ESSArch_Core*"]
+
+[tool.setuptools.package-data]
+"*" = ["*"]
+
+[tool.versioneer]
+VCS = "git"
+style = "pep440"
+versionfile_source = "ESSArch_Core/_version.py"
+tag_prefix = ""
+parentdir_prefix_version = "essarch-"

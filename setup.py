@@ -24,7 +24,7 @@
 
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 import versioneer
 
@@ -44,40 +44,9 @@ def get_optional(name):
 
 
 if __name__ == '__main__':
-    versions_dict = versioneer.get_versions()
-    cmdclass = versioneer.get_cmdclass()
     setup(
-        name='essarch',
-        version=versions_dict['version'],
-        description='ESSArch (ES Solutions Archive)',
-        long_description=open("README.md").read(),
-        long_description_content_type='text/markdown',
-        author='Henrik Ek',
-        author_email='henrik@essolutions.se',
-        url='https://www.essolutions.se',
-        entry_points={
-            'console_scripts': [
-                'essarch = ESSArch_Core.cli.main:cli',
-            ],
-            'celery.result_backends': [
-                'processtask = ESSArch_Core.celery.backends.database:DatabaseBackend',
-            ],
-        },
-        project_urls={
-            'Documentation': 'https://docs.essarch.org/',
-            'Source Code': 'https://github.com/ESSolutions/ESSArch/tree/%s' % versions_dict['full-revisionid'],
-            'Travis CI': 'https://travis-ci.org/ESSolutions/ESSArch',
-        },
-        classifiers=[
-            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-            "Natural Language :: English",
-            "Natural Language :: Swedish",
-            "Operating System :: POSIX :: Linux",
-            "Operating System :: Microsoft :: Windows",
-            "Programming Language :: Python",
-            "Framework :: Django",
-            "Topic :: System :: Archiving",
-        ],
+        version=versioneer.get_version(),
+        cmdclass=versioneer.get_cmdclass(),
         install_requires=get_requirements('base'),
         extras_require={
             "docs": get_requirements('docs'),
@@ -96,8 +65,4 @@ if __name__ == '__main__':
             "postgres": [get_optional("psycopg2")],
             "logstash": [get_optional("python-logstash-async")],
         },
-        packages=find_packages(),
-        include_package_data=True,
-        zip_safe=False,
-        cmdclass=cmdclass,
     )

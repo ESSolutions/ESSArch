@@ -33,14 +33,15 @@ def step_post_save(sender, instance, created, **kwargs):
 @task_received.connect
 def task_received_handler(request=None, **kwargs):
     check_db_connection()
-    logger = logging.getLogger('essarch')
+    # logger = logging.getLogger('essarch')
     try:
         t = ProcessTask.objects.get(celery_id=request.task_id)
-        logger.debug('{} signal task_received status is {}'.format(request.task_id, repr(t.status)))
+        # logger.debug('{} signal task_received status is {}'.format(request.task_id, repr(t.status)))
         if t.status == 'REVOKED':
             t.revoke()
     except ProcessTask.DoesNotExist:
-        logger.debug('{} signal task_received without ProcessTask'.format(request.task_id))
+        # logger.debug('{} signal task_received without ProcessTask'.format(request.task_id))
+        pass
 
 
 @task_revoked.connect
