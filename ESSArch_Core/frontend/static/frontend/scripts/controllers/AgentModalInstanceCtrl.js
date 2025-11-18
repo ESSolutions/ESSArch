@@ -55,53 +55,71 @@ export default class AgentModalInstanceCtrl {
     };
 
     $ctrl.$onInit = function () {
+      // If deleting an agent, skip everything else
       if (data.remove && data.agent) {
         $ctrl.agent = angular.copy(data.agent);
         return;
       }
+
+      // ---------------------------------------------------------
+      // EDIT EXISTING AGENT
+      // ---------------------------------------------------------
       if (data.agent) {
-        return $http({
+        $ctrl.agent = angular.copy(data.agent);
+
+        // load basic form immediately
+        $ctrl.loadBasicFields();
+
+        $http({
           url: appConfig.djangoUrl + 'agents/',
           method: 'OPTIONS',
         }).then(function (response) {
-          $ctrl.agent = angular.copy(data.agent);
-          $ctrl.agent.ref_code = data.agent.ref_code.id;
           angular.forEach(response.data.actions.POST, function (value, key) {
-            if (!angular.isUndefined(value.choices) && value.choices.length > 0) {
+            if (!angular.isUndefined(value.choices)) {
               $ctrl.options[key] = value;
             }
-            if (!angular.isUndefined(value.child) && !angular.isUndefined(value.child.children)) {
-              angular.forEach(value.child.children, function (nestedVal, nestedKey) {
-                if (!angular.isUndefined(nestedVal.choices)) {
-                  $ctrl.options[key] = {
-                    child: {
-                      children: {},
-                    },
-                  };
-                  $ctrl.options[key].child.children[nestedKey] = nestedVal;
-                }
-              });
-            }
           });
-          $ctrl.buildTypeField($ctrl.agent).then(function (typeField) {
-            $ctrl.loadBasicFields();
-            $ctrl.basicFields.unshift(typeField);
-          });
-        });
-      } else {
-        $ctrl.buildAgentModel().then(function (model) {
-          $ctrl.agent = model;
-          $ctrl.buildTypeField($ctrl.agent).then(function (typeField) {
-            typeField.templateOptions.onChange = function ($modelValue) {
-              if ($modelValue && $modelValue.cpf && $modelValue.cpf === 'corporatebody') {
-                $ctrl.authName.part = '';
-              }
-              $ctrl.loadForms();
-            };
+
+          $ctrl.buildTypeField().then(function (typeField) {
             $ctrl.typeField = [typeField];
+
+            const opts = typeField.templateOptions.options;
+            const current = $ctrl.agent.type;
+
+            // Fix: match the backend type object to Formly's option object
+            if (current && current.id) {
+              const match = opts.find((o) => o.id === current.id);
+              if (match) {
+                $ctrl.agent.type = match;
+              }
+            }
+
+            // Now build edit fields: type + basic
+            $ctrl.editFields = $ctrl.typeField.concat($ctrl.basicFields);
           });
         });
+        EditMode.enable();
+        return;
       }
+
+      // ---------------------------------------------------------
+      // CREATE NEW AGENT
+      // ---------------------------------------------------------
+      $ctrl.buildAgentModel().then(function (model) {
+        $ctrl.agent = model;
+
+        // Build typeField
+        $ctrl.buildTypeField($ctrl.agent).then(function (typeField) {
+          // Add onChange handler for create mode
+          typeField.templateOptions.onChange = function ($modelValue) {
+            if ($modelValue && $modelValue.cpf === 'corporatebody') {
+              $ctrl.authName.part = '';
+            }
+            $ctrl.loadForms(); // loads name + basic fields
+          };
+          $ctrl.typeField = [typeField];
+        });
+      });
       EditMode.enable();
     };
 
@@ -143,6 +161,7 @@ export default class AgentModalInstanceCtrl {
     $ctrl.loadNameForm = function () {
       $ctrl.nameFields = [];
       if ($ctrl.agent.type && $ctrl.agent.type.cpf && $ctrl.agent.type.cpf !== 'corporatebody') {
+        // Non-corporate: show part + main
         $ctrl.nameFields.push({
           className: 'row m-0',
           fieldGroup: [
@@ -152,6 +171,7 @@ export default class AgentModalInstanceCtrl {
               key: 'part',
               templateOptions: {
                 label: $translate.instant('ACCESS.PART'),
+                required: false,
               },
             },
             {
@@ -166,6 +186,7 @@ export default class AgentModalInstanceCtrl {
           ],
         });
       } else {
+        // Corporate body: only main
         $ctrl.nameFields.push({
           type: 'input',
           key: 'main',
@@ -176,6 +197,7 @@ export default class AgentModalInstanceCtrl {
         });
       }
 
+      // Common fields for all agent types
       $ctrl.nameFields = $ctrl.nameFields.concat([
         {
           className: 'row m-0',
@@ -250,6 +272,21 @@ export default class AgentModalInstanceCtrl {
           if (refCodes.length > 0 && (angular.isUndefined($ctrl.agent.ref_code) || $ctrl.agent.ref_code === null)) {
             $ctrl.agent.ref_code = refCodes[0].id;
           }
+
+          // After loading ref code options
+          if ($ctrl.agent.ref_code) {
+            // If backend sends object {id:'xxx',...}
+            if (typeof $ctrl.agent.ref_code === 'object') {
+              $ctrl.agent.ref_code = $ctrl.agent.ref_code.id;
+            }
+
+            // Double-check that ID actually exists in the option list
+            const exists = refCodes.some((rc) => rc.id === $ctrl.agent.ref_code);
+            if (!exists) {
+              console.warn('ref_code id not found in options:', $ctrl.agent.ref_code);
+            }
+          }
+
           return refCodes;
         })
       );
