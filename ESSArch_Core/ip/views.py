@@ -37,7 +37,10 @@ from django.utils.decorators import method_decorator
 from django.utils.translation import gettext
 from django_filters.constants import EMPTY_VALUES
 from django_filters.rest_framework import DjangoFilterBackend
-from elasticsearch.exceptions import TransportError
+from elasticsearch.exceptions import (
+    ConnectionError as elastic_ConnectionError,
+    TransportError as elastic_TransportError,
+)
 from elasticsearch_dsl import Index, Q as ElasticQ, Search
 from groups_manager.utils import get_permission_name
 from guardian.shortcuts import assign_perm
@@ -2076,12 +2079,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                                                             ElasticQ('match', filename=basename)])])
 
                 s = s.query(q)
-                hits = s.execute()
                 hit = None
                 try:
-                    hit = hits[0]
-                except IndexError:
-                    logger.debug(f'Path: {path} not found in index for IP: {ip}')
+                    hits = s.execute()
+                    try:
+                        hit = hits[0]
+                    except IndexError:
+                        logger.debug(f'Path: {path} not found in index for IP: {ip}')
+                except elastic_ConnectionError as e:
+                    logger.error(f'Elasticsearch connection error when accessing {path} for IP: {ip}. Error: {e}')
 
                 if len(path.split('.tar/')) == 2:
                     tar_path, tar_subpath = path.split('.tar/')
@@ -2210,12 +2216,15 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
                     )
                 except KeyError:
                     max_results = DEFAULT_MAX_RESULT_WINDOW
+                except elastic_ConnectionError as e:
+                    logger.error(f'Elasticsearch connection error when accessing files for IP: {ip}. Error: {e}')
+                    raise
 
                 s = s[offset:offset + size]
 
             try:
                 results = s.execute()
-            except TransportError:
+            except elastic_TransportError:
                 if self.paginator is not None:
                     if offset + size > max_results:
                         raise exceptions.ParseError("Can't show more than {max} results".format(max=max_results))

@@ -2,6 +2,7 @@
 export default ($translateProvider: ng.translate.ITranslateProvider) => {
   $translateProvider.translations('sv', {
     UPLOAD: {
+      ACTIONS: 'Åtgärder',
       CHOOSEFILES: 'Välj filer',
       CHOOSEFOLDER: 'Välj mapp',
       COMPLETED: 'färdig',

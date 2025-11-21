@@ -127,6 +127,26 @@ export default class CollectContentCtrl {
       );
     };
 
+    $scope.onUploadError = function (file, message, flow) {
+      let cleanMessage = 'Upload failed';
+
+      // Try JSON
+      try {
+        const json = JSON.parse(message);
+        if (json.error) cleanMessage = json.error;
+        else if (json.detail) cleanMessage = json.detail;
+      } catch (e) {
+        // Strip HTML and truncate
+        cleanMessage = message.replace(/<\/?[^>]+(>|$)/g, '');
+        cleanMessage = cleanMessage.substring(0, 80) + '...';
+      }
+
+      file.errorMessage = cleanMessage;
+      file.progress = () => 0;
+      file.error = true;
+      $scope.$applyAsync();
+    };
+
     //Click function for ip table
     vm.selectSingleRow = function (row, options) {
       $scope.ips = [];
@@ -277,18 +297,6 @@ export default class CollectContentCtrl {
     $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
       return {destination: vm.browserstate.path};
     };
-    $scope.fileUploadSuccess = function (ip, file, message, flow) {
-      $scope.uploadedFiles++;
-      const path = flow.opts.query.destination + file.relativePath;
-
-      IP.mergeChunks({
-        id: ip.id,
-        path: path,
-      });
-    };
-    $scope.fileTransferFilter = function (file) {
-      return file.isUploading();
-    };
     $scope.removeFiles = function () {
       $scope.selectedCards.forEach(function (file) {
         listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function () {
@@ -308,22 +316,9 @@ export default class CollectContentCtrl {
     };
     $scope.resetUploadedFiles = function (ip) {
       $scope.uploadedFiles = 0;
-      $rootScope.flowObjects[ip.id] = null;
     };
     $scope.uploadedFiles = 0;
     $scope.flowCompleted = false;
-    $scope.flowComplete = function (ip, flow, transfers) {
-      if (flow.progress() === 1) {
-        flow.flowCompleted = true;
-        flow.flowSize = flow.getSize();
-        flow.flowFiles = transfers.length;
-        flow.cancel();
-        if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles(ip);
-        }
-      }
-      $scope.updateGridArray();
-    };
     $scope.hideFlowCompleted = function (flow) {
       flow.flowCompleted = false;
     };
@@ -338,27 +333,231 @@ export default class CollectContentCtrl {
     $scope.getFileExtension = function (file) {
       return file.name.split('.').pop().toUpperCase();
     };
+
+    $scope.cancelFile = function (file, flowObj) {
+      // 1. Cancel Flow.js internal upload
+      file.cancel();
+
+      // 2. Remove from Flow.js file array
+      const idx = flowObj.files.indexOf(file);
+      if (idx !== -1) {
+        flowObj.files.splice(idx, 1);
+      }
+
+      // 3. Adjust internal counters
+      flowObj.filesToUpload--;
+
+      // If file was already finished uploading before cancel
+      if (file.isComplete && flowObj.filesFinished > 0) {
+        flowObj.filesFinished--;
+      }
+
+      // 4. Prevent merge logic from running prematurely
+      if (flowObj.filesFinished === flowObj.filesToUpload) {
+        console.log('Updated counts after cancel: waiting for remaining uploads.');
+      }
+
+      // 5. Refresh Angular view
+      $scope.$applyAsync();
+    };
+
+    $scope.retryFile = function (file) {
+      file.retryingUpload = true;
+      file.errorMessage = null;
+      file.isError = false;
+      file.mergeCompleted = false;
+
+      file.retry();
+    };
+
     $scope.createNewFlow = function (ip) {
       const flowObj = new Flow({
         target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
         simultaneousUploads: 15,
-        chunkSize: 10 * 1024 * 1024, // 50MB
+        chunkSize: 10 * 1024 * 1024,
         maxChunkRetries: 5,
         chunkRetryInterval: 1000,
         headers: {'X-CSRFToken': $cookies.get('csrftoken')},
-        complete: $scope.flowComplete,
       });
-      flowObj.on('complete', function () {
-        vm.uploading = false;
-        $scope.flowComplete(ip, flowObj, flowObj.files);
+
+      //---------------------------------------------------------
+      // DEBUGGING (REMOVE IF YOU WANT)
+      //---------------------------------------------------------
+      flowObj.on('fileAdded', (f) => console.log('fileAdded:', f.name));
+      flowObj.on('filesSubmitted', (f) => console.log('filesSubmitted:', f.length));
+      flowObj.on('uploadStart', () => console.log('uploadStart'));
+      flowObj.on('fileProgress', (f) => console.log('fileProgress:', f.name, f.progress()));
+      flowObj.on('fileSuccess', (f) => console.log('fileSuccess:', f.name));
+      flowObj.on('fileError', (f, msg) => console.log('fileError:', f.name, msg));
+
+      //---------------------------------------------------------
+      // 1) FILES SELECTED — show them in table immediately
+      //---------------------------------------------------------
+      $scope.uploadedFiles = 0;
+      // flowObj.filesFinished = 0;
+      flowObj.filesToUpload = 0;
+
+      flowObj.on('filesSubmitted', function (files) {
+        flowObj.filesToUpload = files.length;
+
+        files.forEach((file) => {
+          file.mergeCompleted = false;
+          file.isError = false;
+          file.errorMessage = null;
+        });
+
+        $scope.$applyAsync();
       });
-      flowObj.on('fileSuccess', function (file, message) {
-        $scope.fileUploadSuccess(ip, file, message, flowObj);
-      });
+
+      //---------------------------------------------------------
+      // 2) UPLOAD STARTED
+      //---------------------------------------------------------
       flowObj.on('uploadStart', function () {
         vm.uploading = true;
         flowObj.opts.query = {destination: vm.browserstate.path};
       });
+
+      //---------------------------------------------------------
+      // 3) A FILE FINISHED UPLOADING ITS CHUNKS
+      //    DO NOT MERGE YET — only count completion
+      //---------------------------------------------------------
+      flowObj.on('fileSuccess', function (file, message) {
+        // This is a RETRY upload (only one file uploaded)
+        if (file.retryingUpload) {
+          file.wasRetried = true;
+          const path = flowObj.opts.query.destination + file.relativePath;
+          mergeFile(ip, path)
+            .then(() => {
+              file.mergeCompleted = true;
+              file.isError = false;
+              file.errorMessage = null;
+              finalizeUpload(ip, flowObj, [file]);
+            })
+            .catch((error) => {
+              file.isError = true;
+              file.errorMessage = `Merge failed: ${error.status} ${error.statusText}`;
+              file.progress = () => 0;
+              file.mergeCompleted = false;
+            })
+            .finally(() => {
+              file.retryingUpload = false;
+              $scope.$applyAsync();
+            });
+
+          return; // prevent it from flowing into main batch logic
+        }
+
+        // ----- ORIGINAL batch upload logic -----
+        $scope.uploadedFiles++;
+
+        console.log('File uploaded: ' + file.name + ' (' + $scope.uploadedFiles + '/' + flowObj.filesToUpload + ')');
+        // When ALL files have finished uploading → NOW MERGE
+        if ($scope.uploadedFiles === flowObj.filesToUpload) {
+          console.log('All files uploaded — starting merge phase');
+          startMergePhase(ip, flowObj);
+        }
+      });
+
+      //---------------------------------------------------------
+      // MERGE PHASE — true final completion
+      //---------------------------------------------------------
+      function startMergePhase(ip, flowObj) {
+        const files = flowObj.files;
+        let mergesRemaining = files.length;
+
+        console.log('Merging ' + mergesRemaining + ' files...');
+        files.forEach((file) => {
+          if (file.mergeCompleted === false) {
+            const path = flowObj.opts.query.destination + file.relativePath;
+            mergeFile(ip, path)
+              .then(() => {
+                file.mergeCompleted = true;
+              })
+              .catch((error) => {
+                file.isError = true;
+                file.errorMessage = `Merge failed: ${error.status} ${error.statusText}`;
+                file.progress = () => 0;
+                file.mergeCompleted = false;
+              })
+              .finally(() => {
+                mergesRemaining--;
+
+                if (mergesRemaining === 0) {
+                  finalizeUpload(ip, flowObj, files);
+                }
+
+                $scope.$applyAsync();
+              });
+          } else {
+            mergesRemaining--;
+
+            if (mergesRemaining === 0) {
+              finalizeUpload(ip, flowObj, files);
+            }
+
+            $scope.$applyAsync();
+          }
+        });
+      }
+
+      //---------------------------------------------------------
+      // MERGE REQUEST FOR A SINGLE FILE
+      //---------------------------------------------------------
+      function mergeFile(ip, path) {
+        return IP.mergeChunks({
+          id: ip.id,
+          path: path,
+        }).$promise;
+      }
+
+      function getFailedFiles(flowObj) {
+        return flowObj.files.filter((f) => f.isError);
+      }
+
+      //---------------------------------------------------------
+      // FINAL COMPLETION AFTER MERGING ALL FILES
+      //---------------------------------------------------------
+      function finalizeUpload(ip, flowObj, files) {
+        const hasError = files.some((f) => f.isError);
+
+        vm.uploading = false;
+
+        // Detect retry context
+        const isRetry = files.length === 1 && files[0].wasRetried === true;
+
+        if (isRetry) {
+          const failed = getFailedFiles(flowObj);
+
+          // 🟢 If THIS was the last failed file → cancel flow
+          if (failed.length === 0) {
+            console.log('Last file retried → resetting flow');
+            flowObj.cancel();
+          } else {
+            console.log('Retry completed, some files still failing → do NOT cancel');
+          }
+
+          return; // important for retry
+        }
+
+        // --------------------------
+        // NORMAL (batch) finalization
+        // --------------------------
+        if (hasError) {
+          console.warn('Upload finished with ERRORS');
+          flowObj.flowCompleted = false;
+        } else {
+          console.log('Upload + merge successfully completed');
+          flowObj.flowCompleted = true;
+          $scope.uploadedFiles = 0;
+          flowObj.flowSize = flowObj.getSize();
+          flowObj.flowFiles = files.length;
+          flowObj.cancel();
+        }
+
+        $scope.updateGridArray();
+      }
+
+      // Store flow object for this IP
       $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
