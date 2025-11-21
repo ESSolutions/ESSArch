@@ -3,6 +3,7 @@
   flow-object="currentFlowObject"
   flow-file-added="hideFlowCompleted($flow)"
   flow-files-added="hideFlowCompleted($flow)"
+  flow-error="onUploadError($file, $message, $flow)"
   flow-transfers
 >
   <div>
@@ -28,6 +29,7 @@
     </div>
   </div>
   <div>
+    <!-- Upload controls + table -->
     <div ng-if="transfers.length">
       <h4>{{'UPLOAD.UPLOAD' | translate}}:</h4>
       <a class="btn btn-success" ng-click="$flow.resume();updateListViewTimeout(1000)"
@@ -60,16 +62,46 @@
               <th>{{'PATH' | translate}}</th>
               <th>{{'SIZE' | translate}}</th>
               <th>{{'UPLOAD.PROGRESS' | translate}}</th>
+              <th>{{'UPLOAD.ACTIONS' | translate}}</th>
             </tr>
           </thead>
           <tbody>
-            <tr ng-repeat="file in transfers | filter: fileTransferFilter">
-              <td style="width: 33%">{{file.relativePath}}</td>
+            <!-- BEFORE UPLOAD OR FAILED FILES -->
+            <tr ng-repeat="file in $flow.files">
+              <td>{{file.relativePath || file.name}}</td>
               <td>{{file.size | filesize}}</td>
+
               <td>
-                <uib-progressbar class="progress" value="file.progress()*100" type="success"
-                  ><b>{{file.progress()*100 | number : 0}}%</b></uib-progressbar
+                <!-- Error only -->
+                <span ng-if="file.errorMessage" class="text-danger">{{ file.errorMessage }}</span>
+
+                <!-- Progress bar -->
+                <uib-progressbar
+                  ng-if="!file.errorMessage"
+                  class="progress"
+                  value="file.progress()*100"
+                  type="success"
                 >
+                  <b>
+                    <span ng-if="!file.mergeCompleted && file.progress() === 1"> Merging… </span>
+                    <span ng-if="!file.mergeCompleted && file.progress() < 1">
+                      {{ (file.progress()*100) | number:0 }}%
+                    </span>
+                    <span ng-if="file.mergeCompleted"> 100% </span>
+                  </b>
+                </uib-progressbar>
+              </td>
+
+              <td>
+                <!-- Retry button for failed uploads -->
+                <button class="btn btn-warning btn-sm" ng-if="file.errorMessage" ng-click="retryFile(file)">
+                  Retry
+                </button>
+
+                <!-- Cancel button for uploading files -->
+                <button class="btn btn-danger btn-sm" ng-if="!file.mergeCompleted" ng-click="cancelFile(file, $flow)">
+                  Cancel
+                </button>
               </td>
             </tr>
           </tbody>
