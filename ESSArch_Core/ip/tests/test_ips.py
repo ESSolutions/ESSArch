@@ -3425,10 +3425,10 @@ class UploadTestCase(TestCase):
             }
             self.client.post(self.baseurl + 'upload/', data, format='multipart')
 
-            data = {'path': os.path.relpath(dstfile, self.dst)}
-            self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
-
-            self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
+        data = {'path': os.path.relpath(dstfile, self.dst)}
+        res = self.client.post(self.baseurl + 'merge-uploaded-chunks/', data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(filecmp.cmp(srcfile, dstfile, False))
 
 
 class FilesActionTests(APITestCase):

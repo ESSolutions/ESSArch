@@ -145,6 +145,7 @@ from ESSArch_Core.util import (
     parse_content_range_header,
     remove_prefix,
     timestamp_to_datetime,
+    wait_for_chunks,
     zip_directory,
 )
 from ESSArch_Core.WorkflowEngine.filters import (
@@ -884,6 +885,10 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         filepath = os.path.join(ip.object_path, request.data['path'])
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        # Wait for filesystem propagation
+        if not wait_for_chunks(chunks_path):
+            raise exceptions.NotFound("Chunks not yet visible on disk")
 
         try:
             merge_file_chunks(chunks_path, filepath)
@@ -3643,6 +3648,10 @@ class WorkareaFilesViewSet(viewsets.ViewSet, PaginatedViewMixin):
         chunks_path = os.path.join(temp_path, str(workarea_obj.pk), relative_path)
 
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        # Wait for filesystem propagation
+        if not wait_for_chunks(chunks_path):
+            raise exceptions.NotFound("Chunks not yet visible on disk")
 
         try:
             merge_file_chunks(chunks_path, filepath)

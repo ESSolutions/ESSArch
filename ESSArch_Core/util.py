@@ -34,6 +34,7 @@ import re
 import shutil
 import sys
 import tarfile
+import time
 import urllib.request
 import uuid
 import zipfile
@@ -817,8 +818,24 @@ def list_files(path, force_download=False, expand_container=False, request=None,
     raise NotFound
 
 
+def wait_for_chunks(chunks_path, timeout=2.0):
+    """Wait up to `timeout` seconds for chunks to appear after last upload."""
+    escaped_path = glob.escape(chunks_path)
+    pattern = f"{escaped_path}_*"
+
+    end = time.time() + timeout
+    while time.time() < end:
+        if glob.glob(pattern):
+            return True
+        time.sleep(0.05)
+
+    return False
+
+
 def merge_file_chunks(chunks_path, filepath):
-    chunks = natsorted(glob.glob('%s_*' % re.sub(r'([\[\]])', '[\\1]', chunks_path)))
+    escaped_path = glob.escape(chunks_path)
+    pattern = f"{escaped_path}_*"
+    chunks = natsorted(glob.glob(pattern))
     if len(chunks) == 0:
         raise NoFileChunksFound
 
