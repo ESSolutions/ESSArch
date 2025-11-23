@@ -34,6 +34,7 @@ import re
 import shutil
 import sys
 import tarfile
+import time
 import urllib.request
 import uuid
 import zipfile
@@ -815,6 +816,18 @@ def list_files(path, force_download=False, expand_container=False, request=None,
                 raise NotFound
 
     raise NotFound
+
+
+def wait_for_chunks(chunks_path, timeout=2.0):
+    """Wait up to `timeout` seconds for chunks to appear after last upload."""
+    end = time.time() + timeout
+
+    while time.time() < end:
+        if glob.glob(chunks_path + "_*"):
+            return True
+        time.sleep(0.05)  # 50 ms
+
+    return False
 
 
 def merge_file_chunks(chunks_path, filepath):
