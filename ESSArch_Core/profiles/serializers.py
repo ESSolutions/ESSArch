@@ -22,8 +22,6 @@
     Email - essarch@essolutions.se
 """
 
-from collections.abc import Mapping
-
 import requests
 from lxml import etree
 from rest_framework import serializers
@@ -95,6 +93,7 @@ class ProfileIPDataSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'id': {
                 'read_only': False,
+                'required': False,
             },
             'user': {
                 'read_only': True,
@@ -145,13 +144,12 @@ class ProfileTypeField(serializers.Field):
 class ProfileIPDataField(serializers.Field):
     def to_representation(self, obj):
         """
-        `obj` here is instance.data (ProfileIPData instance or dict)
-        Use `self.parent.instance` to access the full ProfileIP instance.
+        Serialize the 'data' field, merging in related data from the parent ProfileIP instance.
+        Handles single object, single-element list, and many=True safely.
         """
-        parent_instance = getattr(self.parent, 'instance', None)
 
-        # Step 1: serialize or wrap the data attribute
-        if isinstance(obj, Mapping):  # dict-like
+        # Step 1: serialize or wrap the 'data' attribute
+        if isinstance(obj, dict):
             data = {'data': obj}
         elif obj is not None:
             serializer = ProfileIPDataSerializer(obj, context=self.context)
@@ -159,8 +157,19 @@ class ProfileIPDataField(serializers.Field):
         else:
             data = {'data': {}}
 
-        # Step 2: merge computed/related data from the parent ProfileIP
+        # Step 2: get parent instance safely
+        parent_instance = getattr(self.parent, 'instance', None)
+
+        # Handle the case where parent_instance is a list
+        if isinstance(parent_instance, list):
+            if len(parent_instance) == 1:
+                parent_instance = parent_instance[0]  # single object in list
+            else:
+                parent_instance = None  # multiple objects: skip merging
+
+        # Step 3: merge parent data if we have a single instance
         if parent_instance is not None:
+            # Merge related data from the parent instance
             related_data = parent_instance.get_related_profile_data(original_keys=True)
             data['data'].update(related_data)
 
