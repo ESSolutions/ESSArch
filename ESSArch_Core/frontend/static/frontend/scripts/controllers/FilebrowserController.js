@@ -77,6 +77,7 @@ export default class FilebrowserController {
     $scope.dirPipe = function (tableState) {
       if (vm.browserstate) {
         vm.browserstate.path = $scope.previousGridArraysString();
+        $rootScope.currentBrowserPath = vm.browserstate.path || '';
       }
       $scope.gridArrayLoading = true;
       if (!angular.isUndefined(tableState)) {
@@ -333,8 +334,7 @@ export default class FilebrowserController {
             '&type=' +
             vm.workarea +
             '&path=' +
-            $scope.previousGridArraysString() +
-            file.name +
+            encodeURIComponent($scope.previousGridArraysString() + file.name) +
             (vm.user ? '&user=' + vm.user.id : '')
         );
       } else if ($scope.ip.state == 'At reception') {
@@ -343,8 +343,7 @@ export default class FilebrowserController {
             'ip-reception/' +
             $scope.ip.id +
             '/files/?path=' +
-            $scope.previousGridArraysString() +
-            file.name
+            encodeURIComponent($scope.previousGridArraysString() + file.name)
         );
       } else {
         file.content = $sce.trustAsResourceUrl(
@@ -352,8 +351,7 @@ export default class FilebrowserController {
             'information-packages/' +
             $scope.ip.id +
             '/files/?path=' +
-            $scope.previousGridArraysString() +
-            file.name
+            encodeURIComponent($scope.previousGridArraysString() + file.name)
         );
       }
       $window.open(file.content, '_blank');

@@ -119,6 +119,7 @@ import TransferModalInstanceCtrl from '../controllers/TransferModalInstanceCtrl'
 import UserDropdownCtrl from '../controllers/UserDropdownCtrl';
 import UserSettingsCtrl from '../controllers/UserSettingsCtrl';
 import UtilCtrl from '../controllers/UtilCtrl';
+import UploadController from '../controllers/UploadController.js';
 import VersionCtrl from '../controllers/VersionCtrl';
 import VersionModalInstanceCtrl from '../controllers/VersionModalInstanceCtrl';
 import WorkareaCtrl from '../controllers/WorkareaCtrl';
@@ -1211,6 +1212,7 @@ export default angular
     '$translate',
     UtilCtrl,
   ])
+  .controller('UploadController', ['$scope', '$rootScope', 'UppyUploadService', 'IP', UploadController])
   .controller('AppraisalCtrl', [
     '$scope',
     'appConfig',

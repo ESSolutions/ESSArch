@@ -1,112 +1,16 @@
-<div
-  flow-init
-  flow-object="currentFlowObject"
-  flow-file-added="hideFlowCompleted($flow)"
-  flow-files-added="hideFlowCompleted($flow)"
-  flow-error="onUploadError($file, $message, $flow)"
-  flow-transfers
->
-  <div>
-    <h4>{{'UPLOAD.UPLOADCONTENT' | translate}}</h4>
-    <!--
-        <input class="form-control" style="margin-bottom: 5px;" ng-model="vm.flowDestination" placeholder="Destination "type="text"></input>
-		-->
-    <button class="btn btn-default" flow-btn><i class="far fa-file"></i> {{'UPLOAD.CHOOSEFILES' | translate}}</button>
-    <button class="btn btn-default" flow-btn flow-directory ng-show="$flow.supportDirectory">
-      <i class="far fa-folder"></i>
-      {{'UPLOAD.CHOOSEFOLDER' | translate}}
-    </button>
-    <br />
-    <span class="label label-info">{{transfers.length}} {{'UPLOAD.FILES' | translate}}</span>
-    <span class="label label-info">{{$flow.getSize() | filesize}}</span>
-    <hr />
-    <p class="bg-warning drop-zone" flow-drop flow-drag-enter="class='bg-success'" flow-drag-leave="class=''">
-      {{'UPLOAD.DRAGANDDROPFILEHERE' | translate}}
-    </p>
-    <div class="upload-complete" ng-if="currentFlowObject.flowCompleted">
-      <p style="color: green">{{'UPLOAD.UPLOAD_COMPLETE' | translate}}!</p>
-      <p>{{currentFlowObject.flowFiles}} {{'UPLOAD.FILES' | translate}}, {{currentFlowObject.flowSize | filesize}}</p>
-    </div>
-  </div>
-  <div>
-    <!-- Upload controls + table -->
-    <div ng-if="transfers.length">
-      <h4>{{'UPLOAD.UPLOAD' | translate}}:</h4>
-      <a class="btn btn-success" ng-click="$flow.resume();updateListViewTimeout(1000)"
-        ><i class="fas fa-upload"></i> {{'UPLOAD.UPLOAD' | translate}}</a
-      >
-      <a class="btn btn-primary" ng-click="$flow.pause()"
-        ><i class="fas fa-pause"></i> {{'UPLOAD.PAUSE' | translate}}</a
-      >
-      <a class="btn btn-danger" ng-click="$flow.cancel(); resetUploadedFiles()"
-        ><i class="fas fa-ban"></i> {{'CANCEL' | translate}}</a
-      >
+<style>
+  .uppy-Dashboard-poweredBy {
+    display: none !important;
+  }
+</style>
+<hr />
+<h4>{{'UPLOAD.UPLOADCONTENT' | translate}}</h4>
+<div ng-controller="UploadController as vm">
+  <div id="uppy-dashboard"></div>
 
-      <h4>{{'UPLOAD.TRANSFERS' | translate}}</h4>
-      <p>
-        <uib-progressbar
-          style="width: 100%"
-          class="progress"
-          value="getUploadedPercentage($flow.getSize(),$flow.sizeUploaded(), transfers.length)"
-          type="success"
-          ><b
-            >{{getUploadedPercentage($flow.getSize(), $flow.sizeUploaded(), transfers.length) | number : 0}}%</b
-          ></uib-progressbar
-        >
-        {{'UPLOAD.UPLOADED' | translate}}: {{$flow.sizeUploaded() | filesize}} / {{$flow.getSize() | filesize}}
-      </p>
-      <div style="min-height: 359px">
-        <table class="table table-hover table-bordered table-striped">
-          <thead>
-            <tr>
-              <th>{{'PATH' | translate}}</th>
-              <th>{{'SIZE' | translate}}</th>
-              <th>{{'UPLOAD.PROGRESS' | translate}}</th>
-              <th>{{'UPLOAD.ACTIONS' | translate}}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- BEFORE UPLOAD OR FAILED FILES -->
-            <tr ng-repeat="file in $flow.files">
-              <td>{{file.relativePath || file.name}}</td>
-              <td>{{file.size | filesize}}</td>
-
-              <td>
-                <!-- Error only -->
-                <span ng-if="file.errorMessage" class="text-danger">{{ file.errorMessage }}</span>
-
-                <!-- Progress bar -->
-                <uib-progressbar
-                  ng-if="!file.errorMessage"
-                  class="progress"
-                  value="file.progress()*100"
-                  type="success"
-                >
-                  <b>
-                    <span ng-if="!file.mergeCompleted && file.progress() === 1"> Merging… </span>
-                    <span ng-if="!file.mergeCompleted && file.progress() < 1">
-                      {{ (file.progress()*100) | number:0 }}%
-                    </span>
-                    <span ng-if="file.mergeCompleted"> 100% </span>
-                  </b>
-                </uib-progressbar>
-              </td>
-
-              <td>
-                <!-- Retry button for failed uploads -->
-                <button class="btn btn-warning btn-sm" ng-if="file.errorMessage" ng-click="retryFile(file)">
-                  Retry
-                </button>
-
-                <!-- Cancel button for uploading files -->
-                <button class="btn btn-danger btn-sm" ng-if="!file.mergeCompleted" ng-click="cancelFile(file, $flow)">
-                  Cancel
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <!-- <button type="button" ng-click="vm.startUpload()">Start Upload</button> -->
+  <div style="height: 10px"></div>
+  <p>{{'UPLOAD.TOTALFILES' | translate}}: {{ vm.stats.total }}</p>
+  <p>{{'UPLOAD.COMPLETED' | translate}}: {{ vm.stats.completed }}</p>
+  <p>{{'UPLOAD.FAILED' | translate}}: {{ vm.stats.failed }}</p>
 </div>

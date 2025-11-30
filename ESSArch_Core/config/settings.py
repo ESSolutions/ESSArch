@@ -2,6 +2,7 @@ import os
 import tarfile
 from copy import deepcopy
 from datetime import timedelta
+from pathlib import Path
 from urllib.parse import quote_plus as urlquote, urlparse
 
 import environ
@@ -78,6 +79,9 @@ DRF_DYNAMIC_FIELDS = {
     'SUPPRESS_CONTEXT_WARNING': True,
 }
 
+TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
+TUS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'
 PROXY_PAGINATION_MAPPING = {'none': 'ESSArch_Core.api.pagination.NoPagination'}
@@ -145,6 +149,7 @@ INSTALLED_APPS = env.list('ESSARCH_INSTALLED_APPS', default=[
     'ESSArch_Core.stats',
     'ESSArch_Core.storage',
     'ESSArch_Core.tags',
+    'ESSArch_Core.tus',
     'ESSArch_Core.WorkflowEngine',
     'ESSArch_Core.workflow',
 ])

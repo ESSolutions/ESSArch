@@ -119,7 +119,7 @@ module.exports = (env, argv) => {
           test: /\.(sa|sc|c)ss$/,
           use: [
             {
-              loader: MiniCssExtractPlugin.loader,
+              loader: 'style-loader',
             },
             {
               loader: 'css-loader',
@@ -180,7 +180,7 @@ module.exports = (env, argv) => {
       }),
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'], // automatically import Buffer where used
-      }),      
+      }),
     ],
   };
 };

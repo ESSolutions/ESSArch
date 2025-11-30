@@ -451,6 +451,7 @@ urlpatterns = [
     ),
     re_path(r'^docs/', include('ESSArch_Core.docs.urls')),
     re_path(r'^template/', include('ESSArch_Core.essxml.ProfileMaker.urls')),
+    path("tus/", include("ESSArch_Core.tus.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
