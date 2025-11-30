@@ -45,7 +45,22 @@ class LoginTests(FrontendTestCase):
 
         # logout
         old_url = self.selenium.current_url
-        self.selenium.find_element("class name", 'dropdown-toggle').click()
-        self.selenium.find_element("xpath", '//*[contains(text(), "Logout")]').click()
-        WebDriverWait(self.selenium, 15).until(EC.title_is('Login | ESSArch'))
+
+        # Open user dropdown
+        WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, 'dropdown-toggle'))
+        ).click()
+
+        # Click logout button
+        logout_btn = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable(
+                (By.XPATH, '//a[normalize-space()="Logout"] | //button[normalize-space()="Logout"]')
+            )
+        )
+        logout_btn.click()
+
+        # Wait for login page
+        WebDriverWait(self.selenium, 15).until(
+            EC.title_is('Login | ESSArch')
+        )
         self.assertTrue(EC.url_changes(old_url))
