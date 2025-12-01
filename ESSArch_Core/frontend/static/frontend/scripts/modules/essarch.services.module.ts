@@ -43,6 +43,7 @@ import tapeDrive from '../services/tapeDrive';
 import tapeSlot from '../services/tapeSlot';
 import task from '../services/task';
 import utils from '../services/Utils';
+import UppyUploadService from '../services/UppyUploadService';
 import {me, user} from '../services/user';
 import {workarea, workareaFiles} from '../services/workarea';
 
@@ -123,4 +124,5 @@ export default angular
   .factory('User', ['$resource', 'appConfig', user])
   .factory('Workarea', ['$resource', 'appConfig', 'Task', 'Step', 'Event', workarea])
   .factory('WorkareaFiles', ['$resource', 'appConfig', workareaFiles])
-  .service('Validate', validate).name;
+  .service('Validate', validate)
+  .service('UppyUploadService', UppyUploadService).name;
