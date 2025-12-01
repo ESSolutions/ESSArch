@@ -12,16 +12,7 @@ export default function UploadController($scope, $rootScope, UppyUploadService, 
 
   // console.log('$rootScope', $rootScope);
   // console.log('vm.browserstate in UploadController:', vm.browserstate);
-  // $scope.currentBrowserPath = vm.browserstate.path || '';
   // console.log('Initial browser path in UploadController:', $rootScope.currentBrowserPath);
-  $scope.$watch(
-    () => $rootScope.currentBrowserPath,
-    (newPath) => {
-      console.log('Path changed in UploadController:', newPath);
-      $scope.currentBrowserPath = newPath || '';
-    }
-  );
-
   $scope.$watch(
     () => $rootScope.currentBrowserPath,
     function (newVal) {
@@ -57,11 +48,12 @@ export default function UploadController($scope, $rootScope, UppyUploadService, 
         $scope.$applyAsync();
       },
 
-      // onComplete: (result) => {
-      //   vm.stats.completed = result.successful.length;
-      //   vm.stats.failed = result.failed.length;
-      //   $scope.$applyAsync();
-      // },
+      onComplete: (result) => {
+        console.log('onComplete', result);
+        //   vm.stats.completed = result.successful.length;
+        //   vm.stats.failed = result.failed.length;
+        $scope.updateGridArray();
+      },
 
       onError: (err) => {
         console.error('Upload error:', err);
