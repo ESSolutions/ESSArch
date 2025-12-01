@@ -80,6 +80,38 @@ export default class CollectContentCtrl {
       watchers.forEach((w) => w());
     });
 
+    vm.uploadCompletedModal = function (ip) {
+      const ips = $scope.ips.length > 0 ? $scope.ips : null;
+      const modalInstance = $uibModal.open({
+        animation: true,
+        ariaLabelledBy: 'modal-title',
+        ariaDescribedBy: 'modal-body',
+        templateUrl: 'static/frontend/views/upload_completed_modal.html',
+        scope: $scope,
+        controller: 'DataModalInstanceCtrl',
+        controllerAs: '$ctrl',
+        resolve: {
+          data: {
+            ip: ip,
+            ips: ips,
+          },
+        },
+      });
+      modalInstance.result.then(
+        function (data) {
+          $scope.ips = [];
+          $scope.ip = null;
+          $rootScope.ip = null;
+          $scope.getListViewData();
+          vm.updateListViewConditional();
+          $anchorScroll();
+        },
+        function () {
+          $log.info('modal-component dismissed at: ' + new Date());
+        }
+      );
+    };
+
     // -----------------------------------------------------------------------
     // CONTEXT MENU
     // -----------------------------------------------------------------------
