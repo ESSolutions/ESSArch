@@ -80,7 +80,6 @@ DRF_DYNAMIC_FIELDS = {
 }
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
-TUS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 PROXY_PAGINATION_PARAM = 'pager'
 PROXY_PAGINATION_DEFAULT = 'ESSArch_Core.api.pagination.LinkHeaderPagination'

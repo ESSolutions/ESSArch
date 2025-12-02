@@ -40,17 +40,17 @@ def Action(self, tool, pattern, rootdir, options, purpose=None):
     self.create_success_event(msg)
 
     def _run(filepath, rootdir, tool, options, t=None, ip=None):
-        tool.run(filepath, rootdir, options, t, ip)
+        tool.run(filepath, rootdir, options, t, ip.pk)
 
         relpath = PurePath(filepath).relative_to(rootdir).as_posix()
         EventIP.objects.create(
-            eventType_id=50750,
+            eventType_id=50760,
             eventOutcome=EventIP.SUCCESS,
             eventOutcomeDetailNote='{type} {relpath}'.format(
                 type=tool.type.capitalize(),
                 relpath=relpath
             ),
-            linkingObjectIdentifierValue=str(self.get_information_package().pk),
+            linkingObjectIdentifierValue=str(ip.pk),
             linkingAgentIdentifierValue=User.objects.get(pk=self.responsible)
         )
 
