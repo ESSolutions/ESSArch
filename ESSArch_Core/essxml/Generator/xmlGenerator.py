@@ -101,9 +101,9 @@ def parseContent(content, info=None):
     nothing_to_parse = False
     arr = []
     for c in content:
-        if 'text' in c:
+        if 'text' in c and isinstance(c, dict):
             arr.append(make_unicode(c['text']))
-        elif 'var' in c:
+        elif 'var' in c and isinstance(c, dict):
             var = c['var']
             if '.' in var:
                 val = get_nested_val(copy.deepcopy(info), var)

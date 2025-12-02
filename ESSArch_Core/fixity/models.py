@@ -120,6 +120,8 @@ class ActionTool(ExternalTool):
         try:
             os.chdir(rootdir)
             filepath = normalize_path(filepath)
+            if not context and '_context' in options.keys():
+                context = options.pop('_context')
             cmd = eval(self.prepare_cmd(filepath, options))
             if isinstance(cmd, str):
                 cmd = (cmd,)
