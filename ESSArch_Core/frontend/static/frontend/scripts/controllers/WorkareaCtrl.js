@@ -1,5 +1,3 @@
-import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
-
 export default class WorkareaCtrl {
   constructor(
     vm,
@@ -36,7 +34,6 @@ export default class WorkareaCtrl {
       options: [],
     };
     vm.$onInit = function () {
-      $rootScope.flowObjects = {};
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
@@ -160,10 +157,6 @@ export default class WorkareaCtrl {
     $scope.filebrowserClick = function (ip) {
       $scope.previousGridArrays = [];
       $scope.filebrowser = true;
-      if (!$rootScope.flowObjects[$scope.ip.id]) {
-        $scope.createNewFlow($scope.ip);
-      }
-      $scope.currentFlowObject = $rootScope.flowObjects[$scope.ip.id];
       if ($scope.filebrowser) {
         $scope.showFileUpload = false;
         $timeout(function () {
@@ -229,33 +222,6 @@ export default class WorkareaCtrl {
       }, timeout);
     };
 
-    vm.flowDestination = null;
-    $scope.showFileUpload = true;
-    $scope.currentFlowObject = null;
-    $scope.getFlowTarget = function () {
-      return appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType() + '/';
-    };
-    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
-      return {destination: vm.browserstate.path};
-    };
-    $scope.fileUploadSuccess = function (ip, file, message, flow) {
-      $scope.uploadedFiles++;
-      const path = flow.opts.query.destination + file.relativePath;
-
-      WorkareaFiles.mergeChunks(
-        {
-          type: vm.getUploadWorkareaType(),
-        },
-        {
-          path: path,
-          id: ip.id,
-          user: $rootScope.auth.id,
-        }
-      );
-    };
-    $scope.fileTransferFilter = function (file) {
-      return file.isUploading();
-    };
     $scope.removeFiles = function () {
       $scope.selectedCards.forEach(function (file) {
         listViewService.deleteWorkareaFile(vm.workarea, vm.browserstate.path, file).then(function () {
@@ -272,57 +238,6 @@ export default class WorkareaCtrl {
         }
       });
       return cardClass;
-    };
-    $scope.resetUploadedFiles = function (ip) {
-      $scope.uploadedFiles = 0;
-      $rootScope.flowObjects[ip.id] = null;
-    };
-    $scope.uploadedFiles = 0;
-    $scope.flowCompleted = false;
-    $scope.flowComplete = function (ip, flow, transfers) {
-      if (flow.progress() === 1) {
-        flow.flowCompleted = true;
-        flow.flowSize = flow.getSize();
-        flow.flowFiles = transfers.length;
-        flow.cancel();
-        if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles(ip);
-        }
-      }
-
-      $scope.updateGridArray();
-    };
-    $scope.hideFlowCompleted = function (flow) {
-      flow.flowCompleted = false;
-    };
-    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
-      if (totalSize == 0 || uploadedSize / totalSize == 1) {
-        return ($scope.uploadedFiles / totalFiles) * 100;
-      } else {
-        return (uploadedSize / totalSize) * 100;
-      }
-    };
-
-    $scope.createNewFlow = function (ip) {
-      const flowObj = new Flow({
-        target: appConfig.djangoUrl + 'workarea-files/upload/?type=' + vm.getUploadWorkareaType(),
-        chunkSize: 10 * 1024 * 1024, // 50MB
-        simultaneousUploads: 15,
-        maxChunkRetries: 5,
-        chunkRetryInterval: 1000,
-        headers: {'X-CSRFToken': $cookies.get('csrftoken')},
-        complete: $scope.flowComplete,
-      });
-      flowObj.on('complete', function () {
-        $scope.flowComplete(ip, flowObj, flowObj.files);
-      });
-      flowObj.on('fileSuccess', function (file, message) {
-        $scope.fileUploadSuccess(ip, file, message, flowObj);
-      });
-      flowObj.on('uploadStart', function () {
-        flowObj.opts.query = {destination: vm.browserstate.path, id: ip.id, user: $rootScope.auth.id};
-      });
-      $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
 }

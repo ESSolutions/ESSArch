@@ -33,7 +33,6 @@ import uiRouter, {
 } from '@uirouter/angularjs';
 import {permission, uiPermission} from 'angular-permission';
 
-import '@flowjs/ng-flow';
 import 'angular-animate';
 import 'angularjs-bootstrap-datetimepicker';
 import 'angular-bootstrap-contextmenu';

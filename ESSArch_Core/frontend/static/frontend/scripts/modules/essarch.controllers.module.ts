@@ -141,7 +141,6 @@ export default angular
     'angularResizable',
     'essarch.appConfig',
     'essarch.services',
-    'flow',
     'formly',
     'formlyBootstrap',
     'ig.linkHeaderParser',
