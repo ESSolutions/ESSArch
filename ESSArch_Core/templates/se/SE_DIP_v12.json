@@ -12,12 +12,12 @@
 			"children": [
 				{
 					"type": "file",
-					"name": "metadata.xml",
+					"name": "content/metadata.xml",
 					"use": "content_type_specification"
 				},
 				{
 					"type": "file",
-					"name": "metadata.xsd",
+					"name": "content/metadata.xsd",
 					"use": "content_type_specification_schema"
 				}
 			]
@@ -575,7 +575,7 @@
 								"-name": "mdRef",
 								"-namespace": "mets",
 								"-containsFiles": true,
-								"-filters": {"href": "(metadata/premis.xml|metadata/administrative/premis.xml)"},
+								"-filters": {"href": "^metadata/premis.xml$"},
 								"-attr": [
 									{
 										"-name": "MIMETYPE",
@@ -645,7 +645,7 @@
 								"-name": "file",
 								"-namespace": "mets",
 								"-containsFiles": true,
-								"-filters": {"href": "^(?!.*(metadata/premis.xml|metadata/administrative/premis.xml)).*$"},
+								"-filters": {"href": "^((?!^metadata/premis\\.xml$).)*$"},
 								"-attr": [
 									{
 										"-name": "ID",
