@@ -1,5 +1,3 @@
-import * as Flow from '@flowjs/ng-flow/dist/ng-flow-standalone';
-
 export default class CreateDipCtrl {
   constructor(
     IP,
@@ -39,7 +37,6 @@ export default class CreateDipCtrl {
     vm.listViewTitle = $translate.instant('DISSEMINATION_PACKAGES');
 
     vm.$onInit = function () {
-      $rootScope.flowObjects = {};
       $scope.redirectWithId();
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
@@ -194,10 +191,6 @@ export default class CreateDipCtrl {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
         $state.go($state.current.name, {id: $scope.ip.id});
-        if (!$rootScope.flowObjects[row.id]) {
-          $scope.createNewFlow(row);
-        }
-        $scope.currentFlowObject = $rootScope.flowObjects[row.id];
         if ($scope.select) {
           $scope.showFileUpload = false;
           $timeout(function () {
@@ -674,10 +667,6 @@ export default class CreateDipCtrl {
     $scope.filebrowserClick = function (ip) {
       $scope.previousGridArrays = [];
       $scope.filebrowser = true;
-      if (!$rootScope.flowObjects[$scope.ip.id]) {
-        $scope.createNewFlow($scope.ip);
-      }
-      $scope.currentFlowObject = $rootScope.flowObjects[$scope.ip.id];
       if ($scope.filebrowser) {
         $scope.showFileUpload = false;
         $timeout(function () {
@@ -690,24 +679,7 @@ export default class CreateDipCtrl {
     // **********************************
     //            Upload
     // **********************************
-    $scope.getFlowTarget = function () {
-      return appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/upload/';
-    };
-    $scope.getQuery = function (FlowFile, FlowChunk, isTest) {
-      return {destination: vm.browserstate.path};
-    };
-    $scope.fileUploadSuccess = function (ip, file, message, flow) {
-      $scope.uploadedFiles++;
-      const path = flow.opts.query.destination + file.relativePath;
 
-      IP.mergeChunks({
-        id: ip.id,
-        path: path,
-      });
-    };
-    $scope.fileTransferFilter = function (file) {
-      return file.isUploading();
-    };
     $scope.removeFiles = function () {
       $scope.selectedCards2.forEach(function (file) {
         listViewService.deleteFile($scope.ip, vm.browserstate.path, file).then(function () {
@@ -772,60 +744,16 @@ export default class CreateDipCtrl {
       return cardClass;
     };
 
-    $scope.resetUploadedFiles = function (ip) {
-      $scope.uploadedFiles = 0;
-      $rootScope.flowObjects[ip.id] = null;
-    };
-    $scope.uploadedFiles = 0;
-    $scope.flowCompleted = false;
-    $scope.flowComplete = function (ip, flow, transfers) {
-      if (flow.progress() === 1) {
-        flow.flowCompleted = true;
-        flow.flowSize = flow.getSize();
-        flow.flowFiles = transfers.length;
-        flow.cancel();
-        if (flow == $scope.currentFlowObject) {
-          $scope.resetUploadedFiles(ip);
-        }
+    $scope.$watch(
+      () => vm.browserstate.path,
+      (newPath) => {
+        console.log('Path changed:', newPath);
+        $rootScope.currentBrowserPath = newPath || '';
       }
-      $scope.updateGridArray();
-    };
-    $scope.hideFlowCompleted = function (flow) {
-      flow.flowCompleted = false;
-    };
-    $scope.getUploadedPercentage = function (totalSize, uploadedSize, totalFiles) {
-      if (totalSize == 0 || uploadedSize / totalSize == 1) {
-        return ($scope.uploadedFiles / totalFiles) * 100;
-      } else {
-        return (uploadedSize / totalSize) * 100;
-      }
-    };
+    );
 
     $scope.getFileExtension = function (file) {
       return file.name.split('.').pop().toUpperCase();
-    };
-    $scope.createNewFlow = function (ip) {
-      const flowObj = new Flow({
-        target: appConfig.djangoUrl + 'information-packages/' + ip.id + '/upload/',
-        simultaneousUploads: 15,
-        chunkSize: 10 * 1024 * 1024, // 50MB
-        maxChunkRetries: 5,
-        chunkRetryInterval: 1000,
-        headers: {'X-CSRFToken': $cookies.get('csrftoken')},
-        complete: $scope.flowComplete,
-      });
-      flowObj.on('complete', function () {
-        vm.uploading = false;
-        $scope.flowComplete(ip, flowObj, flowObj.files);
-      });
-      flowObj.on('fileSuccess', function (file, message) {
-        $scope.fileUploadSuccess(ip, file, message, flowObj);
-      });
-      flowObj.on('uploadStart', function () {
-        vm.uploading = true;
-        flowObj.opts.query = {destination: vm.browserstate.path};
-      });
-      $rootScope.flowObjects[ip.id] = flowObj;
     };
   }
 }
