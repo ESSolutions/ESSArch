@@ -142,7 +142,6 @@ class StoragePolicyAdmin(NestedModelAdmin):
                 'validate_checksum',
                 'validate_xml',
                 'ingest_delete',
-                'index',
                 'receive_extract_sip',
                 'cache_minimum_capacity',
                 'cache_maximum_age',

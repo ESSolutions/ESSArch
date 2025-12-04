@@ -1221,8 +1221,11 @@ class InformationPackage(models.Model):
 
         profile_type = self.get_package_type_display().lower()
         index_files = self.get_profile_data(profile_type).get('index_files', True)
+        index_files_content = self.get_profile_data(profile_type).get('index_files_content', True)
         index_cits = self.get_profile_data(profile_type).get('index_cits', True)
-        if index_files is True or index_files == 'True' or index_cits is True or index_cits == 'True':
+        if (index_files is True or index_files == 'True' or
+                index_files_content is True or index_files_content == 'True' or
+                index_cits is True or index_cits == 'True'):
             write_to_search_index = True
         else:
             write_to_search_index = False
@@ -2800,6 +2803,7 @@ class InformationPackage(models.Model):
                 indexed_files = ct_importer.import_content(cts, ip=self)
 
         index_files = self.get_profile_data(profile_type).get('index_files', True)
+        index_files_content = self.get_profile_data(profile_type).get('index_files_content', True)
         if index_files is True or index_files == 'True':
             group = None
             try:
@@ -2812,7 +2816,7 @@ class InformationPackage(models.Model):
             for root, dirs, files in walk(srcdir):
                 for d in dirs:
                     src = os.path.join(root, d)
-                    index_path(self, src, group=group)
+                    index_path(self, src, group=group, index_file_content=index_files_content)
 
                 for f in files:
                     src = os.path.join(root, f)
@@ -2821,7 +2825,7 @@ class InformationPackage(models.Model):
                         indexed_files.remove(src)
                     except ValueError:
                         # file has not been indexed, index it
-                        index_path(self, src, group=group)
+                        index_path(self, src, group=group, index_file_content=index_files_content)
 
         InformationPackageDocument.from_obj(self).save()
 

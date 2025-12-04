@@ -1007,6 +1007,23 @@
 			}
 		},
 		{
+			"key": "index_files_content",
+			"type": "select",
+			"defaultValue": true,
+			"hidden": false,
+			"templateOptions": {
+				"required": false,
+				"disabled": false,
+				"label": "Indexera filernas innehåll",
+				"options": [{"name": "Yes","value": true},{"name": "No","value": false}]
+			},
+			"ngModelElAttrs": {
+				"uib-popover": "Indexera innehåll i leveransen. Tillägg till specifikationen",
+				"popover-placement": "bottom",
+				"popover-trigger": "'mouseenter'"
+			}
+		},
+		{
 			"key": "index_cits",
 			"type": "select",
 			"defaultValue": true,
