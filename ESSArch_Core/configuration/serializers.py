@@ -221,7 +221,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
     class Meta:
         model = StoragePolicy
         fields = (
-            "id", "index",
+            "id",
             "cache_minimum_capacity", "cache_maximum_age",
             "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
@@ -247,7 +247,7 @@ class StoragePolicySerializer(serializers.ModelSerializer):
 class StoragePolicyNestedSerializer(StoragePolicySerializer):
     class Meta(StoragePolicySerializer.Meta):
         fields = (
-            "id", "index",
+            "id",
             "cache_minimum_capacity", "cache_maximum_age",
             "policy_id", "policy_name",
             "policy_stat", "ais_project_name", "ais_project_id",
