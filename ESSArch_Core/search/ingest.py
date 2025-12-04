@@ -21,15 +21,13 @@ from ESSArch_Core.util import (
 )
 
 
-def index_document(tag_version, filepath):
+def index_document(tag_version, filepath, index_file_content=True):
     logger = logging.getLogger('essarch.search.ingest')
     exclude_file_format_from_indexing_content = settings.EXCLUDE_FILE_FORMAT_FROM_INDEXING_CONTENT
 
     fid = FormatIdentifier()
     (format_name, format_version, format_registry_key) = fid.identify_file_format(filepath)
-    if format_registry_key not in exclude_file_format_from_indexing_content:
-        index_file_content = True
-    else:
+    if format_registry_key in exclude_file_format_from_indexing_content:
         index_file_content = False
 
     ip = tag_version.tag.information_package
@@ -84,7 +82,7 @@ def index_directory(tag_version, dirpath):
     return doc, tag_version
 
 
-def index_path(ip, path, parent=None, group=None):
+def index_path(ip, path, parent=None, group=None, index_file_content=True):
     """
     Indexes the file or directory at path to elasticsearch
 
@@ -113,7 +111,7 @@ def index_path(ip, path, parent=None, group=None):
         tag_version.elastic_index = 'document'
         # TODO: minimize db queries
         tag_version.type = TagVersionType.objects.get_or_create(name='document', archive_type=False)[0]
-        doc, tag_version = index_document(tag_version, path)
+        doc, tag_version = index_document(tag_version, path, index_file_content)
         tag_version.save()
     else:
         tag_version.elastic_index = 'directory'

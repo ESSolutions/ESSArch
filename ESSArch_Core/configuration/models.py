@@ -200,16 +200,12 @@ class StoragePolicy(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-
-    index = models.BooleanField(default=False)
-
     cache_minimum_capacity = models.IntegerField(
         'Minimum size (bytes) available on cache before deleting content', default=0,
     )
     cache_maximum_age = models.IntegerField(
         'Maximum age (days) of content before deletion from cache, resets on access', default=0,
     )
-
     policy_id = models.CharField('Policy ID', max_length=32, unique=True)
     policy_name = models.CharField('Policy Name', max_length=255)
     policy_stat = models.BooleanField('Policy Status', default=True)
