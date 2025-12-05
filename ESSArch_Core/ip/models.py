@@ -715,19 +715,28 @@ class InformationPackage(models.Model):
         return InformationPackageDocument.get(id=str(self.pk))
 
     def get_archive_tag(self):
+        logger = logging.getLogger('essarch')
         if self.tag is not None:
             return self.tag
 
         ct_importer_name = self.get_content_type_importer_name()
         if ct_importer_name is None:
             return None
-        ct_importer = get_importer(ct_importer_name)()
+
+        try:
+            ct_importer = get_importer(ct_importer_name)()
+        except ValueError as e:
+            logger.error(f'get_archive_tag - error: {e}')
         ct_file = self.get_content_type_file()
         if ct_file is None:
             return None
 
         ct_file = os.path.relpath(ct_file, self.object_path)
-        cts_file = self.open_file(ct_file)
+        try:
+            cts_file = self.open_file(ct_file)
+        except FileNotFoundError as e:
+            logger.error(f'get_archive_tag - error: {e}')
+            return None
         tag = ct_importer.get_archive(cts_file)
 
         if tag is None:
