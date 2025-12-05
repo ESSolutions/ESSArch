@@ -115,13 +115,15 @@ export default class CollectContentCtrl {
     // -----------------------------------------------------------------------
     // CONTEXT MENU
     // -----------------------------------------------------------------------
-    $scope.menuOptions = function () {
-      return [
-        {
-          text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
-          click: () => vm.ipInformationModal($scope.ip),
+    $scope.menuOptions = function (rowType, row) {
+      const methods = [];
+      methods.push({
+        text: $translate.instant('INFORMATION_PACKAGE_INFORMATION'),
+        click: function ($itemScope, $event, modelValue, text, $li) {
+          vm.ipInformationModal(row);
         },
-      ];
+      });
+      return methods;
     };
 
     // Inside your controller

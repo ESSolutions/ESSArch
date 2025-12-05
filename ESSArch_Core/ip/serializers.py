@@ -128,6 +128,7 @@ class EventIPWriteSerializer(EventIPSerializer):
 class InformationPackageSerializer(serializers.ModelSerializer):
     responsible = UserSerializer(read_only=True)
     agents = serializers.SerializerMethodField()
+    altrecordids = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
     package_type = serializers.ChoiceField(choices=InformationPackage.PACKAGE_TYPE_CHOICES)
     package_type_display = serializers.CharField(source='get_package_type_display', required=False)
@@ -174,6 +175,8 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             return None
 
     def get_agents(self, obj):
+        if isinstance(obj, dict) and 'agents' in obj.keys():
+            return obj['agents']
         if not hasattr(obj, 'agents'):
             return None
         try:
@@ -182,6 +185,12 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             agent_objs = obj.agents.all()
         agents = AgentSerializer(agent_objs, many=True).data
         return {'{role}_{type}'.format(role=a['role'], type=a['type']): a for a in agents}
+
+    def get_altrecordids(self, obj):
+        if isinstance(obj, dict) and 'altrecordids' in obj.keys():
+            return obj['altrecordids']
+        else:
+            return None
 
     def get_permissions(self, obj):
         if not hasattr(obj, 'get_permissions'):
@@ -305,7 +314,7 @@ class InformationPackageSerializer(serializers.ModelSerializer):
             'submission_agreement_data', 'submission_agreement_data_versions',
             'package_type', 'package_type_display', 'responsible', 'create_date',
             'object_num_items', 'entry_date', 'state', 'status', 'step_state',
-            'archived', 'cached', 'aic', 'generation', 'agents',
+            'archived', 'cached', 'aic', 'generation', 'agents', 'altrecordids',
             'message_digest', 'message_digest_algorithm', 'message_digest_algorithm_display',
             'content_mets_create_date', 'content_mets_size', 'content_mets_digest_algorithm',
             'content_mets_digest_algorithm_display', 'content_mets_digest',
