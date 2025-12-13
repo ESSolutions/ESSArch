@@ -1211,7 +1211,7 @@ export default angular
     '$translate',
     UtilCtrl,
   ])
-  .controller('UploadController', ['$scope', '$rootScope', 'UppyUploadService', 'IP', UploadController])
+  .controller('UploadController', ['$scope', '$rootScope', '$timeout', 'UppyUploadService', UploadController])
   .controller('AppraisalCtrl', [
     '$scope',
     'appConfig',
@@ -1416,4 +1416,22 @@ export default angular
     'Notifications',
     VersionModalInstanceCtrl,
   ])
+  .filter('secondsToHms', function () {
+    return function (seconds) {
+      if (!seconds || seconds < 0) return '0s';
+
+      seconds = Math.floor(seconds);
+
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+
+      let out = [];
+      if (h > 0) out.push(h + 'h');
+      if (m > 0) out.push(m + 'm');
+      if (s > 0) out.push(s + 's');
+
+      return out.join(' ');
+    };
+  })
   .factory('Organization', ['$rootScope', '$http', '$state', 'appConfig', 'myService', organization]).name;
