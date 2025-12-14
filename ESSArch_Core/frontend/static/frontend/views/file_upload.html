@@ -1,16 +1,179 @@
 <style>
+  .overall-container {
+    line-height: 1.2;
+  }
+
+  .overall-container h5 {
+    margin: 8px 0 4px; /* ⬅ smaller gaps */
+    font-size: 14px;
+  }
+
+  .overall-progress-bar {
+    width: 100%;
+    height: 15px; /* very slim */
+    background: #e0e0e0;
+    border-radius: 4px;
+    position: relative; /* for overlay label */
+    overflow: hidden;
+  }
+
+  .overall-progress-fill {
+    height: 100%;
+    background: #2684ff;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+
+  .overall-progress-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px; /* small font to fit slim bar */
+    font-weight: 500;
+    color: white;
+    pointer-events: none; /* text won't block clicks */
+    white-space: nowrap;
+  }
+
+  .overall-progress-label {
+    display: none; /* hide external label now */
+  }
+
+  .overall-stats div {
+    margin-top: 4px;
+    font-size: 14px;
+  }
+  .uppy-StatusBar-statusSecondary {
+    display: none !important;
+  }
+
+  .uppy-StatusBar-statusPrimary {
+    display: none !important;
+  }
+  .uppy-StatusBar-progress {
+    display: none !important;
+  }
+
+  .uppy-DashboardContent-title {
+    display: none !important;
+  }
+
+  /* Hide powered by Uppy */
   .uppy-Dashboard-poweredBy {
     display: none !important;
   }
-</style>
-<hr />
-<h4>{{'UPLOAD.UPLOADCONTENT' | translate}}</h4>
-<div ng-controller="UploadController as vm">
-  <div id="uppy-dashboard"></div>
 
-  <!-- <button type="button" ng-click="vm.startUpload()">Start Upload</button> -->
-  <div style="height: 10px"></div>
-  <p>{{'UPLOAD.TOTALFILES' | translate}}: {{ vm.stats.total }}</p>
-  <p>{{'UPLOAD.COMPLETED' | translate}}: {{ vm.stats.completed }}</p>
-  <p>{{'UPLOAD.FAILED' | translate}}: {{ vm.stats.failed }}</p>
+  @keyframes uppy-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
+<div ng-controller="UploadController as vm">
+  <h4>{{ 'UPLOAD.UPLOADCONTENT' | translate }}</h4>
+
+  <div id="uppy-dashboard-wrapper" style="position: relative; display: block">
+    <div id="uppy-dashboard"></div>
+
+    <div
+      id="uppy-loader"
+      style="
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.85);
+        z-index: 9999;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      "
+    >
+      <div
+        class="uppy-spinner"
+        style="
+          width: 48px;
+          height: 48px;
+          border: 5px solid #d9d9d9;
+          border-top-color: #2684ff;
+          border-radius: 50%;
+          animation: uppy-spin 0.8s linear infinite;
+        "
+      ></div>
+      <div style="margin-top: 12px; font-weight: 600">Processing files…</div>
+    </div>
+    <button
+      style="margin-top: 5px"
+      class="btn btn-primary submit-button"
+      ng-click="vm.startFullUpload()"
+      ng-disabled="vm.uploading"
+    >
+      {{ vm.uploading ? ('ISUPLOADING' | translate) : ('UPLOAD.UPLOAD' | translate) }}
+    </button>
+  </div>
+
+  <div class="overall-container">
+    <!-- ============================= -->
+    <!-- 1) JOBS PROGRESS BAR        -->
+    <!-- ============================= -->
+    <h5>{{ 'TASKS' | translate }}</h5>
+
+    <div class="overall-progress-bar">
+      <div class="overall-progress-fill" ng-style="{ width: (vm.currentBatch / vm.totalBatches * 100) + '%' }"></div>
+
+      <div class="overall-progress-text">
+        {{ vm.currentBatch }} / {{ vm.totalBatches }} {{ 'TASKS' | translate | lowercase }} ({{ (vm.currentBatch /
+        vm.totalBatches * 100) | number:0 }}%)
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- 1) FILES PROGRESS BAR        -->
+    <!-- ============================= -->
+    <h5>{{ 'UPLOAD.FILES' | translate }}</h5>
+
+    <div class="overall-progress-bar">
+      <div
+        class="overall-progress-fill"
+        ng-style="{ width: (vm.overall.uploadedFiles / vm.overall.totalFiles * 100) + '%' }"
+      ></div>
+      <div class="overall-progress-text">
+        {{ vm.overall.uploadedFiles }} / {{ vm.overall.totalFiles }} {{ 'UPLOAD.FILES' | translate | lowercase }} ({{
+        (vm.overall.uploadedFiles / vm.overall.totalFiles * 100) | number:0 }}%)
+        <strong ng-if="vm.overall.failedFiles > 0">
+          {{ 'UPLOAD.FAILED' | translate }}: {{vm.overall.failedFiles}}
+        </strong>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- 2) BYTES PROGRESS BAR         -->
+    <!-- ============================= -->
+    <h5>Data (MB)</h5>
+
+    <div class="overall-progress-bar">
+      <div class="overall-progress-fill" ng-style="{ width: vm.overall.progress + '%' }"></div>
+
+      <div class="overall-progress-text">
+        {{ (vm.overall.bytesUploaded / 1024 / 1024) | number:2 }} MB / {{ (vm.overall.bytesTotal / 1024 / 1024) |
+        number:2 }} MB ({{ vm.overall.progress | number:0 }}%)
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- ETA                          -->
+    <!-- ============================= -->
+    <div class="overall-stats" style="margin-top: 15px">
+      <div>
+        {{ 'UPLOAD.TIMELEFTETA' | translate }}:
+        <span ng-if="vm.overall.etaSeconds > 0">
+          {{ vm.overall.etaSeconds | secondsToHms }} ( {{vm.overall.speedMBps }} MB/Sec )</span
+        >
+        <span ng-if="vm.overall.etaSeconds <= 0"> -- </span>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style></style>

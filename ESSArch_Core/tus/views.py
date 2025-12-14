@@ -1,15 +1,12 @@
-# ESSArch_Core/tus/views.py
 import ast
 import os
 import uuid
 
+from django.core.cache import cache
 from django.http import HttpResponse
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
 
-from .models import TusUpload
-from .signals import tus_complete
-from .utils import meta_path, parse_metadata, upload_path
+from .utils import meta_path, move_uploaded_file, parse_metadata, upload_path
 
 
 # -------------------------------
@@ -39,14 +36,7 @@ def tus_create_view(request):
     meta['relativePath'] = meta.get('relativePath') if not meta.get('relativePath') == 'null' else meta.get('filename')
     meta_path(upload_id).write_text(str(meta))
 
-    # Create DB record
-    TusUpload.objects.create(
-        upload_id=upload_id,
-        ip_id=meta.get("ip_id"),
-        filename=meta.get("filename", upload_id),
-        temp_path=str(file_path),
-        status="PENDING",
-    )
+    cache.set(f'tus_upload_{upload_id}', 'PENDING', timeout=3600)  # 1 hour
 
     response = HttpResponse(status=201)
     response["Location"] = f"/tus/{upload_id}"  # no trailing slash needed
@@ -77,6 +67,11 @@ def tus_upload_view(request, upload_id):
     if method == "HEAD":
         if not file_path.exists():
             return HttpResponse(status=404)
+
+        status = cache.get(f'tus_upload_{upload_id}')
+        if status is None or status == 'ERROR':
+            return HttpResponse(status=404)
+
         offset = file_path.stat().st_size
 
         # Read total length from stored metadata
@@ -133,7 +128,12 @@ def tus_upload_view(request, upload_id):
 
         # Trigger signal if upload is complete
         if upload_length and new_offset >= upload_length:
-            tus_complete.send(sender=None, upload_id=upload_id, metadata_path=m_path)
+            res = move_uploaded_file(file_path, m_path, meta)
+            if res == "Success":
+                cache.set(f'tus_upload_{upload_id}', 'DONE', timeout=3600)  # 1 hour
+            else:
+                cache.set(f'tus_upload_{upload_id}', 'ERROR', timeout=3600)  # 1 hour
+                return HttpResponse(f"Error finalizing upload: {res}", status=409)
 
         response = HttpResponse(status=204)
         response["Upload-Offset"] = str(new_offset)
@@ -152,37 +152,3 @@ def tus_upload_view(request, upload_id):
         return HttpResponse(status=204)
 
     return HttpResponse(status=405)
-
-
-@api_view(["GET"])
-@permission_classes([])
-def tus_status_view(request, upload_id):
-    file_path = upload_path(upload_id)
-    m_path = meta_path(upload_id)
-    try:
-        upload = TusUpload.objects.get(upload_id=upload_id)
-    except TusUpload.DoesNotExist:
-        # Read total length from stored metadata
-        meta = ast.literal_eval(m_path.read_text())
-        upload_length = meta.get("upload_length")
-        if file_path.exists():
-            offset = file_path.stat().st_size
-        # ⚠ Check for zero-byte file
-        if offset == 0 and not upload_length == 0:
-            # if offset == 0:
-            # Either delete or flag for retry
-            file_path.unlink(missing_ok=True)
-            m_path.unlink(missing_ok=True)
-        return Response({"error": "Not found"}, status=404)
-
-    return Response({
-        "upload_id": upload_id,
-        "status": upload.status,
-        "error": upload.error_message,
-    })
-
-    # return Response({
-    #     "upload_id": upload_id,
-    #     "status": "ERROR",
-    #     "error": 'hej hopp',
-    # })
