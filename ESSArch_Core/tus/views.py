@@ -2,8 +2,9 @@ import ast
 import os
 import uuid
 
+from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework.decorators import api_view, permission_classes
 
 from .utils import meta_path, move_uploaded_file, parse_metadata, upload_path
@@ -152,3 +153,16 @@ def tus_upload_view(request, upload_id):
         return HttpResponse(status=204)
 
     return HttpResponse(status=405)
+
+
+@api_view(["GET"])
+@permission_classes([])  # no DRF permissions applied
+def upload_config_view(request):
+    cfg = getattr(settings, "TUS_UPLOAD_CONFIG", {})
+
+    return JsonResponse({
+        "chunkSize": cfg.get("chunk_size", 50 * 1024 * 1024),
+        "limit": cfg.get("limit", 3),
+        "retryDelays": cfg.get("retry_delays", [0, 1000, 3000, 5000]),
+        "disableThumbnailGenerator": cfg.get("disableThumbnailGenerator", True),
+    })

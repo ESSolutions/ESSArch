@@ -10,7 +10,7 @@ UppyUploadService.$inject = ['$cookies', '$translate', '$state', '$rootScope'];
 export default function UppyUploadService($cookies, $translate, $state, $rootScope) {
   const service = {};
 
-  service.build = function ({ip, destinationPath, onProgress, onComplete, onError}) {
+  service.build = async function ({ip, destinationPath, onProgress, onComplete, onError}) {
     const csrftoken = $cookies.get('csrftoken');
 
     function locale(lang) {
@@ -102,22 +102,28 @@ export default function UppyUploadService($cookies, $translate, $state, $rootSco
       if (onError) onError(err);
     });
 
+    async function loadUploadConfig() {
+      const res = await fetch('/tus/upload-config/');
+      return res.json();
+    }
+
+    const cfg = await loadUploadConfig();
+
     uppy.use(Dashboard, {
       inline: true,
       target: '#uppy-dashboard',
       width: '100%',
       height: 300,
       hideUploadButton: true,
-      showProgressDetails: true,
-      disableThumbnailGenerator: true,
+      disableThumbnailGenerator: cfg.disableThumbnailGenerator,
       fileManagerSelectionType: 'both', // allow files + folders
     });
 
     uppy.use(Tus, {
       endpoint: '/tus/',
-      chunkSize: 50 * 1024 * 1024,
-      retryDelays: [0, 1000, 3000, 5000],
-      limit: 10,
+      chunkSize: cfg.chunkSize,
+      retryDelays: cfg.retryDelays,
+      limit: cfg.limit,
       storeUrls: false,
       storeFingerprintForResuming: false,
       headers: {'X-CSRFToken': csrftoken},

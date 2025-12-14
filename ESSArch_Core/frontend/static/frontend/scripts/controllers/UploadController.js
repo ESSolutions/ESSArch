@@ -71,10 +71,10 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
   /* =========================================================================
      UPPY INITIALIZATION
   ========================================================================= */
-  function initUppy() {
+  async function initUppy() {
     // console.log('Initializing Uppy…');
 
-    uppy = UppyUploadService.build({
+    uppy = await UppyUploadService.build({
       ip: $rootScope.ip,
       destinationPath: $rootScope.currentBrowserPath || '',
       restrictions: {
@@ -289,11 +289,6 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
     clearUppyFiles();
 
     for (let i = 0; i < vm.totalBatches; i++) {
-      vm.currentBatch = i + 1;
-
-      const start = i * vm.filesPerBatch;
-      const batchFiles = vm.files.slice(start, start + vm.filesPerBatch);
-
       // Reset for this batch
       // clearUppyFiles();
 
@@ -304,6 +299,10 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
       // Wait for user to retry failed files
       await waitForFailedFilesResolved();
       console.log('after waitForFailedFilesResolved');
+
+      vm.currentBatch = i + 1;
+      const start = i * vm.filesPerBatch;
+      const batchFiles = vm.files.slice(start, start + vm.filesPerBatch);
 
       // Add next batch
       addBatchToUppy(batchFiles);
