@@ -161,8 +161,8 @@ def upload_config_view(request):
     cfg = getattr(settings, "TUS_UPLOAD_CONFIG", {})
 
     return JsonResponse({
-        "chunkSize": cfg.get("chunk_size", 50 * 1024 * 1024),
+        "chunkSize": cfg.get("chunkSize", 50 * 1024 * 1024),
         "limit": cfg.get("limit", 3),
-        "retryDelays": cfg.get("retry_delays", [0, 1000, 3000, 5000]),
+        "retryDelays": cfg.get("retryDelays", [0, 1000, 3000, 5000]),
         "disableThumbnailGenerator": cfg.get("disableThumbnailGenerator", True),
     })

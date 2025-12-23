@@ -440,24 +440,23 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
 
-        # Perform the lookup filtering.
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        value = self.kwargs['pk']
+        lookup_type = self.kwargs.get('lookup_type')
 
-        assert lookup_url_kwarg in self.kwargs, (
-            'Expected view %s to be called with a URL keyword argument '
-            'named "%s". Fix your URL conf, or set the `.lookup_field` '
-            'attribute on the view correctly.' %
-            (self.__class__.__name__, lookup_url_kwarg)
-        )
+        # New preferred URLs
+        if lookup_type == 'oid':
+            field = 'object_identifier_value'
+        elif lookup_type == 'id':
+            field = 'pk'
 
-        lookup_field = self.lookup_field
+        # Backward compatibility
+        else:
+            if self.request.query_params.get('objid') is not None:
+                field = 'object_identifier_value'
+            else:
+                field = 'pk'
 
-        objid = self.request.query_params.get('objid')
-        if objid is not None:
-            lookup_field = 'object_identifier_value'
-
-        filter_kwargs = {lookup_field: self.kwargs[lookup_url_kwarg]}
-        obj = get_object_or_404(queryset, **filter_kwargs)
+        obj = get_object_or_404(queryset, **{field: value})
 
         # May raise a permission denied
         self.check_object_permissions(self.request, obj)
@@ -2053,8 +2052,95 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
             name=os.path.basename(path),
         )
 
-    @action(detail=True, methods=['delete', 'get', 'post'], permission_classes=[IsResponsibleOrCanSeeAllFiles])
-    def files(self, request, pk=None):
+    @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
+    def unlock_profile(self, request, pk=None):
+        ip = self.get_object()
+
+        if ip.state in ['Submitting', 'Submitted']:
+            raise exceptions.ParseError('Cannot unlock profiles in an IP that is %s' % ip.state)
+
+        try:
+            ptype = request.data["type"]
+        except KeyError:
+            raise exceptions.ParseError('Missing type parameter')
+
+        ip.unlock_profile(ptype)
+
+        return Response({
+            'detail': gettext('Unlocking profile with type "{type}" in IP "{ip}"').format(type=ptype, ip=ip)
+        })
+
+    @transaction.atomic
+    @action(detail=True, methods=['post'], url_path='validate')
+    def validate(self, request, pk=None):
+        ip = self.get_object()
+
+        prepare = cmPath.objects.get(entity="ingest_workarea").value
+        xmlfile = os.path.join(prepare, "%s.xml" % pk)
+
+        step = ProcessStep.objects.create(
+            name="Validation",
+            information_package=ip
+        )
+
+        step.add_tasks(
+            ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.ValidateXMLFile",
+                params={
+                    "xml_filename": xmlfile
+                },
+                log=EventIP,
+                information_package=ip,
+                responsible=self.request.user,
+            ),
+            ProcessTask.objects.create(
+                name="ESSArch_Core.tasks.ValidateFiles",
+                params={
+                    "mets_path": xmlfile,
+                    "validate_fileformat": True,
+                    "validate_integrity": True,
+                },
+                log=EventIP,
+                processstep_pos=0,
+                information_package=ip,
+                responsible=self.request.user,
+            )
+        )
+
+        step.run()
+
+        return Response("Validating IP")
+
+    def update(self, request, *args, **kwargs):
+        ip = self.get_object()
+
+        if any(field in request.data for field in ['submission_agreement', 'submission_agreement_data']):
+            if ip.submission_agreement_locked:
+                return Response("SA connected to IP is locked", status=status.HTTP_400_BAD_REQUEST)
+
+        partial = kwargs.pop('partial', False)
+        serializer = self.get_serializer(ip, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        if getattr(ip, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            ip._prefetched_objects_cache = {}
+
+        serializer = InformationPackageDetailSerializer(instance=ip)
+        return Response(serializer.data)
+
+
+class InformationPackageFilesViewSet(InformationPackageViewSet):
+    @action(
+        detail=True,
+        methods=['delete', 'get', 'post'],
+        permission_classes=[IsResponsibleOrCanSeeAllFiles],
+        url_path=r'files(?:/(?P<path>.+))?/?',
+    )
+    def files(self, request, pk=None, path='', **kwargs):
         logger = logging.getLogger('essarch.ip.files')
         ip = self.get_object()
         download = request.query_params.get('download', False)
@@ -2063,13 +2149,14 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         expand_container = request.query_params.get('expand_container', False)
         if expand_container is not False:
             expand_container = string_to_bool(expand_container)
-        path = request.query_params.get('path', '').rstrip('/')
+        if not path:
+            path = request.query_params.get('path', '')
+        path = path.rstrip('/')
 
         if ip.archived and settings.ELASTICSEARCH_CONNECTIONS['default']['hosts'][0]['host']:
             if request.method in ['DELETE', 'POST']:
                 raise exceptions.ParseError('You cannot modify preserved content')
             # check if path exists
-            path = request.query_params.get('path', '').rstrip('/')
             s = Search(index=['directory', 'document'])
             s = s.source(excludes=["attachment.content"])
             s = s.filter('term', **{'ip': str(ip.pk)})
@@ -2332,86 +2419,6 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
 
         return ip.get_path_response(path, request, force_download=download, expand_container=expand_container,
                                     paginator=self.paginator)
-
-    @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='unlock-profile', permission_classes=[CanUnlockProfile])
-    def unlock_profile(self, request, pk=None):
-        ip = self.get_object()
-
-        if ip.state in ['Submitting', 'Submitted']:
-            raise exceptions.ParseError('Cannot unlock profiles in an IP that is %s' % ip.state)
-
-        try:
-            ptype = request.data["type"]
-        except KeyError:
-            raise exceptions.ParseError('Missing type parameter')
-
-        ip.unlock_profile(ptype)
-
-        return Response({
-            'detail': gettext('Unlocking profile with type "{type}" in IP "{ip}"').format(type=ptype, ip=ip)
-        })
-
-    @transaction.atomic
-    @action(detail=True, methods=['post'], url_path='validate')
-    def validate(self, request, pk=None):
-        ip = self.get_object()
-
-        prepare = cmPath.objects.get(entity="ingest_workarea").value
-        xmlfile = os.path.join(prepare, "%s.xml" % pk)
-
-        step = ProcessStep.objects.create(
-            name="Validation",
-            information_package=ip
-        )
-
-        step.add_tasks(
-            ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ValidateXMLFile",
-                params={
-                    "xml_filename": xmlfile
-                },
-                log=EventIP,
-                information_package=ip,
-                responsible=self.request.user,
-            ),
-            ProcessTask.objects.create(
-                name="ESSArch_Core.tasks.ValidateFiles",
-                params={
-                    "mets_path": xmlfile,
-                    "validate_fileformat": True,
-                    "validate_integrity": True,
-                },
-                log=EventIP,
-                processstep_pos=0,
-                information_package=ip,
-                responsible=self.request.user,
-            )
-        )
-
-        step.run()
-
-        return Response("Validating IP")
-
-    def update(self, request, *args, **kwargs):
-        ip = self.get_object()
-
-        if any(field in request.data for field in ['submission_agreement', 'submission_agreement_data']):
-            if ip.submission_agreement_locked:
-                return Response("SA connected to IP is locked", status=status.HTTP_400_BAD_REQUEST)
-
-        partial = kwargs.pop('partial', False)
-        serializer = self.get_serializer(ip, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-        if getattr(ip, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
-            ip._prefetched_objects_cache = {}
-
-        serializer = InformationPackageDetailSerializer(instance=ip)
-        return Response(serializer.data)
 
 
 class OrderTypeViewSet(viewsets.ModelViewSet):

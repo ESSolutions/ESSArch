@@ -585,7 +585,7 @@ export default class CreateDipCtrl {
           appConfig.djangoUrl +
             'information-packages/' +
             $scope.ip.id +
-            '/files/?path=' +
+            '/files/' +
             $scope.previousGridArraysString(2) +
             file.name
         );
