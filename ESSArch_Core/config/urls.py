@@ -285,7 +285,7 @@ routerWithoutTrailingSlash = ESSArchRouterWithoutTrailingSlash()
 routerWithoutTrailingSlash.register(
     r'information-packages',
     InformationPackageFilesViewSet,  # A ViewSet only for files
-    basename='informationpackage-files'
+    basename='informationpackagefiles'
 )
 
 router.register(r'io-queue', IOQueueViewSet)
