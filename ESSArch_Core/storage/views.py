@@ -414,6 +414,18 @@ class StorageObjectViewSet(NestedViewSetMixin, viewsets.ModelViewSet):
         else:
             return super().create(request, *args, **kwargs)
 
+    @action(detail=False, methods=['delete'])
+    def bulk_delete(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+
+        deleted_count = queryset.count()
+        queryset.delete()
+
+        return Response(
+            {"deleted": deleted_count},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
 
 class StorageTargetViewSet(viewsets.ModelViewSet):
     """

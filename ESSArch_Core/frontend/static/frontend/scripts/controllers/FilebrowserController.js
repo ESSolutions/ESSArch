@@ -342,7 +342,7 @@ export default class FilebrowserController {
           appConfig.djangoUrl +
             'ip-reception/' +
             $scope.ip.id +
-            '/files/?path=' +
+            '/files/' +
             encodeURIComponent($scope.previousGridArraysString() + file.name)
         );
       } else {
@@ -350,7 +350,7 @@ export default class FilebrowserController {
           appConfig.djangoUrl +
             'information-packages/' +
             $scope.ip.id +
-            '/files/?path=' +
+            '/files/' +
             encodeURIComponent($scope.previousGridArraysString() + file.name)
         );
       }

@@ -990,7 +990,7 @@ export default class SearchDetailCtrl {
       }
       params.path = params.path.replace(/\&/g, '%26');
       const showFile = $sce.trustAsResourceUrl(
-        appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/?path=' + params.path
+        appConfig.djangoUrl + 'information-packages/' + file.information_package.id + '/files/' + params.path
       );
       $window.open(showFile, '_blank');
     };

@@ -1,48 +1,46 @@
 {
-  "production": {
-    "appConfig": {
-      "name": "production",
-      "djangoUrl": "/api/",
-      "ipInterval": 60000,
-      "recordInterval": 10000,
-      "ipIdleInterval": 60000,
-      "stateInterval": 30000,
-      "eventInterval": 60000,
-      "tagsInterval": 10000,
-      "fileBrowserInterval": 10000,
-      "queueInterval": 30000,
-      "storageMediumInterval": 60000,
-      "storageObjectInterval": 60000,
-      "robotInterval": 30000,
-      "notificationInterval": 60000,
-      "debugInfo": false,
-      "logDebug": false,
-      "commentDirectives": false,
-      "cssClassDirectives": false,
-      "webSocketProtocol": "wss"
+    "production": {
+        "appConfig": {
+            "name": "production",
+            "djangoUrl": "/api/",
+            "ipInterval": 60000,
+            "recordInterval": 10000,
+            "ipIdleInterval": 60000,
+            "stateInterval": 30000,
+            "eventInterval": 60000,
+            "tagsInterval": 10000,
+            "fileBrowserInterval": 10000,
+            "queueInterval": 30000,
+            "storageMediumInterval": 60000,
+            "storageObjectInterval": 60000,
+            "robotInterval": 30000,
+            "notificationInterval": 60000,
+            "debugInfo": false,
+            "logDebug": false,
+            "commentDirectives": false,
+            "cssClassDirectives": false
+        }
+    },
+    "development": {
+        "appConfig": {
+            "name": "development",
+            "djangoUrl": "/api/",
+            "ipInterval": 60000,
+            "recordInterval": 10000,
+            "ipIdleInterval": 60000,
+            "stateInterval": 30000,
+            "eventInterval": 60000,
+            "tagsInterval": 10000,
+            "fileBrowserInterval": 10000,
+            "queueInterval": 30000,
+            "storageMediumInterval": 60000,
+            "storageObjectInterval": 60000,
+            "robotInterval": 30000,
+            "notificationInterval": 60000,
+            "debugInfo": true,
+            "logDebug": true,
+            "commentDirectives": true,
+            "cssClassDirectives": true
+        }
     }
-  },
-  "development": {
-    "appConfig": {
-      "name": "development",
-      "djangoUrl": "/api/",
-      "ipInterval": 60000,
-      "recordInterval": 10000,
-      "ipIdleInterval": 60000,
-      "stateInterval": 30000,
-      "eventInterval": 60000,
-      "tagsInterval": 10000,
-      "fileBrowserInterval": 10000,
-      "queueInterval": 30000,
-      "storageMediumInterval": 60000,
-      "storageObjectInterval": 60000,
-      "robotInterval": 30000,
-      "notificationInterval": 60000,
-      "debugInfo": true,
-      "logDebug": true,
-      "commentDirectives": true,
-      "cssClassDirectives": true,
-      "webSocketProtocol": "ws"
-    }
-  }
 }

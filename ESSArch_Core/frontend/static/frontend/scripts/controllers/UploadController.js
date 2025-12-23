@@ -3,6 +3,7 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
   const vm = this;
 
   vm.uploading = false;
+  $rootScope.isUploading = false;
   vm.files = [];
   vm.filesPerBatch = 1000;
   vm.currentBatch = 0;
@@ -270,6 +271,7 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
     if (!vm.files.length) return console.warn('No files to upload');
 
     vm.uploading = true;
+    $rootScope.isUploading = true;
 
     // Reset global counters
     vm.overall.totalFiles = vm.files.length;
@@ -315,6 +317,7 @@ export default function UploadController($scope, $rootScope, $timeout, UppyUploa
     }
 
     vm.uploading = false;
+    $rootScope.isUploading = false;
     vm.files = [];
   };
 

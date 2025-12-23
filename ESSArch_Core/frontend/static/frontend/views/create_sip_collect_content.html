@@ -10,6 +10,7 @@
         index="'collect_content'"
         ng-if="vm.specificTabs.includes('collect_content')"
         heading="{{'COLLECTCONTENT' | translate}}"
+        disable="vm.uploading"
       >
         <div ng-if="vm.activeTab === 'collect_content'">
           <div
@@ -46,12 +47,22 @@
           </div>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'conversion'" heading="{{'CONVERSIONS' | translate}}">
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0"
+        index="'conversion'"
+        heading="{{'CONVERSIONS' | translate}}"
+        disable="vm.uploading"
+      >
         <div ng-if="vm.activeTab === 'conversion'" class="events-status-wrapper">
           <conversion-view ip="ip" base-url="information-packages"></conversion-view>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'events'" heading="{{'EVENT.EVENTS' | translate}}">
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0"
+        index="'events'"
+        heading="{{'EVENT.EVENTS' | translate}}"
+        disable="vm.uploading"
+      >
         <div
           ng-if="vm.activeTab === 'events'"
           class="events-status-wrapper"
@@ -61,7 +72,12 @@
           <event-table ip="ip"></event-table>
         </div>
       </uib-tab>
-      <uib-tab ng-if="ip !== null && ips.length == 0" index="'tasks'" heading="{{'TASKS' | translate}}">
+      <uib-tab
+        ng-if="ip !== null && ips.length == 0"
+        index="'tasks'"
+        heading="{{'TASKS' | translate}}"
+        disable="vm.uploading"
+      >
         <div
           ng-if="vm.activeTab === 'tasks'"
           class="events-status-wrapper"

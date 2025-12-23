@@ -55,6 +55,14 @@ export default class CollectContentCtrl {
     $scope.showFileUpload = true;
     $scope.currentFlowObject = null;
 
+    $scope.$watch(
+      () => $rootScope.isUploading,
+      (uploading) => {
+        console.log('Uploading state changed:', uploading);
+        vm.uploading = uploading;
+      }
+    );
+
     // -----------------------------------------------------------------------
     // GRID / FILEBROWSER REFRESH WATCHERS
     // -----------------------------------------------------------------------

@@ -81,9 +81,9 @@ DRF_DYNAMIC_FIELDS = {
 
 TUS_UPLOAD_DIR = Path(DATA_DIR) / "temp" / "uploads"
 TUS_UPLOAD_CONFIG = {
-    "chunk_size": 50 * 1024 * 1024,   # 50 MB
+    "chunkSize": 50 * 1024 * 1024,   # 50 MB
     "limit": 3,                       # concurrent uploads
-    "retry_delays": [0, 1000, 3000, 5000],
+    "retryDelays": [0, 1000, 3000, 5000],
     "disableThumbnailGenerator": False,
 }
 

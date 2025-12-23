@@ -5,9 +5,9 @@ const notifications = ($rootScope, $q, appConfig, $http, $window, $websocket) =>
   // Create a unique callback ID to map requests to responses
   let currentCallbackId = 0;
   // Create our websocket object with the address to the websocket
-  const ws = $websocket(appConfig.webSocketProtocol + '://' + $window.location.host + '/ws/', null, {
-    reconnectIfNotNormalClose: true,
-  });
+  const protocol = $window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const wsUrl = protocol + '://' + $window.location.host + '/ws/';
+  const ws = $websocket(wsUrl, null, {reconnectIfNotNormalClose: true});
 
   ws.onOpen(function () {
     $rootScope.useWebsocket = true;
