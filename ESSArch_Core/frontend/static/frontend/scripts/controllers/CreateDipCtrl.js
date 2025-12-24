@@ -581,13 +581,10 @@ export default class CreateDipCtrl {
             (vm.organizationMember.current ? '&user=' + vm.organizationMember.current.id : '')
         );
       } else {
+        const fpath = $scope.previousGridArraysString(2) + file.name;
+        const safePath = fpath.split('/').map(encodeURIComponent).join('/');
         file.content = $sce.trustAsResourceUrl(
-          appConfig.djangoUrl +
-            'information-packages/' +
-            $scope.ip.id +
-            '/files/' +
-            $scope.previousGridArraysString(2) +
-            file.name
+          appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/files/' + safePath
         );
       }
       $window.open(file.content, '_blank');

@@ -26,9 +26,11 @@ import hashlib
 
 from django.conf import settings
 from django.core.cache import caches
+from django.core.paginator import EmptyPage
 from django.db.models import F, Subquery
 from django.db.models.query import QuerySet
-from rest_framework import exceptions, pagination
+from rest_framework import exceptions
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.utils.urls import remove_query_param, replace_query_param
 
@@ -51,18 +53,20 @@ def CachedCountQueryset(queryset, timeout=DRF_CACHED_PAGINATION_COUNT_TIME, cach
         # return existing value, if any
         value = cache.get(cache_key)
         if value is not None:
+            # print('key: {} in cache with value: {}, real_value: {}'.format(cache_key, value, real_count()))
             return value
 
         # cache new value
         value = real_count()
         cache.set(cache_key, value, timeout)
+        # print('key: {} not in cache with value: {}'.format(cache_key, value))
         return value
-
+    # print('queryset: {}, type: {}'.format(str(queryset.query), repr(type(queryset))))
     queryset.count = count.__get__(queryset, type(queryset))
     return queryset
 
 
-class LinkHeaderPagination(pagination.PageNumberPagination):
+class LinkHeaderPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     after_query_param = 'after'
     after_field_query_param = 'after_field'
@@ -97,6 +101,8 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
         return replace_query_param(url, self.page_query_param, self.page.paginator.num_pages)
 
     def paginate_queryset(self, queryset, request, view=None):
+        self.request = request
+
         after = request.query_params.get(self.after_query_param, None)
         after_field = request.query_params.get(self.after_field_query_param, None)
 
@@ -114,10 +120,21 @@ class LinkHeaderPagination(pagination.PageNumberPagination):
         if hasattr(queryset, 'count') and DRF_CACHED_PAGINATION_COUNT_TIME > 0:
             queryset = CachedCountQueryset(queryset)
 
-        return super().paginate_queryset(queryset, request, view)
+        # --- DRF pagination with page clamping ---
+        paginator = self.django_paginator_class(queryset, self.get_page_size(request))
+        page_number = request.query_params.get(self.page_query_param, 1)
+
+        try:
+            self.page = paginator.page(page_number)
+        except EmptyPage:
+            # clamp to last page
+            self.page = paginator.page(paginator.num_pages)
+
+        self.paginator = paginator
+        return list(self.page)
 
 
-class NoPagination(pagination.PageNumberPagination):
+class NoPagination(PageNumberPagination):
     display_page_controls = False
 
     def get_page_size(self, request):
