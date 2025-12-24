@@ -157,13 +157,7 @@ export default class WorkareaCtrl {
     $scope.filebrowserClick = function (ip) {
       $scope.previousGridArrays = [];
       $scope.filebrowser = true;
-      if ($scope.filebrowser) {
-        $scope.showFileUpload = false;
-        $timeout(function () {
-          $scope.showFileUpload = true;
-        });
-      }
-      $scope.previousGridArrays = [];
+      $scope.showFileUpload = true;
     };
 
     $scope.removeIpModal = function (ipObject) {
