@@ -19,7 +19,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
       UPLOAD_COMPLETE: 'Upload complete',
       TOTALFILES: 'Total files',
       FAILED: 'Failed',
-      TIMELEFTETA: 'Time left (ETA)',
+      TIMELEFTETA: 'Remaining time (estimated)',
     },
     PAUSED: 'Paused',
     RESUME: 'Resume',

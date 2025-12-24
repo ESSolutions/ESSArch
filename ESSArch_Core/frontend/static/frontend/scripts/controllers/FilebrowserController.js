@@ -327,6 +327,8 @@ export default class FilebrowserController {
 
     $scope.getFile = function (file) {
       if ($state.includes('**.workarea.**')) {
+        const fpath = $scope.previousGridArraysString() + file.name;
+        const safePath = encodeURIComponent(fpath);
         file.content = $sce.trustAsResourceUrl(
           appConfig.djangoUrl +
             'workarea-files/?id=' +
@@ -334,24 +336,20 @@ export default class FilebrowserController {
             '&type=' +
             vm.workarea +
             '&path=' +
-            encodeURIComponent($scope.previousGridArraysString() + file.name) +
+            safePath +
             (vm.user ? '&user=' + vm.user.id : '')
         );
       } else if ($scope.ip.state == 'At reception') {
+        const fpath = $scope.previousGridArraysString() + file.name;
+        const safePath = fpath.split('/').map(encodeURIComponent).join('/');
         file.content = $sce.trustAsResourceUrl(
-          appConfig.djangoUrl +
-            'ip-reception/' +
-            $scope.ip.id +
-            '/files/' +
-            encodeURIComponent($scope.previousGridArraysString() + file.name)
+          appConfig.djangoUrl + 'ip-reception/' + $scope.ip.id + '/files/' + safePath
         );
       } else {
+        const fpath = $scope.previousGridArraysString() + file.name;
+        const safePath = fpath.split('/').map(encodeURIComponent).join('/');
         file.content = $sce.trustAsResourceUrl(
-          appConfig.djangoUrl +
-            'information-packages/' +
-            $scope.ip.id +
-            '/files/' +
-            encodeURIComponent($scope.previousGridArraysString() + file.name)
+          appConfig.djangoUrl + 'information-packages/' + $scope.ip.id + '/files/' + safePath
         );
       }
       $window.open(file.content, '_blank');
