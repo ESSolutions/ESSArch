@@ -2132,13 +2132,11 @@ class InformationPackageViewSet(viewsets.ModelViewSet):
         serializer = InformationPackageDetailSerializer(instance=ip)
         return Response(serializer.data)
 
-
-class InformationPackageFilesViewSet(InformationPackageViewSet):
     @action(
         detail=True,
         methods=['delete', 'get', 'post'],
         permission_classes=[IsResponsibleOrCanSeeAllFiles],
-        url_path=r'files(?:/(?P<path>.+))?/?',
+        url_path=r'files(?:/(?P<path>.*))?',
     )
     def files(self, request, pk=None, path='', **kwargs):
         logger = logging.getLogger('essarch.ip.files')

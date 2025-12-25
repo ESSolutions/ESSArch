@@ -49,7 +49,6 @@ from ESSArch_Core.fixity.views import (
 from ESSArch_Core.ip.views import (
     ConsignMethodViewSet,
     EventIPViewSet,
-    InformationPackageFilesViewSet,
     InformationPackageReceptionViewSet,
     InformationPackageViewSet,
     OrderTypeViewSet,
@@ -80,10 +79,7 @@ from ESSArch_Core.profiles.views import (
     SubmissionAgreementTemplateView,
     SubmissionAgreementViewSet,
 )
-from ESSArch_Core.routers import (
-    ESSArchRouter,
-    ESSArchRouterWithoutTrailingSlash,
-)
+from ESSArch_Core.routers import ESSArchRouter
 from ESSArch_Core.stats.views import export as export_stats, stats
 from ESSArch_Core.storage.views import (
     IOQueueViewSet,
@@ -281,13 +277,6 @@ r_information_packages.register(
     parents_query_lookups=['information_package']
 )
 
-routerWithoutTrailingSlash = ESSArchRouterWithoutTrailingSlash()
-routerWithoutTrailingSlash.register(
-    r'information-packages',
-    InformationPackageFilesViewSet,  # A ViewSet only for files
-    basename='informationpackagefiles'
-)
-
 router.register(r'io-queue', IOQueueViewSet)
 
 router.register(r'notifications', NotificationViewSet)
@@ -454,7 +443,6 @@ urlpatterns = [
     re_path(r'^api/sysinfo/', SysInfoView.as_view(), name='configuration-sysinfo'),
     re_path(r'^api/me/$', MeView.as_view(), name='me'),
     re_path(r'^api/', include(router.urls)),
-    re_path(r'^api/', include(routerWithoutTrailingSlash.urls)),
     re_path(r'^rest-framework/', include('rest_framework.urls', namespace='rest_framework')),
     re_path(
         r'^api/submission-agreement-template/$',
