@@ -3449,7 +3449,7 @@ class FilesActionTests(APITestCase):
             package_type=InformationPackage.SIP,
             object_path=self.datadir, responsible=self.user,
         )
-        self.url = reverse('informationpackage-files', kwargs={'pk': self.ip.pk, 'path': ''})
+        self.url = reverse('informationpackage-files', args=(self.ip.pk,))
 
         self.member = self.user.essauth_member
 
@@ -3931,7 +3931,7 @@ class ArchivedFilesActionTests(ESSArchSearchBaseTransactionTestCase):
             archived=True, responsible=self.user,
             submission_agreement=sa, object_path=self.datadir,
         )
-        self.url = reverse('informationpackage-files', kwargs={'pk': self.ip.pk, 'path': ''})
+        self.url = reverse('informationpackage-files', args=(self.ip.pk,))
         sa.lock_to_information_package(self.ip, self.user)
 
     def test_get_archived_dir_from_short_term(self):
