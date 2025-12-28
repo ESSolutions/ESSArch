@@ -499,6 +499,7 @@ export default angular
     'ContextMenuBase',
     'SelectedIPUpdater',
     '$transitions',
+    '$stateParams',
     CreateDipCtrl,
   ])
   .controller('CreateSipCtrl', [
