@@ -20,7 +20,8 @@ export default class CreateDipCtrl {
     $window,
     ContextMenuBase,
     SelectedIPUpdater,
-    $transitions
+    $transitions,
+    $stateParams
   ) {
     const vm = this;
     const ipSortString = [];
@@ -36,8 +37,18 @@ export default class CreateDipCtrl {
 
     vm.listViewTitle = $translate.instant('DISSEMINATION_PACKAGES');
 
-    vm.$onInit = function () {
-      $scope.redirectWithId();
+    vm.$onInit = () => {
+      const id = $stateParams.id;
+      const fromRowClick = sessionStorage.getItem('ipIdFromRowClick') === 'true';
+      console.log('vm.$onInit id:', id, 'pendingUrlId:', vm.pendingUrlId, 'fromRowClick:', fromRowClick);
+      if (id && !fromRowClick) {
+        vm.initialSearch = id;
+        vm.pendingUrlId = id;
+        vm.urlSelect = true;
+      } else if (id && fromRowClick) {
+        $state.go($state.current.name, {id: null});
+      }
+      sessionStorage.removeItem('ipIdFromRowClick');
       vm.organizationMember.current = $rootScope.auth;
       if ($scope.checkPermission('ip.see_all_in_workspaces') && $rootScope.auth.current_organization) {
         $http
@@ -47,6 +58,7 @@ export default class CreateDipCtrl {
           });
       }
     };
+
     $scope.orderObjects = [];
     listViewService.getOrderPage({pager: 'none'}).then(function (response) {
       $scope.orderObjects = response.data;
@@ -152,6 +164,15 @@ export default class CreateDipCtrl {
             $scope.ipLoading = false;
             $scope.initLoadcallServer = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
+
+            if (vm.pendingUrlId) {
+              const match = vm.displayedIps.find((ip) => ip.object_identifier_value == vm.pendingUrlId);
+
+              if (match) {
+                $scope.ipTableClick(match, {}, {noStateChange: true});
+                vm.pendingUrlId = null;
+              }
+            }
           })
           .catch(function (response) {
             if (response.status == 404) {
@@ -186,11 +207,18 @@ export default class CreateDipCtrl {
         $scope.ip = null;
         $rootScope.ip = null;
         $state.go($state.current.name, {id: null});
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
         $scope.filebrowser = false;
       } else {
         $scope.ip = row;
         $rootScope.ip = $scope.ip;
-        $state.go($state.current.name, {id: $scope.ip.id});
+        if (!vm.urlSelect) {
+          // Mark that URL change came from UI
+          sessionStorage.setItem('ipIdFromRowClick', 'true');
+        }
+        $state.go($state.current.name, {id: $scope.ip.object_identifier_value});
         if ($scope.select) {
           $scope.showFileUpload = false;
           $timeout(function () {

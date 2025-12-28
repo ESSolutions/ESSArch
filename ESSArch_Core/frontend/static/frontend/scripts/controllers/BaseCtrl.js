@@ -77,6 +77,8 @@ export default class BaseCtrl {
     vm.specificTabs = [];
     vm.columnFilters = {};
     vm.fields = [];
+    vm.pendingUrlId = null;
+    vm.urlSelect = false;
 
     $scope.$translate = $translate;
 
@@ -162,8 +164,33 @@ export default class BaseCtrl {
     };
 
     vm.$onInit = () => {
-      $scope.redirectWithId();
+      const id = $stateParams.id;
+      const fromRowClick = sessionStorage.getItem('ipIdFromRowClick') === 'true';
+      console.log('vm.$onInit id:', id, 'pendingUrlId:', vm.pendingUrlId, 'fromRowClick:', fromRowClick);
+      if (id && !fromRowClick) {
+        vm.initialSearch = id;
+        vm.pendingUrlId = id;
+        vm.urlSelect = true;
+      } else if (id && fromRowClick) {
+        $state.go($state.current.name, {id: null});
+      }
+      sessionStorage.removeItem('ipIdFromRowClick');
     };
+
+    function applyUrlSearch(id) {
+      // Apply filter
+      console.log('Applying URL search with id: ' + id);
+      vm.searchTerm = id;
+      vm.initialSearch = id;
+      $scope.tableState.search.predicateObject = {$: id};
+
+      // mark that selection should happen AFTER load
+      vm.pendingUrlId = id;
+      vm.urlSelect = true;
+
+      // reload table ONLY
+      $scope.getListViewData();
+    }
 
     watchers.push(
       $scope.$watch(
@@ -219,15 +246,20 @@ export default class BaseCtrl {
     watchers.push(
       $transitions.onSuccess({}, function ($transition) {
         if ($transition.from().name !== $transition.to().name) {
+          console.log('$transitions.onSuccess - $transition', $transition);
           $interval.cancel(listViewInterval);
           watchers.forEach(function (watcher) {
             watcher();
           });
         } else {
+          console.log('$transitions.onSuccess - $transition else', $transition);
+          vm.urlSelect = false;
           let params = $transition.params();
-          if (params.id !== null && ($scope.ip === null || params.id !== $scope.ip.id)) {
-            $scope.redirectWithId();
+          if (params.id !== null && ($scope.ip === null || params.id !== $scope.ip.object_identifier_value)) {
+            console.log('$transitions.onSuccess - applyUrlSearch', params.id);
+            applyUrlSearch(params.id);
           } else if (params.id === null && $scope.ip !== null) {
+            console.log('$transitions.onSuccess - ipTableClick', $scope.ip);
             $scope.ipTableClick($scope.ip);
           }
         }
@@ -285,6 +317,7 @@ export default class BaseCtrl {
     vm.displayedIps = [];
     //Get data according to ip table settings and populates ip table
     vm.callServer = function callServer(tableState) {
+      console.log('vm.callServer');
       $scope.ipLoading = true;
       if (vm.displayedIps.length == 0) {
         $scope.initLoad = true;
@@ -293,8 +326,10 @@ export default class BaseCtrl {
         $scope.tableState = tableState;
         var search = '';
         if (tableState.search.predicateObject) {
+          // console.log('vm.callServer - tableState.search.predicateObject:', tableState.search.predicateObject);
           var search = tableState.search.predicateObject['$'];
         } else {
+          // console.log('vm.callServer - vm.initialSearch:', vm.initialSearch);
           tableState.search = {
             predicateObject: {
               $: vm.initialSearch,
@@ -325,6 +360,17 @@ export default class BaseCtrl {
             $scope.initLoad = false;
             ipExists();
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
+
+            console.log('vm.callServer - vm.pendingUrlId', vm.pendingUrlId);
+            if (vm.pendingUrlId) {
+              const match = vm.displayedIps.find((ip) => ip.object_identifier_value == vm.pendingUrlId);
+
+              if (match) {
+                console.log('vm.callServer - ipTableClick', vm.pendingUrlId);
+                $scope.ipTableClick(match, {}, {noStateChange: true});
+                vm.pendingUrlId = null;
+              }
+            }
           })
           .catch(function (response) {
             if (response.status == 404) {
@@ -928,11 +974,15 @@ export default class BaseCtrl {
 
     //Click function for Ip table
     $scope.ipTableClick = function (row, event, options) {
+      console.log('$scope.ipTableClick');
       if (event && event.shiftKey) {
+        console.log('$scope.ipTableClick - 1');
         vm.shiftClickrow(row);
       } else if (event && event.ctrlKey) {
+        console.log('$scope.ipTableClick - 2');
         vm.ctrlClickRow(row);
       } else {
+        console.log('$scope.ipTableClick - 3');
         vm.selectSingleRow(row, options);
         if (row.information_packages && row.information_packages.length > 0) {
           $scope.expandAic(row);
@@ -1018,7 +1068,9 @@ export default class BaseCtrl {
     };
 
     vm.selectSingleRow = function (row, options) {
+      console.log('vm.selectSingleRow - base');
       if (row.package_type == 1) {
+        console.log('vm.selectSingleRow - 0');
         $scope.select = false;
         $scope.eventlog = false;
         $scope.edit = false;
@@ -1047,6 +1099,7 @@ export default class BaseCtrl {
       }
       $scope.ips = [];
       if ($scope.select && $scope.ip != null && $scope.ip.object_identifier_value == row.object_identifier_value) {
+        console.log('vm.selectSingleRow - 1', vm.urlSelect);
         $scope.select = false;
         $scope.eventlog = false;
         $scope.edit = false;
@@ -1056,10 +1109,15 @@ export default class BaseCtrl {
         $rootScope.ip = null;
         $scope.filebrowser = false;
         $scope.initRequestData();
+        sessionStorage.removeItem('ipIdFromRowClick');
         if (angular.isUndefined(options) || !options.noStateChange) {
           $state.go($state.current.name, {id: null});
         }
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
       } else {
+        console.log('vm.selectSingleRow - 2');
         $scope.select = true;
         $scope.eventlog = true;
         $scope.edit = true;
@@ -1071,8 +1129,12 @@ export default class BaseCtrl {
         $timeout(() => {
           $scope.ip = row;
           $rootScope.ip = $scope.ip;
+          if (!vm.urlSelect) {
+            // Mark that URL change came from UI
+            sessionStorage.setItem('ipIdFromRowClick', 'true');
+          }
           if (angular.isUndefined(options) || !options.noStateChange) {
-            $state.go($state.current.name, {id: row.id});
+            $state.go($state.current.name, {id: row.object_identifier_value});
           }
         });
       }
@@ -1104,6 +1166,9 @@ export default class BaseCtrl {
       $scope.ips = [];
       $scope.ip = null;
       $rootScope.ip = null;
+      if (vm.urlSelect) {
+        $scope.clearSearch();
+      }
     };
 
     // Basic functions
@@ -1127,12 +1192,6 @@ export default class BaseCtrl {
     vm.clearFilters = function () {
       vm.createFilterFields();
       $scope.submitAdvancedFilters();
-    };
-
-    $scope.clearSearch = function () {
-      delete $scope.tableState.search.predicateObject;
-      $('#search-input')[0].value = '';
-      $scope.getListViewData();
     };
 
     vm.expandIconClick = (row, event) => {
@@ -1431,8 +1490,11 @@ export default class BaseCtrl {
     };
 
     $scope.clearSearch = function () {
+      console.log('Clearing URL search');
+      vm.searchTerm = '';
+      vm.initialSearch = '';
+      $state.go($state.current.name, {id: null});
       delete $scope.tableState.search.predicateObject;
-      $('#search-input')[0].value = '';
       $scope.getListViewData();
     };
 

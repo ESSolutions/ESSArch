@@ -67,6 +67,9 @@ export default class PrepareSipCtrl {
         if (angular.isUndefined(options) || !options.noStateChange) {
           $state.go($state.current.name, {id: null});
         }
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
       } else {
         $scope.ip = null;
         $rootScope.ip = null;
@@ -74,8 +77,12 @@ export default class PrepareSipCtrl {
         const ip = row;
         $scope.ip = row;
         $rootScope.ip = row;
+        if (!vm.urlSelect) {
+          // Mark that URL change came from UI
+          sessionStorage.setItem('ipIdFromRowClick', 'true');
+        }
         if (angular.isUndefined(options) || !options.noStateChange) {
-          $state.go($state.current.name, {id: ip.id});
+          $state.go($state.current.name, {id: ip.object_identifier_value});
         }
         if (vm.specificTabs.includes('submit_sip') || ContentTabs.visible([ip], $state.current.name)) {
           vm.fileListLoading = true;

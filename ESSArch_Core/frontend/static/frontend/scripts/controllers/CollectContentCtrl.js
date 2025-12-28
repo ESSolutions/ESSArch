@@ -156,14 +156,20 @@ export default class CollectContentCtrl {
         if (!options || !options.noStateChange) {
           $state.go($state.current.name, {id: null});
         }
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
         $scope.filebrowser = false;
       } else {
         // New selection
         $scope.ip = row;
         $rootScope.ip = row;
-
+        if (!vm.urlSelect) {
+          // Mark that URL change came from UI
+          sessionStorage.setItem('ipIdFromRowClick', 'true');
+        }
         if (!options || !options.noStateChange) {
-          $state.go($state.current.name, {id: row.id});
+          $state.go($state.current.name, {id: row.object_identifier_value});
         }
 
         $scope.currentFlowObject = $rootScope.flowObjects[row.id];

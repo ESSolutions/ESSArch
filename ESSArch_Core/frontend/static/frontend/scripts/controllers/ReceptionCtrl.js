@@ -108,6 +108,13 @@ export default class ReceptionCtrl {
         var search = '';
         if (tableState.search.predicateObject) {
           var search = tableState.search.predicateObject['$'];
+        } else {
+          tableState.search = {
+            predicateObject: {
+              $: vm.initialSearch,
+            },
+          };
+          var search = tableState.search.predicateObject['$'];
         }
         const sorting = tableState.sort;
         const paginationParams = listViewService.getPaginationParams(tableState.pagination, vm.itemsPerPage);
@@ -118,6 +125,15 @@ export default class ReceptionCtrl {
             $scope.ipLoading = false;
             $scope.initLoad = false;
             SelectedIPUpdater.update(vm.displayedIps, $scope.ips, $scope.ip);
+
+            if (vm.pendingUrlId) {
+              const match = vm.displayedIps.find((ip) => ip.object_identifier_value == vm.pendingUrlId);
+
+              if (match) {
+                $scope.ipTableClick(match, {}, {noStateChange: true});
+                vm.pendingUrlId = null;
+              }
+            }
           })
           .catch(function (response) {
             if (response.status == 404) {
@@ -146,16 +162,22 @@ export default class ReceptionCtrl {
         if (angular.isUndefined(options) || !options.noStateChange) {
           $state.go($state.current.name, {id: null});
         }
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
         $scope.profileEditor = false;
       } else {
-        vm.deselectAll();
         if (row.url) {
           row.url = appConfig.djangoUrl + 'ip-reception/' + row.id + '/';
         }
         $scope.ip = row;
         $rootScope.ip = row;
+        if (!vm.urlSelect) {
+          // Mark that URL change came from UI
+          sessionStorage.setItem('ipIdFromRowClick', 'true');
+        }
         if (angular.isUndefined(options) || !options.noStateChange) {
-          $state.go($state.current.name, {id: row.id});
+          $state.go($state.current.name, {id: row.object_identifier_value});
         }
         $scope.getFileList(row);
       }
