@@ -15,7 +15,7 @@ const StructureName = ($filter, $translate) => {
     );
   }
   return {
-    getNameWithVersion: getNameWithVersion,
+    // getNameWithVersion: getNameWithVersion,
     parseStructureNames: function (structures) {
       structures.forEach(function (structure) {
         structure.name_with_version = getNameWithVersion(structure);

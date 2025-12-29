@@ -1,5 +1,17 @@
 {
     "compilerOptions": {
-        "sourceMap": true
-    }
+        "target": "ES6", // output JS version
+        "module": "ESNext", // module system
+        "moduleResolution": "node", // important for TS to find files
+        "allowJs": true, // allows importing JS files
+        "checkJs": false, // don't type-check JS files
+        "esModuleInterop": true, // allows default imports from commonjs
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "strict": false // you can enable later
+    },
+    "include": [
+        "ESSArch_Core/frontend/static/frontend/scripts/**/*.ts",
+        "ESSArch_Core/frontend/static/frontend/scripts/**/*.js"
+    ]
 }

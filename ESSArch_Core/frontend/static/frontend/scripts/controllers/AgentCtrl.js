@@ -108,13 +108,24 @@ export default class AgentCtrl {
           });
         } else {
           let params = $transition.params();
-          if (params.id !== null && (vm.agent === null || params.id !== vm.agent.id)) {
-            vm.initialSearch = angular.copy($stateParams.id);
-            vm.getAgent($stateParams).then(function () {
-              $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
-            });
-          } else if (params.id === null && vm.agent !== null) {
-            vm.agentClick(vm.agent);
+          console.log('$transitions.onSuccess - AgentCtrl - params:', params);
+          const fromRowClick = sessionStorage.getItem('agentIdFromRowClick') === 'true';
+          if (params.id && !fromRowClick) {
+            console.log('$transitions.onSuccess - AgentCtrl - set vm.initialSearch:', params.id);
+            vm.initialSearch = params.id;
+            vm.searchTerm = params.id;
+            console.log('vm.agents:', vm.agents);
+            const agent = vm.agents.find((obj) => obj.id === params.id);
+            if ($scope.tableState) {
+              console.log('$transitions.onSuccess - AgentCtrl - vm.agentPipe');
+              vm.agentPipe($scope.tableState);
+            } else {
+              vm.agentPipe($scope.tableState);
+              console.log('$transitions.onSuccess - AgentCtrl - no tableState');
+            }
+            vm.agentClick(agent);
+          } else {
+            sessionStorage.removeItem('agentIdFromRowClick');
           }
         }
       })
@@ -179,17 +190,30 @@ export default class AgentCtrl {
           vm.agent = agent;
           vm.agentArchivePipe($scope.archiveTableState);
           vm.sortNames(vm.agent);
-          $state.go($state.current.name, vm.agent);
-          $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
+          $state.go($state.current.name, vm.agent).then(() => {
+            $rootScope.$broadcast('UPDATE_TITLE', {
+              title: vm.agent.auth_name.full_name,
+            });
+          });
+          sessionStorage.setItem('agentIdFromRowClick', 'true');
         });
       } else if (vm.agent !== null && vm.agent.id === agent.id) {
         vm.agent = null;
+        $scope.clearSearch();
         $state.go($state.current.name, {id: null});
         $translate.instant($state.current.name.split('.').pop().toUpperCase());
         $rootScope.$broadcast('UPDATE_TITLE', {
           title: $translate.instant($state.current.name.split('.').pop().toUpperCase()),
         });
       }
+    };
+
+    $scope.clearSearch = function () {
+      console.log('Clearing search');
+      vm.searchTerm = '';
+      vm.initialSearch = '';
+      delete $scope.tableState.search.predicateObject;
+      vm.agentPipe($scope.tableState);
     };
 
     vm.sortNames = function (agent) {
@@ -225,7 +249,7 @@ export default class AgentCtrl {
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
         var search = '';
-        if (tableState.search.predicateObject) {
+        if (tableState.search.predicateObject && tableState.search.predicateObject['$']) {
           search = tableState.search.predicateObject['$'];
         } else {
           tableState.search = {

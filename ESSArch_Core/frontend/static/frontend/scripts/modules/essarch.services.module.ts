@@ -2,6 +2,7 @@ import * as angular from 'angular';
 
 import agentName from '../services/agentName';
 import archiveName from '../services/archiveName';
+import ArchiveState from '../services/archiveState';
 import myService from '../services/myService';
 import appraisal from '../services/appraisal';
 import storagePolicy from '../services/storagePolicy';
@@ -51,6 +52,7 @@ export default angular
   .module('essarch.services', [])
   .factory('AgentName', ['$filter', agentName])
   .factory('ArchiveName', ['$filter', archiveName])
+  .service('ArchiveState', ArchiveState)
   .factory('myService', ['PermPermissionStore', 'djangoAuth', myService])
   .factory('Appraisal', ['$http', 'appConfig', appraisal])
   .factory('Filters', ['$translate', '$rootScope', '$http', 'appConfig', 'Notifications', filters])

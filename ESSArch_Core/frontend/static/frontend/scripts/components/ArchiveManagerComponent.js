@@ -15,6 +15,7 @@ export default {
     '$translate',
     'ContextMenuBase',
     '$transitions',
+    'ArchiveState',
     ArchiveManagerCtrl,
   ],
   controllerAs: 'vm',

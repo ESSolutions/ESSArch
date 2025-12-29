@@ -1067,6 +1067,7 @@ export default angular
     'AgentName',
     '$transitions',
     'StructureUnitRelation',
+    'ArchiveState',
     SearchDetailCtrl,
   ])
   .controller('SpecificationItemModalInstanceCtrl', [

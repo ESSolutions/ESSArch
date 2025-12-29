@@ -165,14 +165,11 @@ export default class BaseCtrl {
 
     vm.$onInit = () => {
       const id = $stateParams.id;
-      const fromRowClick = sessionStorage.getItem('ipIdFromRowClick') === 'true';
-      console.log('vm.$onInit id:', id, 'pendingUrlId:', vm.pendingUrlId, 'fromRowClick:', fromRowClick);
-      if (id && !fromRowClick) {
+      console.log('vm.$onInit id:', id, 'pendingUrlId:', vm.pendingUrlId);
+      if (id) {
         vm.initialSearch = id;
         vm.pendingUrlId = id;
         vm.urlSelect = true;
-      } else if (id && fromRowClick) {
-        $state.go($state.current.name, {id: null});
       }
       sessionStorage.removeItem('ipIdFromRowClick');
     };
