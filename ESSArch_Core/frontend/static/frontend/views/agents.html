@@ -41,6 +41,8 @@
           <div class="global-search">
             <input
               st-search=""
+              st-input-event="input"
+              ng-model="vm.searchTerm"
               class="form-control"
               ng-attr-placeholder="{{'GLOBALSEARCH' | translate}}"
               type="text"

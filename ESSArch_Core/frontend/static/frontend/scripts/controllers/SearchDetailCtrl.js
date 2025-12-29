@@ -22,7 +22,8 @@ export default class SearchDetailCtrl {
     StructureName,
     AgentName,
     $transitions,
-    StructureUnitRelation
+    StructureUnitRelation,
+    ArchiveState
   ) {
     const PAGE_SIZE = 10;
 
@@ -46,6 +47,18 @@ export default class SearchDetailCtrl {
     });
 
     vm.$onInit = function () {
+      const id = $stateParams.id;
+      const fromRowClick = sessionStorage.getItem('archiveIdFromRowClick') === 'true';
+      console.log('vm.$onInit - SearchDetailCtrl - id:', id, 'fromRowClick:', fromRowClick);
+      if (id && !fromRowClick) {
+        ArchiveState.setSelectedId(id);
+      }
+
+      if (!$scope.ArchiveManagerInit) {
+        console.log('vm.$onInit - SearchDetailCtrl - remove archiveIdFromRowClick');
+        sessionStorage.removeItem('archiveIdFromRowClick');
+      }
+
       if ($stateParams.structure) {
         vm.loadRecordAndTree($stateParams.structure);
       } else {
@@ -70,10 +83,18 @@ export default class SearchDetailCtrl {
       const nodeId = $stateParams.id;
 
       if (isStructureUnit) {
-        console.log('Getting data for initial node, structure unit -', nodeId, structure);
+        console.log(
+          'vm.loadRecordAndTree - SearchDetailCtrl - Getting data for initial node, structure unit -',
+          nodeId,
+          structure
+        );
         var nodePromise = vm.getStructureUnit(nodeId);
       } else {
-        console.log('Getting data for initial node, tag -', nodeId, structure);
+        console.log(
+          'vm.loadRecordAndTree - SearchDetailCtrl - Getting data for initial node, tag -',
+          nodeId,
+          structure
+        );
         var nodePromise = vm.getNode(nodeId);
       }
 
@@ -100,7 +121,7 @@ export default class SearchDetailCtrl {
         }
 
         if (vm.record._id === archiveId) {
-          console.log('createArchiveNode, startNode: ', startNode, 'vm.record: ', vm.record);
+          // console.log('createArchiveNode, startNode: ', startNode, 'vm.record: ', vm.record);
           vm.createArchiveNode(startNode, vm.record);
         } else {
           if (!angular.isUndefined(archiveId) && archiveId !== null) {
@@ -128,7 +149,7 @@ export default class SearchDetailCtrl {
         vm.parseAgents(archive);
         let creator = vm.getArchiveCreator(archive);
 
-        console.log('creator: ', creator);
+        // console.log('creator: ', creator);
 
         if (creator !== null) {
           creator._id = creator.id;
@@ -148,7 +169,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.createNode = function (node) {
-      console.log('node1: ', node);
+      // console.log('node1: ', node);
       if (angular.isUndefined(node.name)) {
         node.name = '';
       }
@@ -172,7 +193,7 @@ export default class SearchDetailCtrl {
         node.children = [vm.createPlaceholderNode()];
       }
       node.state = {opened: false};
-      console.log('node2: ', node);
+      // console.log('node2: ', node);
       return node;
     };
 
@@ -193,7 +214,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.getParent = function (childNode) {
-      console.log('Getting parent of', childNode);
+      // console.log('Getting parent of', childNode);
       if (childNode.structure_unit) {
         return vm.getStructureUnit(childNode.structure_unit.id);
       } else if (childNode.parent) {
@@ -242,7 +263,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.getClassificationStructureChildren = function (id) {
-      console.log('Getting children of structure with id "' + id + '"');
+      // console.log('Getting children of structure with id "' + id + '"');
       const url = vm.url + 'structures/' + id + '/units/';
       return $http
         .get(url, {params: {has_parent: false, ordering: 'reference_code', pager: 'none'}})
@@ -280,7 +301,7 @@ export default class SearchDetailCtrl {
     };
 
     vm.buildTree = function (start, archive) {
-      console.log('Building tree of', start, 'with archive', archive._id);
+      // console.log('Building tree of', start, 'with archive', archive._id);
       return vm.getChildren(start, archive).then(function (children) {
         const existingChild =
           start.children && start.children.length > 0 && start.children[0].placeholder !== true
@@ -1071,13 +1092,15 @@ export default class SearchDetailCtrl {
 
     vm.getArchiveCreator = function (node) {
       let creator = null;
-      node.agents.forEach(function (agent) {
-        if (agent.type.creator) {
-          creator = angular.copy(agent.agent);
-          creator.name = creator.full_name;
-          creator.type = 'agent';
-        }
-      });
+      if (node.agents) {
+        node.agents.forEach(function (agent) {
+          if (agent.type.creator) {
+            creator = angular.copy(agent.agent);
+            creator.name = creator.full_name;
+            creator.type = 'agent';
+          }
+        });
+      }
       return creator;
     };
 

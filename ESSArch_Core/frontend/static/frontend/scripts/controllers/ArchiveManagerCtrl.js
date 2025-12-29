@@ -11,7 +11,8 @@ export default class ArchiveManagerCtrl {
     listViewService,
     $translate,
     ContextMenuBase,
-    $transitions
+    $transitions,
+    ArchiveState
   ) {
     const vm = this;
     $scope.$stateParams = $stateParams;
@@ -21,12 +22,40 @@ export default class ArchiveManagerCtrl {
     vm.record = null;
     vm.archives = [];
     vm.fields = [];
+    vm.urlSelect = false;
+    $scope.ArchiveManagerInit = false;
 
     vm.$onInit = () => {
-      if ($stateParams.id) {
-        vm.initialSearch = $stateParams.id;
+      const id = $stateParams.id;
+      const fromRowClick = sessionStorage.getItem('archiveIdFromRowClick') === 'true';
+      console.log('vm.$onInit - ArchiveManagerCtrl - id:', id, 'fromRowClick:', fromRowClick);
+      if (id && !fromRowClick) {
+        console.log('vm.$onInit - ArchiveManagerCtrl - set vm.initialSearch:', id);
+        vm.initialSearch = id;
+        vm.urlSelect = true;
+        vm.record = {_id: id};
+      } else if (id && fromRowClick) {
+        $state.go('home.archivalDescriptions.archiveManager');
       }
+      $scope.ArchiveManagerInit = true;
     };
+
+    $scope.$watch(
+      () => ArchiveState.getSelectedId(),
+      (id) => {
+        console.log('got new getSelectedId:', id);
+        vm.record = {_id: id};
+        const fromRowClick = sessionStorage.getItem('archiveIdFromRowClick') === 'true';
+        if (id && !fromRowClick) {
+          vm.initialSearch = id;
+          vm.searchTerm = id;
+          vm.urlSelect = true;
+          if ($scope.tableState) {
+            vm.getArchives($scope.tableState);
+          }
+        }
+      }
+    );
 
     $scope.menuOptions = function (rowType, row) {
       const methods = [];
@@ -74,18 +103,34 @@ export default class ArchiveManagerCtrl {
           watchers.forEach(function (watcher) {
             watcher();
           });
-        } else {
-          let params = $transition.params();
-          if (params.id !== null && (vm.record === null || params.id !== vm.record.id)) {
-            vm.initialSearch = angular.copy($stateParams.id);
-          } else if (params.id === null && vm.record !== null) {
-            vm.archiveClick(vm.record);
+        }
+
+        let params = $transition.params();
+        console.log('$transitions.onSuccess - ArchiveManagerCtrl - params:', params);
+        const fromRowClick = sessionStorage.getItem('archiveIdFromRowClick') === 'true';
+        if (params.id && !fromRowClick) {
+          console.log('$transitions.onSuccess - ArchiveManagerCtrl - set vm.initialSearch:', params.id);
+          vm.initialSearch = params.id;
+          vm.searchTerm = params.id;
+          vm.record = {_id: params.id};
+          vm.urlSelect = true;
+          if ($scope.tableState) {
+            vm.getArchives($scope.tableState);
           }
+        }
+
+        if ($scope.ArchiveManagerInit) {
+          console.log(
+            '$transitions.onSuccess - ArchiveManagerCtrl - remove archiveIdFromRowClick and set AMinit to false'
+          );
+          sessionStorage.removeItem('archiveIdFromRowClick');
+          $scope.ArchiveManagerInit = false;
         }
       })
     );
 
     vm.getArchives = function (tableState) {
+      console.log('vm.getArchives');
       vm.archivesLoading = true;
       if (vm.archives.length == 0) {
         $scope.initLoad = true;
@@ -93,7 +138,7 @@ export default class ArchiveManagerCtrl {
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
         var search = '';
-        if (tableState.search.predicateObject) {
+        if (tableState.search.predicateObject && tableState.search.predicateObject['$']) {
           var search = tableState.search.predicateObject['$'];
         } else {
           tableState.search = {
@@ -103,6 +148,7 @@ export default class ArchiveManagerCtrl {
           };
           var search = tableState.search.predicateObject['$'];
         }
+        console.log('vm.getArchives - search:', search);
         const sorting = tableState.sort;
         let sortString = sorting.predicate;
         if (sorting.reverse) {
@@ -123,6 +169,7 @@ export default class ArchiveManagerCtrl {
           })
           .then(function (response) {
             vm.archives = response.data;
+            console.log('vm.getArchives then - vm.archives:', vm.archives);
             tableState.pagination.numberOfPages = Math.ceil(response.headers('Count') / paginationParams.number); //set the number of pages so the pagination can update
             $scope.initLoad = false;
             vm.archivesLoading = false;
@@ -148,23 +195,50 @@ export default class ArchiveManagerCtrl {
     };
 
     vm.archiveClick = function (archive) {
+      console.log(
+        'vm.archiveClick - vm.record:',
+        vm.record,
+        'archive.current_version.id:',
+        archive.current_version.id,
+        'vm.urlSelect:',
+        vm.urlSelect
+      );
       if (vm.record !== null && archive.current_version.id === vm.record._id) {
         vm.record = null;
+        ArchiveState.setSelectedId(null);
         $state.go('home.archivalDescriptions.archiveManager');
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
+        vm.urlSelect = false;
       } else {
         vm.archiveLoading = true;
         vm.record = {_id: archive.current_version.id};
+        if (!vm.urlSelect) {
+          // Mark that URL change came from UI
+          sessionStorage.setItem('archiveIdFromRowClick', 'true');
+        }
         $state.go('home.archivalDescriptions.archiveManager.detail', {id: vm.record._id});
       }
     };
 
+    $scope.clearSearch = function () {
+      console.log('Clearing search');
+      vm.searchTerm = '';
+      vm.initialSearch = '';
+      delete $scope.tableState.search.predicateObject;
+      vm.updateArchives();
+    };
+
     vm.searchClick = function (archive) {
+      console.log('vm.searchClick archive.current_version.id:', archive.current_version.id);
       vm.archiveLoading = true;
       vm.record = {_id: archive.current_version.id};
       $state.go('home.archivalDescriptions.search.component', {id: vm.record._id});
     };
 
     vm.getArchive = function (id) {
+      console.log('vm.getArchive id:', id);
       return $http.get(appConfig.djangoUrl + 'search/' + id + '/').then(function (response) {
         return response.data;
       });
@@ -202,6 +276,7 @@ export default class ArchiveManagerCtrl {
       );
     };
     vm.editArchiveModal = function (archive) {
+      console.log('vm.editArchiveModal archive.current_version.id:', archive.current_version.id);
       vm.getArchive(archive.current_version.id).then(function (result) {
         archive = result;
         const modalInstance = $uibModal.open({
