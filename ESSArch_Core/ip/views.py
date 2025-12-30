@@ -3081,10 +3081,12 @@ class InformationPackageReceptionViewSet(viewsets.ViewSet, PaginatedViewMixin):
         workflow.run()
         return Response({'status': 'transferring ip'})
 
-    @action(detail=True, methods=['get'])
-    def files(self, request, pk=None):
+    @action(detail=True, methods=['get'], url_path=r'files(?:/(?P<path>.*))?')
+    def files(self, request, pk=None, path='', **kwargs):
         reception = cmPath.objects.get(entity='ingest_reception').value
-        path = request.query_params.get('path', '').rstrip('/ ')
+        if not path:
+            path = request.query_params.get('path', '')
+        path = path.rstrip('/')
         download = request.query_params.get('download', False)
         if download is not False:
             download = string_to_bool(download)

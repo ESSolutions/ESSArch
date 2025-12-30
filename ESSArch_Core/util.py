@@ -802,6 +802,8 @@ def list_files(path, force_download=False, expand_container=False, request=None,
                 return generate_file_response(f, content_type, force_download, name=tar_subpath)
             except KeyError:
                 raise NotFound
+            except AttributeError:
+                raise NotFound
 
     if len(path.split('.zip/')) == 2:
         zip_path, zip_subpath = path.split('.zip/')
@@ -813,6 +815,8 @@ def list_files(path, force_download=False, expand_container=False, request=None,
                 content_type = fid.get_mimetype(zip_subpath)
                 return generate_file_response(f, content_type, force_download, name=zip_subpath)
             except KeyError:
+                raise NotFound
+            except AttributeError:
                 raise NotFound
 
     raise NotFound
