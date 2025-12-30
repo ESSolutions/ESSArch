@@ -59,6 +59,7 @@ export default class AgentCtrl {
         open: true,
       },
     };
+    vm.urlSelect = false;
 
     $scope.menuOptions = function (rowType, row) {
       const methods = [];
@@ -116,6 +117,7 @@ export default class AgentCtrl {
             vm.searchTerm = params.id;
             console.log('vm.agents:', vm.agents);
             const agent = vm.agents.find((obj) => obj.id === params.id);
+            vm.urlSelect = true;
             if ($scope.tableState) {
               console.log('$transitions.onSuccess - AgentCtrl - vm.agentPipe');
               vm.agentPipe($scope.tableState);
@@ -167,6 +169,7 @@ export default class AgentCtrl {
     vm.$onInit = function () {
       if ($stateParams.id) {
         vm.initialSearch = angular.copy($stateParams.id);
+        vm.urlSelect = true;
         vm.getAgent($stateParams).then(function () {
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.agent.auth_name.full_name});
         });
@@ -195,11 +198,17 @@ export default class AgentCtrl {
               title: vm.agent.auth_name.full_name,
             });
           });
-          sessionStorage.setItem('agentIdFromRowClick', 'true');
+          if (!vm.urlSelect) {
+            // Mark that URL change came from UI
+            sessionStorage.setItem('agentIdFromRowClick', 'true');
+          }
         });
       } else if (vm.agent !== null && vm.agent.id === agent.id) {
         vm.agent = null;
-        $scope.clearSearch();
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
+        vm.urlSelect = false;
         $state.go($state.current.name, {id: null});
         $translate.instant($state.current.name.split('.').pop().toUpperCase());
         $rootScope.$broadcast('UPDATE_TITLE', {
