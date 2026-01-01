@@ -787,10 +787,11 @@ class ProcessTask(Process):
         current_app.control.revoke(str(self.celery_id), terminate=True)
         self.status = celery_states.REVOKED
         self.save()
-        time.sleep(5)
         if self.information_package and self.information_package.is_locked():
-            self.information_package.clear_lock()
-            logger.info('When task ({}) revoked, unlocked ip {}'.format(self.pk, self.information_package))
+            time.sleep(5)
+            if self.information_package.is_locked():
+                self.information_package.clear_lock()
+                logger.info('When task ({}) revoked, unlocked ip {}'.format(self.pk, self.information_package))
 
     def retry(self):
         """

@@ -522,7 +522,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DOCS_ROOT = os.path.join(BASE_DIR, 'docs/_build/{lang}/html')
 
 # Celery settings
-CELERY_IMPORTS = (
+CELERY_IMPORTS = [
     "ESSArch_Core.fixity.action.tasks",
     "ESSArch_Core.ip.tasks",
     "ESSArch_Core.maintenance.tasks",
@@ -532,7 +532,7 @@ CELERY_IMPORTS = (
     "ESSArch_Core.tasks",
     "ESSArch_Core.workflow.tasks",
     "ESSArch_Core.WorkflowEngine.tests.tasks",
-)
+]
 try:
     from local_essarch_settings import RABBITMQ_URL
 except ImportError:
