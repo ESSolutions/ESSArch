@@ -1,5 +1,5 @@
 asgiref==3.9.1
-boto3==1.42.18
+boto3==1.42.27
 celery[tblib]==5.6.2
 cffi==2.0.0
 channels==4.3.2
@@ -9,7 +9,7 @@ click==8.3.1
 cryptography==45.0.7
 daphne==4.2.1
 dj-rest-auth[with-social]==7.0.1
-django==5.2.9
+django==5.2.10
 django-allauth==65.11.1
 django-cors-headers==4.9.0
 django-countries-plus==2.2.0

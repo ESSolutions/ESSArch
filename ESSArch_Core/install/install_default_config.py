@@ -329,6 +329,7 @@ def installDefaultUsers():
             ['delete_informationpackage', 'ip', 'informationpackage'],  # Can delete information package
             ['view_informationpackage', 'ip', 'informationpackage'],  # Can view information package
             ['can_upload', 'ip', 'informationpackage'],  # Can upload files to IP
+            ['set_uploaded', 'ip', 'informationpackage'],  # Can set IP as uploaded
             ['prepare_sip', 'ip', 'informationpackage'],  # Can prepare SIP
             ['create_sip', 'ip', 'informationpackage'],  # Can create SIP
             ['submit_sip', 'ip', 'informationpackage'],  # Can submit SIP

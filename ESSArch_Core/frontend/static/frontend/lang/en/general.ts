@@ -155,6 +155,7 @@ const general = ($translateProvider) => {
     GET_AS_READ_ONLY: 'Get as read only',
     GET_AS_EDITABLE: 'Get in edit mode',
     GLOBALSEARCH: 'search ...',
+    GLOBALSEARCHDESC_ACCESSAID: 'List all access aids associated to the search term',
     GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'List all authority records associated to the search term',
     GLOBALSEARCHDESC_ARCHIVES: 'List all resources associated to the search term',
     GLOBALSEARCHDESC_IP: "List all IP's thar starts with search term in fields Label or ID",

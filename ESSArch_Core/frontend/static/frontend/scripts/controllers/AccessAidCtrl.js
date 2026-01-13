@@ -12,7 +12,8 @@ export default class AccessAidCtrl {
     $rootScope,
     $translate,
     listViewService,
-    $transitions
+    $transitions,
+    $timeout
   ) {
     const vm = this;
     $scope.AgentName = AgentName;
@@ -32,6 +33,8 @@ export default class AccessAidCtrl {
         },
       },
     };
+    vm.urlSelect = false;
+
     vm.value = 1;
     vm.addOne = () => {
       //$ctrl.value = $ctrl.value + 1;
@@ -50,13 +53,35 @@ export default class AccessAidCtrl {
           });
         } else {
           let params = $transition.params();
-          if (params.id !== null && (vm.accessAid === null || params.id !== vm.accessAid.id)) {
-            vm.initialSearch = angular.copy($stateParams.id);
-            vm.getAccessAid($stateParams).then(function () {
-              $rootScope.$broadcast('UPDATE_TITLE', {title: vm.accessAid.name});
+          console.log('$transitions.onSuccess - AccessAidCtrl - params:', params);
+          const fromRowClick = sessionStorage.getItem('accessAidFromRowClick') === 'true';
+          if (params.id && !fromRowClick) {
+            console.log('$transitions.onSuccess - AccessAidCtrl - set vm.initialSearch:', params.id);
+            vm.initialSearch = params.id;
+            vm.searchTerm = params.id;
+            console.log('vm.accessAid:', vm.accessAid);
+            vm.urlSelect = true;
+            vm.getAccessAid({id: params.id}).then(() => {
+              console.log('AccessAid loaded:', vm.accessAid);
+
+              // Update table if tableState exists
+              if ($scope.tableState) {
+                console.log('$transitions.onSuccess - AccessAidCtrl - vm.accessAidPipe');
+                // force the search to the new ID from URL
+                $scope.tableState.search = $scope.tableState.search || {};
+                $scope.tableState.search.predicateObject = {$: vm.initialSearch};
+                vm.accessAidPipe($scope.tableState);
+              } else {
+                console.log('$transitions.onSuccess - AccessAidCtrl - no tableState');
+                vm.accessAidPipe(undefined); // fallback if no tableState
+              }
+
+              // Now safe to call accessAidClick
+              console.log('$transitions.onSuccess - AccessAidCtrl - accessAidClick');
+              vm.accessAidClick(vm.accessAid, {fromUrl: true});
             });
-          } else if (params.id === null && vm.accessAid !== null) {
-            vm.accessAidClick(vm.accessAid);
+          } else {
+            sessionStorage.removeItem('accessAidFromRowClick');
           }
         }
       })
@@ -89,6 +114,7 @@ export default class AccessAidCtrl {
     vm.$onInit = function () {
       if ($stateParams.id) {
         vm.initialSearch = angular.copy($stateParams.id);
+        vm.urlSelect = true;
         vm.getAccessAid($stateParams).then(function () {
           $rootScope.$broadcast('UPDATE_TITLE', {title: vm.accessAid.name});
         });
@@ -103,17 +129,40 @@ export default class AccessAidCtrl {
       });
     };
 
-    vm.accessAidClick = function (accessAid) {
+    vm.accessAidClick = function (accessAid, options = {}) {
+      console.log('AccessAid clicked:', accessAid, 'vm.urlSelect:', vm.urlSelect, 'vm.accessAid:', vm.accessAid);
+      const isUserClick = !options.fromUrl;
       if (vm.accessAid === null || (vm.accessAid !== null && accessAid.id !== vm.accessAid.id)) {
         $http.get(appConfig.djangoUrl + 'access-aids/' + accessAid.id + '/').then(function (response) {
           vm.accessAid = response.data;
           vm.initAccordion();
-          vm.accessAid = accessAid;
-          $state.go($state.current.name, vm.accessAid);
-          $rootScope.$broadcast('UPDATE_TITLE', {title: vm.accessAid.name});
+          // Only trigger the table pipe **once**, after data is ready
+          $timeout(() => {
+            vm.accessAid.structureUnits = response.data.structureUnits || [];
+            if ($scope.structureUnitTableState) {
+              vm.accessAidStructureUnitPipe($scope.structureUnitTableState);
+            }
+          });
+          $state.go($state.current.name, vm.accessAid).then(() => {
+            $rootScope.$broadcast('UPDATE_TITLE', {
+              title: vm.accessAid.name,
+            });
+          });
+          if (!vm.urlSelect) {
+            // Mark that URL change came from UI
+            sessionStorage.setItem('accessAidFromRowClick', 'true');
+          }
         });
-      } else if (vm.accessAid !== null && vm.accessAid.id === accessAid.id) {
+      } else if (vm.accessAid !== null && vm.accessAid.id === accessAid.id && isUserClick) {
         vm.accessAid = null;
+        if (vm.urlSelect) {
+          $scope.clearSearch();
+        }
+        vm.urlSelect = false;
+        // Reset tableState so Smart Table won't trigger
+        if ($scope.structureUnitTableState) {
+          delete $scope.structureUnitTableState;
+        }
         $state.go($state.current.name, {id: null});
         $translate.instant($state.current.name.split('.').pop().toUpperCase());
         $rootScope.$broadcast('UPDATE_TITLE', {
@@ -122,9 +171,13 @@ export default class AccessAidCtrl {
       }
     };
 
-    /*vm.structureUnitClick = function (agentArchive) {
-      $state.go('home.archivalDescriptions.search.archive', {id: agentArchive.archive._id});
-    };*/
+    $scope.clearSearch = function () {
+      console.log('Clearing search');
+      vm.searchTerm = '';
+      vm.initialSearch = '';
+      delete $scope.tableState.search.predicateObject;
+      vm.accessAidPipe($scope.tableState);
+    };
 
     vm.accessAidPipe = function (tableState) {
       vm.accessAidsLoading = true;
@@ -134,7 +187,7 @@ export default class AccessAidCtrl {
       if (!angular.isUndefined(tableState)) {
         $scope.tableState = tableState;
         var search = '';
-        if (tableState.search.predicateObject) {
+        if (tableState.search.predicateObject && tableState.search.predicateObject['$']) {
           search = tableState.search.predicateObject['$'];
         } else {
           tableState.search = {

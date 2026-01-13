@@ -181,6 +181,7 @@ export default angular
     '$translate',
     'listViewService',
     '$transitions',
+    '$timeout',
     AccessAidCtrl,
   ])
   .controller('AccessAidModalInstanceCtrl', [
