@@ -63,18 +63,20 @@ export default class AccessAidCtrl {
             vm.urlSelect = true;
             vm.getAccessAid({id: params.id}).then(() => {
               console.log('AccessAid loaded:', vm.accessAid);
-
-              // Update table if tableState exists
-              if ($scope.tableState) {
-                console.log('$transitions.onSuccess - AccessAidCtrl - vm.accessAidPipe');
-                // force the search to the new ID from URL
-                $scope.tableState.search = $scope.tableState.search || {};
-                $scope.tableState.search.predicateObject = {$: vm.initialSearch};
-                vm.accessAidPipe($scope.tableState);
-              } else {
-                console.log('$transitions.onSuccess - AccessAidCtrl - no tableState');
-                vm.accessAidPipe(undefined); // fallback if no tableState
+              if ($scope.structureUnitTableState) {
+                console.log('$transitions.onSuccess - AccessAidCtrl - vm.accessAidStructureUnitPipe');
+                vm.accessAidStructureUnitPipe($scope.structureUnitTableState);
               }
+              $state.go($state.current.name, vm.accessAid).then(() => {
+                $rootScope.$broadcast('UPDATE_TITLE', {
+                  title: vm.accessAid.name,
+                });
+              });
+
+              // force the search to the new ID from URL
+              $scope.tableState.search = $scope.tableState.search || {};
+              $scope.tableState.search.predicateObject = {$: vm.initialSearch};
+              vm.accessAidPipe($scope.tableState);
 
               // Now safe to call accessAidClick
               console.log('$transitions.onSuccess - AccessAidCtrl - accessAidClick');
@@ -140,6 +142,7 @@ export default class AccessAidCtrl {
           $timeout(() => {
             vm.accessAid.structureUnits = response.data.structureUnits || [];
             if ($scope.structureUnitTableState) {
+              console.log('Calling accessAidStructureUnitPipe for clicked AccessAid');
               vm.accessAidStructureUnitPipe($scope.structureUnitTableState);
             }
           });
