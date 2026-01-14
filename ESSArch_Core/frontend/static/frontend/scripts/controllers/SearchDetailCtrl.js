@@ -792,6 +792,9 @@ export default class SearchDetailCtrl {
     };
 
     vm.getChecked = function () {
+      if (angular.isUndefined(vm.recordTreeInstance)) {
+        return [];
+      }
       return vm.recordTreeInstance
         .jstree(true)
         .get_checked()
