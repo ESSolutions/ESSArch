@@ -26,6 +26,7 @@ export default class ArchiveManagerCtrl {
     $scope.ArchiveManagerInit = false;
 
     vm.$onInit = () => {
+      ArchiveState.setSelectedId(null);
       const id = $stateParams.id;
       const fromRowClick = sessionStorage.getItem('archiveIdFromRowClick') === 'true';
       console.log('vm.$onInit - ArchiveManagerCtrl - id:', id, 'fromRowClick:', fromRowClick);
