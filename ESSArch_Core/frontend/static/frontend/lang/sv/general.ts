@@ -157,6 +157,7 @@ export default ($translateProvider: ng.translate.ITranslateProvider) => {
     GET_AS_READ_ONLY: 'Hämta i läsläge',
     GET_AS_EDITABLE: 'Hämta i redigeringsläge',
     GLOBALSEARCH: 'sök ...',
+    GLOBALSEARCHDESC_ACCESSAID: 'Lista alla sökingångar som associeras med söktermen',
     GLOBALSEARCHDESC_ARCHIVE_CREATORS: 'Lista alla arkivbildare som associeras med söktermen',
     GLOBALSEARCHDESC_ARCHIVES: 'Lista alla arkiv som associeras med söktermen',
     GLOBALSEARCHDESC_IP: 'Lista alla IPn som börjar med sökord i fälten Etikett eller ID',
