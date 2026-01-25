@@ -95,27 +95,24 @@
     </div>
 
     <br />
-    <table class="table">
+    <table class="table result-table">
       <tbody>
         <tr>
           <td>
-            <div style="max-height: 300px; overflow-y: auto">
-              <b>{{ "STATE_TREE.ARGUMENTS" | translate }}:</b>
-              <table class="table">
-                <tbody>
-                  {{ $ctrl.getArgsString(currentStepTask.args_parsed) }}
-                  <span ng-if="currentStepTask.args_parsed.length === 0"> {{'NO_ARGUMENTS' | translate}} </span>
-                </tbody>
-              </table>
+            <b>{{ "STATE_TREE.ARGUMENTS" | translate }}:</b>
+            <span ng-if="currentStepTask.args_parsed.length === 0"> {{'NO_ARGUMENTS' | translate}} <br /><br /></span>
+            <div ng-if="currentStepTask.args_parsed.length > 0">
+              <pre>{{ $ctrl.getArgsString(currentStepTask.args_parsed) }}</pre>
             </div>
+
+            <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
+            <span ng-if="angular.equals(currentStepTask.params_parsed, {})"> {{'NO_PARAMETERS' | translate}} </span>
             <div style="max-height: 300px; overflow-y: auto">
-              <b>{{ ("PARAMETERS" | translate) + ":" }}</b>
-              <span ng-if="angular.equals(currentStepTask.params_parsed, {})"> {{'NO_PARAMETERS' | translate}} </span>
               <table class="table">
                 <tbody>
                   <tr ng-repeat="(key, value) in currentStepTask.params_parsed track by $index">
                     <td>{{ key }}</td>
-                    <td class="param-value">
+                    <td class="result-value">
                       <pre>{{ value | json }}</pre>
                     </td>
                   </tr>
@@ -127,9 +124,9 @@
       </tbody>
       <tbody>
         <tr ng-if="currentStepTask.status == 'SUCCESS'">
-          <td>
+          <td class="result-value">
             <b>{{ ("RESULT" | translate) + ":" }}</b>
-            {{ currentStepTask.result }}
+            <pre>{{ currentStepTask.result }}</pre>
           </td>
         </tr>
         <tr

@@ -1,10 +1,11 @@
 const StructureName = ($filter, $translate) => {
   function getNameWithVersion(structure) {
-    const versionTestructuret = $translate.instant('VERSION');
+    if (!structure) return '';
+    const versionText = $translate.instant('VERSION');
     return (
       structure.name +
       ' ' +
-      versionTestructuret +
+      versionText +
       ' ' +
       structure.version +
       (structure.start_date !== null || structure.end_date !== null
@@ -15,7 +16,7 @@ const StructureName = ($filter, $translate) => {
     );
   }
   return {
-    // getNameWithVersion: getNameWithVersion,
+    getNameWithVersion: getNameWithVersion,
     parseStructureNames: function (structures) {
       structures.forEach(function (structure) {
         structure.name_with_version = getNameWithVersion(structure);

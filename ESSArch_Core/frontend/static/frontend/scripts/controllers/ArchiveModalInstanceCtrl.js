@@ -149,7 +149,6 @@ export default class ArchiveModalInstanceCtrl {
                 $ctrl.initStructureSearch = null;
               }
               return $ctrl.getStructures(search).then(function () {
-                this.options = $ctrl.options.structures;
                 return $ctrl.options.structures;
               });
             },
@@ -178,7 +177,6 @@ export default class ArchiveModalInstanceCtrl {
                   $ctrl.initAgentSearch = null;
                 }
                 return $ctrl.getAgents(search).then(function () {
-                  this.options = $ctrl.options.agents;
                   return $ctrl.options.agents;
                 });
               },
