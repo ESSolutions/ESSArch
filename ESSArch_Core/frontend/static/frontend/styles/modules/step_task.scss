@@ -29,12 +29,20 @@
   }
 }
 
-.param-value {
-  word-break: normal;
-  pre {
-    overflow-x: scroll;
-    white-space: pre-wrap;
-  }
+.result-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.result-table .result-value {
+  overflow: auto;
+}
+
+.result-table .result-value pre {
+  max-width: 100%;
+  max-height: 300px;   /* or whatever fits your modal */
+  overflow: auto;
+  white-space: pre;    /* NO wrapping */
 }
 
 .step-task-info {
