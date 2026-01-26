@@ -6,7 +6,7 @@ export default class SavedSearchModalInstanceCtrl {
     };
 
     $ctrl.remove = function () {
-      $http.delete(appConfig.djangoUrl + 'me/searches/' + $ctrl.data.search.id).then(function (response) {
+      $http.delete(appConfig.djangoUrl + 'me/searches/' + $ctrl.data.search.id + '/').then(function (response) {
         $uibModalInstance.close(response.data);
       });
     };
