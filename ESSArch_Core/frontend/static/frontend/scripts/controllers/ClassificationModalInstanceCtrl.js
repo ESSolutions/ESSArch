@@ -219,7 +219,7 @@ export default class ClassificationModalInstanceCtrl {
 
     $ctrl.removeNode = function () {
       $http
-        .delete(appConfig.djangoUrl + 'structures/' + data.structure.id + '/units/' + $ctrl.node.id)
+        .delete(appConfig.djangoUrl + 'structures/' + data.structure.id + '/units/' + $ctrl.node.id + '/')
         .then(function (response) {
           Notifications.add($translate.instant('ACCESS.NODE_REMOVED'), 'success');
           EditMode.disable();
