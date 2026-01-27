@@ -519,32 +519,58 @@ def parse_file(filepath, fid, relpath=None, algorithm='SHA-256', rootdir='', pro
     return fileinfo
 
 
-def download_imported_https_schemas(schema, dst):
+def download_imported_schemas(schema_tree, dst, rootdir=None):
+    """
+    Recursively download imported schemas, supports both remote and local.
+    """
     logger = logging.getLogger('essarch')
-    from ESSArch_Core.ip.utils import download_schema
-    for url in schema.xpath('//*[local-name()="import"]/@schemaLocation'):
-        protocol = urlparse(url)
-        if protocol == 'http':
-            continue
-        new_path = download_schema(dst, logger, url)
-        new_path = Path(new_path)
-        el = url.getparent()
-        el.attrib['schemaLocation'] = new_path.as_uri()
 
-    return schema
+    for el in schema_tree.xpath('//*[local-name()="import"]'):
+        location = el.get('schemaLocation')
+        if not location:
+            continue
+
+        parsed = urlparse(location)
+        scheme = parsed.scheme.lower()
+
+        # Remote schema
+        if scheme in ('http', 'https'):
+            from ESSArch_Core.ip.utils import download_schema
+            new_path = download_schema(dst, logger, location)
+            el.attrib['schemaLocation'] = Path(new_path).as_uri()
+            continue
+
+        # Absolute local path
+        if os.path.isabs(location):
+            el.attrib['schemaLocation'] = Path(location).as_uri()
+            continue
+
+        # Relative local path → resolve using rootdir
+        if rootdir:
+            resolved = os.path.abspath(os.path.join(rootdir, location))
+            if os.path.isfile(resolved):
+                el.attrib['schemaLocation'] = Path(resolved).as_uri()
+                continue
+
+        # logger.warning('Unresolved schemaLocation: %s', location)
+
+    return schema_tree
 
 
 def validate_against_schema(xmlfile, schema=None, rootdir=None):
-    doc = etree.ElementTree(file=xmlfile)
+    """
+    Validate an XML file against a schema. Downloads remote schemas if needed.
+    """
+    doc = etree.parse(xmlfile)
 
     if schema:
-        xmlschema = etree.parse(schema)
+        xmlschema_tree = etree.parse(schema)
     else:
-        xmlschema = getSchemas(doc=doc)
+        xmlschema_tree = getSchemas(doc=doc, rootdir=rootdir)
 
     with tempfile.TemporaryDirectory() as tempdir:
-        xmlschema = download_imported_https_schemas(xmlschema, tempdir)
-        xmlschema = etree.XMLSchema(xmlschema)
+        xmlschema_tree = download_imported_schemas(xmlschema_tree, tempdir, rootdir=rootdir)
+        xmlschema = etree.XMLSchema(xmlschema_tree)
         xmlschema.assertValid(doc)
 
     if rootdir is None:

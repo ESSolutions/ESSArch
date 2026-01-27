@@ -335,6 +335,14 @@ def download_schemas(ip, logger, verify):
 @retry(retry=retry_if_exception_type(RequestException), reraise=True, stop=stop_after_attempt(5),
        wait=wait_fixed(60))
 def download_schema(dirname, logger, schema, verify=None):
+    """
+    Download a schema from a URL or return local file path.
+    """
+    # If schema is a local file, just return its absolute path
+    if os.path.isfile(schema):
+        logger.info('Using local schema file: {}'.format(schema))
+        return os.path.abspath(schema)
+
     if verify is None:
         verify = settings.REQUESTS_VERIFY
 
@@ -344,7 +352,7 @@ def download_schema(dirname, logger, schema, verify=None):
         r = requests.get(schema, stream=True, verify=verify)
         r.raise_for_status()
         with open(dst, 'wb') as f:
-            for chunk in r:
+            for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
             f.flush()              # Flush Python buffer
             os.fsync(f.fileno())   # Flush OS buffer to disk
