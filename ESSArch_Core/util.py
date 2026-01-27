@@ -191,7 +191,7 @@ def get_value_from_path(root, path):
     return el.text
 
 
-def getSchemas(doc=None, filename=None, base_url=None, visited=None):
+def getSchemas(doc=None, filename=None, base_url=None, visited=None, rootdir=None):
     """
         Creates a schema based on the schemas specified in the provided XML
         file's schemaLocation attribute
@@ -219,7 +219,7 @@ def getSchemas(doc=None, filename=None, base_url=None, visited=None):
     schema_root = etree.Element(xsd_NS + "schema", nsmap=NSMAP)
     schema_root.attrib["elementFormDefault"] = "qualified"
 
-    def process_schema_location(ns, loc, current_base_url):
+    def process_schema_location(ns, loc, current_base_url, rootdir=None):
         # Resolve schemaLocation against current base URL
         if current_base_url and not (loc.startswith('http://') or loc.startswith('https://') or os.path.isabs(loc)):
             resolved_loc = os.path.abspath(os.path.join(current_base_url, loc))
@@ -245,6 +245,8 @@ def getSchemas(doc=None, filename=None, base_url=None, visited=None):
                     imported_doc = etree.parse(response)
                 new_base_url = resolved_loc.rsplit('/', 1)[0]
             else:
+                if not os.path.isabs(resolved_loc) and rootdir:
+                    resolved_loc = os.path.abspath(os.path.join(rootdir, resolved_loc))
                 imported_doc = etree.parse(resolved_loc)
                 new_base_url = os.path.dirname(resolved_loc)
         except Exception as e:
@@ -261,14 +263,14 @@ def getSchemas(doc=None, filename=None, base_url=None, visited=None):
             nested_ns = elem.get("namespace")
             nested_loc = elem.get("schemaLocation")
             if nested_loc:
-                process_schema_location(nested_ns, nested_loc, new_base_url)
+                process_schema_location(nested_ns, nested_loc, new_base_url, rootdir=rootdir)
 
         for elem in nested_includes:
             # <xsd:include> usually does NOT have a namespace attribute
             nested_loc = elem.get("schemaLocation")
             if nested_loc:
                 # includes are from the same namespace as the including schema
-                process_schema_location(ns, nested_loc, new_base_url)
+                process_schema_location(ns, nested_loc, new_base_url, rootdir=rootdir)
 
     # Get all xsi:schemaLocation attributes in the original doc
     schema_locations = set(doc.xpath("//*/@xsi:schemaLocation", namespaces={'xsi': xsi_NS}))
@@ -276,7 +278,7 @@ def getSchemas(doc=None, filename=None, base_url=None, visited=None):
     for schema_location in schema_locations:
         ns_locs = schema_location.split()
         for ns, loc in zip(ns_locs[::2], ns_locs[1::2]):
-            process_schema_location(ns, loc, base_url)
+            process_schema_location(ns, loc, base_url, rootdir=rootdir)
 
     return schema_root
 

@@ -331,6 +331,9 @@ class XMLSchemaValidator(BaseValidator):
             logger.debug('Validating schema of {xml}'.format(xml=filepath))
 
         rootdir = self.options.get('rootdir')
+        if not rootdir:
+            # Use parent directory of the file, or '.' if it's a directory itself
+            rootdir = str(Path(filepath).parent)
         etree.clear_error_log()
         started = timezone.now()
         relpath = Path(os.path.relpath(filepath, rootdir)).as_posix()
