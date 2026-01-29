@@ -171,7 +171,7 @@ def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
         data = desired_by_code[code]
         click.secho(
             f"  [+] {'Would create' if dry_run else 'Created'}: "
-            f"{code} – {data['eventDetail']}",
+            f"{code} - {data['eventDetail']}",
             fg="green",
         )
 
@@ -213,7 +213,7 @@ def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
 
             updated += 1
         else:
-            click.echo(f"  [=] OK: {code} – {obj.eventDetail}")
+            click.echo(f"  [=] OK: {code} - {obj.eventDetail}")
             unchanged += 1
 
     # --------------------------------
@@ -221,7 +221,7 @@ def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
     # --------------------------------
     for code in extra:
         obj = existing_by_code[code]
-        msg = f"  [!] Extra: {code} – {obj.eventDetail}"
+        msg = f"  [!] Extra: {code} - {obj.eventDetail}"
 
         if remove_extra:
             click.secho(
