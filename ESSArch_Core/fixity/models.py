@@ -84,7 +84,12 @@ class ActionTool(ExternalTool):
             'input_ext': ''.join(PurePath(filepath).suffixes)[1:],  # 'jpg'
         }
         kwargs.update(options)
-        return self.cmd.format(**kwargs)
+        if isinstance(self.cmd, str):
+            return self.cmd.format(**kwargs)
+        elif isinstance(self.cmd, dict):
+            return {k: v.format(**kwargs) for k, v in self.cmd.items()}
+        else:
+            raise TypeError(f"Invalid self.cmd type: {type(self.cmd)}")
 
     def _run_application(self, filepath, rootdir, options, t=None, ip=None):
         from ESSArch_Core.util import normalize_path
@@ -122,28 +127,28 @@ class ActionTool(ExternalTool):
             filepath = normalize_path(filepath)
             if not context and '_context' in options.keys():
                 context = options.pop('_context')
-            cmd = eval(self.prepare_cmd(filepath, options))
+            cmd = self.prepare_cmd(filepath, options)
             if isinstance(cmd, str):
-                cmd = (cmd,)
+                cmd = shlex.split(cmd)
 
             try:
                 [module, task] = self.path.rsplit('.', 1)
                 p = getattr(importlib.import_module(module), task)(task=t, ip=ip, context=context)
                 if self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, dict):
                     p.convert(**cmd)
-                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.CONVERSION_TOOL and isinstance(cmd, list):
                     p.convert(*cmd)
                 elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, dict):
                     p.collect(**cmd)
-                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.COLLECTION_TOOL and isinstance(cmd, list):
                     p.collect(*cmd)
                 elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, dict):
                     p.transform(**cmd)
-                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.TRANSFORMATION_TOOL and isinstance(cmd, list):
                     p.transform(*cmd)
                 elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, dict):
                     p.validate(**cmd)
-                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, tuple):
+                elif self.type == ExternalTool.Type.VALIDATION_TOOL and isinstance(cmd, list):
                     p.validate(*cmd)
                 else:
                     raise ValueError(cmd)
