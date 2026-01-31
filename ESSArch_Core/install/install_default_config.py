@@ -110,7 +110,7 @@ def installDefaultFeatures():
     return
 
 
-def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
+def sync_event_types(event_definitions, dry_run=False, update_existing=False, remove_extra=False):
     """
     Sync EventType objects.
 
@@ -200,13 +200,13 @@ def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
 
         if changes:
             click.secho(
-                f"  [~] {'Would update' if dry_run else 'Updated'}: {code}",
+                f"  [~] {'Would update' if (dry_run or not update_existing) else 'Updated'}: {code}",
                 fg="yellow",
             )
             for field, (old, new) in changes.items():
                 click.echo(f"      - {field}: '{old}' → '{new}'")
 
-            if not dry_run:
+            if not (dry_run or not update_existing):
                 for field, (_, new) in changes.items():
                     setattr(obj, field, new)
                 obj.save()
@@ -250,7 +250,7 @@ def sync_event_types(event_definitions, dry_run=False, remove_extra=False):
         click.secho("\nEvent type sync complete.", fg="green")
 
 
-def installDefaultEventTypes(dry_run=False, remove_extra=False):
+def installDefaultEventTypes(dry_run=False, update_existing=False, remove_extra=False):
     click.echo("Installing event types...")
 
     ip_cat = EventType.CATEGORY_INFORMATION_PACKAGE
@@ -340,7 +340,7 @@ def installDefaultEventTypes(dry_run=False, remove_extra=False):
         'AccessAid delivery': {'eventType': 50772, 'category': ip_cat},
     }
 
-    sync_event_types(event_definitions, dry_run=dry_run, remove_extra=remove_extra)
+    sync_event_types(event_definitions, dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
 
     return 0
 
@@ -1161,7 +1161,7 @@ def installDefaultRoles(dry_run=False, remove_extra=False):
             role_administrator, role_system_administrator)
 
 
-def sync_parameters(parameter_definitions, dry_run=False, remove_extra=False):
+def sync_parameters(parameter_definitions, dry_run=False, update_existing=False, remove_extra=False):
     """
     Sync Parameter objects.
 
@@ -1240,12 +1240,12 @@ def sync_parameters(parameter_definitions, dry_run=False, remove_extra=False):
 
         if current_value != desired_value:
             click.secho(
-                f"  [~] {'Would update' if dry_run else 'Updated'}: {key}",
+                f"  [~] {'Would update' if (dry_run or not update_existing) else 'Updated'}: {key}",
                 fg="yellow",
             )
             click.echo(f"      - value: '{current_value}' → '{desired_value}'")
 
-            if not dry_run:
+            if not (dry_run or not update_existing):
                 obj.value = desired_value
                 obj.save()
 
@@ -1288,7 +1288,7 @@ def sync_parameters(parameter_definitions, dry_run=False, remove_extra=False):
         click.secho("\nParameter sync complete.", fg="green")
 
 
-def installDefaultParameters(dry_run=False, remove_extra=False):
+def installDefaultParameters(dry_run=False, update_existing=False, remove_extra=False):
     click.echo("Installing parameters...")
 
     site_name = 'Site-X'
@@ -1304,7 +1304,7 @@ def installDefaultParameters(dry_run=False, remove_extra=False):
         'medium_location': 'Media_%s' % site_name,
     }
 
-    sync_parameters(parameter_definitions, dry_run=dry_run, remove_extra=remove_extra)
+    sync_parameters(parameter_definitions, dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
 
     return 0
 
@@ -1449,7 +1449,7 @@ def installDefaultUsers():
     return 0
 
 
-def sync_paths(path_definitions, dry_run=False, remove_extra=False):
+def sync_paths(path_definitions, dry_run=False, update_existing=False, remove_extra=False):
     """
     Sync cmPath objects.
 
@@ -1528,12 +1528,12 @@ def sync_paths(path_definitions, dry_run=False, remove_extra=False):
 
         if current_value != desired_value:
             click.secho(
-                f"  [~] {'Would update' if dry_run else 'Updated'}: {key}",
+                f"  [~] {'Would update' if (dry_run or not update_existing) else 'Updated'}: {key}",
                 fg="yellow",
             )
             click.echo(f"      - value: '{current_value}' → '{desired_value}'")
 
-            if not dry_run:
+            if not (dry_run or not update_existing):
                 obj.value = desired_value
                 obj.save()
 
@@ -1576,7 +1576,7 @@ def sync_paths(path_definitions, dry_run=False, remove_extra=False):
         click.secho("\nPath sync complete.", fg="green")
 
 
-def installDefaultPaths(dry_run=False, remove_extra=False):
+def installDefaultPaths(dry_run=False, update_existing=False, remove_extra=False):
     click.echo("Installing paths...")
 
     path_definitions = {
@@ -1599,7 +1599,7 @@ def installDefaultPaths(dry_run=False, remove_extra=False):
         'export': (Path(settings.DATA_DIR) / 'export').as_posix(),
     }
 
-    sync_paths(path_definitions, dry_run=dry_run, remove_extra=remove_extra)
+    sync_paths(path_definitions, dry_run=dry_run, update_existing=update_existing, remove_extra=remove_extra)
 
     return 0
 

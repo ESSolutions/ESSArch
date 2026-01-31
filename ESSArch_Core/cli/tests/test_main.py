@@ -20,7 +20,7 @@ class CLITest(SimpleTestCase):
 
         with mock.patch('ESSArch_Core.cli.main.dj_call_command') as cmd:
             result = runner.invoke(migrate)
-            cmd.assert_called_once_with('migrate', interactive=False, verbosity=1)
+            cmd.assert_called_once_with('migrate', interactive=False, verbosity=1, plan=False)
             self.assertEqual(result.exit_code, 0)
 
     def test_devserver(self):
