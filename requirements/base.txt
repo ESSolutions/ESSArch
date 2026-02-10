@@ -1,5 +1,5 @@
 asgiref==3.9.1
-boto3==1.42.27
+boto3==1.42.45
 celery[tblib]==5.6.2
 cffi==2.0.0
 channels==4.3.2
@@ -9,7 +9,7 @@ click==8.3.1
 cryptography==45.0.7
 daphne==4.2.1
 dj-rest-auth[with-social]==7.0.1
-django==5.2.10
+django==5.2.11
 django-allauth==65.11.1
 django-cors-headers==4.9.0
 django-countries-plus==2.2.0
@@ -43,14 +43,15 @@ lxml==6.0.2
 msoffcrypto-tool==5.4.2
 natsort==8.4.0
 opf-fido==1.6.1
-pyfakefs==6.0.0
+pyfakefs==6.1.1
 python-dateutil==2.8.2
 pywin32==311 ; platform_system=='Windows'
-redis==7.1.0
-regex==2025.11.3
+redis==7.1.1
+regex==2026.1.15
 requests==2.32.4
 requests-toolbelt==1.0.0
-tenacity==9.1.2
+setuptools==81.0.0
+tenacity==9.1.4
 wand==0.6.13
 warcio==1.7.4
 weasyprint==52.5
