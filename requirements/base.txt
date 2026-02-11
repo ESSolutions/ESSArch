@@ -6,7 +6,7 @@ channels==4.3.2
 channels-redis==4.3.0
 chardet==5.1.0
 click==8.3.1
-cryptography==45.0.7
+cryptography==46.0.5
 daphne==4.2.1
 dj-rest-auth[with-social]==7.0.1
 django==5.2.11
